@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,19 +21,16 @@
 
 module Node_Component_Spheroid_Very_Simple
   !% Implements a very simple spheroid component.
-  use :: Dark_Matter_Halo_Scales            , only : darkMatterHaloScaleClass
-  use :: Dark_Matter_Profiles_DMO           , only : darkMatterProfileDMOClass
-  use :: Satellite_Merging_Mass_Movements   , only : mergerMassMovementsClass
-  use :: Star_Formation_Feedback_Spheroids  , only : starFormationFeedbackSpheroidsClass
-  use :: Star_Formation_Timescales_Spheroids, only : starFormationTimescaleSpheroidsClass
-  use :: Stellar_Population_Properties      , only : stellarPopulationPropertiesClass
+  use :: Dark_Matter_Halo_Scales         , only : darkMatterHaloScaleClass
+  use :: Dark_Matter_Profiles_DMO        , only : darkMatterProfileDMOClass
+  use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
+  use :: Stellar_Population_Properties   , only : stellarPopulationPropertiesClass
   implicit none
   private
-  public :: Node_Component_Spheroid_Very_Simple_Thread_Initialize         , Node_Component_Spheroid_Very_Simple_Rate_Compute       , &
+  public :: Node_Component_Spheroid_Very_Simple_Thread_Initialize         , Node_Component_Spheroid_Very_Simple_Post_Step          , &
        &    Node_Component_Spheroid_Very_Simple_Scale_Set                 , Node_Component_Spheroid_Very_Simple_Thread_Uninitialize, &
        &    Node_Component_Spheroid_Very_Simple_Initialize                , Node_Component_Spheroid_Very_Simple_Pre_Evolve         , &
-       &    Node_Component_Spheroid_Very_Simple_Rates                     , Node_Component_Spheroid_Very_Simple_Radius_Solver      , &
-       &    Node_Component_Spheroid_Very_Simple_Radius_Solver_Plausibility, Node_Component_Spheroid_Very_Simple_Post_Step
+       &    Node_Component_Spheroid_Very_Simple_Radius_Solver_Plausibility, Node_Component_Spheroid_Very_Simple_Radius_Solver
 
   !# <component>
   !#  <class>spheroid</class>
@@ -73,13 +70,6 @@ module Node_Component_Spheroid_Very_Simple
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true"  />
   !#     <output unitsInSI="massSolar" comment="Mass of metals in the gas phase of the very simple spheroid."/>
-  !#   </property>
-  !#   <property>
-  !#     <name>starFormationRate</name>
-  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" createIfNeeded="true" isVirtual="true" />
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <output condition="[[spheroidOutputStarFormationRate]]" unitsInSI="massSolar/gigaYear" comment="Spheroid star formation rate."/>
   !#   </property>
   !#   <property>
   !#     <name>stellarPropertiesHistory</name>
@@ -123,17 +113,14 @@ module Node_Component_Spheroid_Very_Simple
   !# </component>
 
   ! Objects used by this component.
-  class(stellarPopulationPropertiesClass    ), pointer :: stellarPopulationProperties_
-  class(starFormationFeedbackSpheroidsClass ), pointer :: starFormationFeedbackSpheroids_
-  class(darkMatterHaloScaleClass            ), pointer :: darkMatterHaloScale_
-  class(darkMatterProfileDMOClass           ), pointer :: darkMatterProfileDMO_
-  class(starFormationTimescaleSpheroidsClass), pointer :: starFormationTimescaleSpheroids_
-  class(mergerMassMovementsClass            ), pointer :: mergerMassMovements_
-  !$omp threadprivate(stellarPopulationProperties_,starFormationFeedbackSpheroids_,darkMatterHaloScale_,starFormationTimescaleSpheroids_,darkMatterProfileDMO_,mergerMassMovements_)
+  class(darkMatterHaloScaleClass        ), pointer :: darkMatterHaloScale_
+  class(darkMatterProfileDMOClass       ), pointer :: darkMatterProfileDMO_
+  class(mergerMassMovementsClass        ), pointer :: mergerMassMovements_
+  class(stellarPopulationPropertiesClass), pointer :: stellarPopulationProperties_
+  !$omp threadprivate(darkMatterHaloScale_,darkMatterProfileDMO_,mergerMassMovements_,stellarPopulationProperties_)
 
   ! Parameters controlling the physical implementation.
-  double precision :: spheroidOutflowTimescaleMinimum    , spheroidStarFormationTimescaleMinimum, &
-       &              spheroidVerySimpleMassScaleAbsolute, spheroidMassToleranceAbsolute
+  double precision :: spheroidMassToleranceAbsolute      , spheroidVerySimpleMassScaleAbsolute
   logical          :: spheroidVerySimpleTrackAbundances  , spheroidVerySimpleTrackLuminosities
 
 contains
@@ -143,65 +130,38 @@ contains
   !# </nodeComponentInitializationTask>
   subroutine Node_Component_Spheroid_Very_Simple_Initialize(parameters_)
     !% Initializes the tree node very simple spheroid component module.
-    use :: Galacticus_Nodes, only : defaultSpheroidComponent, nodeComponentSpheroidVerySimple
+    use :: Galacticus_Nodes, only : defaultSpheroidComponent
     use :: Input_Parameters, only : inputParameter          , inputParameters
     implicit none
-    type(inputParameters                ), intent(inout) :: parameters_
-    type(nodeComponentSpheroidVerySimple)                :: spheroidVerySimpleComponent
+    type(inputParameters), intent(inout) :: parameters_
 
     ! Initialize the module if necessary.
     if (defaultSpheroidComponent%verySimpleIsActive()) then
        ! Read parameters controlling the physical implementation.
        !# <inputParameter>
        !#   <name>spheroidVerySimpleMassScaleAbsolute</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>100.0d0</defaultValue>
        !#   <description>The absolute mass scale below which calculations in the very simple spheroid component are allowed to become inaccurate.</description>
        !#   <source>parameters_</source>
-       !#   <type>double</type>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>spheroidOutflowTimescaleMinimum</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>1.0d-3</defaultValue>
-       !#   <description>The minimum timescale (in units of the halo dynamical time) on which outflows may deplete gas in the spheroid.</description>
-       !#   <source>parameters_</source>
-       !#   <type>double</type>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>spheroidStarFormationTimescaleMinimum</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>1.0d-3</defaultValue>
-       !#   <description>The minimum timescale (in units of the halo dynamical time) on which star formation may occur in the spheroid.</description>
-       !#   <source>parameters_</source>
-       !#   <type>double</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>spheroidVerySimpleTrackAbundances</name>
-       !#   <cardinality>0..1</cardinality>
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>Specifies whether or not to track abundances in the very simple spheroid component.</description>
        !#   <source>parameters_</source>
-       !#   <type>boolean</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>spheroidVerySimpleTrackLuminosities</name>
-       !#   <cardinality>0..1</cardinality>
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>Specifies whether or not to track stellar luminosities in the very simple disk component.</description>
        !#   <source>parameters_</source>
-       !#   <type>boolean</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>spheroidMassToleranceAbsolute</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d-6</defaultValue>
        !#   <description>The mass tolerance used to judge whether the spheroid is physically plausible.</description>
        !#   <source>parameters_</source>
-       !#   <type>double</type>
        !# </inputParameter>
-       ! Bind the star formation rate function.
-       call spheroidVerySimpleComponent%starFormationRateFunction(Node_Component_Spheroid_Very_Simple_SFR)
     end if
     return
   end subroutine Node_Component_Spheroid_Very_Simple_Initialize
@@ -211,8 +171,8 @@ contains
   !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Spheroid_Very_Simple_Thread_Initialize(parameters_)
     !% Initializes the tree node very simple satellite module.
-    use :: Events_Hooks    , only : satelliteMergerEvent    , postEvolveEvent, openMPThreadBindingAtLevel, dependencyRegEx, &
-         &                          dependencyDirectionAfter
+    use :: Events_Hooks    , only : dependencyDirectionAfter, dependencyRegEx, openMPThreadBindingAtLevel, postEvolveEvent, &
+          &                         satelliteMergerEvent
     use :: Galacticus_Nodes, only : defaultSpheroidComponent
     use :: Input_Parameters, only : inputParameter          , inputParameters
     implicit none
@@ -223,12 +183,10 @@ contains
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
        call postEvolveEvent     %attach(defaultSpheroidComponent,postEvolve     ,openMPThreadBindingAtLevel,label='nodeComponentSpheroidVerySimple'                          )
        call satelliteMergerEvent%attach(defaultSpheroidComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentSpheroidVerySimple',dependencies=dependencies)
-       !# <objectBuilder class="darkMatterHaloScale"             name="darkMatterHaloScale_"             source="parameters_"/>
-       !# <objectBuilder class="darkMatterProfileDMO"            name="darkMatterProfileDMO_"            source="parameters_"/>
-       !# <objectBuilder class="stellarPopulationProperties"     name="stellarPopulationProperties_"     source="parameters_"/>
-       !# <objectBuilder class="starFormationFeedbackSpheroids"  name="starFormationFeedbackSpheroids_"  source="parameters_"/>
-       !# <objectBuilder class="starFormationTimescaleSpheroids" name="starFormationTimescaleSpheroids_" source="parameters_"/>
-       !# <objectBuilder class="mergerMassMovements"             name="mergerMassMovements_"             source="parameters_"/>
+       !# <objectBuilder class="darkMatterHaloScale"         name="darkMatterHaloScale_"         source="parameters_"/>
+       !# <objectBuilder class="darkMatterProfileDMO"        name="darkMatterProfileDMO_"        source="parameters_"/>
+       !# <objectBuilder class="stellarPopulationProperties" name="stellarPopulationProperties_" source="parameters_"/>
+       !# <objectBuilder class="mergerMassMovements"         name="mergerMassMovements_"         source="parameters_"/>
     end if
     return
   end subroutine Node_Component_Spheroid_Very_Simple_Thread_Initialize
@@ -238,19 +196,17 @@ contains
   !# </nodeComponentThreadUninitializationTask>
   subroutine Node_Component_Spheroid_Very_Simple_Thread_Uninitialize()
     !% Uninitializes the tree node very simple satellite module.
-    use :: Events_Hooks    , only : satelliteMergerEvent    , postEvolveEvent
+    use :: Events_Hooks    , only : postEvolveEvent         , satelliteMergerEvent
     use :: Galacticus_Nodes, only : defaultSpheroidComponent
     implicit none
 
     if (defaultSpheroidComponent%verySimpleIsActive()) then
        call postEvolveEvent     %detach(defaultSpheroidComponent,postEvolve     )
        call satelliteMergerEvent%detach(defaultSpheroidComponent,satelliteMerger)
-       !# <objectDestructor name="darkMatterHaloScale_"            />
-       !# <objectDestructor name="darkMatterProfileDMO_"           />
-       !# <objectDestructor name="stellarPopulationProperties_"    />
-       !# <objectDestructor name="starFormationFeedbackSpheroids_" />
-       !# <objectDestructor name="starFormationTimescaleSpheroids_"/>
-       !# <objectDestructor name="mergerMassMovements_"            />
+       !# <objectDestructor name="darkMatterHaloScale_"         />
+       !# <objectDestructor name="darkMatterProfileDMO_"        />
+       !# <objectDestructor name="stellarPopulationProperties_" />
+       !# <objectDestructor name="mergerMassMovements_"         />
     end if
     return
   end subroutine Node_Component_Spheroid_Very_Simple_Thread_Uninitialize
@@ -260,7 +216,7 @@ contains
   !# </preEvolveTask>
   subroutine Node_Component_Spheroid_Very_Simple_Pre_Evolve(node)
     !% Ensure the spheroid has been initialized.
-    use :: Galacticus_Nodes, only : nodeComponentSpheroid, nodeComponentSpheroidVerySimple, treeNode, defaultSpheroidComponent
+    use :: Galacticus_Nodes, only : defaultSpheroidComponent, nodeComponentSpheroid, nodeComponentSpheroidVerySimple, treeNode
     implicit none
     type (treeNode             ), intent(inout), pointer :: node
     class(nodeComponentSpheroid)               , pointer :: spheroid
@@ -288,7 +244,7 @@ contains
     class(nodeComponentSpheroid), pointer       :: spheroid
     class(nodeComponentBasic   ), pointer       :: basic
     type (history              )                :: stellarPropertiesHistory
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
     
     ! Get the spheroid component.
     spheroid => node%spheroid()
@@ -309,12 +265,12 @@ contains
   !# </postStepTask>
   subroutine Node_Component_Spheroid_Very_Simple_Post_Step(node,status)
     !% Catch rounding errors in the very simple spheroid gas evolution.
-    use :: Abundances_Structure          , only : abs                       , zeroAbundances
-    use :: FGSL                          , only : FGSL_Failure
-    use :: Galacticus_Display            , only : Galacticus_Display_Message, verbosityWarn
-    use :: Galacticus_Nodes              , only : nodeComponentSpheroid     , nodeComponentSpheroidVerySimple, treeNode    , defaultSpheroidComponent
-    use :: ISO_Varying_String            , only : varying_string            , assignment(=)                  , operator(//)
-    use :: Stellar_Luminosities_Structure, only : abs                       , zeroStellarLuminosities
+    use :: Abundances_Structure          , only : abs                     , zeroAbundances
+    use :: Display                       , only : displayMessage          , verbosityLevelWarn
+    use :: Galacticus_Nodes              , only : defaultSpheroidComponent, nodeComponentSpheroid  , nodeComponentSpheroidVerySimple, treeNode
+    use :: ISO_Varying_String            , only : assignment(=)           , operator(//)           , varying_string
+    use :: Interface_GSL                 , only : GSL_Failure
+    use :: Stellar_Luminosities_Structure, only : abs                     , zeroStellarLuminosities
     use :: String_Handling               , only : operator(//)
     implicit none
     type            (treeNode              ), intent(inout), pointer :: node
@@ -359,7 +315,7 @@ contains
                 message=message//'  Negative masses are due to numerical inaccuracy in the ODE solutions.'//char(10)
                 message=message//'  If significant, consider using a higher tolerance in the ODE solver.'
              end if
-             call Galacticus_Display_Message(message,verbosityWarn)
+             call displayMessage(message,verbosityLevelWarn)
              ! Store the new maximum fractional error.
              fractionalErrorMaximum=fractionalError
           end if
@@ -375,7 +331,7 @@ contains
           ! Reset the gas mass of the spheroid.
           call spheroid%      massGasSet(         0.0d0)
           call spheroid%abundancesGasSet(zeroAbundances)
-          status=FGSL_Failure
+          status=GSL_Failure
        end if
     end select
     return
@@ -410,143 +366,16 @@ contains
     return
   end subroutine Node_Component_Spheroid_Very_Simple_Create
 
-  !# <rateComputeTask>
-  !#  <unitName>Node_Component_Spheroid_Very_Simple_Rate_Compute</unitName>
-  !# </rateComputeTask>
-  subroutine Node_Component_Spheroid_Very_Simple_Rate_Compute(node,odeConverged,interrupt,interruptProcedureReturn,propertyType)
-    !% Compute the very simple spheroid node mass rate of change.
-    use :: Abundances_Structure          , only : abundances
-    use :: Galacticus_Nodes              , only : defaultSpheroidComponent       , interruptTask       , nodeComponentHotHalo, nodeComponentSpheroid, &
-          &                                       nodeComponentSpheroidVerySimple, propertyTypeInactive, treeNode
-    use :: Histories                     , only : history
-    use :: Stellar_Luminosities_Structure, only : stellarLuminosities
-    implicit none
-    type            (treeNode             ), intent(inout), pointer :: node
-    logical                                , intent(in   )          :: odeConverged
-    class           (nodeComponentSpheroid)               , pointer :: spheroid
-    class           (nodeComponentHotHalo )               , pointer :: hotHalo
-    logical                                , intent(inout)          :: interrupt
-    procedure       (interruptTask        ), intent(inout), pointer :: interruptProcedureReturn
-    integer                                , intent(in   )          :: propertyType
-    procedure       (interruptTask        )               , pointer :: interruptProcedure
-    double precision                                                :: stellarMassRate         , fuelMassRate         , &
-         &                                                             massOutflowRate
-    type            (history              )                         :: stellarHistoryRate
-    type            (abundances           )                         :: fuelAbundancesRate      , stellarAbundancesRate, &
-         &                                                             abundancesOutflowRate
-    type            (stellarLuminosities  ), save                   :: luminositiesStellarRates
-    !$omp threadprivate(luminositiesStellarRates)
-    !GCC$ attributes unused :: odeConverged
-
-    ! Return immediately if inactive variables are requested.
-    if (propertyType == propertyTypeInactive) return
-    ! Return immediately if this class is not in use.
-    if (.not.defaultSpheroidComponent%verySimpleIsActive()) return
-    ! Get a local copy of the interrupt procedure.
-    interruptProcedure => interruptProcedureReturn
-    ! Get the spheroid and check that it is of our class.
-    spheroid => node%spheroid()
-    select type (spheroid)
-    class is (nodeComponentSpheroidVerySimple)
-       ! Check for a realistic spheroid, return immediately if spheroid is unphysical.
-       if (spheroid%massGas() < 0.0d0) return
-       ! Interrupt if the spheroid is not initialized.
-       if (.not.spheroid%isInitialized()) then
-          interrupt=.true.
-          interruptProcedureReturn => Node_Component_Spheroid_Very_Simple_Create
-          return
-       end if
-       ! Get rates.
-       call Node_Component_Spheroid_Very_Simple_Rates(node,fuelMassRate,fuelAbundancesRate,stellarMassRate,stellarAbundancesRate,massOutflowRate,stellarHistoryRate,luminositiesStellarRates)
-       ! Adjust rates.
-       call                                          spheroid%             massStellarRate(         stellarMassRate)
-       call                                          spheroid%                 massGasRate(            fuelMassRate)
-       if (spheroidVerySimpleTrackAbundances) then
-          call                                       spheroid%       abundancesStellarRate(   stellarAbundancesRate)
-          call                                       spheroid%           abundancesGasRate(      fuelAbundancesRate)
-       end if
-       if (spheroidVerySimpleTrackLuminosities) call spheroid%     luminositiesStellarRate(luminositiesStellarRates)
-       if (stellarHistoryRate%exists()        ) call spheroid%stellarPropertiesHistoryRate(      stellarHistoryRate)
-       if (massOutflowRate > 0.0d0) then
-          ! Push to the hot halo.
-          hotHalo               => node%hotHalo      ()
-          call    hotHalo %      outflowingMassRate(+      massOutflowRate)
-          call    spheroid%             massGasRate(-      massOutflowRate)
-          if (spheroidVerySimpleTrackAbundances) then
-             abundancesOutflowRate =  spheroid%abundancesGas()
-             call abundancesOutflowRate%massToMassFraction(spheroid%massGas())
-             abundancesOutflowRate =abundancesOutflowRate*massOutflowRate
-             call spheroid%       abundancesGasRate(-abundancesOutflowRate)
-             call hotHalo %outflowingAbundancesRate(+abundancesOutflowRate)
-          end if
-       end if
-    end select
-    ! Return the procedure pointer.
-    interruptProcedureReturn => interruptProcedure
-    return
-  end subroutine Node_Component_Spheroid_Very_Simple_Rate_Compute
-
-  subroutine Node_Component_Spheroid_Very_Simple_Rates(node,fuelMassRate,fuelAbundancesRate,stellarMassRate,stellarAbundancesRate,massOutflowRate,stellarHistoryRate,luminositiesStellarRates)
-    !% Compute rates.
-    use :: Abundances_Structure          , only : abundances           , zeroAbundances
-    use :: Galacticus_Nodes              , only : nodeComponentSpheroid, nodeComponentSpheroidVerySimple, treeNode
-    use :: Histories                     , only : history
-    use :: Stellar_Luminosities_Structure, only : stellarLuminosities
-    implicit none
-    type            (treeNode             ), intent(inout), pointer :: node
-    type            (history              ), intent(inout)          :: stellarHistoryRate
-    double precision                       , intent(  out)          :: fuelMassRate            , stellarMassRate      , &
-         &                                                             massOutflowRate
-    type            (abundances           ), intent(  out)          :: fuelAbundancesRate      , stellarAbundancesRate
-    type            (stellarLuminosities  ), intent(inout)          :: luminositiesStellarRates
-    class           (nodeComponentSpheroid)               , pointer :: spheroid
-    double precision                                                :: spheroidDynamicalTime   , fuelMass             , &
-         &                                                             energyInputRate         , starFormationRate
-    type            (abundances           )                         :: fuelAbundances
-
-    ! Get the spheroid.
-    spheroid => node%spheroid()
-    ! Initialize to zero rates.
-    fuelMassRate         =0.0d0
-    stellarMassRate      =0.0d0
-    massOutflowRate      =0.0d0
-    fuelAbundancesRate   =zeroAbundances
-    stellarAbundancesRate=zeroAbundances
-    ! Check for a realistic spheroid, return immediately if spheroid is unphysical.
-    if (spheroid%massGas() <= 0.0d0) return
-    ! Compute fuel abundances.
-    fuelAbundances=spheroid%abundancesGas()
-    call fuelAbundances%massToMassFraction(spheroid%massGas())
-    ! Compute the star formation rate.
-    select type (spheroid)
-    class is (nodeComponentSpheroidVerySimple)
-       starFormationRate=Node_Component_Spheroid_Very_Simple_SFR(spheroid)
-    end select
-    ! Find rates of change of stellar mass, and gas mass.
-    stellarHistoryRate=spheroid%stellarPropertiesHistory()
-    call stellarPopulationProperties_%rates(starFormationRate,fuelAbundances,spheroid,node,stellarHistoryRate&
-            &,stellarMassRate,fuelMassRate,energyInputRate,fuelAbundancesRate,stellarAbundancesRate,luminositiesStellarRates,computeRateLuminosityStellar=.true.)
-    ! Find rate of outflow of material from the spheroid and pipe it to the outflowed reservoir.
-    massOutflowRate=starFormationFeedbackSpheroids_%outflowRate(node,energyInputRate,starFormationRate)
-    if (massOutflowRate > 0.0d0) then
-       ! Limit the outflow rate timescale to a multiple of the dynamical time.
-       fuelMass             =spheroid            %massGas           (    )
-       spheroidDynamicalTime=darkMatterHaloScale_%dynamicalTimescale(node)
-       massOutflowRate      =min(massOutflowRate,fuelMass/spheroidOutflowTimescaleMinimum/spheroidDynamicalTime)
-    end if
-    return
-  end subroutine Node_Component_Spheroid_Very_Simple_Rates
-
   !# <scaleSetTask>
   !#  <unitName>Node_Component_Spheroid_Very_Simple_Scale_Set</unitName>
   !# </scaleSetTask>
   subroutine Node_Component_Spheroid_Very_Simple_Scale_Set(node)
     !% Set scales for properties of {\normalfont \ttfamily node}.
-    use :: Abundances_Structure          , only : abs                  , abundances                     , max                , unitAbundances          , &
+    use :: Abundances_Structure          , only : abs                     , abundances           , max                            , unitAbundances         , &
           &                                       zeroAbundances
-    use :: Galacticus_Nodes              , only : nodeComponentSpheroid, nodeComponentSpheroidVerySimple, treeNode           , defaultSpheroidComponent
+    use :: Galacticus_Nodes              , only : defaultSpheroidComponent, nodeComponentSpheroid, nodeComponentSpheroidVerySimple, treeNode
     use :: Histories                     , only : history
-    use :: Stellar_Luminosities_Structure, only : abs                  , max                            , stellarLuminosities, unitStellarLuminosities
+    use :: Stellar_Luminosities_Structure, only : abs                     , max                  , stellarLuminosities            , unitStellarLuminosities
     implicit none
     type            (treeNode             ), intent(inout), pointer :: node
     class           (nodeComponentSpheroid)               , pointer :: spheroid
@@ -590,12 +419,12 @@ contains
 
   subroutine satelliteMerger(self,node)
     !% Transfer any very simple spheroid associated with {\normalfont \ttfamily node} to its host halo.
-    use :: Abundances_Structure                , only : zeroAbundances
-    use :: Galacticus_Error                    , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes                    , only : nodeComponentDisk       , nodeComponentSpheroid    , nodeComponentSpheroidVerySimple, treeNode
-    use :: Histories                           , only : history
-    use :: Satellite_Merging_Mass_Movements    , only : destinationMergerDisk   , destinationMergerSpheroid, destinationMergerUnmoved
-    use :: Stellar_Luminosities_Structure      , only : zeroStellarLuminosities
+    use :: Abundances_Structure            , only : zeroAbundances
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes                , only : nodeComponentDisk      , nodeComponentSpheroid    , nodeComponentSpheroidVerySimple, treeNode
+    use :: Histories                       , only : history
+    use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk  , destinationMergerSpheroid, destinationMergerUnmoved
+    use :: Stellar_Luminosities_Structure  , only : zeroStellarLuminosities
     implicit none
     class  (*                    ), intent(inout) :: self
     type   (treeNode             ), intent(inout) :: node
@@ -607,7 +436,7 @@ contains
     integer                                       :: destinationGasSatellite, destinationGasHost       , &
          &                                           destinationStarsHost   , destinationStarsSatellite
     logical                                       :: mergerIsMajor
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Get the spheroid component, creating it if need be.
     spheroid => node%spheroid(autoCreate=.true.)
@@ -819,30 +648,6 @@ contains
     end select
     return
   end subroutine satelliteMerger
-
-  double precision function Node_Component_Spheroid_Very_Simple_SFR(self)
-    !% Return the star formation rate of the very simple spheroid.
-    use :: Galacticus_Nodes, only : nodeComponentSpheroidVerySimple
-    implicit none
-    class           (nodeComponentSpheroidVerySimple), intent(inout) :: self
-    double precision                                                 :: spheroidDynamicalTime           , gasMass, &
-         &                                                              starFormationTimescale
-
-    ! Get the gas mass.
-    gasMass=self%massGas()
-    ! Get the star formation timescale.
-    starFormationTimescale=starFormationTimescaleSpheroids_%timescale(self%hostNode)
-    ! Limit the star formation timescale to a multiple of the dynamical time.
-    spheroidDynamicalTime =darkMatterHaloScale_%dynamicalTimescale(self%hostNode)
-    starFormationTimescale=max(starFormationTimescale,spheroidStarFormationTimescaleMinimum*spheroidDynamicalTime)
-    ! If timescale is finite and gas mass is positive, then compute star formation rate.
-    if (starFormationTimescale > 0.0d0 .and. gasMass > 0.0d0) then
-       Node_Component_Spheroid_Very_Simple_SFR=gasMass/starFormationTimescale
-    else
-       Node_Component_Spheroid_Very_Simple_SFR=0.0d0
-    end if
-    return
-  end function Node_Component_Spheroid_Very_Simple_SFR
 
   !# <radiusSolverPlausibility>
   !#  <unitName>Node_Component_Spheroid_Very_Simple_Radius_Solver_Plausibility</unitName>

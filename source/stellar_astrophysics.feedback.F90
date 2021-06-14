@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,7 +27,9 @@ module Stellar_Feedback
   !# <functionClass>
   !#  <name>stellarFeedback</name>
   !#  <descriptiveName>Stellar Feedback</descriptiveName>
-  !#  <description>Class providing models of stellar feedback.</description>
+  !#  <description>
+  !#   Class providing models of stellar feedback.
+  !#  </description>
   !#  <default>standard</default>
   !#  <method name="energyInputCumulative" >
   !#   <description>Return the cumulative energy input from a stellar population of the given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age}, and {\normalfont \ttfamily metallicity}.</description>

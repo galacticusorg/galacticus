@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -24,7 +24,13 @@
   use :: Tables                 , only : table1D                 , table1DLogarithmicLinear
 
   !# <hotHaloMassDistributionCoreRadius name="hotHaloMassDistributionCoreRadiusGrowing">
-  !#  <description>Provides an implementation of the hot halo mass distribution core radius class in which the core grows as the hot halo content is depleted.</description>
+  !#  <description>
+  !#   A hot halo mass distribution core radius class which implements a core radius equal to a fraction {\normalfont \ttfamily
+  !#   [coreRadiusOverScaleRadius]} of the node's dark matter profile scale radius for nodes containing a mass of hot gas equal to
+  !#   the universal baryon fraction times their total mass. For nodes containing less hot gas mass, the core radius is expanded
+  !#   to maintain the same gas density at the virial radius, with a maximum core radius of {\normalfont \ttfamily
+  !#   [coreRadiusOverVirialRadiusMaximum]} times the node's virial radius.
+  !#  </description>
   !# </hotHaloMassDistributionCoreRadius>
   type, extends(hotHaloMassDistributionCoreRadiusClass) :: hotHaloMassDistributionCoreRadiusGrowing
      !% An implementation of the hot halo mass distribution core radius class in which the core grows as the hot halo content is depleted.
@@ -67,19 +73,15 @@ contains
 
     !# <inputParameter>
     !#   <name>coreRadiusOverScaleRadius</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.1d0</defaultValue>
     !#   <description>The core radius in the hot halo density profile in units of the dark matter profile scale radius.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>coreRadiusOverVirialRadiusMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>10.0d0</defaultValue>
     !#   <description>The maximum core radius in the ``growing'' hot halo density profile in units of the virial radius.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>

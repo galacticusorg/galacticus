@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -56,11 +56,9 @@ contains
 
     !# <inputParameter>
     !#   <name>name</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The name of the parameter.</description>
     !#   <defaultValue>var_str('')</defaultValue>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     self=modelParameterInactive(name)
      !# <inputParametersValidate source="parameters"/>
@@ -93,7 +91,7 @@ contains
     implicit none
     class           (modelParameterInactive), intent(inout) :: self
     double precision                        , intent(in   ) :: x
-    !GCC$ attributes unused :: self, x
+    !$GLC attributes unused :: self, x
 
     inactiveLogPrior=0.0d0
     call Galacticus_Error_Report('parameter is inactive'//{introspection:location})
@@ -105,7 +103,7 @@ contains
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(modelParameterInactive), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     inactivePriorSample=0.0d0
     call Galacticus_Error_Report('parameter is inactive'//{introspection:location})
@@ -118,7 +116,7 @@ contains
     implicit none
     class           (modelParameterInactive), intent(inout) :: self
     double precision                        , intent(in   ) :: f
-    !GCC$ attributes unused :: self, f
+    !$GLC attributes unused :: self, f
 
     inactivePriorInvert=0.0d0
     call Galacticus_Error_Report('parameter is inactive'//{introspection:location})
@@ -130,7 +128,7 @@ contains
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(modelParameterInactive), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     inactivePriorMinimum=0.0d0
     call Galacticus_Error_Report('parameter is inactive'//{introspection:location})
@@ -142,7 +140,7 @@ contains
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(modelParameterInactive), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     inactivePriorMaximum=0.0d0
     call Galacticus_Error_Report('parameter is inactive'//{introspection:location})
@@ -154,7 +152,7 @@ contains
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(modelParameterInactive), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     inactiveRandomPerturbation=0.0d0
     call Galacticus_Error_Report('parameter is inactive'//{introspection:location})
@@ -167,7 +165,7 @@ contains
     implicit none
     class           (modelParameterInactive), intent(inout) :: self
     double precision                        , intent(in   ) :: x
-    !GCC$ attributes unused :: self, x
+    !$GLC attributes unused :: self, x
 
     inactiveMap=0.0d0
     call Galacticus_Error_Report('parameter is inactive'//{introspection:location})
@@ -180,7 +178,7 @@ contains
     implicit none
     class           (modelParameterInactive), intent(inout) :: self
     double precision                        , intent(in   ) :: x
-    !GCC$ attributes unused :: self, x
+    !$GLC attributes unused :: self, x
 
     inactiveUnmap=0.0d0
     call Galacticus_Error_Report('parameter is inactive'//{introspection:location})

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -58,8 +58,6 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The parameter ``$f$'' which defines the scale of the Gaussian window.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     self = powerSpectrumWindowFunctionLagrangianChan2017(cosmologyParameters_,f)
@@ -153,7 +151,7 @@ contains
     class           (powerSpectrumWindowFunctionLagrangianChan2017), intent(inout) :: self
     double precision                                               , intent(in   ) :: smoothingMass
     double precision                                               , parameter     :: wavenumberLarge=huge(1.0d0) ! Effective infinity.
-    !GCC$ attributes unused :: self, smoothingMass
+    !$GLC attributes unused :: self, smoothingMass
 
     lagrangianChan2017WavenumberMaximum=wavenumberLarge
     return

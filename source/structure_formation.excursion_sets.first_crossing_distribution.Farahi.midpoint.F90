@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -69,15 +69,14 @@ contains
 
   double precision function farahiMidpointProbability(self,variance,time,node)
     !% Return the excursion set barrier at the given variance and time.
-    use :: Error_Functions        , only : erfApproximate
-    use :: File_Utilities         , only : File_Lock                  , File_Unlock                        , lockDescriptor
-    use :: Galacticus_Display     , only : Galacticus_Display_Counter , Galacticus_Display_Counter_Clear   , Galacticus_Display_Indent, Galacticus_Display_Message, &
-          &                                Galacticus_Display_Unindent, verbosityWorking
-    use :: Kind_Numbers           , only : kind_dble                  , kind_quad
-    use :: MPI_Utilities          , only : mpiBarrier                 , mpiSelf
-    use :: Memory_Management      , only : allocateArray              , deallocateArray
-    use :: Numerical_Interpolation, only : Interpolate_Done           , Interpolate_Linear_Generate_Factors, Interpolate_Locate
-    use :: Numerical_Ranges       , only : Make_Range                 , rangeTypeLogarithmic               , rangeTypeLinear
+    use :: Display          , only : displayCounter , displayCounterClear  , displayIndent       , displayMessage, &
+          &                          displayUnindent, verbosityLevelWorking
+    use :: Error_Functions  , only : erfApproximate
+    use :: File_Utilities   , only : File_Lock      , File_Unlock          , lockDescriptor
+    use :: Kind_Numbers     , only : kind_dble      , kind_quad
+    use :: MPI_Utilities    , only : mpiBarrier     , mpiSelf
+    use :: Memory_Management, only : allocateArray  , deallocateArray
+    use :: Numerical_Ranges , only : Make_Range     , rangeTypeLinear      , rangeTypeLogarithmic
     implicit none
     class           (excursionSetFirstCrossingFarahiMidpoint), intent(inout)                 :: self
     double precision                                         , intent(in   )                 :: variance                     , time
@@ -154,17 +153,17 @@ contains
 #ifdef USEMPI
        if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
 #endif
-          call Galacticus_Display_Indent("solving for excursion set barrier crossing probabilities",verbosityWorking)
+          call displayIndent("solving for excursion set barrier crossing probabilities",verbosityLevelWorking)
           message="    time: "
           write (label,'(f6.3)') self%timeMinimum
           message=message//label//" to "
           write (label,'(f6.3)') self%timeMaximum
           message=message//label
-          call Galacticus_Display_Message(message,verbosityWorking)
+          call displayMessage(message,verbosityLevelWorking)
           message="variance: "
           write (label,'(f9.3)') self%varianceMaximum
           message=message//label
-          call Galacticus_Display_Message(message,verbosityWorking)
+          call displayMessage(message,verbosityLevelWorking)
 #ifdef USEMPI
        end if
 #endif
@@ -187,7 +186,11 @@ contains
        barrierTest=self%excursionSetBarrier_%barrier(self%varianceMaximum,self%timeMaximum,node,rateCompute=.false.)
        !$omp parallel private(iTime,i,j,sigma1f,integralKernel,excursionSetBarrier_,barrierTable,barrierMidTable) if (.not.mpiSelf%isActive() .or. .not.self%coordinatedMPI_)
        allocate(excursionSetBarrier_,mold=self%excursionSetBarrier_)
+       !$omp critical(excursionSetsSolverFarahiMidpointDeepCopy)
+       !# <deepCopyReset variables="self%excursionSetBarrier_"/>
        !# <deepCopy source="self%excursionSetBarrier_" destination="excursionSetBarrier_"/>
+       !# <deepCopyFinalize variables="excursionSetBarrier_"/>
+       !$omp end critical(excursionSetsSolverFarahiMidpointDeepCopy)
        call allocateArray(barrierTable   ,[1+self%varianceTableCount],lowerBounds=[0])
        call allocateArray(barrierMidTable,[1+self%varianceTableCount],lowerBounds=[0])
        !$omp do schedule(dynamic)
@@ -225,7 +228,7 @@ contains
 #ifdef USEMPI
              if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
 #endif
-                call Galacticus_Display_Counter(int(100.0d0*dble(loopCount)/dble(loopCountTotal)),loopCount==0,verbosityWorking)
+                call displayCounter(int(100.0d0*dble(loopCount)/dble(loopCountTotal)),loopCount==0,verbosityLevelWorking)
 #ifdef USEMPI
              end if
 #endif
@@ -295,8 +298,8 @@ contains
 #ifdef USEMPI
        if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
 #endif
-          call Galacticus_Display_Counter_Clear(verbosityWorking)
-          call Galacticus_Display_Unindent("done",verbosityWorking)
+          call displayCounterClear(verbosityLevelWorking)
+          call displayUnindent("done",verbosityLevelWorking)
 #ifdef USEMPI
        end if
        if (self%coordinatedMPI_) then
@@ -304,11 +307,13 @@ contains
           self%firstCrossingProbabilityTable=mpiSelf%sum(self%firstCrossingProbabilityTable)
        end if
 #endif
-       ! Reset the interpolators.
-       call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorVariance,reset=self%interpolationResetVariance)
-       call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorTime    ,reset=self%interpolationResetTime    )
-       self%interpolationResetVariance=.true.
-       self%interpolationResetTime    =.true.
+       ! Build the interpolators.
+       if (allocated(self%interpolatorVariance)) deallocate(self%interpolatorVariance)
+       if (allocated(self%interpolatorTime    )) deallocate(self%interpolatorTime    )
+       allocate(self%interpolatorVariance)
+       allocate(self%interpolatorTime    )
+       self%interpolatorVariance=interpolator(self%varianceTable)
+       self%interpolatorTime    =interpolator(self%timeTable    )
        ! Record that the table is now built.
        self%tableInitialized=.true.
        ! Write the table to file if possible.
@@ -326,12 +331,9 @@ contains
     end if
     !$omp end critical(farahiMidpointProbabilityTabulate)
     end if
-    ! Get interpolation in time.
-    iTime    =Interpolate_Locate                 (self%timeTable    ,self%interpolationAcceleratorTime    ,time    ,reset=self%interpolationResetTime    )
-    hTime    =Interpolate_Linear_Generate_Factors(self%timeTable    ,iTime    ,time    )
-    ! Get interpolation in variance.
-    iVariance=Interpolate_Locate                 (self%varianceTable,self%interpolationAcceleratorVariance,variance,reset=self%interpolationResetVariance)
-    hVariance=Interpolate_Linear_Generate_Factors(self%varianceTable,iVariance,variance)
+    ! Get interpolating factors.
+    call self%interpolatorTime%linearFactors    (time    ,iTime    ,hTime    )
+    call self%interpolatorVariance%linearFactors(variance,iVariance,hVariance)
     ! Compute first crossing probability by interpolating.
     farahiMidpointProbability=0.0d0
     do jTime=0,1
@@ -347,15 +349,14 @@ contains
 
   subroutine farahiMidpointRateTabulate(self,varianceProgenitor,time,node)
     !% Tabulate the excursion set crossing rate.
-    use :: Error_Functions        , only : erfApproximate
-    use :: File_Utilities         , only : File_Lock                  , File_Unlock                     , lockDescriptor
-    use :: Galacticus_Display     , only : Galacticus_Display_Counter , Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Message, &
-          &                                Galacticus_Display_Unindent, verbosityWorking
-    use :: Kind_Numbers           , only : kind_dble                  , kind_quad
-    use :: MPI_Utilities          , only : mpiBarrier                 , mpiSelf
-    use :: Memory_Management      , only : allocateArray              , deallocateArray
-    use :: Numerical_Interpolation, only : Interpolate_Done
-    use :: Numerical_Ranges       , only : Make_Range                 , rangeTypeLinear                 , rangeTypeLogarithmic
+    use :: Display          , only : displayCounter , displayCounterClear  , displayIndent       , displayMessage, &
+          &                          displayUnindent, verbosityLevelWorking
+    use :: Error_Functions  , only : erfApproximate
+    use :: File_Utilities   , only : File_Lock      , File_Unlock          , lockDescriptor
+    use :: Kind_Numbers     , only : kind_dble      , kind_quad
+    use :: MPI_Utilities    , only : mpiBarrier     , mpiSelf
+    use :: Memory_Management, only : allocateArray  , deallocateArray
+    use :: Numerical_Ranges , only : Make_Range     , rangeTypeLinear      , rangeTypeLogarithmic
     implicit none
     class           (excursionSetFirstCrossingFarahiMidpoint), intent(inout)                   :: self
     double precision                                         , intent(in   )                   :: time                             , varianceProgenitor
@@ -452,8 +453,12 @@ contains
           ! scales).
           allocate(excursionSetBarrier_     ,mold=self%excursionSetBarrier_     )
           allocate(cosmologicalMassVariance_,mold=self%cosmologicalMassVariance_)
+          !$omp critical(excursionSetsSolverFarahiMidpointDeepCopy)
+          !# <deepCopyReset variables="self%excursionSetBarrier_ self%cosmologicalMassVariance_"/>
           !# <deepCopy source="self%excursionSetBarrier_"      destination="excursionSetBarrier_"     />
           !# <deepCopy source="self%cosmologicalMassVariance_" destination="cosmologicalMassVariance_"/>
+          !# <deepCopyFinalize variables="excursionSetBarrier_ cosmologicalMassVariance_"/>
+          !$omp end critical(excursionSetsSolverFarahiMidpointDeepCopy)
           growthFactorEffective          =+cosmologicalMassVariance_%rootVariance(massLarge,self%timeMaximumRate                                ) &
                &                          /cosmologicalMassVariance_%rootVariance(massLarge,self%timeMaximumRate*(1.0d0-self%timeStepFractional))
           varianceMinimumRate            =min(                                                                                                                      &
@@ -513,17 +518,17 @@ contains
 #ifdef USEMPI
           if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
 #endif
-             call Galacticus_Display_Indent("solving for excursion set barrier crossing rates",verbosityWorking)
+             call displayIndent("solving for excursion set barrier crossing rates",verbosityLevelWorking)
              message="    time: "
              write (label,'(f6.3)') self%timeMinimumRate
              message=message//label//" to "
              write (label,'(f6.3)') self%timeMaximumRate
              message=message//label
-             call Galacticus_Display_Message(message,verbosityWorking)
+             call displayMessage(message,verbosityLevelWorking)
              message="variance: "
              write (label,'(f9.3)') self%varianceMaximumRate
              message=message//label
-             call Galacticus_Display_Message(message,verbosityWorking)
+             call displayMessage(message,verbosityLevelWorking)
 #ifdef USEMPI
           end if
 #endif
@@ -553,8 +558,12 @@ contains
           !$omp parallel private(iTime,timeProgenitor,iVariance,varianceTableStepRate,i,j,sigma1f,integralKernelRate,crossingFraction,barrier,effectiveBarrierInitial,firstCrossingTableRateQuad,excursionSetBarrier_,cosmologicalMassVariance_,barrierTableRateQuad,barrierMidTableRateQuad,massProgenitor,growthFactorEffective) if (.not.mpiSelf%isActive() .or. .not.self%coordinatedMPI_)
           allocate(excursionSetBarrier_     ,mold=self%excursionSetBarrier_     )
           allocate(cosmologicalMassVariance_,mold=self%cosmologicalMassVariance_)
+          !$omp critical(excursionSetsSolverFarahiMidpointDeepCopy)
+          !# <deepCopyReset variables="self%excursionSetBarrier_ self%cosmologicalMassVariance_"/>
           !# <deepCopy source="self%excursionSetBarrier_"      destination="excursionSetBarrier_"     />
           !# <deepCopy source="self%cosmologicalMassVariance_" destination="cosmologicalMassVariance_"/>
+          !# <deepCopyFinalize variables="excursionSetBarrier_ cosmologicalMassVariance_"/>
+          !$omp end critical(excursionSetsSolverFarahiMidpointDeepCopy)
           call allocateArray(barrierTableRateQuad   ,[self%varianceTableCountRate])
           call allocateArray(barrierMidTableRateQuad,[self%varianceTableCountRate])
           do iTime=1,self%timeTableCountRate
@@ -574,7 +583,7 @@ contains
 #ifdef USEMPI
                 if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
 #endif
-                   call Galacticus_Display_Counter(int(100.0d0*dble(loopCount)/dble(loopCountTotal)),loopCount==0,verbosityWorking)
+                   call displayCounter(int(100.0d0*dble(loopCount)/dble(loopCountTotal)),loopCount==0,verbosityLevelWorking)
 #ifdef USEMPI
                 end if
 #endif
@@ -729,8 +738,8 @@ contains
 #ifdef USEMPI
           if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
 #endif
-             call Galacticus_Display_Counter_Clear(       verbosityWorking)
-             call Galacticus_Display_Unindent     ("done",verbosityWorking)
+             call displayCounterClear(       verbosityLevelWorking)
+             call displayUnindent     ("done",verbosityLevelWorking)
 #ifdef USEMPI
           end if
           if (self%coordinatedMPI_) then
@@ -739,13 +748,16 @@ contains
              self%  nonCrossingTableRate=mpiSelf%sum(self%  nonCrossingTableRate)
           end if
 #endif
-          ! Reset the interpolators.
-          call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorVarianceRate    ,reset=self%interpolationResetVarianceRate    )
-          call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorVarianceRateBase,reset=self%interpolationResetVarianceRateBase)
-          call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorTimeRate        ,reset=self%interpolationResetTimeRate        )
-          self%interpolationResetVarianceRate    =.true.
-          self%interpolationResetVarianceRateBase=.true.
-          self%interpolationResetTimeRate        =.true.
+          ! Build the interpolators.
+          if (allocated(self%interpolatorVarianceRate    )) deallocate(self%interpolatorVarianceRate    )
+          if (allocated(self%interpolatorVarianceRateBase)) deallocate(self%interpolatorVarianceRateBase)
+          if (allocated(self%interpolatorTimeRate        )) deallocate(self%interpolatorTimeRate        )
+          allocate(self%interpolatorVarianceRate    )
+          allocate(self%interpolatorVarianceRateBase)
+          allocate(self%interpolatorTimeRate        )
+          self%interpolatorVarianceRate    =interpolator(self%varianceTableRate    )
+          self%interpolatorVarianceRateBase=interpolator(self%varianceTableRateBase)
+          self%interpolatorTimeRate        =interpolator(self%timeTableRate        )
           ! Set previous variance and time to unphysical values to force recompute of interpolation factors on next call.
           self%varianceRatePrevious=-1.0d0
           self%timeRatePrevious    =-1.0d0

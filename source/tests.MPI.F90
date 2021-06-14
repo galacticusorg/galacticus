@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,20 +21,20 @@
 
 program Test_MPI
   !% Tests of MPI functions.
-  use   , intrinsic :: ISO_C_Binding     , only : c_size_t
-  use               :: Unit_Tests        , only : Assert                    , Unit_Tests_Begin_Group        , Unit_Tests_End_Group, Unit_Tests_Finish
-  use               :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level_Set, verbosityStandard
-  !$ use            :: OMP_Lib           , only : OMP_Get_Max_Threads
+  use   , intrinsic :: ISO_C_Binding, only : c_size_t
+  use               :: Unit_Tests   , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group  , Unit_Tests_Finish
+  use               :: Display      , only : displayMessage     , displayVerbositySet   , verbosityLevelStandard
+  !$ use            :: OMP_Lib      , only : OMP_Get_Max_Threads
 #ifdef USEMPI
-  use               :: MPI               , only : MPI_Thread_Multiple
-  use               :: MPI_Utilities     , only : mpiBarrier                , mpiCounter                    , mpiFinalize         , mpiInitialize    , &
-          &                                       mpiSelf
+  use               :: MPI          , only : MPI_Thread_Multiple
+  use               :: MPI_Utilities, only : mpiBarrier         , mpiCounter            , mpiFinalize           , mpiInitialize    , &
+          &                                  mpiSelf
   implicit none
   type   (mpiCounter) :: counter
   integer(c_size_t  ) :: i
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
 
   call mpiInitialize(MPI_Thread_Multiple)
   if (mpiSelf%rank() == 0) call Unit_Tests_Begin_Group("MPI")
@@ -57,6 +57,6 @@ program Test_MPI
   end if
   call mpiFinalize()
 #else
-  call Galacticus_Display_Message('SKIPPED: code was not compiled for MPI')
+  call displayMessage('SKIPPED: code was not compiled for MPI')
 #endif
 end program Test_MPI

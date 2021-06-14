@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -25,7 +25,7 @@ module Numerical_Integration2
   public :: integrand1D                                     , integrandVectorized1D                          , &
        &    integratorCompositeTrapezoidal1D                , integratorVectorizedCompositeTrapezoidal1D     , &
        &    integratorAdaptiveCompositeTrapezoidal1D        , integratorCompositeGaussKronrod1D              , &
-       &    integratorVectorizedCompositeGaussKronrod1D     , integrator                                     , &
+       &    integratorVectorizedCompositeGaussKronrod1D     , integrator2                                    , &
        &    integrator1D                                    , integratorVectorized1D                         , &
        &    integratorMulti1D                               , integratorMultiVectorized1D                    , &
        &    integratorMultiVectorizedCompositeGaussKronrod1D, integrandMulti1D                               , &
@@ -55,43 +55,26 @@ module Numerical_Integration2
   end type intervalMultiList
 
   ! Generic integrator.
-  type :: integrator
+  type :: integrator2
      !% Generic numerical integrator class.
      double precision :: toleranceAbsolute, toleranceRelative
    contains
-     !@ <objectMethods>
-     !@   <object>integrator</object>
-     !@   <objectMethod>
-     !@     <method>toleranceSet</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ [toleranceAbsolute]\argin, \doublezero\ [toleranceRelative]\argin</arguments>
-     !@     <description>Set tolerances to use in this integrator.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Set tolerances to use in this integrator." method="toleranceSet" />
+     !# </methods>
      procedure :: toleranceSet => toleranceSetGeneric
-  end type integrator
+  end type integrator2
 
   ! Generic one-dimensional integrator.
-  type, abstract, extends(integrator) :: integrator1D
+  type, abstract, extends(integrator2) :: integrator1D
      !% Generic one-dimensional numerical integrator class.
      private
      procedure       (integrand1D), pointer, nopass :: integrand
    contains
-     !@ <objectMethods>
-     !@   <object>integrator1D</object>
-     !@   <objectMethod>
-     !@     <method>integrandSet</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless procedure(\doublezero\ (\doublezero\ x\argin))\textgreater}\ integrand\argin</arguments>
-     !@     <description>Set the integrand function to be integrated.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>evaluate</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ a\argin, \doublezero\ b,\argin</arguments>
-     !@     <description>Evaluate the integral.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Set the integrand function to be integrated." method="integrandSet" />
+     !#   <method description="Evaluate the integral." method="evaluate" />
+     !# </methods>
      procedure                       :: integrandSet => integrandSet1D
      procedure(evaluate1D), deferred :: evaluate
   end type integrator1D
@@ -114,15 +97,9 @@ module Numerical_Integration2
      private
      integer :: iterationsMaximum
    contains
-     !@ <objectMethods>
-     !@   <object>integratorCompositeTrapezoidal1D</object>
-     !@   <objectMethod>
-     !@     <method>initialize</method>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ iterationsMaximum\argin</arguments>
-     !@     <description>Set the maximum number of iterations allowed in the integrator.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Set the maximum number of iterations allowed in the integrator." method="initialize" />
+     !# </methods>
      procedure :: initialize => compositeTrapezoidalInitialize1D
      procedure :: evaluate   => compositeTrapezoidalEvaluate1D
   end type integratorCompositeTrapezoidal1D
@@ -142,41 +119,24 @@ module Numerical_Integration2
      integer                                     :: iterationsMaximum
      double precision, allocatable, dimension(:) :: xKronrod         , wGauss, wKronrod
    contains
-     !@ <objectMethods>
-     !@   <object>integratorCompositeGaussKronrod1D</object>
-     !@   <objectMethod>
-     !@     <method>initialize</method>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ iterationsMaximum\argin, \intzero\ order\argin</arguments>
-     !@     <description>Initialize the integrator.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>evaluateInterval</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ a\argin, \doublezero\ b\argin, \doublezero\ integralKronrod\argout, \doublezero\ error\argout</arguments>
-     !@     <description>Evaluate the integral over an interval and also return the error on the integral.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Initialize the integrator." method="initialize" />
+     !#   <method description="Evaluate the integral over an interval and also return the error on the integral." method="evaluateInterval" />
+     !# </methods>
      procedure :: initialize       => compositeGaussKronrod1DInitialize
      procedure :: evaluate         => compositeGaussKronrod1DEvaluate
      procedure :: evaluateInterval => compositeGaussKronrod1DEvaluateInterval
   end type integratorCompositeGaussKronrod1D
 
   ! Generic one-dimensional vectorized integrator.
-  type, abstract, extends(integrator) :: integratorVectorized1D
+  type, abstract, extends(integrator2) :: integratorVectorized1D
      !% Generic one-dimensional vectorized numerical integrator class.
      private
      procedure       (integrandVectorized1D), pointer, nopass :: integrand
    contains
-     !@ <objectMethods>
-     !@   <object>integratorVectorized1D</object>
-     !@   <objectMethod>
-     !@     <method>integrandSet</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless \doubleone\ function(doubleone\ x\argin)\textgreater}\ integrand\argin</arguments>
-     !@     <description>Set the integrand function to be integrated.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Set the integrand function to be integrated." method="integrandSet" />
+     !# </methods>
      procedure                                 :: integrandSet => integrandVectorizedSet1D
      procedure(evaluateVectorized1D), deferred :: evaluate
   end type integratorVectorized1D
@@ -201,21 +161,10 @@ module Numerical_Integration2
      integer                                     :: iterationsMaximum
      double precision, allocatable, dimension(:) :: d
    contains
-     !@ <objectMethods>
-     !@   <object>integratorVectorizedCompositeTrapezoidal1D</object>
-     !@   <objectMethod>
-     !@     <method>initialize</method>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ iterationsMaximum\argin</arguments>
-     !@     <description>Set the maximum number of iterations allowed in the integrator.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>evaluate</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ a\argin, \doublezero\ b,\argin</arguments>
-     !@     <description>Evaluate the integral.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Set the maximum number of iterations allowed in the integrator." method="initialize" />
+     !#   <method description="Evaluate the integral." method="evaluate" />
+     !# </methods>
      procedure :: initialize => vectorizedCompositeTrapezoidalInitialize1D
      procedure :: evaluate   => vectorizedCompositeTrapezoidalEvaluate1D
   end type integratorVectorizedCompositeTrapezoidal1D
@@ -227,27 +176,11 @@ module Numerical_Integration2
      integer                                     :: iterationsMaximum
      double precision, allocatable, dimension(:) :: xKronrod         , wGauss, wKronrod
    contains
-     !@ <objectMethods>
-     !@   <object>integratorVectorizedCompositeGaussKronrod1D</object>
-     !@   <objectMethod>
-     !@     <method>initialize</method>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ iterationsMaximum\argin, \intzero\ order\argin</arguments>
-     !@     <description>Set the maximum number of iterations allowed, and the order of the integrator.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>evaluate</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ a\argin, \doublezero\ b,\argin</arguments>
-     !@     <description>Evaluate the integral.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>evaluateInterval</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ a\argin, \doublezero\ b\argin, \doublezero\ integralKronrod\argout, \doublezero\ error\argout</arguments>
-     !@     <description>Evaluate the integral over an interval and also return the error on the integral.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Set the maximum number of iterations allowed, and the order of the integrator." method="initialize" />
+     !#   <method description="Evaluate the integral." method="evaluate" />
+     !#   <method description="Evaluate the integral over an interval and also return the error on the integral." method="evaluateInterval" />
+     !# </methods>
      procedure :: initialize       => vectorizedCompositeGaussKronrod1DInitialize
      procedure :: evaluate         => vectorizedCompositeGaussKronrod1DEvaluate
      procedure :: evaluateInterval => vectorizedCompositeGaussKronrod1DEvaluateInterval
@@ -258,15 +191,9 @@ module Numerical_Integration2
      !% Generic numerical integrator class.
      double precision, allocatable, dimension(:) :: toleranceAbsolute, toleranceRelative
    contains
-     !@ <objectMethods>
-     !@   <object>integratorMulti</object>
-     !@   <objectMethod>
-     !@     <method>tolerancesSet</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doubleone\ [toleranceAbsolute]\argin, \doubleone\ [toleranceRelative]\argin</arguments>
-     !@     <description>Set tolerances to use in this integrator.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Set tolerances to use in this integrator." method="tolerancesSet" />
+     !# </methods>
      final     ::                  integratorMultiDestructor
      procedure :: tolerancesSet => tolerancesSetGeneric
   end type integratorMulti
@@ -278,21 +205,10 @@ module Numerical_Integration2
      integer                                      :: integrandCount
      procedure(integrandMulti1D), pointer, nopass :: integrand
    contains
-     !@ <objectMethods>
-     !@   <object>integratorMulti1D</object>
-     !@   <objectMethod>
-     !@     <method>integrandSet</method>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ integrandCount\argin, \textcolor{red}{\textless procedure(\doublezero\ (\doublezero\ x\argin))\textgreater}\ integrand\argin</arguments>
-     !@     <description>Set the integrand function to be integrated.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>evaluate</method>
-     !@     <type>\doubleone</type>
-     !@     <arguments>\doublezero\ a\argin, \doublezero\ b,\argin</arguments>
-     !@     <description>Evaluate the integral.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Set the integrand function to be integrated." method="integrandSet" />
+     !#   <method description="Evaluate the integral." method="evaluate" />
+     !# </methods>
      procedure                            :: integrandSet => integrandMulti1DSet
      procedure(evaluateMulti1D), deferred :: evaluate
   end type integratorMulti1D
@@ -321,15 +237,9 @@ module Numerical_Integration2
      integer                                                :: integrandCount
      procedure(integrandMultiVectorized1D), pointer, nopass :: integrand
    contains
-     !@ <objectMethods>
-     !@   <object>integratorMultiVectorized1D</object>
-     !@   <objectMethod>
-     !@     <method>integrandSet</method>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ integrandCount\argin, \textcolor{red}{\textless \doubleone\ function(doubleone\ x\argin)\textgreater}\ integrand\argin</arguments>
-     !@     <description>Set the integrand function to be integrated.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Set the integrand function to be integrated." method="integrandSet" />
+     !# </methods>
      procedure                                      :: integrandSet => integrandMultiVectorizedSet1D
      procedure(evaluateMultiVectorized1D), deferred :: evaluate
   end type integratorMultiVectorized1D
@@ -358,27 +268,11 @@ module Numerical_Integration2
      integer                                     :: intervalsMaximum
      double precision, allocatable, dimension(:) :: xKronrod         , wGauss, wKronrod
    contains
-     !@ <objectMethods>
-     !@   <object>integratorMultiVectorizedCompositeGaussKronrod1D</object>
-     !@   <objectMethod>
-     !@     <method>initialize</method>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ intervalsMaximum\argin, \intzero\ order\argin</arguments>
-     !@     <description>Set the maximum number of intervals allowed, and the order of the integrator.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>evaluate</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ a\argin, \doublezero\ b\argin, \doubleone\ integral\argout</arguments>
-     !@     <description>Evaluate the integrals.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>evaluateInterval</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ a\argin, \doublezero\ b\argin, \doubleone\ integralKronrod\argout, \doubleone\ error\argout</arguments>
-     !@     <description>Evaluate the integrals over an interval and also return errors on the integrals.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Set the maximum number of intervals allowed, and the order of the integrator." method="initialize" />
+     !#   <method description="Evaluate the integrals." method="evaluate" />
+     !#   <method description="Evaluate the integrals over an interval and also return errors on the integrals." method="evaluateInterval" />
+     !# </methods>
      procedure :: initialize       => multiVectorizedCompositeGaussKronrod1DInitialize
      procedure :: evaluate         => multiVectorizedCompositeGaussKronrod1DEvaluate
      procedure :: evaluateInterval => multiVectorizedCompositeGaussKronrod1DEvaluateInterval
@@ -390,21 +284,10 @@ module Numerical_Integration2
      private
      integer :: intervalsMaximum
    contains
-     !@ <objectMethods>
-     !@   <object>integratorMultiVectorizedCompositeTrapezoidal1D</object>
-     !@   <objectMethod>
-     !@     <method>initialize</method>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ intervalsMaximum\argin</arguments>
-     !@     <description>Set the maximum number of intervals allowed.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>evaluate</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ a\argin, \doublezero\ b\argin, \doubleone\ integral\argout</arguments>
-     !@     <description>Evaluate the integrals.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Set the maximum number of intervals allowed." method="initialize" />
+     !#   <method description="Evaluate the integrals." method="evaluate" />
+     !# </methods>
      procedure :: initialize => multiVectorizedCompositeTrapezoidal1DInitialize
      procedure :: evaluate   => multiVectorizedCompositeTrapezoidal1DEvaluate
   end type integratorMultiVectorizedCompositeTrapezoidal1D
@@ -416,8 +299,8 @@ contains
     !% Initialize the tolerances for numerical integrators.
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    class           (integrator), intent(inout)           :: self
-    double precision            , intent(in   ), optional :: toleranceAbsolute,toleranceRelative
+    class           (integrator2), intent(inout)           :: self
+    double precision             , intent(in   ), optional :: toleranceAbsolute,toleranceRelative
 
     if (.not.(present(toleranceAbsolute).or.present(toleranceRelative)))                                 &
          &  call Galacticus_Error_Report(                                                                &
@@ -1276,10 +1159,10 @@ contains
             & +newInterval1%error                     &
             & +newInterval2%error
        ! Test for convergence.
-       converged=                                                                              &
-            &  abs(error) < self%toleranceAbsolute                                             &
-            & .or.                                                                             &
-            &  abs(error) < self%toleranceRelative*abs(adaptiveCompositeTrapezoidalEvaluate1D)
+       converged=                                                                               &
+            &  abs(error) <= self%toleranceAbsolute                                             &
+            & .or.                                                                              &
+            &  abs(error) <= self%toleranceRelative*abs(adaptiveCompositeTrapezoidalEvaluate1D)
        ! Destroy the old interval.
        deallocate(current)
        ! Insert the new intervals into our stack.
@@ -1636,7 +1519,7 @@ contains
     !% Evaluate a one-dimension integral using a numerical composite Gauss-Kronrod rule.
     use            :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail, errorStatusSuccess
     use, intrinsic :: ISO_C_Binding   , only : c_size_t
-    use            :: Sort            , only : Sort_Index_Do
+    use            :: Sorting         , only : sortIndex
     implicit none
     class           (integratorMultiVectorizedCompositeGaussKronrod1D), intent(inout)                              :: self
     double precision                                                  , intent(in   )                              :: a                , b
@@ -1753,7 +1636,7 @@ contains
              listValue(iInterval)           =  maxval(newInterval%error/errorScale,mask=.not.converged)
              newInterval                    =>        newInterval%next
           end do
-          listRank    =  Sort_Index_Do(listValue)
+          listRank    =  sortIndex(listValue)
           head        => list(listRank(intervalCount))%interval_
           newInterval => head
           do iInterval=2_c_size_t,intervalCount
@@ -1958,12 +1841,12 @@ contains
 
   function multiVectorizedCompositeTrapezoidal1DEvaluate(self,a,b,status) result(integral)
     !% Evaluate a one-dimension integral using a numerical composite trapezoidal rule.
-    use            :: Galacticus_Display, only : Galacticus_Display_Indent     , Galacticus_Display_Message, Galacticus_Display_Unindent, Galacticus_Verbosity_Level, &
-          &                                      Galacticus_Verbosity_Level_Set, verbosityStandard
-    use            :: Galacticus_Error  , only : Galacticus_Error_Report       , errorStatusFail           , errorStatusSuccess
+    use            :: Display           , only : displayIndent          , displayMessage        , displayUnindent   , displayVerbosity, &
+          &                                      displayVerbositySet    , verbosityLevelStandard
+    use            :: Galacticus_Error  , only : Galacticus_Error_Report, errorStatusFail       , errorStatusSuccess
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
-    use            :: ISO_Varying_String, only : assignment(=)                 , operator(//)              , varying_string
-    use            :: Sort              , only : Sort_Index_Do
+    use            :: ISO_Varying_String, only : assignment(=)          , operator(//)          , varying_string
+    use            :: Sorting           , only : sortIndex
     implicit none
     class           (integratorMultiVectorizedCompositeTrapezoidal1D), intent(inout)                                :: self
     double precision                                                 , intent(in   )                                :: a                                      , b
@@ -1991,9 +1874,11 @@ contains
          &                                                                                                             errorMaximum
     integer         (c_size_t                                       )                                               :: iInterval                              , intervalCount                        , &
          &                                                                                                             i                                      , indexStart                           , &
-         &                                                                                                             indexEnd                               , indexMidpoint
+         &                                                                                                             indexEnd                               , indexMidpoint                        , &
+         &                                                                                                             integralCount
     type            (varying_string                                 )                                               :: message
     character       (len=32                                         )                                               :: label
+    logical                                                                                                         :: precisionLost
     !$GLC attributes initialized :: previous
 
     ! If the interval has zero size, return a zero result.
@@ -2033,7 +1918,8 @@ contains
          & .or.                                                &
          &  abs(error) <= self%toleranceRelative*abs(integral)
     ! Iterate until convergence is reached.
-    do while (.not.all(converged) .and. intervalCount < self%intervalsMaximum)
+    precisionLost=.false.
+    do while (.not.all(converged) .and. intervalCount < self%intervalsMaximum .and. .not.precisionLost)
        ! Bisect the head interval. By construction, this will always be the interval with the largest absolute error.
        current       => head      ! Pop the head from the list.
        head          => head%next
@@ -2067,9 +1953,9 @@ contains
             &  .or.                 &
             &   midpoint==current%b &
             & ) then
-          if (Galacticus_Verbosity_Level() < verbosityStandard) call Galacticus_Verbosity_Level_Set(verbosityStandard)
-          call Galacticus_Display_Indent('integration failure:')
-          call Galacticus_Display_Indent('current intervals:')
+          if (displayVerbosity() < verbosityLevelStandard .and. .not.present(status)) call displayVerbositySet(verbosityLevelStandard)
+          call displayIndent('integration failure:')
+          call displayIndent('current intervals:')
           message="a/b/(b-a)       ="
           write (label,'(e32.12)') a
           message=message//" "  //label
@@ -2077,13 +1963,13 @@ contains
           message=message//"/"  //label
           write (label,'(e32.12)') b-a
           message=message//"/(" //label//")"
-          call Galacticus_Display_Message(message)
+          call displayMessage(message)
           message="a/b : f(a)/f(b) ="
           write (label,'(e32.12)') current%a
           message=message//" "  //label
           write (label,'(e32.12)') current%b
           message=message//"/"  //label
-          call Galacticus_Display_Message(message)
+          call displayMessage(message)
           do i=1,size(current%fa)
              message="  (i="
              write (label,'(i12)') i
@@ -2094,16 +1980,17 @@ contains
              message=message//"/"  //label
              write (label,'(l1)') converged(i)
              message=message//" (converged="//adjustl(trim(label))//")"
-             call Galacticus_Display_Message(message)
+             call displayMessage(message)
           end do
-          current => head
+          integralCount =  size(current%fa)
+          current       =>      head
           do while (associated(current))
              message="a/b : f(a)/f(b) ="
              write (label,'(e32.12)') current%a
              message=message//" "  //label
              write (label,'(e32.12)') current%b
              message=message//"/"  //label
-             call Galacticus_Display_Message(message)
+             call displayMessage(message)
              do i=1,size(current%fa)
                 message="  (i="
                 write (label,'(i12)') i
@@ -2114,13 +2001,14 @@ contains
                 message=message//"/"  //label
                 write (label,'(l1)') converged(i)
                 message=message//" (converged="//adjustl(trim(label))//")"
-                call Galacticus_Display_Message(message)
+                call displayMessage(message)
              end do
              current  => current%next
           end do
-          call Galacticus_Display_Unindent('done')
-          call Galacticus_Display_Indent  ('current integrals:')
-          do i=1,size(current%fa)
+          call displayUnindent('done')
+          call displayIndent  ('current integrals:')
+          current => searchStart
+          do i=1,integralCount
              message="integral : error  (i="
              write (label,'(i12)') i
              message=message//adjustl(trim(label))//")"
@@ -2130,11 +2018,13 @@ contains
              message=message//"/"  //label
              write (label,'(l1)'    ) converged(i)
              message=message//" (converged="//adjustl(trim(label))//")"
-             call Galacticus_Display_Message(message)
+             call displayMessage(message)
           end do
-          call Galacticus_Display_Unindent('done')
-          call Galacticus_Display_Unindent('done')
-          call Galacticus_Error_Report("loss of precision in integration interval"//{introspection:location})
+          call displayUnindent('done')
+          call displayUnindent('done')
+          ! Force exit.
+          precisionLost=.true.
+          exit          
        end if
        ! Evaluate the function at the midpoint of the current interval.
        mustEvaluate=.not.converged
@@ -2199,7 +2089,7 @@ contains
                 if (.not.converged(i)) listValue(iInterval)=max(listValue(iInterval),list(iInterval)%interval_%error(i)/errorScale(i))
              end do
           end do
-          listRank(1_c_size_t:intervalCount)    =  Sort_Index_Do(listValue(1_c_size_t:intervalCount))
+          listRank(1_c_size_t:intervalCount)    =  sortIndex(listValue(1_c_size_t:intervalCount))
           head        => list(listRank(intervalCount))%interval_
           newInterval => head
           do iInterval=2_c_size_t,intervalCount
@@ -2356,7 +2246,13 @@ contains
     deallocate(listRank )
     ! Report error if number of intervals was exceeded.
     if (present(status)) status=errorStatusSuccess
-    if (intervalCount >= self%intervalsMaximum .and. .not.all(converged)) then
+    if (precisionLost) then
+       if (present(status)) then
+          status=errorStatusFail
+       else
+          call Galacticus_Error_Report("loss of precision in integration interval"//{introspection:location})
+       end if
+    else if (intervalCount >= self%intervalsMaximum .and. .not.all(converged)) then
        if (present(status)) then
           status=errorStatusFail
        else

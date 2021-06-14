@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +22,40 @@
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !# <surveyGeometry name="surveyGeometryMuzzin2013ULTRAVISTA">
-  !#  <description>Implements the geometry of the ULTRAVISTA survey of \cite{muzzin_evolution_2013}.</description>
+  !#  <description>
+  !#   A survey geometry class that describes the survey geometry of \cite{muzzin_evolution_2013}. 
+  !#   
+  !#   For the angular mask, we generate a \gls{mangle} polygon file, by first defining a rectangle encompassing the bounds of the
+  !#   ULTAVISTA field ($149.373^\circ &lt; \alpha &lt; 150.779^\circ$ and $1.604^\circ &lt; \delta &lt; 2.81^\circ$). From this rectangle, we
+  !#   then remove circles of radii $75^{\prime\prime}$ around bright stars (i.e. those bright than 10$^\mathrm{th}$ and
+  !#   $8^\mathrm{th}$ magnitudes in the USNO and 2MASS star lists respectively) and radii $30^{\prime\prime}$ around medium stars
+  !#   (i.e. those bright than $13^\mathrm{th}$ and $10.5^\mathrm{th}$ magnitudes in the USNO and 2MASS star lists
+  !#   respectively). Finally, we mask regions of one detector for which 75\% of pixels are dead by clipping pixels with weights
+  !#   below $0.02$ in the K$_\mathrm{s}$-band weight map. These choices match those made in the ULTRAVISTA survey (A.~Muzzin,
+  !#   private communication). The solid angle of each mask is computed using the \gls{mangle} {\normalfont \ttfamily harmonize}
+  !#   command.
+  !#   
+  !#   To determine the depth as a function of stellar mass, we simply fit the
+  !#   \href{http://www.strw.leidenuniv.nl/galaxyevolution/ULTRAVISTA/Mstar_redshift_completeness_emp_uvista_v4.1_100.dat}{tabulated
+  !#   relations} provided by the ULTRAVISTA survey:
+  !#   \begin{equation}
+  !#   z_\mathrm{max}(M_\star) = {-8364.45 + m (4331.82 + m (-896.596 + m (92.6999 + m (-4.78750 + m (0.0988215))))) \over 1 -
+  !#   \exp[(m-11.24)/0.02] }
+  !#    \label{eq:MuzzinDepthPolynomial}
+  !#   \end{equation}
+  !#   where $m= \log_{10}(M_\star/M_\odot)$.
+  !#   
+  !#   \begin{figure}
+  !#    \begin{center}
+  !#    \includegraphics[width=85mm,trim=0mm 0mm 0mm 4mm,clip]{Plots/DataAnalysis/MuzzinULTRAVISTAMassRedshiftRelation.pdf}
+  !#    \end{center}
+  !#    \caption{The maximum distance at which a galaxy of given stellar mass can be detected in the sample of
+  !#    \protect\cite{muzzin_evolution_2013}. The dotted line shows the results obtained from the ULTRAVISTA survey
+  !#    \protect\citep{muzzin_evolution_2013}, while the solid line shows the polynomial fit to these results (given in
+  !#    eqn.~\ref{eq:MuzzinDepthPolynomial}).}
+  !#    \label{fig:MuzzinULTRAVISTADepthFit}
+  !#   \end{figure}
+  !#  </description>
   !# </surveyGeometry>
   type, extends(surveyGeometryMangle) :: surveyGeometryMuzzin2013ULTRAVISTA
      private
@@ -69,8 +102,6 @@ contains
     !#   <name>redshiftBin</name>
     !#   <source>parameters</source>
     !#   <description>The redshift bin (0, 1, 2, 3, 4, 5, or 6) of the \cite{muzzin_evolution_2013} mass function to use.</description>
-    !#   <type>integer</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     self=surveyGeometryMuzzin2013ULTRAVISTA(redshiftBin,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
@@ -142,7 +173,7 @@ contains
     !% Return the number of fields in this sample.
     implicit none
     class(surveyGeometryMuzzin2013ULTRAVISTA), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     muzzin2013ULTRAVISTAFieldCount=muzzin2013ULTRAVISTAFields
     return
@@ -154,7 +185,7 @@ contains
     class           (surveyGeometryMuzzin2013ULTRAVISTA), intent(inout)           :: self
     double precision                                    , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
     integer                                             , intent(in   ), optional :: field
-    !GCC$ attributes unused :: mass, field, magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: mass, field, magnitudeAbsolute, luminosity
 
     muzzin2013ULTRAVISTADistanceMinimum=self%binDistanceMinimum
     return
@@ -169,7 +200,7 @@ contains
     double precision                                    , intent(in   ), optional :: mass    , magnitudeAbsolute, luminosity
     integer                                             , intent(in   ), optional :: field
     double precision                                                              :: redshift, logarithmicMass
-    !GCC$ attributes unused :: field, magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: field, magnitudeAbsolute, luminosity
 
     ! Find the limiting redshift for this mass. (See
     ! constraints/dataAnalysis/stellarMassFunctions_ULTRAVISTA_z0.2_4.0/massRedshiftRelation.pl for details.)
@@ -219,13 +250,13 @@ contains
 
   function muzzin2013ULTRAVISTAMangleDirectory(self)
     !% Return the path to the directory containing \gls{mangle} files.
-    use :: Galacticus_Paths, only : galacticusPath, pathTypeExec
+    use :: Galacticus_Paths, only : galacticusPath, pathTypeDataStatic
     implicit none
     class(surveyGeometryMuzzin2013ULTRAVISTA), intent(inout) :: self
     type (varying_string                    )                :: muzzin2013ULTRAVISTAMangleDirectory
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
-    muzzin2013ULTRAVISTAMangleDirectory=galacticusPath(pathTypeExec)//"constraints/dataAnalysis/stellarMassFunctions_ULTRAVISTA_z0.2_4.0/"
+    muzzin2013ULTRAVISTAMangleDirectory=galacticusPath(pathTypeDataStatic)//"surveyGeometry/ULTRAVISTA/"
     return
   end function muzzin2013ULTRAVISTAMangleDirectory
 
@@ -234,7 +265,7 @@ contains
     implicit none
     class(surveyGeometryMuzzin2013ULTRAVISTA)                           , intent(inout) :: self
     type (varying_string                    ), allocatable, dimension(:), intent(inout) :: mangleFiles
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     allocate(mangleFiles(1))
     mangleFiles=                  &
@@ -248,7 +279,7 @@ contains
     !% Return the maximum degree for which angular power is computed for the \cite{muzzin_evolution_2013} survey.
     implicit none
     class(surveyGeometryMuzzin2013ULTRAVISTA), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     muzzin2013ULTRAVISTAAngularPowerMaximumDegree=muzzin2013AngularPowerMaximumL
     return

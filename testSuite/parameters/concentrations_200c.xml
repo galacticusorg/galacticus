@@ -3,9 +3,29 @@
 <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
-  <treeNodeMethodDarkMatterProfile value="scaleShape"/>
-  <virialDensityContrastMethod value="fixed">
+  <componentDarkMatterProfile value="scaleShape"/>
+  <virialDensityContrast value="fixed">
     <densityContrastValue value="200.0"/>
     <densityType value="critical"/>
-  </virialDensityContrastMethod>
+  </virialDensityContrast>
+  <nodeOperator value="multi"><!--Stellar feedback outflows-->
+    <nodeOperator value="stellarFeedbackDisks">
+      <stellarFeedbackOutflows value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflows value="powerLaw">
+          <velocityCharacteristic value="250.0"/>
+          <exponent value="3.5"/>
+        </stellarFeedbackOutflows>
+      </stellarFeedbackOutflows>
+    </nodeOperator>
+    <nodeOperator value="stellarFeedbackSpheroids">
+      <stellarFeedbackOutflows value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflows value="powerLaw">
+          <velocityCharacteristic value="250.0"/>
+          <exponent value="3.5"/>
+        </stellarFeedbackOutflows>
+      </stellarFeedbackOutflows>
+    </nodeOperator>
+  </nodeOperator>
 </parameters>

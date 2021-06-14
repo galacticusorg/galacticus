@@ -3,5 +3,5 @@
 <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
-  <treeNodeMethodDarkMatterProfile value="scaleShape"/>
+  <componentDarkMatterProfile value="scaleShape"/>
 </parameters>

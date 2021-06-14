@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -79,7 +79,7 @@ contains
     class           (surveyGeometryKelvin2014GAMAnear), intent(inout)           :: self
     double precision                                  , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
     integer                                           , intent(in   ), optional :: field
-    !GCC$ attributes unused :: mass, field, magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: mass, field, magnitudeAbsolute, luminosity
 
     kelvin2014GAMAnearDistanceMinimum=self%distanceMinimumSurvey
     return
@@ -93,7 +93,7 @@ contains
     double precision                                  , intent(in   ), optional :: mass           , magnitudeAbsolute, luminosity
     integer                                           , intent(in   ), optional :: field
     double precision                                                            :: logarithmicMass
-    !GCC$ attributes unused :: magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: magnitudeAbsolute, luminosity
 
     ! Validate field.
     if (present(field).and.(field < 1 .or. field > 3)) call Galacticus_Error_Report('1 ≤ field ≤ 3 required'//{introspection:location})

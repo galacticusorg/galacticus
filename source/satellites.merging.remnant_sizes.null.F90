@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,10 @@
   !% Implements a merger remnant size class which takes no action.
 
   !# <mergerRemnantSize name="mergerRemnantSizeNull">
-  !#  <description>A merger remnant size class which takes no action.</description>
+  !#  <description>
+  !#   A merger remnant size class which does nothing at all. It is useful, for example, when running \glc\ to study dark matter
+  !#   only (i.e. when no galaxy properties are computed).
+  !#  </description>
   !# </mergerRemnantSize>
   type, extends(mergerRemnantSizeClass) :: mergerRemnantSizeNull
      !% A merger remnant size class which uses takes no action.
@@ -42,7 +45,7 @@ contains
     implicit none
     type(mergerRemnantSizeNull)                :: self
     type(inputParameters      ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=mergerRemnantSizeNull()
     return
@@ -55,7 +58,7 @@ contains
     type            (treeNode             ), intent(inout) :: node
     double precision                       , intent(  out) :: radius                 , velocityCircular, &
          &                                                    angularMomentumSpecific
-    !GCC$ attributes unused :: self,node,radius,velocityCircular,angularMomentumSpecific
+    !$GLC attributes unused :: self,node,radius,velocityCircular,angularMomentumSpecific
 
     return
   end subroutine nullGet

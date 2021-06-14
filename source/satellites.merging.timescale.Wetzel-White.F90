@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,14 +17,17 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+    Contributions to this file made by:  Martin White.
+  !+    Contributions to this file made by:  Martin White.
 
   !% Implements a satellite merging timescale class which uses the \cite{wetzel_what_2010} method.
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !# <satelliteMergingTimescales name="satelliteMergingTimescalesWetzelWhite2010">
-  !#  <description>Computes the merging timescale using the method of \cite{wetzel_what_2010}.</description>
+  !#  <description>
+  !#   A satellite merging timescale class which computes merging timescales using the dynamical friction calibration of
+  !#   \cite{wetzel_what_2010}.
+  !#  </description>
   !# </satelliteMergingTimescales>
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesWetzelWhite2010
      !% A class implementing the \cite{wetzel_what_2010} method for satellite merging timescales.
@@ -55,11 +58,9 @@ contains
 
     !# <inputParameter>
     !#   <name>timescaleMultiplier</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.75d0</defaultValue>
     !#   <description>A multiplier for the merging timescale in dynamical friction timescale calculations.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     self=satelliteMergingTimescalesWetzelWhite2010(timescaleMultiplier,cosmologyFunctions_)
@@ -100,15 +101,28 @@ contains
     class           (nodeComponentBasic                       ), pointer       :: basicHost                   , basic
     double precision                                           , parameter     :: timeScaleNormalization=0.2d0        !   C_dyn from Wetzel & White (2010).
     double precision                                                           :: massRatio
-    !GCC$ attributes unused :: self, orbit
+    !$GLC attributes unused :: self, orbit
 
     ! Find the host node.
-    nodeHost  =>  node     %parent
+    if (node%isSatellite()) then
+       nodeHost => node%parent
+    else
+       nodeHost => node%parent%firstChild
+    end if
     ! Compute mass ratio.
-    basic     =>  node     %basic ()
-    basicHost =>  nodeHost %basic ()
-    massRatio =  +basicHost%mass  () &
-         &       /basic    %mass  ()
+    basic     => node    %basic ()
+    basicHost => nodeHost%basic ()
+    if (node%isSatellite()) then
+       ! Node is already a satellite in its host - compute the mass ratio directly.
+       massRatio=+basicHost%mass () &
+            &    /basic    %mass ()
+    else
+       ! Node is not yet a satellite in its host - correct the host mass to what it will be after the node becomes a satellite in the
+       ! host.
+       massRatio=+basicHost%mass () &
+            &    /basic    %mass () &
+            &    +1.0d0
+    end if
     ! Compute dynamical friction timescale using eqn. (2) from Wetzel & White (2010).
     wetzelWhite2010TimeUntilMerging=+self%timescaleMultiplier                               &
          &                          *timeScaleNormalization                                 &

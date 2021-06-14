@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,6 +27,27 @@ module Kepler_Orbits
 
   ! Effective infinite radius used for apocenters in unbound orbits.
   double precision, parameter :: radiusEffectiveInfinity=huge(1.0d0)
+
+  !# <enumeration>
+  !#  <name>keplerOrbit</name>
+  !#  <description>Properties of Kepler orbit objects.</description>
+  !#  <encodeFunction>yes</encodeFunction>
+  !#  <entry label="masses"             />
+  !#  <entry label="hostMass"           />
+  !#  <entry label="specificReducedMass"/>
+  !#  <entry label="radius"             />
+  !#  <entry label="theta"              />
+  !#  <entry label="phi"                />
+  !#  <entry label="epsilon"            />
+  !#  <entry label="radiusPericenter"   />
+  !#  <entry label="radiusApocenter"    />
+  !#  <entry label="velocityRadial"     />
+  !#  <entry label="velocityTangential" />
+  !#  <entry label="energy"             />
+  !#  <entry label="angularMomentum"    />
+  !#  <entry label="eccentricity"       />
+  !#  <entry label="semiMajorAxis"      />
+  !# </enumeration>
 
   type keplerOrbit
      !% The structure used for describing orbits in \glc. This object will automatically convert from one set of orbital
@@ -62,279 +83,49 @@ module Kepler_Orbits
      logical          :: semimajorAxisIsSet
    contains
      ! Orbit methods.
-     !@ <objectMethods>
-     !@   <object>keplerOrbit</object>
-     !@   <objectMethod>
-     !@     <method>builder</method>
-     !@     <description>Build a Kepler orbit from an XML definition.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless *type(node)\textgreater} keplerOrbitDefinition\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>dump</method>
-     !@     <description>Dump an orbit.</description>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>dumpRaw</method>
-     !@     <description>Dump an orbit in binary.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ fileHandle\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>readRaw</method>
-     !@     <description>Read an orbit in binary.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ fileHandle\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>reset</method>
-     !@     <description>Resets an orbit to a null state.</description>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>destroy</method>
-     !@     <description>Destroys an orbit.</description>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>output</method>
-     !@     <description>Store a {\normalfont \ttfamily keplerOrbit} object in the output buffers.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ integerProperty\arginout, \intzero\ integerBufferCount\arginout, \inttwo\ integerBuffer\arginout, \intzero doubleProperty\arginout, \intzero\ doubleBufferCount\arginout, \doubletwo\ doubleBuffer\arginout, \doublezero\ time\argin, \intzero\ instance\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>postOutput</method>
-     !@     <description>Perform post-output processing of a {\normalfont \ttfamily keplerOrbit} object.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ time\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>outputCount</method>
-     !@     <description>Specify the count of a {\normalfont \ttfamily keplerOrbit} object for output.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ integerPropertyCount\arginout, \intzero\ doublePropertyCount\arginout, \doublezero\ time\argin, \intzero\ instance\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>outputNames</method>
-     !@     <description>Specify the names of a {\normalfont \ttfamily keplerOrbit} object properties for output.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ integerProperty\arginout, \textcolor{red}{\textless char[*](:)\textgreater} integerPropertyNames\arginout, \textcolor{red}{\textless char[*](:)\textgreater} integerPropertyComments\arginout, \doubleone\ integerPropertyUnitsSI\arginout, \intzero\ doubleProperty\arginout, \textcolor{red}{\textless char[*](:)\textgreater} doublePropertyNames\arginout, \textcolor{red}{\textless char[*](:)\textgreater} doublePropertyComments\arginout, \doubleone\ doublePropertyUnitsSI\arginout, \doublezero\ time\argin, \intzero\ instance\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>isDefined</method>
-     !@     <description>Returns true if an orbit is fully defined.</description>
-     !@     <type>\logicalzero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>assertIsDefined</method>
-     !@     <description>Asserts that an orbit is fully defined.</description>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>isBound</method>
-     !@     <description>Returns true if the orbit is bound.</description>
-     !@     <type>\logicalzero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>propagate</method>
-     !@     <description>Propagates an orbit to a new position.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ velocityRadial\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>velocityRadialSet</method>
-     !@     <description>Sets the radial velocity of an orbit.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ newRadius\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>massesSet</method>
-     !@     <description>Sets the masses of satellite and host objects.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ satelliteMass\argin, \doublezero\ hostMass\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>radiusSet</method>
-     !@     <description>Sets the radius of an orbit.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ radius\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>thetaSet</method>
-     !@     <description>Sets the angle $\theta$ of an orbit.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ theta\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>phiSet</method>
-     !@     <description>Sets the angle $\phi$ of an orbit.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ theta\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>epsilonSet</method>
-     !@     <description>Sets the angle $\epsilon$ of an orbit.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ theta\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>radiusPericenterSet</method>
-     !@     <description>Sets the pericenter radius of an orbit.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ radius\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>radiusApocenterSet</method>
-     !@     <description>Sets the apocenter radius of an orbit.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ radius\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>velocityTangentialSet</method>
-     !@     <description>Sets the tangential velocity of an orbit.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ velocityTangential\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>energySet</method>
-     !@     <description>Sets the energy of an orbit.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ energy\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>eccentricitySet</method>
-     !@     <description>Sets the eccentricity of an orbit.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ eccentricity\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>angularMomentumSet</method>
-     !@     <description>Sets the angular momentum of an orbit.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ angularMomentum\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>semiMajorAxisSet</method>
-     !@     <description>Sets the semi-major axis of an orbit.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ semiMajorAxis\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>hostMass</method>
-     !@     <description>Returns the host mass of an orbit.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>velocityScale</method>
-     !@     <description>Returns the velocity scale of an orbit.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>specificReducedMass</method>
-     !@     <description>Returns the specific reduced mass (i.e. the reduced mass per unit satellite mass, $\mu_\mathrm{s} = M_\mathrm{host}/(M_\mathrm{satellite}+M_\mathrm{host})$) of the orbit.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>radius</method>
-     !@     <description>Returns the radius of an orbit.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>theta</method>
-     !@     <description>Returns the angle $\theta$ of an orbit.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>phi</method>
-     !@     <description>Returns the angle $\phi$ of an orbit.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>epsilon</method>
-     !@     <description>Returns the angle $\epsilon$ of an orbit.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>radiusPericenter</method>
-     !@     <description>Returns the pericenter radius of an orbit.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>radiusApocenter</method>
-     !@     <description>Returns the apocenter radius of an orbit.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>velocityRadial</method>
-     !@     <description>Returns the radial velocity of an orbit.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>velocityTangential</method>
-     !@     <description>Returns the tangential velocity of an orbit.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>energy</method>
-     !@     <description>Returns the energy of an orbit.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>eccentricity</method>
-     !@     <description>Returns the eccentricity of an orbit.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>angularMomentum</method>
-     !@     <description>Returns the angular momentum of an orbit.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>semiMajorAxis</method>
-     !@     <description>Returns the semi-major axis of an orbit.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>position</method>
-     !@     <description>Returns the position coordinates.</description>
-     !@     <type>\textcolor{red}{\textless coordinateCartesian}</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>velocity</method>
-     !@     <description>Returns the velocity coordinates.</description>
-     !@     <type>\textcolor{red}{\textless coordinateCartesian}</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>nonStaticSizeOf</method>
-     !@     <description>Returns the size of any non-static components of the type.</description>
-     !@     <type>\textcolor{red}{\textless integer(c\_size\_t) \textgreater}</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Build a Kepler orbit from an XML definition." method="builder" />
+     !#   <method description="Dump an orbit." method="dump" />
+     !#   <method description="Dump an orbit in binary." method="dumpRaw" />
+     !#   <method description="Read an orbit in binary." method="readRaw" />
+     !#   <method description="Resets orbit properties. If the optional {\normalfont \ttfamily keep} argument is provided and listed properties will \emph{not} be reset." method="reset" />
+     !#   <method description="Destroys an orbit." method="destroy" />
+     !#   <method description="Returns true if an orbit is fully defined." method="isDefined" />
+     !#   <method description="Asserts that an orbit is fully defined." method="assertIsDefined" />
+     !#   <method description="Returns true if the orbit is bound." method="isBound" />
+     !#   <method description="Propagates an orbit to a new position." method="propagate" />
+     !#   <method description="Sets the radial velocity of an orbit." method="velocityRadialSet" />
+     !#   <method description="Sets the masses of satellite and host objects." method="massesSet" />
+     !#   <method description="Sets the radius of an orbit." method="radiusSet" />
+     !#   <method description="Sets the angle $\theta$ of an orbit." method="thetaSet" />
+     !#   <method description="Sets the angle $\phi$ of an orbit." method="phiSet" />
+     !#   <method description="Sets the angle $\epsilon$ of an orbit." method="epsilonSet" />
+     !#   <method description="Sets the pericenter radius of an orbit." method="radiusPericenterSet" />
+     !#   <method description="Sets the apocenter radius of an orbit." method="radiusApocenterSet" />
+     !#   <method description="Sets the tangential velocity of an orbit." method="velocityTangentialSet" />
+     !#   <method description="Sets the energy of an orbit." method="energySet" />
+     !#   <method description="Sets the eccentricity of an orbit." method="eccentricitySet" />
+     !#   <method description="Sets the angular momentum of an orbit." method="angularMomentumSet" />
+     !#   <method description="Sets the semi-major axis of an orbit." method="semiMajorAxisSet" />
+     !#   <method description="Returns the host mass of an orbit." method="hostMass" />
+     !#   <method description="Returns the velocity scale of an orbit." method="velocityScale" />
+     !#   <method description="Returns the specific reduced mass (i.e. the reduced mass per unit satellite mass, $\mu_\mathrm{s} = M_\mathrm{host}/(M_\mathrm{satellite}+M_\mathrm{host})$) of the orbit." method="specificReducedMass" />
+     !#   <method description="Returns the radius of an orbit." method="radius" />
+     !#   <method description="Returns the angle $\theta$ of an orbit." method="theta" />
+     !#   <method description="Returns the angle $\phi$ of an orbit." method="phi" />
+     !#   <method description="Returns the angle $\epsilon$ of an orbit." method="epsilon" />
+     !#   <method description="Returns the pericenter radius of an orbit." method="radiusPericenter" />
+     !#   <method description="Returns the apocenter radius of an orbit." method="radiusApocenter" />
+     !#   <method description="Returns the radial velocity of an orbit." method="velocityRadial" />
+     !#   <method description="Returns the tangential velocity of an orbit." method="velocityTangential" />
+     !#   <method description="Returns the energy of an orbit." method="energy" />
+     !#   <method description="Returns the eccentricity of an orbit." method="eccentricity" />
+     !#   <method description="Returns the angular momentum of an orbit." method="angularMomentum" />
+     !#   <method description="Returns the semi-major axis of an orbit." method="semiMajorAxis" />
+     !#   <method description="Returns the position coordinates." method="position" />
+     !#   <method description="Returns the velocity coordinates." method="velocity" />
+     !#   <method description="Returns the size of any non-static components of the type." method="nonStaticSizeOf" />
+     !# </methods>
      procedure :: builder               => Kepler_Orbits_Builder
      procedure :: dump                  => Kepler_Orbits_Dump
      procedure :: dumpRaw               => Kepler_Orbits_Dump_Raw
@@ -343,10 +134,6 @@ module Kepler_Orbits
      procedure :: reset                 => Kepler_Orbits_Reset
      procedure :: destroy               => Kepler_Orbits_Destroy
      procedure :: isDefined             => Kepler_Orbits_Is_Defined
-     procedure :: output                => Kepler_Orbits_Output
-     procedure :: postOutput            => Kepler_Orbits_Post_Output
-     procedure :: outputCount           => Kepler_Orbits_Output_Count
-     procedure :: outputNames           => Kepler_Orbits_Output_Names
      procedure :: assertIsDefined       => Kepler_Orbits_Assert_Is_Defined
      procedure :: isBound               => Kepler_Orbits_Is_Bound
      procedure :: propagate             => Kepler_Orbits_Propagate
@@ -404,100 +191,18 @@ contains
     !% Destroy an orbit.
     implicit none
     class(keplerOrbit), intent(inout) :: orbit
-    !GCC$ attributes unused :: orbit
+    !$GLC attributes unused :: orbit
 
     ! Nothing to do.
     return
   end subroutine Kepler_Orbits_Destroy
 
-  subroutine Kepler_Orbits_Output(self,integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount&
-       &,doubleBuffer,time,outputInstance)
-    !% Store a {\normalfont \ttfamily keplerOrbit} object in the output buffers.
-    use :: Kind_Numbers  , only : kind_int8
-    use :: Multi_Counters, only : multiCounter
-    implicit none
-    class           (keplerOrbit   )                , intent(inout) :: self
-    double precision                                , intent(in   ) :: time
-    integer                                         , intent(inout) :: doubleBufferCount, doubleProperty, integerBufferCount, &
-         &                                                             integerProperty
-    integer         (kind=kind_int8), dimension(:,:), intent(inout) :: integerBuffer
-    double precision                , dimension(:,:), intent(inout) :: doubleBuffer
-    type            (multiCounter  )                , intent(in   ) :: outputInstance
-    !GCC$ attributes unused :: integerBufferCount, integerProperty, integerBuffer, time, outputInstance
-
-    if (self%isDefined()) then
-       doubleBuffer(doubleBufferCount,doubleProperty+1)=self%energy         ()
-       doubleBuffer(doubleBufferCount,doubleProperty+2)=self%angularMomentum()
-       doubleBuffer(doubleBufferCount,doubleProperty+3)=self%velocityScale  ()
-       doubleBuffer(doubleBufferCount,doubleProperty+4)=self%hostMass       ()
-    else
-       doubleBuffer(doubleBufferCount,doubleProperty+1:doubleProperty+4)=0.0d0
-    end if
-    doubleProperty=doubleProperty+4
-    return
-  end subroutine Kepler_Orbits_Output
-
-  subroutine Kepler_Orbits_Post_Output(self,time)
-    !% Perform post-output processing of a {\normalfont \ttfamily keplerOrbit} object.
-    implicit none
-    class           (keplerOrbit), intent(inout) :: self
-    double precision             , intent(in   ) :: time
-    !GCC$ attributes unused :: self, time
-
-    return
-  end subroutine Kepler_Orbits_Post_Output
-
-  subroutine Kepler_Orbits_Output_Count(self,integerPropertyCount,doublePropertyCount,time)
-    !% Increment the output count to account for a {\normalfont \ttfamily keplerOrbit} object.
-    implicit none
-    class           (keplerOrbit), intent(in   ) :: self
-    integer                      , intent(inout) :: doublePropertyCount, integerPropertyCount
-    double precision             , intent(in   ) :: time
-    !GCC$ attributes unused :: self, integerPropertyCount, time
-
-    doublePropertyCount=doublePropertyCount+4
-    return
-  end subroutine Kepler_Orbits_Output_Count
-
-  subroutine Kepler_Orbits_Output_Names(self,integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI&
-       &,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,prefix,comment,unitsInSI)
-    !% Assign names to output buffers for a {\normalfont \ttfamily keplerOrbit} object.
-    use :: Numerical_Constants_Astronomical, only : massSolar, megaParsec
-    use :: Numerical_Constants_Prefixes    , only : kilo
-    implicit none
-    class           (keplerOrbit)              , intent(in   ) :: self
-    double precision                           , intent(in   ) :: time
-    integer                                    , intent(inout) :: doubleProperty         , integerProperty
-    character       (len=*      ), dimension(:), intent(inout) :: doublePropertyComments , doublePropertyNames   , &
-         &                                                        integerPropertyComments, integerPropertyNames
-    double precision             , dimension(:), intent(inout) :: doublePropertyUnitsSI  , integerPropertyUnitsSI
-    character       (len=*      )              , intent(in   ) :: comment                , prefix
-    double precision                           , intent(in   ) :: unitsInSI
-    !GCC$ attributes unused :: self, time, integerProperty, integerPropertyComments, integerPropertyNames, integerPropertyUnitsSI, unitsInSI
-
-    doubleProperty=doubleProperty+1
-    doublePropertyNames   (doubleProperty)=trim(prefix)//'SpecificEnergy'
-    doublePropertyComments(doubleProperty)=trim(comment)//' [specific energy]'
-    doublePropertyUnitsSI (doubleProperty)=kilo**2
-    doubleProperty=doubleProperty+1
-    doublePropertyNames   (doubleProperty)=trim(prefix)//'SpecificAngularMomentum'
-    doublePropertyComments(doubleProperty)=trim(comment)//' [specific angular momentum]'
-    doublePropertyUnitsSI (doubleProperty)=kilo*megaParsec
-    doubleProperty=doubleProperty+1
-    doublePropertyNames   (doubleProperty)=trim(prefix)//'VelocityScale'
-    doublePropertyComments(doubleProperty)=trim(comment)//' [velocity scale]'
-    doublePropertyUnitsSI (doubleProperty)=kilo
-    doubleProperty=doubleProperty+1
-    doublePropertyNames   (doubleProperty)=trim(prefix)//'HostMass'
-    doublePropertyComments(doubleProperty)=trim(comment)//' [host mass]'
-    doublePropertyUnitsSI (doubleProperty)=massSolar
-    return
-  end subroutine Kepler_Orbits_Output_Names
-
   subroutine Kepler_Orbits_Builder(self,keplerOrbitDefinition)
     !% Build a {\normalfont \ttfamily keplerOrbit} object from the given XML {\normalfont \ttfamily keplerOrbitDefinition}.
-    use :: FoX_DOM         , only : extractDataContent          , getNodeName, node
-    use :: IO_XML          , only : XML_Get_Elements_By_Tag_Name, xmlNodeList
+    use :: FoX_DOM         , only : getNodeName            , node
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: IO_XML          , only : XML_Get_Elements_By_Tag_Name, xmlNodeList, extractDataContent => extractDataContentTS
+    use :: FoX_DOM         , only : getNodeName            , node
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (keplerOrbit), intent(inout)               :: self
@@ -550,8 +255,8 @@ contains
 
   subroutine Kepler_Orbits_Dump(self)
     !% Reset an orbit to a null state.
-    use :: Galacticus_Display, only : Galacticus_Display_Message
-    use :: ISO_Varying_String, only : varying_string            , assignment(=)
+    use :: Display           , only : displayMessage
+    use :: ISO_Varying_String, only : assignment(=) , varying_string
     implicit none
     class    (keplerOrbit   ), intent(in   ) :: self
     character(len=22        )                :: label
@@ -560,55 +265,55 @@ contains
     if (self%massesIsSet             ) then
        write (label,'(e22.16)') self%hostMassValue
        message='host mass:             '//label
-       call Galacticus_Display_Message(message)
+       call displayMessage(message)
        write (label,'(e22.16)') self%specificReducedMassValue
        message='specific reduced mass: '//label
-       call Galacticus_Display_Message(message)
+       call displayMessage(message)
     end if
     if (self%radiusIsSet             ) then
        write (label,'(e22.16)') self%radiusValue
        message='radius:                '//label
-       call Galacticus_Display_Message(message)
+       call displayMessage(message)
     end if
     if (self%radiusPericenterIsSet   ) then
        write (label,'(e22.16)') self%radiusPericenterValue
        message='radius pericenter:     '//label
-       call Galacticus_Display_Message(message)
+       call displayMessage(message)
     end if
     if (self%radiusApocenterIsSet   ) then
        write (label,'(e22.16)') self%radiusApocenterValue
        message='radius apocenter:      '//label
-       call Galacticus_Display_Message(message)
+       call displayMessage(message)
     end if
     if (self%velocityRadialIsSet    ) then
        write (label,'(e22.16)') self%velocityRadialValue
        message='velocity radial:       '//label
-       call Galacticus_Display_Message(message)
+       call displayMessage(message)
     end if
     if (self%velocityTangentialIsSet) then
        write (label,'(e22.16)') self%velocityTangentialValue
        message='velocity tangential:   '//label
-       call Galacticus_Display_Message(message)
+       call displayMessage(message)
     end if
     if (self%angularMomentumIsSet   ) then
        write (label,'(e22.16)') self%angularMomentumValue
        message='angular momentum:      '//label
-       call Galacticus_Display_Message(message)
+       call displayMessage(message)
     end if
     if (self%energyIsSet            ) then
        write (label,'(e22.16)') self%energyValue
        message='energy:                '//label
-       call Galacticus_Display_Message(message)
+       call displayMessage(message)
     end if
     if (self%eccentricityIsSet      ) then
        write (label,'(e22.16)') self%eccentricityValue
        message='eccentricity:          '//label
-       call Galacticus_Display_Message(message)
+       call displayMessage(message)
     end if
     if (self%semimajorAxisIsSet     ) then
        write (label,'(e22.16)') self%semimajorAxisValue
        message='semi-major axis:       '//label
-       call Galacticus_Display_Message(message)
+       call displayMessage(message)
     end if
     return
   end subroutine Kepler_Orbits_Dump
@@ -657,22 +362,32 @@ contains
     return
   end subroutine Kepler_Orbits_Read_Raw
 
-  subroutine Kepler_Orbits_Reset(orbit)
+  subroutine Kepler_Orbits_Reset(orbit,keep)
     !% Reset an orbit to a null state.
     implicit none
-    class(keplerOrbit), intent(inout) :: orbit
+    class  (keplerOrbit), intent(inout)                         :: orbit
+    integer             , intent(in   ), dimension(:), optional :: keep
+    integer             , allocatable  , dimension(:)           :: keep_
 
+    ! Set list of properties to keep.
+    if (present(keep)) then
+       keep_=keep
+    else
+       allocate(keep_(0))
+    end if
     ! Simply specify that no properties have been set as yet.
-    orbit%massesIsSet            =.false.
-    orbit%radiusIsSet            =.false.
-    orbit%radiusPericenterIsSet  =.false.
-    orbit%radiusApocenterIsSet   =.false.
-    orbit%velocityRadialIsSet    =.false.
-    orbit%velocityTangentialIsSet=.false.
-    orbit%angularMomentumIsSet   =.false.
-    orbit%energyIsSet            =.false.
-    orbit%eccentricityIsSet      =.false.
-    orbit%semimajorAxisIsSet     =.false.
+    if (.not.any(keep_ == keplerOrbitMasses            )) orbit%massesIsSet            =.false.
+    if (.not.any(keep_ == keplerOrbitRadius            )) orbit%radiusIsSet            =.false.
+    if (.not.any(keep_ == keplerOrbitRadiusPericenter  )) orbit%radiusPericenterIsSet  =.false.
+    if (.not.any(keep_ == keplerOrbitRadiusApocenter   )) orbit%radiusApocenterIsSet   =.false.
+    if (.not.any(keep_ == keplerOrbitVelocityRadial    )) orbit%velocityRadialIsSet    =.false.
+    if (.not.any(keep_ == keplerOrbitVelocityTangential)) orbit%velocityTangentialIsSet=.false.
+    if (.not.any(keep_ == keplerOrbitAngularMomentum   )) orbit%angularMomentumIsSet   =.false.
+    if (.not.any(keep_ == keplerOrbitEnergy            )) orbit%energyIsSet            =.false.
+    if (.not.any(keep_ == keplerOrbitEccentricity      )) orbit%eccentricityIsSet      =.false.
+    if (.not.any(keep_ == keplerOrbitSemiMajorAxis     )) orbit%semimajorAxisIsSet     =.false.
+    if (.not.any(keep_ == keplerOrbitTheta             )) orbit%thetaIsSet             =.false.
+    if (.not.any(keep_ == keplerOrbitPhi               )) orbit%phiIsSet               =.false.
     return
   end subroutine Kepler_Orbits_Reset
 
@@ -987,7 +702,7 @@ contains
 
   double precision function Kepler_Orbits_Energy(orbit)
     !% Return the energy for this orbit.
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class(keplerOrbit), intent(inout) :: orbit
 
@@ -1104,8 +819,8 @@ contains
 
   double precision function Kepler_Orbits_Velocity_Scale(orbit)
     !% Return the velocity scale for the orbit.
-    use :: Galacticus_Error            , only : Galacticus_Error_Report
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class(keplerOrbit), intent(inout) :: orbit
 
@@ -1118,8 +833,8 @@ contains
 
   subroutine Kepler_Orbits_Propagate(orbit,newRadius,infalling)
     !% Propagate an orbit along its path.
-    use :: Galacticus_Error            , only : Galacticus_Error_Report
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (keplerOrbit), intent(inout)           :: orbit
     double precision             , intent(in   )           :: newRadius
@@ -1203,7 +918,7 @@ contains
     implicit none
     integer(c_size_t   )                :: Kepler_Orbits_Non_Static_Size_Of
     class  (keplerOrbit), intent(in   ) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     Kepler_Orbits_Non_Static_Size_Of=0_c_size_t
     return

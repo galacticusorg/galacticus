@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -30,7 +30,6 @@ module Freefall_Radii
   !#  <descriptiveName>Freefall radii.</descriptiveName>
   !#  <description>Class providing models of the freefall radius for gas in the hot atmosphere surrounding a galaxy.</description>
   !#  <default>darkMatterHalo</default>
-  !#  <calculationReset>yes</calculationReset>
   !#  <method name="radius" >
   !#   <description>Returns the freefall radius for gas in the hot atmosphere surrounding the galaxy in {\normalfont \ttfamily node} in units of Mpc.</description>
   !#   <type>double precision</type>

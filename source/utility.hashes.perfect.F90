@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +22,7 @@
 module Hashes_Perfect
   !% Implements a perfact hash algorithm for long integer keys based on methods described by \cite{czech_fundamental_1997}. The
   !% specific implementation follows the general structure of that given in a Dr. Dobbs
-  !% \href{http://drdobbs.com/architecture-and-design/184404506}{article}.
+  !% \href{https://www.drdobbs.com/architecture-and-design/generating-perfect-hash-functions/184404506}{article}.
   use, intrinsic :: ISO_C_Binding, only : c_size_t
   private
   public :: hashPerfect
@@ -36,45 +36,14 @@ module Hashes_Perfect
      integer(c_size_t), allocatable, dimension(:) :: C                         !  the shifted rows of A() collapse into C().
      integer(c_size_t), allocatable, dimension(:) :: v                         !  the values corresponding to the keys in C().
    contains
-     !@ <objectMethods>
-     !@   <object>hashPerfect</object>
-     !@   <objectMethod>
-     !@     <method>create</method>
-     !@     <description>Create a perfect hash.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless integer(kind=kind\_int8)(:)\textgreater} keys\argin, \textcolor{red}{\textless integer(kind=kind\_int8)(:)\textgreater} [values]\argin, \logicalzero [keepInverseTable]\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>destroy</method>
-     !@     <description>Destroy a perfect hash.</description>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>isPresent</method>
-     !@     <description>Test if a key is present in a perfect hash.</description>
-     !@     <type>\logicalzero</type>
-     !@     <arguments>\textcolor{red}{\textless integer(kind=kind\_int8)\textgreater} key\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>value</method>
-     !@     <description>Return the value corresponding to a key in a perfect hash.</description>
-     !@     <type>\textcolor{red}{\textless integer(kind=kind\_int8)\textgreater}</type>
-     !@     <arguments>\textcolor{red}{\textless integer(kind=kind\_int8)\textgreater} key\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>index</method>
-     !@     <description>Return the index corresponding to a key in a perfect hash.</description>
-     !@     <type>\textcolor{red}{\textless integer(kind=kind\_int8)\textgreater}</type>
-     !@     <arguments>\textcolor{red}{\textless integer(kind=kind\_int8)\textgreater} key\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>size</method>
-     !@     <description>Return the size of a perfect hash.</description>
-     !@     <type>\textcolor{red}{\textless integer(kind=kind\_int8)\textgreater}</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Create a perfect hash." method="create" />
+     !#   <method description="Destroy a perfect hash." method="destroy" />
+     !#   <method description="Test if a key is present in a perfect hash." method="isPresent" />
+     !#   <method description="Return the value corresponding to a key in a perfect hash." method="value" />
+     !#   <method description="Return the index corresponding to a key in a perfect hash." method="index" />
+     !#   <method description="Return the size of a perfect hash." method="size" />
+     !# </methods>
      procedure :: create   =>Hash_Perfect_Create
      procedure :: destroy  =>Hash_Perfect_Destroy
      procedure :: index    =>Hash_Perfect_Index

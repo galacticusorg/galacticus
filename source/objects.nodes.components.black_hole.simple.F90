@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,9 +21,10 @@
 
 module Node_Component_Black_Hole_Simple
   !% Implements the simple black hole node component.
-  use :: Black_Hole_Binary_Mergers, only : blackHoleBinaryMergerClass
-  use :: Cooling_Radii            , only : coolingRadiusClass
-  use :: Dark_Matter_Halo_Scales  , only : darkMatterHaloScaleClass
+  use :: Black_Hole_Binary_Mergers     , only : blackHoleBinaryMergerClass
+  use :: Cooling_Radii                 , only : coolingRadiusClass
+  use :: Dark_Matter_Halo_Scales       , only : darkMatterHaloScaleClass
+  use :: Star_Formation_Rates_Spheroids, only : starFormationRateSpheroidsClass
   implicit none
   private
   public :: Node_Component_Black_Hole_Simple_Initialize         , Node_Component_Black_Hole_Simple_Scale_Set        , &
@@ -48,8 +49,7 @@ module Node_Component_Black_Hole_Simple
   !#     <name>massSeed</name>
   !#     <type>double</type>
   !#     <rank>0</rank>
-  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
-  !#     <getFunction>Node_Component_Black_Hole_Simple_Seed_Mass</getFunction>
+  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" isDeferred="get" />
   !#   </property>
   !#  </properties>
   !#  <bindings>
@@ -61,10 +61,11 @@ module Node_Component_Black_Hole_Simple
   !# </component>
 
   ! Objects used by this component.
-  class(darkMatterHaloScaleClass  ), pointer :: darkMatterHaloScale_
-  class(coolingRadiusClass        ), pointer :: coolingRadius_
-  class(blackHoleBinaryMergerClass), pointer :: blackHoleBinaryMerger_
-  !$omp threadprivate(darkMatterHaloScale_,coolingRadius_,blackHoleBinaryMerger_)
+  class(darkMatterHaloScaleClass       ), pointer :: darkMatterHaloScale_
+  class(coolingRadiusClass             ), pointer :: coolingRadius_
+  class(blackHoleBinaryMergerClass     ), pointer :: blackHoleBinaryMerger_
+  class(starFormationRateSpheroidsClass), pointer :: starFormationRateSpheroids_
+  !$omp threadprivate(darkMatterHaloScale_,coolingRadius_,blackHoleBinaryMerger_,starFormationRateSpheroids_)
 
   ! Seed mass for black holes.
   double precision :: blackHoleSeedMass
@@ -90,37 +91,35 @@ contains
     type(inputParameters             ), intent(inout) :: parameters_
     type(nodeComponentBlackHoleSimple)                :: blackHoleSimple
 
-    ! Get the black hole seed mass.
-    blackHoleSeedMass=blackHoleSimple%massSeed()
+    ! Bind deferred functions.
+    call blackHoleSimple%massSeedFunction(Node_Component_Black_Hole_Simple_Seed_Mass)
+    ! Get the seed mass
+    !# <inputParameter>
+    !#   <name>blackHoleSeedMass</name>
+    !#   <source>parameters_</source>
+    !#   <defaultValue>100.0d0</defaultValue>
+    !#   <description>The mass of the seed black hole placed at the center of each newly formed galaxy.</description>
+    !# </inputParameter>
     ! Get accretion rate enhancement factors.
     !# <inputParameter>
     !#   <name>blackHoleToSpheroidStellarGrowthRatio</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d-3</defaultValue>
     !#   <description>The ratio of the rates of black hole growth and spheroid stellar mass growth.</description>
-    !#   <group>blackHoles</group>
     !#   <source>parameters_</source>
-    !#   <type>double</type>
     !# </inputParameter>
     ! Options controlling AGN feedback.
     !# <inputParameter>
     !#   <name>blackHoleHeatsHotHalo</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>Specifies whether or not the black hole should heat the hot halo.</description>
-    !#   <group>blackHoles</group>
     !#   <source>parameters_</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     if (blackHoleHeatsHotHalo) then
        !# <inputParameter>
        !#   <name>blackHoleHeatingEfficiency</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d-3</defaultValue>
        !#   <description>The efficiency with which accretion onto a black hole heats the hot halo.</description>
-       !#   <group>blackHoles</group>
        !#   <source>parameters_</source>
-       !#   <type>double</type>
        !# </inputParameter>
     else
        blackHoleHeatingEfficiency=0.0d0
@@ -128,21 +127,16 @@ contains
     ! Get options controlling winds.
     !# <inputParameter>
     !#   <name>blackHoleWindEfficiency</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>2.2157d-3</defaultValue>
     !#   <description>The efficiency of the black hole accretion-driven wind.</description>
-    !#   <group>blackHoles</group>
     !#   <source>parameters_</source>
-    !#   <type>double</type>
     !# </inputParameter>
     ! Get options controlling output.
     !# <inputParameter>
     !#   <name>blackHoleOutputAccretion</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Determines whether or not accretion rates and jet powers will be output.</description>
     !#   <source>parameters_</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     return
   end subroutine Node_Component_Black_Hole_Simple_Initialize
@@ -160,9 +154,10 @@ contains
     type(dependencyRegEx), dimension(1)  :: dependencies
 
     if (defaultBlackHoleComponent%simpleIsActive()) then
-       !# <objectBuilder class="darkMatterHaloScale"   name="darkMatterHaloScale_"   source="parameters_"/>
-       !# <objectBuilder class="coolingRadius"         name="coolingRadius_"         source="parameters_"/>
-       !# <objectBuilder class="blackHoleBinaryMerger" name="blackHoleBinaryMerger_" source="parameters_"/>
+       !# <objectBuilder class="darkMatterHaloScale"        name="darkMatterHaloScale_"        source="parameters_"/>
+       !# <objectBuilder class="coolingRadius"              name="coolingRadius_"              source="parameters_"/>
+       !# <objectBuilder class="blackHoleBinaryMerger"      name="blackHoleBinaryMerger_"      source="parameters_"/>
+       !# <objectBuilder class="starFormationRateSpheroids" name="starFormationRateSpheroids_" source="parameters_"/>
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
        call satelliteMergerEvent%attach(defaultBlackHoleComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentBlackHoleSimple',dependencies=dependencies)
    end if
@@ -179,9 +174,10 @@ contains
     implicit none
 
     if (defaultBlackHoleComponent%simpleIsActive()) then
-       !# <objectDestructor name="darkMatterHaloScale_"  />
-       !# <objectDestructor name="coolingRadius_"        />
-       !# <objectDestructor name="blackHoleBinaryMerger_"/>
+       !# <objectDestructor name="darkMatterHaloScale_"       />
+       !# <objectDestructor name="coolingRadius_"             />
+       !# <objectDestructor name="blackHoleBinaryMerger_"     />
+       !# <objectDestructor name="starFormationRateSpheroids_"/>
        call satelliteMergerEvent%detach(defaultBlackHoleComponent,satelliteMerger)
     end if
     return
@@ -190,31 +186,31 @@ contains
   !# <scaleSetTask>
   !#  <unitName>Node_Component_Black_Hole_Simple_Scale_Set</unitName>
   !# </scaleSetTask>
-  subroutine Node_Component_Black_Hole_Simple_Scale_Set(thisNode)
-    !% Set scales for properties of {\normalfont \ttfamily thisNode}.
+  subroutine Node_Component_Black_Hole_Simple_Scale_Set(node)
+    !% Set scales for properties of {\normalfont \ttfamily node}.
     use :: Galacticus_Nodes, only : nodeComponentBlackHole   , nodeComponentBlackHoleSimple, nodeComponentSpheroid, treeNode, &
          &                          defaultBlackHoleComponent
     implicit none
-    type (treeNode              ), intent(inout), pointer :: thisNode
-    class(nodeComponentBlackHole)               , pointer :: thisBlackHoleComponent
-    class(nodeComponentSpheroid )               , pointer :: thisSpheroidComponent
+    type (treeNode              ), intent(inout), pointer :: node
+    class(nodeComponentBlackHole)               , pointer :: blackHole
+    class(nodeComponentSpheroid )               , pointer :: spheroid
 
     ! Check if we are the default method.
     if (.not.defaultBlackHoleComponent%simpleIsActive()) return
     ! Get the black hole component.
-    thisBlackHoleComponent => thisNode%blackHole()
+    blackHole => node%blackHole()
     ! Ensure that it is of the standard class.
-    select type (thisBlackHoleComponent)
+    select type (blackHole)
     class is (nodeComponentBlackHoleSimple)
        ! Get the spheroid component.
-       thisSpheroidComponent => thisNode%spheroid()
+       spheroid => node%spheroid()
        ! Set scale for mass.
-       call thisBlackHoleComponent%massScale(                                                                                &
-            &                                max(                                                                            &
-            &                                    thisSpheroidComponent %massStellar()*blackHoleToSpheroidStellarGrowthRatio, &
-            &                                    thisBlackHoleComponent%mass       ()                                        &
-            &                                   )                                                                            &
-            &                               )
+       call blackHole%massScale(                                                                   &
+            &                   max(                                                               &
+            &                       spheroid %massStellar()*blackHoleToSpheroidStellarGrowthRatio, &
+            &                       blackHole%mass       ()                                        &
+            &                      )                                                               &
+            &                  )
     end select
     return
   end subroutine Node_Component_Black_Hole_Simple_Scale_Set
@@ -222,38 +218,36 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Black_Hole_Simple_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Black_Hole_Simple_Rate_Compute(thisNode,odeConverged,interrupt,interruptProcedure,propertyType)
+  subroutine Node_Component_Black_Hole_Simple_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
     !% Compute the black hole mass rate of change.
     use :: Galacticus_Nodes            , only : defaultBlackHoleComponent, interruptTask        , nodeComponentBlackHole, nodeComponentBlackHoleSimple, &
           &                                     nodeComponentHotHalo     , nodeComponentSpheroid, propertyTypeInactive  , treeNode
     use :: Numerical_Constants_Physical, only : speedLight
     use :: Numerical_Constants_Prefixes, only : kilo
     implicit none
-    type            (treeNode                ), intent(inout), pointer :: thisNode
-    logical                                   , intent(in   )          :: odeConverged
+    type            (treeNode                ), intent(inout)          :: node
     logical                                   , intent(inout)          :: interrupt
     procedure       (interruptTask           ), intent(inout), pointer :: interruptProcedure
     integer                                   , intent(in   )          :: propertyType
-    class           (nodeComponentBlackHole  )               , pointer :: thisBlackHoleComponent
-    class           (nodeComponentSpheroid   )               , pointer :: thisSpheroidComponent
-    class           (nodeComponentHotHalo    )               , pointer :: thisHotHaloComponent
+    class           (nodeComponentBlackHole  )               , pointer :: blackHole
+    class           (nodeComponentSpheroid   )               , pointer :: spheroid
+    class           (nodeComponentHotHalo    )               , pointer :: hotHalo
     double precision                          , parameter              :: coolingRadiusFractionalTransitionMinimum=0.9d0
     double precision                          , parameter              :: coolingRadiusFractionalTransitionMaximum=1.0d0
     double precision                                                   :: coolingRadiusFractional                       , couplingEfficiency   , &
          &                                                                energyInputRate                               , heatingRate          , &
          &                                                                massAccretionRate                             , restMassAccretionRate, &
          &                                                                x
-    !GCC$ attributes unused :: odeConverged
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
     if (defaultBlackHoleComponent%simpleIsActive()) then
 
        ! Get the spheroid component.
-       thisSpheroidComponent => thisNode%spheroid()
+       spheroid => node%spheroid()
 
        ! Find the rate of rest mass accretion onto the black hole.
-       restMassAccretionRate=blackHoleToSpheroidStellarGrowthRatio*thisSpheroidComponent%starFormationRate()
+       restMassAccretionRate=blackHoleToSpheroidStellarGrowthRatio*starFormationRateSpheroids_%rate(node)
 
        ! Finish if there is no accretion.
        if (restMassAccretionRate <= 0.0d0) return
@@ -262,10 +256,10 @@ contains
        massAccretionRate=restMassAccretionRate*max((1.0d0-blackHoleHeatingEfficiency-blackHoleWindEfficiency),0.0d0)
 
        ! Get the black hole component.
-       thisBlackHoleComponent => thisNode%blackHole()
+       blackHole => node%blackHole()
 
        ! Detect black hole component type.
-       select type (thisBlackHoleComponent)
+       select type (blackHole)
        type is (nodeComponentBlackHole)
           ! Generic type - interrupt and create a simple black hole if accretion rate is non-zero.
           if (massAccretionRate /= 0.0d0) then
@@ -275,14 +269,14 @@ contains
           return
        class is (nodeComponentBlackHoleSimple)
           ! Simple type - continue processing.
-          call thisBlackHoleComponent%massRate       (     massAccretionRate)
+          call blackHole%massRate       (     massAccretionRate)
           ! Remove the accreted mass from the spheroid component.
-          call thisSpheroidComponent %massGasSinkRate(-restMassAccretionRate)
+          call spheroid %massGasSinkRate(-restMassAccretionRate)
           ! Add heating to the hot halo component.
           if (blackHoleHeatsHotHalo) then
              ! Compute jet coupling efficiency based on whether halo is cooling quasistatically.
-             coolingRadiusFractional=+coolingRadius_      %      radius(thisNode) &
-                  &                  /darkMatterHaloScale_%virialRadius(thisNode)
+             coolingRadiusFractional=+coolingRadius_      %      radius(node) &
+                  &                  /darkMatterHaloScale_%virialRadius(node)
              if      (coolingRadiusFractional < coolingRadiusFractionalTransitionMinimum) then
                 couplingEfficiency=1.0d0
              else if (coolingRadiusFractional > coolingRadiusFractionalTransitionMaximum) then
@@ -295,14 +289,14 @@ contains
              ! Compute the heating rate.
              heatingRate=couplingEfficiency*blackHoleHeatingEfficiency*restMassAccretionRate*(speedLight/kilo)**2
              ! Pipe this power to the hot halo.
-             thisHotHaloComponent => thisNode%hotHalo()
-             call thisHotHaloComponent%heatSourceRate(heatingRate,interrupt,interruptProcedure)
+             hotHalo => node%hotHalo()
+             call hotHalo%heatSourceRate(heatingRate,interrupt,interruptProcedure)
           end if
           ! Add energy to the spheroid component.
           if (blackHoleWindEfficiency > 0.0d0) then
              ! Compute the energy input and send it down the spheroid gas energy input pipe.
              energyInputRate=blackHoleWindEfficiency*restMassAccretionRate*(speedLight/kilo)**2
-             call thisSpheroidComponent%energyGasInputRate(energyInputRate)
+             call spheroid%energyGasInputRate(energyInputRate)
           end if
        end select
     end if
@@ -318,7 +312,7 @@ contains
     type            (treeNode              ), pointer       :: nodeHost
     class           (nodeComponentBlackHole), pointer       :: blackHoleHost   , blackHole
     double precision                                        :: massBlackHoleNew, spinBlackHoleNew
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
     
     ! Find the node to merge with.
     nodeHost      => node    %mergesWith(                 )
@@ -339,17 +333,17 @@ contains
     return
   end subroutine satelliteMerger
 
-  subroutine Node_Component_Black_Hole_Simple_Create(thisNode)
-    !% Creates a simple black hole component for {\normalfont \ttfamily thisNode}.
+  subroutine Node_Component_Black_Hole_Simple_Create(node)
+    !% Creates a simple black hole component for {\normalfont \ttfamily node}.
     use :: Galacticus_Nodes, only : nodeComponentBlackHole, treeNode
     implicit none
-    type (treeNode              ), intent(inout), target  :: thisNode
-    class(nodeComponentBlackHole)               , pointer :: thisBlackHoleComponent
+    type (treeNode              ), intent(inout), target  :: node
+    class(nodeComponentBlackHole)               , pointer :: blackHole
 
     ! Create the component.
-    thisBlackHoleComponent => thisNode%blackHole(autoCreate=.true.)
+    blackHole => node%blackHole(autoCreate=.true.)
     ! Set the seed mass.
-    call thisBlackHoleComponent%massSet(blackHoleSeedMass)
+    call blackHole%massSet(blackHoleSeedMass)
     return
   end subroutine Node_Component_Black_Hole_Simple_Create
 
@@ -357,27 +351,26 @@ contains
   !#  <unitName>Node_Component_Black_Hole_Simple_Output_Names</unitName>
   !#  <sortName>Node_Component_Black_Hole_Simple_Output</sortName>
   !# </mergerTreeOutputNames>
-  subroutine Node_Component_Black_Hole_Simple_Output_Names(thisNode,integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI&
-       &,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
+  subroutine Node_Component_Black_Hole_Simple_Output_Names(node,integerProperty,integerProperties,doubleProperty,doubleProperties,time)
     !% Set names of black hole properties to be written to the \glc\ output file.
-    use :: Galacticus_Nodes                , only : treeNode
-    use :: Numerical_Constants_Astronomical, only : gigaYear, massSolar
+    use :: Galacticus_Nodes                  , only : treeNode
+    use :: Numerical_Constants_Astronomical  , only : gigaYear             , massSolar
+    use :: Merger_Tree_Outputter_Buffer_Types, only : outputPropertyInteger, outputPropertyDouble
     implicit none
-    type            (treeNode)              , intent(inout), pointer :: thisNode
-    double precision                        , intent(in   )          :: time
-    integer                                 , intent(inout)          :: doubleProperty         , integerProperty
-    character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , &
-         &                                                              integerPropertyComments, integerPropertyNames
-    double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
-    !GCC$ attributes unused :: time, integerProperty, integerPropertyNames, integerPropertyComments, integerPropertyUnitsSI
+    type            (treeNode)                           , intent(inout) :: node
+    double precision                                     , intent(in   ) :: time
+    integer                                              , intent(inout) :: doubleProperty   , integerProperty
+    type            (outputPropertyInteger), dimension(:), intent(inout) :: integerProperties
+    type            (outputPropertyDouble ), dimension(:), intent(inout) :: doubleProperties
+    !$GLC attributes unused :: time, integerProperty, integerProperties
 
     ! Ensure that the black hole component is of the simple class.
-    if (Node_Component_Black_Hole_Simple_Matches(thisNode)) then
+    if (Node_Component_Black_Hole_Simple_Matches(node)) then
        if (blackHoleOutputAccretion) then
           doubleProperty=doubleProperty+1
-          doublePropertyNames   (doubleProperty)='blackHoleAccretionRate'
-          doublePropertyComments(doubleProperty)='Rest-mass accretion rate onto the black hole.'
-          doublePropertyUnitsSI (doubleProperty)=massSolar/gigaYear
+          doubleProperties(doubleProperty)%name     ='blackHoleAccretionRate'
+          doubleProperties(doubleProperty)%comment  ='Rest-mass accretion rate onto the black hole.'
+          doubleProperties(doubleProperty)%unitsInSI=massSolar/gigaYear
        end if
     end if
     return
@@ -387,18 +380,18 @@ contains
   !#  <unitName>Node_Component_Black_Hole_Simple_Output_Count</unitName>
   !#  <sortName>Node_Component_Black_Hole_Simple_Output</sortName>
   !# </mergerTreeOutputPropertyCount>
-  subroutine Node_Component_Black_Hole_Simple_Output_Count(thisNode,integerPropertyCount,doublePropertyCount,time)
+  subroutine Node_Component_Black_Hole_Simple_Output_Count(node,integerPropertyCount,doublePropertyCount,time)
     !% Account for the number of black hole properties to be written to the the \glc\ output file.
     use :: Galacticus_Nodes, only : treeNode
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode
-    double precision          , intent(in   )          :: time
-    integer                   , intent(inout)          :: doublePropertyCount  , integerPropertyCount
-    integer                   , parameter              :: extraPropertyCount =1
-    !GCC$ attributes unused :: time, integerPropertyCount
+    type            (treeNode), intent(inout) :: node
+    double precision          , intent(in   ) :: time
+    integer                   , intent(inout) :: doublePropertyCount  , integerPropertyCount
+    integer                   , parameter     :: extraPropertyCount =1
+    !$GLC attributes unused :: time, integerPropertyCount
 
     ! Ensure that the black hole component is of the simple class.
-    if (Node_Component_Black_Hole_Simple_Matches(thisNode)) then
+    if (Node_Component_Black_Hole_Simple_Matches(node)) then
        if (blackHoleOutputAccretion) doublePropertyCount=doublePropertyCount+extraPropertyCount
     end if
     return
@@ -408,53 +401,51 @@ contains
   !#  <unitName>Node_Component_Black_Hole_Simple_Output</unitName>
   !#  <sortName>Node_Component_Black_Hole_Simple_Output</sortName>
   !# </mergerTreeOutputTask>
-  subroutine Node_Component_Black_Hole_Simple_Output(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
-       &,doubleBufferCount,doubleBuffer,time,instance)
+  subroutine Node_Component_Black_Hole_Simple_Output(node,integerProperty,integerBufferCount,integerProperties,doubleProperty,doubleBufferCount,doubleProperties,time,instance)
     !% Store black hole properties in the \glc\ output file buffers.
-    use :: Galacticus_Nodes, only : nodeComponentBlackHole, nodeComponentSpheroid, treeNode
-    use :: Kind_Numbers    , only : kind_int8
-    use :: Multi_Counters  , only : multiCounter
+    use :: Galacticus_Nodes                  , only : nodeComponentBlackHole, nodeComponentSpheroid, treeNode
+    use :: Kind_Numbers                      , only : kind_int8
+    use :: Multi_Counters                    , only : multiCounter
+    use :: Merger_Tree_Outputter_Buffer_Types, only : outputPropertyInteger , outputPropertyDouble
     implicit none
-    double precision                        , intent(in   )          :: time
-    type            (treeNode              ), intent(inout), pointer :: thisNode
-    integer                                 , intent(inout)          :: doubleBufferCount          , doubleProperty, integerBufferCount, &
-         &                                                              integerProperty
-    integer         (kind=kind_int8        ), intent(inout)          :: integerBuffer         (:,:)
-    double precision                        , intent(inout)          :: doubleBuffer          (:,:)
-    type            (multiCounter          ), intent(inout)          :: instance
-    class           (nodeComponentBlackHole)               , pointer :: thisBlackHoleComponent
-    class           (nodeComponentSpheroid )               , pointer :: thisSpheroidComponent
-    double precision                                                 :: restMassAccretionRate
-    !GCC$ attributes unused :: time, integerProperty, integerBufferCount, integerBuffer, instance
+    double precision                        , intent(in   )               :: time
+    type            (treeNode              ), intent(inout)               :: node
+    integer                                 , intent(inout)               :: doubleBufferCount    , doubleProperty , &
+         &                                                                   integerBufferCount   , integerProperty
+    type            (outputPropertyInteger ), intent(inout), dimension(:) :: integerProperties
+    type            (outputPropertyDouble  ), intent(inout), dimension(:) :: doubleProperties
+    type            (multiCounter          ), intent(inout)               :: instance
+    class           (nodeComponentBlackHole)               , pointer      :: blackHole
+    double precision                                                      :: restMassAccretionRate
+    !$GLC attributes unused :: time, integerProperty, integerBufferCount, integerProperties, instance
 
     ! Ensure that the black hole component is of the simple class.
-    if (Node_Component_Black_Hole_Simple_Matches(thisNode)) then
+    if (Node_Component_Black_Hole_Simple_Matches(node)) then
        ! Get the black hole component.
-       thisBlackHoleComponent => thisNode%blackHole()
+       blackHole => node%blackHole()
        ! Store the properties.
        if (blackHoleOutputAccretion) then
           ! Get the rest mass accretion rate.
-          thisSpheroidComponent => thisNode%spheroid()
-          restMassAccretionRate=blackHoleToSpheroidStellarGrowthRatio*thisSpheroidComponent%starFormationRate()
+          restMassAccretionRate=blackHoleToSpheroidStellarGrowthRatio*starFormationRateSpheroids_%rate(node)
           doubleProperty=doubleProperty+1
-          doubleBuffer(doubleBufferCount,doubleProperty)=restMassAccretionRate
+          doubleProperties(doubleProperty)%scalar(doubleBufferCount)=restMassAccretionRate
        end if
     end if
     return
   end subroutine Node_Component_Black_Hole_Simple_Output
 
-  logical function Node_Component_Black_Hole_Simple_Matches(thisNode)
-    !% Return true if the black hole component of {\normalfont \ttfamily thisNode} is a match to the simple implementation.
+  logical function Node_Component_Black_Hole_Simple_Matches(node)
+    !% Return true if the black hole component of {\normalfont \ttfamily node} is a match to the simple implementation.
     use :: Galacticus_Nodes, only : defaultBlackHoleComponent, nodeComponentBlackHole, nodeComponentBlackHoleSimple, treeNode
     implicit none
-    type (treeNode              ), intent(inout), pointer :: thisNode
-    class(nodeComponentBlackHole)               , pointer :: thisBlackHoleComponent
+    type (treeNode              ), intent(inout) :: node
+    class(nodeComponentBlackHole), pointer       :: blackHole
 
     ! Get the black hole component.
-    thisBlackHoleComponent => thisNode%blackHole()
+    blackHole => node%blackHole()
     ! Ensure that it is of the simple class.
     Node_Component_Black_Hole_Simple_Matches=.false.
-    select type (thisBlackHoleComponent)
+    select type (blackHole)
     class is (nodeComponentBlackHoleSimple)
        Node_Component_Black_Hole_Simple_Matches=.true.
     type  is (nodeComponentBlackHole       )
@@ -462,5 +453,16 @@ contains
     end select
     return
   end function Node_Component_Black_Hole_Simple_Matches
+
+  double precision function Node_Component_Black_Hole_Simple_Seed_Mass(self)
+    !% Return the seed mass for simple black holes.
+    use :: Galacticus_Nodes, only : nodeComponentBlackHoleSimple
+    implicit none
+    class(nodeComponentBlackHoleSimple), intent(inout) :: self
+    !$GLC attributes unused :: self
+    
+    Node_Component_Black_Hole_Simple_Seed_Mass=blackHoleSeedMass
+    return
+  end function Node_Component_Black_Hole_Simple_Seed_Mass
 
 end module Node_Component_Black_Hole_Simple

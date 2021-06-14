@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,7 +26,12 @@ module Cosmology_Functions
   !# <functionClass>
   !#  <name>cosmologyFunctions</name>
   !#  <descriptiveName>Cosmology Functions</descriptiveName>
-  !#  <description>Object providing various cosmological functions.</description>
+  !#  <description>
+  !#   A class that provides various cosmological functions. The background cosmology describes the evolution of an isotropic,
+  !#   homogeneous Universe within which our calculations are carried out. For the purposes of \glc, the background cosmology is
+  !#   used to relate expansion factor/redshift to cosmic time and to compute the density of various components (e.g. dark matter,
+  !#   dark energy, etc.) at different epochs.
+  !#  </description>
   !#  <default>matterLambda</default>
   !#  <method name="epochValidate" >
   !#   <description>Check the given cosmic epoch is valid (aborting otherwise) and, optionally, return time or expansion factor associated with the epoch.</description>
@@ -149,6 +154,12 @@ module Cosmology_Functions
   !#   <argument>double precision, intent(in   ), optional :: time  , expansionFactor</argument>
   !#   <argument>logical         , intent(in   ), optional :: collapsingPhase</argument>
   !#  </method>
+  !#  <method name="distanceParticleHorizonComoving" >
+  !#   <description>Return the comoving distance to the particle horizon at the given {\normalfont \ttfamily time}.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>double precision, intent(in   ) :: time</argument>
+  !#  </method>
   !#  <method name="distanceComoving" >
   !#   <description>Return the comoving distance to the given cosmic {\normalfont \ttfamily time}.</description>
   !#   <type>double precision</type>
@@ -186,7 +197,7 @@ module Cosmology_Functions
   !#   <pass>yes</pass>
   !#   <argument>double precision, intent(in   ) :: expansionFactor</argument>
   !#   <code>
-  !#    !GCC$ attributes unused :: self
+  !#    !$GLC attributes unused :: self
   !#    cosmologyFunctionsRedshiftFromExpansionFactor=1.0d0/expansionFactor-1.0d0
   !#   </code>
   !#  </method>
@@ -196,7 +207,7 @@ module Cosmology_Functions
   !#   <pass>yes</pass>
   !#   <argument>double precision, intent(in   ) :: redshift</argument>
   !#   <code>
-  !#    !GCC$ attributes unused :: self
+  !#    !$GLC attributes unused :: self
   !#    cosmologyFunctionsExpansionFactorFromRedshift=1.0d0/(1.0d0+redshift)
   !#   </code>
   !#  </method>
@@ -204,7 +215,7 @@ module Cosmology_Functions
   !#   <description>Returns the differential comoving volume element $\mathrm{d}V/\mathrm{d}z = r_\mathrm{c}^2(t) \mathrm{c} H^{-1}(t)$ (where $r_\mathrm{c}$ is the comoving distance to time $t$ and $H(t)$ is the Hubble parameter at that time) for unit solid angle at the specified {\normalfont \ttfamily time}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <modules>Numerical_Constants_Physical</modules>
+  !#   <modules>Numerical_Constants_Physical Numerical_Constants_Prefixes</modules>
   !#   <argument>double precision, intent(in   ) :: time</argument>
   !#   <code>cosmologyFunctionsComovingVolumeElementRedshift=self%distanceComoving(time)**2*(speedLight/kilo)/self%hubbleParameterEpochal(time=time)</code>
   !#  </method>
@@ -245,5 +256,17 @@ module Cosmology_Functions
 
   ! A recommended relative time tolerance to which other functions should approach the Big Crunch.
   double precision, parameter, public :: timeToleranceRelativeBigCrunch=1.0d-4
+
+  ! Enumeration for different cosmological densities.
+  !# <enumeration>
+  !#  <name>densityCosmological</name>
+  !#  <description>Enumeration of different cosmological densities.</description>
+  !#  <visibility>public</visibility>
+  !#  <validator>yes</validator>
+  !#  <encodeFunction>yes</encodeFunction>
+  !#  <decodeFunction>yes</decodeFunction>
+  !#  <entry label="critical" />
+  !#  <entry label="mean"     />
+  !# </enumeration>
 
 end module Cosmology_Functions

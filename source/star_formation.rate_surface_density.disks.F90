@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,8 +27,9 @@ module Star_Formation_Rate_Surface_Density_Disks
   !# <functionClass>
   !#  <name>starFormationRateSurfaceDensityDisks</name>
   !#  <descriptiveName>Surface density rates of star formation in disks.</descriptiveName>
-  !#  <description>Class providing models of the surface density rate of star formation in disks.</description>
-  !#  <calculationReset>yes</calculationReset>
+  !#  <description>
+  !#   Class providing models of the surface density rate of star formation in disks.
+  !#  </description>
   !#  <default>krumholz2009</default>
   !#  <method name="intervals" >
   !#   <description>Return a set of integration intervals to use when integrating over the surface density of star formation rate.</description>
@@ -38,7 +39,7 @@ module Star_Formation_Rate_Surface_Density_Disks
   !#   <argument>type            (treeNode), intent(inout), target :: node</argument>
   !#   <argument>double precision          , intent(in   )         :: radiusInner, radiusOuter</argument>
   !#   <code>
-  !#    !GCC$ attributes unused :: self, node
+  !#    !$GLC attributes unused :: self, node
   !#    allocate(starFormationRateSurfaceDensityDisksIntervals(2,1))
   !#    starFormationRateSurfaceDensityDisksIntervals=reshape([radiusInner,radiusOuter],[2,1])
   !#   </code>
@@ -49,12 +50,12 @@ module Star_Formation_Rate_Surface_Density_Disks
   !#   <pass>yes</pass>
   !#   <argument>type(treeNode), intent(inout) :: node</argument>
   !#   <code>
-  !#    !GCC$ attributes unused :: self, node
+  !#    !$GLC attributes unused :: self, node
   !#    starFormationRateSurfaceDensityDisksUnchanged=.false.
   !#   </code>
   !#  </method>
   !#  <method name="rate" >
-  !#   <description>Returns the star formation rate surface density (in $M_\odot$ Gyr$^{-1}$ Mpc$^{-2}$) in the disk component of {\normalfont \ttfamily thisNode} at the given {\normalfont \ttfamily radius}.</description>
+  !#   <description>Returns the star formation rate surface density (in $M_\odot$ Gyr$^{-1}$ Mpc$^{-2}$) in the disk component of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>type            (treeNode), intent(inout) :: node</argument>

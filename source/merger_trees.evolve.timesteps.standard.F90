@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,20 +18,21 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !# <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepStandard">
-  !#  <description>A merger tree evolution timestepping class which limits the step to the minimum of that given by the {\normalfont \ttfamily simple} and {\normalfont \ttfamily satellite} timesteps.</description>
+  !#  <description>A merger tree evolution timestepping class which limits the step to the minimum of that given by the {\normalfont \ttfamily simple}, {\normalfont \ttfamily satellite}, and {\normalfont \ttfamily satelliteDestruction} timesteps.</description>
   !#  <deepCopy>
-  !#   <functionClass variables="simple, satellite"/>
+  !#   <functionClass variables="simple, satellite, satelliteDestruction"/>
   !#  </deepCopy>
   !#  <stateStorable>
-  !#   <functionClass variables="simple, satellite"/>
+  !#   <functionClass variables="simple, satellite, satelliteDestruction"/>
   !#  </stateStorable>
   !# </mergerTreeEvolveTimestep>
   type, extends(mergerTreeEvolveTimestepClass) :: mergerTreeEvolveTimestepStandard
      !% Implementation of a merger tree evolution timestepping class which limits the step to the minimum of that given by the
      !% {\normalfont \ttfamily simple} and {\normalfont \ttfamily satellite} timesteps.
      private
-     type(mergerTreeEvolveTimestepSimple   ), pointer :: simple    => null()
-     type(mergerTreeEvolveTimestepSatellite), pointer :: satellite => null()
+     type(mergerTreeEvolveTimestepSimple              ), pointer :: simple               => null()
+     type(mergerTreeEvolveTimestepSatellite           ), pointer :: satellite            => null()
+     type(mergerTreeEvolveTimestepSatelliteDestruction), pointer :: satelliteDestruction => null()
    contains
      final     ::                 standardDestructor
      procedure :: timeEvolveTo => standardTimeEvolveTo
@@ -42,6 +43,14 @@
      module procedure standardConstructorParameters
      module procedure standardConstructorInternal
   end interface mergerTreeEvolveTimestepStandard
+  
+  !# <enumeration>
+  !#  <name>timeStepSmallest</name>
+  !#  <description>Enumeration of smallest timestep.</description>
+  !#  <entry label="simple"              />
+  !#  <entry label="satellite"           />
+  !#  <entry label="satelliteDestruction"/>
+  !# </enumeration>
 
 contains
 
@@ -73,10 +82,12 @@ contains
     class(cosmologyFunctionsClass         ), intent(in   ), target :: cosmologyFunctions_
     class(nodeOperatorClass               ), intent(in   ), target :: nodeOperator_
 
-    allocate(self%simple   )
-    allocate(self%satellite)
-    !# <referenceConstruct isResult="yes" owner="self" object="simple"    constructor="mergerTreeEvolveTimestepSimple   (timeStepAbsolute         =1.0d+0,timeStepRelative         =1.0d-1,cosmologyFunctions_=cosmologyFunctions_)"/>
-    !# <referenceConstruct isResult="yes" owner="self" object="satellite" constructor="mergerTreeEvolveTimestepSatellite(timeOffsetMaximumAbsolute=1.0d-2,timeOffsetMaximumRelative=1.0d-3,nodeOperator_      =nodeOperator_      )"/>
+    allocate(self%simple              )
+    allocate(self%satellite           )
+    allocate(self%satelliteDestruction)
+    !# <referenceConstruct isResult="yes" owner="self" object="simple"               constructor="mergerTreeEvolveTimestepSimple              (timeStepAbsolute         =1.0d+0,timeStepRelative         =1.0d-1,cosmologyFunctions_=cosmologyFunctions_)"/>
+    !# <referenceConstruct isResult="yes" owner="self" object="satellite"            constructor="mergerTreeEvolveTimestepSatellite           (timeOffsetMaximumAbsolute=1.0d-2,timeOffsetMaximumRelative=1.0d-3,nodeOperator_      =nodeOperator_      )"/>
+    !# <referenceConstruct isResult="yes" owner="self" object="satelliteDestruction" constructor="mergerTreeEvolveTimestepSatelliteDestruction(                                                                                                         )"/>
     return
   end function standardConstructorInternal
 
@@ -85,48 +96,82 @@ contains
     implicit none
     type(mergerTreeEvolveTimestepStandard), intent(inout) :: self
 
-    !# <objectDestructor name="self%simple"   />
-    !# <objectDestructor name="self%satellite"/>
+    !# <objectDestructor name="self%simple"              />
+    !# <objectDestructor name="self%satellite"           />
+    !# <objectDestructor name="self%satelliteDestruction"/>
     return
   end subroutine standardDestructor
 
-  double precision function standardTimeEvolveTo(self,node,task,taskSelf,report,lockNode,lockType)
-    !% Determine a suitable timestep for {\normalfont \ttfamily node} by combining the {\normalfont \ttfamily simple} and
-    !% {\normalfont \ttfamily satellite} timesteps.
+  double precision function standardTimeEvolveTo(self,timeEnd,node,task,taskSelf,report,lockNode,lockType)
+    !% Determine a suitable timestep for {\normalfont \ttfamily node} by combining the {\normalfont \ttfamily simple},
+    !% {\normalfont \ttfamily satellite}, and {\normalfont \ttfamily satelliteDestruction} timesteps.
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: ISO_Varying_String, only : varying_string
     implicit none
     class           (mergerTreeEvolveTimestepStandard), intent(inout), target            :: self
+    double precision                                  , intent(in   )                    :: timeEnd
     type            (treeNode                        ), intent(inout), target            :: node
     procedure       (timestepTask                    ), intent(  out), pointer           :: task
     class           (*                               ), intent(  out), pointer           :: taskSelf
     logical                                           , intent(in   )                    :: report
     type            (treeNode                        ), intent(  out), pointer, optional :: lockNode
     type            (varying_string                  ), intent(  out)         , optional :: lockType
-    double precision                                                                     :: timeEvolveToSimple, timeEvolveToSatellite
-    procedure       (timestepTask                    )               , pointer           :: taskSimple        , taskSatellite
-    type            (treeNode                        )               , pointer           :: lockNodeSimple    , lockNodeSatellite
-    class           (*                               )               , pointer           :: taskSelfSimple    , taskSelfSatellite
-    type            (varying_string                  ), save                             :: lockTypeSimple    , lockTypeSatellite
+    double precision                                                                     :: timeEvolveToSimple, timeEvolveToSatellite, timeEvolveToSatelliteDestruction
+    procedure       (timestepTask                    )               , pointer           :: taskSimple        , taskSatellite        , taskSatelliteDestruction
+    type            (treeNode                        )               , pointer           :: lockNodeSimple    , lockNodeSatellite    , lockNodeSatelliteDestruction
+    class           (*                               )               , pointer           :: taskSelfSimple    , taskSelfSatellite    , taskSelfSatelliteDestruction
+    type            (varying_string                  ), save                             :: lockTypeSimple    , lockTypeSatellite    , lockTypeSatelliteDestruction
+    integer                                                                              :: timeStepSmallest
     !$omp threadprivate(lockTypeSimple,lockTypeSatellite)
+    !$GLC attributes initialized :: lockNodeSimple, lockNodeSatellite, lockNodeSatelliteDestruction
 
-    timeEvolveToSimple   =self%simple   %timeEvolveTo(node,taskSimple   ,taskSelfSimple   ,report,lockNode,lockType)
-    if (present(lockNode)) lockNodeSimple    => lockNode
-    if (present(lockType)) lockTypeSimple    =  lockType
-    timeEvolveToSatellite=self%satellite%timeEvolveTo(node,taskSatellite,taskSelfSatellite,report,lockNode,lockType)
-    if (present(lockNode)) lockNodeSatellite => lockNode
-    if (present(lockType)) lockTypeSatellite =  lockType
-    if (timeEvolveToSatellite <= timeEvolveToSimple) then
+    ! Find all timesteps.
+    timeEvolveToSimple              =self%simple              %timeEvolveTo(timeEnd,node,taskSimple              ,taskSelfSimple              ,report,lockNode,lockType)
+    if (present(lockNode)) lockNodeSimple               => lockNode
+    if (present(lockType)) lockTypeSimple               =  lockType
+    timeEvolveToSatellite           =self%satellite           %timeEvolveTo(timeEnd,node,taskSatellite           ,taskSelfSatellite           ,report,lockNode,lockType)
+    if (present(lockNode)) lockNodeSatellite            => lockNode
+    if (present(lockType)) lockTypeSatellite            =  lockType
+    timeEvolveToSatelliteDestruction=self%satelliteDestruction%timeEvolveTo(timeEnd,node,taskSatelliteDestruction,taskSelfSatelliteDestruction,report,lockNode,lockType)
+    if (present(lockNode)) lockNodeSatelliteDestruction => lockNode
+    if (present(lockType)) lockTypeSatelliteDestruction =  lockType
+    ! Find the minimum timestep.
+    if    (timeEvolveToSatellite            <= timeEvolveToSimple   ) then
+       if (timeEvolveToSatelliteDestruction <= timeEvolveToSatellite) then
+          timeStepSmallest=timeStepSmallestSatelliteDestruction
+       else
+          timeStepSmallest=timeStepSmallestSatellite
+       end if
+    else
+       if (timeEvolveToSatelliteDestruction <= timeEvolveToSimple   ) then
+          timeStepSmallest=timeStepSmallestSatelliteDestruction
+       else
+          timeStepSmallest=timeStepSmallestSimple
+       end if
+    end if
+    ! Set the appropriate timestep.
+    select case (timeStepSmallest)
+    case (timeStepSmallestSatelliteDestruction)
+       standardTimeEvolveTo            =  timeEvolveToSatelliteDestruction
+       task                            => taskSatelliteDestruction
+       taskSelf                        => taskSelfSatelliteDestruction
+       if (present(lockNode)) lockNode => lockNodeSatelliteDestruction
+       if (present(lockType)) lockType =  lockTypeSatelliteDestruction
+    case (timeStepSmallestSatellite           )
        standardTimeEvolveTo            =  timeEvolveToSatellite
        task                            => taskSatellite
        taskSelf                        => taskSelfSatellite
        if (present(lockNode)) lockNode => lockNodeSatellite
        if (present(lockType)) lockType =  lockTypeSatellite
-    else
+    case (timeStepSmallestSimple              )
        standardTimeEvolveTo            =  timeEvolveToSimple
        task                            => taskSimple
        taskSelf                        => taskSelfSimple
        if (present(lockNode)) lockNode => lockNodeSimple
        if (present(lockType)) lockType =  lockTypeSimple
-    end if
+    case default
+       standardTimeEvolveTo            =  huge(0.0d0)
+       call Galacticus_Error_Report('unknown smallest timestep'//{introspection:location})
+    end select
     return
   end function standardTimeEvolveTo

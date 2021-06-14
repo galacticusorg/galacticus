@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -115,7 +115,7 @@ contains
                   &                    distanceSurveyMaximum                                                                                                               &
                   &                   )
              timeMinimumFound     =min(timeMinimumFound,cosmologyFunctions_%timeAtDistanceComoving(distanceSurveyMaximum))
-             timeMaximumFound     =min(timeMaximumFound,cosmologyFunctions_%timeAtDistanceComoving(distanceSurveyMinimum))
+             timeMaximumFound     =max(timeMaximumFound,cosmologyFunctions_%timeAtDistanceComoving(distanceSurveyMinimum))
              outputWeight                      (iOutput)  &
                   & =outputWeight              (iOutput)  &
                   & +surveyGeometry_%solidAngle(iField )  &
@@ -130,14 +130,23 @@ contains
        where(outputWeight < 0.0d0)
           outputWeight=0.0d0
        end where
-       if (any(outputWeight > 0.0d0)) then
+       if      (                                 &
+            &    any(outputWeight >       0.0d0) &
+            &  ) then
           outputWeight=+    outputWeight  &
                &       /sum(outputWeight)
-       else
+       else if (                                 &
+            &    timeMinimumFound < +huge(0.0d0) &
+            &   .and.                            &
+            &    timeMaximumFound > -huge(0.0d0) &
+            &  ) then
           message='zero weight for all output times from survey geometry "'//surveyGeometry_%objectType()//'"'//char(10)
           write (redshiftLow ,'(f12.6)') cosmologyFunctions_%redshiftFromExpansionFactor(cosmologyFunctions_%expansionFactor(timeMaximumFound))
           write (redshiftHigh,'(f12.6)') cosmologyFunctions_%redshiftFromExpansionFactor(cosmologyFunctions_%expansionFactor(timeMinimumFound))
           message=message//'   required redshift(s): '//trim(redshiftLow)//' ≤ z ≤ '//trim(redshiftHigh)
+          call Galacticus_Error_Report(message//{introspection:location})
+       else
+          message='zero weight for all output times from survey geometry "'//surveyGeometry_%objectType()//'"'
           call Galacticus_Error_Report(message//{introspection:location})
        end if
     end if

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -50,15 +50,11 @@ contains
     !#   <name>massMinimum</name>
     !#   <source>parameters</source>
     !#   <description>The minimum mass of host halo to pass.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massMaximum</name>
     !#   <source>parameters</source>
     !#   <description>The maximum mass of host halo to pass.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=galacticFilterHostMassRange(massMinimum,massMaximum)
     !# <inputParametersValidate source="parameters"/>
@@ -78,9 +74,9 @@ contains
     !% Implement a filter which passes nodes with host halo basic mass in a specified range.
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
-    class(galacticFilterHostMassRange), intent(inout) :: self
-    type (treeNode                   ), intent(inout) :: node
-    class(nodeComponentBasic         ), pointer       :: basic
+    class(galacticFilterHostMassRange), intent(inout)         :: self
+    type (treeNode                   ), intent(inout), target :: node
+    class(nodeComponentBasic         ), pointer               :: basic
 
     if (node%isSatellite()) then
        basic => node%parent%basic()

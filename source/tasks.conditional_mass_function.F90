@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -80,34 +80,26 @@ contains
 
     !# <inputParameter>
     !#   <name>outputGroupName</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The name of the file to which the computed conditional mass function should be output.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>redshiftMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The minimum redshift for which to compute the conditional mass function.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>redshiftMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The maximum redshift for which to compute the conditional mass function.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>useSurveyLimits</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Specifies whether the limiting redshifts for integrating over the halo mass function should be limited by those of a galaxy survey.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     if (parameters%isPresent('massBinCenters').or.parameters%isPresent('massLogarithmDelta')) then
        if     (                                                 &
@@ -124,17 +116,13 @@ contains
             & ) call Galacticus_Error_Report('ambigous mass specification'                                                               //{introspection:location})
        !# <inputParameter>
        !#   <name>massBinCenters</name>
-       !#   <cardinality>1</cardinality>
        !#   <description>Logarithmic mass bins centers for conditional mass function calculations.</description>
        !#   <source>parameters</source>
-       !#   <type>real</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>massLogarithmDelta</name>
-       !#   <cardinality>1</cardinality>
        !#   <description>Logarithmic widths of mass bins for conditional mass function calculations.</description>
        !#   <source>parameters</source>
-       !#   <type>real</type>
        !# </inputParameter>
     else
        if     (                                                 &
@@ -151,55 +139,43 @@ contains
             & ) call Galacticus_Error_Report('all of [massMinimum], [massMaximum], and [countMass] must be specified if any is specified'//{introspection:location})
        !# <inputParameter>
        !#   <name>massMinimum</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d8</defaultValue>
        !#   <description>The minimum mass for which to compute the conditional mass function.</description>
        !#   <source>parameters</source>
-       !#   <type>string</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>massMaximum</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d12</defaultValue>
        !#   <description>The maximum mass for which to compute the conditional mass function.</description>
        !#   <source>parameters</source>
-       !#   <type>string</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>countMass</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>21</defaultValue>
        !#   <description>The number of bins for which to compute the conditional mass function.</description>
        !#   <source>parameters</source>
-       !#   <type>string</type>
        !# </inputParameter>
     end if
     !# <inputParameter>
     !#   <name>massHalo</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('all')</defaultValue>
     !#   <description>The halo mass for which to compute the conditional mass function. A value of ``all'' will cause the conditional mass function to be integrated over the halo mass function, giving the mass function.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !#   <variable>massHaloText</variable>
     !# </inputParameter>
     integrateOverHaloMassFunction=(massHaloText == "all")
     if (integrateOverHaloMassFunction) then
        !# <inputParameter>
        !#   <name>massHaloMinimum</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d6</defaultValue>
        !#   <description>The minimum halo mass to use when integrating over the halo mass function.</description>
        !#   <source>parameters</source>
-       !#   <type>real</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>massHaloMaximum</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d16</defaultValue>
        !#   <description>The maximum halo mass to use when integrating over the halo mass function.</description>
        !#   <source>parameters</source>
-       !#   <type>real</type>
        !# </inputParameter>
     else
        text=char(massHaloText)
@@ -291,40 +267,42 @@ contains
 
   subroutine conditionalMassFunctionPerform(self,status)
     !% Compute and output the halo mass function.
-    use :: FGSL                 , only : fgsl_function            , fgsl_integration_workspace
-    use :: Galacticus_Display   , only : Galacticus_Display_Indent, Galacticus_Display_Unindent
-    use :: Galacticus_Error     , only : Galacticus_Error_Report  , errorStatusSuccess
+    use :: Display              , only : displayIndent          , displayUnindent
+    use :: Galacticus_Error     , only : Galacticus_Error_Report, errorStatusSuccess
     use :: Galacticus_HDF5      , only : galacticusOutputFile
     use :: IO_HDF5              , only : hdf5Object
-    use :: ISO_Varying_String   , only : char                     , var_str                    , varying_string
+    use :: ISO_Varying_String   , only : char                   , var_str           , varying_string
     use :: Memory_Management    , only : allocateArray
-    use :: Numerical_Integration, only : Integrate
+    use :: Numerical_Integration, only : integrator
     use :: String_Handling      , only : operator(//)
     implicit none
     class           (taskConditionalMassFunction), intent(inout), target       :: self
     integer                                      , intent(  out), optional     :: status
-    double precision                             , allocatable  , dimension(:) :: conditionalMassFunction        , conditionalMassFunctionIncomplete
-    integer                                                                    :: iMass                          , iField                                  , &
+    double precision                             , allocatable  , dimension(:) :: conditionalMassFunction    , conditionalMassFunctionIncomplete
+    integer                                                                    :: iMass                      , iField                           , &
          &                                                                        fieldCount
-    logical                                                                    :: integrationReset        =.true., integrationResetNormalization    =.true.
-    double precision                                                           :: volumeIntegrand                , massFunctionIntegrand                   , &
-         &                                                                        massBinMinimum                 , massBinMaximum                          , &
-         &                                                                        binTimeMinimum                 , binTimeMaximum                          , &
-         &                                                                        time                           , logHaloMassLower                        , &
-         &                                                                        logHaloMassUpper               , distanceMaximum
-    type            (fgsl_function             )                               :: integrandFunction              , integrandFunctionNormalization
-    type            (fgsl_integration_workspace)                               :: integrationWorkspace           , integrationWorkspaceNormalization
+    double precision                                                           :: volumeIntegrand            , massFunctionIntegrand            , &
+         &                                                                        massBinMinimum             , massBinMaximum                   , &
+         &                                                                        binTimeMinimum             , binTimeMaximum                   , &
+         &                                                                        time                       , logHaloMassLower                 , &
+         &                                                                        logHaloMassUpper           , distanceMaximum
+    type            (integrator                )                               :: integratorMassHalo         , integratorTime                   , &
+         &                                                                        integratorNormalizationTime
     type            (hdf5Object                )                               :: outputGroup
     type            (varying_string            )                               :: message
     character       (len=12                    )                               :: label
 
-    call Galacticus_Display_Indent('Begin task: conditional mass function' )
+    call displayIndent('Begin task: conditional mass function' )
     if(present(status)) status=errorStatusSuccess
     call allocateArray(conditionalMassFunction          ,[self%countMass])
     call allocateArray(conditionalMassFunctionIncomplete,[self%countMass])
     ! Find logarithmic limits for halo mass in integrations.
     logHaloMassLower=log10(self%massHaloMinimum)
     logHaloMassUpper=log10(self%massHaloMaximum)
+    ! Build integrators.
+    integratorMassHalo         =integrator(integrandMassHalo         ,toleranceRelative=1.0d-3)
+    integratorTime             =integrator(integrandTime             ,toleranceRelative=1.0d-3)
+    integratorNormalizationTime=integrator(integrandNormalizationTime,toleranceRelative=1.0d-3)
     ! Compute the conditional mass function and output to file.
     do iMass=1,self%countMass
        massBinMinimum=exp(log(self%massBinCenters(iMass))-0.5d0*self%massLogarithmDelta(iMass))
@@ -334,16 +312,8 @@ contains
           ! Branch on whether a range of redshifts was given.
           if (self%timeMaximum <= self%timeMinimum) then
              ! No range of redshifts given. Compute the mass function at the minimum redshift.
-             time=self%timeMaximum
-             conditionalMassFunction(iMass)=Integrate(                                        &
-                  &                                                     logHaloMassLower    , &
-                  &                                                     logHaloMassUpper    , &
-                  &                                                     integrandMassHalo   , &
-                  &                                                     integrandFunction   , &
-                  &                                                     integrationWorkspace, &
-                  &                                   toleranceRelative=1.0d-3              , &
-                  &                                   reset            =integrationReset      &
-                  &                                  )
+             time                          =self              %timeMaximum
+             conditionalMassFunction(iMass)=integratorMassHalo%integrate  (logHaloMassLower,logHaloMassUpper)
           else
              ! Determine number of fields to integrate over.
              if (self%useSurveyLimits) then
@@ -373,30 +343,12 @@ contains
                    binTimeMaximum=self%timeMaximum
                 end if
                 ! Range of redshifts was given, integrate the mass function over this time interval.
-               massFunctionIntegrand=                                                                &
-                     &                +massFunctionIntegrand                                          &
-                     &                +self%surveyGeometry_%solidAngle(iField)                        &
-                     &                *Integrate(                                                     &
-                     &                                             binTimeMinimum                   , &
-                     &                                             binTimeMaximum                   , &
-                     &                                             integrandTime                    , &
-                     &                                             integrandFunction                , &
-                     &                                             integrationWorkspace             , &
-                     &                           toleranceRelative=1.0d-3                           , &
-                     &                           reset            =integrationReset                   &
-                     &                          )
-                volumeIntegrand      =                                                                &
-                     &                +volumeIntegrand                                                &
-                     &                +self%surveyGeometry_%solidAngle(iField)                        &
-                     &                *Integrate(                                                     &
-                     &                                             binTimeMinimum                   , &
-                     &                                             binTimeMaximum                   , &
-                     &                                             integrandNormalizationTime       , &
-                     &                                             integrandFunctionNormalization   , &
-                     &                                             integrationWorkspaceNormalization, &
-                     &                           toleranceRelative=1.0d-3                           , &
-                     &                           reset            =integrationResetNormalization      &
-                     &                          )
+               massFunctionIntegrand =+massFunctionIntegrand                                                                 &
+                     &                +self                       %surveyGeometry_%solidAngle(iField                       ) &
+                     &                *integratorTime                             %integrate (binTimeMinimum,binTimeMaximum)
+                volumeIntegrand      =+volumeIntegrand                                                                       &
+                     &                +self                       %surveyGeometry_%solidAngle(iField                       ) &
+                     &                *integratorNormalizationTime                %integrate (binTimeMinimum,binTimeMaximum)
              end do
              if (volumeIntegrand <= 0.0d0) then
                 write (label,'(e12.6)') self%massBinCenters(iMass)
@@ -434,7 +386,7 @@ contains
        call outputGroup%writeDataset(conditionalMassFunctionIncomplete,"massFunctionIncomplete",commentText="Incomplete conditional mass function in units of per log(mass).")
     end if
     call outputGroup%close()
-    call Galacticus_Display_Unindent('Done task: conditional mass function' )
+    call displayUnindent('Done task: conditional mass function' )
     return
 
   contains
@@ -442,22 +394,13 @@ contains
     double precision function integrandTime(timePrime)
       !% Integral over time.
       implicit none
-      double precision                            , intent(in   ) :: timePrime
-      type            (fgsl_function             ), save          :: integrandFunctionTime
-      type            (fgsl_integration_workspace), save          :: integrationWorkspaceTime
-      logical                                     , save          :: integrationResetTime    =.true.
+      double precision            , intent(in   ) :: timePrime
+      type            (integrator)                :: integrator_
 
-      time         =timePrime
-      integrandTime=+Integrate(                                            &
-           &                                     logHaloMassLower        , &
-           &                                     logHaloMassUpper        , &
-           &                                     integrandMassHalo       , &
-           &                                     integrandFunctionTime   , &
-           &                                     integrationWorkspaceTime, &
-           &                   toleranceRelative=1.0d-3                  , &
-           &                   reset            =integrationResetTime      &
-           &                  )                                            &
-           &        *self%cosmologyFunctions_%comovingVolumeElementTime(timePrime)
+      time         =                                                           timePrime
+      integrator_  = integrator                                               (integrandMassHalo,toleranceRelative=1.0d-3          )
+      integrandTime=+integrator_                    %integrate                (logHaloMassLower ,                  logHaloMassUpper) &
+           &        *self       %cosmologyFunctions_%comovingVolumeElementTime(timePrime                                           )
       return
     end function integrandTime
 

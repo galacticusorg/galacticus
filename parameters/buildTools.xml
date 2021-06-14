@@ -4,11 +4,11 @@
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
 
-  <taskMethod value="multi">
-    <taskMethod value="buildToolFSPS"   />
-    <taskMethod value="buildToolCAMB"   />
-    <taskMethod value="buildToolRecFast"/>
-    <taskMethod value="buildToolCloudy" />
-  </taskMethod>
-    
+  <task value="multi">
+    <task value="buildToolFSPS"/>
+    <task value="buildToolCAMB"/>
+    <task value="buildToolRecFast"/>
+    <task value="buildToolCloudy"/>
+  </task>
+
 </parameters>

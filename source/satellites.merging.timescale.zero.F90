@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,9 @@
   !% Implements a satellite merging timescale class in which merging timescales are always zero.
 
   !# <satelliteMergingTimescales name="satelliteMergingTimescalesZero">
-  !#  <description>Returns a zero timescale for merging.</description>
+  !#  <description>
+  !#   A satellite merging timescale class which always gives a zero timescale for merging.
+  !#  </description>
   !# </satelliteMergingTimescales>
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesZero
      !% A class implementing satellite merging timescales that are always zero.
@@ -43,7 +45,7 @@ contains
     implicit none
     type(satelliteMergingTimescalesZero)                :: self
     type(inputParameters               ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=satelliteMergingTimescalesZero()
     return
@@ -55,7 +57,7 @@ contains
     class(satelliteMergingTimescalesZero), intent(inout) :: self
     type (treeNode                      ), intent(inout) :: node
     type (keplerOrbit                   ), intent(inout) :: orbit
-    !GCC$ attributes unused :: self, node, orbit
+    !$GLC attributes unused :: self, node, orbit
 
     zeroTimeUntilMerging=0.0d0
     return

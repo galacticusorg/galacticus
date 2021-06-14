@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -68,8 +68,6 @@ contains
     !#   <name>apparentMagnitudeThreshold</name>
     !#   <source>parameters</source>
     !#   <description>The parameter $m_0$ appearing in the stellar apparent magnitude threshold for the stellar apparent magnitude galactic filter class.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     self=galacticFilterStellarApparentMagnitudes(apparentMagnitudeThreshold,cosmologyFunctions_)
@@ -114,14 +112,14 @@ contains
     use :: Galacticus_Nodes                  , only : nodeComponentBasic              , treeNode
     use :: Stellar_Luminosities_Structure    , only : unitStellarLuminosities
     implicit none
-    class           (galacticFilterStellarApparentMagnitudes), intent(inout) :: self
-    type            (treeNode                               ), intent(inout) :: node
-    class           (nodeComponentBasic                     ), pointer       :: basic
-    double precision                                         , parameter     :: expansionFactorTolerance=1.0d-6
-    double precision                                                         :: time                           , luminosity     , &
-         &                                                                      abMagnitude                    , expansionFactor, &
-         &                                                                      distanceModulus
-    integer                                                                  :: iLuminosity
+    class           (galacticFilterStellarApparentMagnitudes), intent(inout)         :: self
+    type            (treeNode                               ), intent(inout), target :: node
+    class           (nodeComponentBasic                     ), pointer               :: basic
+    double precision                                         , parameter             :: expansionFactorTolerance=1.0d-6
+    double precision                                                                 :: time                           , luminosity     , &
+         &                                                                              abMagnitude                    , expansionFactor, &
+         &                                                                              distanceModulus
+    integer                                                                          :: iLuminosity
 
     ! Get the basic component.
     basic => node%basic()

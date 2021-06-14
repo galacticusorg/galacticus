@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,27 +23,29 @@
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters      , only : cosmologyParametersClass
-  use :: FGSL                      , only : fgsl_interp                  , fgsl_interp_accel
   use :: File_Utilities            , only : lockDescriptor
+  use :: Numerical_Interpolation   , only : interpolator
   use :: Power_Spectra_Primordial  , only : powerSpectrumPrimordialClass
 
   !# <powerSpectrumNonlinear name="powerSpectrumNonlinearCosmicEmu">
-  !#  <description>Provides a nonlinear power spectrum class in which the power spectrum is computed using the code of \cite{lawrence_coyote_2010}.</description>
+  !#  <description>
+  !#   Provides a nonlinear power spectrum class in which the power spectrum is computed using the code of
+  !#   \cite{lawrence_coyote_2010}. The CosmicEmu code will be downloaded, compiled and run as necessary if this option is
+  !#   utilized.
+  !#  </description>
   !# </powerSpectrumNonlinear>
   type, extends(powerSpectrumNonlinearClass) :: powerSpectrumNonlinearCosmicEmu
      !% A linear transfer function class.
      private
-     integer                                                                      :: wavenumberCount
-     double precision                                 , allocatable, dimension(:) :: powerSpectrumTable                 , wavenumberTable
-     type            (fgsl_interp                    )                            :: interpolationObject
-     type            (fgsl_interp_accel              )                            :: interpolationAccelerator
-     logical                                                                      :: resetInterpolation
-     double precision                                                             :: timePrevious
-     type            (lockDescriptor                 )                            :: fileLock
-     class           (cosmologyFunctionsClass        ), pointer                   :: cosmologyFunctions_       => null()
-     class           (cosmologyParametersClass       ), pointer                   :: cosmologyParameters_      => null()
-     class           (powerSpectrumPrimordialClass   ), pointer                   :: powerSpectrumPrimordial_  => null()
-     class           (cosmologicalMassVarianceClass  ), pointer                   :: cosmologicalMassVariance_ => null()
+     integer                                                                    :: wavenumberCount
+     double precision                               , allocatable, dimension(:) :: powerSpectrumTable                 , wavenumberTable
+     type            (interpolator                 ), allocatable               :: interpolator_
+     double precision                                                           :: timePrevious
+     type            (lockDescriptor               )                            :: fileLock
+     class           (cosmologyFunctionsClass      ), pointer                   :: cosmologyFunctions_       => null()
+     class           (cosmologyParametersClass     ), pointer                   :: cosmologyParameters_      => null()
+     class           (powerSpectrumPrimordialClass ), pointer                   :: powerSpectrumPrimordial_  => null()
+     class           (cosmologicalMassVarianceClass), pointer                   :: cosmologicalMassVariance_ => null()
    contains
      final     ::          cosmicEmuDestructor
      procedure :: value => cosmicEmuValue
@@ -100,8 +102,7 @@ contains
     !# <constructorAssign variables="*cosmologyFunctions_, *cosmologyParameters_, *powerSpectrumPrimordial_, *cosmologicalMassVariance_"/>
 
     ! Initialize state.
-    self%timePrevious      =-1.0d0
-    self%resetInterpolation=.true.
+    self%timePrevious=-1.0d0
     ! Check that this is a flat cosmology.
     if     (                                                                                                 &
          &  Values_Differ(                                                                                   &
@@ -144,18 +145,17 @@ contains
 
   double precision function cosmicEmuValue(self,waveNumber,time)
     !% Return a nonlinear power spectrum equal using the code of \cite{lawrence_coyote_2010}.
-    use :: Cosmology_Parameters   , only : hubbleUnitsLittleH
-    use :: File_Utilities         , only : Count_Lines_In_File         , Directory_Make     , File_Exists, File_Lock, &
-          &                                File_Name_Temporary         , File_Remove        , File_Unlock
-    use :: Galacticus_Display     , only : Galacticus_Display_Message  , verbosityWorking
-    use :: Galacticus_Error       , only : Galacticus_Error_Report
-    use :: Galacticus_Paths       , only : galacticusPath              , pathTypeDataDynamic
-    use :: ISO_Varying_String     , only : varying_string
-    use :: Memory_Management      , only : allocateArray               , deallocateArray
-    use :: Numerical_Comparison   , only : Values_Differ
-    use :: Numerical_Interpolation, only : Interpolate                 , Interpolate_Done
-    use :: System_Command         , only : System_Command_Do
-    use :: Table_Labels           , only : extrapolationTypeExtrapolate
+    use :: Cosmology_Parameters, only : hubbleUnitsLittleH
+    use :: Display             , only : displayMessage              , verbosityLevelWorking
+    use :: File_Utilities      , only : Count_Lines_In_File         , Directory_Make       , File_Exists, File_Lock, &
+          &                             File_Name_Temporary         , File_Remove          , File_Unlock
+    use :: Galacticus_Error    , only : Galacticus_Error_Report
+    use :: Galacticus_Paths    , only : galacticusPath              , pathTypeDataDynamic
+    use :: ISO_Varying_String  , only : varying_string
+    use :: Memory_Management   , only : allocateArray               , deallocateArray
+    use :: Numerical_Comparison, only : Values_Differ
+    use :: System_Command      , only : System_Command_Do
+    use :: Table_Labels        , only : extrapolationTypeExtrapolate
     implicit none
     class           (powerSpectrumNonlinearCosmicEmu), intent(inout) :: self
     double precision                                 , intent(in   ) :: time             , waveNumber
@@ -217,19 +217,19 @@ contains
              if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1/emu.c")) then
                 ! Download the code.
                 if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1.tar.gz")) then
-                   call Galacticus_Display_Message("downloading CosmicEmu code....",verbosityWorking)
+                   call displayMessage("downloading CosmicEmu code....",verbosityLevelWorking)
                    call System_Command_Do("wget http://www.hep.anl.gov/cosmology/CosmicEmu/CosmicEmu_v1.1.tar.gz -O "//galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1.tar.gz")
                    if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1.tar.gz")) &
                         & call Galacticus_Error_Report("failed to download CosmicEmu code"//{introspection:location})
                 end if
                 ! Unpack the code.
-                call Galacticus_Display_Message("unpacking CosmicEmu code....",verbosityWorking)
+                call displayMessage("unpacking CosmicEmu code....",verbosityLevelWorking)
                 call System_Command_Do("tar -x -v -z -C "//galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1 -f "//galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1.tar.gz")
                 if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1/emu.c")) &
                      & call Galacticus_Error_Report("failed to unpack CosmicEmu code"//{introspection:location})
              end if
              ! Build the code.
-             call Galacticus_Display_Message("compiling CosmicEmu code....",verbosityWorking)
+             call displayMessage("compiling CosmicEmu code....",verbosityLevelWorking)
              call System_Command_Do("cd "//galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1; sed -i~ -r s/""^(\s*gcc.*\-lm)\s*$""/""\1 \-I\`gsl\-config \-\-prefix\`\n\n%.o: %.c\n\tgcc -c \$< -o \$\*\.o \-I\`gsl\-config \-\-prefix\`\n""/ makefile; make");
              if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1/emu.exe")) &
                   & call Galacticus_Error_Report("failed to build Cosmic_Emu code"//{introspection:location})
@@ -264,25 +264,16 @@ contains
           ! Convert to logarithmic values.
           self%wavenumberTable   =log(self%wavenumberTable   )
           self%powerSpectrumTable=log(self%powerSpectrumTable)
-          ! Reset the interpolator.
-          call Interpolate_Done(self%interpolationObject,self%interpolationAccelerator,self%resetInterpolation)
-          self%resetInterpolation=.true.
+          ! Build the interpolator.
+          if (allocated(self%interpolator_)) deallocate(self%interpolator_)
+          allocate(self%interpolator_)
+          self%interpolator_=interpolator(self%wavenumberTable,self%powerSpectrumTable,extrapolationType=extrapolationTypeExtrapolate)
           ! Destroy the parameter file.
           call File_Remove(char(parameterFile))
        end if
        call File_Unlock(self%fileLock)
     end if
     ! Interpolate in the tabulated data to get the power spectrum.
-    cosmicEmuValue=exp(                                                                      &
-         &             Interpolate(                                                          &
-         &                                               self%wavenumberTable              , &
-         &                                               self%powerSpectrumTable           , &
-         &                                               self%interpolationObject          , &
-         &                                               self%interpolationAccelerator     , &
-         &                                           log(     wavenumber                  ), &
-         &                         reset            =    self%resetInterpolation           , &
-         &                         extrapolationType=         extrapolationTypeExtrapolate   &
-         &                         )                                                         &
-         &            )
+    cosmicEmuValue=exp(self%interpolator_%interpolate(log(wavenumber)))
     return
   end function cosmicEmuValue

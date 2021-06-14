@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,8 +19,12 @@
 
 !% Contains a module which implements calculations of error functions.
 
+! Add dependency on GSL library.
+!; gsl
+
 module Error_Functions
   !% Implements calculations of error functions.
+  use, intrinsic :: ISO_C_Binding, only : c_double
   implicit none
   private
   public :: Error_Function, Error_Function_Complementary, erfApproximate, Faddeeva
@@ -39,25 +43,39 @@ module Error_Functions
      module procedure erfApproximateQuad
   end interface erfApproximate
 
+  interface
+     function gsl_sf_erf(x) bind(c,name='gsl_sf_erf')
+       !% Template for the GSL error function.
+       import
+       real(c_double)        :: gsl_sf_erf
+       real(c_double), value :: x
+     end function gsl_sf_erf
+
+     function gsl_sf_erfc(x) bind(c,name='gsl_sf_erfc')
+       !% Template for the GSL error function.
+       import
+       real(c_double)        :: gsl_sf_erfc
+       real(c_double), value :: x
+     end function gsl_sf_erfc
+  end interface
+  
 contains
 
   double precision function Error_Function_Real(argument)
     !% Computes the error function.
-    use :: FGSL, only : FGSL_SF_Erf
     implicit none
     double precision, intent(in   ) :: argument
 
-    Error_Function_Real=FGSL_SF_Erf(argument)
+    Error_Function_Real=GSL_SF_Erf(argument)
     return
   end function Error_Function_Real
 
   double precision function Error_Function_Complementary_Real(argument)
     !% Computes the complementary error function.
-    use :: FGSL, only : FGSL_SF_ErfC
     implicit none
     double precision, intent(in   ) :: argument
 
-    Error_Function_Complementary_Real=FGSL_SF_ErfC(argument)
+    Error_Function_Complementary_Real=GSL_SF_ErfC(argument)
     return
   end function Error_Function_Complementary_Real
 
@@ -168,7 +186,7 @@ contains
   end function Faddeeva
 
  function erfApproximateQuad(x)
-    !% An \href{http://sites.google.com/site/winitzki/sergei-winitzkis-files/erf-approx.pdf}{approximation to the error function}
+    !% An approximation to the error function due to \cite{winitzki_uniform_2003}.
     !% that is designed to be very accurate in the vicinity of zero and infinity.
     use :: Kind_Numbers            , only : kind_quad
     use :: Numerical_Constants_Math, only : PiQuadPrecision

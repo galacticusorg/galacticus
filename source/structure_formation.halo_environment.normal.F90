@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -30,10 +30,10 @@
   !# <haloEnvironment name="haloEnvironmentNormal">
   !#  <description>Implements a normally-distributed halo environment.</description>
   !#  <deepCopy>
-  !#   <functionClass variables="sphericalCollapseSolver_"/>
+  !#   <functionClass variables="sphericalCollapseSolver_ ,distributionOverdensity, distributionOverdensityMassive"/>
   !#  </deepCopy>
   !#  <stateStorable>
-  !#   <functionClass variables="sphericalCollapseSolver_"/>
+  !#   <functionClass variables="sphericalCollapseSolver_,distributionOverdensity, distributionOverdensityMassive"/>
   !#  </stateStorable>
   !# </haloEnvironment>
   type, extends(haloEnvironmentClass) :: haloEnvironmentNormal
@@ -45,8 +45,8 @@
      class           (linearGrowthClass                                ), pointer :: linearGrowth_                   => null()
      class           (criticalOverdensityClass                         ), pointer :: criticalOverdensity_            => null()
      type            (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt ), pointer :: sphericalCollapseSolver_        => null()
-     type            (distributionFunction1DPeakBackground             )          :: distributionOverdensity
-     type            (distributionFunction1DNormal                     )          :: distributionOverdensityMassive
+     type            (distributionFunction1DPeakBackground             ), pointer :: distributionOverdensity         => null()
+     type            (distributionFunction1DNormal                     ), pointer :: distributionOverdensityMassive  => null()
      type            (table2DLinLinLin                                 )          :: linearToNonLinear
      double precision                                                             :: radiusEnvironment                        , variance           , &
           &                                                                          environmentalOverdensityMaximum          , overdensityPrevious, &
@@ -54,6 +54,9 @@
      integer         (kind_int8                                        )          :: uniqueIDPrevious
      logical                                                                      :: linearToNonLinearInitialized
    contains
+     !# <methods>
+     !#   <method description="Reset memoized calculations." method="calculationReset" />
+     !# </methods>
      final     ::                                  normalDestructor
      procedure :: overdensityLinear             => normalOverdensityLinear
      procedure :: overdensityLinearGradientTime => normalOverdensityLinearGradientTime
@@ -64,6 +67,8 @@
      procedure :: pdf                           => normalPDF
      procedure :: cdf                           => normalCDF
      procedure :: overdensityLinearSet          => normalOverdensityLinearSet
+     procedure :: autoHook                      => normalAutoHook
+     procedure :: calculationReset              => normalCalculationReset
   end type haloEnvironmentNormal
 
   interface haloEnvironmentNormal
@@ -98,8 +103,6 @@ contains
     !#   <variable>radiusEnvironment</variable>
     !#   <defaultValue>7.0d0</defaultValue>
     !#   <description>The radius of the sphere used to determine the variance in the environmental density.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=haloEnvironmentNormal(radiusEnvironment,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,linearGrowth_,criticalOverdensity_)
     !# <inputParametersValidate source="parameters"/>
@@ -144,21 +147,17 @@ contains
     ! Construct the distribution for δ. This assumes a normal distribution for the densities, but conditioned on the fact that the
     ! region has not collapsed on any larger scale. The resulting distribution is given by eqn. (9) of Mo & White (1996; MNRAS;
     ! 282; 347). We include some small buffer to the collapse threshold to avoid rounding errors. 
-    self%environmentalOverdensityMaximum=+self%criticalOverdensity_%value(expansionFactor=1.0d0)   &
-         &                               *(                                                        &
-         &                                 +1.0d0                                                  &
-         &                                 -limitUpperBuffer                                       &
+    self%environmentalOverdensityMaximum=+self%criticalOverdensity_%value(expansionFactor=1.0d0,mass=self%environmentMass()) &
+         &                               *(                                                                                  &
+         &                                 +1.0d0                                                                            &
+         &                                 -limitUpperBuffer                                                                 &
          &                                )
-    self%distributionOverdensity        =distributionFunction1DPeakBackground(                                      &
-         &                                                                         overdensityVariance            , &
-         &                                                                    self%environmentalOverdensityMaximum  &
-         &                                                                   )
+    allocate(self%distributionOverdensity)
+    !# <referenceConstruct owner="self" isResult="yes" object="distributionOverdensity" constructor="distributionFunction1DPeakBackground(overdensityVariance,self%environmentalOverdensityMaximum)"/>
     ! Construct a standard normal distribution function which will be used for assigning the overdensity for trees which exceed
     ! the mass of the background.
-    self%distributionOverdensityMassive=distributionFunction1DNormal         (                &
-         &                                                                    mean    =0.0d0, &
-         &                                                                    variance=1.0d0  &
-         &                                                                   )
+    allocate(self%distributionOverdensityMassive)
+    !# <referenceConstruct owner="self" isResult="yes" object="distributionOverdensityMassive" constructor="distributionFunction1DNormal(mean=0.0d0,variance=1.0d0)"/>
     ! Find the fraction of cosmological volume which is included in regions below the collapse threshold. This is used to scale
     ! the PDF such that when the mass function is averaged over the PDF we get the correct mass function.
     self%includedVolumeFraction         =Error_Function(self%environmentalOverdensityMaximum/sqrt(2.0d0)/sqrt(overdensityVariance))
@@ -172,19 +171,45 @@ contains
     return
   end function normalConstructorInternal
 
+  subroutine normalAutoHook(self)
+    !% Attach to the calculation reset event.
+    use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
+    implicit none
+    class(haloEnvironmentNormal), intent(inout) :: self
+
+    call calculationResetEvent%attach(self,normalCalculationReset,openMPThreadBindingAllLevels)
+    return
+  end subroutine normalAutoHook
+
   subroutine normalDestructor(self)
     !% Destructor for the {\normalfont \ttfamily normal} halo mass function class.
+    use :: Events_Hooks, only : calculationResetEvent
     implicit none
     type(haloEnvironmentNormal), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_"      />
-    !# <objectDestructor name="self%cosmologicalMassVariance_" />
-    !# <objectDestructor name="self%cosmologyFunctions_"       />
-    !# <objectDestructor name="self%criticalOverdensity_"      />
-    !# <objectDestructor name="self%linearGrowth_"             />
-    !# <objectDestructor name="self%sphericalCollapseSolver_"  />
+    !# <objectDestructor name="self%cosmologyParameters_"          />
+    !# <objectDestructor name="self%cosmologicalMassVariance_"     />
+    !# <objectDestructor name="self%cosmologyFunctions_"           />
+    !# <objectDestructor name="self%criticalOverdensity_"          />
+    !# <objectDestructor name="self%linearGrowth_"                 />
+    !# <objectDestructor name="self%sphericalCollapseSolver_"      />
+    !# <objectDestructor name="self%distributionOverdensity"       />
+    !# <objectDestructor name="self%distributionOverdensityMassive"/>
+    call calculationResetEvent%detach(self,normalCalculationReset)
     return
   end subroutine normalDestructor
+
+  subroutine normalCalculationReset(self,node)
+    !% Reset the normal halo environment calculation.
+    use :: Galacticus_Nodes, only : treeNode
+    implicit none
+    class(haloEnvironmentNormal), intent(inout) :: self
+    type (treeNode             ), intent(inout) :: node
+
+    self%overdensityPrevious=-huge(0.0d0)
+    self%uniqueIDPrevious   =-1_kind_int8
+    return
+  end subroutine normalCalculationReset
 
   double precision function normalOverdensityLinear(self,node,presentDay)
     !% Return the environment of the given {\normalfont \ttfamily node}.
@@ -268,8 +293,8 @@ contains
        self%linearToNonLinearInitialized=.true.
     end if
     ! Find the nonlinear overdensity.
-    basic                      => node                  %basic      (                                         )
-    normalOverdensityNonLinear =  self%linearToNonLinear%interpolate(self%overdensityLinear(node),basic%time())
+    basic                      =>            node                  %basic      (                                         )
+    normalOverdensityNonLinear =  max(-1.0d0,self%linearToNonLinear%interpolate(self%overdensityLinear(node),basic%time()))
     return
   end function normalOverdensityNonLinear
 
@@ -330,17 +355,17 @@ contains
   end function normalCDF
 
   subroutine normalOverdensityLinearSet(self,node,overdensity)
-    !% Return the CDF of the environmental overdensity.
+    !% Set the environmental linear overdensity in the given {\normalfont \ttfamily node}.
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (haloEnvironmentNormal), intent(inout) :: self
     type            (treeNode             ), intent(inout) :: node
     double precision                       , intent(in   ) :: overdensity
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     if (overdensity > self%environmentalOverdensityMaximum) call Galacticus_Error_Report('δ≥δ_c is inconsistent with normal (peak-background) density field'//{introspection:location})
     call node%hostTree%properties%set('haloEnvironmentOverdensity',overdensity)
-    self%uniqueIDPrevious   =node%hostTree%baseNode%uniqueID()
+    self%uniqueIDPrevious   =-1_kind_int8
     self%overdensityPrevious=overdensity
     return
   end subroutine normalOverdensityLinearSet

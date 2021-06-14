@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,17 +19,37 @@
 
   !% Implementation of a 1D Student-t distribution function.
 
+  ! Add dependency on GSL library.
+  !; gsl
+  
+  use, intrinsic :: ISO_C_Binding, only : c_double
+  
   !# <distributionFunction1D name="distributionFunction1DStudentT">
-  !#  <description>A 1D Student-t distibution function.</description>
+  !#  <description>
+  !#   Student's t-distribution:
+  !#   \begin{equation}
+  !#    P(x) \propto \left(1 + {x^2\over \nu}\right)^{-(\nu+1)/2}
+  !#   \end{equation}
+  !#   Specified using:
+  !#   \begin{description}
+  !#   \item[{\normalfont \ttfamily degreesOfFreedom}] The number of degrees of freedom, $\nu$.
+  !#   \end{description}
+  !#  </description>
   !# </distributionFunction1D>
   type, extends(distributionFunction1DClass) :: distributionFunction1DStudentT
      !% Implementation of a 1D Student-t distribution function.
      private
      double precision :: degreesOfFreedom
    contains
-     procedure :: density    => studentTDensity
-     procedure :: cumulative => studentTCumulative
-     procedure :: inverse    => studentTInverse
+     !# <methods>
+     !#   <method description="The upper-tail cumulative distribution function." method="cumulativeUpper" />
+     !#   <method description="The upper-tail inverse cumulative distribution function." method="inverseUpper" />
+     !# </methods>
+     procedure :: density         => studentTDensity
+     procedure :: cumulative      => studentTCumulative
+     procedure :: inverse         => studentTInverse
+     procedure :: cumulativeUpper => studentTCumulativeUpper
+     procedure :: inverseUpper    => studentTInverseUpper
   end type distributionFunction1DStudentT
 
   interface distributionFunction1DStudentT
@@ -38,6 +58,43 @@
      module procedure studentTConstructorInternal
   end interface distributionFunction1DStudentT
 
+  interface
+     function gsl_ran_tdist_pdf(x,nu) bind(c,name='gsl_ran_tdist_pdf')
+       !% Template for the GSL Student t-distribution probability density.
+       import
+       real(c_double)        :: gsl_ran_tdist_pdf
+       real(c_double), value :: x                , nu
+     end function gsl_ran_tdist_pdf
+
+     function gsl_cdf_tdist_P(x,nu) bind(c,name='gsl_cdf_tdist_P')
+       !% Template for the GSL Student t-distribution cumulative probability function.
+       import
+       real(c_double)        :: gsl_cdf_tdist_P
+       real(c_double), value :: x              , nu
+     end function gsl_cdf_tdist_P
+
+     function gsl_cdf_tdist_Pinv(P,nu) bind(c,name='gsl_cdf_tdist_Pinv')
+       !% Template for the GSL Student t-distribution inverse cumulative probability function.
+       import
+       real(c_double)        :: gsl_cdf_tdist_Pinv
+       real(c_double), value :: P              , nu
+     end function gsl_cdf_tdist_Pinv
+
+     function gsl_cdf_tdist_Q(x,nu) bind(c,name='gsl_cdf_tdist_Q')
+       !% Template for the GSL Student t-distribution upper-tail cumulative probability function.
+       import
+       real(c_double)        :: gsl_cdf_tdist_Q
+       real(c_double), value :: x              , nu
+     end function gsl_cdf_tdist_Q
+
+     function gsl_cdf_tdist_Qinv(Q,nu) bind(c,name='gsl_cdf_tdist_Qinv')
+       !% Template for the GSL Student t-distribution inverse upper-tail cumulative probability function.
+       import
+       real(c_double)        :: gsl_cdf_tdist_Qinv
+       real(c_double), value :: Q              , nu
+     end function gsl_cdf_tdist_Qinv
+  end interface
+  
 contains
 
   function studentTConstructorParameters(parameters) result(self)
@@ -52,10 +109,8 @@ contains
 
     !# <inputParameter>
     !#   <name>degreesOfFreedom</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The degrees of freedom of the Student-t distribution function.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     self=distributionFunction1DStudentT(degreesOfFreedom,randomNumberGenerator_)
@@ -76,29 +131,26 @@ contains
 
   double precision function studentTDensity(self,x)
     !% Return the density of a Student-t distribution.
-    use :: FGSL, only : FGSL_Ran_tDist_PDF
     implicit none
     class           (distributionFunction1DStudentT), intent(inout) :: self
     double precision                                , intent(in   ) :: x
 
-    studentTDensity=FGSL_Ran_tDist_PDF(x,self%degreesOfFreedom)
+    studentTDensity=GSL_Ran_tDist_PDF(x,self%degreesOfFreedom)
     return
   end function studentTDensity
 
   double precision function studentTCumulative(self,x)
     !% Return the cumulative probability of a Student-t distribution.
-    use :: FGSL, only : FGSL_CDF_tDist_P
     implicit none
     class           (distributionFunction1DStudentT), intent(inout) :: self
     double precision                                , intent(in   ) :: x
 
-    studentTCumulative=FGSL_CDF_tDist_P(x,self%degreesOfFreedom)
+    studentTCumulative=GSL_CDF_tDist_P(x,self%degreesOfFreedom)
     return
   end function studentTCumulative
 
   double precision function studentTInverse(self,p)
-    !% Return the cumulative probability of a Student-t distribution.
-    use :: FGSL            , only : FGSL_CDF_tDist_Pinv
+    !% Return the inverse of the cumulative probability of a Student-t distribution.
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (distributionFunction1DStudentT), intent(inout), target :: self
@@ -109,6 +161,32 @@ contains
          &                              'probability out of range'// &
          &                              {introspection:location}     &
          &                             )
-    studentTInverse=FGSL_CDF_tDist_Pinv(p,self%degreesOfFreedom)
+    studentTInverse=GSL_CDF_tDist_Pinv(p,self%degreesOfFreedom)
     return
   end function studentTInverse
+
+  double precision function studentTCumulativeUpper(self,x)
+    !% Return the upper-tail cumulative probability of a Student-t distribution.
+    implicit none
+    class           (distributionFunction1DStudentT), intent(inout) :: self
+    double precision                                , intent(in   ) :: x
+
+    studentTCumulativeUpper=GSL_CDF_tDist_Q(x,self%degreesOfFreedom)
+    return
+  end function studentTCumulativeUpper
+
+  double precision function studentTInverseUpper(self,q)
+    !% Return the inverse of the upper-tail cumulative probability of a Student-t distribution.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
+    class           (distributionFunction1DStudentT), intent(inout), target :: self
+    double precision                                , intent(in   )         :: q
+
+    if (q < 0.0d0 .or. q > 1.0d0)                                    &
+         & call Galacticus_Error_Report(                             &
+         &                              'probability out of range'// &
+         &                              {introspection:location}     &
+         &                             )
+    studentTInverseUpper=GSL_CDF_tDist_Qinv(q,self%degreesOfFreedom)
+    return
+  end function studentTInverseUpper

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,14 @@
   !% Implements a stellar initial mass function class for the \cite{salpeter_luminosity_1955} \gls{imf}.
 
   !# <initialMassFunction name="initialMassFunctionSalpeter1955">
-  !#  <description>A stellar initial mass function class for the \cite{salpeter_luminosity_1955} \gls{imf}.</description>
+  !#  <description>
+
+  !#   A stellar initial mass function class for the \cite{salpeter_luminosity_1955} \gls{imf} defined as:
+  !#   \begin{equation}
+  !#    \phi(M) \propto \left\{ \begin{array}{ll} M^{-2.35} &amp; \hbox{ for } 0.1M_\odot &lt; M &lt; 125M_\odot \\ 0 &amp; \hbox
+  !#    {otherwise.} \end{array} \right.
+  !#   \end{equation}
+  !#  </description>
   !# </initialMassFunction>
   type, extends(initialMassFunctionPiecewisePowerLaw) :: initialMassFunctionSalpeter1955
      !% A stellar initial mass function class for the \cite{salpeter_luminosity_1955} \gls{imf}.
@@ -43,7 +50,7 @@ contains
     implicit none
     type(initialMassFunctionSalpeter1955)                :: self
     type(inputParameters                ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=initialMassFunctionSalpeter1955()
     return
@@ -66,7 +73,7 @@ contains
     implicit none
     class(initialMassFunctionSalpeter1955), intent(inout) :: self
     type (varying_string                 )                :: salpeter1955Label
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     salpeter1955Label="Salpeter1955"
     return

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -29,15 +29,17 @@ module Satellite_Merging_Mass_Movements
   !# <functionClass>
   !#  <name>mergerMassMovements</name>
   !#  <descriptiveName>Merger Mass Movements</descriptiveName>
-  !#  <description>Class providing models of the movements of mass during mergers.</description>
+  !#  <description>
+  !#   Class providing models of the movements of mass during mergers.
+  !#  </description>
   !#  <default>simple</default>
   !#  <method name="get" >
   !#   <description>Determine movements of mass during mergers.</description>
   !#   <type>void</type>
   !#   <pass>yes</pass>
-  !#   <argument>type   (treeNode), intent(inout) :: node                                                                                        </argument>
-  !#   <argument>integer          , intent(  out) :: destinationGasSatellite, destinationStarsSatellite, destinationGasHost, destinationStarsHost</argument>
-  !#   <argument>logical          , intent(  out) :: mergerIsMajor                                                                               </argument>
+  !#   <argument>type   (treeNode), intent(inout), target :: node                                                                                        </argument>
+  !#   <argument>integer          , intent(  out)         :: destinationGasSatellite, destinationStarsSatellite, destinationGasHost, destinationStarsHost</argument>
+  !#   <argument>logical          , intent(  out)         :: mergerIsMajor                                                                               </argument>
   !#  </method>
   !# </functionClass>
 
@@ -46,6 +48,7 @@ module Satellite_Merging_Mass_Movements
   !#  <description>Enumeration of possible destinations for mass in mergers.</description>
   !#  <encodeFunction>yes</encodeFunction>
   !#  <entry label="unmoved" />
+  !#  <entry label="dominant"/>
   !#  <entry label="disk"    />
   !#  <entry label="spheroid"/>
   !# </enumeration>

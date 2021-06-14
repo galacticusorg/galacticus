@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -62,8 +62,6 @@ contains
     !#   <name>massParticle</name>
     !#   <source>parameters</source>
     !#   <description>Mass of particle in the simulation to which the spherical overdensity algorithm was applied.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
@@ -152,7 +150,7 @@ contains
     class(nbodyHaloMassErrorSOHaloFinder), intent(inout) :: self
     type (treeNode                      ), intent(inout) :: node1 , node2
     class(nodeComponentBasic            ), pointer       :: basic1, basic2
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     basic1 => node1%basic()
     basic2 => node2%basic()

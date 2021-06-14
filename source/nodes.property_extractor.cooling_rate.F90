@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +22,10 @@
   use :: Cooling_Rates, only : coolingRate, coolingRateClass
 
   !# <nodePropertyExtractor name="nodePropertyExtractorRateCooling">
-  !#  <description>A cooling rate property extractor class.</description>
+  !#  <description>
+  !#  A cooling rate property extractor class. Extracts the rate at which gas is cooling from the halo (assuming no sources of
+  !#  heating) in $M_\odot$ Gyr$^{-1}$.
+  !# </description>
   !# </nodePropertyExtractor>
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRateCooling
      !% A rateCooling property extractor class.
@@ -86,7 +89,7 @@ contains
     class(nodePropertyExtractorRateCooling), intent(inout)           :: self
     type (treeNode                        ), intent(inout), target   :: node
     type (multiCounter                    ), intent(inout), optional :: instance
-    !GCC$ attributes unused :: self, instance
+    !$GLC attributes unused :: self, instance
 
     rateCoolingExtract=self%coolingRate_%rate(node)
     return
@@ -97,7 +100,7 @@ contains
     implicit none
     type (varying_string                  )                :: rateCoolingName
     class(nodePropertyExtractorRateCooling), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     rateCoolingName=var_str('hotHaloRateCooling')
     return
@@ -108,7 +111,7 @@ contains
     implicit none
     type (varying_string                  )                :: rateCoolingDescription
     class(nodePropertyExtractorRateCooling), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     rateCoolingDescription=var_str('The rate of mass cooling in the hot halo [M☉/Gyr].')
     return
@@ -119,7 +122,7 @@ contains
     use :: Numerical_Constants_Astronomical, only : gigaYear, massSolar
     implicit none
     class(nodePropertyExtractorRateCooling), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     rateCoolingUnitsInSI=massSolar/gigaYear
     return
@@ -130,7 +133,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorRateCooling), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     rateCoolingType=outputAnalysisPropertyTypeLinear
     return

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -41,54 +41,19 @@
      logical                                                  :: initialized
      integer                                                  :: countTimes
      double precision                                         :: timeMaximum                        , timeMinimum
+     logical                                                  :: timeTooEarlyIsFatal
      type            (table1DLogarithmicLinear     )          :: table
      type            (varying_string               )          :: fileName
    contains
-     !@ <objectMethods>
-     !@   <object>intergalacticMediumFilteringMassGnedin2000</object>
-     !@   <objectMethod>
-     !@     <method>tabulate</method>
-     !@     <arguments>\doublezero\ time\argin</arguments>
-     !@     <type>\void</type>
-     !@     <description>Tabulate the filtering mass to encompass at least the given {\normalfont \ttfamily time}.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>conditionsInitialODEs</method>
-     !@     <arguments>\doublezero\ time\argin, \doubleone\ massFilteringODEs\argout, \doubleone\ [massFilteringScales]\argout</arguments>
-     !@     <type>\void</type>
-     !@     <description>Set the initial conditions for the ODE system.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>coefficientsEarlyEpoch</method>
-     !@     <arguments>\doublezero\ time\argin</arguments>
-     !@     <type>\doubleone</type>
-     !@     <description>Return coefficients for the early-epoch fitting function to the filtering mass.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>massFilteringEarlyEpoch</method>
-     !@     <arguments>\doublezero\ time\argin</arguments>
-     !@     <type>\doublezero</type>
-     !@     <description>Return the early-epoch solution for the filtering mass.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>fileWrite</method>
-     !@     <type>\void</type>
-     !@     <description>Store the tabulate filtering mass to file.</description>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>fileRead</method>
-     !@     <type>\void</type>
-     !@     <description>Restore the tabulate filtering mass from file.</description>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>remakeTable</method>
-     !@     <type>\logicalzero</type>
-     !@     <description>Return true if the table must be remade.</description>
-     !@     <arguments>\doublezero\ time\argin</arguments>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Tabulate the filtering mass to encompass at least the given {\normalfont \ttfamily time}." method="tabulate" />
+     !#   <method description="Set the initial conditions for the ODE system." method="conditionsInitialODEs" />
+     !#   <method description="Return coefficients for the early-epoch fitting function to the filtering mass." method="coefficientsEarlyEpoch" />
+     !#   <method description="Return the early-epoch solution for the filtering mass." method="massFilteringEarlyEpoch" />
+     !#   <method description="Store the tabulate filtering mass to file." method="fileWrite" />
+     !#   <method description="Restore the tabulate filtering mass from file." method="fileRead" />
+     !#   <method description="Return true if the table must be remade." method="remakeTable" />
+     !# </methods>
      final     ::                                gnedin2000Destructor
      procedure :: massFiltering               => gnedin2000MassFiltering
      procedure :: massFilteringRateOfChange   => gnedin2000MassFilteringRateOfChange
@@ -122,18 +87,25 @@ contains
     !% Default constructor for the file \gls{igm} state class.
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type (intergalacticMediumFilteringMassGnedin2000)                :: self
-    type (inputParameters                           ), intent(inout) :: parameters
-    class(cosmologyFunctionsClass                   ), pointer       :: cosmologyFunctions_
-    class(cosmologyParametersClass                  ), pointer       :: cosmologyParameters_
-    class(linearGrowthClass                         ), pointer       :: linearGrowth_
-    class(intergalacticMediumStateClass             ), pointer       :: intergalacticMediumState_
+    type   (intergalacticMediumFilteringMassGnedin2000)                :: self
+    type   (inputParameters                           ), intent(inout) :: parameters
+    class  (cosmologyFunctionsClass                   ), pointer       :: cosmologyFunctions_
+    class  (cosmologyParametersClass                  ), pointer       :: cosmologyParameters_
+    class  (linearGrowthClass                         ), pointer       :: linearGrowth_
+    class  (intergalacticMediumStateClass             ), pointer       :: intergalacticMediumState_
+    logical                                                            :: timeTooEarlyIsFatal
 
+    !# <inputParameter>
+    !#   <name>timeTooEarlyIsFatal</name>
+    !#   <defaultValue>.true.</defaultValue>
+    !#   <description>If true, requesting the filtering mass at a time earlier than the initial time provided by the \cite{naoz_growth_2005} fit will result in a fatal error. Otherwise, the filtering mass is fixed at this initial value for earlier times.</description>
+    !#   <source>parameters</source>
+    !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
     !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
     !# <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
     !# <objectBuilder class="intergalacticMediumState" name="intergalacticMediumState_" source="parameters"/>
-    self=intergalacticMediumFilteringMassGnedin2000(cosmologyParameters_,cosmologyFunctions_,linearGrowth_,intergalacticMediumState_)
+    self=intergalacticMediumFilteringMassGnedin2000(timeTooEarlyIsFatal,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,intergalacticMediumState_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyFunctions_"      />
     !# <objectDestructor name="cosmologyParameters_"     />
@@ -142,17 +114,18 @@ contains
     return
   end function gnedin2000ConstructorParameters
 
-  function gnedin2000ConstructorInternal(cosmologyParameters_,cosmologyFunctions_,linearGrowth_,intergalacticMediumState_) result(self)
+  function gnedin2000ConstructorInternal(timeTooEarlyIsFatal,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,intergalacticMediumState_) result(self)
     !% Constructor for the filtering mass class.
     use :: File_Utilities  , only : Directory_Make, File_Path
     use :: Galacticus_Paths, only : galacticusPath, pathTypeDataDynamic
     implicit none
-    type (intergalacticMediumFilteringMassGnedin2000)                        :: self
-    class(cosmologyParametersClass                  ), intent(in   ), target :: cosmologyParameters_
-    class(cosmologyFunctionsClass                   ), intent(in   ), target :: cosmologyFunctions_
-    class(linearGrowthClass                         ), intent(in   ), target :: linearGrowth_
-    class(intergalacticMediumStateClass             ), intent(in   ), target :: intergalacticMediumState_
-    !# <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_, *linearGrowth_, *intergalacticMediumState_"/>
+    type   (intergalacticMediumFilteringMassGnedin2000)                        :: self
+    class  (cosmologyParametersClass                  ), intent(in   ), target :: cosmologyParameters_
+    class  (cosmologyFunctionsClass                   ), intent(in   ), target :: cosmologyFunctions_
+    class  (linearGrowthClass                         ), intent(in   ), target :: linearGrowth_
+    class  (intergalacticMediumStateClass             ), intent(in   ), target :: intergalacticMediumState_
+    logical                                            , intent(in   )         :: timeTooEarlyIsFatal
+    !# <constructorAssign variables="timeTooEarlyIsFatal, *cosmologyParameters_, *cosmologyFunctions_, *linearGrowth_, *intergalacticMediumState_"/>
 
     self%initialized=.false.
     self%fileName              =galacticusPath(pathTypeDataDynamic)              // &
@@ -184,7 +157,7 @@ contains
     double precision                                            , intent(in   ) :: time
 
     call self%tabulate(time)
-    gnedin2000MassFiltering=self%table%interpolate(time)
+    gnedin2000MassFiltering=self%table%interpolate(max(time,self%timeMinimum))
     return
   end function gnedin2000MassFiltering
 
@@ -195,7 +168,7 @@ contains
     double precision                                            , intent(in   ) :: time
 
     call self%tabulate(time)
-    gnedin2000MassFilteringRateOfChange=self%table%interpolateGradient(time)
+    gnedin2000MassFilteringRateOfChange=self%table%interpolateGradient(max(time,self%timeMinimum))
     return
   end function gnedin2000MassFilteringRateOfChange
 
@@ -241,20 +214,17 @@ contains
 
   subroutine gnedin2000Tabulate(self,time)
     !% Construct a table of filtering mass as a function of cosmological time.
-    use :: FODEIV2                 , only : fodeiv2_driver         , fodeiv2_system
     use :: File_Utilities          , only : File_Lock              , File_Unlock
     use :: Galacticus_Error        , only : Galacticus_Error_Report
     use :: Numerical_Constants_Math, only : Pi
-    use :: ODEIV2_Solver           , only : ODEIV2_Solve
+    use :: Numerical_ODE_Solvers   , only : odeSolver
     implicit none
     class           (intergalacticMediumFilteringMassGnedin2000), intent(inout), target :: self
     double precision                                            , intent(in   )         :: time
     double precision                                            , parameter             :: redshiftMaximumNaozBarkana=150.0d0 ! Maximum redshift at which fitting function of Naoz & Barkana is valid.
     double precision                                            , dimension(3)          :: massFiltering                     , massFilteringScales
     double precision                                            , parameter             :: odeToleranceAbsolute      =1.0d-03, odeToleranceRelative      =1.0d-03
-    type            (fodeiv2_system                            )                        :: ode2System
-    type            (fodeiv2_driver                            )                        :: ode2Driver
-    logical                                                                             :: odeReset
+    type            (odeSolver                                 )                        :: solver
     integer                                                                             :: iTime
     double precision                                                                    :: timeInitial                       , timeCurrent
 
@@ -275,7 +245,7 @@ contains
             &                                                            )                           &
             &                                                           )
        ! Abort if time is too early.
-       if (time <= timeInitial) call Galacticus_Error_Report('time is too early'//{introspection:location})
+       if (time <= timeInitial .and. self%timeTooEarlyIsFatal) call Galacticus_Error_Report('time is too early'//{introspection:location})
        ! Find minimum and maximum times to tabulate.
        self%timeMaximum=    max(self%cosmologyFunctions_%cosmicTime(1.0d0),time      )
        self%timeMinimum=max(min(self%cosmologyFunctions_%cosmicTime(1.0d0),time/2.0d0),timeInitial)
@@ -289,27 +259,14 @@ contains
             &                  self%countTimes    &
             &                 )
        ! Loop over times and populate tables.
+       solver=odeSolver(3_c_size_t,massFilteringODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative,scale=massFilteringScales)    
        do iTime=1,self%countTimes
           ! Set the composite variables used to solve for filtering mass.
           call self%conditionsInitialODEs(timeInitial,massFiltering,massFilteringScales)
           ! Solve the ODE system
-          odeReset   =.true.
           timeCurrent=timeInitial
-          if (self%table%x(iTime) > timeInitial) then
-             call ODEIV2_Solve(                                                     &
-                  &            ode2Driver                                         , &
-                  &            ode2System                                         , &
-                  &            timeCurrent                                        , &
-                  &            self%table%x(iTime)                                , &
-                  &            3                                                  , &
-                  &            massFiltering                                      , &
-                  &            massFilteringODEs                                  , &
-                  &            odeToleranceAbsolute                               , &
-                  &            odeToleranceRelative                               , &
-                  &            yScale                         =massFilteringScales, &
-                  &            reset                          =odeReset             &
-                  &           )
-          end if
+          if (self%table%x(iTime) > timeInitial) &
+               & call solver%solve(timeCurrent,self%table%x(iTime),massFiltering)
           call self%table%populate(massFiltering(3),iTime)
        end do
        ! Specify that tabulation has been made.
@@ -324,7 +281,7 @@ contains
 
     integer function massFilteringODEs(time,properties,propertiesRateOfChange)
       !% Evaluates the ODEs controlling the evolution temperature.
-      use :: FGSL                            , only : FGSL_Success
+      use :: Interface_GSL                   , only : GSL_Success
       use :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial, hydrogenByMassPrimordial
       use :: Numerical_Constants_Atomic      , only : electronMass          , massHeliumAtom          , massHydrogenAtom
       implicit none
@@ -341,7 +298,7 @@ contains
       ! Compute the rates of change for the ODE system.
       propertiesRateOfChange=gnedin2000ODEs(self%cosmologyParameters_,self%cosmologyFunctions_,self%linearGrowth_,time,massParticleMean,temperature,properties)
       ! Return success.
-      massFilteringODEs=FGSL_Success
+      massFilteringODEs=GSL_Success
       return
     end function massFilteringODEs
 

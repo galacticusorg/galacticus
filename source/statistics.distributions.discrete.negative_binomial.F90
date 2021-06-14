@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -55,17 +55,13 @@ contains
 
     !# <inputParameter>
     !#   <name>probabilitySuccess</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The probability of success for a single trial.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>countFailures</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The number of failures.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     self=distributionFunctionDiscrete1DNegativeBinomial(probabilitySuccess,countFailures,randomNumberGenerator_)
@@ -130,7 +126,7 @@ contains
     implicit none
     class  (distributionFunctionDiscrete1DNegativeBinomial), intent(inout) :: self
     integer                                                , intent(in   ) :: x
-    !GCC$ attributes unused :: self, x
+    !$GLC attributes unused :: self, x
 
     negativeBinomialCumulative=0.0d0
     call Galacticus_Error_Report('cumulative distribution function is not implemented'//{introspection:location})
@@ -143,7 +139,7 @@ contains
     implicit none
     class           (distributionFunctionDiscrete1DNegativeBinomial), intent(inout) :: self
     double precision                                                , intent(in   ) :: p
-    !GCC$ attributes unused :: self, p
+    !$GLC attributes unused :: self, p
 
     negativeBinomialInverse=0
     call Galacticus_Error_Report('inverse function is not implemented'//{introspection:location})
@@ -154,7 +150,7 @@ contains
     !% Return the minimum possible value in a negative binomial discrete distribution.
     implicit none
     class(distributionFunctionDiscrete1DNegativeBinomial), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     negativeBinomialMinimum=0
     return
@@ -164,7 +160,7 @@ contains
     !% Return the maximum possible value in a negative binomial discrete distribution.
     implicit none
     class(distributionFunctionDiscrete1DNegativeBinomial), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     negativeBinomialMaximum=huge(0)
     return

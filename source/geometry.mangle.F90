@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -31,15 +31,9 @@ module Geometry_Mangle
      double precision, dimension(3) :: x
      double precision               :: c
    contains
-     !@ <objectMethods>
-     !@   <object>cap</object>
-     !@   <objectMethod>
-     !@     <method>pointIncluded</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments>\textcolor{red}{\textless double(3)\textgreater} point\argin</arguments>
-     !@     <description>Return true if the given point lives inside the {\normalfont \scshape mangle} cap.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return true if the given point lives inside the {\normalfont \scshape mangle} cap." method="pointIncluded" />
+     !# </methods>
     procedure :: pointIncluded => capPointIncluded
   end type cap
 
@@ -49,15 +43,9 @@ module Geometry_Mangle
      double precision                                 :: weight  , solidAngle
      type            (cap), dimension(:), allocatable :: caps
    contains
-     !@ <objectMethods>
-     !@   <object>polygon</object>
-     !@   <objectMethod>
-     !@     <method>pointIncluded</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments>\textcolor{red}{\textless double(3)\textgreater} point\argin</arguments>
-     !@     <description>Return true if the given point lives inside the {\normalfont \scshape mangle} polygon.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return true if the given point lives inside the {\normalfont \scshape mangle} polygon." method="pointIncluded" />
+     !# </methods>
      procedure :: pointIncluded => polygonPointIncluded
   end type polygon
 
@@ -67,21 +55,10 @@ module Geometry_Mangle
      type   (polygon      ), dimension(:), allocatable :: polygons
      integer(kind=c_size_t), dimension(:), allocatable :: solidAngleIndex
    contains
-     !@ <objectMethods>
-     !@   <object>window</object>
-     !@   <objectMethod>
-     !@     <method>read</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} fileName\argin</arguments>
-     !@     <description>Read the specified {\normalfont \scshape mangle} polygon file.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>pointIncluded</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments>\textcolor{red}{\textless double(3)\textgreater} point\argin</arguments>
-     !@     <description>Return true if the given point lives inside the {\normalfont \scshape mangle} window.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Read the specified {\normalfont \scshape mangle} polygon file."                        method="read"         />
+     !#   <method description="Return true if the given point lives inside the {\normalfont \scshape mangle} window." method="pointIncluded"/>
+     !# </methods>
      procedure :: read          => windowRead
      procedure :: pointIncluded => windowPointIncluded
   end type window
@@ -90,12 +67,12 @@ contains
 
   subroutine windowRead(self,fileName)
     !% Read a \gls{mangle} window definition from file.
-    use :: Galacticus_Display, only : Galacticus_Display_Counter , Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Message, &
-          &                           Galacticus_Display_Unindent
+    use :: Display           , only : displayCounter         , displayCounterClear, displayIndent, displayMessage, &
+          &                           displayUnindent
     use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String, only : assignment(=)              , operator(//)                    , operator(==)             , varying_string
-    use :: Sort              , only : Sort_Index_Do
-    use :: String_Handling   , only : String_Split_Words         , operator(//)
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//)       , operator(==) , varying_string
+    use :: Sorting           , only : sortIndex
+    use :: String_Handling   , only : String_Split_Words     , operator(//)
     implicit none
     class           (window        ), intent(inout)              :: self
     character       (len=*         ), intent(in   )              :: fileName
@@ -108,7 +85,7 @@ contains
 
     ! Open and parse the file.
     message='Reading mangle window from: '//trim(fileName)
-    call Galacticus_Display_Indent(message)
+    call displayIndent(message)
     open(newUnit=fileUnit,file=fileName,status='old',form='formatted')
     ! Retrieve count of number of polygons.
     self%polygonCount=-1
@@ -118,13 +95,13 @@ contains
     end do
     message='found '
     message=message//self%polygonCount//' polygons'
-    call Galacticus_Display_Message(message)
+    call displayMessage(message)
      allocate(self%polygons       (self%polygonCount))
     allocate(solidAngle          (self%polygonCount))
     allocate(self%solidAngleIndex(self%polygonCount))
     ! Read each polygon.
     do i=1,self%polygonCount
-       call Galacticus_Display_Counter(int(100.0d0*dble(i-1)/dble(self%polygonCount)),isNew=(i==1))
+       call displayCounter(int(100.0d0*dble(i-1)/dble(self%polygonCount)),isNew=(i==1))
        ioStatus=0
        do while (ioStatus == 0)
           read (fileUnit,'(a)',iostat=ioStatus) line
@@ -145,12 +122,12 @@ contains
                &            self%polygons(i)%caps(j)%c
        end do
     end do
-    call Galacticus_Display_Counter_Clear()
+    call displayCounterClear()
     close(fileUnit)
     ! Get a sorted index of polygon solid angles.
-    self%solidAngleIndex=Sort_Index_Do(solidAngle)
+    self%solidAngleIndex=sortIndex(solidAngle)
     deallocate(solidAngle)
-    call Galacticus_Display_Unindent('done')
+    call displayUnindent('done')
     return
   end subroutine windowRead
 
@@ -220,7 +197,7 @@ contains
     if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"mangle")) then
        ! Clone the mangle repo.
        call Directory_Make(galacticusPath(pathTypeDataDynamic)//"mangle")
-       call System_Command_Do("cd "//galacticusPath(pathTypeDataDynamic)//"mangle; git clone https://github.com/mollyswanson/mangle.git",iStatus)
+       call System_Command_Do("cd "//galacticusPath(pathTypeDataDynamic)//"; git clone https://github.com/mollyswanson/mangle.git",iStatus)
        if (iStatus /= 0 .or. .not.File_Exists(galacticusPath(pathTypeDataDynamic)//"mangle"            )) &
             & call Galacticus_Error_Report('failed to clone mangle repo'       //{introspection:location})
     end if

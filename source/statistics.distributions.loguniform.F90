@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,17 @@
   !% Implementation of a 1D distibution function which is uniform in the logarithm of the variable.
 
   !# <distributionFunction1D name="distributionFunction1DLogUniform">
-  !#  <description>A 1D distibution function which is uniform in the logarithm of the variable.</description>
+  !#  <description>
+  !#   A distribution uniform in the logarithm of $x$ over a finite range
+  !#   \begin{equation}
+  !#    P(x) \propto \left\{ \begin{array}{ll} x^{-1} &amp; \hbox{ if } x_\mathrm{l} \leq x \leq x_\mathrm{u} \\ 0 &amp; \hbox{ otherwise.}  \end{array} \right.
+  !#   \end{equation}
+  !#   Specified using:
+  !#   \begin{description}
+  !#   \item[{\normalfont \ttfamily [minimum]}] The lower limit of the range, $x_\mathrm{l}$;
+  !#   \item[{\normalfont \ttfamily [maximum]}] The upper limit of the range, $x_\mathrm{u}$.
+  !#   \end{description}
+  !#  </description>
   !# </distributionFunction1D>
   type, extends(distributionFunction1DClass) :: distributionFunction1DLogUniform
      !% Implementation of a 1D distibution function which is uniform in the logarithm of the variable.
@@ -30,6 +40,8 @@
      procedure :: density    => logUniformDensity
      procedure :: cumulative => logUniformCumulative
      procedure :: inverse    => logUniformInverse
+     procedure :: minimum    => logUniformMinimum
+     procedure :: maximum    => logUniformMaximum
   end type distributionFunction1DLogUniform
 
   interface distributionFunction1DLogUniform
@@ -52,17 +64,13 @@ contains
 
     !# <inputParameter>
     !#   <name>limitLower</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The lower limit of the log-uniform distribution function.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>limitUpper</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The upper limit of the log-uniform distribution function.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     self=distributionFunction1DLogUniform(limitLower,limitUpper,randomNumberGenerator_)
@@ -126,3 +134,21 @@ contains
     logUniformInverse=exp(log(self%limitLower)+p*(log(self%limitUpper)-log(self%limitLower)))
     return
   end function logUniformInverse
+
+  double precision function logUniformMinimum(self)
+    !% Return the minimum possible value of a logUniform distribution.
+    implicit none
+    class(distributionFunction1DLogUniform), intent(inout) :: self
+
+    logUniformMinimum=self%limitLower
+    return
+  end function logUniformMinimum
+
+  double precision function logUniformMaximum(self)
+    !% Return the maximum possible value of a logUniform distribution.
+    implicit none
+    class(distributionFunction1DLogUniform), intent(inout) :: self
+
+    logUniformMaximum=self%limitUpper
+    return
+  end function logUniformMaximum

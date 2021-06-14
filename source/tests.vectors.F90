@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,12 +21,12 @@
 
 program Test_Vectors
   !% Tests of vector functions.
-  use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent, Galacticus_Verbosity_Level_Set, &
-          &                         verbosityStandard
-  use :: ISO_Varying_String, only : varying_string           , assignment(=)
+  use :: Display           , only : displayIndent         , displayMessage        , displayUnindent     , displayVerbositySet, &
+          &                         verbosityLevelStandard
+  use :: ISO_Varying_String, only : assignment(=)         , varying_string
   use :: Kind_Numbers      , only : kind_int8
-  use :: Unit_Tests        , only : Assert                   , Unit_Tests_Begin_Group    , Unit_Tests_End_Group       , Unit_Tests_Finish
-  use :: Vectors           , only : Vector_Magnitude         , Vector_Outer_Product      , Vector_Product
+  use :: Unit_Tests        , only : Assert                , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Vectors           , only : Vector_Magnitude      , Vector_Outer_Product  , Vector_Product
   implicit none
   double precision                , allocatable, dimension(:  ) :: vector1   , vector2
   double precision                , allocatable, dimension(:,:) :: matrix12
@@ -36,13 +36,13 @@ program Test_Vectors
   integer         (kind=kind_int8)                              :: countStart, countEnd , countRate
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Vectors")
 
   ! Begin benchmarks.
-  call Galacticus_Display_Indent("Benchmarks:")
+  call displayIndent("Benchmarks:")
 
   ! Test vector magnitude functions.
   call Assert('vector magnitude',                                                                                                   &
@@ -78,7 +78,7 @@ program Test_Vectors
   end select
   write (label,'(i20)') countEnd-countStart
   message="Vector outer product         : "//trim(label)//" "//trim(units)
-  call Galacticus_Display_Message(message)
+  call displayMessage(message)
   call Assert('vector outer product'           , &
        &      all(abs(matrix12-1.0d0) < 1.0d-6), &
        &      .true.                             &
@@ -94,7 +94,7 @@ program Test_Vectors
   deallocate(vector1,vector2,matrix12)
 
   ! End benchmarks.
-  call Galacticus_Display_Unindent("done")
+  call displayUnindent("done")
 
   ! End unit tests.
   call Unit_Tests_End_Group()

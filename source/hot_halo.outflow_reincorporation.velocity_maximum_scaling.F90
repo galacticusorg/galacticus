@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,7 +26,20 @@
   use :: Math_Exponentiation     , only : fastExponentiator
 
   !# <hotHaloOutflowReincorporation name="hotHaloOutflowReincorporationVelocityMaximumScaling">
-  !#  <description>An implementation of the hot halo outflow reincorporation class which uses simple scalings based on the halo maximum circular velocity.</description>
+  !#  <description>
+  !#   A hot halo outflow reincorporation class which uses simple scalings based on the halo maximum circular
+  !#   velocity. Specifically,
+  !#   \begin{equation}
+  !#    \dot{M}_\mathrm{reincorporation} = M_\mathrm{outflowed} / t_\mathrm{reincorporation},
+  !#   \end{equation}
+  !#   where
+  !#   \begin{equation}
+  !#    t_\mathrm{reincorporation} = \tau_\mathrm{reincorporation} \left( { V_\mathrm{max} \over 200 \hbox{km/s}}
+  !#    \right)^{\alpha_\mathrm{reincorporation}} (1+z)^{\beta_\mathrm{reincorporation}},
+  !#   \end{equation}
+  !#   where $\tau_\mathrm{reincorporation}=${\normalfont \ttfamily [timeScale]}, $\alpha_\mathrm{reincorporation}=${\normalfont
+  !#   \ttfamily [velocityExponent]}, and $\beta_\mathrm{reincorporation}=${\normalfont \ttfamily [redshiftExponent]}.
+  !#  </description>
   !# </hotHaloOutflowReincorporation>
   type, extends(hotHaloOutflowReincorporationClass) :: hotHaloOutflowReincorporationVelocityMaximumScaling
      !% An implementation of the hot halo outflow reincorporation class which uses simple scalings based on the halo maximum circular velocity.
@@ -43,15 +56,9 @@
      ! Fast exponentiation tables for rapid computation of the outflow rate.
      type            (fastExponentiator         )         :: velocityExponentiator            , expansionFactorExponentiator
    contains
-     !@ <objectMethods>
-     !@   <object>hotHaloOutflowReincorporationVelocityMaximumScaling</object>
-     !@   <objectMethod>
-     !@     <method>calculationReset</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(table)\textgreater} node\arginout</arguments>
-     !@     <description>Reset memoized calculations.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Reset memoized calculations." method="calculationReset" />
+     !# </methods>
      final     ::                     velocityMaximumScalingDestructor
      procedure :: autoHook         => velocityMaximumScalingAutoHook
      procedure :: calculationReset => velocityMaximumScalingCalculationReset
@@ -83,35 +90,27 @@ contains
 
     !# <inputParameter>
     !#   <name>timeScale</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The timescale in the velocity maximum scaling model for outflow reincorporation.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>velocityExponent</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The exponent of maximum circular velocity in the velocity maximum scaling model for outflow reincorporation.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>redshiftExponent</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>-1.5d0</defaultValue>
     !#   <description>The exponent of redshift in the velocity maximum scaling model for outflow reincorporation.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>timescaleMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d-3</defaultValue>
     !#   <description>The minimum timescale for outflow reincorporation in the velocity maximum scaling model.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
     !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>

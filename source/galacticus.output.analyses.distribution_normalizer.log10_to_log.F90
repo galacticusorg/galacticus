@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -42,7 +42,7 @@ contains
     implicit none
     type(outputAnalysisDistributionNormalizerLog10ToLog)                :: self
     type(inputParameters                               ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=outputAnalysisDistributionNormalizerLog10ToLog()
     return
@@ -55,7 +55,7 @@ contains
     double precision                                                , intent(inout), dimension(:  ) :: distribution
     double precision                                                , intent(inout), dimension(:,:) :: covariance
     double precision                                                , intent(in   ), dimension(:  ) :: propertyValueMinimum, propertyValueMaximum
-    !GCC$ attributes unused :: self, propertyValueMinimum, propertyValueMaximum
+    !$GLC attributes unused :: self, propertyValueMinimum, propertyValueMaximum
 
     distribution=distribution/log(10.0d0)
     covariance  =covariance  /log(10.0d0)**2

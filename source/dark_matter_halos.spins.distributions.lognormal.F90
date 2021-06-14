@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +21,10 @@
   !% log-normal distribution.
 
   !# <haloSpinDistribution name="haloSpinDistributionLogNormal">
-  !#  <description>A log-normal halo spin distribution.</description>
+  !#  <description>
+  !#   A halo spin distribution class in which the spin is drawn from a lognormal distribution with median {\normalfont \ttfamily
+  !#   [median]} and width {\normalfont \ttfamily [sigma]}.
+  !#  </description>
   !# </haloSpinDistribution>
   type, extends(haloSpinDistributionClass) :: haloSpinDistributionLogNormal
      !% A dark matter halo spin distribution concentration class which assumes a
@@ -58,8 +61,6 @@ contains
     !#   <defaultValue>0.03687d0</defaultValue>
     !#   <defaultSource>\citep{bett_spin_2007}</defaultSource>
     !#   <description>The median spin in a log-normal spin distribution.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>sigma</name>
@@ -68,8 +69,6 @@ contains
     !#   <defaultValue>0.5102d0</defaultValue>
     !#   <defaultSource>(\citealt{bett_spin_2007}; note that in this reference the value of $\sigma$ quoted is for $\log_{10}\lambda$, while here we use $\log\lambda$)</defaultSource>
     !#   <description>The width of a log-normal spin distribution.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     logNormalConstructorParameters%median=log(logNormalConstructorParameters%median)
     !# <inputParametersValidate source="parameters"/>
@@ -94,7 +93,7 @@ contains
     implicit none
     class(haloSpinDistributionLogNormal), intent(inout) :: self
     type (treeNode                     ), intent(inout) :: node
-    !GCC$ attributes unused :: node
+    !$GLC attributes unused :: node
 
     logNormalSample=exp(                                                             &
          &              +self%median                                                 &

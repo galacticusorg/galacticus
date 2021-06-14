@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -67,48 +67,36 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d10</defaultValue>
     !#   <description>The minimum mass of non-primary progenitor to count.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massMaximum</name>
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d15</defaultValue>
     !#   <description>The maximum mass of non-primary progenitor to count.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massBinsPerDecade</name>
     !#   <source>parameters</source>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number of bins per decade of non-primary progenitor mass.</description>
-    !#   <type>integer</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>redshiftMinimum</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The minimum redshift at which to count non-primary progenitors.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>redshiftMaximum</name>
     !#   <source>parameters</source>
     !#   <defaultValue>10.0d0</defaultValue>
     !#   <description>The maximum redshift at which to count non-primary progenitors.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>timeBinsPerDecade</name>
     !#   <source>parameters</source>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number of bins per decade of time at which to count non-primary progenitors.</description>
-    !#   <type>integer</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     self=mergerTreeOperatorProfiler(massMinimum,massMaximum,massBinsPerDecade,redshiftMinimum,redshiftMaximum,timeBinsPerDecade,cosmologyFunctions_)

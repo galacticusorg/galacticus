@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,8 +26,10 @@ module Supernovae_Population_III
 
   !# <functionClass>
   !#  <name>supernovaePopulationIII</name>
-  !#  <descriptiveName>Supernovae Type Ia</descriptiveName>
-  !#  <description>Class providing models of supernovae from Population III stars.</description>
+  !#  <descriptiveName>Population III Supernovae</descriptiveName>
+  !#  <description>
+  !#   Class providing models of supernovae from Population III stars.
+  !#  </description>
   !#  <default>hegerWoosley2002</default>
   !#  <method name="energyCumulative" >
   !#   <description> Return the cumulative energy input from Population III supernovae from stars of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age} and {\normalfont \ttfamily metallicity}.</description>

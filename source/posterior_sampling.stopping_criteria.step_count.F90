@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +22,10 @@
   use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
 
   !# <posteriorSampleStoppingCriterion name="posteriorSampleStoppingCriterionStepCount">
-  !#  <description>A posterior sampling stopping class which stepCount converges.</description>
+  !#  <description>
+  !#   This type will cause the simulation to stop when at least a number of steps (as specified by {\normalfont \ttfamily
+  !#   [stopAfterCount]}) have accrued post-convergence.
+  !#  </description>
   !# </posteriorSampleStoppingCriterion>
   type, extends(posteriorSampleStoppingCriterionClass) :: posteriorSampleStoppingCriterionStepCount
      !% Implementation of a posterior sampling convergence class which stepCount converges.
@@ -53,10 +56,8 @@ contains
 
     !# <inputParameter>
     !#   <name>stopAfterCount</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The number of steps to continue after convergence before stopping.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="posteriorSampleConvergence" name="posteriorSampleConvergence_" source="parameters"/>
     self=posteriorSampleStoppingCriterionStepCount(stopAfterCount,posteriorSampleConvergence_)

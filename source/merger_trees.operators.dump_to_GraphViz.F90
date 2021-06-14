@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,15 @@
 !% Contains a module which implements a dump to \gls{graphviz} operator on merger trees.
 
   !# <mergerTreeOperator name="mergerTreeOperatorDumpToGraphViz">
-  !#  <description>Provides a dump to \gls{graphviz} operator on merger trees.</description>
+  !#  <description>
+  !#     A merger tree operator class which dumps the full structure of each merger tree to a file using the \gls{graphviz}
+  !#     format. All trees with root node basic mass between {\normalfont \ttfamily [massMinimum]} and {\normalfont \ttfamily
+  !#     [massMaximum]} will be dumped to a file named ``{\normalfont \ttfamily mergerTreeDump:\textless
+  !#     treeIndex\textgreater:1.gv}'' in the directory specified by {\normalfont \ttfamily [path]}. If {\normalfont \ttfamily
+  !#     [scaleNodesByLogMass]}$=${\normalfont \ttfamily true} then the size of each \gls{graphviz} node is scaled in proportion to
+  !#     the logarithm of the halo mass. If {\normalfont \ttfamily [edgeLengthsToTimes]}$=${\normalfont \ttfamily true} then the
+  !#     lengths of edges in the \gls{graphviz} graph are scaled in proportion to the time difference between the connected nodes.
+  !#  </description>
   !# </mergerTreeOperator>
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorDumpToGraphViz
      !% A dump to \gls{graphviz} merger tree operator class.
@@ -53,8 +61,6 @@ contains
     !#   <source>parameters</source>
     !#   <variable>dumpToGraphVizConstructorParameters%path</variable>
     !#   <description>Specifies the directory to which merger tree structure should be dumped.</description>
-    !#   <type>text</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massMinimum</name>
@@ -62,8 +68,6 @@ contains
     !#   <source>parameters</source>
     !#   <variable>dumpToGraphVizConstructorParameters%massMinimum</variable>
     !#   <description>Specifies the minimum root mass for which merger tree structure should be dumped.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massMaximum</name>
@@ -71,8 +75,6 @@ contains
     !#   <source>parameters</source>
     !#   <variable>dumpToGraphVizConstructorParameters%massMaximum</variable>
     !#   <description>Specifies the minimum root mass for which merger tree structure should be dumped.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>scaleNodesByLogMass</name>
@@ -80,8 +82,6 @@ contains
     !#   <source>parameters</source>
     !#   <variable>dumpToGraphVizConstructorParameters%scaleNodesByLogMass</variable>
     !#   <description>Specifies whether or not node sizes should be scaled by the logarithm of their mass.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>edgeLengthsToTimes</name>
@@ -89,8 +89,6 @@ contains
     !#   <source>parameters</source>
     !#   <variable>dumpToGraphVizConstructorParameters%edgeLengthsToTimes</variable>
     !#   <description>Specifies whether or not the lengths of edges in the graph should be scaled to time differences between nodes.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParametersValidate source="parameters"/>
     return
@@ -133,6 +131,7 @@ contains
             &                       treeCurrent                                 , &
             &                       scaleNodesByLogMass=self%scaleNodesByLogMass, &
             &                       edgeLengthsToTimes =self%edgeLengthsToTimes , &
+            &                       nodeStyle          ='solid'                 , &
             &                       path               =self%path                 &
             &                      )
        ! Move to the next tree.

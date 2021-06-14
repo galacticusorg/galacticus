@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -49,7 +49,7 @@ contains
     implicit none
     type(haloEnvironmentUniform)                :: self
     type(inputParameters       ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=haloEnvironmentUniform()
     return
@@ -61,7 +61,7 @@ contains
     class  (haloEnvironmentUniform), intent(inout)           :: self
     type   (treeNode              ), intent(inout)           :: node
     logical                        , intent(in   ), optional :: presentDay
-    !GCC$ attributes unused :: self, node, presentDay
+    !$GLC attributes unused :: self, node, presentDay
 
     uniformOverdensityLinear=0.0d0
     return
@@ -72,7 +72,7 @@ contains
     implicit none
     class(haloEnvironmentUniform), intent(inout) :: self
     type (treeNode              ), intent(inout) :: node
-    !GCC$ attributes unused :: self, node
+    !$GLC attributes unused :: self, node
 
     uniformOverdensityLinearGradientTime=0.0d0
     return
@@ -83,7 +83,7 @@ contains
     implicit none
     class(haloEnvironmentUniform), intent(inout) :: self
     type (treeNode              ), intent(inout) :: node
-    !GCC$ attributes unused :: self, node
+    !$GLC attributes unused :: self, node
 
     uniformOverdensityNonLinear=0.0d0
     return
@@ -93,7 +93,7 @@ contains
     !% Return the radius of the environment.
     implicit none
     class(haloEnvironmentUniform), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     uniformEnvironmentRadius=huge(0.0d0)
     return
@@ -103,7 +103,7 @@ contains
     !% Return the mass of the environment.
     implicit none
     class(haloEnvironmentUniform), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     uniformEnvironmentMass=huge(0.0d0)
     return
@@ -115,7 +115,7 @@ contains
     implicit none
     class           (haloEnvironmentUniform), intent(inout) :: self
     double precision                        , intent(in   ) :: overdensity
-    !GCC$ attributes unused :: self, overdensity
+    !$GLC attributes unused :: self, overdensity
 
     uniformPDF=0.0d0
     call Galacticus_Error_Report('PDF is a delta function'//{introspection:location})
@@ -127,7 +127,7 @@ contains
     implicit none
     class           (haloEnvironmentUniform), intent(inout) :: self
     double precision                        , intent(in   ) :: overdensity
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     if (overdensity >= 0.0d0) then
        uniformCDF=1.0d0
@@ -144,7 +144,7 @@ contains
     class           (haloEnvironmentUniform), intent(inout) :: self
     type            (treeNode              ), intent(inout) :: node
     double precision                        , intent(in   ) :: overdensity
-    !GCC$ attributes unused :: self, node
+    !$GLC attributes unused :: self, node
 
     if (overdensity /= 0.0d0) call Galacticus_Error_Report('non-zero overdensity is inconsistent with uniform density field'//{introspection:location})
     return

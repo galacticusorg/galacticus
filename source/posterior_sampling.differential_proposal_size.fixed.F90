@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,10 @@
   !% Implementation of a posterior sampling differential evolution proposal size class in which the proposal size is fixed.
 
   !# <posteriorSampleDffrntlEvltnProposalSize name="posteriorSampleDffrntlEvltnProposalSizeFixed">
-  !#  <description>A posterior sampling differential evolution proposal size class in which the proposal size is fixed.</description>
+  !#  <description>
+  !#   A posterior sampling differential evolution proposal size class in which the proposal size is a fixed value
+  !#   $\gamma=${\normalfont \ttfamily [gamma]}.
+  !#  </description>
   !# </posteriorSampleDffrntlEvltnProposalSize>
   type, extends(posteriorSampleDffrntlEvltnProposalSizeClass) :: posteriorSampleDffrntlEvltnProposalSizeFixed
      !% Implementation of a posterior sampling differential evolution proposal size class in which the proposal size is fixed.
@@ -49,10 +52,8 @@ contains
 
     !# <inputParameter>
     !#   <name>proposalSize</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The proposal size, $\gamma$.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     self=posteriorSampleDffrntlEvltnProposalSizeFixed(proposalSize)
     !# <inputParametersValidate source="parameters"/>
@@ -75,7 +76,7 @@ contains
     class(posteriorSampleDffrntlEvltnProposalSizeFixed), intent(inout) :: self
     class(posteriorSampleStateClass                   ), intent(inout) :: simulationState
     class(posteriorSampleConvergenceClass             ), intent(inout) :: simulationConvergence
-    !GCC$ attributes unused :: simulationState, simulationConvergence
+    !$GLC attributes unused :: simulationState, simulationConvergence
 
     fixedGamma=self%proposalSize
     return

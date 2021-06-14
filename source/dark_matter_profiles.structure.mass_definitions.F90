@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -35,7 +35,7 @@ contains
     use :: Math_Exponentiation         , only : cubeRoot
     use :: Numerical_Comparison        , only : Values_Agree
     use :: Numerical_Constants_Math    , only : Pi
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use :: Virial_Density_Contrast     , only : virialDensityContrast          , virialDensityContrastClass
     implicit none
     double precision                                                      :: massHalo

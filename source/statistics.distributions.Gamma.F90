@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -56,31 +56,23 @@ contains
 
     !# <inputParameter>
     !#   <name>shape</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The shape parameter of the gamma distribution function.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>rate</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The rate parameter of the gamma distribution function.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>limitLower</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The lower limit of the gamma distribution function.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>limitUpper</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The upper limit of the gamma distribution function.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     self=distributionFunction1DGamma(shape,rate,randomNumberGenerator_,limitLower,limitUpper)

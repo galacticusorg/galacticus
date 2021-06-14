@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -48,11 +48,9 @@ contains
 
     !# <inputParameter>
     !#   <name>timescale</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d-2</defaultValue>
     !#   <description>The timescale for ``escape'' of stellar populations in the ``unescaped'' spectra postprocessing method.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     self=stellarPopulationSpectraPostprocessorUnescaped(timescale)
     return
@@ -74,7 +72,7 @@ contains
     class           (stellarPopulationSpectraPostprocessorUnescaped), intent(inout) :: self
     double precision                                                , intent(in   ) :: age       , redshift, &
          &                                                                             wavelength
-    !GCC$ attributes unused :: redshift, wavelength
+    !$GLC attributes unused :: redshift, wavelength
 
     unescapedMultiplier=exp(-age/self%timescale)
     return

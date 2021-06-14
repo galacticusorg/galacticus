@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +22,9 @@
   !% Implements a black hole binary recoil velocity class in which the recoil velocity is zero.
 
   !# <blackHoleBinaryRecoil name="blackHoleBinaryRecoilZero">
-  !#  <description>A black hole binary recoil class in which the recoil velocity is always zero.</description>
+  !#  <description>
+  !#   A black hole binary recoil class in which the recoil velocity is always zero.
+  !#  </description>
   !# </blackHoleBinaryRecoil>
   type, extends(blackHoleBinaryRecoilClass) :: blackHoleBinaryRecoilZero
      !% A black hole binary recoil class in which the recoil velocity is always zero.
@@ -44,7 +46,7 @@ contains
     implicit none
     type(blackHoleBinaryRecoilZero)                :: self
     type(inputParameters          ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=blackHoleBinaryRecoilZero()
     return
@@ -55,7 +57,7 @@ contains
     implicit none
     class(blackHoleBinaryRecoilZero), intent(inout) :: self
     class(nodeComponentBlackHole   ), intent(inout) :: blackHole1, blackHole2
-    !GCC$ attributes unused :: self, blackHole1, blackHole2
+    !$GLC attributes unused :: self, blackHole1, blackHole2
 
     zeroVelocity=0.0d0
     return

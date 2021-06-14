@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,7 +19,7 @@
 
   !% Implements a standard stellar population class.
 
-  use :: FGSL                                      , only : fgsl_interp             , fgsl_interp_accel
+  use :: Numerical_Interpolation                   , only : interpolator
   use :: Stellar_Astrophysics                      , only : stellarAstrophysics     , stellarAstrophysicsClass
   use :: Stellar_Feedback                          , only : stellarFeedback         , stellarFeedbackClass
   use :: Stellar_Population_Spectra                , only : stellarPopulationSpectra, stellarPopulationSpectraClass
@@ -40,10 +40,8 @@
      double precision                   , allocatable, dimension(:  ) :: age              , metallicity
      double precision                   , allocatable, dimension(:,:) :: property
      double precision                                                 :: toleranceAbsolute, toleranceRelative
-     type            (fgsl_interp      )                              :: interpolatorAge
-     type            (fgsl_interp_accel)                              :: acceleratorAge   , acceleratorMetallicity
-     logical                                                          :: resetAge         , resetMetallicity      , &
-          &                                                              computed
+     type            (interpolator     )                              :: interpolatorAge  , interpolatorMetallicity
+     logical                                                          :: computed
   end type populationTable
 
   interface populationTable
@@ -57,35 +55,24 @@
   type, extends(stellarPopulationClass) :: stellarPopulationStandard
      !% A standard stellar population class.
      private
-     logical                                                                    :: instantaneousRecyclingApproximation, metalYieldInitialized, &
+     logical                                                                    :: instantaneousRecyclingApproximation          , metalYieldInitialized, &
           &                                                                        recycledFractionInitialized
-     double precision                                                           :: massLongLived                      , ageEffective         , &
-          &                                                                        recycledFraction_                  , metalYield_          , &
-          &                                                                        recycledFraction                   , metalYield
-     class           (stellarAstrophysicsClass     ), pointer                   :: stellarAstrophysics_ => null()
-     class           (initialMassFunctionClass     ), pointer                   :: initialMassFunction_ => null()
-     class           (stellarFeedbackClass         ), pointer                   :: stellarFeedback_ => null()
-     class           (supernovaeTypeIaClass        ), pointer                   :: supernovaeTypeIa_ => null()
-     class           (stellarPopulationSpectraClass), pointer                   :: stellarPopulationSpectra_ => null()
+     double precision                                                           :: massLongLived                                , ageEffective         , &
+          &                                                                        recycledFraction_                            , metalYield_          , &
+          &                                                                        recycledFraction                             , metalYield
+     class           (stellarAstrophysicsClass     ), pointer                   :: stellarAstrophysics_                => null()
+     class           (initialMassFunctionClass     ), pointer                   :: initialMassFunction_                => null()
+     class           (stellarFeedbackClass         ), pointer                   :: stellarFeedback_                    => null()
+     class           (supernovaeTypeIaClass        ), pointer                   :: supernovaeTypeIa_                   => null()
+     class           (stellarPopulationSpectraClass), pointer                   :: stellarPopulationSpectra_           => null()
      type            (populationTable              )                            :: recycleFraction
      type            (populationTable              )                            :: energyOutput
      type            (populationTable              ), allocatable, dimension(:) :: yield
    contains
-     !@ <objectMethods>
-     !@   <object>stellarPopulationStandard</object>
-     !@   <objectMethod>
-     !@     <method>starIsEvolved</method>
-     !@     <arguments>\doublezero\ massInitial\argin, \doublezero\ metallicity\argin,\doublezero\ age\argin</arguments>
-     !@     <type>\logicalzero</type>
-     !@     <description>Return true if the star of given initial mass and metallicity has evolved off of the main sequence by the given age.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>interpolate</method>
-     !@     <arguments>\textcolor{red}{\textless type(abundances)\textgreater} abundances_\argin, \doublezero\ ageMinimum\argin,\doublezero\ ageMaximum\argin, \textcolor{red}{\textless type(populationTable)\textgreater} property\arginout</arguments>
-     !@     <type>\logicalzero</type>
-     !@     <description>Interpolate in the given property to return the mean rate of production of that property from the stellar population between the given minimum and maximum ages.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return true if the star of given initial mass and metallicity has evolved off of the main sequence by the given age." method="starIsEvolved" />
+     !#   <method description="Interpolate in the given property to return the mean rate of production of that property from the stellar population between the given minimum and maximum ages." method="interpolate" />
+     !# </methods>
      final     ::                                  standardDestructor
      procedure :: rateRecycling                 => standardRateRecycling
      procedure :: rateYield                     => standardRateYield
@@ -135,9 +122,7 @@ contains
     double precision                 , intent(in   ) :: toleranceAbsolute, toleranceRelative
     !# <constructorAssign variables="label, *integrand, toleranceAbsolute, toleranceRelative"/>
 
-    self%computed        =.false.
-    self%resetAge        =.true.
-    self%resetMetallicity=.true.
+    self%computed=.false.
     return
   end function populationTableConstructor
 
@@ -161,41 +146,31 @@ contains
     !#   <name>instantaneousRecyclingApproximation</name>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>If true, then use an instantaneous recycling approximation when computing recycling, yield, and energy input rates.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>1</cardinality>
     !#   <source>parameters</source>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massLongLived</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The mass below which stars are assumed to be infinitely long-lived in the instantaneous approximation for stellar evolution.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>ageEffective</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>13.8d0</defaultValue>
     !#   <description>The effective age to use for computing SNeIa yield when using the instantaneous stellar evolution approximation.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>recycledFraction</name>
     !#   <defaultValue>0.0d0</defaultValue>
-    !#   <cardinality>1</cardinality>
     !#   <description>The recycled fraction to use in the instantaneous stellar evolution approximation. (If not specified it will be computed internally.)</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>metalYield</name>
     !#   <defaultValue>0.0d0</defaultValue>
-    !#   <cardinality>1</cardinality>
     !#   <description>The metal yield to use in the instantaneous stellar evolution approximation. (If not specified it will be computed internally.)</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="initialMassFunction"      name="initialMassFunction_"      source="parameters"/>
     !# <objectBuilder class="stellarAstrophysics"      name="stellarAstrophysics_"      source="parameters"/>
@@ -230,7 +205,7 @@ contains
 
   function standardConstructorInternal(instantaneousRecyclingApproximation,massLongLived,ageEffective,recycledFraction,metalYield,initialMassFunction_,stellarAstrophysics_,stellarFeedback_,supernovaeTypeIa_,stellarPopulationSpectra_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily standard} stellar population.
-    use :: Abundances_Structure, only : Abundances_Property_Count, Abundances_Names
+    use :: Abundances_Structure, only : Abundances_Names, Abundances_Property_Count
     implicit none
     type            (stellarPopulationStandard    )                          :: self
     logical                                        , intent(in   )           :: instantaneousRecyclingApproximation
@@ -332,10 +307,10 @@ contains
     !% useful as computation of the table is relatively slow.
     use            :: Abundances_Structure            , only : Abundances_Get_Metallicity
     use            :: Dates_and_Times                 , only : Formatted_Date_and_Time
-    use            :: File_Utilities                  , only : Directory_Make                   , File_Exists                        , File_Lock                , File_Unlock                , &
-          &                                                    File_Path                        , lockDescriptor
-    use            :: Galacticus_Display              , only : Galacticus_Display_Counter       , Galacticus_Display_Counter_Clear   , Galacticus_Display_Indent, Galacticus_Display_Unindent, &
-         &                                                     verbosityWorking
+    use            :: Display                         , only : displayCounter                   , displayCounterClear , displayIndent, displayUnindent, &
+          &                                                    verbosityLevelWorking
+    use            :: File_Utilities                  , only : Directory_Make                   , File_Exists         , File_Lock    , File_Path      , &
+          &                                                    File_Unlock                      , lockDescriptor
     use            :: Galacticus_Error                , only : Galacticus_Error_Report
     use            :: Galacticus_Paths                , only : galacticusPath                   , pathTypeDataDynamic
     use            :: IO_HDF5                         , only : hdf5Access                       , hdf5Object
@@ -344,7 +319,6 @@ contains
     use            :: Memory_Management               , only : allocateArray
     use            :: Numerical_Constants_Astronomical, only : metallicitySolar
     use            :: Numerical_Integration2          , only : integratorCompositeGaussKronrod1D
-    use            :: Numerical_Interpolation         , only : Interpolate                      , Interpolate_Linear_Generate_Factors, Interpolate_Locate
     use            :: Numerical_Ranges                , only : Make_Range                       , rangeTypeLogarithmic
     use            :: Table_Labels                    , only : extrapolationTypeExtrapolate
     implicit none
@@ -378,14 +352,14 @@ contains
        call File_Lock(char(fileName),lock,lockIsShared=.false.)
        if (File_Exists(fileName)) then
           ! Open the file containing cumulative property data.
-          call Galacticus_Display_Indent('Reading file: '//fileName,verbosityWorking)
+          call displayIndent('Reading file: '//fileName,verbosityLevelWorking)
           !$ call hdf5Access%set()
           call file%openFile(char(fileName))
           call file%readAttribute('fileFormat',fileFormat)
           if (fileFormat /= standardFileFormatCurrent) then
              makeFile=.true.
              call file%close()
-             call Galacticus_Display_Unindent('done',verbosityWorking)
+             call displayUnindent('done',verbosityLevelWorking)
           end if
           !$ call hdf5Access%unset()
        else
@@ -394,12 +368,12 @@ contains
        if (.not.makeFile) then
           ! Read the cumulative property data from file.
           call hdf5Access%set()
-          call file%readDataset("age",property%age)
-          call file%readDataset("metallicity",property%metallicity)
-          call file%readDataset(char(property%label),property%property)
-          call file%close()
+          call file%readDataset("age"               ,property%age        )
+          call file%readDataset("metallicity"       ,property%metallicity)
+          call file%readDataset(char(property%label),property%property   )
+          call file%close      (                                         )
           call hdf5Access%unset()
-          call Galacticus_Display_Unindent('done',verbosityWorking)
+          call displayUnindent('done',verbosityLevelWorking)
        else
           call allocateArray(property%age        ,[standardTableAgeCount                              ])
           call allocateArray(property%metallicity,[                      standardTableMetallicityCount])
@@ -409,7 +383,7 @@ contains
           property%age                                         =Make_Range(standardTableAgeMinimum        ,standardTableAgeMaximum        ,standardTableAgeCount          ,rangeType=rangeTypeLogarithmic)
           ! Open file to output the data to.
           descriptor=inputParameters()
-          call self%descriptor(descriptor,includeMethod=.true.)
+          call self%descriptor(descriptor,includeClass=.true.)
           descriptorString=descriptor%serializeToString()
           call hdf5Access%set()
           call file%openFile(char(fileName))
@@ -426,8 +400,8 @@ contains
           call dataset%close()
           call hdf5Access%unset()
           ! Loop over ages and metallicities and compute the property.
-          call Galacticus_Display_Indent('Tabulating property: '//char(property%label),verbosityWorking)
-          call Galacticus_Display_Counter(0,.true.,verbosityWorking)
+          call displayIndent('Tabulating property: '//char(property%label),verbosityLevelWorking)
+          call displayCounter(0,.true.,verbosityLevelWorking)
           loopCountTotal=  +standardTableMetallicityCount &
                &           *standardTableAgeCount
           loopCount     =   0
@@ -437,10 +411,14 @@ contains
           allocate(standardInitialMassFunction_,mold=self%initialMassFunction_)
           allocate(standardStellarFeedback_    ,mold=self%stellarFeedback_    )
           allocate(standardSupernovaeTypeIa_   ,mold=self%supernovaeTypeIa_   )
+          !$omp critical(stellarPopulationsStandardDeepCopy)
+          !# <deepCopyReset variables="self%stellarAstrophysics_ self%initialMassFunction_ self%stellarFeedback_ self%supernovaeTypeIa_"/>
           !# <deepCopy source="self%stellarAstrophysics_" destination="standardStellarAstrophysics_"/>
           !# <deepCopy source="self%initialMassFunction_" destination="standardInitialMassFunction_"/>
-          call self%stellarFeedback_    %deepCopy(standardStellarFeedback_    )
-          call self%supernovaeTypeIa_   %deepCopy(standardSupernovaeTypeIa_   )
+          !# <deepCopy source="self%stellarFeedback_"     destination="standardStellarFeedback_"    />
+          !# <deepCopy source="self%supernovaeTypeIa_"    destination="standardSupernovaeTypeIa_"   />
+          !# <deepCopyFinalize variables="standardStellarAstrophysics_ standardInitialMassFunction_ standardStellarFeedback_ standardSupernovaeTypeIa_"/>
+          !$omp end critical(stellarPopulationsStandardDeepCopy)
           call integrator_%initialize  (24                        ,61                        )
           call integrator_%toleranceSet(property%toleranceAbsolute,property%toleranceRelative)
           call integrator_%integrandSet(property%integrand                                   )
@@ -463,10 +441,10 @@ contains
              ! Update the counter.
              !$omp atomic
              loopCount=loopCount+1
-             call Galacticus_Display_Counter(                                                   &
+             call displayCounter(                                                   &
                   &                          int(100.0d0*dble(loopCount)/dble(loopCountTotal)), &
                   &                          .false.                                          , &
-                  &                          verbosityWorking                                   &
+                  &                          verbosityLevelWorking                                   &
                   &                         )
           end do
           !$omp end do
@@ -487,14 +465,17 @@ contains
                      &       )
              end do
           end do
-          call Galacticus_Display_Counter_Clear(           verbosityWorking)
-          call Galacticus_Display_Unindent     ('finished',verbosityWorking)
+          call displayCounterClear(           verbosityLevelWorking)
+          call displayUnindent     ('finished',verbosityLevelWorking)
           call hdf5Access%set()
           call file%writeDataset(property%property,char(property%label))
           call file%close()
           call hdf5Access%unset()
        end if
        call File_Unlock(lock)
+       ! Build interpolators.
+       property%interpolatorMetallicity=interpolator(property%metallicity                                               )
+       property%interpolatorAge        =interpolator(property%age        ,extrapolationType=extrapolationTypeExtrapolate)
        ! Record that this IMF has now been tabulated.
        property%computed=.true.
     end if
@@ -504,8 +485,7 @@ contains
        metallicityIndex=size(property%metallicity)
        metallicityFactors=[1.0d0,0.0d0]
     else
-       metallicityIndex  =Interpolate_Locate                 (property%metallicity,property%acceleratorMetallicity,metallicity,reset=property%resetMetallicity)
-       metallicityFactors=Interpolate_Linear_Generate_Factors(property%metallicity,         metallicityIndex      ,metallicity                                )
+       call property%interpolatorMetallicity%linearFactors(metallicity,metallicityIndex,metallicityFactors)
     end if
     ! Interpolate in age at both metallicities.
     age=[ageMinimum,ageMaximum]
@@ -514,15 +494,7 @@ contains
           ! Get average property between ageMinimum and ageMaximum.
           do iAge=1,2
              if (age(iAge) > 0.0d0) then
-                propertyCumulative(iAge)=Interpolate(                                                                                 &
-                     &                                        property%age                                                          , &
-                     &                                        property%property                    (:,metallicityIndex+iMetallicity), &
-                     &                                        property%interpolatorAge                                              , &
-                     &                                        property%acceleratorAge                                               , &
-                     &                                                 age                         (  iAge                         ), &
-                     &                      reset            =property%resetAge                                                     , &
-                     &                      extrapolationType=         extrapolationTypeExtrapolate                                   &
-                     &                     )
+                propertyCumulative(iAge)=property%interpolatorAge%interpolate(age(iAge),property%property(:,metallicityIndex+iMetallicity))
              else
                 propertyCumulative(iAge)=0.0d0
              end if

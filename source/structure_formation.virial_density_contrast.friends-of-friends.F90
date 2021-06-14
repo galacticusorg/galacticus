@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,26 @@
   !% An implementation of dark matter halo virial density contrasts based on a friends-of-friends linking length.
 
   !# <virialDensityContrast name="virialDensityContrastFriendsOfFriends">
-  !#  <description>Dark matter halo virial density contrasts based on the friends-of-friends algorithm linking length.</description>
+  !#  <description>
+  !#   Dark matter halo virial density contrasts based on the friends-of-friends algorithm linking length. The virial density
+  !#   contrast is computed consistent with a given friends-of-friends algorithm linking length. According to
+  !#   \cite{lacey_merger_1994}, the friends-of-friends algorithm selects objects bounded by an isodensity contour of density
+  !#   contrast
+  !#   \begin{equation}
+  !#   \Delta_\mathrm{iso} = {3 \over 2 \pi b^3},
+  !#   \end{equation}
+  !#   where $b=${\normalfont \ttfamily [virialDensityContrastFoFLinkingLength]} is the dimensionless linking length of the
+  !#   algorithm (i.e. the linking length in units of the mean interparticle spacing). The virial density contrast is then given
+  !#   by:
+  !#   \begin{equation}
+  !#   \Delta_\mathrm{vir} = {\bar{\rho}_\mathrm{vir} \over \rho(r_\mathrm{vir})} \Delta_\mathrm{iso},
+  !#   \end{equation}
+  !#   where $\bar{\rho}_\mathrm{vir}$ is the mean density inside the virial radius and $\rho(r_\mathrm{vir})$ is the density at
+  !#   the virial radius. The ratio $\bar{\rho}_\mathrm{vir} / \rho(r_\mathrm{vir})$ is specified via the parameter {\normalfont
+  !#   \ttfamily [virialDensityContrastFoFDensityRatio]}. Its default value of $4.688$ is appropriate for an \gls{nfw} halo of
+  !#   concentration $c=6.88$ which is the concentration found by \cite{prada_halo_2011} for halos with $\sigma=1.686$ which is
+  !#   the approximate critical overdensity for collapse).
+  !#  </description>
   !# </virialDensityContrast>
   type, extends(virialDensityContrastClass) :: virialDensityContrastFriendsOfFriends
      !% A dark matter halo virial density contrast class based on the friends-of-friends algorithm linking length.
@@ -52,8 +71,6 @@ contains
     !#  <source>parameters</source>
     !#  <defaultValue>0.2d0</defaultValue>
     !#  <description>The friends-of-friends linking length algorithm to use in computing virial density contrast.</description>
-    !#  <type>real</type>
-    !#  <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#  <name>densityRatio</name>
@@ -61,8 +78,6 @@ contains
     !#  <defaultValue>4.688d0</defaultValue>
     !#  <defaultSource>Value appropriate for an \gls{nfw} profile with concentration $c=6.88$ which is the concentration found by \cite{prada_halo_2011} for halos with $\sigma=1.686$ which is the approximate critical overdensity for collapse.</defaultSource>
     !#  <description>The ratio of mean virial density to density at the virial radius to assume when setting virial density contrasts in the friends-of-friends model.</description>
-    !#  <type>real</type>
-    !#  <cardinality>1</cardinality>
     !# </inputParameter>
     self=virialDensityContrastFriendsOfFriends(linkingLength,densityRatio)
     return
@@ -87,7 +102,7 @@ contains
     double precision                                       , intent(in   ), optional :: time                          , expansionFactor
     logical                                                , intent(in   ), optional :: collapsing
     double precision                                                                 :: boundingSurfaceDensityContrast
-    !GCC$ attributes unused :: mass, time, expansionFactor, collapsing
+    !$GLC attributes unused :: mass, time, expansionFactor, collapsing
 
     boundingSurfaceDensityContrast =3.0d0/2.0d0/Pi/self%linkingLength**3
     friendsOfFriendsDensityContrast=self%densityRatio*boundingSurfaceDensityContrast
@@ -101,7 +116,7 @@ contains
     double precision                                       , intent(in   )           :: mass
     double precision                                       , intent(in   ), optional :: time      , expansionFactor
     logical                                                , intent(in   ), optional :: collapsing
-    !GCC$ attributes unused :: self, mass, time, expansionFactor, collapsing
+    !$GLC attributes unused :: self, mass, time, expansionFactor, collapsing
 
     friendsOfFriendsDensityContrastRateOfChange=0.0d0
     return

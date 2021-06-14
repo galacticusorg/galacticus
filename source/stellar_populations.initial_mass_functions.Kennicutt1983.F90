@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,16 @@
   !% Implements a stellar initial mass function class for the \cite{kennicutt_rate_1983} \gls{imf}.
 
   !# <initialMassFunction name="initialMassFunctionKennicutt1983">
-  !#  <description>A stellar initial mass function class for the \cite{kennicutt_rate_1983} \gls{imf}.</description>
+  !#  <description>
+  !#   A stellar initial mass function class for the \cite{kennicutt_rate_1983} \gls{imf}:
+  !#   \begin{equation}
+  !#    \phi(M) \propto \left\{ \begin{array}{ll}
+  !#    M^{-1.25} &amp; \hbox{ for } 0.10M_\odot &lt; M &lt; 1.00M_\odot \\
+  !#    M^{-2.00} &amp; \hbox{ for } 1.00M_\odot &lt; M &lt; 2.00M_\odot \\
+  !#    M^{-2.30} &amp; \hbox{ for } 2.00M_\odot &lt; M &lt; 125M_\odot \\
+  !#    0 &amp; \hbox {otherwise.} \end{array} \right.
+  !#   \end{equation}
+  !#  </description>
   !# </initialMassFunction>
   type, extends(initialMassFunctionPiecewisePowerLaw) :: initialMassFunctionKennicutt1983
      !% A stellar initial mass function class for the \cite{kennicutt_rate_1983} \gls{imf}.
@@ -43,7 +52,7 @@ contains
     implicit none
     type(initialMassFunctionKennicutt1983)                :: self
     type(inputParameters                 ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=initialMassFunctionKennicutt1983()
     return
@@ -66,7 +75,7 @@ contains
     implicit none
     class(initialMassFunctionKennicutt1983), intent(inout) :: self
     type (varying_string                  )                :: kennicutt1983Label
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     kennicutt1983Label="Kennicutt1983"
     return

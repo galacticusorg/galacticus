@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,11 +22,17 @@
   use :: Cosmology_Functions    , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters   , only : cosmologyParametersClass
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
+  use :: Root_Finder            , only : rootFinder
   use :: Tables                 , only : table1DLinearLinear
   use :: Virial_Density_Contrast, only : virialDensityContrastFixed
 
   !# <virialOrbit name="virialOrbitJiang2014">
-  !#  <description>Virial orbits using the \cite{jiang_orbital_2014} orbital parameter distribution.</description>
+  !#  <description>
+  !#   A virial orbits class which selects orbital parameters randomly from the distribution given by \cite{jiang_orbital_2014},
+  !#   including the mass and mass-ratio dependence of the distributions. If the virial density contrast definition differs from
+  !#   that used by \cite{jiang_orbital_2014} then the orbit is assigned based on \cite{jiang_orbital_2014}'s definition and then
+  !#   propagated to the virial radius relevant to the current definition of density contrast.
+  !#  </description>
   !#  <deepCopy>
   !#   <functionClass variables="virialDensityContrast_"/>
   !#  </deepCopy>
@@ -45,16 +51,11 @@
           &                                                          sigma                            , mu                           , &
           &                                                          velocityTangentialMean_          , velocityTotalRootMeanSquared_
      type            (table1DLinearLinear       ), dimension(3,3) :: voightDistributions
+     type            (rootFinder                )                 :: totalFinder                      , radialFinder
    contains
-     !@ <objectMethods>
-     !@   <object>virialOrbitJiang2014</object>
-     !@   <objectMethod>
-     !@     <method>parametersSelect</method>
-     !@     <arguments>\doublezero\ massHost\argin, \doublezero\ massSatellite\argin, \intzero\ i\argout, \intzero\ j\argout</arguments>
-     !@     <type>\void</type>
-     !@     <description>Select the parameter set to use for this satellite/host pairing.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Select the parameter set to use for this satellite/host pairing." method="parametersSelect" />
+     !# </methods>
      final     ::                                    jiang2014Destructor
      procedure :: orbit                           => jiang2014Orbit
      procedure :: densityContrastDefinition       => jiang2014DensityContrastDefinition
@@ -101,96 +102,72 @@ contains
     !#   <defaultValue>[+0.049d0,+0.548d0,+1.229d0]</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Values of the $B$ parameter of the \cite{jiang_orbital_2014} orbital velocity distribution for the three host halo mass ranges, and the $0.0001$--$0.005$ mass ratio.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>bRatioIntermediate</name>
     !#   <defaultValue>[+1.044d0,+1.535d0,+3.396d0]</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Values of the $B$ parameter of the \cite{jiang_orbital_2014} orbital velocity distribution for the three host halo mass ranges, and the $0.005$--$0.05$ mass ratio.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>bRatioHigh</name>
     !#   <defaultValue>[+2.878d0,+3.946d0,+2.982d0]</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Values of the $B$ parameter of the \cite{jiang_orbital_2014} orbital velocity distribution for the three host halo mass ranges, and the $0.05$--$0.5$ mass ratio.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>gammaRatioLow</name>
     !#   <defaultValue>[+0.109d0,+0.114d0,+0.110d0]</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Values of the $\gamma$ parameter of the \cite{jiang_orbital_2014} orbital velocity distribution for the three host halo mass ranges, and the $0.0001$--$0.005$ mass ratio.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>gammaRatioIntermediate</name>
     !#   <defaultValue>[+0.098d0,+0.087d0,+0.050d0]</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Values of the $\gamma$ parameter of the \cite{jiang_orbital_2014} orbital velocity distribution for the three host halo mass ranges, and the $0.005$--$0.05$ mass ratio.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>gammaRatioHigh</name>
     !#   <defaultValue>[+0.071d0,+0.030d0,-0.012d0]</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Values of the $\gamma$ parameter of the \cite{jiang_orbital_2014} orbital velocity distribution for the three host halo mass ranges, and the $0.05$--$0.5$ mass ratio.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>sigmaRatioLow</name>
     !#   <defaultValue>[+0.077d0,+0.094d0,+0.072d0]</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Values of the $\sigma$ parameter of the \cite{jiang_orbital_2014} orbital velocity distribution for the three host halo mass ranges, and the $0.0001$--$0.005$ mass ratio.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>sigmaRatioIntermediate</name>
     !#   <defaultValue>[+0.073d0,+0.083d0,+0.118d0]</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Values of the $\sigma$ parameter of the \cite{jiang_orbital_2014} orbital velocity distribution for the three host halo mass ranges, and the $0.005$--$0.05$ mass ratio.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>sigmaRatioHigh</name>
     !#   <defaultValue>[+0.091d0,+0.139d0,+0.187d0]</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Values of the $\sigma$ parameter of the \cite{jiang_orbital_2014} orbital velocity distribution for the three host halo mass ranges, and the $0.05$--$0.5$ mass ratio.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>muRatioLow</name>
     !#   <defaultValue>[+1.220d0,+1.231d0,+1.254d0]</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Values of the $\mu$ parameter of the \cite{jiang_orbital_2014} orbital velocity distribution for the three host halo mass ranges, and the $0.0001$--$0.005$ mass ratio.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>muRatioIntermediate</name>
     !#   <defaultValue>[+1.181d0,+1.201d0,+1.236d0]</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Values of the $\mu$ parameter of the \cite{jiang_orbital_2014} orbital velocity distribution for the three host halo mass ranges, and the $0.005$--$0.05$ mass ratio.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>muRatioHigh</name>
     !#   <defaultValue>[+1.100d0,+1.100d0,+1.084d0]</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Values of the $\mu$ parameter of the \cite{jiang_orbital_2014} orbital velocity distribution for the three host halo mass ranges, and the $0.05$--$0.5$ mass ratio.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
@@ -205,32 +182,31 @@ contains
 
   function jiang2014ConstructorInternal(bRatioLow,bRatioIntermediate,bRatioHigh,gammaRatioLow,gammaRatioIntermediate,gammaRatioHigh,sigmaRatioLow,sigmaRatioIntermediate,sigmaRatioHigh,muRatioLow,muRatioIntermediate,muRatioHigh,darkMatterHaloScale_,cosmologyParameters_,cosmologyFunctions_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily jiang2014} virial orbits class.
-    use :: FGSL                    , only : FGSL_Integ_Gauss61          , fgsl_function , fgsl_integration_workspace
-    use :: Numerical_Integration   , only : Integrate                   , Integrate_Done
+    use :: Numerical_Integration   , only : integrator                  , GSL_Integ_Gauss61
+    use :: Root_Finder             , only : rangeExpandMultiplicative   , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
     use :: Statistics_Distributions, only : distributionFunction1DVoight
     use :: Virial_Density_Contrast , only : fixedDensityTypeCritical
     implicit none
     type            (virialOrbitJiang2014        )                                :: self
-    double precision                              , intent(in   ), dimension(3  ) :: bRatioLow                          , bRatioIntermediate            , bRatioHigh                          , &
-         &                                                                           gammaRatioLow                      , gammaRatioIntermediate        , gammaRatioHigh                      , &
-         &                                                                           sigmaRatioLow                      , sigmaRatioIntermediate        , sigmaRatioHigh                      , &
+    double precision                              , intent(in   ), dimension(3  ) :: bRatioLow                          , bRatioIntermediate                   , bRatioHigh                          , &
+         &                                                                           gammaRatioLow                      , gammaRatioIntermediate               , gammaRatioHigh                      , &
+         &                                                                           sigmaRatioLow                      , sigmaRatioIntermediate               , sigmaRatioHigh                      , &
          &                                                                           muRatioLow                         , muRatioIntermediate           , muRatioHigh
     class           (darkMatterHaloScaleClass    ), intent(in   ), target         :: darkMatterHaloScale_
     class           (cosmologyParametersClass    ), intent(in   ), target         :: cosmologyParameters_
     class           (cosmologyFunctionsClass     ), intent(in   ), target         :: cosmologyFunctions_
     integer                                       , parameter                     :: tableCount                 =1000
-    integer                                                                       :: i                                  , j                             , k
+    integer                                                                       :: i                                  , j                                    , k
     type            (distributionFunction1DVoight)                                :: voightDistribution
     logical                                       , save        , dimension(3,3)  :: previousInitialized        =.false.
-    double precision                              , save        , dimension(3,3)  :: previousB                          , previousGamma                 , previousSigma                       , &
-         &                                                                           previousMu                         , previousVelocityTangentialMean, previousVelocityTotalRootMeanSquared
+    double precision                              , save        , dimension(3,3)  :: previousB                          , previousGamma                        , previousSigma                       , &
+         &                                                                           previousMu                         , previousVelocityTangentialMean       , previousVelocityTotalRootMeanSquared
     type            (table1DLinearLinear         ), save        , dimension(3,3)  :: previousVoightDistributions
-    double precision                                                              :: limitLower                         , limitUpper                    , halfWidthHalfMaximum                , &
+    double precision                              , parameter                     :: toleranceAbsolute           =0.0d+0, toleranceRelative             =1.0d-3
+    double precision                                                              :: limitLower                         , limitUpper                           , halfWidthHalfMaximum                , &
          &                                                                           fullWidthHalfMaximumLorentzian     , fullWidthHalfMaximumGaussian
     logical                                                                       :: reUse                              , limitFound
-    type            (fgsl_function               )                                :: integrandFunction
-    type            (fgsl_integration_workspace  )                                :: integrationWorkspace
-    logical                                                                       :: integrationReset
+    type            (integrator                  )                                :: integratorTangential               , integratorTotal
     !# <constructorAssign variables="*darkMatterHaloScale_, *cosmologyParameters_, *cosmologyFunctions_"/>
 
     ! Assign parameters of the distribution.
@@ -247,6 +223,8 @@ contains
     self%mu   (:,2)=   muRatioIntermediate
     self%mu   (:,3)=   muRatioHigh
     ! Tabulate Voight distribution functions for speed.
+    integratorTangential=integrator(jiang2014DistributionVelocityTangential  ,toleranceRelative=1.0d-6,integrationRule=GSL_Integ_Gauss61)
+    integratorTotal     =integrator(jiang2014DistributionVelocityTotalSquared,toleranceRelative=1.0d-6,integrationRule=GSL_Integ_Gauss61)
     ! Build the distribution function for total velocity.
     do i=1,3
        do j=1,3
@@ -319,35 +297,9 @@ contains
                 if (self%voightDistributions(i,j)%y(k) <= 0.0d0) limitFound=.true.
              end do
              ! Compute the mean magnitude of tangential velocity.
-             integrationReset                 =.true.
-             self%velocityTangentialMean_(i,j)=           Integrate(                                                             &
-                  &                                                 limitLower                                                 , &
-                  &                                                 limitUpper                                                 , &
-                  &                                                 jiang2014DistributionVelocityTangential                    , &
-                  &                                                 integrandFunction                                          , &
-                  &                                                 integrationWorkspace                                       , &
-                  &                                                 reset                                   =integrationReset  , &
-                  &                                                 toleranceAbsolute                       =0.0d+0            , &
-                  &                                                 toleranceRelative                       =1.0d-6            , &
-                  &                                                 integrationRule                         =FGSL_Integ_Gauss61  &
-                  &                                                )
-             call Integrate_Done(integrandFunction,integrationWorkspace)
+             self%velocityTangentialMean_      (i,j)=     integratorTangential%integrate(limitLower,limitUpper)
              ! Compute the root mean squared total velocity.
-             integrationReset                       =.true.
-             self%velocityTotalRootMeanSquared_(i,j)=sqrt(                                                                        &
-                  &                                       Integrate(                                                              &
-                  &                                                 limitLower                                                  , &
-                  &                                                 limitUpper                                                  , &
-                  &                                                 jiang2014DistributionVelocityTotalSquared                   , &
-                  &                                                 integrandFunction                                           , &
-                  &                                                 integrationWorkspace                                        , &
-                  &                                                 reset                                    =integrationReset  , &
-                  &                                                 toleranceAbsolute                        =0.0d+0            , &
-                  &                                                 toleranceRelative                        =1.0d-6            , &
-                  &                                                 integrationRule                          =FGSL_Integ_Gauss61  &
-                  &                                                )                                                              &
-                  &                                      )
-             call Integrate_Done(integrandFunction,integrationWorkspace)
+             self%velocityTotalRootMeanSquared_(i,j)=sqrt(integratorTotal     %integrate(limitLower,limitUpper))
              ! Store this table for later reuse.
              !$omp critical(virialOrbitJiang2014ReUse)
              previousInitialized(i,j)=.true.
@@ -365,7 +317,28 @@ contains
     ! Create virial density contrast definition.
     allocate(self%virialDensityContrast_)
     !# <referenceConstruct isResult="yes" owner="self" object="virialDensityContrast_" constructor="virialDensityContrastFixed(200.0d0,fixedDensityTypeCritical,2.0d0,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
-    return
+    ! Build root finders.
+    self%totalFinder =rootFinder(                                                             &
+         &                       rootFunction                 =jiang2014TotalVelocityCDF    , &
+         &                       toleranceAbsolute            =toleranceAbsolute            , &
+         &                       toleranceRelative            =toleranceRelative            , &
+         &                       rangeExpandUpward            =2.0d0                        , &
+         &                       rangeExpandDownward          =0.5d0                        , &
+         &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+         &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+         &                       rangeExpandType              =rangeExpandMultiplicative      &
+         &                      )
+    self%radialFinder=rootFinder(                                                             &
+         &                       rootFunction                 =jiang2014RadialVelocityCDF   , &
+         &                       toleranceAbsolute            =toleranceAbsolute            , &
+         &                       toleranceRelative            =toleranceRelative            , &
+         &                       rangeExpandUpward            =2.0d0                        , &
+         &                       rangeExpandDownward          =0.5d0                        , &
+         &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+         &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+         &                       rangeExpandType              =rangeExpandMultiplicative      &
+         &                      )
+     return
 
   contains
 
@@ -423,7 +396,6 @@ contains
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Error                    , only : Galacticus_Error_Report
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
-    use :: Root_Finder                         , only : rangeExpandMultiplicative          , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
     type            (keplerOrbit               )                        :: jiang2014Orbit
     class           (virialOrbitJiang2014      ), intent(inout), target :: self
@@ -433,9 +405,6 @@ contains
     class           (virialDensityContrastClass), pointer               :: virialDensityContrast_
     integer                                     , parameter             :: attemptsMaximum        =10000
     double precision                            , parameter             :: boundTolerance         =1.0d-4 !  Tolerence to ensure that orbits are sufficiently bound.
-    double precision                            , parameter             :: toleranceAbsolute      =0.0d+0
-    double precision                            , parameter             :: toleranceRelative      =1.0d-3
-    type            (rootFinder                )                        :: totalFinder                   , radialFinder
     double precision                                                    :: velocityHost                  , radiusHost                , &
          &                                                                 massHost                      , massSatellite             , &
          &                                                                 energyInternal                , radiusHostSelf            , &
@@ -447,37 +416,17 @@ contains
     basic     => node%basic()
     hostBasic => host%basic()
     ! Find virial density contrast under Jiang et al. (2014) definition.
-    !# <referenceAcquire target="virialDensityContrast_" source="self%densityContrastDefinition()"/>
-    ! Find mass, radius, and velocity in the host and satellite corresponding to the Jiang et al. (2014) virial density contrast definition.
-    massHost     =Dark_Matter_Profile_Mass_Definition(host,virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHostSelf,velocityHost)
-    massSatellite=Dark_Matter_Profile_Mass_Definition(node,virialDensityContrast_%densityContrast(    basic%mass(),    basic%timeLastIsolated())                            )
+    !# <referenceAcquire target="virialDensityContrast_" source="self%densityContrastDefinition()"/>    
+    ! Find mass, radius, and velocity in the host and satellite corresponding to the Jiang et al. (2014) virial density contrast
+    ! definition. We limit the satellite mass to be less than the host mass here. This is necessary because the correction to the
+    ! mass under the definition of Jiang et al. (2014) can sometimes lead to large satellite masses if the satellite is moving to
+    ! a new host (and was therefore last isolated at a much earlier time and so can be much denser than the host).
+    massHost     =             Dark_Matter_Profile_Mass_Definition(host,virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHostSelf,velocityHost)
+    massSatellite=min(massHost,Dark_Matter_Profile_Mass_Definition(node,virialDensityContrast_%densityContrast(    basic%mass(),    basic%timeLastIsolated())                            ))
     !# <objectDestructor name="virialDensityContrast_"/>
     ! Select parameters appropriate for this host-satellite pair.
     call self%parametersSelect(massHost,massSatellite,jiang2014I,jiang2014J)
-    ! Configure finder objects.
-    if (.not.totalFinder %isInitialized()) then
-       call totalFinder %rootFunction(jiang2014TotalVelocityCDF          )
-       call totalFinder %tolerance   (toleranceAbsolute,toleranceRelative)
-       call totalFinder %rangeExpand (                                                             &
-            &                         rangeExpandUpward            =2.0d0                        , &
-            &                         rangeExpandDownward          =0.5d0                        , &
-            &                         rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
-            &                         rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-            &                         rangeExpandType              =rangeExpandMultiplicative      &
-            &                        )
-    end if
-    if (.not.radialFinder%isInitialized()) then
-       call radialFinder%rootFunction(jiang2014RadialVelocityCDF         )
-       call radialFinder%tolerance   (toleranceAbsolute,toleranceRelative)
-       call radialFinder%rangeExpand (                                                             &
-            &                         rangeExpandUpward            =2.0d0                        , &
-            &                         rangeExpandDownward          =0.5d0                        , &
-            &                         rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
-            &                         rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-            &                         rangeExpandType              =rangeExpandMultiplicative      &
-            &                        )
-    end if
-    ! Select an orbit.
+     ! Select an orbit.
     foundOrbit    =  .false.
     attempts      =  0
     jiang2014Self => self
@@ -490,8 +439,8 @@ contains
        call jiang2014Orbit%massesSet(massSatellite,massHost      )
        call jiang2014Orbit%radiusSet(              radiusHostSelf)
        ! Solve for the total velocity.
-       jiang2014XTotal               =node%hostTree%randomNumberGenerator_%uniformSample()
-       jiang2014VelocityTotalInternal=totalFinder %find(rootGuess=1.0d0)
+       jiang2014XTotal               =node%hostTree   %randomNumberGenerator_%uniformSample(               )
+       jiang2014VelocityTotalInternal=self%totalFinder                       %find         (rootGuess=1.0d0)
        ! If requested, check that the orbit is bound. We require it to have E<-boundTolerance to ensure that it is sufficiently
        ! bound that later rounding errors will not make it appear unbound.
        foundOrbit=.true.
@@ -508,8 +457,8 @@ contains
             &                                   +jiang2014RadialVelocityCDF(jiang2014VelocityTotalInternal) &
             &                                   -jiang2014RadialVelocityCDF(0.0d0                         ) &
             &                                  )
-       jiang2014XRadial                      =node%hostTree%randomNumberGenerator_%uniformSample()
-       velocityRadialInternal                =radialFinder%find(rootGuess=sqrt(2.0d0)*jiang2014VelocityTotalInternal)
+       jiang2014XRadial                      =node%hostTree    %randomNumberGenerator_%uniformSample(                                                    )
+       velocityRadialInternal                =self%radialFinder                       %find         (rootGuess=sqrt(2.0d0)*jiang2014VelocityTotalInternal)
        ! Compute tangential velocity.
        velocityTangentialInternal=sqrt(max(0.0d0,jiang2014VelocityTotalInternal**2-velocityRadialInternal**2))
        call jiang2014Orbit%velocityRadialSet    (velocityRadialInternal    *velocityHost)
@@ -602,7 +551,7 @@ contains
     double precision                      , dimension(3)  :: jiang2014VelocityTangentialVectorMean
     class           (virialOrbitJiang2014), intent(inout) :: self
     type            (treeNode            ), intent(inout) :: node                                  , host
-    !GCC$ attributes unused :: self, node, host
+    !$GLC attributes unused :: self, node, host
 
     jiang2014VelocityTangentialVectorMean=0.0d0
     call Galacticus_Error_Report('vector velocity is not defined for this class'//{introspection:location})
@@ -640,7 +589,7 @@ contains
     double precision                      , dimension(3)  :: jiang2014AngularMomentumVectorMean
     class           (virialOrbitJiang2014), intent(inout) :: self
     type            (treeNode            ), intent(inout) :: node                               , host
-    !GCC$ attributes unused :: self, node, host
+    !$GLC attributes unused :: self, node, host
 
     jiang2014AngularMomentumVectorMean=0.0d0
     call Galacticus_Error_Report('vector angular momentum is not defined for this class'//{introspection:location})
@@ -676,7 +625,7 @@ contains
     !% Return the mean energy of the orbits.
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
-    use :: Numerical_Constants_Physical        , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical    , only : gravitationalConstantGalacticus
     implicit none
     class           (virialOrbitJiang2014), intent(inout) :: self
     type            (treeNode            ), intent(inout) :: node        , host
@@ -706,7 +655,7 @@ contains
     class           (virialOrbitJiang2014), intent(inout) :: self
     double precision                      , intent(in   ) :: massHost, massSatellite
     integer                               , intent(  out) :: i       , j
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     if      (              massHost < 10.0d0**12.5d0) then
        i=1

@@ -1,4 +1,23 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019, 2020, 2021
+!!    Andrew Benson <abenson@carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
 !!           2019, 2020
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
@@ -19,10 +38,12 @@
 
 !% Contains a module which implements a stellar mass output analysis property extractor class.
 
-  use    :: FGSL                             , only : fgsl_interp_accel
+  use    :: Numerical_Interpolation          , only : interpolator
   use    :: ISO_Varying_String               , only : varying_string
   !$ use :: OMP_Lib                          , only : omp_lock_kind
   use    :: Output_Times                     , only : outputTimesClass
+  use    :: Star_Formation_Rates_Disks       , only : starFormationRateDisksClass
+  use    :: Star_Formation_Rates_Spheroids   , only : starFormationRateSpheroidsClass
   use    :: Stellar_Spectra_Dust_Attenuations, only : stellarSpectraDustAttenuationClass
 
   !# <nodePropertyExtractor name="nodePropertyExtractorLmnstyEmssnLine">
@@ -31,6 +52,8 @@
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorLmnstyEmssnLine
      !% A stellar luminosity output analysis property extractor class.
      private
+     class           (starFormationRateDisksClass       ), pointer                             :: starFormationRateDisks_        => null()
+     class           (starFormationRateSpheroidsClass   ), pointer                             :: starFormationRateSpheroids_    => null()
      class           (stellarSpectraDustAttenuationClass), pointer                             :: stellarSpectraDustAttenuation_ => null()
      class           (outputTimesClass                  ), pointer                             :: outputTimes_                   => null()
      type            (varying_string                    )                                      :: name_                                   , description_
@@ -41,10 +64,9 @@
      double precision                                    , allocatable, dimension(:,:,:,:,:,:) :: luminosity
      integer                                             , allocatable, dimension(:,:        ) :: ionizingContinuumIndex
      double precision                                                 , dimension(2,3        ) :: filterExtent
-     type            (fgsl_interp_accel                  )            , dimension(5          ) :: accelerator
-     logical                                                          , dimension(5          ) :: interpolateReset
+     type            (interpolator                      ), allocatable, dimension(:          ) :: interpolator_
      double precision                                                                          :: depthOpticalISMCoefficient
-     !$ integer      (omp_lock_kind                      )                                     :: interpolateLock
+     !$ integer      (omp_lock_kind                     )                                      :: interpolateLock
    contains
      final     ::                lmnstyEmssnLineDestructor
      procedure :: extract     => lmnstyEmssnLineExtract
@@ -97,6 +119,8 @@ contains
     type            (nodePropertyExtractorLmnstyEmssnLine)                              :: self
     type            (inputParameters                     ), intent(inout)               :: parameters
     type            (varying_string                      ), allocatable  , dimension(:) :: lineNames
+    class           (starFormationRateDisksClass         ), pointer                     :: starFormationRateDisks_
+    class           (starFormationRateSpheroidsClass     ), pointer                     :: starFormationRateSpheroids_
     class           (stellarSpectraDustAttenuationClass  ), pointer                     :: stellarSpectraDustAttenuation_
     class           (outputTimesClass                    ), pointer                     :: outputTimes_
     double precision                                                                    :: depthOpticalISMCoefficient
@@ -106,27 +130,27 @@ contains
     !#   <name>lineNames</name>
     !#   <source>parameters</source>
     !#   <description>The emission lines to extract.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>depthOpticalISMCoefficient</name>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Multiplicative coefficient for optical depth in the ISM.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
+    !# <objectBuilder class="starFormationRateDisks"        name="starFormationRateDisks_"        source="parameters"/>
+    !# <objectBuilder class="starFormationRateSpheroids"    name="starFormationRateSpheroids_"    source="parameters"/>
     !# <objectBuilder class="stellarSpectraDustAttenuation" name="stellarSpectraDustAttenuation_" source="parameters"/>
     !# <objectBuilder class="outputTimes"                   name="outputTimes_"                   source="parameters"/>
-    self=nodePropertyExtractorLmnstyEmssnLine(stellarSpectraDustAttenuation_,outputTimes_,lineNames,depthOpticalISMCoefficient)
+    self=nodePropertyExtractorLmnstyEmssnLine(starFormationRateDisks_,starFormationRateSpheroids_,stellarSpectraDustAttenuation_,outputTimes_,lineNames,depthOpticalISMCoefficient)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="starFormationRateDisks_"       />
+    !# <objectDestructor name="starFormationRateSpheroids_"   />
     !# <objectDestructor name="stellarSpectraDustAttenuation_"/>
     !# <objectDestructor name="outputTimes_"                  />
     return
   end function lmnstyEmssnLineConstructorParameters
 
-  function lmnstyEmssnLineConstructorInternal(stellarSpectraDustAttenuation_,outputTimes_,lineNames,depthOpticalISMCoefficient,outputMask) result(self)
+  function lmnstyEmssnLineConstructorInternal(starFormationRateDisks_,starFormationRateSpheroids_,stellarSpectraDustAttenuation_,outputTimes_,lineNames,depthOpticalISMCoefficient,outputMask) result(self)
     !% Internal constructor for the ``lmnstyEmssnLine'' output analysis property extractor class.
     use            :: Galacticus_Error              , only : Galacticus_Error_Report
     use            :: Galacticus_Paths              , only : galacticusPath         , pathTypeDataStatic
@@ -142,12 +166,14 @@ contains
     double precision                                      , intent(in   )                         :: depthOpticalISMCoefficient
     type            (varying_string                      ), intent(in   ), dimension(:)           :: lineNames
     logical                                               , intent(in   ), dimension(:), optional :: outputMask
+    class           (starFormationRateDisksClass         ), intent(in   ), target                 :: starFormationRateDisks_
+    class           (starFormationRateSpheroidsClass     ), intent(in   ), target                 :: starFormationRateSpheroids_
     class           (stellarSpectraDustAttenuationClass  ), intent(in   ), target                 :: stellarSpectraDustAttenuation_
     class           (outputTimesClass                    ), intent(in   ), target                 :: outputTimes_
     type            (hdf5Object                          )                                        :: emissionLinesFile             , lines, &
          &                                                                                           lineDataset
     integer         (c_size_t                            )                                        :: i
-    !# <constructorAssign variables="lineNames, depthOpticalISMCoefficient, *stellarSpectraDustAttenuation_, *outputTimes_"/>
+    !# <constructorAssign variables="lineNames, depthOpticalISMCoefficient, *starFormationRateDisks_, *starFormationRateSpheroids_, *stellarSpectraDustAttenuation_, *outputTimes_"/>
 
     ! Read the table of emission line luminosities.
     !$ call hdf5Access%set()
@@ -209,8 +235,13 @@ contains
     self%filterExtent(:,ionizingContinuumHydrogen)=Filter_Extent(Filter_Get_Index(var_str('Lyc'            )))
     self%filterExtent(:,ionizingContinuumHelium  )=Filter_Extent(Filter_Get_Index(var_str('HeliumContinuum')))
     self%filterExtent(:,ionizingContinuumOxygen  )=Filter_Extent(Filter_Get_Index(var_str('OxygenContinuum')))
-    ! Initialize interpolations.
-    self%interpolateReset=.true.
+    ! Initialize interpolators.
+    allocate(self%interpolator_(5))
+    self%interpolator_(interpolantMetallicity)=interpolator(self%metallicity                 )
+    self%interpolator_(interpolantDensity    )=interpolator(self%densityHydrogen             )
+    self%interpolator_(interpolantHydrogen   )=interpolator(self%ionizingFluxHydrogen        )
+    self%interpolator_(interpolantHelium     )=interpolator(self%ionizingFluxHeliumToHydrogen)
+    self%interpolator_(interpolantOxygen     )=interpolator(self%ionizingFluxOxygenToHydrogen)
     !$ call OMP_Init_Lock(self%interpolateLock)
     ! Construct name and description.
     self%name_       ="luminosityEmissionLine:"//String_Join(lineNames,"+")
@@ -222,18 +253,12 @@ contains
 
   subroutine lmnstyEmssnLineDestructor(self)
     !% Destructor for the ``lmnstyEmssnLine'' output analysis property extractor class.
-    use :: Numerical_Interpolation, only : Interpolate_Done
     implicit none
-    type   (nodePropertyExtractorLmnstyEmssnLine), intent(inout) :: self
-    integer                                                                :: i
+    type(nodePropertyExtractorLmnstyEmssnLine), intent(inout) :: self
 
-    do i=1,5
-       call Interpolate_Done(                                                   &
-            &                interpolationAccelerator=self%accelerator     (i), &
-            &                reset                   =self%interpolateReset(i)  &
-            &               )
-    end do
     !$ call OMP_Destroy_Lock(self%interpolateLock)
+    !# <objectDestructor name="self%starFormationRateDisks_"       />
+    !# <objectDestructor name="self%starFormationRateSpheroids_"   />
     !# <objectDestructor name="self%stellarSpectraDustAttenuation_"/>
     !# <objectDestructor name="self%outputTimes_"                  />
     return
@@ -241,73 +266,73 @@ contains
 
   double precision function lmnstyEmssnLineExtract(self,node,instance)
     !% Implement an emission line output analysis property extractor.
-    use            :: Abundances_Structure            , only : abundances                         , max                  , metallicityTypeLogarithmicByMassSolar
-    use            :: Galacticus_Nodes                , only : nodeComponentBasic                 , nodeComponentDisk    , nodeComponentSpheroid                , treeNode
+    use            :: Abundances_Structure            , only : abundances         , max                  , metallicityTypeLogarithmicByMassSolar
+    use            :: Galacticus_Nodes                , only : nodeComponentBasic , nodeComponentDisk    , nodeComponentSpheroid                , treeNode
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
-    use            :: Numerical_Constants_Astronomical, only : hydrogenByMassSolar                , luminosityZeroPointAB, massSolar                            , megaParsec, &
-          &                                                    metallicitySolar                   , parsec
-    use            :: Numerical_Constants_Atomic      , only : atomicMassHydrogen                 , atomicMassUnit
+    use            :: Numerical_Constants_Astronomical, only : hydrogenByMassSolar, luminosityZeroPointAB, massSolar                            , megaParsec, &
+          &                                                    metallicitySolar   , parsec
+    use            :: Numerical_Constants_Atomic      , only : atomicMassHydrogen , atomicMassUnit
     use            :: Numerical_Constants_Math        , only : Pi
     use            :: Numerical_Constants_Physical    , only : plancksConstant
-    use            :: Numerical_Constants_Prefixes    , only : centi                              , hecto                , mega
-    use            :: Numerical_Interpolation         , only : Interpolate_Linear_Generate_Factors, Interpolate_Locate
-    use            :: Stellar_Luminosities_Structure  , only : max                                , stellarLuminosities
+    use            :: Numerical_Constants_Prefixes    , only : centi              , hecto                , mega
+    use            :: Stellar_Luminosities_Structure  , only : max                , stellarLuminosities
     implicit none
-    class           (nodePropertyExtractorLmnstyEmssnLine), intent(inout)              :: self
+    class           (nodePropertyExtractorLmnstyEmssnLine), intent(inout)           :: self
     type            (treeNode                            ), intent(inout), target   :: node
-    type            (multiCounter                        ), intent(inout)   , optional :: instance
-    class           (nodeComponentBasic                  ), pointer                    :: basic
-    class           (nodeComponentDisk                   ), pointer                    :: disk
-    class           (nodeComponentSpheroid               ), pointer                    :: spheroid
-    double precision                                      , parameter                  :: massMinimum                   =1.0d-06
-    double precision                                      , parameter                  :: radiusMinimum                 =1.0d-06
-    double precision                                      , parameter                  :: rateStarFormationMinimum      =1.0d-06
-    double precision                                      , parameter                  :: luminosityIonizingMinimum     =1.0d-20
-    double precision                                      , parameter                  :: massHIIRegion                 =7.5d+03                     ! Mass of gas in HII region; M☉.
-    double precision                                      , parameter                  :: massGMC                       =3.7d+07                     ! Mass of a giant molecular cloud at critical surface density; M☉.
-    double precision                                      , parameter                  :: lifetimeHIIRegion             =1.0d-03                     ! Lifetime of HII region; Gyr.
-    double precision                                      , parameter                  :: densitySurfaceCritical        =8.5d+13                     ! Critical surface density for molecular clouds; M☉ Mpc⁻².
-    double precision                                      , parameter                  :: metallicityISMLocal           =+2.00d-02                   ! Metallicity in the local ISM.
-    double precision                                      , parameter                  :: AVToEBV                       =+3.10d+00                   ! (A_V/E(B-V); Savage & Mathis 1979)
-    double precision                                      , parameter                  :: NHToEBV                       =+5.80d+21                   ! (N_H/E(B-V); atoms/cm^2/mag; Savage & Mathis 1979)
-    double precision                                      , parameter                  :: wavelengthZeroPoint           =+5.50d+03                   ! Angstroms
-    double precision                                      , parameter                  :: depthOpticalToMagnitudes      =+2.50d+00                 & ! Conversion factor from optical depth to magnitudes of extinction.
-         &                                                                                                               *log10(                   &
-         &                                                                                                                      +exp(              &
-         &                                                                                                                           +1.0d0        &
-         &                                                                                                                          )              &
-         &                                                                                                                     )
-    double precision                                      , parameter                  :: depthOpticalNormalization     =+AVToEBV                  &
-         &                                                                                                               /NHToEBV                  &
-         &                                                                                                               *hydrogenByMassSolar      &
-         &                                                                                                               /atomicMassUnit*massSolar &
-         &                                                                                                               /(                        &
-         &                                                                                                                 +parsec                 &
-         &                                                                                                                 *hecto                  &
-         &                                                                                                               )**2                      &
-         &                                                                                                               /metallicityISMLocal      &
-         &                                                                                                               /depthOpticalToMagnitudes
-    type            (stellarLuminosities                 ), dimension(  2  )           :: luminositiesStellar
-    type            (abundances                          ), dimension(  2  )           :: abundancesGas
-    double precision                                      , dimension(3,2  )           :: luminosityIonizing
-    double precision                                      , dimension(  2  )           :: massGas                                                 , radius                         , &
-         &                                                                                rateStarFormation                                       , metallicityGas                 , &
-         &                                                                                densityHydrogen                                         , luminosityLymanContinuum       , &
-         &                                                                                ratioLuminosityHeliumToHydrogen                         , ratioLuminosityOxygenToHydrogen, &
-         &                                                                                countHIIRegion                                          , densitySurfaceGas              , &
-         &                                                                                massClouds                                              , densitySurfaceClouds           , &
-         &                                                                                depthOpticalDiffuse                                     , densitySurfaceMetals           , &
-         &                                                                                ionizingFluxMultiplier
-    logical                                               , dimension(  2  )           :: isPhysical
-    integer         (c_size_t                            ), dimension(0:1,5)           :: interpolateIndex
-    double precision                                      , dimension(0:1,5)           :: interpolateFactor
-    double precision                                                                   :: weight                                                  , luminosityLinePerHIIRegion
-    integer         (c_size_t                            )                             :: output
-    integer                                                                            :: component                                               , continuum                      , &
-         &                                                                                i                                                       , j                              , &
-         &                                                                                k                                                       , l                              , &
-         &                                                                                m                                                       , line
-    !GCC$ attributes unused :: instance
+    type            (multiCounter                        ), intent(inout), optional :: instance
+    class           (nodeComponentBasic                  ), pointer                 :: basic
+    class           (nodeComponentDisk                   ), pointer                 :: disk
+    class           (nodeComponentSpheroid               ), pointer                 :: spheroid
+    double precision                                      , parameter               :: massMinimum                   =1.0d-06
+    double precision                                      , parameter               :: radiusMinimum                 =1.0d-06
+    double precision                                      , parameter               :: rateStarFormationMinimum      =1.0d-06
+    double precision                                      , parameter               :: luminosityIonizingMinimum     =1.0d-20
+    double precision                                      , parameter               :: massHIIRegion                 =7.5d+03                     ! Mass of gas in HII region; M☉.
+    double precision                                      , parameter               :: massGMC                       =3.7d+07                     ! Mass of a giant molecular cloud at critical surface density; M☉.
+    double precision                                      , parameter               :: lifetimeHIIRegion             =1.0d-03                     ! Lifetime of HII region; Gyr.
+    double precision                                      , parameter               :: efficiencyHIIRegion           =1.0d-02                     ! Efficiency of HII region (fraction of mass turned into stars).
+    double precision                                      , parameter               :: densitySurfaceCritical        =8.5d+13                     ! Critical surface density for molecular clouds; M☉ Mpc⁻².
+    double precision                                      , parameter               :: metallicityISMLocal           =+2.00d-02                   ! Metallicity in the local ISM.
+    double precision                                      , parameter               :: AVToEBV                       =+3.10d+00                   ! (A_V/E(B-V); Savage & Mathis 1979)
+    double precision                                      , parameter               :: NHToEBV                       =+5.80d+21                   ! (N_H/E(B-V); atoms/cm^2/mag; Savage & Mathis 1979)
+    double precision                                      , parameter               :: wavelengthZeroPoint           =+5.50d+03                   ! Angstroms
+    double precision                                      , parameter               :: depthOpticalToMagnitudes      =+2.50d+00                 & ! Conversion factor from optical depth to magnitudes of extinction.
+         &                                                                                                            *log10(                   &
+         &                                                                                                                   +exp(              &
+         &                                                                                                                        +1.0d0        &
+         &                                                                                                                       )              &
+         &                                                                                                                  )
+    double precision                                      , parameter               :: depthOpticalNormalization     =+AVToEBV                  &
+         &                                                                                                            /NHToEBV                  &
+         &                                                                                                            *hydrogenByMassSolar      &
+         &                                                                                                            /atomicMassUnit*massSolar &
+         &                                                                                                            /(                        &
+         &                                                                                                              +parsec                 &
+         &                                                                                                              *hecto                  &
+         &                                                                                                            )**2                      &
+         &                                                                                                            /metallicityISMLocal      &
+         &                                                                                                            /depthOpticalToMagnitudes
+    type            (stellarLuminosities                 ), dimension(  2  )        :: luminositiesStellar
+    type            (abundances                          ), dimension(  2  )        :: abundancesGas
+    double precision                                      , dimension(3,2  )        :: luminosityIonizing
+    double precision                                      , dimension(  2  )        :: massGas                                                 , radius                         , &
+         &                                                                             rateStarFormation                                       , metallicityGas                 , &
+         &                                                                             densityHydrogen                                         , luminosityLymanContinuum       , &
+         &                                                                             ratioLuminosityHeliumToHydrogen                         , ratioLuminosityOxygenToHydrogen, &
+         &                                                                             countHIIRegion                                          , densitySurfaceGas              , &
+         &                                                                             massClouds                                              , densitySurfaceClouds           , &
+         &                                                                             depthOpticalDiffuse                                     , densitySurfaceMetals           , &
+         &                                                                             ionizingFluxMultiplier
+    logical                                               , dimension(  2  )        :: isPhysical
+    integer         (c_size_t                            ), dimension(0:1,5)        :: interpolateIndex
+    double precision                                      , dimension(0:1,5)        :: interpolateFactor
+    double precision                                                                :: weight                                                  , luminosityLinePerHIIRegion
+    integer         (c_size_t                            )                          :: output
+    integer                                                                         :: component                                               , continuum                      , &
+         &                                                                             i                                                       , j                              , &
+         &                                                                             k                                                       , l                              , &
+         &                                                                             m                                                       , line
+    !$GLC attributes unused :: instance
 
     ! Retrieve components.
     basic    => node%basic   ()
@@ -316,16 +341,16 @@ contains
     ! Determine output index.
     output   =  self%outputTimes_%index(basic%time(),findClosest=.true.)
     ! Extract all required properties.
-    luminositiesStellar(galacticComponentDisk    )=disk    %luminositiesStellar()
-    luminositiesStellar(galacticComponentSpheroid)=spheroid%luminositiesStellar()
-    abundancesGas      (galacticComponentDisk    )=disk    %abundancesGas      ()
-    abundancesGas      (galacticComponentSpheroid)=spheroid%abundancesGas      ()
-    massGas            (galacticComponentDisk    )=disk    %massGas            ()
-    massGas            (galacticComponentSpheroid)=spheroid%massGas            ()
-    radius             (galacticComponentDisk    )=disk    %radius             ()
-    radius             (galacticComponentSpheroid)=spheroid%radius             ()
-    rateStarFormation  (galacticComponentDisk    )=disk    %starFormationRate  ()
-    rateStarFormation  (galacticComponentSpheroid)=spheroid%starFormationRate  ()
+    luminositiesStellar(galacticComponentDisk    )=disk    %luminositiesStellar             (    )
+    luminositiesStellar(galacticComponentSpheroid)=spheroid%luminositiesStellar             (    )
+    abundancesGas      (galacticComponentDisk    )=disk    %abundancesGas                   (    )
+    abundancesGas      (galacticComponentSpheroid)=spheroid%abundancesGas                   (    )
+    massGas            (galacticComponentDisk    )=disk    %massGas                         (    )
+    massGas            (galacticComponentSpheroid)=spheroid%massGas                         (    )
+    radius             (galacticComponentDisk    )=disk    %radius                          (    )
+    radius             (galacticComponentSpheroid)=spheroid%radius                          (    )
+    rateStarFormation  (galacticComponentDisk    )=self    %starFormationRateDisks_    %rate(node)
+    rateStarFormation  (galacticComponentSpheroid)=self    %starFormationRateSpheroids_%rate(node)
     ! Extract ionizing continuum luminosities.
     do component=1,2
        do continuum=1,3
@@ -396,9 +421,10 @@ contains
        ! Compute oxygen to Lyman continuum luminosity logarithmic ratio.
        ratioLuminosityOxygenToHydrogen=+log10(max(luminosityIonizing(ionizingContinuumOxygen,:),luminosityIonizingMinimum)/luminosityIonizing(ionizingContinuumHydrogen,:))
        ! Compute number of HII regions.
-       countHIIRegion                 =+rateStarFormation &
-            &                          *lifetimeHIIRegion &
-            &                          /massHIIRegion
+       countHIIRegion                 =+rateStarFormation   &
+            &                          *lifetimeHIIRegion   &
+            &                          /massHIIRegion       &
+            &                          /efficiencyHIIRegion
        !  Convert the hydrogen ionizing luminosity to be per HII region.
        luminosityLymanContinuum       =+luminosityLymanContinuum &
             &                          -log10(countHIIRegion)
@@ -475,17 +501,12 @@ contains
        if (.not.isPhysical(component)) cycle
        ! Find interpolating factors in all five interpolants, preventing extrapolation beyond the tabulated ranges.
        !$ call OMP_Set_Lock  (self%interpolateLock)
-       interpolateIndex (0,interpolantMetallicity)=Interpolate_Locate                 (self%metallicity                 ,self            %accelerator(  interpolantMetallicity),metallicityGas                 (component),reset=self%interpolateReset(interpolantMetallicity))
-       interpolateIndex (0,interpolantDensity    )=Interpolate_Locate                 (self%densityHydrogen             ,self            %accelerator(  interpolantDensity    ),densityHydrogen                (component),reset=self%interpolateReset(interpolantDensity    ))
-       interpolateIndex (0,interpolantHydrogen   )=Interpolate_Locate                 (self%ionizingFluxHydrogen        ,self            %accelerator(  interpolantHydrogen   ),luminosityLymanContinuum       (component),reset=self%interpolateReset(interpolantHydrogen   ))
-       interpolateIndex (0,interpolantHelium     )=Interpolate_Locate                 (self%ionizingFluxHeliumToHydrogen,self            %accelerator(  interpolantHelium     ),ratioLuminosityHeliumToHydrogen(component),reset=self%interpolateReset(interpolantHelium     ))
-       interpolateIndex (0,interpolantOxygen     )=Interpolate_Locate                 (self%ionizingFluxOxygenToHydrogen,self            %accelerator(  interpolantOxygen     ),ratioLuminosityOxygenToHydrogen(component),reset=self%interpolateReset(interpolantOxygen     ))
+       call self%interpolator_(interpolantMetallicity)%linearFactors(metallicityGas                 (component),interpolateIndex(0,interpolantMetallicity),interpolateFactor(:,interpolantMetallicity))
+       call self%interpolator_(interpolantDensity    )%linearFactors(densityHydrogen                (component),interpolateIndex(0,interpolantDensity    ),interpolateFactor(:,interpolantDensity    ))
+       call self%interpolator_(interpolantHydrogen   )%linearFactors(luminosityLymanContinuum       (component),interpolateIndex(0,interpolantHydrogen   ),interpolateFactor(:,interpolantHydrogen   ))
+       call self%interpolator_(interpolantHelium     )%linearFactors(ratioLuminosityHeliumToHydrogen(component),interpolateIndex(0,interpolantHelium     ),interpolateFactor(:,interpolantHelium     ))
+       call self%interpolator_(interpolantOxygen     )%linearFactors(ratioLuminosityOxygenToHydrogen(component),interpolateIndex(0,interpolantOxygen     ),interpolateFactor(:,interpolantOxygen     ))
        !$ call OMP_Unset_Lock(self%interpolateLock)
-       interpolateFactor(:,interpolantMetallicity)=Interpolate_Linear_Generate_Factors(self%metallicity                 ,interpolateIndex            (0,interpolantMetallicity),metallicityGas                 (component)                                                    )
-       interpolateFactor(:,interpolantDensity    )=Interpolate_Linear_Generate_Factors(self%densityHydrogen             ,interpolateIndex            (0,interpolantDensity    ),densityHydrogen                (component)                                                    )
-       interpolateFactor(:,interpolantHydrogen   )=Interpolate_Linear_Generate_Factors(self%ionizingFluxHydrogen        ,interpolateIndex            (0,interpolantHydrogen   ),luminosityLymanContinuum       (component)                                                    )
-       interpolateFactor(:,interpolantHelium     )=Interpolate_Linear_Generate_Factors(self%ionizingFluxHeliumToHydrogen,interpolateIndex            (0,interpolantHelium     ),ratioLuminosityHeliumToHydrogen(component)                                                    )
-       interpolateFactor(:,interpolantOxygen     )=Interpolate_Linear_Generate_Factors(self%ionizingFluxOxygenToHydrogen,interpolateIndex            (0,interpolantOxygen     ),ratioLuminosityOxygenToHydrogen(component)                                                    )
        interpolateIndex (1,:                     )=interpolateIndex(0,:)+1
        interpolateFactor=max(min(interpolateFactor,1.0d0),0.0d0)
        ! Iterate over lines.
@@ -539,7 +560,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorLmnstyEmssnLine), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     lmnstyEmssnLineType=outputAnalysisPropertyTypeLinear
     return
@@ -550,7 +571,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityLuminosity
     implicit none
     class(nodePropertyExtractorLmnstyEmssnLine), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     lmnstyEmssnLineQuantity=outputAnalysisPropertyQuantityLuminosity
     return
@@ -581,7 +602,7 @@ contains
     use :: Numerical_Constants_Units, only : ergs
     implicit none
     class(nodePropertyExtractorLmnstyEmssnLine), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     lmnstyEmssnLineUnitsInSI=ergs
     return

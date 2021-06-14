@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an intracluster medium Sunyaev-Zeldovich property extractor class.
+!% Contains a module which implements an intracluster medium Sunyaev-Zeldovich Compton-y parameter property extractor class.
   use :: Chemical_States              , only : chemicalState            , chemicalStateClass
   use :: Cosmology_Functions          , only : cosmologyFunctions       , cosmologyFunctionsClass
   use :: Cosmology_Parameters         , only : cosmologyParameters      , cosmologyParametersClass
@@ -26,7 +26,20 @@
   use :: Hot_Halo_Temperature_Profiles, only : hotHaloTemperatureProfile, hotHaloTemperatureProfileClass
 
   !# <nodePropertyExtractor name="nodePropertyExtractorICMSZ">
-  !#  <description>An intracluster medium Sunyaev-Zeldovich property extractor class.</description>
+  !#  <description>
+  !#   An intracluster medium Sunyaev-Zeldovich Compton-$y$ parameter property extractor class. Specifically, the quantity
+  !#   extracted is
+  !#   \begin{equation}
+  !#    Y = {\sigma_\mathrm{T} \over \mathrm{m}_\mathrm{e} \mathrm{c}^2} \int_0^{R_\mathrm{outer}} n_\mathrm{e}(R) \mathrm{k}_\mathrm{B} T(r) {4 \pi R^2 \mathrm{d} R \over D_\mathrm{A}^2},
+  !#   \end{equation}
+  !#   where $D_\mathrm{A}$ is the angular diameter distance to the halo, and the result is expressed in units of square
+  !#   arminutes. The angular diameter distance is, by default, computed from the epoch of the halo. Alternatively, a fixed
+  !#   angular diameter distance can be specified via the {\normalfont \ttfamily [distanceAngular]} parameter. The outer radius,
+  !#   $R_\mathrm{out}$, is either the halo virial radius (by default), or the radius enclosing the density contrast specified by
+  !#   the optional {\normalfont \ttfamily [densityContrast]} parameter. This density contrast is relative to either {\normalfont
+  !#   \ttfamily mean} or {\normalfont \ttfamily critical} density as specified by the {\normalfont \ttfamily
+  !#   densityContrastRelativeTo} parameter.
+  !#  </description>
   !#  <deepCopy>
   !#   <functionClass variables="densityContrastExtractor_"/>
   !#  </deepCopy>
@@ -35,7 +48,7 @@
   !#  </stateStorable>
   !# </nodePropertyExtractor>
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorICMSZ
-     !% An intracluster medium Sunyaev-Zeldovich property extractor class.
+     !% An intracluster medium Sunyaev-Zeldovich Compton-y parameter property extractor class.
      private
      class           (cosmologyParametersClass             ), pointer :: cosmologyParameters_       => null()
      class           (cosmologyFunctionsClass              ), pointer :: cosmologyFunctions_        => null()
@@ -44,8 +57,9 @@
      class           (hotHaloTemperatureProfileClass       ), pointer :: hotHaloTemperatureProfile_ => null()
      class           (chemicalStateClass                   ), pointer :: chemicalState_             => null()
      type            (nodePropertyExtractorDensityContrasts), pointer :: densityContrastExtractor_  => null()
-     double precision                                                 :: densityContrast
-     logical                                                          :: useDensityContrast
+     double precision                                                 :: densityContrast                     , distanceAngular
+     logical                                                          :: useDensityContrast                  , useFixedDistance
+     integer                                                          :: densityContrastRelativeTo
      type            (varying_string                       )          :: name_
    contains
      final     ::                icmSZDestructor
@@ -66,7 +80,8 @@ contains
 
   function icmSZConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily icmSZ} property extractor class which takes a parameter set as input.
-    use :: Input_Parameters, only : inputParameter, inputParameters
+    use :: Input_Parameters   , only : inputParameter                      , inputParameters
+    use :: Cosmology_Functions, only : enumerationDensityCosmologicalEncode
     implicit none
     type            (nodePropertyExtractorICMSZ    )                :: self
     type            (inputParameters               ), intent(inout) :: parameters
@@ -76,7 +91,8 @@ contains
     class           (hotHaloMassDistributionClass  ), pointer       :: hotHaloMassDistribution_
     class           (hotHaloTemperatureProfileClass), pointer       :: hotHaloTemperatureProfile_
     class           (chemicalStateClass            ), pointer       :: chemicalState_
-    double precision                                                :: densityContrast
+    double precision                                                :: densityContrast           , distanceAngular
+    type            (varying_string                )                :: densityContrastRelativeTo
 
     !# <objectBuilder class="cosmologyParameters"       name="cosmologyParameters_"       source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"        name="cosmologyFunctions_"        source="parameters"/>
@@ -87,15 +103,28 @@ contains
     if (parameters%isPresent('densityContrast')) then
        !# <inputParameter>
        !#   <name>densityContrast</name>
-       !#   <cardinality>1</cardinality>
        !#   <description>The density contrast within which to compute the Sunyaev-Zeldovich parameter.</description>
        !#   <source>parameters</source>
-       !#   <type>real</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>densityContrastRelativeTo</name>
+       !#   <description>The density ({\normalfont \ttfamily mean} or {\normalfont \ttfamily critical}) used in defining the density contrast.</description>
+       !#   <source>parameters</source>
+       !#   <defaultValue>var_str('mean')</defaultValue>
+       !# </inputParameter>
+    end if
+    if (parameters%isPresent('distanceAngular')) then
+       !# <inputParameter>
+       !#   <name>distanceAngular</name>
+       !#   <description>The fixed angular diameter distance at which to compute the Sunyaev-Zeldovich parameter.</description>
+       !#   <source>parameters</source>
        !# </inputParameter>
     end if
     !# <conditionalCall>
     !#  <call>self=nodePropertyExtractorICMSZ(cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,hotHaloMassDistribution_,hotHaloTemperatureProfile_,chemicalState_{conditions})</call>
-    !#  <argument name="densityContrast" value="densityContrast" parameterPresent="parameters"/>
+    !#  <argument name="densityContrast"           value="densityContrast"                                                                              parameterPresent="parameters"                                />
+    !#  <argument name="densityContrastRelativeTo" value="enumerationDensityCosmologicalEncode(char(densityContrastRelativeTo),includesPrefix=.false.)" parameterPresent="parameters" parameterName="densityContrast"/>
+    !#  <argument name="distanceAngular"           value="distanceAngular"                                                                              parameterPresent="parameters"                                />
     !# </conditionalCall>
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyParameters_"      />
@@ -107,8 +136,11 @@ contains
     return
   end function icmSZConstructorParameters
 
-  function icmSZConstructorInternal(cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,hotHaloMassDistribution_,hotHaloTemperatureProfile_,chemicalState_,densityContrast) result(self)
+  function icmSZConstructorInternal(cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,hotHaloMassDistribution_,hotHaloTemperatureProfile_,chemicalState_,densityContrast,densityContrastRelativeTo,distanceAngular) result(self)
     !% Internal constructor for the {\normalfont \ttfamily icmSZ} property extractor class.
+    use :: Cosmology_Functions, only : densityCosmologicalMean, enumerationDensityCosmologicalDecode
+    use :: ISO_Varying_String , only : char
+    use :: String_Handling    , only : String_Upper_Case_First
     implicit none
     type            (nodePropertyExtractorICMSZ    )                          :: self
     class           (cosmologyParametersClass      ), intent(in   ), target   :: cosmologyParameters_
@@ -117,28 +149,32 @@ contains
     class           (hotHaloMassDistributionClass  ), intent(in   ), target   :: hotHaloMassDistribution_
     class           (hotHaloTemperatureProfileClass), intent(in   ), target   :: hotHaloTemperatureProfile_
     class           (chemicalStateClass            ), intent(in   ), target   :: chemicalState_
-    double precision                                , intent(in   ), optional :: densityContrast
+    double precision                                , intent(in   ), optional :: densityContrast           , distanceAngular
+    integer                                         , intent(in   ), optional :: densityContrastRelativeTo
     character       (len=8                         )                          :: label
-    !# <constructorAssign variables="densityContrast, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloScale_, *hotHaloMassDistribution_, *hotHaloTemperatureProfile_, *chemicalState_"/>
+    !# <constructorAssign variables="densityContrast, densityContrastRelativeTo, distanceAngular, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloScale_, *hotHaloMassDistribution_, *hotHaloTemperatureProfile_, *chemicalState_"/>
 
     self%useDensityContrast=present(densityContrast)
+    self%useFixedDistance  =present(distanceAngular)
+    if (.not.present(densityContrastRelativeTo)) self%densityContrastRelativeTo=densityCosmologicalMean
     if (self%useDensityContrast) then
        allocate(self%densityContrastExtractor_)
        !# <referenceConstruct owner="self" isResult="yes" object="densityContrastExtractor_">
        !#  <constructor>
-       !#   nodePropertyExtractorDensityContrasts(                                           &amp;
-       !#    &amp;                                densityContrasts    =[densityContrast]   , &amp;
-       !#    &amp;                                darkMatterOnly      =.true.              , &amp;
-       !#    &amp;                                cosmologyparameters_=cosmologyParameters_, &amp;
-       !#    &amp;                                cosmologyFunctions_ =cosmologyFunctions_ , &amp;
-       !#    &amp;                                darkMatterHaloScale_=darkMatterHaloScale_  &amp;
+       !#   nodePropertyExtractorDensityContrasts(                                                     &amp;
+       !#    &amp;                                densityContrasts         =[densityContrast]        , &amp;
+       !#    &amp;                                darkMatterOnly           =.true.                   , &amp;
+       !#    &amp;                                densityContrastRelativeTo=densityContrastRelativeTo, &amp;
+       !#    &amp;                                cosmologyparameters_     =cosmologyParameters_     , &amp;
+       !#    &amp;                                cosmologyFunctions_      =cosmologyFunctions_      , &amp;
+       !#    &amp;                                darkMatterHaloScale_     =darkMatterHaloScale_       &amp;
        !#    &amp;                               )
        !#  </constructor>
        !# </referenceConstruct>
        write (label,'(f7.2)') densityContrast
-       self%name_="icmSZComptonYMeanR"//trim(adjustl(label))
+       self%name_="icmSZComptonYR"//trim(adjustl(label))//String_Upper_Case_First(char(enumerationDensityCosmologicalDecode(densityContrastRelativeTo,includePrefix=.false.)))
     else
-       self%name_="icmSZComptonYMeanVirial"
+       self%name_="icmSZComptonYVirial"
     end if
     return
   end function icmSZConstructorInternal
@@ -162,11 +198,12 @@ contains
 
   double precision function icmSZExtract(self,node,instance)
     !% Implement a Sunyaev-Zeldovich effect property extractor.
-    use FGSL                    , only : fgsl_function                          , fgsl_integration_workspace
-    use Numerical_Integration   , only : Integrate                              , Integrate_Done
-    use Galacticus_Nodes        , only : nodeComponentHotHalo                   , nodeComponentBasic
-    use Numerical_Constants_Math, only : Pi
-    use Radiation_Fields        , only : radiationFieldCosmicMicrowaveBackground
+    use :: Numerical_Integration           , only : integrator
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes                , only : nodeComponentHotHalo                   , nodeComponentBasic
+    use :: Numerical_Constants_Astronomical, only : degreesToRadians                       , arcminutesToDegrees
+    use :: Numerical_Constants_Math        , only : Pi
+    use :: Radiation_Fields                , only : radiationFieldCosmicMicrowaveBackground
     implicit none
     class           (nodePropertyExtractorICMSZ             ), intent(inout)           :: self
     type            (treeNode                               ), intent(inout), target   :: node
@@ -174,44 +211,43 @@ contains
     type            (radiationFieldCosmicMicrowaveBackground), pointer                 :: radiation_
     double precision                                         , dimension(2)            :: densityContrastProperties
     class           (nodeComponentBasic                     ), pointer                 :: basic
-    type            (fgsl_function                          )                          :: integrandFunction
-    type            (fgsl_integration_workspace             )                          :: integrationWorkspace
-    logical                                                                            :: integrationReset
-    double precision                                                                   :: radiusOuter              , time
-
+    type            (integrator                             )                          :: integrator_
+    double precision                                                                   :: radiusOuter              , time, &
+         &                                                                                distanceAngular
+    
     ! Initialize radiation field.
     allocate(radiation_)
     !# <referenceConstruct object="radiation_" constructor="radiationFieldCosmicMicrowaveBackground(self%cosmologyFunctions_)"/>
+    ! Extract the time at which this node exists.
+    basic => node %basic()
+    time  =  basic%time ()
     ! Get upper limit for integral.
     if (self%useDensityContrast) then
-       basic                     => node %basic                                 (                  )
-       time                      =  basic%time                                  (                  )
-       densityContrastProperties =  self %densityContrastExtractor_%extract     (node,time,instance)
-       radiusOuter               =        densityContrastProperties             (1                 )
+       densityContrastProperties=reshape(self%densityContrastExtractor_%extract     (node,time,instance),[2])
+       radiusOuter              =             densityContrastProperties             (1                 )
     else
-       radiusOuter              =   self %darkMatterHaloScale_     %virialRadius(node              )
+       radiusOuter              =        self%darkMatterHaloScale_     %virialRadius(node              )
     end if
-    ! Compute mean Compton-y parameter within this radius.
-    integrationReset=.true.
-    icmSZExtract    =+Integrate(                                       &
-         &                                       0.0d0               , &
-         &                                       radiusOuter         , &
-         &                                       integrandComptionY  , &
-         &                                       integrandFunction   , &
-         &                                       integrationWorkspace, &
-         &                     reset            =integrationReset    , &
-         &                     toleranceAbsolute=0.0d+0              , &
-         &                     toleranceRelative=1.0d-3                &
-         &                    )                                        &
-         &           /Pi                                               &
-         &           /radiusOuter**2
-    call Integrate_Done(integrandFunction,integrationWorkspace)
+    ! Find the angular diameter distance to use.
+    if (self%useFixedDistance) then
+       distanceAngular=self%                    distanceAngular
+    else
+       distanceAngular=self%cosmologyFunctions_%distanceAngular(time)
+    end if
+    if (distanceAngular <= 0.0d0) call Galacticus_Error_Report('non-positive angular diameter distance'//{introspection:location})
+    ! Compute the integrated Compton-y parameter within this radius, divided by the angular diameter distance squared, and
+    ! converted to units of arcmin².
+    integrator_ = integrator           (integrandComptonY,toleranceRelative=1.0d-3)
+    icmSZExtract=+integrator_%integrate(0.0d0            ,radiusOuter             )    &
+         &       /distanceAngular                                                  **2 &
+         &       /degreesToRadians                                                 **2 &
+         &       /arcminutesToDegrees                                              **2
     !# <objectDestructor name="radiation_"/>
     return
 
   contains
 
-    double precision function integrandComptionY(radius)
+    double precision function integrandComptonY(radius)
       !% Integrand function used for computing ICM SZ properties.
       use :: Abundances_Structure            , only : abundances
       use :: Numerical_Constants_Astronomical, only : massSolar         , megaParsec
@@ -226,9 +262,9 @@ contains
       type            (abundances          )                :: abundancesICM
 
       ! Get the density of the ICM.
-      density    =self%hotHaloMassDistribution_  %density    (node,radius)
+      density         =  self   %hotHaloMassDistribution_  %density    (node,radius)
       ! Get the temperature of the ICM.
-      temperature=self%hotHaloTemperatureProfile_%temperature(node,radius)
+      temperature     =  self   %hotHaloTemperatureProfile_%temperature(node,radius)
       ! Get abundances and chemistry of the ICM.
       hotHalo         => node   %hotHalo   ()
       massICM         =  hotHalo%mass      ()
@@ -241,20 +277,21 @@ contains
            &                  /massHydrogenAtom                           &
            &                  /hecto                                  **3 &
            &                  /megaParsec                             **3
-      ! Evaluate the integrand.
-      integrandComptionY=+4.0d0                                                                                              &
-           &             *Pi                                                                                                 &
-           &             *radius                                                                                         **2 &
-           &             *boltzmannsConstant                                                                                 &
-           &             *thomsonCrossSection                                                                                &
-           &             /electronMass                                                                                       &
-           &             /speedLight                                                                                     **2 &
-           &             *self%chemicalState_%electronDensity(numberDensityHydrogen,temperature,abundancesICM,radiation_)    &
-           &             *temperature                                                                                        &
-           &             *megaParsec                                                                                         &
-           &             /centi                                                                                          **3
+      ! Evaluate the integrand. This gives a result in units of Mpc² - we will divide by the angular diameter distance (in Mpc)
+      ! squared later.
+      integrandComptonY=+4.0d0                                                                                              &
+           &            *Pi                                                                                                 &
+           &            *radius                                                                                         **2 &
+           &            *boltzmannsConstant                                                                                 &
+           &            *thomsonCrossSection                                                                                &
+           &            /electronMass                                                                                       &
+           &            /speedLight                                                                                     **2 &
+           &            *self%chemicalState_%electronDensity(numberDensityHydrogen,temperature,abundancesICM,radiation_)    &
+           &            *temperature                                                                                        &
+           &            *megaParsec                                                                                         &
+           &            /centi                                                                                          **3
       return
-    end function integrandComptionY
+    end function integrandComptonY
 
   end function icmSZExtract
 
@@ -273,7 +310,7 @@ contains
     implicit none
     type (varying_string            )                :: icmSZDescription
     class(nodePropertyExtractorICMSZ), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     icmSZDescription=var_str('Mean thermal Sunyaev-Zeldovich Compton y-parameter of the ICM within the virial radius.')
     return
@@ -283,7 +320,7 @@ contains
     !% Return the units of the last isolated redshift property in the SI system.
     implicit none
     class(nodePropertyExtractorICMSZ), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     icmSZUnitsInSI=0.0d0
     return
@@ -294,7 +331,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorICMSZ), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     icmSZType=outputAnalysisPropertyTypeLinear
     return

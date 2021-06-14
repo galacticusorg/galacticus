@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -29,7 +29,9 @@ module Satellite_Dynamical_Friction
   !# <functionClass>
   !#  <name>satelliteDynamicalFriction</name>
   !#  <descriptiveName>Dynamical friction models.</descriptiveName>
-  !#  <description>Class providing models of dynamical friction.</description>
+  !#  <description>
+  !#   Class providing models of the satellite vector acceleration due to dynamical friction.
+  !#  </description>
   !#  <default>chandrasekhar1943</default>
   !#  <method name="acceleration" >
   !#   <description>Returns the satellite acceleration due to dynamical friction for {\normalfont \ttfamily node} (in units of km/s/Gyr).</description>

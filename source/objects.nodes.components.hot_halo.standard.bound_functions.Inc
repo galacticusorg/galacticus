@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -25,7 +25,7 @@ subroutine Node_Component_Hot_Halo_Standard_Mass_Removal_Rate(self,massRemovalRa
   implicit none
   class          (nodeComponentHotHaloStandard), intent(inout) :: self
   double precision                             , intent(in   ) :: massRemovalRate
-  !GCC$ attributes unused :: self, massRemovalRate
+  !$GLC attributes unused :: self, massRemovalRate
 
   return
 end subroutine Node_Component_Hot_Halo_Standard_Mass_Removal_Rate

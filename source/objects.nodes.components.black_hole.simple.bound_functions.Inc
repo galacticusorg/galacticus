@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,38 +19,6 @@
 
 !% Contains custom functions for the simple black hole component.
 
-double precision function Node_Component_Black_Hole_Simple_Seed_Mass(self)
-  !% Return the seed mass for simple black holes.
-  use :: Input_Parameters, only : globalParameters, inputParameter
-  implicit none
-  class           (nodeComponentBlackHoleSimple), intent(inout) :: self
-  logical                                       , save          :: functionInitialized=.false.
-  double precision                              , save          :: blackHoleSeedMass
-  !GCC$ attributes unused :: self
-
-  if (.not.functionInitialized) then
-     !$omp critical (Node_Component_Black_Hole_Simple_Seed_Mass)
-     if (.not.functionInitialized) then
-        ! Get the black hole seed mass.
-        !# <inputParameter>
-        !#   <name>blackHoleSeedMass</name>
-        !#   <source>globalParameters</source>
-        !#   <defaultValue>100.0d0</defaultValue>
-        !#   <description>The mass of the seed black hole placed at the center of each newly formed galaxy.</description>
-        !#   <type>real</type>
-        !#   <cardinality>1</cardinality>
-        !#   <group>blackHoles</group>
-        !# </inputParameter>
-        ! Record that the function is now initialized.
-        functionInitialized=.true.
-     end if
-     !$omp end critical (Node_Component_Black_Hole_Simple_Seed_Mass)
-  end if
-  ! Return the seed mass.
-  Node_Component_Black_Hole_Simple_Seed_Mass=blackHoleSeedMass
-  return
-end function Node_Component_Black_Hole_Simple_Seed_Mass
-
 double precision function Node_Component_Black_Hole_Simple_Enclosed_Mass(self,radius,componentType,massType,weightBy,weightIndex)
   !% Computes the mass within a given radius for a central black hole. Black hole is treated as a point mass.
   use :: Galactic_Structure_Options, only : componentTypeAll, componentTypeBlackHole, massTypeAll, massTypeBlackHole, &
@@ -59,7 +27,7 @@ double precision function Node_Component_Black_Hole_Simple_Enclosed_Mass(self,ra
   class           (nodeComponentBlackHoleSimple), intent(inout) :: self
   integer                                       , intent(in   ) :: componentType, massType, weightBy, weightIndex
   double precision                              , intent(in   ) :: radius
-  !GCC$ attributes unused :: weightIndex
+  !$GLC attributes unused :: weightIndex
 
   ! Set zero enclosed mass by default.
   Node_Component_Black_Hole_Simple_Enclosed_Mass=0.0d0
@@ -77,7 +45,7 @@ end function Node_Component_Black_Hole_Simple_Enclosed_Mass
   !% Computes the acceleration due to a central black hole. Black hole is treated as a point mass.
   use :: Galactic_Structure_Options      , only : componentTypeAll               , componentTypeBlackHole, massTypeAll, massTypeBlackHole
   use :: Numerical_Constants_Astronomical, only : gigaYear                       , megaParsec
-  use :: Numerical_Constants_Physical    , only : gravitationalConstantGalacticus
+  use :: Numerical_Constants_Astronomical    , only : gravitationalConstantGalacticus
   use :: Numerical_Constants_Prefixes    , only : kilo
   implicit none
   double precision                                             , dimension(3) :: Node_Component_Black_Hole_Simple_Acceleration
@@ -108,7 +76,7 @@ function Node_Component_Black_Hole_Simple_Tidal_Tensor(self,positionCartesian,co
   !% Computes the acceleration due to a central black hole. Black hole is treated as a point mass.
   use :: Galactic_Structure_Options  , only : componentTypeAll               , componentTypeBlackHole, massTypeAll          , massTypeBlackHole
   use :: Numerical_Constants_Math    , only : Pi
-  use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+  use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
   use :: Tensors                     , only : tensorRank2Dimension3Symmetric , tensorNullR2D3Sym     , tensorIdentityR2D3Sym, assignment(=)    , &
        &                                     operator(*)  
   use :: Vectors                     , only : Vector_Outer_Product

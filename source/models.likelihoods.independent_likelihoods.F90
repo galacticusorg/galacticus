@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -71,19 +71,17 @@ contains
     !#   <name>logLikelihoodAccept</name>
     !#   <variable>self%logLikelihoodAccept</variable>
     !#   <defaultValue>huge(0.0d0)</defaultValue>
-    !#   <cardinality>1</cardinality>
     !#   <description>The log-likelihood which should be ``accepted''---once the log-likelihood reaches this value (or larger) no further updates to the chain will be made.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
-    if     (                                                                                   &
-         &   parameters%copiesCount('posteriorSampleLikelihoodMethod',zeroIfNotPresent=.true.) &
-         &  /=                                                                                 &
-         &   parameters%copiesCount('parameterMap'                   ,zeroIfNotPresent=.true.) &
+    if     (                                                                             &
+         &   parameters%copiesCount('posteriorSampleLikelihood',zeroIfNotPresent=.true.) &
+         &  /=                                                                           &
+         &   parameters%copiesCount('parameterMap'             ,zeroIfNotPresent=.true.) &
          & ) call Galacticus_Error_Report('number of parameter maps must match number of likelihoods'//{introspection:location})
     self            %modelLikelihoods => null()
     modelLikelihood_                  => null()
-    do i=1,parameters%copiesCount('posteriorSampleLikelihoodMethod',zeroIfNotPresent=.true.)
+    do i=1,parameters%copiesCount('posteriorSampleLikelihood',zeroIfNotPresent=.true.)
        if (associated(modelLikelihood_)) then
           allocate(modelLikelihood_%next)
           modelLikelihood_ => modelLikelihood_%next
@@ -132,9 +130,10 @@ contains
   subroutine independentLikelihoodsDestructor(self)
     !% Destructor for ``independentLikelihoods'' posterior sampling likelihood class.
     implicit none
-    type(posteriorSampleLikelihoodIndependentLikelihoods), intent(inout) :: self
-    type(posteriorSampleLikelihoodList                  ), pointer       :: modelLikelihood_, modelLikelihoodNext
-
+    type   (posteriorSampleLikelihoodIndependentLikelihoods), intent(inout) :: self
+    type   (posteriorSampleLikelihoodList                  ), pointer       :: modelLikelihood_, modelLikelihoodNext
+    integer                                                                 :: i
+    
     if (associated(self%modelLikelihoods)) then
        modelLikelihood_ => self%modelLikelihoods
        do while (associated(modelLikelihood_))
@@ -172,7 +171,7 @@ contains
     real                                                                                           :: timeEvaluate_
     double precision                                                                               :: logLikelihoodVariance_, logPriorProposed_
     integer                                                                                        :: i                     , j
-    !GCC$ attributes unused :: forceAcceptance
+    !$GLC attributes unused :: forceAcceptance
 
     allocate(stateVector      (simulationState%dimension()))
     allocate(stateVectorMapped(simulationState%dimension()))
@@ -195,7 +194,9 @@ contains
              if (modelLikelihood_%parameterMap(i) == -1) call Galacticus_Error_Report('failed to find matching parameter ['//char(modelLikelihood_%parameterMapNames(i))//']'//{introspection:location})
              ! Copy the model parameter definition.
              allocate(modelLikelihood_%modelParametersActive_(i)%modelParameter_,mold=modelParametersActive_(modelLikelihood_%parameterMap(i))%modelParameter_)
+             !# <deepCopyReset variables="modelParametersActive_(modelLikelihood_%parameterMap(i))%modelParameter_"/>
              !# <deepCopy source="modelParametersActive_(modelLikelihood_%parameterMap(i))%modelParameter_" destination="modelLikelihood_%modelParametersActive_(i)%modelParameter_"/>
+             !# <deepCopyFinalize variables="modelLikelihood_%modelParametersActive_(i)%modelParameter_"/>
           end do
           if (allocated(modelLikelihood_%parameterMapInactive)) then
              do i=1,size(modelLikelihood_%parameterMapInactive)
@@ -210,7 +211,9 @@ contains
                 if (modelLikelihood_%parameterMapInactive(i) == -1) call Galacticus_Error_Report('failed to find matching parameter ['//char(modelLikelihood_%parameterMapNamesInactive(i))//']'//{introspection:location})
                 ! Copy the model parameter definition.
                 allocate(modelLikelihood_%modelParametersInactive_(i)%modelParameter_,mold=modelParametersInactive_(modelLikelihood_%parameterMapInactive(i))%modelParameter_)
+                !# <deepCopyReset variables="modelParametersInactive_(modelLikelihood_%parameterMapInactive(i))%modelParameter_"/>
                 !# <deepCopy source="modelParametersInactive_(modelLikelihood_%parameterMapInactive(i))%modelParameter_" destination="modelLikelihood_%modelParametersInactive_(i)%modelParameter_"/>
+                !# <deepCopyFinalize variables="modelLikelihood_%modelParametersInactive_(i)%modelParameter_"/>
              end do
           end if
           ! Mark the likelihood as initialized.

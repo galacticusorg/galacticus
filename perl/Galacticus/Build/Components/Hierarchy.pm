@@ -54,7 +54,7 @@ sub Hierarchy_Initialization {
 	     {
 		 intrinsic  => "type",
 		 type       => "varying_string",
-		 variables  => [ "methodSelection", "message" ]
+		 variables  => [ "componentSelection", "message" ]
 	     },
 	     map
 	     {
@@ -78,8 +78,8 @@ CODE
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
     ! Insert a function call to get the parameter controlling the choice of implementation for this class.
     !# <inputParameter>
-    !#   <name>treeNodeMethod{ucfirst($class->{'name'})}</name>
-    !#   <variable>methodSelection</variable>
+    !#   <name>component{ucfirst($class->{'name'})}</name>
+    !#   <variable>componentSelection</variable>
     !#   <source>parameters_</source>
     !#   <defaultValue>var_str('{$defaultImplementation}')</defaultValue>
     !#   <description>Specifies the implementation to be used for the {$class->{'name'}} component of nodes.</description>
@@ -90,7 +90,7 @@ CODE
     	foreach $code::component ( @{$code::class->{'members'}} ) {
     	    $code::fullName  = ucfirst($code::class->{'name'}).ucfirst($code::component->{'name'});
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-    if (methodSelection == '{$component->{'name'}}') then
+    if (componentSelection == '{$component->{'name'}}') then
        allocate(default{ucfirst($class->{'name'})}Component,source=default{$fullName}Component)
         nodeComponent{$fullName}IsActiveValue=.true.
 CODE
@@ -145,7 +145,7 @@ CODE
     	}       
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
     if (.not.allocated(default{ucfirst($class->{'name'})}Component)) then
-      message='unrecognized method "'//methodSelection//'" for "{$class->{'name'}}" component'
+      message='unrecognized class "'//componentSelection//'" for "{$class->{'name'}}" component'
       message=message//char(10)//'  available methods are:'
       {
        join(

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,16 +20,18 @@
 !: $(BUILDPATH)/pFq/pfq.new.o
 !: $(BUILDPATH)/gslSpecFuncApprox/hyperg_2F1.o
 
+! Add dependency on GSL library.
+!; gsl
+
 !% Contains a module which implements hypergeometric functions.
 
 module Hypergeometric_Functions
   !% Implements hypergeometric functions.
-  use            :: FGSL         , only : FGSL_SF_Hyperg_1F1, FGSL_SF_Hyperg_2F1_E, FGSL_Success, fgsl_int, &
-          &                               fgsl_sf_result    , gsl_sf_result
-  use, intrinsic :: ISO_C_Binding, only : c_double          , c_int
+  use, intrinsic :: ISO_C_Binding, only : c_double     , c_int
+  use            :: Interface_GSL, only : gsl_sf_result, gsl_success
   implicit none
   private
-  public :: Hypergeometric_1F1, Hypergeometric_2F1, Hypergeometric_pFq
+  public :: Hypergeometric_1F1, Hypergeometric_2F1, Hypergeometric_pFq, Hypergeometric_pFq_Regularized
 
   interface Hypergeometric_pFq
      module procedure :: Hypergeometric_pFq_Real
@@ -38,15 +40,30 @@ module Hypergeometric_Functions
 
   interface
      function gsl_sf_hyperg_2F1_approx_e(a,b,c,x,tol,result) bind(c,name='gsl_sf_hyperg_2F1_approx_e')
-       !% Template for the GSL hypergeometric 2F1 C function.
+       !% Template for the GSL approximate hypergeometric 2F1 C function.
        import
        integer(c_int        )        :: gsl_sf_hyperg_2F1_approx_e
        real   (c_double     ), value :: a,b,c,x,tol
        type   (gsl_sf_result)        :: result
      end function gsl_sf_hyperg_2F1_approx_e
-  end interface
 
-  interface
+     function gsl_sf_hyperg_2F1_e(a,b,c,x,result) bind(c,name='gsl_sf_hyperg_2F1_e')
+       !% Template for the GSL hypergeometric 2F1 C function.
+       import
+       integer(c_int        )        :: gsl_sf_hyperg_2F1_e
+       real   (c_double     ), value :: a                  , b, &
+            &                           c                  , x
+       type   (gsl_sf_result)        :: result
+     end function gsl_sf_hyperg_2F1_e
+
+     function gsl_sf_hyperg_1F1(a,b,x) bind(c,name='gsl_sf_hyperg_1F1')
+       !% Template for the GSL hypergeometric 1F1 C function.
+       import
+       real(c_double)        :: gsl_sf_hyperg_1F1
+       real(c_double), value :: a                , b, &
+            &                   x
+     end function gsl_sf_hyperg_1F1
+
      function gsl_sf_hyperg_2F1_approx_series(a,b,c,x,tol,result) bind(c,name='gsl_sf_hyperg_2F1_approx_series')
        !% Template for the GSL series approximation of the hypergeometric 2F1 C function.
        import
@@ -57,7 +74,7 @@ module Hypergeometric_Functions
   end interface
 
   ! Error status.
-  integer(fgsl_int) :: statusActual
+  integer(c_int) :: statusActual
   !$omp threadprivate(statusActual)
 
 contains
@@ -67,7 +84,7 @@ contains
     implicit none
     double precision, intent(in   ) :: a(1), b(1), x
 
-    Hypergeometric_1F1=FGSL_SF_Hyperg_1F1(a(1),b(1),x)
+    Hypergeometric_1F1=GSL_SF_Hyperg_1F1(a(1),b(1),x)
     return
   end function Hypergeometric_1F1
 
@@ -76,23 +93,22 @@ contains
     use :: Galacticus_Error, only : Galacticus_Error_Report, Galacticus_GSL_Error_Handler_Abort_Off, Galacticus_GSL_Error_Handler_Abort_On
     use :: Gamma_Functions , only : Gamma_Function
     implicit none
-    double precision                , intent(in   )           :: a(2)              , b(1)             , &
-         &                                                       x
-    integer         (fgsl_int      ), intent(  out), optional :: status
-    double precision                , intent(  out), optional :: error
-    double precision                , intent(in   ), optional :: toleranceRelative
-    double precision                , parameter               :: gsl_dbl_epsilon  =2.2204460492503131d-16
-    double precision                                          :: toleranceActual
-    double precision                                          :: prefactor1        , prefactor2
-    logical                                                   :: aIsNegativeInt (2), bIsNegativeInt(1), &
-         &                                                       baIsNegativeInt(2)
-    type            (fgsl_sf_result)                          :: fgslResult
-    type            ( gsl_sf_result)                          ::  gslResult
+    double precision               , intent(in   )           :: a(2)              , b(1)             , &
+         &                                                      x
+    integer         (c_int        ), intent(  out), optional :: status
+    double precision               , intent(  out), optional :: error
+    double precision               , intent(in   ), optional :: toleranceRelative
+    double precision               , parameter               :: gsl_dbl_epsilon  =2.2204460492503131d-16
+    double precision                                         :: toleranceActual
+    double precision                                         :: prefactor1        , prefactor2
+    logical                                                  :: aIsNegativeInt (2), bIsNegativeInt(1), &
+         &                                                      baIsNegativeInt(2)
+    type            (gsl_sf_result)                          :: gslResult
 
     ! Use our own error handler.
     if (present(status)) then
        call Galacticus_GSL_Error_Handler_Abort_Off()
-       statusActual=FGSL_Success
+       statusActual=GSL_Success
     end if
     if (present(toleranceRelative)) then
        toleranceActual=toleranceRelative
@@ -101,11 +117,11 @@ contains
     end if
     ! GSL only evaluates this function for |x|<1.
     if (abs(x) <= 1.0d0) then
-       ! |x|<1 so simply call the GSL function to compute the function.
+       ! |x|<1 so simply call the GSL function to compute the function (specitial cases are treated separately).
        if (.not.present(toleranceRelative) .and. abs(b(1)-a(1)-a(2)-dnint(b(1)-a(1)-a(2))) >= 1000.0d0*gsl_dbl_epsilon) then
-          statusActual=FGSL_SF_Hyperg_2F1_E(a(1),a(2),b(1),x,fgslResult)
-          Hypergeometric_2F1=fgslResult%val
-          if (present(error)) error=fgslResult%err
+          statusActual=GSL_SF_Hyperg_2F1_E(a(1),a(2),b(1),x,gslResult)
+          Hypergeometric_2F1=gslResult%val
+          if (present(error)) error=gslResult%err
        else
           statusActual=GSL_SF_Hyperg_2F1_Approx_E(a(1),a(2),b(1),x,toleranceActual,gslResult)
           Hypergeometric_2F1=gslResult%val
@@ -126,7 +142,7 @@ contains
        else if (abs(b(1)-a(1)) == 0.0d0 .or. abs(b(1)-a(2)) == 0.0d0) then
           ! Algebraic formula is available.
           Hypergeometric_2F1=(1.0d0-x)**(b(1)-a(1)-a(2))
-          statusActual=FGSL_Success
+          statusActual=GSL_Success
           if (present(error)) error=gsl_dbl_epsilon*abs(Hypergeometric_2F1)
        else if (any(baIsNegativeInt)) then
           ! Do an Euler transformation,
@@ -157,18 +173,18 @@ contains
           Hypergeometric_2F1=gslResult%val*prefactor1
           if (present(error)) error=gslResult%err*abs(prefactor1)
           ! Second term.
-          if (statusActual == FGSL_Success) then
+          if (statusActual == GSL_Success) then
              statusActual=GSL_SF_Hyperg_2F1_Approx_E(a(2),b(1)-a(1),-a(1)+a(2)+1.0d0,1.0d0/(1.0d0-x),toleranceActual,gslResult)
              Hypergeometric_2F1=Hypergeometric_2F1+gslResult%val*prefactor2
              if (present(error)) error=error+gslResult%err*abs(prefactor2)
           end if
        else
-          ! Use a Pfaff transformation to evaluate in terms of a hypergeometric function with |x|<1.
+          ! Use a Pfaff transformation to evaluate in terms of a hypergeometric function with |x|<1 (specitial cases are treated separately).
           if (.not.present(toleranceRelative) .and. abs(a(1)-a(2)-dnint(a(1)-a(2))) >= 1000.0d0*gsl_dbl_epsilon) then
-             statusActual=FGSL_SF_Hyperg_2F1_E(a(2),b(1)-a(1),b(1),x/(x-1.0d0),fgslResult)
+             statusActual=GSL_SF_Hyperg_2F1_E(a(2),b(1)-a(1),b(1),x/(x-1.0d0),gslResult)
              prefactor1=1.0d0/(1.0d0-x)**a(2)
-             Hypergeometric_2F1=fgslResult%val*prefactor1
-             if (present(error)) error=fgslResult%err*abs(prefactor1)
+             Hypergeometric_2F1=gslResult%val*prefactor1
+             if (present(error)) error=gslResult%err*abs(prefactor1)
           else
              statusActual=GSL_SF_Hyperg_2F1_Approx_E(a(2),b(1)-a(1),b(1),x/(x-1.0d0),toleranceActual,gslResult)
              prefactor1=1.0d0/(1.0d0-x)**a(2)
@@ -184,7 +200,7 @@ contains
        status=statusActual
        ! Reset error handler.
        call Galacticus_GSL_Error_Handler_Abort_On()
-    else if (statusActual /= FGSL_Success) then
+    else if (statusActual /= GSL_Success) then
        call Galacticus_Error_Report('GSL failed'//{introspection:location})
     end if
     return
@@ -193,12 +209,17 @@ contains
   double complex function Hypergeometric_pFq_Complex(a,b,x,toleranceRelative)
     !% Evaluate the generalized hypergeometric function $_pF_q(a_1,\ldots,a_p;b_1,\ldots,b_q;x)$, using the algorithm of
     !% \cite{perger_numerical_1993}.
+    use :: Numerical_Comparison, only : Values_Agree
     implicit none
     double complex  , intent(in   ), dimension(:) :: a                , b
     double complex  , intent(in   )               :: x
     double precision, intent(in   ), optional     :: toleranceRelative
     double complex                                :: PFQ
-    integer                                       :: LNPFQ            , IX, NSIGFIG
+    integer                                       :: LNPFQ            , IX   , &
+         &                                           NSIGFIG
+    logical                                       :: a1is1            , a1is2, &
+         &                                           a2is2            , b1is2, &
+         &                                           b1Is3
 
     LNPFQ  = 0
     IX     = 0
@@ -209,9 +230,27 @@ contains
     end if
     if (dreal(x) == 0.0d0) then
        Hypergeometric_pFq_Complex=1.0d0
-    else
-       Hypergeometric_pFq_Complex=PFQ(a,b,size(a),size(b),x,LNPFQ,IX,NSIGFIG)
+       return
     end if
+    if (size(a) == 2 .and. size(b) == 1) then
+       ! Special cases for ₂F₁.
+       a1Is1=Values_Agree(real(a(1)),1.0d0,absTol=1.0d-6) .and. Values_Agree(imag(a(1)),0.0d0,absTol=1.0d-6)
+       a1Is2=Values_Agree(real(a(1)),2.0d0,absTol=1.0d-6) .and. Values_Agree(imag(a(1)),0.0d0,absTol=1.0d-6)
+       a2Is2=Values_Agree(real(a(2)),2.0d0,absTol=1.0d-6) .and. Values_Agree(imag(a(2)),0.0d0,absTol=1.0d-6)
+       b1Is2=Values_Agree(real(b(1)),2.0d0,absTol=1.0d-6) .and. Values_Agree(imag(b(1)),0.0d0,absTol=1.0d-6)
+       b1Is3=Values_Agree(real(b(1)),3.0d0,absTol=1.0d-6) .and. Values_Agree(imag(b(1)),0.0d0,absTol=1.0d-6)
+       if (a1Is1 .and. a2Is2 .and. b1Is2) then
+          ! ₂F₁([1,2],[2],x) = 1/(1-x).
+          Hypergeometric_pFq_Complex=1.0d0/(1.0d0-x)
+          return
+       end if
+       if (a1Is2 .and. a2Is2 .and. b1Is3) then
+          ! ₂F₁([2,2],[3],x) = 2 (-x-log[1-x]+x log[1-x])/x²/(-1+x)
+          Hypergeometric_pFq_Complex=2.0d0*(-x-log(1.0d0-x)+x*log(1.0d0-x))/x**2/(-1.0d0+x)
+          return
+       end if
+    end if
+    Hypergeometric_pFq_Complex=PFQ(a,b,size(a),size(b),x,LNPFQ,IX,NSIGFIG)    
     return
   end function Hypergeometric_pFq_Complex
 
@@ -323,8 +362,8 @@ contains
     !% Evaluate the generalized hypergeometric function $_pF_q(a_1,\ldots,a_p;b_1,\ldots,b_q;x)$ by direct summation.
     !% Shanks transformation (\cite{shanks_non_linear_1955}) is used to accelerate the calculations.
     use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWarn
-    use :: ISO_Varying_String, only : varying_string            , assignment(=), operator(//)
+    use :: Display           , only : displayMessage         , verbosityLevelWarn
+    use :: ISO_Varying_String, only : varying_string         , assignment(=)     , operator(//)
     implicit none
     double precision                , intent(in   ), dimension(:) :: a                 , b
     double precision                , intent(in   )               :: x
@@ -403,7 +442,7 @@ contains
              message=message//trim(label)//']. A relative tolerance of ['
              write (label,'(e12.6)') toleranceActual
              message=message//trim(label)//'] is used instead.'//char(10)
-             call Galacticus_Display_Message(message//{introspection:location},verbosityWarn)
+             call displayMessage(message//{introspection:location},verbosityLevelWarn)
           end if
        end if
     else
@@ -412,5 +451,16 @@ contains
     end if
     return
   end function Hypergeometric_pFq_approx_series
+
+  double precision function Hypergeometric_pFq_Regularized(a,b,x)
+    !% Evaluate the regularized generalized hypergeometric function
+    !% $_pF_q(a_1,\ldots,a_p;b_1,\ldots,b_q;x)/[\Gamma(b_1)\ldots\Gamma(b_q)]$ for real arguments.
+    implicit none
+    double precision, intent(in   ), dimension(:) :: a, b
+    double precision, intent(in   )               :: x
+
+    Hypergeometric_pFq_Regularized=real(Hypergeometric_pFq(dcmplx(a),dcmplx(b),dcmplx(x)))/product(Gamma(b))
+    return
+  end function Hypergeometric_pFq_Regularized
 
 end module Hypergeometric_Functions

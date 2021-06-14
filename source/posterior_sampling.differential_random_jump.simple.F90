@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +21,10 @@
   !% distribution.
 
   !# <posteriorSampleDffrntlEvltnRandomJump name="posteriorSampleDffrntlEvltnRandomJumpSimple">
-  !#  <description>A posterior sampling differential evolution random jump class in which the jump is drawn from a fixed distribution.</description>
+  !#  <description>
+  !#   In this class, the random jumps are drawn directly from the distributions specified in the {\normalfont \ttfamily random} object
+  !#   of each \refClass{modelParameterClass} object.
+  !#  </description>
   !# </posteriorSampleDffrntlEvltnRandomJump>
   type, extends(posteriorSampleDffrntlEvltnRandomJumpClass) :: posteriorSampleDffrntlEvltnRandomJumpSimple
      !% Implementation of a posterior sampling differential evolution random jump class in which the jump is drawn from a fixed
@@ -45,7 +48,7 @@ contains
     implicit none
     type(posteriorSampleDffrntlEvltnRandomJumpSimple)                 :: self
     type(inputParameters                            ), intent(inout)  :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=posteriorSampleDffrntlEvltnRandomJumpSimple()
     return
@@ -59,7 +62,7 @@ contains
     class           (posteriorSampleStateClass                  )                                   , intent(inout) :: simulationState
     double precision                                             , dimension(size(modelParameters_))                :: simpleSample
     integer                                                                                                         :: i
-    !GCC$ attributes unused :: self, simulationState
+    !$GLC attributes unused :: self, simulationState
 
     simpleSample=0.0d0
     do i=1,size(modelParameters_)

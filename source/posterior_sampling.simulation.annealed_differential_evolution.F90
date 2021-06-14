@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,22 @@
   !% Implementation of a posterior sampling simulation class which implements an annealed differential evolution algorithm.
 
   !# <posteriorSampleSimulation name="posteriorSampleSimulationAnnealedDffrntlEvltn">
-  !#  <description>A posterior sampling simulation class which implements an annealed differential evolution algorithm.</description>
+  !#  <description>
+  !#   This class the {\normalfont \ttfamily differentialEvolution} class to include an annealing schedule---the simulation begins at
+  !#   high temperature, waits for convergence, lowers the temperature and repeats until convergence at $T=1$ is reached. In addition to
+  !#   the options for the {\normalfont \ttfamily differentialEvolution} algorithm, the details of the algorithm are controlled by the
+  !#   following sub-parameters:
+  !#   \begin{description}
+  !#   \item[{\normalfont \ttfamily [temperatureMaximum]}] The maximum temperature to use when tempering.
+  !#   \item[{\normalfont \ttfamily [temperatureLevels]}] The number of temperature levels to use.
+  !#   \end{description}
+  !#   
+  !#   The temperature at level $i$ is given by:
+  !#   \begin{equation}
+  !#   \log T_i = {i-1 \over N-1} \log T_\mathrm{max},
+  !#   \end{equation}
+  !#   where $T_\mathrm{max}=${\normalfont \ttfamily [temperatureMaximum]} and $N=${\normalfont \ttfamily [temperatureLevels]}.
+  !#  </description>
   !# </posteriorSampleSimulation>
   type, extends(posteriorSampleSimulationDifferentialEvolution) :: posteriorSampleSimulationAnnealedDffrntlEvltn
      !% Implementation of a posterior sampling simulation class which implements an annealed differential evolution algorithm.
@@ -29,21 +44,9 @@
      double precision                            :: temperatureMaximum
      double precision, allocatable, dimension(:) :: temperatures
    contains
-     !@ <objectMethods>
-     !@   <object>posteriorSampleSimulationAnnealedDffrntlEvltn</object>
-     !@   <objectMethod>
-     !@     <method>initialize</method>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ temperatureLevelCount\argin, \doublezero\ temperatureMaximum</arguments>
-     !@     <description>Initialize the object.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>level</method>
-     !@     <type>\intzero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return the current tempering level.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Initialize the object." method="initialize" />
+     !# </methods>
      procedure :: acceptProposal => annealedDifferentialEvolutionAcceptProposal
      procedure :: update         => annealedDifferentialEvolutionUpdate
      procedure :: temperature    => annealedDifferentialEvolutionTemperature
@@ -71,18 +74,14 @@ contains
     self%posteriorSampleSimulationDifferentialEvolution=posteriorSampleSimulationDifferentialEvolution(parameters)
     !# <inputParameter>
     !#   <name>temperatureLevelCount</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number temperature levels to use.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>temperatureMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The maximum temperature to reach.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     call self%initialize(temperatureLevelCount,temperatureMaximum)
     !# <inputParametersValidate source="parameters"/>
@@ -144,7 +143,7 @@ contains
 
   subroutine annealedDifferentialEvolutionUpdate(self,stateVector)
     !% Update the differential evolution simulator state.
-    use :: Galacticus_Display, only : Galacticus_Display_Message
+    use :: Display           , only : displayMessage
     use :: ISO_Varying_String, only : varying_string
     use :: MPI_Utilities     , only : mpiSelf
     use :: String_Handling   , only : operator(//)
@@ -171,7 +170,7 @@ contains
           write (label,'(f7.2)') self%temperature()
           message="Annealing temperature is now "//label//" (level "
           message=message//self%temperatureLevelCurrent//" of "//self%temperatureLevelCount//")"
-          call Galacticus_Display_Message(message)
+          call displayMessage(message)
        end if
     end if
     ! Update the simulation state.
@@ -199,7 +198,7 @@ contains
     double precision                                               , intent(in   ) :: logPosterior         , logPosteriorProposed         , &
          &                                                                            logLikelihoodVariance, logLikelihoodVarianceProposed
     double precision                                                               :: x
-    !GCC$ attributes unused :: logLikelihoodVariance, logLikelihoodVarianceProposed
+    !$GLC attributes unused :: logLikelihoodVariance, logLikelihoodVarianceProposed
 
     ! Decide whether to take step.
     x=self%randomNumberGenerator_%uniformSample()

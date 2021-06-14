@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,45 +19,32 @@
 
   !% Implementation of a S\'ersic mass distribution class.
 
-  use    :: FGSL   , only : fgsl_function, fgsl_integration_workspace, fgsl_interp, fgsl_interp_accel
-  !$ use :: OMP_Lib, only : omp_lock_kind
+  use    :: Numerical_Interpolation, only : interpolator
+  !$ use :: OMP_Lib                , only : omp_lock_kind
 
   !# <massDistribution name="massDistributionSersic">
   !#  <description>A S\'ersic mass distribution class.</description>
   !# </massDistribution>
   type, public, extends(massDistributionSpherical) :: massDistributionSersic
      !% The S\'ersic density profile.
-     double precision                                               :: densityNormalization         , mass              , &
-          &                                                            radiusHalfMass_              , index
+     double precision                                               :: densityNormalization , mass              , &
+          &                                                            radiusHalfMass_      , index
      ! Tabulation of the Sérsic profile.
-     double precision                                               :: coefficient                  , radiusStart
+     double precision                                               :: coefficient          , radiusStart
      logical                                                        :: tableInitialized
      integer                                                        :: tableCount
-     double precision                                               :: tableRadiusMaximum           , tableRadiusMinimum
+     double precision                                               :: tableRadiusMaximum   , tableRadiusMinimum
      double precision                                               :: table3dRadiusHalfMass
      double precision                                               :: table2dRadiusHalfMass
-     double precision                   , allocatable, dimension(:) :: tableDensity                 , tableEnclosedMass , &
-          &                                                            tablePotential               , tableRadius
-     type            (fgsl_interp      )                            :: tableInterpolationObject
-     type            (fgsl_interp_accel)                            :: tableInterpolationAccelerator
-     logical                                                        :: tableInterpolationReset
+     double precision                   , allocatable, dimension(:) :: tableDensity         , tableEnclosedMass , &
+          &                                                            tablePotential       , tableRadius
+     type            (interpolator     )                            :: tableInterpolator
      !$ integer      (omp_lock_kind    )                            :: tableLock
    contains
-     !@ <objectMethods>
-     !@   <object>massDistributionSersic</object>
-     !@   <objectMethod>
-     !@     <method>tabulate</method>
-     !@     <description>Tabulate the Sersic profile.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ [radius]\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>radiusHalfMassProjected</method>
-     !@     <description>Return the half mass radius of the profile in projection.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Tabulate the Sersic profile." method="tabulate" />
+     !#   <method description="Return the half mass radius of the profile in projection." method="radiusHalfMassProjected" />
+     !# </methods>
      procedure :: tabulate                => sersicTabulate
      procedure :: density                 => sersicDensity
      procedure :: densityRadialMoment     => sersicDensityRadialMoment
@@ -97,35 +84,27 @@ contains
     !# <inputParameter>
     !#   <name>index</name>
     !#   <variable>index_</variable>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>4.0d0</defaultValue>
     !#   <description>The S\'ersic index.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>radiusHalfMass</name>
     !#   <defaultValue>1.0d0</defaultValue>
-    !#   <cardinality>1</cardinality>
     !#   <description>The half mass radius of the S\'ersic profile.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>mass</name>
     !#   <defaultValue>1.0d0</defaultValue>
-    !#   <cardinality>1</cardinality>
     !#   <description>The mass of the S\'ersic profile.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>dimensionless</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>If true the S\'ersic profile is considered to be dimensionless.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <conditionalCall>
     !#  <call>self=massDistributionSersic(index_{conditions})</call>
@@ -156,7 +135,6 @@ contains
     self%tableRadiusMaximum     =1.0d+3
     self%tableRadiusMinimum     =1.0d-3
     self%table3dRadiusHalfMass  =1.0d+0
-    self%tableInterpolationReset=.true.
     !$ call OMP_Init_Lock(self%tableLock)
     ! Tabulate the profile.
     call self%tabulate()
@@ -187,9 +165,7 @@ contains
 
   double precision function sersicDensity(self,coordinates)
     !% Return the density at the specified {\normalfont \ttfamily coordinates} in a S\'ersic mass distribution.
-    use :: Coordinates            , only : assignment(=)               , coordinateSpherical
-    use :: Numerical_Interpolation, only : Interpolate
-    use :: Table_Labels           , only : extrapolationTypeExtrapolate
+    use :: Coordinates , only : assignment(=)               , coordinateSpherical
     implicit none
     class           (massDistributionSersic), intent(inout) :: self
     class           (coordinate            ), intent(in   ) :: coordinates
@@ -203,17 +179,9 @@ contains
     r       =+position%r             () &
          &   /self    %radiusHalfMass_
     call self%tabulate(r)
-    sersicDensity=+self%mass                                                         &
-         &        /self%radiusHalfMass_**3                                           &
-         &        *Interpolate(                                                      &
-         &                                       self%tableRadius                  , &
-         &                                       self%tableDensity                 , &
-         &                                       self%tableInterpolationObject     , &
-         &                                       self%tableInterpolationAccelerator, &
-         &                                       r                                 , &
-         &                     reset            =self%tableInterpolationReset      , &
-         &                     extrapolationType=extrapolationTypeExtrapolate        &
-         &                    )
+    sersicDensity=+self%mass                                               &
+         &        /self%radiusHalfMass_**3                                 &
+         &        *self%tableInterpolator%interpolate(r,self%tableDensity)
     !$ call OMP_Unset_Lock(self%tableLock)
     return
   end function sersicDensity
@@ -283,7 +251,6 @@ contains
   
   double precision function sersicMassEnclosedBySphere(self,radius)
     !% Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for S\'ersic mass distributions.
-    use :: Numerical_Interpolation, only : Interpolate
     implicit none
     class           (massDistributionSersic), intent(inout), target :: self
     double precision                        , intent(in   )         :: radius
@@ -297,15 +264,8 @@ contains
             &           /self%radiusHalfMass_
        call self%tabulate(fractionalRadius)
        if (fractionalRadius < self%tableRadius(self%tableCount)) then
-          sersicMassEnclosedBySphere=+self%mass                                             &
-               &                     *Interpolate(                                          &
-               &                                        self%tableRadius                  , &
-               &                                        self%tableEnclosedMass            , &
-               &                                        self%tableInterpolationObject     , &
-               &                                        self%tableInterpolationAccelerator, &
-               &                                             fractionalRadius             , &
-               &                                  reset=self%tableInterpolationReset        &
-               &                                 )
+          sersicMassEnclosedBySphere=+self%mass                                                                   &
+               &                     *self%tableInterpolator%interpolate(fractionalRadius,self%tableEnclosedMass)
        else
           sersicMassEnclosedBySphere=+self%mass
        end if
@@ -316,9 +276,8 @@ contains
 
   double precision function sersicPotential(self,coordinates)
     !% Return the potential at the specified {\normalfont \ttfamily coordinates} in a S\'ersic mass distribution.
-    use :: Coordinates                 , only : assignment(=)                  , coordinateSpherical
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
-    use :: Numerical_Interpolation     , only : Interpolate
+    use :: Coordinates                     , only : assignment(=)                  , coordinateSpherical
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (massDistributionSersic), intent(inout) :: self
     class           (coordinate            ), intent(in   ) :: coordinates
@@ -333,16 +292,9 @@ contains
          &   /self    %radiusHalfMass_
     call self%tabulate(r)
     if (r < self%tableRadius(self%tableCount)) then
-       sersicPotential=+self%mass                                             &
-            &          /self%radiusHalfMass_                                  &
-            &          *Interpolate(                                          &
-            &                             self%tableRadius                  , &
-            &                             self%tablePotential               , &
-            &                             self%tableInterpolationObject     , &
-            &                             self%tableInterpolationAccelerator, &
-            &                                   r                           , &
-            &                       reset=self%tableInterpolationReset        &
-            &                      )
+       sersicPotential=+self%mass                                                 &
+            &          /self%radiusHalfMass_                                      &
+            &          *self%tableInterpolator%interpolate(r,self%tablePotential)
     else
        sersicPotential=0.0d0
     end if
@@ -375,27 +327,28 @@ contains
 
   subroutine sersicTabulate(self,radius)
     !% Tabulate the density and enclosed mass in a dimensionless S\'ersic profile.
-    use :: Memory_Management       , only : allocateArray            , deallocateArray
+    use :: Memory_Management       , only : allocateArray               , deallocateArray
     use :: Numerical_Constants_Math, only : Pi
-    use :: Numerical_Integration   , only : Integrate                , Integrate_Done
-    use :: Numerical_Interpolation , only : Interpolate              , Interpolate_Done
-    use :: Numerical_Ranges        , only : Make_Range               , rangeTypeLogarithmic
-    use :: Root_Finder             , only : rangeExpandMultiplicative, rootFinder
+    use :: Numerical_Integration   , only : integrator
+    use :: Numerical_Ranges        , only : Make_Range                  , rangeTypeLogarithmic
+    use :: Root_Finder             , only : rangeExpandMultiplicative   , rootFinder
+    use :: Table_Labels            , only : extrapolationTypeExtrapolate
     implicit none
-    class           (massDistributionSersic    ), intent(inout), target   :: self
-    double precision                            , intent(in   ), optional :: radius
-    double precision                            , parameter               :: radiusMaximumToTabulate=1.0d+3
-    double precision                            , parameter               :: coefficientTolerance   =1.0d-6
-    double precision                            , parameter               :: coefficientGuess       =7.67d0
-    type            (rootFinder                ), save                    :: finder
-    !$omp threadprivate(finder)
-    logical                                                               :: rebuildTable                  , tableHasSufficientExtent
-    integer                                                               :: iRadius
-    double precision                                                      :: deltaRadius                   , integrand                , &
-         &                                                                   massPrevious                  , previousIntegrand        , &
-         &                                                                   radiusActual                  , radiusInfinity
-    type            (fgsl_function             )                          :: integrandFunction
-    type            (fgsl_integration_workspace)                          :: integrationWorkspace
+    class           (massDistributionSersic), intent(inout), target   :: self
+    double precision                        , intent(in   ), optional :: radius
+    double precision                        , parameter               :: radiusMaximumToTabulate=1.0d+3
+    double precision                        , parameter               :: coefficientTolerance   =1.0d-6
+    double precision                        , parameter               :: coefficientGuess       =7.67d0
+    type            (rootFinder            ), save                    :: finder
+    logical                                 , save                    :: finderConstructed      =.false.
+    !$omp threadprivate(finder,finderConstructed)
+    logical                                                           :: rebuildTable                   , tableHasSufficientExtent
+    integer                                                           :: iRadius
+    double precision                                                  :: deltaRadius                    , integrand                , &
+         &                                                               massPrevious                   , previousIntegrand        , &
+         &                                                               radiusActual                   , radiusInfinity
+    type            (integrator            )                          :: integrator_
+    type            (interpolator          )                          :: interpolator_
 
     ! Check if a radius was specified. Use it if so, otherwise use a midpoint radius.
     if (present(radius)) then
@@ -416,14 +369,16 @@ contains
        ! Set a module-scope pointer to self.
        sersicActive => self
        ! Initialize our root finder.
-       if (.not.finder%isInitialized()) then
-          call finder%rootFunction(sersicCoefficientRoot                                         )
-          call finder%tolerance   (toleranceAbsolute=0.0d0,toleranceRelative=coefficientTolerance)
-          call finder%rangeExpand (                                               &
-               &                   rangeExpandDownward=0.5d0                    , &
-               &                   rangeExpandUpward  =2.0d0                    , &
-               &                   rangeExpandType    =rangeExpandMultiplicative  &
-               &                  )
+       if (.not.finderConstructed) then
+          finder           =rootFinder(                                               &
+               &                       rootFunction       =sersicCoefficientRoot    , &
+               &                       toleranceAbsolute  =0.0d0                    , &
+               &                       toleranceRelative  =coefficientTolerance     , &
+               &                       rangeExpandDownward=0.5d0                    , &
+               &                       rangeExpandUpward  =2.0d0                    , &
+               &                       rangeExpandType    =rangeExpandMultiplicative  &
+               &                      )
+          finderConstructed=.true.
        end if
        ! Try building the table until it has sufficient extent to encompass the requested radius.
        tableHasSufficientExtent=.false.
@@ -451,18 +406,13 @@ contains
           ! Compute a suitably large approximation to infinite radius for use in integration.
           radiusInfinity=10.0d0*self%tableRadiusMaximum
           ! Loop over radii and compute the inverse Abel integral required to get the 3D Sérsic profile.
+          integrator_=integrator(sersicAbelIntegrand,toleranceRelative=1.0d-3)
           do iRadius=1,self%tableCount
-             self%radiusStart          =self%tableRadius(iRadius)
-             self%tableDensity(iRadius)=Integrate(                                             &
-                  &                                                 self%radiusStart         , &
-                  &                                                      radiusInfinity      , &
-                  &                                                      sersicAbelIntegrand , &
-                  &                                                      integrandFunction   , &
-                  &                                                      integrationWorkspace, &
-                  &                               toleranceAbsolute=0.0d+0                   , &
-                  &                               toleranceRelative=1.0d-3                     &
-                  &                              )
-             call Integrate_Done(integrandFunction,integrationWorkspace)
+             self%radiusStart          =self       %tableRadius(iRadius)
+             self%tableDensity(iRadius)=integrator_%integrate  (                     &
+                  &                                             self%radiusStart   , &
+                  &                                                  radiusInfinity  &
+                  &                                            )
              ! Accumulate the enclosed mass using a simple trapezoidal integration.
              if (iRadius == 1) then
                 deltaRadius      =self%tableRadius(iRadius)
@@ -481,18 +431,11 @@ contains
           self%tableDensity     =self%tableDensity     /self%tableEnclosedMass(self%tableCount)
           self%tableEnclosedMass=self%tableEnclosedMass/self%tableEnclosedMass(self%tableCount)
           ! Find the half mass radius.
-          call Interpolate_Done(self%tableInterpolationObject,self%tableInterpolationAccelerator,self%tableInterpolationReset)
-          self%tableInterpolationReset=.true.
-          self%table3dRadiusHalfMass=Interpolate(                                                                 &
+          interpolator_             =interpolator(                                                                &
                &                                  self%tableEnclosedMass(1:maxloc(self%tableEnclosedMass,dim=1)), &
-               &                                  self%tableRadius      (1:maxloc(self%tableEnclosedMass,dim=1)), &
-               &                                  self%tableInterpolationObject                                 , &
-               &                                  self%tableInterpolationAccelerator                            , &
-               &                                  0.5d0                                                         , &
-               &                                  reset=self%tableInterpolationReset                              &
+               &                                  self%tableRadius      (1:maxloc(self%tableEnclosedMass,dim=1))  &
                &                                 )
-          call Interpolate_Done(self%tableInterpolationObject,self%tableInterpolationAccelerator,self%tableInterpolationReset)
-          self%tableInterpolationReset=.true.
+          self%table3dRadiusHalfMass=interpolator_%interpolate(0.5d0)
           ! Scale radii and densities to be in units of the 3D half mass radius.
           self%tableRadius =self%tableRadius /self%table3dRadiusHalfMass
           self%tableDensity=self%tableDensity*self%table3dRadiusHalfMass**3
@@ -517,6 +460,8 @@ contains
                &                    .and.                                    &
                &                   (radiusActual <= self%tableRadiusMaximum)
        end do
+       ! Build the interpolator.
+       self%tableInterpolator=interpolator(self%tableRadius,extrapolationType=extrapolationTypeExtrapolate)
        ! Flag that the table is initialized.
        self%tableInitialized=.true.
     end if

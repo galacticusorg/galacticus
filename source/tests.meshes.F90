@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,15 +21,15 @@
 
 program Test_Meshes
   !% Test mesh functions.
-  use            :: Galacticus_Display, only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use, intrinsic :: ISO_C_Binding     , only : c_double_complex
-  use            :: Meshes            , only : Meshes_Apply_Point            , cloudTypeCubic        , cloudTypePoint      , cloudTypeTriangular
-  use            :: Unit_Tests        , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
+  use            :: Display      , only : displayVerbositySet, verbosityLevelStandard
+  use, intrinsic :: ISO_C_Binding, only : c_double_complex
+  use            :: Meshes       , only : Meshes_Apply_Point , cloudTypeCubic        , cloudTypePoint      , cloudTypeTriangular
+  use            :: Unit_Tests   , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   complex(c_double_complex), dimension(10,10,10) :: mesh,meshExpected
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Mesh functions")

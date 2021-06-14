@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -30,9 +30,8 @@ contains
   double precision function Bondi_Hoyle_Lyttleton_Accretion_Rate(mass,density,velocity,temperature,radius)
     !% Computes the Bondi-Hoyle-Lyttleton accretion rate (in $M_\odot$ Gyr$^{-1}$; \citealt{edgar_review_2004}).
     use :: Ideal_Gases_Thermodynamics      , only : Ideal_Gas_Sound_Speed
-    use :: Numerical_Constants_Astronomical, only : gigaYear                       , megaParsec
+    use :: Numerical_Constants_Astronomical, only : gigaYear             , megaParsec, gravitationalConstantGalacticus
     use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Constants_Physical    , only : gravitationalConstantGalacticus
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     double precision, intent(in   )           :: density   , mass, temperature, velocity
@@ -55,8 +54,8 @@ contains
 
   double precision function Bondi_Hoyle_Lyttleton_Accretion_Radius(mass,temperature)
     !% Computes the Bondi-Hoyle-Lyttleton accretion radius (in Mpc; \citealt{edgar_review_2004}).
-    use :: Ideal_Gases_Thermodynamics  , only : Ideal_Gas_Sound_Speed
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Ideal_Gases_Thermodynamics      , only : Ideal_Gas_Sound_Speed
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     double precision, intent(in   ) :: mass      , temperature
     double precision                :: soundSpeed

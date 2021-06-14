@@ -80,7 +80,7 @@ my %unitOpeners = (
     # Find interfaces.
     interface          => { unitName => 2, regEx => "^\\s*(abstract\\s+)??interface\\s+([a-z0-9_\\(\\)\\/\\+\\-\\*\\.=]*)"},
     # Find types.
-    type               => { unitName => 3, regEx => "^\\s*type\\s*(,\\s*abstract\\s*|,\\s*public\\s*|,\\s*private\\s*|,\\s*extends\\s*\\([a-zA-Z0-9_]+\\)\\s*)*(::)??\\s*([a-z0-9_]+)\\s*\$"}
+    type               => { unitName => 3, regEx => "^\\s*type\\s*(,\\s*abstract\\s*|,\\s*public\\s*|,\\s*private\\s*|,\\s*extends\\s*\\([a-zA-Z0-9_]+\\)\\s*|,\\s*bind\\(c\\)\\s*)*(::)??\\s*([a-z0-9_\{\}¦]+)\\s*\$"}
     );
 
 # Specify unit closing regexs.
@@ -90,7 +90,7 @@ my %unitClosers = (
     subroutine         => { unitName => 1, regEx => "^\\s*end\\s+subroutine\\s+([a-z0-9_]+)"},
     function           => { unitName => 1, regEx => "^\\s*end\\s+function\\s+([a-z0-9_]+)"},
     interface          => { unitName => 1, regEx => "^\\s*end\\s+interface"},
-    type               => { unitName => 1, regEx => "^\\s*end\\s+type\\s+([a-z0-9_]+)"}
+    type               => { unitName => 1, regEx => "^\\s*end\\s+type\\s+([a-z0-9_\{\}¦]+)"}
     );
 
 # Find and process all files in the source directory tree.
@@ -107,7 +107,7 @@ find(\&processFile, @sourceDir);
 exit;
 
 sub processFile {
-
+    
     # Process a file in the source directory tree. Scans the file and extracts information on units, variables, types, calls etc.
     my $fileName = $_;
     chomp($fileName);
@@ -171,6 +171,7 @@ sub processFile {
 			  my $parentID = $unitIdList[-1];
 			  # Generate identifier for this unit.
 			  my $unitID = $parentID.":".$unitName;
+			  $unitID =~ s/[¦\{\}]//g;
 			  # Add this unit to the "contains" list for its parent.
 			  $units{$parentID}->{"contains"}->{$unitID} = 1;
 			  # Create an entry for this new unit.
@@ -373,6 +374,7 @@ sub Output_Data {
 	# Get unit name in LaTeX encoding.
 	my $unitName = &latex_encode($units{$unitID}->{"unitName"});
 	$unitName =~ s/\\_/\\\-\\_/g;
+	$unitName =~ s/¦/\\textbrokenbar/g;
 	# Get ID of parent.
 	my $parentID;
 	if ( exists($units{$unitID}->{"belongsTo"}) ) {
@@ -395,7 +397,8 @@ sub Output_Data {
 	
 	# Output header line for unit, skipping nameless interfaces (i.e. abstract interfaces) and any children of such interfaces.
 	unless ( $unitIsAbstract == 1 || $parentUnitIsAbstract == 1 ) {
-	    print $outputHandle "\\noindent{\\normalfont \\bfseries ".$unitType.":} \\hypertarget{".$unitID."}{{\\normalfont \\ttfamily ".$unitName."}}\\index[code]{".$unitName."\@\{\\normalfont \\ttfamily ".$unitName."} (".$unitType.")}\n\n";
+	    (my $hyperdefTarget = $unitID) =~ s/\./_/g;
+	    print $outputHandle "\\noindent{\\normalfont \\bfseries ".$unitType.":} \\hypertarget{".$unitID."}{{\\normalfont \\ttfamily ".$unitName."}}\\hyperdef{source}{".$hyperdefTarget."}{}\\index[code]{".$unitName."\@\{\\normalfont \\ttfamily ".$unitName."} (".$unitType.")}\n\n";
 
 	    # Begin tabulated output.
 	    my $tableOpen = "\\begin{supertabular}{lp{70mm}p{70mm}}\n";

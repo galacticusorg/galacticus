@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,10 @@
 !% Contains a module which implements satellite orbital extrema property extractor class.
 
   !# <nodePropertyExtractor name="nodePropertyExtractorSatelliteOrbitalExtrema">
-  !#  <description>A satellite orbital extrema luminosity property extractor class.</description>
+  !#  <description>
+  !#   A node property extractor which extracts the radii of a satellite's orbital extrema (i.e. pericenter and apocenter) as
+  !#   {\normalfont \ttfamily satellitePericenterRadius} and {\normalfont \ttfamily satellitePericenterVelocity}.
+  !#  </description>
   !# </nodePropertyExtractor>
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorSatelliteOrbitalExtrema
      !% A satellite orbital extrema property extractor class.
@@ -55,19 +58,15 @@ contains
 
     !# <inputParameter>
     !#   <name>extractPericenter</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Specifies whether or not satellite orbital pericenter data (radius, velocity) should be extracted.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>extractApocenter</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Specifies whether or not satellite orbital apocenter data (radius, velocity) should be extracted.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     self=nodePropertyExtractorSatelliteOrbitalExtrema(extractPericenter,extractApocenter)
     !# <inputParametersValidate source="parameters"/>
@@ -100,7 +99,7 @@ contains
     implicit none
     class           (nodePropertyExtractorSatelliteOrbitalExtrema), intent(inout) :: self
     double precision                                              , intent(in   ) :: time
-    !GCC$ attributes unused :: time
+    !$GLC attributes unused :: time
 
     satelliteOrbitalExtremaElementCount=self%elementCount_
     return
@@ -121,7 +120,7 @@ contains
     class           (nodeComponentSatellite                      ), pointer                    :: satellite
     type            (keplerOrbit                                 )                             :: orbit
     double precision                                                                           :: radiusOrbital                 , velocityOrbital
-    !GCC$ attributes unused :: time, instance
+    !$GLC attributes unused :: time, instance
 
     allocate(satelliteOrbitalExtremaExtract(self%elementCount_))
     if (self%extractPericenter) then
@@ -157,7 +156,7 @@ contains
     type            (varying_string                              ), dimension(:) , allocatable :: satelliteOrbitalExtremaNames
     class           (nodePropertyExtractorSatelliteOrbitalExtrema), intent(inout)              :: self
     double precision                                              , intent(in   )              :: time
-    !GCC$ attributes unused :: time
+    !$GLC attributes unused :: time
 
     allocate(satelliteOrbitalExtremaNames(self%elementCount_))
     if (self%extractPericenter) satelliteOrbitalExtremaNames(self%offsetPericenter:self%offsetPericenter+1)=[var_str('satellitePericenterRadius'),var_str('satellitePericenterVelocity')]
@@ -171,7 +170,7 @@ contains
     type            (varying_string                              ), dimension(:) , allocatable :: satelliteOrbitalExtremaDescriptions
     class           (nodePropertyExtractorSatelliteOrbitalExtrema), intent(inout)              :: self
     double precision                                              , intent(in   )              :: time
-    !GCC$ attributes unused :: time
+    !$GLC attributes unused :: time
 
     allocate(satelliteOrbitalExtremaDescriptions(self%elementCount_))
     if (self%extractPericenter) satelliteOrbitalExtremaDescriptions(self%offsetPericenter:self%offsetPericenter+1)=[var_str('Pericenteric radius of satellite orbit [Mpc].'),var_str('Pericenteric velocity of satellite orbit [km/s].')]
@@ -187,7 +186,7 @@ contains
     double precision                                              , allocatable  , dimension(:) :: satelliteOrbitalExtremaUnitsInSI
     class           (nodePropertyExtractorSatelliteOrbitalExtrema), intent(inout)               :: self
     double precision                                              , intent(in   )               :: time
-    !GCC$ attributes unused :: time
+    !$GLC attributes unused :: time
 
     allocate(satelliteOrbitalExtremaUnitsInSI(self%elementCount_))
     if (self%extractPericenter) satelliteOrbitalExtremaUnitsInSI(self%offsetPericenter:self%offsetPericenter+1)=[megaParsec,kilo]
@@ -200,7 +199,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorSatelliteOrbitalExtrema), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     satelliteOrbitalExtremaType=outputAnalysisPropertyTypeLinear
     return

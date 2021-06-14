@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +22,13 @@
   use :: Stellar_Populations_Initial_Mass_Functions, only : initialMassFunction, initialMassFunctionClass
 
   !# <stellarPopulationSpectra name="stellarPopulationSpectraFSPS">
-  !#  <description>Provides stellar population spectra utilizing the FSPS package \citep{conroy_propagation_2009}. If necessary, the {\normalfont \ttfamily FSPS} code will be downloaded, patched and compiled and run to generate spectra. These tabulations are then stored to file for later re-use.</description>
+  !#  <description>
+  !#   A stellar population spectra class utilizing the FSPS package \citep{conroy_propagation_2009}. If necessary, the
+  !#   \href{https://github.com/cconroy20/fsps}{\normalfont \ttfamily FSPS} code will be downloaded, patched and compiled and run
+  !#   to generate spectra. These tabulations are then stored to file for later re-use. The file name used is {\normalfont
+  !#   \ttfamily datasets/dynamic/stellarPopulations/simpleStellarPopulationsFSPS:v2.5\_$&lt;$descriptor$&gt;$.hdf5} where
+  !#   $&lt;${\normalfont \ttfamily descriptor}$&gt;$ is an MD5 hash descriptor of the selected stellar population.
+  !#  </description>
   !# </stellarPopulationSpectra>
   type, extends(stellarPopulationSpectraFile) :: stellarPopulationSpectraFSPS
      !% A stellar population spectra class which utilizes the FSPS package \citep{conroy_propagation_2009}.
@@ -54,8 +60,6 @@ contains
     !#   <defaultValue>.false.</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Force the use of zero metallicity (or lowest metallicity available) for all stellar populations.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="initialMassFunction" name="initialMassFunction_" source="parameters"/>
     self=stellarPopulationSpectraFSPS(forceZeroMetallicity,initialMassFunction_)
@@ -88,7 +92,8 @@ contains
 
   subroutine fspsReadFile(self)
     !% Ensure that the requested stellar population has been generated.
-    use :: File_Utilities , only : File_Exists
+    use :: File_Utilities , only : File_Exists                 , File_Lock     , File_Unlock, lockDescriptor, &
+         &                         File_Path                   , Directory_Make
     use :: IO_HDF5        , only : hdf5Access                  , hdf5Object
     use :: Interfaces_FSPS, only : Interface_FSPS_SSPs_Tabulate
     use :: Tables         , only : table1D
@@ -98,11 +103,15 @@ contains
     logical                                              :: remakeFile
     integer                                              :: fileFormatVersion
     type   (hdf5Object                  )                :: spectraFile
+    type   (lockDescriptor              )                :: fileLock
 
     ! Decide if we need to read the file.
     if (.not.self%fileRead) then
        ! Check if the file exists and has the correct version.
        remakeFile=.false.
+       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
+       call Directory_Make(char(File_Path(char(self%fileName))))
+       call File_Lock(char(self%fileName),fileLock,lockIsShared=.false.)
        if (File_Exists(char(self%fileName))) then
           !$ call hdf5Access%set()
           call spectraFile%openFile     (char(self%fileName),readOnly         =.true.)
@@ -121,6 +130,7 @@ contains
           call Interface_FSPS_SSPs_Tabulate(imf,self%initialMassFunction_%label(),fileFormatVersionCurrent,self%fileName)
           !$omp end critical (stellarPopulationsFSPS)
        end if
+       call File_Unlock(fileLock)
        ! Call the parent file reader to complete reading.
        call self%stellarPopulationSpectraFile%readFile()
     end if

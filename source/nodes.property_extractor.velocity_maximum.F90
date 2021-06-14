@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -86,7 +86,7 @@ contains
     class(nodePropertyExtractorVelocityMaximum), intent(inout)           :: self
     type (treeNode                            ), intent(inout), target   :: node
     type (multiCounter                        ), intent(inout), optional :: instance
-    !GCC$ attributes unused :: instance
+    !$GLC attributes unused :: instance
 
     velocityMaximumExtract=self%darkMatterProfileDMO_%circularVelocityMaximum(node)
     return
@@ -97,7 +97,7 @@ contains
     implicit none
     type (varying_string                      )                :: velocityMaximumName
     class(nodePropertyExtractorVelocityMaximum), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     velocityMaximumName=var_str('darkMatterProfileDMOVelocityMaximum')
     return
@@ -108,7 +108,7 @@ contains
     implicit none
     type (varying_string                      )                :: velocityMaximumDescription
     class(nodePropertyExtractorVelocityMaximum), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     velocityMaximumDescription=var_str('Maximum rotation velocity of the dark matter profile [km/s].')
     return
@@ -119,7 +119,7 @@ contains
     use :: Numerical_Constants_Prefixes, only : kilo
     implicit none
     class(nodePropertyExtractorVelocityMaximum), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     velocityMaximumUnitsInSI=kilo
     return
@@ -130,7 +130,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorVelocityMaximum), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     velocityMaximumType=outputAnalysisPropertyTypeLinear
     return

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,8 +21,7 @@
 
 module Tables
   !% Defines a {\normalfont \ttfamily table} class with optimized interpolation operators.
-  use :: FGSL, only : FGSL_Interp_Linear, fgsl_function   , fgsl_integration_workspace, fgsl_interp, &
-          &           fgsl_interp_accel , fgsl_interp_type
+  use :: Numerical_Interpolation, only : interpolator
   private
   public :: table                          , table1D                          , table1DGeneric                    , &
        &    table1DLinearLinear            , table1DLogarithmicLinear         , table1DNonUniformLinearLogarithmic, &
@@ -36,37 +35,31 @@ module Tables
   !#  <entry label="linearLinear1D"      />
   !#  <entry label="logarithmicLinear1D" />
   !# </enumeration>
-
+  
   !# <stateStorable class="table">
   !#  <table1DGeneric>
-  !#   <restoreTo variables="reset" state=".true."/>
+  !#   <methodCall method="interpolatorReinitialize" arguments="gslFree=.true."/>
   !#  </table1DGeneric>
   !#  <table2DLinLinLin>
-  !#   <restoreTo variables="resetX, resetY" state=".true."/>
+  !#   <methodCall method="interpolatorReinitialize" arguments="gslFree=.true."/>
   !#  </table2DLinLinLin>
   !# </stateStorable>
 
   !# <deepCopyActions class="table">
   !#  <table1DGeneric>
-  !#   <setTo variables="reset" state=".true."/>
+  !#   <methodCall method="interpolatorReinitialize" arguments="gslFree=.false."/>
   !#  </table1DGeneric>
   !#  <table2DLinLinLin>
-  !#   <setTo variables="resetX, resetY" state=".true."/>
+  !#   <methodCall method="interpolatorReinitialize" arguments="gslFree=.false."/>
   !#  </table2DLinLinLin>
   !# </deepCopyActions>
-
+    
   type, abstract :: table
      !% Basic table type.
    contains
-     !@ <objectMethods>
-     !@   <object>table</object>
-     !@   <objectMethod>
-     !@     <method>destroy</method>
-     !@     <arguments></arguments>
-     !@     <type>\void</type>
-     !@     <description>Destroy the table.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#  <method method="destroy" description="Destroy the table."/>
+     !# </methods>
      procedure(Table_Destroy), deferred :: destroy
   end type table
 
@@ -86,75 +79,19 @@ module Tables
      double precision, allocatable, dimension(:  ) :: xv
      double precision, allocatable, dimension(:,:) :: yv
    contains
-     !@ <objectMethods>
-     !@   <object>table1D</object>
-     !@   <objectMethod>
-     !@     <method>interpolate</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ x,\intzero\ [table]</arguments>
-     !@     <description>Interpolate to {\normalfont \ttfamily x} in the {\normalfont \ttfamily table}$^\mathrm{th}$ table.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>interpolateGradient</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ x,\intzero\ [table]</arguments>
-     !@     <description>Interpolate the gradient to {\normalfont \ttfamily x} in the {\normalfont \ttfamily table}$^\mathrm{th}$ table.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>reverse</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(table)\textgreater} reversedSelf,\intzero\ [table], \logicalzero\ [precise]</arguments>
-     !@     <description>Reverse the table (i.e. swap $x$ and $y$ components) and return in {\normalfont \ttfamily reversedSelf}. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^\mathrm{th}$ table is used for the $y$-values, otherwise the first table is used. If the optional {\normalfont \ttfamily precise} argument is set to {\normalfont \ttfamily true} then the reversal must be precisely invertible---if this is not possible the method will abort.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>isMonotonic</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments>\enum\ [directionDecreasing|directionIncreasing],\logicalzero\ [allowEqual],\intzero\ [table]</arguments>
-     !@     <description>Return true if the table $y$-values are monotonic. Optionally, the direction of monotonicity can be specified via the {\normalfont \ttfamily direction} argument---by default either direction is allowed. By default consecutive equal values are considered non-monotonic. This behavior can be changed via the optional {\normalfont \ttfamily allowEqual} argument. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^\mathrm{th}$ table is used for the $y$-values, otherwise the first table is used.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>size</method>
-     !@     <type>\intzero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return the size (i.e. number of $x$-values) in the table.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>x</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\intzero\ i</arguments>
-     !@     <description>Return the {\normalfont \ttfamily i}$^\mathrm{th}$ $x$-value.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>y</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\intzero\ i,\intzero\ [table]</arguments>
-     !@     <description>Return the {\normalfont \ttfamily i}$^\mathrm{th}$ $y$-value. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^\mathrm{th}$ table is used for the $y$-values, otherwise the first table is used.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>xs</method>
-     !@     <type>\doubleone</type>
-     !@     <arguments>\intzero\ i</arguments>
-     !@     <description>Return an array of all $x$-values.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>ys</method>
-     !@     <type>\doubleone</type>
-     !@     <arguments>\intzero\ i,\intzero\ [table]</arguments>
-     !@     <description>Return an array of all $y$-values. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^\mathrm{th}$ table is used for the $y$-values, otherwise the first table is used.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>xEffective</method>
-     !@     <type>\doublezero</type>table
-     !@     <arguments>\doublezero\ x</arguments>
-     !@     <description>Return the effective value of $x$ to use in table interpolations.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>integrationWeights</method>
-     !@     <type>\doubleone</type>
-     !@     <arguments>\doublezero\ x0\argin, \doublezero\ x1\argin</arguments>
-     !@     <description>Return the weights to be applied to the table to integrate (using the trapezium rule) between {\normalfont \ttfamily x0} and {\normalfont \ttfamily x1}.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Interpolate to {\normalfont \ttfamily x} in the {\normalfont \ttfamily table}$^\mathrm{th}$ table." method="interpolate" />
+     !#   <method description="Interpolate the gradient to {\normalfont \ttfamily x} in the {\normalfont \ttfamily table}$^\mathrm{th}$ table." method="interpolateGradient" />
+     !#   <method description="Reverse the table (i.e. swap $x$ and $y$ components) and return in {\normalfont \ttfamily reversedSelf}. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^\mathrm{th}$ table is used for the $y$-values, otherwise the first table is used. If the optional {\normalfont \ttfamily precise} argument is set to {\normalfont \ttfamily true} then the reversal must be precisely invertible---if this is not possible the method will abort." method="reverse" />
+     !#   <method description="Return true if the table $y$-values are monotonic. Optionally, the direction of monotonicity can be specified via the {\normalfont \ttfamily direction} argument---by default either direction is allowed. By default consecutive equal values are considered non-monotonic. This behavior can be changed via the optional {\normalfont \ttfamily allowEqual} argument. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^\mathrm{th}$ table is used for the $y$-values, otherwise the first table is used." method="isMonotonic" />
+     !#   <method description="Return the size (i.e. number of $x$-values) in the table." method="size" />
+     !#   <method description="Return the {\normalfont \ttfamily i}$^\mathrm{th}$ $x$-value." method="x" />
+     !#   <method description="Return the {\normalfont \ttfamily i}$^\mathrm{th}$ $y$-value. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^\mathrm{th}$ table is used for the $y$-values, otherwise the first table is used." method="y" />
+     !#   <method description="Return an array of all $x$-values." method="xs" />
+     !#   <method description="Return an array of all $y$-values. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^\mathrm{th}$ table is used for the $y$-values, otherwise the first table is used." method="ys" />
+     !#   <method description="Return the effective value of $x$ to use in table interpolations." method="xEffective"/>
+     !#   <method description="Return the weights to be applied to the table to integrate (using the trapezium rule) between {\normalfont \ttfamily x0} and {\normalfont \ttfamily x1}." method="integrationWeights" />
+     !# </methods>
      procedure(Table1D_Interpolate ), deferred :: interpolate
      procedure(Table1D_Interpolate ), deferred :: interpolateGradient
      procedure                                 :: destroy             => Table_1D_Destroy
@@ -182,34 +119,26 @@ module Tables
 
   type, extends(table1D) :: table1DGeneric
      !% Table type supporting generic one dimensional tables.
-     type   (fgsl_interp      ) :: interpolator
-     type   (fgsl_interp_accel) :: accelerator
-     type   (fgsl_interp_type ) :: interpolationType
-     logical                    :: reset            =.true.
+     type   (interpolator), allocatable, dimension(:) :: interpolator_
+     logical              , allocatable, dimension(:) :: interpolatorInitialized
+     integer                                          :: interpolationType
    contains
-     !@ <objectMethods>
-     !@   <object>table1DGeneric</object>
-     !@   <objectMethod>
-     !@     <method>create</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doubleone\ x,\intzero\ [tableCount]</arguments>
-     !@     <description>Create the object with the specified {\normalfont \ttfamily x} values, and with {\normalfont \ttfamily tableCount} tables.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>populate</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero|\doubleone\ y,\intzero\ [i],\intzero\ [table]</arguments>
-     !@     <description>Populate the {\normalfont \ttfamily table}$^\mathrm{th}$ table with elements {\normalfont \ttfamily y}. If {\normalfont \ttfamily y} is a scalar, then the index, {\normalfont \ttfamily i}, of the element to set must also be specified.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
-     procedure :: create                          =>Table_Generic_1D_Create
-     procedure :: destroy                         =>Table_Generic_1D_Destroy
-     procedure :: Table_Generic_1D_Populate
-     procedure :: Table_Generic_1D_Populate_Single
-     generic   :: populate                         => Table_Generic_1D_Populate            , &
-          &                                           Table_Generic_1D_Populate_Single
-     procedure :: interpolate        =>Table_Generic_1D_Interpolate
-     procedure :: interpolateGradient=>Table_Generic_1D_Interpolate_Gradient
+     !# <methods>
+     !#   <method description="Create the object with the specified {\normalfont \ttfamily x} values, and with {\normalfont \ttfamily tableCount} tables." method="create" />
+     !#   <method description="Populate the {\normalfont \ttfamily table}$^\mathrm{th}$ table with elements {\normalfont \ttfamily y}. If {\normalfont \ttfamily y} is a scalar, then the index, {\normalfont \ttfamily i}, of the element to set must also be specified." method="populate" />
+     !#   <method description="Reinitialize the interpolator." method="interpolatorReinitialize" />
+     !#   <method description="Initialize the interpolator." method="interpolatorInitialize" />
+     !# </methods>
+     procedure :: create                   => Table_Generic_1D_Create
+     procedure :: destroy                  => Table_Generic_1D_Destroy
+     procedure :: populate_                => Table_Generic_1D_Populate
+     procedure :: populateSingle_          => Table_Generic_1D_Populate_Single
+     generic   :: populate                 => populate_                                 , &
+          &                                   populateSingle_
+     procedure :: interpolate              => Table_Generic_1D_Interpolate
+     procedure :: interpolateGradient      => Table_Generic_1D_Interpolate_Gradient
+     procedure :: interpolatorInitialize   => Table_Generic_1D_Interpolator_Initialize
+     procedure :: interpolatorReinitialize => Table_Generic_1D_Interpolator_Reinitialize
   end type table1DGeneric
 
   type, extends(table1D) :: table1DLinearLinear
@@ -218,21 +147,10 @@ module Tables
           &              yPrevious
      integer          :: dTablePrevious, tablePrevious
    contains
-     !@ <objectMethods>
-     !@   <object>table1DLinearLinear</object>
-     !@   <objectMethod>
-     !@     <type>\void</type>
-     !@     <method>create</method>
-     !@     <arguments>\doublezero\ xMinimum,\doublezero\ xMaximum,\intzero xCount,\intzero [tableCount]</arguments>
-     !@     <description>Create the object with $x$-values spanning the range {\normalfont \ttfamily xMinimum} to {\normalfont \ttfamily xMaximum} in {\normalfont \ttfamily xCount} steps, and with {\normalfont \ttfamily tableCount} tables.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>populate</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero|\doubleone\ y,\intzero\ [i],\intzero\ [table]</arguments>
-     !@     <description>Populate the {\normalfont \ttfamily table}$^\mathrm{th}$ table with elements {\normalfont \ttfamily y}. If {\normalfont \ttfamily y} is a scalar, then the index, {\normalfont \ttfamily i}, of the element to set must also be specified.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Create the object with $x$-values spanning the range {\normalfont \ttfamily xMinimum} to {\normalfont \ttfamily xMaximum} in {\normalfont \ttfamily xCount} steps, and with {\normalfont \ttfamily tableCount} tables." method="create" />
+     !#   <method description="Populate the {\normalfont \ttfamily table}$^\mathrm{th}$ table with elements {\normalfont \ttfamily y}. If {\normalfont \ttfamily y} is a scalar, then the index, {\normalfont \ttfamily i}, of the element to set must also be specified." method="populate" />
+     !# </methods>
      procedure :: create              => Table_Linear_1D_Create
      procedure ::                        Table_Linear_1D_Populate
      procedure ::                        Table_Linear_1D_Populate_Single
@@ -258,13 +176,13 @@ module Tables
   type, extends(table1DGeneric) :: table1DNonUniformLinearLogarithmic
      !% Table type supporting one dimensional table with non-uniform x-axis and logarithmic in $y$.
    contains
-     procedure :: Table_Generic_1D_Populate        => Table_NonUniform_Linear_Logarithmic_1D_Populate
-     procedure :: Table_Generic_1D_Populate_Single => Table_NonUniform_Linear_Logarithmic_1D_Populate_Single
-     procedure :: interpolate                      => Table_NonUniform_Linear_Logarithmic_1D_Interpolate
-     procedure :: interpolateGradient              => Table_NonUniform_Linear_Logarithmic_1D_Interpolate_Gradient
-     procedure :: y                                => Table_NonUniform_Linear_Logarithmic_1D_Y
-     procedure :: ys                               => Table_NonUniform_Linear_Logarithmic_1D_Ys
-     procedure :: integrationWeights               => Table_NonUniform_Linear_Logarithmic_Integration_Weights
+     procedure :: populate_           => Table_NonUniform_Linear_Logarithmic_1D_Populate
+     procedure :: populateSingle_     => Table_NonUniform_Linear_Logarithmic_1D_Populate_Single
+     procedure :: interpolate         => Table_NonUniform_Linear_Logarithmic_1D_Interpolate
+     procedure :: interpolateGradient => Table_NonUniform_Linear_Logarithmic_1D_Interpolate_Gradient
+     procedure :: y                   => Table_NonUniform_Linear_Logarithmic_1D_Y
+     procedure :: ys                  => Table_NonUniform_Linear_Logarithmic_1D_Ys
+     procedure :: integrationWeights  => Table_NonUniform_Linear_Logarithmic_Integration_Weights
   end type table1DNonUniformLinearLogarithmic
 
   type, extends(table1D) :: table1DLinearCSpline
@@ -276,21 +194,10 @@ module Tables
      double precision                              :: aPrevious     , bPrevious    , cPrevious    , dPrevious, &
           &                                           dxPrevious    , dyPrevious   , xPrevious    , yPrevious
    contains
-     !@ <objectMethods>
-     !@   <object>table1DLinearCSpline</object>
-     !@   <objectMethod>
-     !@     <method>create</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ xMinimum,\doublezero\ xMaximum,\intzero xCount,\intzero [tableCount]</arguments>
-     !@     <description>Create the object with $x$-values spanning the range {\normalfont \ttfamily xMinimum} to {\normalfont \ttfamily xMaximum} in {\normalfont \ttfamily xCount} steps, and with {\normalfont \ttfamily tableCount} tables.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>populate</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero|\doubleone\ y,\intzero\ [i],\intzero\ [table]</arguments>
-     !@     <description>Populate the {\normalfont \ttfamily table}$^\mathrm{th}$ table with elements {\normalfont \ttfamily y}. If {\normalfont \ttfamily y} is a scalar, then the index, {\normalfont \ttfamily i}, of the element to set must also be specified.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Create the object with $x$-values spanning the range {\normalfont \ttfamily xMinimum} to {\normalfont \ttfamily xMaximum} in {\normalfont \ttfamily xCount} steps, and with {\normalfont \ttfamily tableCount} tables." method="create" />
+     !#   <method description="Populate the {\normalfont \ttfamily table}$^\mathrm{th}$ table with elements {\normalfont \ttfamily y}. If {\normalfont \ttfamily y} is a scalar, then the index, {\normalfont \ttfamily i}, of the element to set must also be specified." method="populate" />
+     !# </methods>
      procedure :: create              => Table_Linear_CSpline_1D_Create
      procedure :: destroy             => Table_Linear_CSpline_1D_Destroy
      procedure :: populateArray       => Table_Linear_CSpline_1D_Populate
@@ -307,32 +214,17 @@ module Tables
      double precision :: xLinearPrevious, xLogarithmicPrevious
      double precision :: xMinimum       , xMaximum
    contains
-     procedure :: create             =>Table_Logarithmic_CSpline_1D_Create
-     procedure :: interpolate        =>Table_Logarithmic_CSpline_1D_Interpolate
-     procedure :: interpolateGradient=>Table_Logarithmic_CSpline_1D_Interpolate_Gradient
-     procedure :: x                  =>Table_Logarithmic_CSpline_1D_X
-     procedure :: xs                 =>Table_Logarithmic_CSpline_1D_Xs
+     procedure :: create              => Table_Logarithmic_CSpline_1D_Create
+     procedure :: interpolate         => Table_Logarithmic_CSpline_1D_Interpolate
+     procedure :: interpolateGradient => Table_Logarithmic_CSpline_1D_Interpolate_Gradient
+     procedure :: x                   => Table_Logarithmic_CSpline_1D_X
+     procedure :: xs                  => Table_Logarithmic_CSpline_1D_Xs
   end type table1DLogarithmicCSpline
 
   type, extends(table1DLinearCSpline) :: table1DLinearMonotoneCSpline
      !% Table type supporting one dimensional table with linear spacing in $x$ and monotonic cubic spline interpolation.
      double precision, allocatable, dimension(:,:) :: c1            , c2           , c3
    contains
-     !@ <objectMethods>
-     !@   <object>table1DLinearMonotoneCSpline</object>
-     !@   <objectMethod>
-     !@     <method>create</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ xMinimum,\doublezero\ xMaximum,\intzero xCount,\intzero [tableCount]</arguments>
-     !@     <description>Create the object with $x$-values spanning the range {\normalfont \ttfamily xMinimum} to {\normalfont \ttfamily xMaximum} in {\normalfont \ttfamily xCount} steps, and with {\normalfont \ttfamily tableCount} tables.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>populate</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero|\doubleone\ y,\intzero\ [i],\intzero\ [table]</arguments>
-     !@     <description>Populate the {\normalfont \ttfamily table}$^\mathrm{th}$ table with elements {\normalfont \ttfamily y}. If {\normalfont \ttfamily y} is a scalar, then the index, {\normalfont \ttfamily i}, of the element to set must also be specified.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
      procedure :: create              => Table_Linear_Monotone_CSpline_1D_Create
      procedure :: destroy             => Table_Linear_Monotone_CSpline_1D_Destroy
      procedure :: populateArray       => Table_Linear_Monotone_CSpline_1D_Populate
@@ -348,11 +240,11 @@ module Tables
      double precision :: xLinearPrevious, xLogarithmicPrevious
      double precision :: xMinimum       , xMaximum
    contains
-     procedure :: create             =>Table_Logarithmic_Monotone_CSpline_1D_Create
-     procedure :: interpolate        =>Table_Logarithmic_Monotone_CSpline_1D_Interpolate
-     procedure :: interpolateGradient=>Table_Logarithmic_Monotone_CSpline_1D_Interpolate_Gradient
-     procedure :: x                  =>Table_Logarithmic_Monotone_CSpline_1D_X
-     procedure :: xs                 =>Table_Logarithmic_Monotone_CSpline_1D_Xs
+     procedure :: create              => Table_Logarithmic_Monotone_CSpline_1D_Create
+     procedure :: interpolate         => Table_Logarithmic_Monotone_CSpline_1D_Interpolate
+     procedure :: interpolateGradient => Table_Logarithmic_Monotone_CSpline_1D_Interpolate_Gradient
+     procedure :: x                   => Table_Logarithmic_Monotone_CSpline_1D_X
+     procedure :: xs                  => Table_Logarithmic_Monotone_CSpline_1D_Xs
   end type table1DLogarithmicMonotoneCSpline
 
   abstract interface
@@ -363,52 +255,20 @@ module Tables
 
   type, extends(table) :: table2DLinLinLin
      !% Table type supporting generic two dimensional tables.
-     integer                                                            :: xCount               , yCount
-     double precision                   , allocatable, dimension(:    ) :: xv                   , yv
-     double precision                   , allocatable, dimension(:,:,:) :: zv
-     type            (fgsl_interp      )                                :: interpolatorX        , interpolatorY
-     type            (fgsl_interp_accel)                                :: acceleratorX         , acceleratorY
-     logical                                                            :: resetX        =.true., resetY       =.true.
+     integer                                                       :: xCount       , yCount
+     double precision              , allocatable, dimension(:    ) :: xv           , yv
+     double precision              , allocatable, dimension(:,:,:) :: zv
+     type            (interpolator)                                :: interpolatorX, interpolatorY
    contains
-     !@ <objectMethods>
-     !@   <object>table2DLinLinLin</object>
-     !@   <objectMethod>
-     !@     <method>create</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doubleone\ x,\doubleone\ y,\intzero\ [tableCount]</arguments>
-     !@     <description>Create the object with the specified {\normalfont \ttfamily x} and {\normalfont \ttfamily y} values, and with {\normalfont \ttfamily tableCount} tables.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>populate</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero|\doubletwo\ z,\intzero\ [i],\intzero\ [j],\intzero\ [table]</arguments>
-     !@     <description>Populate the {\normalfont \ttfamily table}$^\mathrm{th}$ table with elements {\normalfont \ttfamily y}. If {\normalfont \ttfamily y} is a scalar, then the indices, {\normalfont \ttfamily i}, {\normalfont \ttfamily j}, of the element to set must also be specified.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>interpolate</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ x,\doublezero\ y,\intzero\ [table]</arguments>
-     !@     <description>Interpolate to {\normalfont \ttfamily x}, {\normalfont \ttfamily y} in the {\normalfont \ttfamily table}$^\mathrm{th}$ table.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>xs</method>
-     !@     <type>\doubleone</type>
-     !@     <arguments></arguments>
-     !@     <description>Return an array of all {\normalfont \ttfamily x} values.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>ys</method>
-     !@     <type>\doubleone</type>
-     !@     <arguments></arguments>
-     !@     <description>Return an array of all {\normalfont \ttfamily y} values.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>zs</method>
-     !@     <type>\doublethree</type>
-     !@     <arguments></arguments>
-     !@     <description>Return an array of all {\normalfont \ttfamily z} values.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Create the object with the specified {\normalfont \ttfamily x} and {\normalfont \ttfamily y} values, and with {\normalfont \ttfamily tableCount} tables." method="create" />
+     !#   <method description="Populate the {\normalfont \ttfamily table}$^\mathrm{th}$ table with elements {\normalfont \ttfamily y}. If {\normalfont \ttfamily y} is a scalar, then the indices, {\normalfont \ttfamily i}, {\normalfont \ttfamily j}, of the element to set must also be specified." method="populate" />
+     !#   <method description="Interpolate to {\normalfont \ttfamily x}, {\normalfont \ttfamily y} in the {\normalfont \ttfamily table}$^\mathrm{th}$ table." method="interpolate" />
+     !#   <method description="Return an array of all {\normalfont \ttfamily x} values." method="xs" />
+     !#   <method description="Return an array of all {\normalfont \ttfamily y} values." method="ys" />
+     !#   <method description="Return an array of all {\normalfont \ttfamily z} values." method="zs" />
+     !#   <method description="Reinitialize the interpolator." method="interpolatorReinitialize" />
+     !# </methods>
      procedure :: create                           => Table_2D_LinLinLin_Create
      procedure :: destroy                          => Table_2D_LinLinLin_Destroy
      procedure :: Table_2D_LinLinLin_Populate
@@ -419,6 +279,7 @@ module Tables
      procedure :: xs                               => Table_2D_LinLinLin_Xs
      procedure :: ys                               => Table_2D_LinLinLin_Ys
      procedure :: zs                               => Table_2D_LinLinLin_Zs
+     procedure :: interpolatorReinitialize         => Table_2D_LinLinLin_Interpolator_Reinitialize
   end type table2DLinLinLin
 
   type, extends(table) :: table2DLogLogLin
@@ -436,87 +297,21 @@ module Tables
      double precision, allocatable, dimension(:    ) :: xv                  , yv
      double precision, allocatable, dimension(:,:,:) :: zv
    contains
-     !@ <objectMethods>
-     !@   <object>table2DLogLogLin</object>
-     !@   <objectMethod>
-     !@     <method>interpolationFactors</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ x, \doublezero\ y</arguments>
-     !@     <description>Compute and store interpolation factors to {\normalfont \ttfamily (x,y)}.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>interpolate</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ x,\intzero\ [table]</arguments>
-     !@     <description>Interpolate to {\normalfont \ttfamily x} in the {\normalfont \ttfamily table}$^\mathrm{th}$ table.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>interpolateGradient</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ x,\intzero\ [table]</arguments>
-     !@     <description>Interpolate the gradient to {\normalfont \ttfamily x} in the {\normalfont \ttfamily table}$^\mathrm{th}$ table.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>size</method>
-     !@     <type>\intzero</type>
-     !@     <arguments>\intzero\ dim</arguments>
-     !@     <description>Return the size (i.e. number of $x$ or $y$-values) in the table of the given dimension.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>x</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\intzero\ i</arguments>
-     !@     <description>Return the {\normalfont \ttfamily i}$^\mathrm{th}$ $x$-value.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>y</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\intzero\ i,\intzero\ [table]</arguments>
-     !@     <description>Return the {\normalfont \ttfamily i}$^\mathrm{th}$ $y$-value. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^\mathrm{th}$ table is used for the $y$-values, otherwise the first table is used.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>z</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\intzero\ i,\intzero\ j,\intzero\ [table]</arguments>
-     !@     <description>Return the {\normalfont \ttfamily (i,j)}$^\mathrm{th}$ $z$-value. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^\mathrm{th}$ table is used for the $z$-values, otherwise the first table is used.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>xs</method>
-     !@     <type>\doubleone</type>
-     !@     <arguments></arguments>
-     !@     <description>Return an array of all $x$-values.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>ys</method>
-     !@     <type>\doubleone</type>
-     !@     <arguments></arguments>
-     !@     <description>Return an array of all $y$-values. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^\mathrm{th}$ table is used for the $y$-values, otherwise the first table is used.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>zs</method>
-     !@     <type>\doubletwo</type>
-     !@     <arguments>\intzero\ [table]</arguments>
-     !@     <description>Return an array of all $z$-values. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^\mathrm{th}$ table is used for the $z$-values, otherwise the first table is used.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>isInitialized</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return true if the table is initialized (this means the table is created, it may not yet have been populated).</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>populate</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero|\doubletwo\ z,\intzero\ [i],\intzero\ [j],\intzero\ [table]</arguments>
-     !@     <description>Populate the {\normalfont \ttfamily table}$^\mathrm{th}$ table with elements {\normalfont \ttfamily y}. If {\normalfont \ttfamily y} is a scalar, then the index, {\normalfont \ttfamily i}, of the element to set must also be specified.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>create</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ xMinimum,\doublezero\ xMaximum,\doublezero\ yMinimum,\doublezero\ yMaximum,\intzero yCount,\intzero [tableCount],\enumExtrapolationType [extrapolationTypeX],\enumExtrapolationType [extrapolationTypeY]</arguments>
-     !@     <description>Create the object with $x$-values spanning the range {\normalfont \ttfamily xMinimum} to {\normalfont \ttfamily xMaximum} in {\normalfont \ttfamily xCount} steps, and with {\normalfont \ttfamily tableCount} tables.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Compute and store interpolation factors to {\normalfont \ttfamily (x,y)}." method="interpolationFactors" />
+     !#   <method description="Interpolate to {\normalfont \ttfamily x} in the {\normalfont \ttfamily table}$^\mathrm{th}$ table." method="interpolate" />
+     !#   <method description="Interpolate the gradient to {\normalfont \ttfamily x} in the {\normalfont \ttfamily table}$^\mathrm{th}$ table." method="interpolateGradient" />
+     !#   <method description="Return the size (i.e. number of $x$ or $y$-values) in the table of the given dimension." method="size" />
+     !#   <method description="Return the {\normalfont \ttfamily i}$^\mathrm{th}$ $x$-value." method="x" />
+     !#   <method description="Return the {\normalfont \ttfamily i}$^\mathrm{th}$ $y$-value. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^\mathrm{th}$ table is used for the $y$-values, otherwise the first table is used." method="y" />
+     !#   <method description="Return the {\normalfont \ttfamily (i,j)}$^\mathrm{th}$ $z$-value. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^\mathrm{th}$ table is used for the $z$-values, otherwise the first table is used." method="z" />
+     !#   <method description="Return an array of all $x$-values." method="xs" />
+     !#   <method description="Return an array of all $y$-values. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^\mathrm{th}$ table is used for the $y$-values, otherwise the first table is used." method="ys" />
+     !#   <method description="Return an array of all $z$-values. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^\mathrm{th}$ table is used for the $z$-values, otherwise the first table is used." method="zs" />
+     !#   <method description="Return true if the table is initialized (this means the table is created, it may not yet have been populated)." method="isInitialized" />
+     !#   <method description="Populate the {\normalfont \ttfamily table}$^\mathrm{th}$ table with elements {\normalfont \ttfamily y}. If {\normalfont \ttfamily y} is a scalar, then the index, {\normalfont \ttfamily i}, of the element to set must also be specified." method="populate" />
+     !#   <method description="Create the object with $x$-values spanning the range {\normalfont \ttfamily xMinimum} to {\normalfont \ttfamily xMaximum} in {\normalfont \ttfamily xCount} steps, and with {\normalfont \ttfamily tableCount} tables." method="create" />
+     !# </methods>
      procedure :: create                            => Table_2DLogLogLin_Create
      procedure :: Table_2DLogLogLin_Populate
      procedure :: Table_2DLogLogLin_Populate_Single
@@ -601,8 +396,9 @@ contains
   subroutine Table_1D_Reverse(self,reversedSelf,table,precise)
     !% Reverse a 1D table (i.e. swap $x$ and $y$ components). Optionally allows specification of
     !% which $y$ table to swap with.
-    use :: Array_Utilities , only : Array_Is_Monotonic     , Array_Reverse, directionDecreasing
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Array_Utilities        , only : Array_Is_Monotonic     , Array_Reverse, directionDecreasing
+    use :: Galacticus_Error       , only : Galacticus_Error_Report
+    use :: Numerical_Interpolation, only : GSL_Interp_Linear
     implicit none
     class  (table1D)             , intent(in   )           :: self
     class  (table1D), allocatable, intent(inout)           :: reversedSelf
@@ -621,7 +417,6 @@ contains
     allocate(table1DGeneric :: reversedSelf)
     select type (reversedSelf)
     type is (table1DGeneric)
-       reversedSelf%reset                =.true.
        reversedSelf%xCount               =self        %xCount
        reversedSelf%yv                   =self        %ys    (             )
        reversedSelf%xv                   =reversedSelf%yv    (:,tableActual)
@@ -636,7 +431,12 @@ contains
        ! Copy the extrapolation option from the original table.
        reversedSelf%extrapolationType=self%extrapolationType
        ! Set linear interpolation.
-       reversedSelf%interpolationType=FGSL_Interp_Linear
+       reversedSelf%interpolationType=GSL_Interp_Linear
+       ! Build the interpolator.
+       allocate(reversedSelf%interpolator_          (1))
+       allocate(reversedSelf%interpolatorInitialized(1))
+       reversedSelf%interpolator_          (1)=interpolator(reversedSelf%xv,interpolationType=GSL_Interp_Linear,extrapolationType=self%extrapolationType(1))
+       reversedSelf%interpolatorInitialized(1)=.true.
     end select
     return
   end subroutine Table_1D_Reverse
@@ -697,50 +497,50 @@ contains
 
   subroutine Table_Generic_1D_Create(self,x,tableCount,extrapolationType,interpolationType)
     !% Create a 1-D generic table.
-    use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: Memory_Management, only : allocateArray
-    use :: Table_Labels     , only : extrapolationTypeExtrapolate, extrapolationTypeZero
+    use :: Galacticus_Error       , only : Galacticus_Error_Report
+    use :: Memory_Management      , only : allocateArray
+    use :: Numerical_Interpolation, only : GSL_Interp_Linear
+    use :: Table_Labels           , only : extrapolationTypeExtrapolate, extrapolationTypeZero
     implicit none
     class           (table1DGeneric  )              , intent(inout)           :: self
     double precision                  , dimension(:), intent(in   )           :: x
-    integer                                         , intent(in   ), optional :: tableCount
+    integer                                         , intent(in   ), optional :: interpolationType, tableCount
     integer                           , dimension(2), intent(in   ), optional :: extrapolationType
-    type            (fgsl_interp_type)              , intent(in   ), optional :: interpolationType
-    integer                                                                   :: tableCountActual
-
-    ! Determine number of tables.
-    tableCountActual=1
-    if (present(tableCount)) tableCountActual=tableCount
+    !# <optionalArgument name="tableCount"        defaultsTo="1"                           />
+    !# <optionalArgument name="extrapolationType" defaultsTo="extrapolationTypeExtrapolate"/>
+    !# <optionalArgument name="interpolationType" defaultsTo="GSL_Interp_Linear"           />
+    
     ! Allocate arrays and construct the x-range.
     self%xCount=size(x)
-    call allocateArray(self%xv,[size(x)                 ])
-    call allocateArray(self%yv,[size(x),tableCountActual])
-    self%xv   =x
-    self%reset=.true.
-    ! Set interpolation type.
-    if (present(interpolationType)) then
-       self%interpolationType=interpolationType
+    allocate(self%xv(size(x)            ))
+    allocate(self%yv(size(x),tableCount_))
+    self%xv               =x
+    self%interpolationType=interpolationType_
+    self%extrapolationType=extrapolationType_
+    ! Validate extrapolation type.
+    if (any(extrapolationType_ == extrapolationTypeZero)) call Galacticus_Error_Report('zero extrapolation is not supported'//{introspection:location})
+    ! Allocate interpolators, and build if possible.
+    if (interpolationType_ == GSL_Interp_Linear) then
+       allocate(self%interpolator_          (1))
+       allocate(self%interpolatorInitialized(1))
+       self%interpolator_          (1)=interpolator(self%xv,extrapolationType=self%extrapolationType(1),interpolationType=self%interpolationType)
+       self%interpolatorInitialized(1)=.true.
     else
-       self%interpolationType=FGSL_Interp_Linear
-    end if
-    ! Set extrapolation type.
-    if (present(extrapolationType)) then
-       if (any(extrapolationType == extrapolationTypeZero)) call Galacticus_Error_Report('zero extrapolation is not supported'//{introspection:location})
-       self%extrapolationType=extrapolationType
-    else
-       self%extrapolationType=extrapolationTypeExtrapolate
+       allocate(self%interpolator_          (tableCount_))
+       allocate(self%interpolatorInitialized(tableCount_))
+       self%interpolatorInitialized   =.false.
     end if
     return
   end subroutine Table_Generic_1D_Create
 
   subroutine Table_Generic_1D_Destroy(self)
     !% Destroy a generic 1-D table.
-    use :: Numerical_Interpolation, only : Interpolate_Done
     implicit none
     class(table1DGeneric), intent(inout) :: self
 
+    if (allocated(self%interpolator_          )) deallocate(self%interpolator_          )
+    if (allocated(self%interpolatorInitialized)) deallocate(self%interpolatorInitialized)
     call Table_1D_Destroy(self)
-    call Interpolate_Done(self%interpolator,self%accelerator,self%reset)
     return
   end subroutine Table_Generic_1D_Destroy
 
@@ -751,18 +551,13 @@ contains
     class           (table1DGeneric)              , intent(inout)           :: self
     double precision                , dimension(:), intent(in   )           :: y
     integer                                       , intent(in   ), optional :: table
-    integer                                                                 :: tableActual
+    !# <optionalArgument name="table" defaultsTo="1"/>
 
     ! Validate the input.
     if (.not.allocated(self%yv)       ) call Galacticus_Error_Report("create the table before populating it"//{introspection:location})
     if (size(self%yv,dim=1) /= size(y)) call Galacticus_Error_Report("provided y array is of wrong size"    //{introspection:location})
-
-    ! Determine which table to use.
-    tableActual=1
-    if (present(table)) tableActual=table
-
     ! Store the y values.
-    self%yv(:,tableActual)=y
+    self%yv(:,table_)=y
     return
   end subroutine Table_Generic_1D_Populate
 
@@ -774,50 +569,84 @@ contains
     double precision                , intent(in   )           :: y
     integer                         , intent(in   )           :: i
     integer                         , intent(in   ), optional :: table
-    integer                                                   :: tableActual
+    !# <optionalArgument name="table" defaultsTo="1"/>
 
     ! Validate the input.
     if (.not.allocated(self%yv)           ) call Galacticus_Error_Report("create the table before populating it"//{introspection:location})
     if (i < 1 .or. i > size(self%yv,dim=1)) call Galacticus_Error_Report("provided i value is out of bounds"    //{introspection:location})
-
-    ! Determine which table to use.
-    tableActual=1
-    if (present(table)) tableActual=table
-
     ! Store the y values.
-    self%yv(i,tableActual)=y
+    self%yv(i,table_)=y
     return
   end subroutine Table_Generic_1D_Populate_Single
 
+  subroutine Table_Generic_1D_Interpolator_Initialize(self,table)
+    !% Initialize an interpolator.
+    use :: Numerical_Interpolation, only : GSL_Interp_Linear
+    implicit none
+    class  (table1DGeneric), intent(inout) :: self
+    integer                , intent(in   ) :: table
+
+    if (self%interpolationType == GSL_Interp_Linear) return
+    if (.not.self%interpolatorInitialized(table)) then
+       self%interpolator_          (table)=interpolator(self%xv,self%yv(:,table),extrapolationType=self%extrapolationType(1),interpolationType=self%interpolationType)
+       self%interpolatorInitialized(table)=.true.
+    end if
+    return
+  end subroutine Table_Generic_1D_Interpolator_Initialize
+  
   double precision function Table_Generic_1D_Interpolate(self,x,table)
     !% Perform generic interpolation in a generic 1D table.
-    use :: Numerical_Interpolation, only : Interpolate
+    use :: Numerical_Interpolation, only : GSL_Interp_Linear
     implicit none
     class           (table1DGeneric), intent(inout)           :: self
     double precision                , intent(in   )           :: x
     integer                         , intent(in   ), optional :: table
-    integer                                                   :: tableActual
+    integer                                                   :: interpolator_
+    !# <optionalArgument name="table" defaultsTo="1"/>
 
-    tableActual=1
-    if (present(table)) tableActual=table
-    Table_Generic_1D_Interpolate=Interpolate(self%xv,self%yv(:,tableActual),self%interpolator,self%accelerator,self%xEffective(x),extrapolationType=self%extrapolationType(1),interpolationType=self%interpolationType,reset=self%reset)
+    call self%interpolatorInitialize(table_)
+    if (self%interpolationType == GSL_Interp_Linear) then
+       interpolator_=1
+    else
+       interpolator_=table_
+    end if
+    Table_Generic_1D_Interpolate=self%interpolator_(interpolator_)%interpolate(self%xEffective(x),self%yv(:,table_))
     return
   end function Table_Generic_1D_Interpolate
-
+  
   double precision function Table_Generic_1D_Interpolate_Gradient(self,x,table)
     !% Perform generic interpolation in a generic 1D table.
-    use :: Numerical_Interpolation, only : Interpolate_Derivative
+    use :: Numerical_Interpolation, only : GSL_Interp_Linear
     implicit none
     class           (table1DGeneric), intent(inout)           :: self
     double precision                , intent(in   )           :: x
     integer                         , intent(in   ), optional :: table
-    integer                                                   :: tableActual
-
-    tableActual=1
-    if (present(table)) tableActual=table
-    Table_Generic_1D_Interpolate_Gradient=Interpolate_Derivative(self%xv,self%yv(:,tableActual),self%interpolator,self%accelerator,self%xEffective(x),reset=self%reset,extrapolationType=self%extrapolationType(1),interpolationType=self%interpolationType)
+    integer                                                   :: interpolator_
+    !# <optionalArgument name="table" defaultsTo="1"/>
+    
+    call self%interpolatorInitialize(table_)
+    if (self%interpolationType == GSL_Interp_Linear) then
+       interpolator_=1
+    else
+       interpolator_=table_
+    end if
+    Table_Generic_1D_Interpolate_Gradient=self%interpolator_(interpolator_)%derivative(self%xEffective(x),self%yv(:,table_))
     return
   end function Table_Generic_1D_Interpolate_Gradient
+
+  subroutine Table_Generic_1D_Interpolator_Reinitialize(self,gslFree)
+    !% Reinitialize the interpolator.
+    implicit none
+    class  (table1DGeneric), intent(inout) :: self
+    logical                , intent(in   ) :: gslFree
+    integer                                :: i
+
+    if (.not.allocated(self%interpolator_)) return
+    do i=1,size(self%interpolator_)
+       call self%interpolator_(i)%GSLReallocate(gslFree)
+    end do
+    return
+  end subroutine Table_Generic_1D_Interpolator_Reinitialize
 
   subroutine Table_Linear_1D_Create(self,xMinimum,xMaximum,xCount,tableCount,extrapolationType)
     !% Create a 1-D linear table.
@@ -848,7 +677,6 @@ contains
     self%dxPrevious    =-1.0d0
     ! Set extrapolation type.
     if (present(extrapolationType)) then
-       if (any(extrapolationType == extrapolationTypeZero)) call Galacticus_Error_Report('zero extrapolation is not supported'//{introspection:location})
        self%extrapolationType=extrapolationType
     else
        self%extrapolationType=extrapolationTypeExtrapolate
@@ -911,6 +739,7 @@ contains
 
   double precision function Table_Linear_1D_Interpolate(self,x,table)
     !% Perform linear interpolation in a linear 1D table.
+    use :: Table_Labels, only : extrapolationTypeZero
     implicit none
     class           (table1DLinearLinear), intent(inout)           :: self
     double precision                     , intent(in   )           :: x
@@ -926,8 +755,16 @@ contains
     if (xEffective /= self%xPrevious .or. tableActual /= self%tablePrevious) then
        ! Determine the location in the table.
        if      (xEffective <  self%xv(          1)) then
+          if (self%extrapolationType(1) == extrapolationTypeZero) then
+             Table_Linear_1D_Interpolate=0.0d0
+             return
+          end if
           i=1
        else if (xEffective >= self%xv(self%xCount)) then
+          if (self%extrapolationType(2) == extrapolationTypeZero) then
+             Table_Linear_1D_Interpolate=0.0d0
+             return
+          end if
           i=self%xCount-1
        else
           i=max(min(int((xEffective-self%xv(1))*self%inverseDeltaX)+1,self%xCount-1),1)
@@ -946,6 +783,7 @@ contains
 
   double precision function Table_Linear_1D_Interpolate_Gradient(self,x,table)
     !% Perform linear interpolation in a linear 1D table.
+    use :: Table_Labels, only : extrapolationTypeZero
     implicit none
     class           (table1DLinearLinear), intent(inout)           :: self
     double precision                     , intent(in   )           :: x
@@ -961,8 +799,16 @@ contains
     if (xEffective /= self%dxPrevious .or. tableActual /= self%dTablePrevious) then
        ! Determine the location in the table.
        if      (xEffective <  self%xv(          1)) then
+          if (self%extrapolationType(1) == extrapolationTypeZero) then
+             Table_Linear_1D_Interpolate_Gradient=0.0d0
+             return
+          end if
           i=1
        else if (xEffective >= self%xv(self%xCount)) then
+          if (self%extrapolationType(2) == extrapolationTypeZero) then
+             Table_Linear_1D_Interpolate_Gradient=0.0d0
+             return
+          end if
           i=self%xCount-1
        else
           i=int((xEffective-self%xv(1))*self%inverseDeltaX)+1
@@ -1048,20 +894,22 @@ contains
   function Table_Logarithmic_Integration_Weights(self,x0,x1,integrand)
     !% Returns a set of weights for trapezoidal integration on the table between limits {\normalfont \ttfamily x0} and {\normalfont \ttfamily x1}.
     use :: Galacticus_Error     , only : Galacticus_Error_Report
-    use :: Numerical_Integration, only : Integrate              , Integrate_Done
+    use :: Numerical_Integration, only : integrator
     implicit none
-    class           (table1DLogarithmicLinear               ), intent(inout)                               :: self
-    double precision                                         , intent(in   )                               :: x0, x1
-    procedure       (tablesIntegrationWeightFunction        ), intent(in   )           , pointer, optional :: integrand
-    double precision                                         , dimension(size(self%xv))                    :: Table_Logarithmic_Integration_Weights
-    double precision                                         , parameter                                   :: logTolerance=1.0d-12
-    double precision                                                                                       :: gradientTerm, lx0, lx1, factor0, factor1
-    integer                                                                                                :: i
-    type            (fgsl_function                           )                                             :: integrandFunction
-    type            (fgsl_integration_workspace              )                                             :: integrationWorkspace
-    logical                                                                                                :: integrationReset
+    class           (table1DLogarithmicLinear       ), intent(inout)                               :: self
+    double precision                                 , intent(in   )                               :: x0, x1
+    procedure       (tablesIntegrationWeightFunction), intent(in   )           , pointer, optional :: integrand
+    double precision                                 , dimension(size(self%xv))                    :: Table_Logarithmic_Integration_Weights
+    double precision                                 , parameter                                   :: logTolerance                         =1.0d-12
+    double precision                                                                               :: gradientTerm                                 , lx0        , &
+         &                                                                                            lx1                                          , factor0    , &
+         &                                                                                            factor1
+    integer                                                                                        :: i
+    type            (integrator                     )                                              :: integrator0                                  , integrator1
 
     if (x1 < x0) call Galacticus_Error_Report('inverted limits'//{introspection:location})
+    integrator0=integrator(factor0Integrand,toleranceRelative=1.0d-4)
+    integrator1=integrator(factor1Integrand,toleranceRelative=1.0d-4)
     Table_Logarithmic_Integration_Weights=0.0d0
     do i=2,size(self%xv)
        ! Evaluate integration range for this interval of the table.
@@ -1079,28 +927,8 @@ contains
        if (lx1 > lx0+logTolerance) then
           if (present(integrand)) then
              ! An integrand is given, numerically integrate the relevant terms over the integrand.
-             integrationReset=.true.
-             factor0=Integrate(                                       &
-                  &            lx0                                  , &
-                  &            lx1                                  , &
-                  &            factor0Integrand                     , &
-                  &            integrandFunction                    , &
-                  &            integrationWorkspace                 , &
-                  &            toleranceRelative   =1.0d-4          , &
-                  &            reset               =integrationReset  &
-                  &           )
-             call Integrate_Done(integrandFunction,integrationWorkspace)
-             integrationReset=.true.
-             factor1=Integrate(                                       &
-                  &            lx0                                  , &
-                  &            lx1                                  , &
-                  &            factor1Integrand                     , &
-                  &            integrandFunction                    , &
-                  &            integrationWorkspace                 , &
-                  &            toleranceRelative   =1.0d-4          , &
-                  &            reset               =integrationReset  &
-                  &           )
-             call Integrate_Done(integrandFunction,integrationWorkspace)
+             factor0=integrator0%integrate(lx0,lx1)
+             factor1=integrator1%integrate(lx0,lx1)
              Table_Logarithmic_Integration_Weights        (i-1) &
                   & =Table_Logarithmic_Integration_Weights(i-1) &
                   & +factor0                                    &
@@ -1155,7 +983,7 @@ contains
     integer                                       , intent(in   ), optional :: table
     logical                                       , intent(in   ), optional :: precise
     integer                                                                 :: i           , tableActual
-    !GCC$ attributes unused :: precise
+    !$GLC attributes unused :: precise
 
     tableActual=1
     if (present(table)) tableActual=table
@@ -1505,7 +1333,7 @@ contains
     double precision                                 , intent(in   )                               :: x0, x1
     procedure       (tablesIntegrationWeightFunction), intent(in   )           , pointer, optional :: integrand
     double precision                                 , dimension(size(self%xv))                    :: Table_Linear_CSpline_Integration_Weights
-    !GCC$ attributes unused :: self, x0, x1, integrand
+    !$GLC attributes unused :: self, x0, x1, integrand
 
     Table_Linear_CSpline_Integration_Weights=0.0d0
     call Galacticus_Error_Report('integration weights not supported'//{introspection:location})
@@ -1515,14 +1343,14 @@ contains
   double precision function Table1D_Find_Effective_X(self,x)
     !% Return the effective value of $x$ to use in table interpolations.
     use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Table_Labels    , only : extrapolationTypeExtrapolate, extrapolationTypeFix
+    use :: Table_Labels    , only : extrapolationTypeExtrapolate, extrapolationTypeFix, extrapolationTypeZero
     implicit none
     class           (table1D), intent(inout) :: self
     double precision         , intent(in   ) :: x
 
     if      (x < self%x(+1)) then
        select case (self%extrapolationType(1))
-       case (extrapolationTypeExtrapolate)
+       case (extrapolationTypeExtrapolate,extrapolationTypeZero)
           Table1D_Find_Effective_X=x
        case (extrapolationTypeFix        )
           Table1D_Find_Effective_X=self%x(+1)
@@ -1532,7 +1360,7 @@ contains
        end select
     else if (x > self%x(-1)) then
        select case (self%extrapolationType(2))
-       case (extrapolationTypeExtrapolate)
+       case (extrapolationTypeExtrapolate,extrapolationTypeZero)
           Table1D_Find_Effective_X=x
        case (extrapolationTypeFix        )
           Table1D_Find_Effective_X=self%x(-1)
@@ -1601,7 +1429,7 @@ contains
     double precision                                     , intent(in   )                               :: x0, x1
     procedure       (tablesIntegrationWeightFunction    ), intent(in   )           , pointer, optional :: integrand
     double precision                                     , dimension(size(self%xv))                    :: Table_NonUniform_Linear_Logarithmic_Integration_Weights
-    !GCC$ attributes unused :: self, x0, x1, integrand
+    !$GLC attributes unused :: self, x0, x1, integrand
 
     Table_NonUniform_Linear_Logarithmic_Integration_Weights=0.0d0
     call Galacticus_Error_Report('integrand is not linear in y'//{introspection:location})
@@ -1984,8 +1812,11 @@ contains
     self%xv           =Make_Range(xMinimum,xMaximum,xCount,rangeType=rangeTypeLinear)
     self%       deltaX=self%xv(2)-self%xv(1)
     self%inverseDeltaX=1.0d0/self%deltaX
-    self%tablePrevious=-1
-    self%iPrevious    =-1
+    self%tablePrevious =-1
+    self%dTablePrevious=-1
+    self%iPrevious     =-1
+    self%xPrevious     =-1.0d0
+    self%dxPrevious    =-1.0d0
     ! Set extrapolation type.
     if (present(extrapolationType)) then
        if (any(extrapolationType == extrapolationTypeZero)) call Galacticus_Error_Report('zero extrapolation is not supported'//{introspection:location})
@@ -2191,7 +2022,7 @@ contains
     double precision                                 , intent(in   )                               :: x0, x1
     procedure       (tablesIntegrationWeightFunction), intent(in   )           , pointer, optional :: integrand
     double precision                                 , dimension(size(self%xv))                    :: Table_Linear_Monotone_CSpline_Integration_Weights
-    !GCC$ attributes unused :: self, x0, x1, integrand
+    !$GLC attributes unused :: self, x0, x1, integrand
 
     Table_Linear_Monotone_CSpline_Integration_Weights=0.0d0
     call Galacticus_Error_Report('integration weights not supported'//{introspection:location})
@@ -2280,42 +2111,33 @@ contains
 
   subroutine Table_2D_LinLinLin_Create(self,x,y,tableCount)
     !% Create a 2-D generic table.
-    use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: Memory_Management, only : allocateArray
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (table2DLinLinLin)              , intent(inout)           :: self
-    double precision                  , dimension(:), intent(in   )           :: x                , y
+    double precision                  , dimension(:), intent(in   )           :: x         , y
     integer                                         , intent(in   ), optional :: tableCount
-    integer                                                                   :: tableCountActual
+    !# <optionalArgument name="tableCount" defaultsTo="1"/>
 
-    ! Determine number of tables.
-    tableCountActual=1
-    if (present(tableCount)) tableCountActual=tableCount
     ! Allocate arrays and construct the x-range.
     self%xCount=size(x)
     self%yCount=size(y)
-    call allocateArray(self%xv,[size(x)                         ])
-    call allocateArray(self%yv,[        size(y)                 ])
-    call allocateArray(self%zv,[size(x),size(y),tableCountActual])
-    self%xv    =x
-    self%yv    =y
-    self%resetX=.true.
-    self%resetY=.true.
+    allocate(self%xv(size(x)                    ))
+    allocate(self%yv(        size(y)            ))
+    allocate(self%zv(size(x),size(y),tableCount_))
+    self%xv=x
+    self%yv=y
+    ! Build the interpolators.
+    self%interpolatorX=interpolator(self%xv)
+    self%interpolatorY=interpolator(self%yv)
     return
   end subroutine Table_2D_LinLinLin_Create
 
   subroutine Table_2D_LinLinLin_Destroy(self)
     !% Destroy a generic 2-D table.
-    use :: Memory_Management      , only : deallocateArray
-    use :: Numerical_Interpolation, only : Interpolate_Done
     implicit none
     class(table2DLinLinLin), intent(inout) :: self
+    !$GLC attributes unused :: self
 
-    if (allocated(self%xv)) call deallocateArray(self%xv)
-    if (allocated(self%yv)) call deallocateArray(self%yv)
-    if (allocated(self%zv)) call deallocateArray(self%yv)
-    call Interpolate_Done(self%interpolatorX,self%acceleratorX,self%resetX)
-    call Interpolate_Done(self%interpolatorY,self%acceleratorY,self%resetY)
     return
   end subroutine Table_2D_LinLinLin_Destroy
 
@@ -2326,19 +2148,15 @@ contains
     class           (table2DLinLinLin)                , intent(inout)           :: self
     double precision                  , dimension(:,:), intent(in   )           :: z
     integer                                           , intent(in   ), optional :: table
-    integer                                                                     :: tableActual
+    !# <optionalArgument name="table" defaultsTo="1"/>
 
     ! Validate the input.
     if (.not.allocated(self%zv)             ) call Galacticus_Error_Report("create the table before populating it"//{introspection:location})
     if (size(self%zv,dim=1) /= size(z,dim=1)) call Galacticus_Error_Report("provided z array is of wrong size"    //{introspection:location})
     if (size(self%zv,dim=2) /= size(z,dim=2)) call Galacticus_Error_Report("provided z array is of wrong size"    //{introspection:location})
 
-    ! Determine which table to use.
-    tableActual=1
-    if (present(table)) tableActual=table
-
     ! Store the y values.
-    self%zv(:,:,tableActual)=z
+    self%zv(:,:,table_)=z
     return
   end subroutine Table_2D_LinLinLin_Populate
 
@@ -2348,50 +2166,40 @@ contains
     implicit none
     class           (table2DLinLinLin), intent(inout)           :: self
     double precision                  , intent(in   )           :: z
-    integer                           , intent(in   )           :: i          , j
+    integer                           , intent(in   )           :: i    , j
     integer                           , intent(in   ), optional :: table
-    integer                                                     :: tableActual
+    !# <optionalArgument name="table" defaultsTo="1"/>
 
     ! Validate the input.
     if (.not.allocated(self%zv)           ) call Galacticus_Error_Report("create the table before populating it"//{introspection:location})
     if (i < 1 .or. i > size(self%zv,dim=1)) call Galacticus_Error_Report("provided i value is out of bounds"    //{introspection:location})
     if (j < 1 .or. j > size(self%zv,dim=2)) call Galacticus_Error_Report("provided j value is out of bounds"    //{introspection:location})
 
-    ! Determine which table to use.
-    tableActual=1
-    if (present(table)) tableActual=table
-
     ! Store the y values.
-    self%zv(i,j,tableActual)=z
+    self%zv(i,j,table_)=z
     return
   end subroutine Table_2D_LinLinLin_Populate_Single
 
   double precision function Table_2D_LinLinLin_Interpolate(self,x,y,table)
     !% Perform generic interpolation in a generic 2D table.
     use, intrinsic :: ISO_C_Binding          , only : c_size_t
-    use            :: Numerical_Interpolation, only : Interpolate_Linear_Generate_Factors, Interpolate_Locate
     implicit none
     class           (table2DLinLinLin), intent(inout)            :: self
-    double precision                  , intent(in   )            :: x          , y
+    double precision                  , intent(in   )            :: x    , y
     integer                           , intent(in   ) , optional :: table
-    integer                                                      :: tableActual
-    integer         (c_size_t        )                           :: i          , j , &
-         &                                                          ii         , jj
-    double precision                  , dimension(0:1)           :: hi         , hj
+    integer         (c_size_t        )                           :: i    , j , &
+         &                                                          ii   , jj
+    double precision                  , dimension(0:1)           :: hi   , hj
+    !# <optionalArgument name="table" defaultsTo="1"/>
 
-    ! Determine table to use.
-    tableActual=1
-    if (present(table)) tableActual=table
     ! Compute interpolating factors.
-    i =Interpolate_Locate                 (self%xv,self%acceleratorX,x,self%resetX)
-    j =Interpolate_Locate                 (self%yv,self%acceleratorY,y,self%resetY)
-    hi=Interpolate_Linear_Generate_Factors(self%xv,                i,x            )
-    hj=Interpolate_Linear_Generate_Factors(self%yv,                j,y            )
+    call self%interpolatorX%linearFactors(x,i,hi)
+    call self%interpolatorY%linearFactors(y,j,hj)
     ! Perform the interpolation.
     Table_2D_LinLinLin_Interpolate=0.0d0
     do ii=0,1
        do jj=0,1
-          Table_2D_LinLinLin_Interpolate=Table_2D_LinLinLin_Interpolate+self%zv(i+ii,j+jj,tableActual)*hi(ii)*hj(jj)
+          Table_2D_LinLinLin_Interpolate=Table_2D_LinLinLin_Interpolate+self%zv(i+ii,j+jj,table_)*hi(ii)*hj(jj)
        end do
     end do
     return
@@ -2426,5 +2234,16 @@ contains
     Table_2D_LinLinLin_Zs=self%zv
     return
   end function Table_2D_LinLinLin_Zs
+
+  subroutine Table_2D_LinLinLin_Interpolator_Reinitialize(self,gslFree)
+    !% Reinitialize the interpolator.
+    implicit none
+    class  (table2DLinLinLin), intent(inout) :: self
+    logical                  , intent(in   ) :: gslFree
+
+    call self%interpolatorX%GSLReallocate(gslFree)
+    call self%interpolatorY%GSLReallocate(gslFree)
+    return
+  end subroutine Table_2D_LinLinLin_Interpolator_Reinitialize
 
 end module Tables

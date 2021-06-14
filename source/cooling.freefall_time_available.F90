@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -28,9 +28,10 @@ module Cooling_Freefall_Times_Available
   !# <functionClass>
   !#  <name>freefallTimeAvailable</name>
   !#  <descriptiveName>Freefall time available.</descriptiveName>
-  !#  <description>Class providing models of the time available for freefall in cooling calculations.</description>
+  !#  <description>
+  !#   Class providing models of the time available for freefall in cooling calculations.
+  !#  </description>
   !#  <default>haloFormation</default>
-  !#  <calculationReset>yes</calculationReset>
   !#  <method name="timeAvailable" >
   !#   <description>Returns the time available for freefall in cooling calculations in {\normalfont \ttfamily node}.</description>
   !#   <type>double precision</type>

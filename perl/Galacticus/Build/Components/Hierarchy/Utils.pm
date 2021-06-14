@@ -33,6 +33,7 @@ sub Component_Assign {
     {
 	type        => "void",
 	name        => "nodeComponentAssign",
+	methodName  => "assignment(=)",
 	description => "Assign a node component to another node component.",
 	variables   =>
 	    [

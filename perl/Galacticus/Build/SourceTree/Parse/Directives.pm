@@ -6,6 +6,8 @@ use warnings;
 use utf8;
 use Data::Dumper;
 use XML::Simple;
+use XML::SAX::ParserFactory;
+use XML::Validator::Schema;
 
 # Insert hooks for our functions.
 $Galacticus::Build::SourceTree::Hooks::parseHooks{'directives'} = \&Parse_Directives;
@@ -89,6 +91,19 @@ sub Parse_Directives {
 			die();
 		    }
 		    my $directiveName = (keys %{$directive})[0];
+		    # Validate the directive if possible.
+		    if ( -e $ENV{'GALACTICUS_EXEC_PATH'}."/schema/".$directiveName.".xsd" ) {
+			my $validator = XML::Validator::Schema->new(file => $ENV{'GALACTICUS_EXEC_PATH'}."/schema/".$directiveName.".xsd");
+			my $parser    = XML::SAX::ParserFactory->parser(Handler => $validator); 
+			eval { $parser->parse_string($strippedDirective) };
+			if ( $@ ) {
+			    my $nodeParent = $node;
+			    while ( $nodeParent->{'type'} ne "file" ){
+				$nodeParent = $nodeParent->{'parent'};
+			    }
+			    die "Galacticus::Build::SourceTree::Parse::Directives(): validation failed in file ".$nodeParent->{'name'}." at line ".$node->{'line'}.":\n".$@;
+			}
+		    }
 		    # Create a new node.
 		    my $newNode =
 		    {

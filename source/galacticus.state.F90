@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,7 +27,7 @@ module Galacticus_State
   use            :: ISO_Varying_String, only : varying_string
   implicit none
   private
-  public :: Galacticus_State_Store, Galacticus_State_Retrieve
+  public :: Galacticus_State_Store, Galacticus_State_Retrieve, Galacticus_State_Initialize
 
   ! Flag indicating if we have retrieved the internal state already.
   logical                 :: stateHasBeenRetrieved=.false.
@@ -37,9 +37,6 @@ module Galacticus_State
 
   ! Active status of store and retrieve.
   logical                 :: stateStoreActive               , stateRetrieveActive
-
-  ! Flag indicating if module has been initialized.
-  logical                 :: stateInitialized     =.false.
 
   ! Counter which tracks state operators, used to ensure objects are stored to file only once per operation.
   integer(c_size_t      ) :: stateOperatorID      =0_c_size_t
@@ -54,71 +51,105 @@ contains
   !# </functionGlobal>
   subroutine Galacticus_State_Store(logMessage)
     !% Store the internal state.
-    use    :: FGSL              , only : FGSL_Close        , FGSL_Open      , fgsl_file
 #ifdef USEMPI
-    use    :: MPI_Utilities     , only : mpiSelf
+    use            :: MPI_Utilities     , only : mpiSelf
 #endif
-    !$ use :: OMP_Lib           , only : omp_get_thread_num, omp_in_parallel
-    use    :: ISO_Varying_String, only : operator(//)      , char
-    use    :: String_Handling   , only : operator(//)
+    !$ use         :: OMP_Lib           , only : omp_get_thread_num, omp_in_parallel
+    use            :: Interface_GSL     , only : gslFileOpen       , gslFileClose
+    use, intrinsic :: ISO_C_Binding     , only : c_ptr
+    use            :: ISO_Varying_String, only : operator(//)      , char
+    use            :: String_Handling   , only : operator(//)
     !# <include directive="galacticusStateStoreTask" type="moduleUse">
     include 'galacticus.state.store.modules.inc'
     !# </include>
     implicit none
     type   (varying_string), intent(in   ), optional :: logMessage
-    integer                                          :: iError          , stateUnit
+    integer                                          :: stateUnit
     integer(c_size_t      )                          :: stateOperatorID_
-    type   (fgsl_file     )                          :: fgslStateFile
-    type   (varying_string)                          :: fileName        , fileNameFGSL, &
+    type   (c_ptr         )                          :: gslStateFile
+    type   (varying_string)                          :: fileName        , fileNameGSL, &
          &                                              fileNameLog
-
-    ! Ensure that module is initialized.
-    call State_Initialize
 
     ! Check if state store is active.
     if (stateStoreActive) then
 
-       ! Open a file in which to store the state and an additional file for FGSL state.
-       fileName    =stateFileRoot//'.state'
-       fileNameFGSL=stateFileRoot//'.fgsl.state'
-       fileNameLog =stateFileRoot//'.state.log'
+       ! Open a file in which to store the state and an additional file for GSL state.
+       fileName   =stateFileRoot//'.state'
+       fileNameGSL=stateFileRoot//'.gsl.state'
+       fileNameLog=stateFileRoot//'.state.log'
        !$ if (omp_in_parallel()) then
-       !$    fileName    =fileName    //':openMP'//omp_get_thread_num()
-       !$    fileNameFGSL=fileNameFGSL//':openMP'//omp_get_thread_num()
-       !$    fileNameLog =fileNameLog //':openMP'//omp_get_thread_num()
+       !$    fileName   =fileName   //':openMP'//omp_get_thread_num()
+       !$    fileNameGSL=fileNameGSL//':openMP'//omp_get_thread_num()
+       !$    fileNameLog=fileNameLog//':openMP'//omp_get_thread_num()
        !$ end if
 #ifdef USEMPI
-       fileName    =fileName    //':MPI'//mpiSelf%rankLabel()
-       fileNameFGSL=fileNameFGSL//':MPI'//mpiSelf%rankLabel()
-       fileNameLog =fileNameLog //':MPI'//mpiSelf%rankLabel()
+       fileName   =fileName   //':MPI'//mpiSelf%rankLabel()
+       fileNameGSL=fileNameGSL//':MPI'//mpiSelf%rankLabel()
+       fileNameLog=fileNameLog//':MPI'//mpiSelf%rankLabel()
 #endif
        if (present(logMessage)) then
+          !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+          !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
+          !# </workaround>
+#ifdef THREADSAFEIO
+          !$omp critical(gfortranInternalIO)
+#endif
           open(newunit=stateUnit,file=char(fileNameLog),form='formatted',status='unknown',access='append')
           write (stateUnit,*) char(logMessage)
           close(stateUnit)
+#ifdef THREADSAFEIO
+          !$omp end critical(gfortranInternalIO)
+#endif
        end if
 
+       !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+       !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
+       !# </workaround>
+#ifdef THREADSAFEIO
+       !$omp critical(gfortranInternalIO)
+#endif
        open(newunit=stateUnit,file=char(fileName),form='unformatted',status='unknown')
-       fgslStateFile=FGSL_Open(char(fileNameFGSL),'w')
+#ifdef THREADSAFEIO
+       !$omp end critical(gfortranInternalIO)
+#endif
+       gslStateFile=gslFileOpen(char(fileNameGSL),'w')
 
        !$omp critical(stateOperationID)
        stateOperatorID =stateOperatorID+1_c_size_t
        stateOperatorID_=stateOperatorID
        !$omp end critical(stateOperationID)
        !# <include directive="galacticusStateStoreTask" type="functionCall" functionType="void">
-       !#  <functionArgs>stateUnit,fgslStateFile,stateOperatorID_</functionArgs>
+       !#  <functionArgs>stateUnit,gslStateFile,stateOperatorID_</functionArgs>
        include 'galacticus.state.store.inc'
        !# </include>
        !# <eventHook name="stateStore">
-       !#  <callWith>stateUnit,fgslStateFile,stateOperatorID_</callWith>
+       !#  <callWith>stateUnit,gslStateFile,stateOperatorID_</callWith>
        !# </eventHook>
 
        ! Close the state files.
+       !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+       !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
+       !# </workaround>
+#ifdef THREADSAFEIO
+       !$omp critical(gfortranInternalIO)
+#endif
        close(stateUnit)
-       iError=FGSL_Close(fgslStateFile)
+#ifdef THREADSAFEIO
+       !$omp end critical(gfortranInternalIO)
+#endif
+       call gslFileClose(gslStateFile)
 
        ! Flush standard output to ensure that any output log has a record of where the code reached at the last state store.
+       !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+       !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
+       !# </workaround>
+#ifdef THREADSAFEIO
+       !$omp critical(gfortranInternalIO)
+#endif
        call Flush(0)
+#ifdef THREADSAFEIO
+       !$omp end critical(gfortranInternalIO)
+#endif
 
     end if
     return
@@ -130,107 +161,126 @@ contains
   !# </functionGlobal>
   subroutine Galacticus_State_Retrieve
     !% Retrieve the internal state.
-    use    :: FGSL              , only : FGSL_Close        , FGSL_Open      , fgsl_file
+    use            :: Interface_GSL     , only : gslFileOpen , gslFileClose
 #ifdef USEMPI
-    use    :: MPI_Utilities     , only : mpiSelf
+    use            :: MPI_Utilities     , only : mpiSelf
 #endif
-    !$ use :: OMP_Lib           , only : omp_get_thread_num, omp_in_parallel
-    use    :: ISO_Varying_String, only : operator(//)      , char
-    use    :: String_Handling   , only : operator(//)
+    !$ use :: OMP_Lib           , only : omp_get_thread_num  , omp_in_parallel
+    use, intrinsic :: ISO_C_Binding     , only : c_ptr
+    use            :: ISO_Varying_String, only : operator(//), char
+    use            :: String_Handling   , only : operator(//)
     !# <include directive="galacticusStateRetrieveTask" type="moduleUse">
     include 'galacticus.state.retrieve.modules.inc'
     !# </include>
     implicit none
-    integer                 :: iError          , stateUnit
+    integer                 :: stateUnit
     integer(c_size_t      ) :: stateOperatorID_
-    type   (fgsl_file     ) :: fgslStateFile
-    type   (varying_string) :: fileName        , fileNameFGSL
+    type   (c_ptr         ) :: gslStateFile
+    type   (varying_string) :: fileName        , fileNameGSL
 
     ! Check if we have already retrieved the internal state.
     if (.not.stateHasBeenRetrieved) then
-
-       ! Ensure that module is initialized.
-       call State_Initialize
-
-       ! Check if state retrieve is active.
-       if (stateRetrieveActive) then
-
-          ! Open a file in which to retrieve the state and an additional file for FGSL state.
-          fileName    =stateRetrieveFileRoot//'.state'
-          fileNameFGSL=stateRetrieveFileRoot//'.fgsl.state'
-          !$ if (omp_in_parallel()) then
-          !$    fileName    =fileName    //':openMP'//omp_get_thread_num()
-          !$    fileNameFGSL=fileNameFGSL//':openMP'//omp_get_thread_num()
-          !$ end if
+       !$omp critical (stateRetrieve)
+       if (.not.stateHasBeenRetrieved) then
+          
+          ! Check if state retrieve is active.
+          if (stateRetrieveActive) then
+             
+             ! Open a file in which to retrieve the state and an additional file for GSL state.
+             fileName   =stateRetrieveFileRoot//'.state'
+             fileNameGSL=stateRetrieveFileRoot//'.gsl.state'
+             !$ if (omp_in_parallel()) then
+             !$    fileName   =fileName   //':openMP'//omp_get_thread_num()
+             !$    fileNameGSL=fileNameGSL//':openMP'//omp_get_thread_num()
+             !$ end if
 #ifdef USEMPI
-          fileName    =fileName    //':MPI'//mpiSelf%rankLabel()
-          fileNameFGSL=fileNameFGSL//':MPI'//mpiSelf%rankLabel()
+             fileName   =fileName   //':MPI'//mpiSelf%rankLabel()
+             fileNameGSL=fileNameGSL//':MPI'//mpiSelf%rankLabel()
 #endif
-          open(newunit=stateUnit,file=char(fileName),form='unformatted',status='old')
-          fgslStateFile=FGSL_Open(char(fileNameFGSL),'r')
+             !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+             !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
+             !# </workaround>
+#ifdef THREADSAFEIO
+             !$omp critical(gfortranInternalIO)
+#endif
+             open(newunit=stateUnit,file=char(fileName),form='unformatted',status='old')
+#ifdef THREADSAFEIO
+             !$omp end critical(gfortranInternalIO)
+#endif
+             gslStateFile=gslFileOpen(char(fileNameGSL),'r')
+             
+             !$omp critical(stateOperationID)
+             stateOperatorID =stateOperatorID+1_c_size_t
+             stateOperatorID_=stateOperatorID
+             !$omp end critical(stateOperationID)
+             !# <include directive="galacticusStateRetrieveTask" type="functionCall" functionType="void">
+             !#  <functionArgs>stateUnit,gslStateFile,stateOperatorID_</functionArgs>
+	     include 'galacticus.state.retrieve.inc'
+             !# </include>
+             !# <eventHook name="stateRestore">
+             !#  <callWith>stateUnit,gslStateFile,stateOperatorID_</callWith>
+             !# </eventHook>
+      
+             ! Close the state files.
+             !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+	     !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
+             !# </workaround>
+#ifdef THREADSAFEIO
+             !$omp critical(gfortranInternalIO)
+#endif
+             close(stateUnit)
+#ifdef THREADSAFEIO
+             !$omp end critical(gfortranInternalIO)
+#endif
+             call gslFileClose(gslStateFile)
 
-          !$omp critical(stateOperationID)
-          stateOperatorID =stateOperatorID+1_c_size_t
-          stateOperatorID_=stateOperatorID
-          !$omp end critical(stateOperationID)
-          !# <include directive="galacticusStateRetrieveTask" type="functionCall" functionType="void">
-          !#  <functionArgs>stateUnit,fgslStateFile,stateOperatorID_</functionArgs>
-          include 'galacticus.state.retrieve.inc'
-          !# </include>
-          !# <eventHook name="stateRestore">
-          !#  <callWith>stateUnit,fgslStateFile,stateOperatorID_</callWith>
-          !# </eventHook>
-
-          ! Close the state files.
-          close(stateUnit)
-          iError=FGSL_Close(fgslStateFile)
-
+          end if
+          
+          ! Flag that internal state has been retrieved
+          stateHasBeenRetrieved=.true.
        end if
-
-       ! Flag that internal state has been retrieved
-       stateHasBeenRetrieved=.true.
+       !$omp end critical (stateRetrieve)
     end if
 
     return
   end subroutine Galacticus_State_Retrieve
 
-  subroutine State_Initialize
+  !# <nodeComponentInitializationTask>
+  !#  <unitName>Galacticus_State_Initialize</unitName>
+  !#  <useGlobal>yes</useGlobal>
+  !# </nodeComponentInitializationTask>
+  !# <functionGlobal>
+  !#  <unitName>Galacticus_State_Initialize</unitName>
+  !#  <type>void</type>
+  !#  <module>Input_Parameters  , only : inputParameters</module>
+  !#  <arguments>type(inputParameters), intent(inout) :: parameters_</arguments>
+  !# </functionGlobal>
+  subroutine Galacticus_State_Initialize(parameters_)
     !% Initialize the state module by getting the name of the file to which states should be stored and whether or not we are to
     !% retrieve a state.
-    use :: Input_Parameters  , only : globalParameters, inputParameter
-    use :: ISO_Varying_String, only : var_str         , operator(/=)
+    use :: Input_Parameters  , only : inputParameters
+    use :: ISO_Varying_String, only : var_str        , operator(/=)
     implicit none
+    type(inputParameters), intent(inout) :: parameters_
 
-    if (.not.stateInitialized) then
-       !$omp critical(Galacticus_State_Initialize)
-       if (.not.stateInitialized) then
-          ! Get the base name of the state files.
-          !# <inputParameter>
-          !#   <name>stateFileRoot</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>var_str('none')</defaultValue>
-          !#   <description>The root name of files to which the internal state is written (to permit restarts).</description>
-          !#   <source>globalParameters</source>
-          !#   <type>string</type>
-          !# </inputParameter>
-          ! Get the base name of the files to retrieve from.
-          !# <inputParameter>
-          !#   <name>stateRetrieveFileRoot</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>var_str('none')</defaultValue>
-          !#   <description>The root name of files to which the internal state is retrieved from (to restart).</description>
-          !#   <source>globalParameters</source>
-          !#   <type>string</type>
-          !# </inputParameter>
-          ! Record active status of store and retrieve.
-          stateStoreActive   =(stateFileRoot         /= "none")
-          stateRetrieveActive=(stateRetrieveFileRoot /= "none")
-          ! Flag that module is now initialized.
-          stateInitialized=.true.
-       end if
-       !$omp end critical(Galacticus_State_Initialize)
-    end if
+    ! Get the base name of the state files.
+    !# <inputParameter>
+    !#   <name>stateFileRoot</name>
+    !#   <defaultValue>var_str('none')</defaultValue>
+    !#   <description>The root name of files to which the internal state is written (to permit restarts).</description>
+    !#   <source>parameters_</source>
+    !# </inputParameter>
+    ! Get the base name of the files to retrieve from.
+    !# <inputParameter>
+    !#   <name>stateRetrieveFileRoot</name>
+    !#   <defaultValue>var_str('none')</defaultValue>
+    !#   <description>The root name of files to which the internal state is retrieved from (to restart).</description>
+    !#   <source>parameters_</source>
+    !# </inputParameter>
+    ! Record active status of store and retrieve.
+    stateStoreActive   =(stateFileRoot         /= "none")
+    stateRetrieveActive=(stateRetrieveFileRoot /= "none")
     return
-  end subroutine State_Initialize
+  end subroutine Galacticus_State_Initialize
 
 end module Galacticus_State

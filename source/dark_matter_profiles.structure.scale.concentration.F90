@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -89,21 +89,17 @@ contains
 
     !# <inputParameter>
     !#   <name>correctForConcentrationDefinition</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>If true, then when computing dark matter profile scale radii using concentrations, any difference between the current definition of halo scales
     !#     (i.e. typically virial density contrast definitions) and density profiles and those assumed in measuring the concentrations will be taken into account.
     !#     If false, the concentration is applied blindly.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>useMeanConcentration</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>If true, then when computing dark matter profile scale radii using concentrations do not account for any possible scatter in the concentration-mass relation.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters"            name="cosmologyParameters_"            source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"             name="cosmologyFunctions_"             source="parameters"/>
@@ -222,19 +218,15 @@ contains
           call concentrationState_(concentrationStateCount)%basic            %timeLastIsolatedSet(basic%time())
           call concentrationState_(concentrationStateCount)%darkMatterProfile%scaleIsLimitedSet  (.false.     )
           ! The finder is initialized each time as it is allocated on the stack - this allows this function to be called recursively.
-          call finder               %tolerance          (                                                             &
-               &                                         toleranceRelative            =1.0d-3                         &
-               &                                        )
-          call finder               %rangeExpand        (                                                             &
-               &                                         rangeExpandUpward            =1.0d0*self%massRatioPrevious , &
-               &                                         rangeExpandDownward          =1.0d0/self%massRatioPrevious , &
-               &                                         rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-               &                                         rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
-               &                                         rangeExpandType              =rangeExpandMultiplicative      &
-               &                                        )
-          call finder               %rootFunction       (                                                             &
-               &                                                                       concentrationMassRoot          &
-               &                                        )
+          finder=rootFinder(                                                             &
+               &            rootFunction                 =concentrationMassRoot        , &
+               &            toleranceRelative            =1.0d-3                       , &
+               &            rangeExpandUpward            =1.0d0*self%massRatioPrevious , &
+               &            rangeExpandDownward          =1.0d0/self%massRatioPrevious , &
+               &            rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+               &            rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+               &            rangeExpandType              =rangeExpandMultiplicative      &
+               &           )
           massDefinition=finder%find(rootGuess=concentrationState_(concentrationStateCount)%mass)
           ! Find the ratio of the recovered mass under the given definition to the input mass, defined to be always greater than
           ! unity. This will be used as the basis of the range expansion for the next solution.

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -57,6 +57,12 @@ module Node_Component_Hot_Halo_Standard
   !#     <type>logical</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+  !#   </property>
+  !#   <property>
+  !#     <name>energyRadiated</name>
+  !#     <type>double</type>
+  !#     <rank>0</rank>
+  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#   </property>
   !#   <property>
   !#     <name>mass</name>
@@ -189,7 +195,7 @@ module Node_Component_Hot_Halo_Standard
   !#   </property>
   !#  </properties>
   !#  <bindings>
-   !#    <binding method="massRemovalRate" function="Node_Component_Hot_Halo_Standard_Mass_Removal_Rate" description="Called whenever the standard hot halo component removes mass from the halo." returnType="\void" arguments="" bindsTo="component" />
+  !#    <binding method="massRemovalRate" function="Node_Component_Hot_Halo_Standard_Mass_Removal_Rate" description="Called whenever the standard hot halo component removes mass from the halo." returnType="\void" arguments="" bindsTo="component" />
   !#    <binding method="outflowReturn" bindsTo="component" isDeferred="true" >
   !#     <interface>
   !#      <type>void</type>
@@ -272,7 +278,7 @@ contains
     implicit none
     type(inputParameters             ), intent(inout) :: parameters_
     type(varying_string              )                :: hotHaloCoolingFromText
-    type(nodeComponentHotHaloStandard)                :: hotHaloComponent
+    type(nodeComponentHotHaloStandard)                :: hotHalo
 
     ! Initialize the module if necessary.
     !$omp critical (Node_Component_Hot_Halo_Standard_Initialize)
@@ -285,62 +291,50 @@ contains
        ! Determine whether satellite nodes will be starved of gas.
        !# <inputParameter>
        !#   <name>starveSatellites</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>Specifies whether or not the hot halo should be removed (``starved'') when a node becomes a satellite.</description>
        !#   <source>parameters_</source>
-       !#   <type>boolean</type>
        !# </inputParameter>
 
        !# <inputParameter>
        !#   <name>starveSatellitesOutflowed</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>Specifies whether or not the outflowed hot halo should be removed (``starved'') when a node becomes a satellite.</description>
        !#   <source>parameters_</source>
-       !#   <type>boolean</type>
        !# </inputParameter>
 
        ! Determine whether stripped material should be tracked.
        !# <inputParameter>
        !#   <name>hotHaloTrackStrippedGas</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>.true.</defaultValue>
        !#   <description>Specifies whether or not gas stripped from the hot halo should be tracked.</description>
        !#   <source>parameters_</source>
-       !#   <type>boolean</type>
        !# </inputParameter>
 
        ! Determine whether outflowed gas should be restored to the hot reservoir on halo formation events.
        !# <inputParameter>
        !#   <name>hotHaloOutflowReturnOnFormation</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>Specifies whether or not outflowed gas should be returned to the hot reservoir on halo formation events.</description>
        !#   <source>parameters_</source>
-       !#   <type>boolean</type>
        !# </inputParameter>
 
        ! Determine whether negative angular momentum accretion rates onto the halo should be treated as positive for the purposes
        ! of computing the hot halo angular momentum.
        !# <inputParameter>
        !#   <name>hotHaloAngularMomentumAlwaysGrows</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>Specifies whether or not negative rates of accretion of angular momentum into the hot halo will be treated as positive
        !#      for the purposes of computing the hot halo angular momentum.</description>
        !#   <source>parameters_</source>
-       !#   <type>boolean</type>
        !# </inputParameter>
 
        ! Determine whether the angular momentum of cooling gas should be computed from the "current node" or the "formation node".
        !# <inputParameter>
        !#   <name>hotHaloCoolingFromNode</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>var_str('currentNode')</defaultValue>
        !#   <description>Specifies whether the angular momentum of cooling gas should be computed from the ``current node'' or the ``formation node''.</description>
        !#   <source>parameters_</source>
-       !#   <type>integer</type>
        !#   <variable>hotHaloCoolingFromText</variable>
        !# </inputParameter>
        select case (char(hotHaloCoolingFromText))
@@ -355,71 +349,61 @@ contains
        ! Determine whether excess heating of the halo will drive an outflow.
        !# <inputParameter>
        !#   <name>hotHaloExcessHeatDrivesOutflow</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>.true.</defaultValue>
        !#   <description>Specifies whether heating of the halo in excess of its cooling rate will drive an outflow from the halo.</description>
        !#   <source>parameters_</source>
-       !#   <type>integer</type>
        !# </inputParameter>
 
        ! Get efficiency with which outflowing gas is stripped from the hot halo.
        !# <inputParameter>
        !#   <name>hotHaloOutflowStrippingEfficiency</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>0.1d0</defaultValue>
        !#   <description>Specifies the efficiency with which outflowing gas is stripped from the hot halo, following the prescription of \citeauthor{font_colours_2008}~(\citeyear{font_colours_2008}; i.e. this is the parameter $\epsilon_\mathrm{strip}$ in their eqn.~6).</description>
        !#   <source>parameters_</source>
-       !#   <type>double</type>
        !# </inputParameter>
 
        ! Get the maximum rate (in units of halo inverse dynamical time) at which gas can be expelled from the halo.
        !# <inputParameter>
        !#   <name>hotHaloExpulsionRateMaximum</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d0</defaultValue>
        !#   <description>Specifies the maximum rate at which mass can be expelled from the hot halo in units of the inverse halo dynamical time.</description>
        !#   <source>parameters_</source>
-       !#   <type>double</type>
        !# </inputParameter>
 
        ! Get fraction of angular momentum that is lost during cooling/infall.
        !# <inputParameter>
        !#   <name>hotHaloAngularMomentumLossFraction</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>0.3d0</defaultValue>
        !#   <description>Specifies the fraction of angular momentum that is lost from cooling/infalling gas.</description>
        !#   <source>parameters_</source>
-       !#   <type>double</type>
        !# </inputParameter>
 
        ! Get option controlling limiting of baryon fraction during node mergers.
        !# <inputParameter>
        !#   <name>hotHaloNodeMergerLimitBaryonFraction</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>Controls whether the hot gas content of nodes should be limited to not exceed the universal baryon fraction at node
        !#     merger events. If set to {\normalfont \ttfamily true}, hot gas (and angular momentum, abundances, and chemicals proportionally) will be
        !#     removed from the merged halo to the unaccreted gas reservoir to limit the baryonic mass to the universal baryon
        !#     fraction where possible.</description>
        !#   <source>parameters_</source>
-       !#   <type>boolean</type>
        !# </inputParameter>
        ! Bind the outer radius get function.
-       call hotHaloComponent%                  outerRadiusFunction(Node_Component_Hot_Halo_Standard_Outer_Radius              )
+       call hotHalo%                  outerRadiusFunction(Node_Component_Hot_Halo_Standard_Outer_Radius              )
        ! Bind the heat source pipe to the function that will handle heat input to the hot halo.
-       call hotHaloComponent%               heatSourceRateFunction(Node_Component_Hot_Halo_Standard_Heat_Source               )
+       call hotHalo%               heatSourceRateFunction(Node_Component_Hot_Halo_Standard_Heat_Source               )
        ! Bind outflowing material pipes to the functions that will handle input of outflowing material to the hot halo.
-       call hotHaloComponent%           outflowingMassRateFunction(Node_Component_Hot_Halo_Standard_Outflowing_Mass_Rate      )
-       call hotHaloComponent%outflowingAngularMomentumRateFunction(Node_Component_Hot_Halo_Standard_Outflowing_Ang_Mom_Rate   )
-       call hotHaloComponent%     outflowingAbundancesRateFunction(Node_Component_Hot_Halo_Standard_Outflowing_Abundances_Rate)
+       call hotHalo%           outflowingMassRateFunction(Node_Component_Hot_Halo_Standard_Outflowing_Mass_Rate      )
+       call hotHalo%outflowingAngularMomentumRateFunction(Node_Component_Hot_Halo_Standard_Outflowing_Ang_Mom_Rate   )
+       call hotHalo%     outflowingAbundancesRateFunction(Node_Component_Hot_Halo_Standard_Outflowing_Abundances_Rate)
        ! Bind a creation function.
-       call hotHaloComponent%                    createFunctionSet(Node_Component_Hot_Halo_Standard_Initializor               )
+       call hotHalo%                    createFunctionSet(Node_Component_Hot_Halo_Standard_Initializor               )
        ! Bind the mass sink function.
-       call hothaloComponent%                 massSinkRateFunction(Node_Component_Hot_Halo_Standard_Mass_Sink                 )
+       call hotHalo%                 massSinkRateFunction(Node_Component_Hot_Halo_Standard_Mass_Sink                 )
        ! Bind the outflow return function.
-       call hotHaloComponent%                outflowReturnFunction(Node_Component_Hot_Halo_Standard_Outflow_Return            )
+       call hotHalo%                outflowReturnFunction(Node_Component_Hot_Halo_Standard_Outflow_Return            )
        ! Bind the outer radius growth rate function.
-       call hotHaloComponent%        outerRadiusGrowthRateFunction(Node_Component_Hot_Halo_Standard_Outer_Radius_Growth_Rate  )
+       call hotHalo%        outerRadiusGrowthRateFunction(Node_Component_Hot_Halo_Standard_Outer_Radius_Growth_Rate  )
     end if
     !$omp end critical (Node_Component_Hot_Halo_Standard_Initialize)
     return
@@ -465,8 +449,8 @@ contains
        allocate(radiationCosmicMicrowaveBackground)
        !# <referenceConstruct object="radiationCosmicMicrowaveBackground" constructor="radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)"/>
        radiationFieldList_%radiationField_ => radiationCosmicMicrowaveBackground
-       if (parameters_%isPresent('radiationFieldIntergalacticBackgroundMethod')) then
-          !# <objectBuilder class="radiationField" name="radiationIntergalacticBackground" parameterName="radiationFieldIntergalacticBackgroundMethod" source="parameters_"/>
+       if (parameters_%isPresent('radiationFieldIntergalacticBackground')) then
+          !# <objectBuilder class="radiationField" name="radiationIntergalacticBackground" parameterName="radiationFieldIntergalacticBackground" source="parameters_"/>
           select type (radiationIntergalacticBackground)
           class is (radiationFieldIntergalacticBackground)
              ! This is as expected.
@@ -560,8 +544,8 @@ contains
   !# </postStepTask>
   subroutine Node_Component_Hot_Halo_Standard_Post_Step(node,status)
     !% Do processing of the node required after evolution.
-    use :: FGSL            , only : FGSL_Failure
     use :: Galacticus_Nodes, only : nodeComponentHotHalo, nodeComponentHotHaloStandard, treeNode, defaultHotHaloComponent
+    use :: Interface_GSL   , only : GSL_Failure
     implicit none
     type   (treeNode            ), intent(inout), pointer :: node
     integer                      , intent(inout)          :: status
@@ -574,11 +558,11 @@ contains
     select type (hotHalo)
     class is (nodeComponentHotHaloStandard)
        if (hotHalo%       mass() < 0.0d0) then
-          status=FGSL_Failure
+          status=GSL_Failure
           call hotHalo%       massSet(0.0d0)
        end if
        if (hotHalo%outerRadius() < 0.0d0) then
-          status=FGSL_Failure
+          status=GSL_Failure
           call hotHalo%outerRadiusSet(0.0d0)
        end if
     end select
@@ -596,7 +580,7 @@ contains
     type (treeNode            ), pointer       :: nodeParent
     class(nodeComponentHotHalo), pointer       :: hotHaloParent, hotHalo
     class(nodeComponentSpin   ), pointer       :: spinParent
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Process hot gas for satellites.
     if (node%isSatellite()) then
@@ -682,7 +666,7 @@ contains
     !% (e.g. fully-mixed metals).
     use :: Galacticus_Nodes, only : interruptTask, nodeComponentHotHalo, nodeComponentHotHaloStandard, treeNode
     implicit none
-    type            (treeNode            ), intent(inout), pointer :: node
+    type            (treeNode            ), intent(inout)          :: node
     double precision                      , intent(in   )          :: gasMassRate
     logical                               , intent(inout)          :: interrupt
     procedure       (interruptTask       ), intent(inout), pointer :: interruptProcedure
@@ -767,15 +751,15 @@ contains
     use :: Galacticus_Nodes                     , only : interruptTask          , nodeComponentHotHalo, nodeComponentHotHaloStandard      , treeNode
     use :: Node_Component_Hot_Halo_Standard_Data, only : currentNode            , formationNode       , hotHaloAngularMomentumLossFraction, hotHaloCoolingFromNode
     implicit none
-    type            (treeNode                ), intent(inout)          , pointer :: node
+    type            (treeNode                ), intent(inout)          , target  :: node
     double precision                          , intent(in   )                    :: massRate
     logical                                   , intent(inout), optional          :: interrupt
     procedure       (interruptTask           ), intent(inout), optional, pointer :: interruptProcedure
-    type            (treeNode                )                         , pointer :: coolingFromNode
-    class           (nodeComponentHotHalo    )                         , pointer :: coolingFromHotHaloComponent, hotHalo
+    type            (treeNode                )                         , pointer :: nodeCooling
+    class           (nodeComponentHotHalo    )                         , pointer :: hotHaloCooling            , hotHalo
     type            (abundances              ), save                             :: abundancesCoolingRate
     !$omp threadprivate(abundancesCoolingRate)
-    double precision                                                             :: angularMomentumCoolingRate , infallRadius
+    double precision                                                             :: angularMomentumCoolingRate, infallRadius
 
     ! Get the hot halo component.
     hotHalo => node%hotHalo()
@@ -790,20 +774,22 @@ contains
           ! Pipe the mass rate to whichever component claimed it.
           if (hotHalo%hotHaloCoolingMassRateIsAttached()) &
                & call hotHalo%hotHaloCoolingMassRate(+massRate,interrupt,interruptProcedure)
+          ! Reduce the energy radiated.
+          call hotHalo%energyRadiatedRate(-massRate*hotHalo%energyRadiated()/hotHalo%mass())
           ! Find the node to use for cooling calculations.
           select case (hotHaloCoolingFromNode)
           case (currentNode  )
-             coolingFromNode => node
+             nodeCooling => node
           case (formationNode)
-             coolingFromNode => node%formationNode
+             nodeCooling => node%formationNode
           case default
-             coolingFromNode => null()
+             nodeCooling => null()
              call Galacticus_Error_Report('unknown "hotHaloCoolingFromNode" - this should not happen'//{introspection:location})
           end select
           infallRadius              =coolingInfallRadius_%radius(node)
-          angularMomentumCoolingRate=massRate*coolingSpecificAngularMomentum_%angularMomentumSpecific(coolingFromNode,infallRadius)
+          angularMomentumCoolingRate=massRate*coolingSpecificAngularMomentum_%angularMomentumSpecific(nodeCooling,infallRadius)
           if (.not.gotAngularMomentumCoolingRate) then
-             angularMomentumHeatingRateRemaining=rateCooling*coolingSpecificAngularMomentum_%angularMomentumSpecific(coolingFromNode,infallRadius)
+             angularMomentumHeatingRateRemaining=rateCooling*coolingSpecificAngularMomentum_%angularMomentumSpecific(nodeCooling,infallRadius)
              gotAngularMomentumCoolingRate=.true.
           end if
           if (massRate < 0.0d0) then
@@ -820,9 +806,9 @@ contains
           if (hotHalo%hotHaloCoolingAngularMomentumRateIsAttached()) &
                & call hotHalo%hotHaloCoolingAngularMomentumRate(sign(+angularMomentumCoolingRate*(1.0d0-hotHaloAngularMomentumLossFraction),massRate),interrupt,interruptProcedure)
           ! Get the rate of change of abundances.
-          coolingFromHotHaloComponent => coolingFromNode%hotHalo()
-          abundancesCoolingRate=coolingFromHotHaloComponent%abundances()
-          abundancesCoolingRate=massRate*abundancesCoolingRate/coolingFromHotHaloComponent%mass()
+          hotHaloCooling => nodeCooling%hotHalo()
+          abundancesCoolingRate=hotHaloCooling%abundances()
+          abundancesCoolingRate=massRate*abundancesCoolingRate/hotHaloCooling%mass()
           call    hotHalo%abundancesRate       (-abundancesCoolingRate )
           ! Pipe the cooling rate to which ever component claimed it.
           if (hotHalo%hotHaloCoolingAbundancesRateIsAttached()) &
@@ -844,7 +830,8 @@ contains
     type            (abundances                  ), save          :: abundancesRates
     type            (chemicalAbundances          ), save          :: chemicalsRates
     !$omp threadprivate(abundancesRates,chemicalsRates)
-    double precision                                              :: angularMomentumRate , massRateLimited
+    double precision                                              :: angularMomentumRate, massRateLimited, &
+         &                                                           energyRadiatedRate
 
     ! Ignore zero rates.
     if (massRate /= 0.0d0 .and. hotHalo%mass() > 0.0d0) then
@@ -855,11 +842,13 @@ contains
        abundancesRates    =hotHalo%abundances     ()*massRateLimited/hotHalo%mass()
        angularMomentumRate=hotHalo%angularMomentum()*massRateLimited/hotHalo%mass()
        chemicalsRates     =hotHalo%chemicals      ()*massRateLimited/hotHalo%mass()
+       energyRadiatedRate =hotHalo%energyRadiated ()*massRateLimited/hotHalo%mass()
        call hotHalo%    massRemovalRate(+    massRateLimited)
        call hotHalo%           massRate(-    massRateLimited)
        call hotHalo%     abundancesRate(-    abundancesRates)
        call hotHalo%angularMomentumRate(-angularMomentumRate)
        call hotHalo%      chemicalsRate(-     chemicalsRates)
+       call hotHalo% energyRadiatedRate(- energyRadiatedRate)
        ! If this node is a satellite and stripped gas is being tracked, move mass and abundances to the stripped reservoir.
        if (node%isSatellite().and.hotHaloTrackStrippedGas) then
           call hotHalo%      strippedMassRate(+massRateLimited)
@@ -876,11 +865,11 @@ contains
     implicit none
     type            (treeNode                    ), intent(inout), pointer :: node
     class           (nodeComponentHotHaloStandard)                         :: hotHalo
-    double precision                                                       :: massOuter                     , massVirial  , &
-         &                                                                    radiusOuter                   , radiusVirial
+    double precision                                                       :: massOuter  , massVirial  , &
+         &                                                                    radiusOuter, radiusVirial
 
-    radiusOuter =hotHalo%outerRadius()
-    radiusVirial=darkMatterHaloScale_%virialRadius             (node             )
+    radiusOuter =hotHalo                 %outerRadius (                 )
+    radiusVirial=darkMatterHaloScale_    %virialRadius(node             )
     massOuter   =hotHaloMassDistribution_%enclosedMass(node,radiusOuter )
     massVirial  =hotHaloMassDistribution_%enclosedMass(node,radiusVirial)
     if (massVirial > 0.0d0) then
@@ -901,7 +890,7 @@ contains
     procedure       (interruptTask       ), intent(inout), optional, pointer :: interruptProcedure
     type            (treeNode            )                         , pointer :: node
     double precision                                                         :: strippedOutflowFraction
-    !GCC$ attributes unused :: interrupt, interruptProcedure
+    !$GLC attributes unused :: interrupt, interruptProcedure
 
     select type (self)
     class is (nodeComponentHotHaloStandard)
@@ -930,7 +919,7 @@ contains
     procedure       (interruptTask       ), intent(inout), optional, pointer :: interruptProcedure
     type            (treeNode            )                         , pointer :: node
     double precision                                                         :: strippedOutflowFraction
-    !GCC$ attributes unused :: interrupt, interruptProcedure
+    !$GLC attributes unused :: interrupt, interruptProcedure
 
     select type (self)
     class is (nodeComponentHotHaloStandard)
@@ -957,7 +946,7 @@ contains
     procedure       (interruptTask       ), intent(inout), optional, pointer :: interruptProcedure
     type            (treeNode            )                         , pointer :: node
     double precision                                                         :: strippedOutflowFraction
-    !GCC$ attributes unused :: interrupt, interruptProcedure
+    !$GLC attributes unused :: interrupt, interruptProcedure
 
     select type (self)
     class is (nodeComponentHotHaloStandard)
@@ -1000,7 +989,7 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Hot_Halo_Standard_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Hot_Halo_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
+  subroutine Node_Component_Hot_Halo_Standard_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
     !% Compute the hot halo node mass rate of change.
     use :: Abundances_Structure                 , only : abs
     use :: Accretion_Halos                      , only : accretionModeHot                             , accretionModeTotal
@@ -1014,8 +1003,7 @@ contains
     use :: Numerical_Constants_Math             , only : Pi
     use :: Radiation_Fields                     , only : radiationFieldIntergalacticBackground
     implicit none
-    type            (treeNode              )           , intent(inout), pointer :: node
-    logical                                            , intent(in   )          :: odeConverged
+    type            (treeNode              )           , intent(inout)          :: node
     logical                                            , intent(inout)          :: interrupt
     procedure       (interruptTask         )           , intent(inout), pointer :: interruptProcedure
     integer                                            , intent(in   )          :: propertyType
@@ -1030,7 +1018,6 @@ contains
          &                                                                         massLossRate                , massToDensityConversion, &
          &                                                                         outerRadius                 , outerRadiusGrowthRate  , &
          &                                                                         massAccretionRate
-    !GCC$ attributes unused :: odeConverged
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
@@ -1195,10 +1182,12 @@ contains
     double precision                                                       :: outflowedMass            , massReturnRate         , &
          &                                                                    angularMomentumReturnRate, massToDensityConversion, &
          &                                                                    hydrogenByMass           , temperature            , &
-         &                                                                    numberDensityHydrogen    , densityAtOuterRadius, radiusVirial, outerRadius, densityMinimum
+         &                                                                    numberDensityHydrogen    , densityAtOuterRadius   , &
+         &                                                                    radiusVirial             , outerRadius            , &
+         &                                                                    densityMinimum
     type            (abundances                  ), save                   :: abundancesReturnRate     , outflowedAbundances
     !$omp threadprivate(abundancesReturnRate,outflowedAbundances)
-    type            (chemicalAbundances          ), save                   :: chemicalDensities        , chemicalMasses           , &
+    type            (chemicalAbundances          ), save                   :: chemicalDensities        , chemicalMasses         , &
          &                                                                    chemicalMassesRates
     !$omp threadprivate(chemicalDensities,chemicalMassesRates,chemicalMasses)
 
@@ -1329,6 +1318,8 @@ contains
        call self%     abundancesRate(self%abundances     ()*gasMassRate/gasMass,interrupt,interruptProcedure)
        ! Chemical abundances.
        call self%      chemicalsRate(self%chemicals      ()*gasMassRate/gasMass,interrupt,interruptProcedure)
+       ! Energy radiated.
+       call self%energyRadiatedRate (self%energyRadiated ()*gasMassRate/gasMass,interrupt,interruptProcedure)      
     end if
     return
   end subroutine Node_Component_Hot_Halo_Standard_Hot_Gas_All_Rate
@@ -1338,15 +1329,24 @@ contains
   !# </scaleSetTask>
   subroutine Node_Component_Hot_Halo_Standard_Scale_Set(node)
     !% Set scales for properties of {\normalfont \ttfamily node}.
-    use :: Abundances_Structure         , only : unitAbundances
-    use :: Chemical_Abundances_Structure, only : unitChemicalAbundances
-    use :: Galacticus_Nodes             , only : nodeComponentBasic     , nodeComponentHotHalo, nodeComponentHotHaloStandard, treeNode, &
-         &                                       defaultHotHaloComponent
+    use :: Abundances_Structure            , only : unitAbundances
+    use :: Chemical_Abundances_Structure   , only : unitChemicalAbundances
+    use :: Galacticus_Nodes                , only : nodeComponentBasic     , nodeComponentHotHalo, nodeComponentHotHaloStandard, treeNode, &
+         &                                          defaultHotHaloComponent
+    use :: Numerical_Constants_Prefixes    , only : kilo
+    use :: Numerical_Constants_Astronomical, only : gigaYear               , massSolar
+    use :: Numerical_Constants_Units       , only : ergs
     implicit none
     type            (treeNode            ), intent(inout), pointer :: node
     class           (nodeComponentHotHalo)               , pointer :: hotHalo
     class           (nodeComponentBasic  )               , pointer :: basic
-    double precision                                               :: massVirial    , radiusVirial, &
+    ! The radiated energy is ∫ Λ n N dt, with (Λ n) in units of ergs s⁻¹ and t in units of Gyr. A suitable scale for the thermal
+    ! energy of the halo is mv². The following provides the unit conversion needed to put mv² in units of ergs s⁻¹ Gyr.
+    double precision                      , parameter              :: unitEnergyRadiated=+massSolar                   &
+       &                                                                                 *kilo     **2                &
+       &                                                                                 /ergs                        &
+       &                                                                                 *gigaYear
+    double precision                                               :: massVirial                      , radiusVirial, &
          &                                                            velocityVirial
 
     ! Check if we are the default method.
@@ -1362,18 +1362,19 @@ contains
        massVirial    =basic%mass()
        radiusVirial  =darkMatterHaloScale_%virialRadius  (node)
        velocityVirial=darkMatterHaloScale_%virialVelocity(node)
-       call    hotHalo%                    massScale(                       massVirial                            *scaleMassRelative  )
-       call    hotHalo%           outflowedMassScale(                       massVirial                            *scaleMassRelative  )
-       call    hotHalo%          unaccretedMassScale(                       massVirial                            *scaleMassRelative  )
-       call    hotHalo%              abundancesScale(unitAbundances        *massVirial                            *scaleMassRelative  )
-       call    hotHalo%     outflowedAbundancesScale(unitAbundances        *massVirial                            *scaleMassRelative  )
-       call    hotHalo%               chemicalsScale(unitChemicalAbundances*massVirial                            *scaleMassRelative  )
-       call    hotHalo%         angularMomentumScale(                       massVirial*radiusVirial*velocityVirial*scaleMassRelative  )
-       call    hotHalo%outflowedAngularMomentumScale(                       massVirial*radiusVirial*velocityVirial*scaleMassRelative  )
-       call    hotHalo%             outerRadiusScale(                                  radiusVirial               *scaleRadiusRelative)
+       call    hotHalo%          energyRadiatedScale(unitEnergyRadiated    *massVirial             *velocityVirial**2*scaleMassRelative  )
+       call    hotHalo%                    massScale(                       massVirial                               *scaleMassRelative  )
+       call    hotHalo%           outflowedMassScale(                       massVirial                               *scaleMassRelative  )
+       call    hotHalo%          unaccretedMassScale(                       massVirial                               *scaleMassRelative  )
+       call    hotHalo%              abundancesScale(unitAbundances        *massVirial                               *scaleMassRelative  )
+       call    hotHalo%     outflowedAbundancesScale(unitAbundances        *massVirial                               *scaleMassRelative  )
+       call    hotHalo%               chemicalsScale(unitChemicalAbundances*massVirial                               *scaleMassRelative  )
+       call    hotHalo%         angularMomentumScale(                       massVirial*radiusVirial*velocityVirial   *scaleMassRelative  )
+       call    hotHalo%outflowedAngularMomentumScale(                       massVirial*radiusVirial*velocityVirial   *scaleMassRelative  )
+       call    hotHalo%             outerRadiusScale(                                  radiusVirial                  *scaleRadiusRelative)
        if (hotHaloTrackStrippedGas) then
-          call hotHalo%            strippedMassScale(                       massVirial                            *scaleMassRelative  )
-          call hotHalo%      strippedAbundancesScale(unitAbundances        *massVirial                            *scaleMassRelative  )
+          call hotHalo%            strippedMassScale(                       massVirial                               *scaleMassRelative  )
+          call hotHalo%      strippedAbundancesScale(unitAbundances        *massVirial                               *scaleMassRelative  )
        end if
     end select
     return
@@ -1381,7 +1382,6 @@ contains
 
   !# <mergerTreeInitializeTask>
   !#  <unitName>Node_Component_Hot_Halo_Standard_Tree_Initialize</unitName>
-  !#  <after>spin</after>
   !#  <after>darkMatterProfile</after>
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Hot_Halo_Standard_Tree_Initialize(node)
@@ -1457,21 +1457,21 @@ contains
           &                                              treeNode                            , defaultHotHaloComponent
     use :: Node_Component_Hot_Halo_Standard_Data, only : hotHaloNodeMergerLimitBaryonFraction, starveSatellites       , starveSatellitesOutflowed
     implicit none
-    type            (treeNode            ), intent(inout), pointer :: node
-    type            (treeNode            )               , pointer :: nodeParent
-    class           (nodeComponentHotHalo)               , pointer :: hotHaloParent , hotHalo
-    class           (nodeComponentSpin   )               , pointer :: spinParent
-    class           (nodeComponentBasic  )               , pointer :: parentBasic            , basic
-    double precision                                               :: baryonicMassCurrent    , baryonicMassMaximum      , &
-         &                                                            fractionRemove         , massAccreted             , &
-         &                                                            massUnaccreted         , massReaccreted           , &
-         &                                                            fractionAccreted       , angularMomentumAccreted  , &
-         &                                                            massAccretedHot
-    type            (abundances          ), save                   :: massMetalsAccreted     , fractionMetalsAccreted   , &
-         &                                                            massMetalsReaccreted
+    type            (treeNode            ), intent(inout) :: node
+    type            (treeNode            ), pointer       :: nodeParent
+    class           (nodeComponentHotHalo), pointer       :: hotHaloParent , hotHalo
+    class           (nodeComponentSpin   ), pointer       :: spinParent
+    class           (nodeComponentBasic  ), pointer       :: parentBasic            , basic
+    double precision                                      :: baryonicMassCurrent    , baryonicMassMaximum      , &
+         &                                                   fractionRemove         , massAccreted             , &
+         &                                                   massUnaccreted         , massReaccreted           , &
+         &                                                   fractionAccreted       , angularMomentumAccreted  , &
+         &                                                   massAccretedHot
+    type            (abundances          ), save          :: massMetalsAccreted     , fractionMetalsAccreted   , &
+         &                                                   massMetalsReaccreted
     !$omp threadprivate(massMetalsAccreted,fractionMetalsAccreted,massMetalsReaccreted)
-    type            (chemicalAbundances  ), save                   :: massChemicalsAccreted  , fractionChemicalsAccreted, &
-         &                                                            massChemicalsReaccreted
+    type            (chemicalAbundances  ), save          :: massChemicalsAccreted  , fractionChemicalsAccreted, &
+         &                                                   massChemicalsReaccreted
     !$omp threadprivate(massChemicalsAccreted,fractionChemicalsAccreted,massChemicalsReaccreted)
 
     ! Return immediately if this class is not in use.
@@ -1658,7 +1658,7 @@ contains
     type (treeNode            ), pointer       :: nodeHost
     class(nodeComponentHotHalo), pointer       :: hotHaloHost, hotHalo
     class(nodeComponentSpin   ), pointer       :: spinHost
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Return immediately if satellites are starved, as in that case there is no hot halo to transfer.
     if (starveSatellites) return
@@ -1746,9 +1746,9 @@ contains
     type (treeNode            ), intent(inout) :: node
     type (treeNode            ), pointer       :: nodeParent
     class(nodeComponentHotHalo), pointer       :: hotHaloParent, hotHalo
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
     
-    hotHalo => node%hotHalo()
+    hotHalo => node%hotHalo(autoCreate=.true.)
     ! Ensure that it is of specified class.
     select type (hotHalo)
     class is (nodeComponentHotHaloStandard)
@@ -1806,6 +1806,10 @@ contains
                &                                       hotHalo      %unaccretedMass          () &
                &                                      +hotHaloParent%unaccretedMass          () &
                &                                     )
+          call    hotHalo%          energyRadiatedSet(                                          &
+               &                                       hotHalo      %energyRadiated          () &
+               &                                      +hotHaloParent%energyRadiated          () &
+               &                                     )
        end select
     end select
     return
@@ -1815,8 +1819,8 @@ contains
     !% Get and store the cooling rate for {\normalfont \ttfamily node}.
     use :: Galacticus_Nodes, only : nodeComponentHotHalo, treeNode
     implicit none
-    type (treeNode            ), intent(inout), pointer :: node
-    class(nodeComponentHotHalo)               , pointer :: hotHalo
+    type (treeNode            ), intent(inout) :: node
+    class(nodeComponentHotHalo), pointer       :: hotHalo
 
     if (.not.gotCoolingRate) then
        ! Get the hot halo component.

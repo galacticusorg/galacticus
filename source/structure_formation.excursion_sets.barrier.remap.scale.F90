@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,10 @@
 !% Contains a module which implements an excursion set barrier class which remaps another class by multiplying by a constant.
 
   !# <excursionSetBarrier name="excursionSetBarrierRemapScale">
-  !#  <description>An excursion set barrier class which remaps another class by multiplying by a constant.</description>
+  !#  <description>
+  !#   An excursion set barrier class which remaps another class by multiplying by a constant given by {\normalfont \ttfamily
+  !#   [factor]}.
+  !#  </description>
   !# </excursionSetBarrier>
   type, extends(excursionSetBarrierClass) :: excursionSetBarrierRemapScale
      !% An excursion set barrier class which remaps another class by multiplying by a constant.
@@ -59,8 +62,6 @@ contains
     !#   <variable>factor</variable>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The factor by which to rescale the excursion set barrier.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>applyTo</name>
@@ -68,8 +69,6 @@ contains
     !#   <variable>self%applyToText</variable>
     !#   <defaultValue>var_str('nonRates')</defaultValue>
     !#   <description>Specifies whether rescaling is to be applied to the barrier when used for rate calculation, for other calculations, or both.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="excursionSetBarrier" name="excursionSetBarrier_" source="parameters"/>
     self=excursionSetBarrierRemapScale(factor,enumerationExcursionSetRemapEncode(char(self%applyToText),includesPrefix=.false.),excursionSetBarrier_)

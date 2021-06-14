@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -24,7 +24,35 @@
   use :: Tables                  , only : table1D  , table1DLogarithmicLinear
 
   !# <darkMatterProfileDMO name="darkMatterProfileDMOBurkert">
-  !#  <description>\cite{burkert_structure_1995} dark matter halo profiles</description>
+  !#  <description>
+  !#   A dark matter profile DMO class which implements the \citep{burkert_structure_1995} density profile is used
+  !#   \begin{equation}
+  !#     \rho_\mathrm{dark matter}(r) \propto \left(1+{r\over r_\mathrm{s}}\right)^{-1} \left(1+[{r\over
+  !#     r_\mathrm{s}}]^2\right)^{-1},
+  !#   \end{equation}
+  !#   normalized such that the total mass of the \gls{node} is enclosed with the virial radius and with the scale length
+  !#   $r_\mathrm{s} = r_\mathrm{virial}/c$ where $c$ is the halo concentration (see
+  !#   \refPhysics{darkMatterProfileConcentration}). The mass enclosed within radius $r$ is given by
+  !#   \begin{equation}
+  !#   M(&lt;r) = M_\mathrm{virial} {2 \log(1 + R) + \log(1 + R^2) -2 \tan^{-1}(R) \over 2 \log(1 + c) + \log(1 + c^2) -2 \tan^{-1}(c)},
+  !#   \end{equation}
+  !#   where $R=r/r_\mathrm{s}$. The associated gravitational potential is
+  !#   \begin{equation}
+  !#   \Phi(r) = -\mathrm{G} \left(1+{1 \over R}\right) { 2 \tan^{-1}(R) - 2 \log(1 + R) + \log(1 + R^2) \over -2 \tan^{-1}(c) + 2
+  !#   \log(1 + c) + \log(1 + c^2) }.
+  !#   \end{equation}
+  !#   The peak of the rotation curve occurs at $R=3.2446257246042642$ (found by numerical solution), and the Fourier transform of
+  !#   the profile, $F(k) = \int_0^c 4 \pi r^2 \exp(-i k r) \rho(r) \mathrm{d} r / k r$ (needed in calculations of clustering
+  !#   using the halo model) is given by
+  !#   \begin{eqnarray}
+  !#     F(k) &amp;=&amp; \left\{2 \exp(-i k) \mathrm{C}_\mathrm{i}(k) - 2 \exp(-i k) \mathrm{C}_\mathrm{i}(k[1 + c]) + (1 + i)
+  !#     \left[-i \exp(k) \pi - \exp(k) \mathrm{E}_\mathrm{i}(-k) \right. \right. \nonumber \\
+  !#       &amp; &amp; +i \exp(-k) \mathrm{E}_\mathrm{i}(k) + \exp(k) \mathrm{E}_\mathrm{i}(i [i + c] k) - i \exp(-k)
+  !#       \mathrm{E}_\mathrm{i}(k [1 + i c ]) + (1 + i) \exp(-i k) \mathrm{S}_\mathrm{i}(k) \nonumber \\
+  !#       &amp; &amp; \left. \left. - (1 + i) \exp(-i k) \mathrm{S}_\mathrm{i}(k[1 + c])\right]\right\}/\left[k \left\{-2
+  !#       \tan^{-1}(c) + 2 \log(1 + c) + \log(1 + c^2)\right\}\right].
+  !#   \end{eqnarray}
+  !#  </description>
   !# </darkMatterProfileDMO>
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOBurkert
      !% A dark matter halo profile class implementing \cite{burkert_structure_1995} dark matter halos.
@@ -64,87 +92,21 @@
           &                                                     concentrationPrevious                            , burkertNormalizationFactorPrevious   , &
           &                                                     maximumVelocityPrevious
    contains
-     !@ <objectMethods>
-     !@   <object>darkMatterProfileDMOBurkert</object>
-     !@   <objectMethod>
-     !@     <method>calculationReset</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(table)\textgreater} node\arginout</arguments>
-     !@     <description>Reset memoized calculations.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>densityScaleFree</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ radius\argin, \doublezero\ concentration\argin</arguments>
-     !@     <description>Returns the density (in units such that the virial mass and scale length are unity) in a Burkert dark matter profile with given {\normalfont \ttfamily concentration} at the given {\normalfont \ttfamily radius} (given in units of the scale radius).</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>enclosedMassScaleFree</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ radius\argin, \doublezero\ concentration\argin</arguments>
-     !@     <description>Returns the enclosed mass (in units of the virial mass) in a Burkert dark matter profile with given {\normalfont \ttfamily concentration} at the given {\normalfont \ttfamily radius} (given in units of the scale radius).</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>radialVelocityDispersionScaleFree</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ radius\argin</arguments>
-     !@     <description>Returns the scale-free radial velocity dispersion in a Burkert dark matter profile.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>radialVelocityDispersionTabulate</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ radius\argin</arguments>
-     !@     <description>Tabulates the radial velocity dispersion vs. radius for Burkert halos.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>freefallTabulate</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ freefallTimeScaleFree\argin</arguments>
-     !@     <description>Tabulates the freefall time vs. freefall radius for Burkert halos.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>freefallTimeScaleFree</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ radius\argin</arguments>
-     !@     <description>Compute the freefall time in a scale-free Burkert halo.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>radiusEnclosingDensityTabulate</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ densityScaleFree\argin\argin</arguments>
-     !@     <description>Tabulates the radius vs. enclosed density for Burkert halos.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>angularMomentumScaleFree</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ concentration\argin</arguments>
-     !@     <description>Returns the total angular momentum in an Burkert dark matter profile with given {\normalfont \ttfamily concentration}.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>inverseAngularMomentum</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ specificAngularMomentum\argin</arguments>
-     !@     <description>Tabulates the specific angular momentum vs. radius in an Burkert profile for rapid inversion.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>profileEnergy</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ concentration\argin</arguments>
-     !@     <description>Computes the total energy of an Burkert profile halo of given {\normalfont \ttfamily concentration}.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>specificAngularMomentumScaleFree</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ radius\argin</arguments>
-     !@     <description>Returns the specific angular momentum, normalized to unit scale length and unit velocity at the scale radius, at position {\normalfont \ttfamily radius} (in units of the scale radius) in an Burkert profile.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>tabulate</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ concentration\argin</arguments>
-     !@     <description>Tabulate properties of the Burkert halo profile which must be computed numerically.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Reset memoized calculations." method="calculationReset" />
+     !#   <method description="Returns the density (in units such that the virial mass and scale length are unity) in a Burkert dark matter profile with given {\normalfont \ttfamily concentration} at the given {\normalfont \ttfamily radius} (given in units of the scale radius)." method="densityScaleFree" />
+     !#   <method description="Returns the enclosed mass (in units of the virial mass) in a Burkert dark matter profile with given {\normalfont \ttfamily concentration} at the given {\normalfont \ttfamily radius} (given in units of the scale radius)." method="enclosedMassScaleFree" />
+     !#   <method description="Returns the scale-free radial velocity dispersion in a Burkert dark matter profile." method="radialVelocityDispersionScaleFree" />
+     !#   <method description="Tabulates the radial velocity dispersion vs. radius for Burkert halos." method="radialVelocityDispersionTabulate" />
+     !#   <method description="Tabulates the freefall time vs. freefall radius for Burkert halos." method="freefallTabulate" />
+     !#   <method description="Compute the freefall time in a scale-free Burkert halo." method="freefallTimeScaleFree" />
+     !#   <method description="Tabulates the radius vs. enclosed density for Burkert halos." method="radiusEnclosingDensityTabulate" />
+     !#   <method description="Returns the total angular momentum in an Burkert dark matter profile with given {\normalfont \ttfamily concentration}." method="angularMomentumScaleFree" />
+     !#   <method description="Tabulates the specific angular momentum vs. radius in an Burkert profile for rapid inversion." method="inverseAngularMomentum" />
+     !#   <method description="Computes the total energy of an Burkert profile halo of given {\normalfont \ttfamily concentration}." method="profileEnergy" />
+     !#   <method description="Returns the specific angular momentum, normalized to unit scale length and unit velocity at the scale radius, at position {\normalfont \ttfamily radius} (in units of the scale radius) in an Burkert profile." method="specificAngularMomentumScaleFree" />
+     !#   <method description="Tabulate properties of the Burkert halo profile which must be computed numerically." method="tabulate" />
+     !# </methods>
      final     ::                                      burkertDestructor
      procedure :: autoHook                          => burkertAutoHook
      procedure :: calculationReset                  => burkertCalculationReset
@@ -428,7 +390,7 @@ contains
     double precision                                , intent(in   ) :: radius
     class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
     double precision                                                :: radiusOverScaleRadius, scaleRadius
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     darkMatterProfile      =>  node             %darkMatterProfile(autoCreate=.true.)
     scaleRadius            =   darkMatterProfile%scale            (                 )
@@ -521,7 +483,7 @@ contains
   double precision function burkertCircularVelocity(self,node,radius)
     !% Returns the circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
     !% units of Mpc).
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (darkMatterProfileDMOBurkert), intent(inout) :: self
     type            (treeNode                   ), intent(inout) :: node
@@ -598,11 +560,11 @@ contains
     !% specificAngularMomentum} (given in units of km s$^{-1}$ Mpc)
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, treeNode
     implicit none
-    class           (darkMatterProfileDMOBurkert   ), intent(inout)          :: self
-    type            (treeNode                      ), intent(inout), pointer :: node
-    double precision                                , intent(in   )          :: specificAngularMomentum
-    class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
-    double precision                                                         :: specificAngularMomentumScaleFree
+    class           (darkMatterProfileDMOBurkert   ), intent(inout) :: self
+    type            (treeNode                      ), intent(inout) :: node
+    double precision                                , intent(in   ) :: specificAngularMomentum
+    class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
+    double precision                                                :: specificAngularMomentumScaleFree
 
     ! Return immediately with zero radius for non-positive specific angular momenta.
     if (specificAngularMomentum <= 0.0d0) then
@@ -744,7 +706,7 @@ contains
     implicit none
     class           (darkMatterProfileDMOBurkert), intent(inout) :: self
     double precision                             , intent(in   ) :: concentration
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     burkertAngularMomentumScaleFree=+(                                    &
          &                            +2.0d0*atan(      concentration   ) &
@@ -830,7 +792,7 @@ contains
     implicit none
     class           (darkMatterProfileDMOBurkert), intent(inout) :: self
     double precision                             , intent(in   ) :: concentration, radius
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     burkertDensityScaleFree=+1.0d0                                &
          &                  /(1.0d0+radius   )                    &
@@ -848,12 +810,12 @@ contains
     !% Computes the total energy of an Burkert profile halo of given {\normalfont \ttfamily concentration} using the methods of
     !% \citeauthor{cole_hierarchical_2000}~(\citeyear{cole_hierarchical_2000}; their Appendix~A).
     use :: Numerical_Constants_Math, only : Pi
-    use :: Numerical_Integration   , only : Integrate, Integrate_Done
+    use :: Numerical_Integration   , only : integrator
     implicit none
     class           (darkMatterProfileDMOBurkert), intent(inout) :: self
     double precision                             , intent(in   ) :: concentration
-    type            (fgsl_function              )                :: integrandFunction
-    type            (fgsl_integration_workspace )                :: integrationWorkspace
+    type            (integrator                 )                :: integratorPotential    , integratorJeans       , &
+         &                                                          integratorKinetic
     double precision                                             :: jeansEquationIntegral  , kineticEnergy         , &
          &                                                          kineticEnergyIntegral  , potentialEnergy       , &
          &                                                          potentialEnergyIntegral, radiusMaximum         , &
@@ -863,24 +825,21 @@ contains
     radiusMinimum          =0.0d0
     radiusMaximum          =concentration
     concentrationParameter =concentration
-    potentialEnergyIntegral=Integrate(radiusMinimum,radiusMaximum,burkertPotentialEnergyIntegrand,integrandFunction, &
-         &                            integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
-    call Integrate_Done(integrandFunction,integrationWorkspace)
-    potentialEnergy=-0.5d0*(1.0d0/concentration+potentialEnergyIntegral)
+    integratorPotential    =integrator(burkertPotentialEnergyIntegrand,toleranceRelative=1.0d-3)
+    potentialEnergyIntegral=integratorPotential%integrate(radiusMinimum,radiusMaximum)
+    potentialEnergy        =-0.5d0*(1.0d0/concentration+potentialEnergyIntegral)
     ! Compute the velocity dispersion at the virial radius.
     radiusMinimum         =concentration
     radiusMaximum         =100.0d0*concentration
     concentrationParameter=concentration
-    jeansEquationIntegral =Integrate(radiusMinimum,radiusMaximum,burkertJeansEquationIntegrand,integrandFunction, &
-         &                           integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
-    call Integrate_Done(integrandFunction,integrationWorkspace)
+    integratorJeans       =integrator(burkertJeansEquationIntegrand,toleranceRelative=1.0d-3)
+    jeansEquationIntegral =integratorJeans%integrate(radiusMinimum,radiusMaximum)
     ! Compute the kinetic energy.
     radiusMinimum         =0.0d0
     radiusMaximum         =concentration
     concentrationParameter=concentration
-    kineticEnergyIntegral =Integrate(radiusMinimum,radiusMaximum,burkertKineticEnergyIntegrand,integrandFunction, &
-         &                           integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
-    call Integrate_Done(integrandFunction,integrationWorkspace)
+    integratorKinetic     =integrator(burkertKineticEnergyIntegrand,toleranceRelative=1.0d-3)
+    kineticEnergyIntegral =integratorKinetic%integrate(radiusMinimum,radiusMaximum)
     kineticEnergy         =2.0d0*Pi*(jeansEquationIntegral*concentration**3+kineticEnergyIntegral)
     ! Compute the total energy.
     burkertProfileEnergy  =(potentialEnergy+kineticEnergy)*concentration
@@ -980,13 +939,13 @@ contains
     use :: Galacticus_Nodes                , only : nodeComponentDarkMatterProfile, treeNode
     use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
     implicit none
-    class           (darkMatterProfileDMOBurkert   ), intent(inout) :: self
-    type            (treeNode                      ), intent(inout) :: node
-    double precision                                , intent(in   ) :: time
-    class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
-    double precision                                                :: concentration    , freefallTimeScaleFree, &
-         &                                                             radiusScale      , timeScale            , &
-         &                                                             velocityScale
+    class           (darkMatterProfileDMOBurkert   ), intent(inout), target :: self
+    type            (treeNode                      ), intent(inout), target :: node
+    double precision                                , intent(in   )         :: time
+    class           (nodeComponentDarkMatterProfile), pointer               :: darkMatterProfile
+    double precision                                                        :: concentration    , freefallTimeScaleFree, &
+         &                                                                     radiusScale      , timeScale            , &
+         &                                                                     velocityScale
 
     ! For non-positive freefall times, return a zero freefall radius immediately.
     if (time <= 0.0d0) then
@@ -1033,13 +992,13 @@ contains
     use :: Galacticus_Nodes                , only : nodeComponentDarkMatterProfile, treeNode
     use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
     implicit none
-    class           (darkMatterProfileDMOBurkert   ), intent(inout) :: self
-    type            (treeNode                      ), intent(inout) :: node
-    double precision                                , intent(in   ) :: time
-    class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
-    double precision                                                :: concentration    , freefallTimeScaleFree, &
-         &                                                             radiusScale      , timeScale            , &
-         &                                                             velocityScale
+    class           (darkMatterProfileDMOBurkert   ), intent(inout), target :: self
+    type            (treeNode                      ), intent(inout), target :: node
+    double precision                                , intent(in   )         :: time
+    class           (nodeComponentDarkMatterProfile), pointer               :: darkMatterProfile
+    double precision                                                        :: concentration    , freefallTimeScaleFree, &
+         &                                                                     radiusScale      , timeScale            , &
+         &                                                                     velocityScale
 
     ! For non-positive freefall times, return the limiting value for small radii.
     if (time <= 0.0d0) then
@@ -1122,27 +1081,18 @@ contains
 
   double precision function burkertFreefallTimeScaleFree(self,radius)
     !% Compute the freefall time in a scale-free Burkert halo.
-    use :: Numerical_Integration, only : Integrate, Integrate_Done
+    use :: Numerical_Integration, only : integrator
     implicit none
     class           (darkMatterProfileDMOBurkert), intent(inout) :: self
     double precision                             , intent(in   ) :: radius
-    type            (fgsl_function              )                :: integrandFunction
-    type            (fgsl_integration_workspace )                :: integrationWorkspace
-    double precision                                             :: radiusEnd           , radiusStart
-    !GCC$ attributes unused :: self
+    type            (integrator                 )                :: integrator_
+    double precision                                             :: radiusEnd  , radiusStart
+    !$GLC attributes unused :: self
 
-    radiusStart=radius
-    radiusEnd  =0.0d0
-    burkertFreefallTimeScaleFree=Integrate(                                                         &
-         &                                                   radiusEnd                            , &
-         &                                                   radiusStart                          , &
-         &                                                   burkertFreefallTimeScaleFreeIntegrand, &
-         &                                                   integrandFunction                    , &
-         &                                                   integrationWorkspace                 , &
-         &                                 toleranceAbsolute=0.0d+0                               , &
-         &                                 toleranceRelative=1.0d-5                                 &
-         &                                )
-    call Integrate_Done(integrandFunction,integrationWorkspace)
+    radiusStart                 =radius
+    radiusEnd                   =0.0d0
+    integrator_                 =integrator           (burkertFreefallTimeScaleFreeIntegrand,toleranceRelative=1.0d-5)
+    burkertFreefallTimeScaleFree=integrator_%integrate(radiusEnd                            ,radiusStart             )
     return
 
   contains
@@ -1374,33 +1324,24 @@ contains
 
   double precision function burkertRadialVelocityDispersionScaleFree(self,radius)
     !% Compute the radial velocity dispersion in a scale-free Burkert halo.
-    use :: Numerical_Integration, only : Integrate, Integrate_Done
+    use :: Numerical_Integration, only : integrator
     implicit none
     class           (darkMatterProfileDMOBurkert), intent(inout)            :: self
     double precision                             , intent(in   )            :: radius
-    double precision                                            , parameter :: radiusTiny          =1.0d-9, radiusLarge  =5.0d3
-    double precision                                                        :: radiusMinimum              , radiusMaximum
-    type            (fgsl_function              )                           :: integrandFunction
-    type            (fgsl_integration_workspace )                           :: integrationWorkspace
-    !GCC$ attributes unused :: self
+    double precision                                            , parameter :: radiusTiny   =1.0d-9, radiusLarge  =5.0d3
+    double precision                                                        :: radiusMinimum       , radiusMaximum
+    type            (integrator                 )                           :: integrator_
+    !$GLC attributes unused :: self
 
-    radiusMinimum=max(       radius,radiusTiny )
-    radiusMaximum=max(10.0d0*radius,radiusLarge)
-    burkertRadialVelocityDispersionScaleFree=sqrt(                                              &
-         &                                        +Integrate(                                   &
-         &                                                   radiusMinimum                    , &
-         &                                                   radiusMaximum                    , &
-         &                                                   burkertJeansEquationIntegrand    , &
-         &                                                   integrandFunction                , &
-         &                                                   integrationWorkspace             , &
-         &                                                   toleranceAbsolute    =0.0d+0     , &
-         &                                                   toleranceRelative    =1.0d-6       &
-         &                                                  )                                   &
-         &                                        *(1.0d0+radius   )                            &
-         &                                        *(1.0d0+radius**2)                            &
+    radiusMinimum                           =max(       radius,radiusTiny )
+    radiusMaximum                           =max(10.0d0*radius,radiusLarge)
+    integrator_                             =integrator(burkertJeansEquationIntegrand,toleranceRelative=1.0d-6)
+    burkertRadialVelocityDispersionScaleFree=sqrt(                                                    &
+         &                                        +integrator_%integrate(radiusMinimum,radiusMaximum) &
+         &                                        *(1.0d0+radius   )                                  &
+         &                                        *(1.0d0+radius**2)                                  &
          &                                       )
-    call Integrate_Done(integrandFunction,integrationWorkspace)
-    return
+     return
 
   contains
 

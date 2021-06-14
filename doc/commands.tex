@@ -1,0 +1,32 @@
+% Names
+\def\glc{{\normalfont \scshape Galacticus}}
+
+% Physical constants.
+\def\G{\mathrm{G}}
+\def\clight{\mathrm{c}}
+\def\d{\mathrm{d}}
+\def\e{\mathrm{e}}
+
+% Variable specifiers.
+\def\void{\textcolor{red}{\textless void\textgreater}}
+\def\logicalzero{\textcolor{red}{\textless logical\textgreater}}
+\def\logicalone{\textcolor{red}{\textless logical(:)\textgreater}}
+\def\logicaltwo{\textcolor{red}{\textless logical(:,:)\textgreater}}
+\def\intzero{\textcolor{red}{\textless integer\textgreater}}
+\def\intone{\textcolor{red}{\textless integer(:)\textgreater}}
+\def\inttwo{\textcolor{red}{\textless integer(:,:)\textgreater}}
+\def\intthree{\textcolor{red}{\textless integer(:,:,:)\textgreater}}
+\def\doublezero{\textcolor{red}{\textless double\textgreater}}
+\def\doubleone{\textcolor{red}{\textless double(:)\textgreater}}
+\def\doubletwo{\textcolor{red}{\textless double(:,:)\textgreater}}
+\def\doublethree{\textcolor{red}{\textless double(:,:,:)\textgreater}}
+\def\enum{\textcolor{red}{\textless enumeration\textgreater}}
+\def\argin{\textcolor{blue}{$\rightarrow$}}
+\def\arginout{\textcolor{blue}{$\leftrightarrow$}}
+\def\argout{\textcolor{blue}{$\leftarrow$}}
+
+% Macros for linking to sections either through internal LaTeX label/ref or externally through hyperdef/hyperref.
+%% Link to a class by class name.
+\newcommand{\refClass}[1]{\ifthenelse{\equal{\docname}{Development}}{{\normalfont \ttfamily #1} (see \S\ref{class:#1})}{\href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#class.#1}{\normalfont \ttfamily #1}}}
+%% Link to a physics description by class name.
+\newcommand{\refPhysics}[1]{\ifthenelse{\equal{\docname}{Physics}}{{\normalfont \ttfamily #1} (see \S\ref{phys:#1})}{\href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Physics.pdf\#physics.#1}{\normalfont \ttfamily #1}}}

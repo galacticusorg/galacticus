@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -59,8 +59,6 @@ contains
     !#   <name>massThreshold</name>
     !#   <source>parameters</source>
     !#   <description>The parameter $M_0$ (in units of $M_\odot$) appearing in the mass threshold for the halo mass galactic filter class.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
     self=galacticFilterHaloMass(massThreshold,virialDensityContrast_)
@@ -94,9 +92,9 @@ contains
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
     implicit none
-    class(galacticFilterHaloMass), intent(inout) :: self
-    type (treeNode              ), intent(inout) :: node
-    class(nodeComponentBasic    ), pointer       :: basic
+    class(galacticFilterHaloMass), intent(inout)         :: self
+    type (treeNode              ), intent(inout), target :: node
+    class(nodeComponentBasic    ), pointer               :: basic
 
     basic          =>                                                                                  node %basic()
     haloMassPasses =   Dark_Matter_Profile_Mass_Definition(                                                           &

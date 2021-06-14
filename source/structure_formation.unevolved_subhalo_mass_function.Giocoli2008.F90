@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -57,8 +57,6 @@ contains
     !#   <defaultValue>0.21d0</defaultValue>
     !#   <defaultSource>\cite{giocoli_population_2008}</defaultSource>
     !#   <description>The parameter $N_0$ in the \cite{giocoli_population_2008} unevolved subhalo mass function fit.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>exponent</name>
@@ -67,8 +65,6 @@ contains
     !#   <defaultValue>0.8d0</defaultValue>
     !#   <defaultSource>\cite{giocoli_population_2008}</defaultSource>
     !#   <description>The parameter $\alpha$ in the \cite{giocoli_population_2008} unevolved subhalo mass function fit.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParametersValidate source="parameters"/>
    return
@@ -92,7 +88,7 @@ contains
     double precision                                         , intent(in   ) :: time    , mass, &
          &                                                                      massHost
     double precision                                                         :: x
-    !GCC$ attributes unused :: time
+    !$GLC attributes unused :: time
 
     x                      =+mass                        &
          &                  /massHost                    &
@@ -115,7 +111,7 @@ contains
     double precision                                         , intent(in   ) :: time    , massLow , &
          &                                                                      massHigh, massHost
     double precision                                                         :: xLow    , xHigh
-    !GCC$ attributes unused :: time
+    !$GLC attributes unused :: time
 
     xLow                 =+massLow                                                       &
          &                /massHost                                                      &

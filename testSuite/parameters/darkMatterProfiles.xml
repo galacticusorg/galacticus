@@ -3,18 +3,12 @@
 <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
-  <cosmologyFunctionsMethod value="matterLambda"/>
-  <cosmologyParametersMethod value="simple">
-    <OmegaMatter value="0.2815"/>
-    <OmegaDarkEnergy value="0.7185"/>
-    <OmegaBaryon value="0.0465"/>
-    <HubbleConstant value="69.3"/>
-  </cosmologyParametersMethod><cosmologicalMassVarianceMethod value="filteredPower">
-    <sigma_8 value="0.82"/>
-  </cosmologicalMassVarianceMethod><transferFunctionMethod value="eisensteinHu1999"/>
-  <powerSpectrumPrimordialMethod value="powerLaw">
-    <index value="0.971"/>
-    <wavenumberReference value="1.000"/>
-    <running value="0.000"/>
-  </powerSpectrumPrimordialMethod>
+  <componentBasic             value="standard"/>
+  <componentDarkMatterProfile value="scale"   />
+  <componentBlackHole         value="null"    />
+  <componentDisk              value="null"    />
+  <componentHotHalo           value="null"    />
+  <componentSatellite         value="null"    />
+  <componentSpheroid          value="null"    />
+  <componentSpin              value="null"    />
 </parameters>

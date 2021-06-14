@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -47,7 +47,7 @@ contains
 
   logical function Node_Push_From_Tree(event,node,deadlockStatus)
     !% Push a node from the tree.
-    use :: Galacticus_Display                 , only : Galacticus_Display_Message   , verbosityInfo
+    use :: Display                            , only : displayMessage               , verbosityLevelInfo
     use :: Galacticus_Error                   , only : Galacticus_Error_Report
     use :: Galacticus_Nodes                   , only : nodeComponentBasic           , nodeEvent         , nodeEventBranchJumpInterTree, nodeEventSubhaloPromotionInterTree, &
           &                                            treeNode                     , treeNodeLinkedList
@@ -139,7 +139,7 @@ contains
         pairedNodeID       =-1
        call Galacticus_Error_Report('unknown event type'//{introspection:location})
     end select
-    call Galacticus_Display_Message(message,verbosityInfo)
+    call displayMessage(message,verbosityLevelInfo)
     ! This is a subhalo jumping to another tree. Remove the node from its host, and explicitly nullify its parent pointer to
     ! prevent it being evolved any further until it is inserted into its new tree.
     call node%removeFromHost()
@@ -159,7 +159,7 @@ contains
     waitListSize                      =  waitListSize       +1
     message='Inter-tree wait list now contains '
     message=message//waitListSize//' nodes'
-    call Galacticus_Display_Message(message,verbosityInfo)
+    call displayMessage(message,verbosityLevelInfo)
     !$omp end critical(interTreeWaitList)
     ! Since we changed the tree, record that the tree is not deadlocked.
     deadlockStatus=deadlockStatusIsNotDeadlocked
@@ -170,7 +170,7 @@ contains
 
   logical function Node_Pull_From_Tree(event,node,deadlockStatus)
     !% Pull a node from the tree.
-    use :: Galacticus_Display                 , only : Galacticus_Display_Message, verbosityInfo                , verbosityWarn
+    use :: Display                            , only : displayMessage            , verbosityLevelInfo           , verbosityLevelWarn
     use :: Galacticus_Error                   , only : Galacticus_Error_Report
     use :: Galacticus_Nodes                   , only : nodeComponentBasic        , nodeEvent                    , nodeEventBranchJumpInterTree, nodeEventSubhaloPromotionInterTree, &
           &                                            treeNode
@@ -233,7 +233,7 @@ contains
        isPrimary          =.false.
        call Galacticus_Error_Report('unknown event type'//{introspection:location})
     end select
-    call Galacticus_Display_Message(message,verbosityInfo)
+    call displayMessage(message,verbosityLevelInfo)
     ! Search for the node to be pulled in the inter-tree wait list.
     !$omp critical(interTreeWaitList)
     if (associated(interTreeWaitList%next)) then
@@ -252,7 +252,7 @@ contains
                 message=message//"no"
              end if
              message=message//'} at time '//trim(label)//' Gyr'
-             call Galacticus_Display_Message(message,verbosityInfo)
+             call displayMessage(message,verbosityLevelInfo)
              ! Remove the node from the linked list.
              waitListEntryPrevious%next => waitListEntry        %next
              deallocate(waitListEntry)
@@ -260,7 +260,7 @@ contains
              waitListSize               =  waitListSize              -1
              message='Inter-tree wait list now contains '
              message=message//waitListSize//' nodes'
-             call Galacticus_Display_Message(message,verbosityInfo)
+             call displayMessage(message,verbosityLevelInfo)
              ! Attach the pulled node.
              pullNode     %sibling    => null()
              pullNode     %firstChild => null()
@@ -411,7 +411,7 @@ contains
                       message=message//pullNode%index()//']'
                       message=message//char(10)//'ignoring as not currently supported'
                       message=message//char(10)//'warning will not be issued again'
-                      call Galacticus_Display_Message(message,verbosityWarn)
+                      call displayMessage(message,verbosityLevelWarn)
                       warningNestedHierarchyIssued=.true.
                    end if
                    do while (attachNode%isSatellite())
@@ -495,24 +495,24 @@ contains
   !# </universePostEvolveTask>
   subroutine Inter_Tree_Event_Post_Evolve()
     !% Check that the inter-tree transfer list is empty after universe evolution.
-    use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent
+    use :: Display           , only : displayIndent          , displayMessage, displayUnindent
     use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String, only : assignment(=)            , varying_string
+    use :: ISO_Varying_String, only : assignment(=)          , varying_string
     use :: String_Handling   , only : operator(//)
     implicit none
     type(interTreeTransfer), pointer :: waitListEntry
     type(varying_string   )          :: message
 
     if (waitListSize > 0) then
-       call Galacticus_Display_Indent('Nodes in inter-tree transfer wait list')
+       call displayIndent('Nodes in inter-tree transfer wait list')
        waitListEntry => interTreeWaitList%next
        do while (associated(waitListEntry).and.associated(waitListEntry%node))
           message='Node ID: '
           message=message//waitListEntry%node%index()
-          call Galacticus_Display_Message(message)
+          call displayMessage(message)
           waitListEntry => waitListEntry%next
        end do
-       call Galacticus_Display_Unindent('done')
+       call displayUnindent('done')
        call Galacticus_Error_Report('nodes remain in the inter-tree transfer wait list - see preceeding report'//{introspection:location})
     end if
     return

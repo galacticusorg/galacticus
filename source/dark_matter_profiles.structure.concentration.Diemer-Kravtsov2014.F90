@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -28,7 +28,21 @@
   use :: Virial_Density_Contrast   , only : virialDensityContrastFixed
 
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationDiemerKravtsov2014">
-  !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{diemer_universal_2014}.</description>
+  !#  <description>
+  !#   A dark matter profile concentration class in which the concentration is computed using a fitting function from
+  !#   \cite{diemer_universal_2014}:
+  !#   \begin{equation}
+  !#   c = {c_\mathrm{min} \over 2} \left[ \left({\nu\over\nu_\mathrm{min}}\right)^{-\alpha} +
+  !#   \left({\nu\over\nu_\mathrm{min}}\right)^{\beta} \right],
+  !#   \end{equation}
+  !#   where $c_\mathrm{min}=\phi_0+\phi_1 n$, $\nu_\mathrm{min}=\eta_0+\eta_1 n$, $n$ is the logarithmic slope of the linear
+  !#   power spectrum at wavenumber $k = \kappa 2 \pi / R$, $R$ is the comoving Lagrangian radius of the halo, $R=[3 M / 4 \pi
+  !#   \rho_\mathrm{M}(z=0)]^{1/3}$, and $\nu=\delta_\mathrm{crit}(t)/\sigma(M)$ is the peak height parameter. The numerical
+  !#   parameters $(\kappa,\phi_0,\phi_1,\eta_0,\eta_1,\alpha,\beta)$ are set by the parameters {\normalfont \ttfamily [kappa]},
+  !#   {\normalfont \ttfamily [phi0]}, {\normalfont \ttfamily [phi1]}, {\normalfont \ttfamily [eta0]}, {\normalfont \ttfamily
+  !#   [eta1]}, {\normalfont \ttfamily [alpha]}, {\normalfont \ttfamily [beta]}, respectively, and default to the values given in
+  !#   Table 3 of \cite{diemer_universal_2014} for the median relation, namely $(0.69,6.58,1.37,6.82,1.42,1.12,1.69)$.
+  !#  </description>
   !#  <deepCopy>
   !#   <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
   !#  </deepCopy>
@@ -92,8 +106,6 @@ contains
     !#   <variable>kappa</variable>
     !#   <defaultValue>0.69d0</defaultValue>
     !#   <description>The parameter $\kappa$ appearing in the halo concentration algorithm of \cite{diemer_universal_2014}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>phi0</name>
@@ -101,8 +113,6 @@ contains
     !#   <variable>phi0</variable>
     !#   <defaultValue>6.58d0</defaultValue>
     !#   <description>The parameter $\phi_0$ appearing in the halo concentration algorithm of \cite{diemer_universal_2014}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>phi1</name>
@@ -110,8 +120,6 @@ contains
     !#   <variable>phi1</variable>
     !#   <defaultValue>1.37d0</defaultValue>
     !#   <description>The parameter $\phi_1$ appearing in the halo concentration algorithm of \cite{diemer_universal_2014}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>eta0</name>
@@ -119,8 +127,6 @@ contains
     !#   <variable>eta0</variable>
     !#   <defaultValue>6.82d0</defaultValue>
     !#   <description>The parameter $\eta_0$ appearing in the halo concentration algorithm of \cite{diemer_universal_2014}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>eta1</name>
@@ -128,18 +134,13 @@ contains
     !#   <variable>eta1</variable>
     !#   <defaultValue>1.42d0</defaultValue>
     !#   <description>The parameter $\eta_1$ appearing in the halo concentration algorithm of \cite{diemer_universal_2014}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>alpha</name>
     !#   <source>parameters</source>
     !#   <variable>alpha</variable>
     !#   <defaultValue>1.12d0</defaultValue>
-    !#   <attachedTo>module</attachedTo>
     !#   <description>The parameter $\alpha$ appearing in the halo concentration algorithm of \cite{diemer_universal_2014}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>beta</name>
@@ -147,8 +148,6 @@ contains
     !#   <variable>beta</variable>
     !#   <defaultValue>1.69d0</defaultValue>
     !#   <description>The parameter $\beta$ appearing in the halo concentration algorithm of \cite{diemer_universal_2014}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>scatter</name>
@@ -156,8 +155,6 @@ contains
     !#   <variable>scatter</variable>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The scatter (in dex) to assume in the halo concentration algorithm of \cite{diemer_universal_2014}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
     !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
@@ -200,10 +197,35 @@ contains
     allocate(     darkMatterHaloScaleDefinition_  )
     allocate(self%virialDensityContrastDefinition_)
     allocate(self%darkMatterProfileDMODefinition_ )
-    !# <referenceConstruct owner="self" isResult="yes" object="virialDensityContrastDefinition_" constructor="virialDensityContrastFixed                        (200.0d0,fixedDensityTypeCritical,2.0d0,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
-    !# <referenceConstruct                             object="darkMatterHaloScaleDefinition_"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,self%virialDensityContrastDefinition_ )"/>
-    !# <referenceConstruct owner="self" isResult="yes" object="darkMatterProfileDMODefinition_"  constructor="darkMatterProfileDMONFW                           (darkMatterHaloScaleDefinition_                                                           )"/>
-    !# <objectDestructor                               name  ="darkMatterHaloScaleDefinition_"                                                                                                                                                              />
+    !# <referenceConstruct owner="self" isResult="yes" object="virialDensityContrastDefinition_">
+    !#  <constructor>
+    !#   virialDensityContrastFixed                        (                                                                            &amp;
+    !#    &amp;                                             densityContrastValue                =200.0d0                              , &amp;
+    !#    &amp;                                             densityType                         =fixedDensityTypeCritical             , &amp;
+    !#    &amp;                                             turnAroundOverVirialRadius          =2.0d0                                , &amp;
+    !#    &amp;                                             cosmologyParameters_                =self%cosmologyParameters_            , &amp;
+    !#    &amp;                                             cosmologyFunctions_                 =self%cosmologyFunctions_               &amp;
+    !#    &amp;                                            )
+    !#  </constructor>
+    !# </referenceConstruct>
+    !# <referenceConstruct                             object="darkMatterHaloScaleDefinition_"  >
+    !#  <constructor>
+    !#   darkMatterHaloScaleVirialDensityContrastDefinition(                                                                            &amp;
+    !#    &amp;                                             cosmologyParameters_                =self%cosmologyParameters_            , &amp;
+    !#    &amp;                                             cosmologyFunctions_                 =self%cosmologyFunctions_             , &amp;
+    !#    &amp;                                             virialDensityContrast_              =self%virialDensityContrastDefinition_  &amp;
+    !#    &amp;                                            )
+    !#  </constructor>
+    !# </referenceConstruct>
+    !# <referenceConstruct owner="self" isResult="yes" object="darkMatterProfileDMODefinition_" >
+    !#  <constructor>
+    !#   darkMatterProfileDMONFW                           (                                                                            &amp;
+    !#    &amp;                                             velocityDispersionUseSeriesExpansion=.true.                               , &amp;
+    !#    &amp;                                             darkMatterHaloScale_                =darkMatterHaloScaleDefinition_         &amp;
+    !#    &amp;                                            )
+    !#  </constructor>
+    !# </referenceConstruct>
+    !# <objectDestructor                               name  ="darkMatterHaloScaleDefinition_" />
     return
   end function diemerKravtsov2014ConstructorInternal
 
@@ -262,32 +284,38 @@ contains
          &  .or.                               &
          &   basic%time() /= self%timePrevious &
          & ) then
-        radiusHaloLagrangian         =+cubeRoot(                                                                        &
-            &                                  +3.0d0                                                                   &
-            &                                  *basic%mass()                                                            &
-            &                                  /4.0d0                                                                   &
-            &                                  /Pi                                                                      &
-            &                                  /self%cosmologyParameters_%densityCritical()                             &
-            &                                  /self%cosmologyParameters_%OmegaMatter    ()                             &
+        radiusHaloLagrangian         =+cubeRoot(                                                                         &
+            &                                  +3.0d0                                                                    &
+            &                                  *basic%mass()                                                             &
+            &                                  /4.0d0                                                                    &
+            &                                  /Pi                                                                       &
+            &                                  /self%cosmologyParameters_%densityCritical()                              &
+            &                                  /self%cosmologyParameters_%OmegaMatter    ()                              &
             &                                 )
-       peakHeight                    =+self%criticalOverdensity_     %value       (time=basic%time(),mass=basic%mass()) &
+       peakHeight                    =+self%criticalOverdensity_     %value       (time=basic%time(),mass=basic%mass())  &
             &                         /self%cosmologicalMassVariance_%rootVariance(time=basic%time(),mass=basic%mass())
-       wavenumber                    =+self%kappa                                                                       &
-            &                         *2.0d0                                                                            &
-            &                         *Pi                                                                               &
+       wavenumber                    =+self%kappa                                                                        &
+            &                         *2.0d0                                                                             &
+            &                         *Pi                                                                                &
             &                         /radiusHaloLagrangian
        powerSpectrumSlope            =+self%powerSpectrum_%powerLogarithmicDerivative(wavenumber,basic%time())
-       concentrationMinimum          =+self%phi0                                                                        &
-            &                         +self%phi1                                                                        &
-            &                         *powerSpectrumSlope
-       peakHeightMinimum             =+self%eta0                                                                        &
-            &                         +self%eta1                                                                        &
-            &                         *powerSpectrumSlope
-       self%concentrationMeanPrevious=+0.5d0                                                                            &
-            &                         *concentrationMinimum                                                             &
-            &                         *(                                                                                &
-            &                           +(peakHeight/peakHeightMinimum)**(-self%alpha)                                  &
-            &                           +(peakHeight/peakHeightMinimum)**(+self%beta )                                  &
+       concentrationMinimum          =+max(                                                                              &
+            &                              +self%phi0                                                                    &
+            &                              +self%phi1                                                                    &
+            &                              *powerSpectrumSlope                                                         , &
+            &                              +2.0d0                                                                        &
+            &                             )
+       peakHeightMinimum             =+max(                                                                              &
+            &                              +self%eta0                                                                    &
+            &                              +self%eta1                                                                    &
+            &                              *powerSpectrumSlope                                                         , &
+            &                              +1.0d0                                                                        &
+            &                             )
+       self%concentrationMeanPrevious=+0.5d0                                                                             &
+            &                         *concentrationMinimum                                                              &
+            &                         *(                                                                                 &
+            &                           +(peakHeight/peakHeightMinimum)**(-self%alpha)                                   &
+            &                           +(peakHeight/peakHeightMinimum)**(+self%beta )                                   &
             &                          )
        self%massPrevious             = basic%mass()
        self%timePrevious             = basic%time()

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -33,45 +33,14 @@ module Multi_Counters
      !% an arbitrary range.
      integer(c_size_t), allocatable, dimension(:) :: ranges, values
    contains
-     !@ <objectMethods>
-     !@   <object>multiCounter</object>
-     !@   <objectMethod>
-     !@     <method>reset</method>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@     <description>Reset the multi-counter back to its initial count state, such that the next increment will return the first count.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>count</method>
-     !@     <type>\intzero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return the number of counters configured in this multi-counter.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>append</method>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ range\argin</arguments>
-     !@     <description>Append a new counter to the multi-counter, with the specified {\normalfont \ttfamily range}.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>increment</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments></arguments>
-     !@     <description>Increment the state of the multi-counter. Return {\normalfont \ttfamily .false.} if incrementing was not possible (i.e. counter was in the final state), {\normalfont \ttfamily .true.} otherwise.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>isFinal</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return {\normalfont \ttfamily .true.} if the counter is in its final state, {\normalfont \ttfamily .false.} otherwise.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>state</method>
-     !@     <type>\intzero</type>
-     !@     <arguments>\intzero\ i\argin</arguments>
-     !@     <description>Return the state of the {\normalfont \ttfamily i}$^\mathrm{th}$ counter.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Reset the multi-counter back to its initial count state, such that the next increment will return the first count." method="reset" />
+     !#   <method description="Return the number of counters configured in this multi-counter." method="count" />
+     !#   <method description="Append a new counter to the multi-counter, with the specified {\normalfont \ttfamily range}." method="append" />
+     !#   <method description="Increment the state of the multi-counter. Return {\normalfont \ttfamily .false.} if incrementing was not possible (i.e. counter was in the final state), {\normalfont \ttfamily .true.} otherwise." method="increment" />
+     !#   <method description="Return {\normalfont \ttfamily .true.} if the counter is in its final state, {\normalfont \ttfamily .false.} otherwise." method="isFinal" />
+     !#   <method description="Return the state of the {\normalfont \ttfamily i}$^\mathrm{th}$ counter." method="state" />
+     !# </methods>
      final     ::              multiCounterDestructor
      procedure :: append    => multiCounterAppend
      procedure :: reset     => multiCounterReset

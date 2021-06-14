@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,25 +26,21 @@
 
   !# <radiationField name="radiationFieldSummation">
   !#  <description>A summation radiation field class.</description>
+  !#  <deepCopy>
+  !#   <linkedList type="radiationFieldList" variable="radiationFields" next="next" object="radiationField_" objectType="radiationFieldClass"/>
+  !#  </deepCopy>
   !# </radiationField>
   type, extends(radiationFieldClass) :: radiationFieldSummation
      !% A summation radiation field class.
      private
      type(radiationFieldList), pointer :: radiationFields => null()
    contains
-     !@ <objectMethods>
-     !@  <object>radiationFieldSummation</object>
-     !@  <objectMethod>
-     !@   <method>list</method>
-     !@   <type>\void</type>
-     !@   <arguments>\textcolor{red}{\textless *type(radiationFieldList)\textgreater}</arguments>
-     !@   <description>Return a list of all sub-components.</description>
-     !@  </objectMethod>
-     !@ </objectMethods>
-     final     ::             summationDestructor
-     procedure :: flux     => summationFlux
-     procedure :: deepCopy => summationDeepCopy
-     procedure :: list     => summationList
+     !# <methods>
+     !#   <method description="Return a list of all sub-components." method="list" />
+     !# </methods>
+     final     ::         summationDestructor
+     procedure :: flux => summationFlux
+     procedure :: list => summationList
   end type radiationFieldSummation
 
   interface radiationFieldSummation
@@ -66,7 +62,7 @@ contains
 
     self     %radiationFields => null()
     radiationField_           => null()
-    do i=1,parameters%copiesCount('radiationFieldMethod',zeroIfNotPresent=.true.)
+    do i=1,parameters%copiesCount('radiationField',zeroIfNotPresent=.true.)
        if (associated(radiationField_)) then
           allocate(radiationField_%next)
           radiationField_ => radiationField_%next
@@ -130,40 +126,6 @@ contains
     end do
     return
   end function summationFlux
-
-  subroutine summationDeepCopy(self,destination)
-    !% Perform a deep copy for the {\normalfont \ttfamily summation} radiation field class.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    implicit none
-    class(radiationFieldSummation), intent(inout) :: self
-    class(radiationFieldClass    ), intent(inout) :: destination
-    type (radiationFieldList     ), pointer       :: radiationField_   , radiationFieldDestination_, &
-         &                                           radiationFieldNew_
-
-    call self%radiationFieldClass%deepCopy(destination)
-    select type (destination)
-    type is (radiationFieldSummation)
-       destination%radiationFields => null          ()
-       radiationFieldDestination_  => null          ()
-       radiationField_             => self%radiationFields
-       do while (associated(radiationField_))
-          allocate(radiationFieldNew_)
-          if (associated(radiationFieldDestination_)) then
-             radiationFieldDestination_%next       => radiationFieldNew_
-             radiationFieldDestination_            => radiationFieldNew_
-          else
-             destination          %radiationFields => radiationFieldNew_
-             radiationFieldDestination_            => radiationFieldNew_
-          end if
-          allocate(radiationFieldNew_%radiationField_,mold=radiationField_%radiationField_)
-          !# <deepCopy source="radiationField_%radiationField_" destination="radiationFieldNew_%radiationField_"/>
-          radiationField_ => radiationField_%next
-       end do
-    class default
-       call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})
-    end select
-    return
-  end subroutine summationDeepCopy
 
   function summationList(self)
     !% Return a list of all components for the {\normalfont \ttfamily summation} radiation field class.

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -24,9 +24,12 @@
   use :: Kind_Numbers           , only : kind_int8
   use :: Tables                 , only : table1DLogarithmicLinear
   use :: Virial_Density_Contrast, only : virialDensityContrastClass
-
+  
   !# <darkMatterHaloScale name="darkMatterHaloScaleVirialDensityContrastDefinition" recursive="yes">
   !#  <description>Dark matter halo scales derived from virial density contrasts.</description>
+  !#  <deepCopy>
+  !#   <ignore variables="recursiveSelf"/>
+  !#  </deepCopy>
   !# </darkMatterHaloScale>
   type, extends(darkMatterHaloScaleClass) :: darkMatterHaloScaleVirialDensityContrastDefinition
      !% A dark matter halo scale contrast class using virial density contrasts.
@@ -50,15 +53,9 @@
      double precision                                                              :: meanDensityTimeMaximum              , meanDensityTimeMinimum   =-1.0d0
      type            (table1DLogarithmicLinear                          )          :: meanDensityTable
    contains
-     !@ <objectMethods>
-     !@   <object>darkMatterHaloScaleVirialDensityContrastDefinition</object>
-     !@   <objectMethod>
-     !@     <method>calculationReset</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(table)\textgreater} node\arginout</arguments>
-     !@     <description>Reset memoized calculations.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Reset memoized calculations." method="calculationReset" />
+     !# </methods>
      final     ::                                        virialDensityContrastDefinitionDestructor
      procedure :: autoHook                            => virialDensityContrastDefinitionAutoHook
      procedure :: calculationReset                    => virialDensityContrastDefinitionCalculationReset
@@ -72,6 +69,8 @@
      procedure :: meanDensity                         => virialDensityContrastDefinitionMeanDensity
      procedure :: meanDensityGrowthRate               => virialDensityContrastDefinitionMeanDensityGrowthRate
      procedure :: deepCopy                            => virialDensityContrastDefinitionDeepCopy
+     procedure :: deepCopyReset                       => virialDensityContrastDefinitionDeepCopyReset
+     procedure :: deepCopyFinalize                    => virialDensityContrastDefinitionDeepCopyFinalize
   end type darkMatterHaloScaleVirialDensityContrastDefinition
 
   interface darkMatterHaloScaleVirialDensityContrastDefinition
@@ -191,7 +190,6 @@ contains
 
     ! Use recursive self if necessary.
     if (self%isRecursive) then
-       call virialDensityContrastFindParent(self)
        virialDensityContrastDefinitionDynamicalTimescale=self%recursiveSelf%dynamicalTimescale(node)
        return
     end if
@@ -212,7 +210,7 @@ contains
   double precision function virialDensityContrastDefinitionVirialVelocity(self,node)
     !% Returns the virial velocity scale for {\normalfont \ttfamily node}.
     use :: Galacticus_Nodes            , only : nodeComponentBasic             , treeNode
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
     type (treeNode                                          ), intent(inout) :: node
@@ -220,7 +218,6 @@ contains
 
     ! Use recursive self if necessary.
     if (self%isRecursive) then
-       call virialDensityContrastFindParent(self)
        virialDensityContrastDefinitionVirialVelocity=self%recursiveSelf%virialVelocity(node)
        return
     end if
@@ -251,7 +248,6 @@ contains
 
     ! Use recursive self if necessary.
     if (self%isRecursive) then
-       call virialDensityContrastFindParent(self)
        virialDensityContrastDefinitionVirialVelocityGrowthRate=self%recursiveSelf%virialVelocityGrowthRate(node)
        return
     end if
@@ -281,7 +277,6 @@ contains
 
     ! Use recursive self if necessary.
     if (self%isRecursive) then
-       call virialDensityContrastFindParent(self)
        virialDensityContrastDefinitionVirialTemperature=self%recursiveSelf%virialTemperature(node)
        return
     end if
@@ -310,7 +305,6 @@ contains
 
     ! Use recursive self if necessary.
     if (self%isRecursive) then
-       call virialDensityContrastFindParent(self)
        virialDensityContrastDefinitionVirialRadius=self%recursiveSelf%virialRadius(node)
        return
     end if
@@ -335,11 +329,10 @@ contains
     implicit none
     class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
     type (treeNode                                          ), intent(inout) :: node
-    !GCC$ attributes unused :: self, node
+    !$GLC attributes unused :: self, node
 
     ! Use recursive self if necessary.
     if (self%isRecursive) then
-       call virialDensityContrastFindParent(self)
        virialDensityContrastDefinitionVirialRadiusGradientLogMass=self%recursiveSelf%virialRadiusGradientLogarithmicMass(node)
        return
     end if
@@ -358,7 +351,6 @@ contains
 
     ! Use recursive self if necessary.
     if (self%isRecursive) then
-       call virialDensityContrastFindParent(self)
        virialDensityContrastDefinitionVirialRadiusGrowthRate=self%recursiveSelf%virialRadiusGrowthRate(node)
        return
     end if
@@ -382,7 +374,6 @@ contains
 
     ! Use recursive self if necessary.
     if (self%isRecursive) then
-       call virialDensityContrastFindParent(self)
        virialDensityContrastDefinitionMeanDensity=self%recursiveSelf%meanDensity(node)
        return
     end if
@@ -440,7 +431,6 @@ contains
 
     ! Use recursive self if necessary.
     if (self%isRecursive) then
-       call virialDensityContrastFindParent(self)
        virialDensityContrastDefinitionMeanDensityGrowthRate=self%recursiveSelf%meanDensityGrowthRate(node)
        return
     end if
@@ -475,6 +465,31 @@ contains
     return
   end function virialDensityContrastDefinitionMeanDensityGrowthRate
 
+  subroutine virialDensityContrastDefinitionDeepCopyReset(self)
+    !% Perform a deep copy reset of the object.
+    implicit none
+    class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
+    
+    self                           %   copiedSelf => null()
+    if (.not.self%isRecursive) self%recursiveSelf => null()
+    if (associated(self%cosmologyParameters_  )) call self%cosmologyParameters_  %deepCopyReset()
+    if (associated(self%cosmologyFunctions_   )) call self%cosmologyFunctions_   %deepCopyReset()
+    if (associated(self%virialDensityContrast_)) call self%virialDensityContrast_%deepCopyReset()
+    return
+  end subroutine virialDensityContrastDefinitionDeepCopyReset
+  
+  subroutine virialDensityContrastDefinitionDeepCopyFinalize(self)
+    !% Finalize a deep reset of the object.
+    implicit none
+    class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
+
+    if (self%isRecursive) call virialDensityContrastFindParent(self)
+    if (associated(self%cosmologyParameters_  )) call self%cosmologyParameters_  %deepCopyFinalize()
+    if (associated(self%cosmologyFunctions_   )) call self%cosmologyFunctions_   %deepCopyFinalize()
+    if (associated(self%virialDensityContrast_)) call self%virialDensityContrast_%deepCopyFinalize()
+    return
+  end subroutine virialDensityContrastDefinitionDeepCopyFinalize
+  
   subroutine virialDensityContrastDefinitionDeepCopy(self,destination)
     !% Perform a deep copy of the object.
     use :: Galacticus_Error, only : Galacticus_Error_Report
@@ -518,16 +533,55 @@ contains
           ! the parent in deep copies of the child object.
           call virialDensityContrastDefinitionDeepCopyAssign(self,destination)
           destination%recursiveSelf     => null()
+       end if       
+       if (associated(self%cosmologyParameters_)) then
+          if (associated(self%cosmologyParameters_%copiedSelf)) then
+             select type(s => self%cosmologyParameters_%copiedSelf)
+                class is (cosmologyParametersClass)
+                destination%cosmologyParameters_ => s
+                class default
+                call Galacticus_Error_Report('copiedSelf has incorrect type'//{introspection:location})
+             end select
+             call self%cosmologyParameters_%copiedSelf%referenceCountIncrement()
+          else
+             allocate(destination%cosmologyParameters_,mold=self%cosmologyParameters_)
+             call self%cosmologyParameters_%deepCopy(destination%cosmologyParameters_)
+             self%cosmologyParameters_%copiedSelf => destination%cosmologyParameters_
+             call destination%cosmologyParameters_%autoHook()
+          end if
        end if
-       nullify(destination%cosmologyParameters_)
-       allocate(destination%cosmologyParameters_,mold=self%cosmologyParameters_)
-       !# <deepCopy source="self%cosmologyParameters_" destination="destination%cosmologyParameters_"/>
-       nullify(destination%cosmologyFunctions_)
-       allocate(destination%cosmologyFunctions_,mold=self%cosmologyFunctions_)
-       !# <deepCopy source="self%cosmologyFunctions_" destination="destination%cosmologyFunctions_"/>
-       nullify(destination%virialDensityContrast_)
-       allocate(destination%virialDensityContrast_,mold=self%virialDensityContrast_)
-       !# <deepCopy source="self%virialDensityContrast_" destination="destination%virialDensityContrast_"/>
+       if (associated(self%cosmologyFunctions_)) then
+          if (associated(self%cosmologyFunctions_%copiedSelf)) then
+             select type(s => self%cosmologyFunctions_%copiedSelf)
+                class is (cosmologyFunctionsClass)
+                destination%cosmologyFunctions_ => s
+                class default
+                call Galacticus_Error_Report('copiedSelf has incorrect type'//{introspection:location})
+             end select
+             call self%cosmologyFunctions_%copiedSelf%referenceCountIncrement()
+          else
+             allocate(destination%cosmologyFunctions_,mold=self%cosmologyFunctions_)
+             call self%cosmologyFunctions_%deepCopy(destination%cosmologyFunctions_)
+             self%cosmologyFunctions_%copiedSelf => destination%cosmologyFunctions_
+             call destination%cosmologyFunctions_%autoHook()
+          end if
+       end if
+       if (associated(self%virialDensityContrast_)) then
+          if (associated(self%virialDensityContrast_%copiedSelf)) then
+             select type(s => self%virialDensityContrast_%copiedSelf)
+                class is (virialDensityContrastClass)
+                destination%virialDensityContrast_ => s
+                class default
+                call Galacticus_Error_Report('copiedSelf has incorrect type'//{introspection:location})
+             end select
+             call self%virialDensityContrast_%copiedSelf%referenceCountIncrement()
+          else
+             allocate(destination%virialDensityContrast_,mold=self%virialDensityContrast_)
+             call self%virialDensityContrast_%deepCopy(destination%virialDensityContrast_)
+             self%virialDensityContrast_%copiedSelf => destination%virialDensityContrast_
+             call destination%virialDensityContrast_%autoHook()
+          end if
+       end if
        call destination%meanDensityTable%deepCopyActions()
     class default
        call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})
@@ -558,7 +612,7 @@ contains
        if (associated(self%recursiveSelf%recursiveSelf)) then
           self%recursiveSelf => self%recursiveSelf%recursiveSelf
        else
-          call Galacticus_Error_Report("recursive child's parent was not copied"//{introspection:location})
+         call Galacticus_Error_Report("recursive child's parent was not copied"//{introspection:location})
        end if
        self%parentDeferred=.false.
     end if

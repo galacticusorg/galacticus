@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -60,17 +60,13 @@ contains
 
     !# <inputParameter>
     !#   <name>varianceBackground</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The variance in the background density field.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>thresholdCollapse</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The threshold for collapse of density perturbations.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     self=distributionFunction1DPeakBackground(varianceBackground,thresholdCollapse,randomNumberGenerator_)
@@ -106,6 +102,11 @@ contains
             &                  )                                                                                        , &
             &                 i                                                                                           &
             &                )
+       if (i > 1) then
+          ! Test for monotonicity. If monotonicity fails enforce it by adding a small increase in the CDF. This will make
+          ! negligible difference to our results.
+          if (self%cdf%y(i) <= self%cdf%y(i-1)) call self%cdf%populate(self%cdf%y(i-1)*(1.0d0+epsilon(0.0d0)),i)
+       end if
     end do
     call self%cdf%reverse(self%cdfInverse)
     return
@@ -141,7 +142,7 @@ contains
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(distributionFunction1DPeakBackground), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     peakBackgroundMinimum=0.0d0
     call Galacticus_Error_Report('no minimum exists'//{introspection:location})
@@ -153,7 +154,7 @@ contains
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(distributionFunction1DPeakBackground), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     peakBackgroundMaximum=0.0d0
     call Galacticus_Error_Report('no maximum exists'//{introspection:location})

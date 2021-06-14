@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +22,9 @@
   !% Implements a black hole binary separation growth class in which the separation does not grow.
 
   !# <blackHoleBinarySeparationGrowthRate name="blackHoleBinarySeparationGrowthRateZero">
-  !#  <description>A black hole binary separation growth class in which the separation does not grow.</description>
+  !#  <description>
+  !#   A black hole binary separation growth class in which the separation does not grow.
+  !#  </description>
   !# </blackHoleBinarySeparationGrowthRate>
   type, extends(blackHoleBinarySeparationGrowthRateClass) :: blackHoleBinarySeparationGrowthRateZero
      !% A black hole binary separation growth class in which the separation does not grow.
@@ -45,7 +47,7 @@ contains
     implicit none
     type(blackHoleBinarySeparationGrowthRateZero)                :: self
     type(inputParameters                        ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=blackHoleBinarySeparationGrowthRateZero()
     return
@@ -56,7 +58,7 @@ contains
     implicit none
     class(blackHoleBinarySeparationGrowthRateZero), intent(inout) :: self
     class(nodeComponentBlackHole                 ), intent(inout) :: blackHole
-    !GCC$ attributes unused :: self, blackHole
+    !$GLC attributes unused :: self, blackHole
 
     zeroGrowthRate=0.0d0
     return

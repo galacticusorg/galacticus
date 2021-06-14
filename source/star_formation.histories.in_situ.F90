@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -32,27 +32,22 @@
   !# </starFormationHistory>
   type, extends(starFormationHistoryClass) :: starFormationHistoryInSitu
      !% A star formation histories class which records \emph{in situ} star formation.
-     !@ <objectMethods>
-     !@   <object>starFormationHistoryInSitu</object>
-     !@   <objectMethod>
-     !@     <method>make</method>
-     !@     <arguments>\textcolor{red}{\textless type(history)\textgreater} historyStarFormation\arginout, \doublezero\ timeBegin\argin, \doublezero\ timeEnd\argin, \doubleone\ [timesCurrent]</arguments>
-     !@     <type>\void</type>
-     !@     <description>Make the star formation history.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
-    private
+     private
      class           (outputTimesClass), pointer :: outputTimes_ => null()
      double precision                            :: timeStep              , timeStepFine, &
           &                                         timeFine
    contains
-     final     ::             inSituDestructor
-     procedure :: create   => inSituCreate
-     procedure :: rate     => inSituRate
-     procedure :: output   => inSituOutput
-     procedure :: scales   => inSituScales
-     procedure :: make     => inSituMake
-     procedure :: autoHook => inSituAutoHook
+     !# <methods>
+     !#   <method description="Make the star formation history." method="make" />
+     !# </methods>
+     final     ::                          inSituDestructor
+     procedure :: create                => inSituCreate
+     procedure :: rate                  => inSituRate
+     procedure :: output                => inSituOutput
+     procedure :: scales                => inSituScales
+     procedure :: make                  => inSituMake
+     procedure :: autoHook              => inSituAutoHook
+     procedure :: metallicityBoundaries => inSituMetallicityBoundaries
   end type starFormationHistoryInSitu
 
   interface starFormationHistoryInSitu
@@ -83,27 +78,21 @@ contains
 
     !# <inputParameter>
     !#   <name>timeStep</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.1d0</defaultValue>
     !#   <description>The time step to use in tabulations of star formation histories [Gyr].</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>timeStepFine</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.01d0</defaultValue>
     !#   <description>The fine time step to use in tabulations of star formation histories [Gyr].</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>timeFine</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.1d0</defaultValue>
     !#   <description>The period prior to each output for which the fine time step is used in tabulations of star formation histories [Gyr].</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
     self=starFormationHistoryInSitu(timeStep,timeStepFine,timeFine,outputTimes_)
@@ -164,7 +153,7 @@ contains
 
   subroutine inSituRate(self,node,historyStarFormation,abundancesFuel,rateStarFormation)
     !% Set the rate the star formation history for {\normalfont \ttfamily node}.
-    use :: Arrays_Search   , only : Search_Array
+    use :: Arrays_Search   , only : searchArray
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (starFormationHistoryInSitu), intent(inout) :: self
@@ -176,22 +165,23 @@ contains
     integer                                                     :: historyCount
     integer         (c_size_t                  )                :: iHistory
     double precision                                            :: timeNode
-    !GCC$ attributes unused :: self, historyStarFormation, abundancesFuel
+    !$GLC attributes unused :: self, historyStarFormation, abundancesFuel
 
     basic                                 =>              node                %basic()
     timeNode                              =               basic               %time ()
     historyCount                          =          size(historyStarFormation%time            )
-    iHistory                              =  Search_Array(historyStarFormation%time   ,timeNode)+1
+    iHistory                              =  searchArray(historyStarFormation%time   ,timeNode)+1
     historyStarFormation%data(iHistory,:) =  rateStarFormation
     return
   end subroutine inSituRate
 
-  subroutine inSituOutput(self,node,nodePassesFilter,historyStarFormation,indexOutput,indexTree,labelComponent)
+  subroutine inSituOutput(self,node,nodePassesFilter,historyStarFormation,indexOutput,indexTree,componentType)
     !% Output the star formation history for {\normalfont \ttfamily node}.
-    use :: Galacticus_HDF5 , only : galacticusOutputFile
-    use :: Galacticus_Nodes, only : mergerTree          , nodeComponentBasic, treeNode
-    use :: IO_HDF5         , only : hdf5Access          , hdf5Object
-    use :: String_Handling , only : operator(//)
+    use :: Galacticus_HDF5           , only : galacticusOutputFile
+    use :: Galacticus_Nodes          , only : mergerTree                    , nodeComponentBasic, treeNode
+    use :: Galactic_Structure_Options, only : enumerationComponentTypeDecode
+    use :: IO_HDF5                   , only : hdf5Access                    , hdf5Object
+    use :: String_Handling           , only : operator(//)
     implicit none
     class           (starFormationHistoryInSitu), intent(inout)         :: self
     type            (treeNode                  ), intent(inout), target :: node
@@ -199,7 +189,7 @@ contains
     type            (history                   ), intent(inout)         :: historyStarFormation
     integer         (c_size_t                  ), intent(in   )         :: indexOutput
     integer         (kind=kind_int8            ), intent(in   )         :: indexTree
-    character       (len=*                     ), intent(in   )         :: labelComponent
+    integer                                     , intent(in   )         :: componentType
     class           (nodeComponentBasic        ), pointer               :: basicParent
     type            (treeNode                  ), pointer               :: nodeParent
     double precision                                                    :: timeBegin           , timeEnd
@@ -218,12 +208,12 @@ contains
        groupName   ="mergerTree"
        groupName   =groupName//indexTree
        treeGroup   =outputGroup %openGroup(char(groupName),"Star formation histories for each tree."               )
-       groupName   =trim(labelComponent)//"Time"
+       groupName   =enumerationComponentTypeDecode(componentType,includePrefix=.false.)//"Time"
        groupname   =groupName           //node%index()
-       call treeGroup%writeDataset(historyStarFormation%time,char(groupName),"Star formation history times of the "         //trim(labelComponent)//" component.")
-       groupName   =trim(labelComponent)//"SFH"
+       call treeGroup%writeDataset(historyStarFormation%time,char(groupName),"Star formation history times of the "         //char(enumerationComponentTypeDecode(componentType,includePrefix=.false.))//" component.")
+       groupName   =enumerationComponentTypeDecode(componentType,includePrefix=.false.)//"SFH"
        groupname   =groupName//node%index()
-       call treeGroup%writeDataset(historyStarFormation%data,char(groupName),"Star formation history stellar masses of the "//trim(labelComponent)//" component.")
+       call treeGroup%writeDataset(historyStarFormation%data,char(groupName),"Star formation history stellar masses of the "//char(enumerationComponentTypeDecode(componentType,includePrefix=.false.))//" component.")
        call treeGroup   %close()
        call outputGroup %close()
        call historyGroup%close()
@@ -259,7 +249,7 @@ contains
     double precision                            , allocatable  , dimension(:) :: timeSteps
     double precision                            , parameter                   :: massStellarMinimum  =1.0d0
     integer                                                                   :: i
-    !GCC$ attributes unused :: self, abundancesStellar
+    !$GLC attributes unused :: self, abundancesStellar
 
     if (.not.historyStarFormation%exists()) return
     call historyStarFormation%timeSteps(timeSteps)
@@ -440,3 +430,13 @@ contains
     return
   end subroutine inSituSatelliteMerger
 
+  function inSituMetallicityBoundaries(self)
+    !% Return the boundaries of the metallicities used in this tabulation.
+    implicit none
+    double precision                            , allocatable  , dimension(:) :: inSituMetallicityBoundaries
+    class           (starFormationHistoryInSitu), intent(inout)               :: self
+
+    allocate(inSituMetallicityBoundaries(0:1))
+    inSituMetallicityBoundaries(0:1)=[0.0d0,huge(0.0d0)]
+    return
+  end function inSituMetallicityBoundaries

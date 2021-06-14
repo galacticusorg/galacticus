@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -146,7 +146,7 @@ contains
   double precision function sutherland1998Total(self,atomicNumber,electronNumber,temperature)
     !% Compute thermally averaged Gaunt factors for thermal electron distributions using the tabulations and fits of
     !% \cite{sutherland_accurate_1998}.
-    use            :: Arrays_Search               , only : Search_Array
+    use            :: Arrays_Search               , only : searchArray
     use            :: Galacticus_Error            , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding               , only : c_size_t
     use            :: Numerical_Constants_Physical, only : boltzmannsConstant
@@ -170,7 +170,7 @@ contains
        sutherland1998Total=0.0d0
     else
        energyScaleLogarithmic=log10(self%atomicIonizationPotential_%potential(atomicNumber,electronNumber)*electronVolt/temperature)-log10(boltzmannsConstant)
-       iTable=Search_Array(sutherland1998EnergyScalesLogarithmic,energyScaleLogarithmic)
+       iTable=searchArray(sutherland1998EnergyScalesLogarithmic,energyScaleLogarithmic)
        if (iTable <=                0) iTable=               1
        if (iTable >= sutherland1998CoefficientCount) iTable=sutherland1998CoefficientCount
        ! Interpolate to get actual value.

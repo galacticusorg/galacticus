@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -34,33 +34,12 @@
      double precision                                         :: time                     , mass, &
           &                                                      massFunction
    contains
-     !@ <objectMethods>
-     !@   <object>haloMassFunctionTinker2008Form</object>
-     !@   <objectMethod>
-     !@     <method>a</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ time\argin, \doublezero\ mass\argin</arguments>
-     !@     <description>Return the parameter $a$ in the \cite{tinker_towardhalo_2008} halo mass function fit.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>b</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ time\argin, \doublezero\ mass\argin</arguments>
-     !@     <description>Return the parameter $b$ in the \cite{tinker_towardhalo_2008} halo mass function fit.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>c</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ time\argin, \doublezero\ mass\argin</arguments>
-     !@     <description>Return the parameter $c$ in the \cite{tinker_towardhalo_2008} halo mass function fit.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>normalization</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ time\argin, \doublezero\ mass\argin</arguments>
-     !@     <description>Return the parameter $A$ in the \cite{tinker_towardhalo_2008} halo mass function fit.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return the parameter $a$ in the \cite{tinker_towardhalo_2008} halo mass function fit." method="a" />
+     !#   <method description="Return the parameter $b$ in the \cite{tinker_towardhalo_2008} halo mass function fit." method="b" />
+     !#   <method description="Return the parameter $c$ in the \cite{tinker_towardhalo_2008} halo mass function fit." method="c" />
+     !#   <method description="Return the parameter $A$ in the \cite{tinker_towardhalo_2008} halo mass function fit." method="normalization" />
+     !# </methods>
      procedure                                    :: differential  => tinker2008FormDifferential
      procedure(tinker2008FormParameter), deferred :: normalization
      procedure(tinker2008FormParameter), deferred :: a
@@ -86,7 +65,7 @@ contains
     double precision                                , intent(in   )            :: time , mass
     type            (treeNode                      ), intent(inout) , optional :: node
     double precision                                                           :: sigma, alpha
-    !GCC$ attributes unused :: node
+    !$GLC attributes unused :: node
 
     ! Update fitting function parameters if the time differs from that on the previous call.
     if (time /= self%time .or. mass /= self%mass) then

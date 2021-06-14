@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -28,7 +28,9 @@ module Dark_Matter_Halos_Mass_Loss_Rates
   !# <functionClass>
   !#  <name>darkMatterHaloMassLossRate</name>
   !#  <descriptiveName>Dark matter halo mass loss rates.</descriptiveName>
-  !#  <description>Class providing models of the mass loss rate from dark matter halos.</description>
+  !#  <description>
+  !#   Class providing models of the mass loss rate from dark matter (sub)halos.
+  !#  </description>
   !#  <default>zero</default>
   !#  <method name="rate" >
   !#   <description>Returns the rate of mass loss (in $M_\odot$/Gyr) from {\normalfont \ttfamily node}.</description>

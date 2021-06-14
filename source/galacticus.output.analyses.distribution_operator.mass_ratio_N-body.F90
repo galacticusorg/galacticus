@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -61,22 +61,16 @@ contains
     !#   <name>massParentMinimum</name>
     !#   <source>parameters</source>
     !#   <description>Minimum mass of the parent halo over which to integrate.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massParentMaximum</name>
     !#   <source>parameters</source>
     !#   <description>Maximum mass of the parent halo over which to integrate.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>timeParent</name>
     !#   <source>parameters</source>
     !#   <description>The time at which the parent halo is defined.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="nbodyHaloMassError" name="nbodyHaloMassError_" source="parameters"/>
     !# <objectBuilder class="galacticFilter"     name="galacticFilter_"     source="parameters"/>
@@ -112,12 +106,11 @@ contains
 
   function massRatioNBodyOperateScalar(self,propertyValue,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
     !% Implement an N-body mass ratio output analysis distribution operator.
-    use :: Arrays_Search          , only : Search_Array
-    use :: FGSL                   , only : fgsl_function                   , fgsl_integration_workspace
+    use :: Arrays_Search          , only : searchArray
     use :: Galacticus_Error       , only : Galacticus_Error_Report
     use :: Galacticus_Nodes       , only : nodeComponentBasic
     use :: Numerical_Comparison   , only : Values_Agree
-    use :: Numerical_Integration  , only : Integrate                       , Integrate_Done
+    use :: Numerical_Integration  , only : integrator
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear, outputAnalysisPropertyTypeLog10
     implicit none
     class           (outputAnalysisDistributionOperatorMassRatioNBody), intent(inout)                                        :: self
@@ -138,9 +131,8 @@ contains
          &                                                                                                                      massParentLimitLower              , massParentLimitUpper       , &
          &                                                                                                                      massRatioLimitLower               , massRatioLimitUpper
     integer         (c_size_t                                        )                                                       :: binIndex
-    type            (fgsl_function                                   )                                                       :: integrandFunction
-    type            (fgsl_integration_workspace                      )                                                       :: integrationWorkspace
-    !GCC$ attributes unused :: outputIndex
+    type            (integrator                                      )                                                       :: integrator_
+    !$GLC attributes unused :: outputIndex
 
     ! Get the parent halo mass.
     nodeParent => node%parent
@@ -170,7 +162,9 @@ contains
        ! Zero uncertainties - add the full weight to the bin if the progenitor and parent are within range.
        massRatioNBodyOperateScalar=0.0d0
        if (massParent <  self%massParentMinimum .or. massParent >=      self%massParentMaximum    ) return
-       binIndex=Search_Array(propertyValueMinimum,propertyValue)
+       binIndex=searchArray(propertyValueMinimum,propertyValue)
+       !! Capture the final bin.
+       if (binIndex == size(propertyValueMinimum)-1_c_size_t .and. propertyValue > propertyValueMaximum(binIndex)) binIndex=size(propertyValueMinimum)
        if (binIndex   <= 0                      .or. binIndex   >  size(     propertyValueMinimum)) return
        if     (                                                 &
             &   propertyValue >= propertyValueMinimum(binIndex) &
@@ -192,6 +186,7 @@ contains
             &                   *massUncertaintyParent/sqrt(1.0d0-massUncertaintyCorrelation**2)   &
             &                  )
        if (massParentLimitUpper > massParentLimitLower) then
+          integrator_=integrator(massRatioBivariateNormalIntegrand,toleranceAbsolute=1.0d-10,toleranceRelative=1.0d-03)
           do binIndex=1,size(propertyValueMinimum)
              select case (propertyType)
              case (outputAnalysisPropertyTypeLinear)
@@ -258,19 +253,10 @@ contains
                      &                                  -erf((massParentLimitLower-massParent)/massUncertaintyParent/sqrt(2.0d0)) &
                      &                                 )
              else
-                massRatioNBodyOperateScalar(binIndex)=max(                                                      &
-                     &                                    Integrate(                                            &
-                     &                                              massParentLimitLower                      , &
-                     &                                              massParentLimitUpper                      , &
-                     &                                              massRatioBivariateNormalIntegrand         , &
-                     &                                              integrandFunction                         , &
-                     &                                              integrationWorkspace                      , &
-                     &                                              toleranceAbsolute                 =1.0d-10, &
-                     &                                              toleranceRelative                 =1.0d-03  &
-                     &                                             )                                          , &
-                     &                                    0.0d0                                                 &
+                massRatioNBodyOperateScalar(binIndex)=max(                                                                  &
+                     &                                    integrator_%integrate(massParentLimitLower,massParentLimitUpper), &
+                     &                                    0.0d0                                                             &
                      &                                   )
-                call Integrate_Done(integrandFunction,integrationWorkspace)
              end if
           end do
        else
@@ -317,7 +303,7 @@ contains
     integer         (c_size_t                                        ), intent(in   )                                        :: outputIndex
     type            (treeNode                                        ), intent(inout)                                        :: node
     double precision                                                                 , dimension(size(propertyValueMinimum)) :: massRatioNBodyOperateDistribution
-    !GCC$ attributes unused :: self, distribution, propertyValueMinimum, propertyValueMaximum, outputIndex, propertyType, node
+    !$GLC attributes unused :: self, distribution, propertyValueMinimum, propertyValueMaximum, outputIndex, propertyType, node
 
     massRatioNBodyOperateDistribution=0.0d0
     call Galacticus_Error_Report('not implemented'//{introspection:location})

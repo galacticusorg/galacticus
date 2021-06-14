@@ -13,6 +13,9 @@ use File::Find;
 use Term::ReadKey;
 use System::Redirect;
 use Galacticus::Launch::PBS;
+use List::ExtraUtils;
+use List::Uniq ':all';
+use Scalar::Util 'reftype';
 
 # Run a suite of benchmarks on the Galacticus code.
 # Andrew Benson (21-May-2019).
@@ -105,58 +108,68 @@ my %pbsOptions =
      waitSleepDuration   =>  10
     );
 
-# Define a list of executables to run. Each entry must give the name of the executable.
-my @executablesToRun = (
+# Define a list of benchmarks to run. Each entry must give the name of the executable or script to run.
+my @benchmarksToRun = (
     {
-	name => "benchmarks.stellar_luminosities.exe"
+	name    => "stellarLuminosities"                ,
+	compile => "benchmarks.stellar_luminosities.exe",
+	run     => "benchmarks.stellar_luminosities.exe"
+    },
+    {
+	name    => "quickTest"                        ,
+	compile => "Galacticus.exe"                   ,
+	ppn     => 16                                 ,
+	run     => "testSuite/benchmarks.quickTest.pl"
     }
     );
 
-# Build all executables.
-my $compileCommand = "make -j16 ".join(" ",map {$_->{'name'}} @executablesToRun)."\n";
+# Build all benchmarks.
+my @compileList = map {exists($_->{'compile'}) ? $_->{'compile'} : ()} @benchmarksToRun;
+@compileList = uniq(sort(@compileList));
+my $compileCommand = "rm -rf work/build; rm *.exe;make -j16 ".join(" ",@compileList)."\n";
 my %benchmarkBuildJob   =
     (
-     launchFile   => "testSuite/compileBenchmarks.pbs",
-     label        => "testSuite-compileBenchmarks"    ,
-     logFile      => "testSuite/compileBenchmarks.log",
-     command      =>  $compileCommand                 ,
-     ppn          => 16                               ,
-     tracejob     => "yes"                            ,
+     launchFile   => "testSuite/benchmark-outputs/compileBenchmarks.pbs",
+     label        => "testSuite-compileBenchmarks"                      ,
+     logFile      => "testSuite/benchmark-outputs/compileBenchmarks.log",
+     command      =>  $compileCommand                                   ,
+     ppn          => 16                                                 ,
+     tracejob     => "yes"                                              ,
      onCompletion => 
      {
 	 function  => \&benchmarkCompileFailure,
-	 arguments => [ "testSuite/compileBenchmarks.log", "Benchmark code compilation" ]
+	 arguments => [ "testSuite/benchmark-outputs/compileBenchmarks.log", "Benchmark code compilation" ]
      }
     );
 push(@jobStack,\%benchmarkBuildJob);
 &Galacticus::Launch::PBS::SubmitJobs(\%pbsOptions,@jobStack);
-unlink("testSuite/compileBenchmarks.pbs");
+unlink("testSuite/benchmark-outputs/compileBenchmarks.pbs");
 
-# Launch all executables.
+# Launch all benchmarks.
 my @launchFiles;
 @jobStack = ();
-foreach my $executable ( @executablesToRun ) {
+foreach my $benchmark ( @benchmarksToRun ) {
     # Generate the job.
-    if ( exists($executable->{'name'}) ) {
-	(my $label = $executable->{'name'}) =~ s/\./_/;
-	my $ppn = exists($executable->{'ppn'}) ? $executable->{'ppn'} : 1;
-	my $launchFile = "testSuite/".$label.".pbs";
+    if ( exists($benchmark->{'name'}) ) {
+	my $label = $benchmark->{'name'};
+	my $ppn = exists($benchmark->{'ppn'}) ? $benchmark->{'ppn'} : 1;
+	my $launchFile = "testSuite/benchmark-outputs/".$label.".pbs";
 	push(@launchFiles,$launchFile);
-	$executable->{'expect'} = "success";
+	$benchmark->{'expect'} = "success";
 	my %job =
 	    (
 	     launchFile   => $launchFile               ,
 	     label        => "testSuite-".$label       ,
-	     logFile      => "testSuite/".$label.".log",
+	     logFile      => "testSuite/benchmark-outputs/".$label.".log",
 	     ppn          => $ppn                      ,
 	     tracejob     => "yes"                     ,
 	     onCompletion => 
 	     {
 		 function  => \&benchmarkRecord,
-		 arguments => [ "testSuite/".$label.".log", "Benchmark code: ".$executable->{'name'}, $executable->{'expect'} ]
+		 arguments => [ "testSuite/benchmark-outputs/".$label.".log", "Benchmark code: ".$benchmark->{'name'}, $benchmark->{'expect'} ]
 	     }
 	    );
-	$job{'command'} = $executable->{'name'};
+	$job{'command'} = $benchmark->{'run'};
 	push(@jobStack,\%job);
     }
 }
@@ -198,12 +211,25 @@ close(lHndl);
 
 # Update benchmarks file.
 if ( -e $statusPath."/benchmarks.xml" ) {
-    my $xml = new XML::Simple;
+    my $xml = new XML::Simple();
     my $status = $xml->XMLin($statusPath."/benchmarks.xml");
+    foreach my $branchName ( keys(%{$status->{'galacticus'}}) ) {
+	if ( reftype($status->{'galacticus'}->{$branchName}) eq "HASH" ) {
+	    my $content = $status->{'galacticus'}->{$branchName};
+	    delete($status->{'galacticus'}->{$branchName});
+	    $status->{'galacticus'}->{$branchName}->[0] = $content;
+	}
+    }
     foreach my $benchmark ( @benchmarks ) {
 	my $label = $benchmark->{'label'};
-	delete($benchmark->{'label'});
-	push(@{$status->{'galacticus'}->{$repoBranchName}->{$label}},$benchmark);
+	delete($benchmark->{'label'});	
+	my @benchmarkList;
+	if ( exists($status->{'galacticus'}->{$repoBranchName}->[0]->{$label}) ) {
+	    @benchmarkList = &List::ExtraUtils::as_array($status->{'galacticus'}->{$repoBranchName}->[0]->{$label});
+	    delete($status->{'galacticus'}->{$repoBranchName}->[0]->{$label});
+	}
+	push(@benchmarkList,$benchmark);
+	@{$status->{'galacticus'}->{$repoBranchName}->[0]->{$label}} = @benchmarkList;
     }
     open(my $output,">",$statusPath."/benchmarks.xml");
     print $output $xml->XMLout($status,rootName => "benchmarks");
@@ -294,12 +320,13 @@ sub benchmarkRecord {
 	    if ( $line =~ m/^BENCHMARK\s+([a-zA-Z_]+)\s+"([^"]+)"\s+([\d\.]+)\s+([\d\.]+)\s+"([^"]+)"/ ) {
 		my $benchmark =
 		{
-		    label       => $1               ,
-		    description => $2               ,
-		    time        => $3               ,
-		    uncertainty => $4               ,
-		    units       => $5               ,
-		    hash        => $repoRevisionHash
+		    label       => $1                                   ,
+		    description => $2                                   ,
+		    time        => $3                                   ,
+		    uncertainty => $4                                   ,
+		    units       => $5                                   ,
+		    hash        => $repoRevisionHash                    ,
+		    timestamp   => time2str("%a %b %e %T (%Z) %Y", time)
 		};
 		push(@benchmarks,$benchmark);
 	    }

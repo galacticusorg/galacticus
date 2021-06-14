@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -61,16 +61,12 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>300.0d-3</defaultValue>
     !#   <description>The maximum distance for the sample of classical Local Group galaxies.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massThreshold</name>
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d5</defaultValue>
     !#   <description>The minimum stellar mass for a classical Local Group dwarf galaxy.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=surveyGeometryLocalGroupClassical(distanceMaximumSurvey,massThreshold)
     !# <inputParametersValidate source="parameters"/>
@@ -92,7 +88,7 @@ contains
     !% Return the number of fields in this sample.
     implicit none
     class(surveyGeometryLocalGroupClassical), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     localGroupClassicalFieldCount=localGroupClassicalFields
     return
@@ -104,7 +100,7 @@ contains
     class           (surveyGeometryLocalGroupClassical), intent(inout)           :: self
     double precision                                   , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
     integer                                            , intent(in   ), optional :: field
-    !GCC$ attributes unused :: field, magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: field, magnitudeAbsolute, luminosity
 
     ! For galaxies above the mass threshold, assume they can be detected out to the maximum specified distance. Galaxies below the
     ! threshold are never detected.
@@ -122,7 +118,7 @@ contains
     implicit none
     class(surveyGeometryLocalGroupClassical), intent(inout) :: self
     type (varying_string                   )                :: localGroupClassicalMangleDirectory
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     localGroupClassicalMangleDirectory=galacticusPath(pathTypeDataStatic)//"surveyGeometry/localGroupClassical/"
     return
@@ -146,7 +142,7 @@ contains
     !% Return the maximum degree for which angular power is computed for the Local Group Classical galaxies survey.
     implicit none
     class(surveyGeometryLocalGroupClassical), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     localGroupClassicalAngularPowerMaximumDegree=localGroupClassicalAngularPowerMaximumL
     return

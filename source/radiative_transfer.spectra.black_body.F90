@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -49,22 +49,18 @@ contains
 
     !# <inputParameter>
     !#   <name>temperature</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>5.0d3</defaultValue>
     !#   <description>The temperature of the black body spectrum (in Kelvin).</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>luminosityBolometric</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The bolometric luminosity of the black body spectrum (in $L_\odot$).</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     self=radiativeTransferSpectrumBlackBody(temperature,luminosityBolometric)
-    !# <inputParametersValidate spectrum="parameters"/>
+    !# <inputParametersValidate source="parameters"/>
    return
   end function blackBodyConstructorParameters
 
@@ -85,25 +81,15 @@ contains
 
   double precision function blackBodyLuminosity(self,wavelengthMinimum,wavelengthMaximum)
     !% Compute the luminosity in the given wavelength range for a black body spectrum.
-    use :: FGSL                 , only : fgsl_function, fgsl_integration_workspace
-    use :: Numerical_Integration, only : Integrate    , Integrate_Done
+    use :: Numerical_Integration, only : integrator
     implicit none
     class           (radiativeTransferSpectrumBlackBody), intent(inout) :: self
-    double precision                                    , intent(in   ) :: wavelengthMinimum    , wavelengthMaximum
-    type            (fgsl_function                     )                :: integrandFunction
-    type            (fgsl_integration_workspace        )                :: integrationWorkspace
+    double precision                                    , intent(in   ) :: wavelengthMinimum, wavelengthMaximum
+    type            (integrator                        )                :: integrator_
 
-    blackBodyLuminosity=+Integrate(                                         &
-         &                                            wavelengthMinimum   , &
-         &                                            wavelengthMaximum   , &
-         &                                            integrand           , &
-         &                                            integrandFunction   , &
-         &                                            integrationWorkspace, &
-         &                          toleranceAbsolute=0.0d+0              , &
-         &                          toleranceRelative=1.0d-2                &
-         &                         )                                        &
-         &              *self%normalization
-    call Integrate_Done(integrandFunction,integrationWorkspace)
+    integrator_        = integrator               (integrand        ,toleranceRelative=1.0d-2)
+    blackBodyLuminosity=+integrator_%integrate    (wavelengthMinimum,wavelengthMaximum       ) &
+         &              *self       %normalization
     return
     
   contains

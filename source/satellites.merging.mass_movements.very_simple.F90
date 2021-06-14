@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +22,10 @@
   use :: Kind_Numbers, only : kind_int8
 
   !# <mergerMassMovements name="mergerMassMovementsVerySimple">
-  !#  <description>A merger mass movements class which uses a simple calculation.</description>
+  !#  <description>
+  !#   A merger mass movements class which assumes that the satellite material is always added to the disk of the host, while the
+  !#   host mass is not moved.
+  !#  </description>
   !# </mergerMassMovements>
   type, extends(mergerMassMovementsClass) :: mergerMassMovementsVerySimple
      !% A merger mass movements class which uses a simple calculation.
@@ -54,11 +57,9 @@ contains
 
     !# <inputParameter>
     !#   <name>massRatioMajorMerger</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.25d0</defaultValue>
     !#   <description>The mass ratio above which mergers are considered to be ``major''.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     self=mergerMassMovementsVerySimple(massRatioMajorMerger)
     !# <inputParametersValidate source="parameters"/>
@@ -141,13 +142,13 @@ contains
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
     use :: Galactic_Structure_Options        , only : massTypeGalactic
     implicit none
-    class           (mergerMassMovementsVerySimple), intent(inout) :: self
-    type            (treeNode                     ), intent(inout) :: node
-    integer                                        , intent(  out) :: destinationGasSatellite, destinationGasHost       , &
-         &                                                            destinationStarsHost   , destinationStarsSatellite
-    logical                                        , intent(  out) :: mergerIsMajor
-    type            (treeNode                     ), pointer       :: nodeHost
-    double precision                                               :: massHost               , massSatellite
+    class           (mergerMassMovementsVerySimple), intent(inout)         :: self
+    type            (treeNode                     ), intent(inout), target :: node
+    integer                                        , intent(  out)         :: destinationGasSatellite, destinationGasHost       , &
+         &                                                                    destinationStarsHost   , destinationStarsSatellite
+    logical                                        , intent(  out)         :: mergerIsMajor
+    type            (treeNode                     ), pointer               :: nodeHost
+    double precision                                                       :: massHost               , massSatellite
     
     ! The calculation of how mass moves as a result of the merger is computed when first needed and then stored. This ensures that
     ! the results are determined by the properties of the merge target prior to any modification that will occur as node

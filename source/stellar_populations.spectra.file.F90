@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,56 +21,46 @@
 
   !% Implements a file-based stellar population spectra class.
 
-  use :: FGSL, only : fgsl_interp_accel
+  use :: Numerical_Interpolation, only : interpolator
+
+  !# <deepCopyActions class="spectralTable">
+  !#  <spectralTable>
+  !#   <methodCall method="interpolatorsDeepCopy"/>
+  !#  </spectralTable>
+  !# </deepCopyActions>
 
   type spectralTable
-     !% Structure to hold tabulated stellar population  data.
+     !% Structure to hold tabulated stellar population data.
      ! The spectra tables.
-     integer                                                            :: agesCount                     , metallicityCount              , &
-          &                                                                wavelengthsCount
-     double precision                   , allocatable, dimension(:    ) :: ages                          , metallicities                 , &
-          &                                                                wavelengths
-     double precision                   , allocatable, dimension(:,:,:) :: table
-     ! Interpolation structures.
-     logical                                                            :: resetAge               =.true., resetMetallicity       =.true., &
-          &                                                                resetWavelength        =.true.
-     type            (fgsl_interp_accel)                                :: acceleratorAge                , acceleratorMetallicity        , &
-          &                                                                acceleratorWavelength
+     integer                                                       :: agesCount             , metallicityCount       , &
+          &                                                           wavelengthsCount
+     double precision              , allocatable, dimension(:    ) :: ages                  , metallicities          , &
+          &                                                           wavelengths
+     double precision              , allocatable, dimension(:,:,:) :: table
+     type            (interpolator)                                :: interpolatorAge       , interpolatorMetallicity, &
+          &                                                           interpolatorWavelength
    contains
-     final :: spectralTableDestructorScalar, spectralTableDestructor1D
+     !# <methods>
+     !#   <method description="Perform deep copy actions on interpolators." method="interpolatorsDeepCopy" />
+     !# </methods>
+     procedure :: interpolatorsDeepCopy => spectralTableInterpolatorsDeepCopy
   end type spectralTable
 
   !# <stellarPopulationSpectra name="stellarPopulationSpectraFile">
   !#  <description>
-  !#   Provides stellar population spectra via interpolation in a tabulation read from file. This should be an HDF5 file with the following structure:
+  !#   A stellar population spectra class which computes spectra via interpolation in a tabulation read from file. This should be
+  !#   an HDF5 file with the following structure:
   !#   \begin{verbatim}
   !#    ages                     Dataset {ageCount}
   !#    metallicities            Dataset {metallicityCount}
   !#    spectra                  Dataset {metallicityCount, ageCount, metallicityCount}
   !#    wavelengths              Dataset {wavelengthCount}
   !#   \end{verbatim}
-  !#   where the datasets contain the tabulated ages (in Gyr), metallicities (logarithmic, relative to Solar), wavelengths (in \AA) and spectra (in $L_\odot$ Hz$^{-1}$).
+  !#   where the datasets contain the tabulated ages (in Gyr), metallicities (logarithmic, relative to Solar), wavelengths (in
+  !#   \AA) and spectra (in $L_\odot$ Hz$^{-1}$).
   !#
-  !#   Currently, the following pre-computed stellar spectra files are available as a separate download from \href{http://users.obs.carnegiescience.edu/abenson/galacticus/data/Galacticus_SSP_Data.tar.bz2}{\normalfont \ttfamily http://users.obs.carnegiescience.edu/abenson/galacticus/data/Galacticus\_SSP\_Data.tar.bz2}:
-  !#   \begin{description}
-  !#    \item [{\normalfont \ttfamily stellarPopulations/SSP\_Spectra\_Conroy-et-al\_v2.0\_imfSalpeter.hdf5}] Corresponds to a Salpeter IMF computed using v2.0 of the {\normalfont \ttfamily FSPS} code;
-  !#    \item [{\normalfont \ttfamily stellarPopulations/SSP\_Spectra\_Conroy-et-al\_v2.1\_imfSalpeter.hdf5}]  Corresponds to a Salpeter IMF computed using v2.1 of the {\normalfont \ttfamily FSPS} code;
-  !#    \item [{\normalfont \ttfamily stellarPopulations/SSP\_Spectra\_Conroy-et-al\_v2.1\_imfChabrier.hdf5}]  Corresponds to a Chabrier IMF computed using v2.1 of the {\normalfont \ttfamily FSPS} code;
-  !#    \item [{\normalfont \ttfamily stellarPopulations/SSP\_Spectra\_Conroy-et-al\_v2.2\_imfChabrier.hdf5}]  Corresponds to a Chabrier IMF computed using v2.2 of the {\normalfont \ttfamily FSPS} code;
-  !#    \item [{\normalfont \ttfamily stellarPopulations/SSP\_Spectra\_Conroy-et-al\_v2.2\_imfKennicutt.hdf5}]  Corresponds to a Kennicutt IMF computed using v2.2 of the {\normalfont \ttfamily FSPS} code;
-  !#    \item [{\normalfont \ttfamily stellarPopulations/SSP\_Spectra\_Conroy-et-al\_v2.2\_imfBaugh2005TopHeavy.hdf5}]  Corresponds to the top-heavy IMF of \cite{baugh_can_2005} computed using v2.2 of the {\normalfont \ttfamily FSPS} code;
-  !#    \item [{\normalfont \ttfamily stellarPopulations/SSP\_Spectra\_Maraston\_hbMorphologyRed\_imfKroupa.hdf5}] The spectra from \cite{maraston_evolutionary_2005} for a Kroupa IMF and a red horizontal branch morphology;
-  !#    \item [{\normalfont \ttfamily stellarPopulations/SSP\_Spectra\_Maraston\_hbMorphologyRed\_imfSalpeter.hdf5}] The spectra from \cite{maraston_evolutionary_2005} for a Salpeter IMF and a red horizontal branch morphology;
-  !#    \item [{\normalfont \ttfamily stellarPopulations/SSP\_Spectra\_BC2003\_highResolution\_imfChabrier.hdf5}] The (high resolution) spectra from \cite{bruzual_stellar_2003} for a Chabrier IMF, using Padova 1994 tracks;
-  !#    \item [{\normalfont \ttfamily stellarPopulations/SSP\_Spectra\_BC2003\_highResolution\_imfSalpeter.hdf5}] The (high resolution) spectra from \cite{bruzual_stellar_2003} for a Salpeter IMF, using Padova 1994 tracks;
-  !#    \item [{\normalfont \ttfamily stellarPopulations/SSP\_Spectra\_BC2003\_lowResolution\_imfChabrier.hdf5}] The (low resolution) spectra from \cite{bruzual_stellar_2003} for a Chabrier IMF, using Padova 1994 tracks;
-  !#    \item [{\normalfont \ttfamily stellarPopulations/SSP\_Spectra\_BC2003\_lowResolution\_imfSalpeter.hdf5}] The (low resolution) spectra from \cite{bruzual_stellar_2003} for a Salpeter IMF, using Padova 1994 tracks;
-  !#    \item [{\normalfont \ttfamily stellarPopulations/SSP\_Spectra\_Grasil\_gkn15rd\_ken.hdf5}] The spectra used by {\normalfont \scshape Grasil} for a Kennicutt IMF;
-  !#    \item [{\normalfont \ttfamily stellarPopulations/SSP\_Spectra\_Grasil\_gkn1rd\_ken.hdf5}] The spectra used by {\normalfont \scshape Grasil} for a Kennicutt IMF;
-  !#    \item [{\normalfont \ttfamily stellarPopulations/SSP\_Spectra\_Grasil\_gsrdk0b\_sal.hdf5}] The spectra used by {\normalfont \scshape Grasil} for a Salpeter IMF;
-  !#    \item [{\normalfont \ttfamily stellarPopulations/SSP\_Spectra\_Grasil\_imf27\_kro.hdf5}] Spectra used by {\normalfont \scshape Grasil}.
-  !#   \end{description}
-  !#   Note that the high resolution spectra from \cite{bruzual_stellar_2003} may require you to adjust the {\normalfont \ttfamily [stellarPopulationLuminosityIntegrationToleranceRelative]} parameter to a larger value\footnote{Or, alternatively, set {\normalfont \ttfamily [stellarPopulationLuminosityIntegrationToleranceDegrade]}$=${\normalfont \ttfamily true}. This will cause \glc\ to increase the tolerance as necessary to get the integrals to converge---issuing warnings each time the tolerance is increased.}. The sharp features in these high resolution spectra can be difficult to integrate. Scripts to convert the data provided by \cite{maraston_evolutionary_2005} and \cite{bruzual_stellar_2003} into \glc's format are provided in the {\normalfont \ttfamily scripts/ssps} folder.
+  !#   Scripts to convert the data provided by \cite{maraston_evolutionary_2005} and \cite{bruzual_stellar_2003} into \glc's
+  !#   format are provided in the {\normalfont \ttfamily scripts/ssps} folder.
   !#  </description>
   !#  <stateStorable>
   !#   <exclude variables="spectra, forceZeroMetallicity, fileName, fileRead"/>
@@ -79,19 +69,13 @@
   type, extends(stellarPopulationSpectraClass) :: stellarPopulationSpectraFile
      !% A stellar population spectra class which interpolates spectra given in a file.
      private
-     type   (spectralTable ):: spectra
-     logical                :: forceZeroMetallicity, fileRead
-     type   (varying_string):: fileName
+     type   (spectralTable ) :: spectra
+     logical                 :: forceZeroMetallicity, fileRead
+     type   (varying_string) :: fileName
    contains
-     !@ <objectMethods>
-     !@   <object>stellarPopulationSpectraFile</object>
-     !@   <objectMethod>
-     !@     <method>readFile</method>
-     !@     <type>void</type>
-     !@     <arguments>\textcolor{red}{\textless char(len=*)\textgreater} fileName\argin</arguments>
-     !@     <description>Read the named stellar population spectra file.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Read the named stellar population spectra file." method="readFile" />
+     !# </methods>
      procedure :: readFile           => fileReadFile
      procedure :: luminosity         => fileLuminosity
      procedure :: tabulation         => fileTabulation
@@ -123,15 +107,11 @@ contains
     !#   <defaultValue>.false.</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Force the use of zero metallicity (or lowest metallicity available) for all stellar populations.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>fileName</name>
     !#   <source>parameters</source>
     !#   <description>The name of the file from which to read spectra.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=stellarPopulationSpectraFile(forceZeroMetallicity,char(fileName))
     !# <inputParametersValidate source="parameters"/>
@@ -151,49 +131,14 @@ contains
     return
   end function fileConstructorInternal
 
-  subroutine spectralTableDestructorScalar(self)
-    !% Destructor for the stellar spectra table class.
-    use :: Numerical_Interpolation, only : Interpolate_Done
-    implicit none
-    type(spectralTable), intent(inout) :: self
-
-    ! Free all FGSL objects.
-    call Interpolate_Done(                                                      &
-         &                interpolationAccelerator=self%acceleratorAge        , &
-         &                reset                   =self%      resetAge          &
-         &               )
-    call Interpolate_Done(                                                      &
-         &                interpolationAccelerator=self%acceleratorWavelength , &
-         &                reset                   =self%      resetWavelength   &
-         &               )
-    call Interpolate_Done(                                                      &
-         &                interpolationAccelerator=self%acceleratorMetallicity, &
-         &                reset                   =self%      resetMetallicity  &
-         &               )
-    return
-  end subroutine spectralTableDestructorScalar
-
-  subroutine spectralTableDestructor1D(self)
-    !% Destructor for the stellar spectra table class.
-    implicit none
-    type   (spectralTable), intent(inout), dimension(:) :: self
-    integer                                             :: i
-
-    do i=1,size(self)
-       call spectralTableDestructorScalar(self(i))
-    end do
-    return
-  end subroutine spectralTableDestructor1D
-
   double precision function fileLuminosity(self,abundancesStellar,age,wavelength,status)
     !% Return the luminosity (in units of $L_\odot$ Hz$^{-1}$) for a stellar population with composition {\normalfont \ttfamily abundances}, of the
     !% given {\normalfont \ttfamily age} (in Gyr) and the specified {\normalfont \ttfamily wavelength} (in Angstroms). This is found by interpolating in tabulated
     !% spectra.
-    use            :: Abundances_Structure   , only : Abundances_Get_Metallicity           , abundances            , logMetallicityZero, max, &
-          &                                           metallicityTypeLogarithmicByMassSolar
-    use            :: Galacticus_Error       , only : Galacticus_Error_Report              , errorStatusInputDomain, errorStatusSuccess
-    use, intrinsic :: ISO_C_Binding          , only : c_size_t
-    use            :: Numerical_Interpolation, only : Interpolate_Linear_Generate_Factors  , Interpolate_Locate
+    use            :: Abundances_Structure, only : Abundances_Get_Metallicity           , abundances            , logMetallicityZero, max, &
+          &                                        metallicityTypeLogarithmicByMassSolar
+    use            :: Galacticus_Error    , only : Galacticus_Error_Report              , errorStatusInputDomain, errorStatusSuccess
+    use, intrinsic :: ISO_C_Binding       , only : c_size_t
     implicit none
     class           (stellarPopulationSpectraFile), intent(inout)            :: self
     type            (abundances                  ), intent(in   )            :: abundancesStellar
@@ -248,29 +193,9 @@ contains
        fileLuminosity=0.0d0
        return
     end if
-    ! Get the interpolating factors.
-    iAge       =Interpolate_Locate                 (                                     &
-         &                                          self%spectra%           ages       , &
-         &                                          self%spectra%acceleratorAge        , &
-         &                                          age                                , &
-         &                                          self%spectra%      resetAge          &
-         &                                         )
-    iWavelength=Interpolate_Locate                 (                                     &
-         &                                          self%spectra%           wavelengths, &
-         &                                          self%spectra%acceleratorWavelength , &
-         &                                                                  wavelength , &
-         &                                          self%spectra%      resetWavelength   &
-         &                                         )
-    hAge       =Interpolate_Linear_Generate_Factors(                                     &
-         &                                          self%spectra%           ages       , &
-         &                                                                 iAge        , &
-         &                                                                  age          &
-         &                                         )
-    hWavelength=Interpolate_Linear_Generate_Factors(                                     &
-         &                                          self%spectra%           wavelengths, &
-         &                                                                 iWavelength , &
-         &                                                                  wavelength   &
-         &                                         )
+    ! Get the interpolating factors.    
+    call self%spectra%interpolatorAge       %linearFactors(age       ,iAge       ,hAge       )
+    call self%spectra%interpolatorWavelength%linearFactors(wavelength,iWavelength,hWavelength)
     if      (                                                                         &
          &    metallicity == logMetallicityZero                                       &
          &   .or.                                                                     &
@@ -284,25 +209,15 @@ contains
        iMetallicity=self%spectra%metallicityCount-1
        hMetallicity=[0.0d0,1.0d0]
     else
-       iMetallicity=Interpolate_Locate                 (                                       &
-            &                                           self%spectra%           metallicities, &
-            &                                           self%spectra%acceleratorMetallicity  , &
-            &                                                                   metallicity  , &
-            &                                           self%spectra%      resetMetallicity    &
-            &                                          )
-       hMetallicity=Interpolate_Linear_Generate_Factors(                                       &
-            &                                           self%spectra%           metallicities, &
-            &                                                                  iMetallicity  , &
-            &                                                                   metallicity    &
-            &                                          )
+       call self%spectra%interpolatorMetallicity%linearFactors(metallicity,iMetallicity,hMetallicity)
     end if
     ! Do the interpolation.
     fileLuminosity=0.0d0
     do jAge=0,1
        do jWavelength=0,1
           do jMetallicity=0,1
-             fileLuminosity=+fileLuminosity                                                &
-                  &         +self                                                          &
+             fileLuminosity=+fileLuminosity                                &
+                  &         +self                                          &
                   &              %spectra                                  &
                   &                      %table(                           &
                   &                             iWavelength +jWavelength , &
@@ -348,15 +263,15 @@ contains
        call spectraFile%readDataset('metallicities'               ,self%spectra%metallicities)
        self%spectra%metallicityCount=size(self%spectra%metallicities)
        ! Read the spectra.
-       call spectraFile%readDataset('spectra'                     ,self%spectra%Table        )
+       call spectraFile%readDataset('spectra'                     ,self%spectra%table        )
        ! Close the HDF5 file.
        call spectraFile%close()
        !$ call hdf5Access%unset()
-       ! Force interpolation accelerators to be reset.
-       self%spectra%resetAge        =.true.
-       self%spectra%resetWavelength =.true.
-       self%spectra%resetMetallicity=.true.
-       self        %fileRead        =.true.
+       self%fileRead=.true.
+       ! Build interpolators.
+       self%spectra%interpolatorAge        =interpolator(self%spectra%ages         )
+       self%spectra%interpolatorWavelength =interpolator(self%spectra%wavelengths  )
+       self%spectra%interpolatorMetallicity=interpolator(self%spectra%metallicities)
     end if
     return
   end subroutine fileReadFile
@@ -424,7 +339,7 @@ contains
     else
        ! Compute difference in wavelength at position of interest
        call allocateArray(wavelengthDifference,[wavelengthsCount])
-       wavelengthDifference  =+       wavelengths&
+       wavelengthDifference  =+       wavelengths &
             &                 -       wavelength
        fileWavelengthInterval=+minval(wavelengths,dim=1,mask=wavelengthDifference >  0.0d0) &
             &                 -maxval(wavelengths,dim=1,mask=wavelengthDifference <= 0.0d0)
@@ -433,3 +348,14 @@ contains
     if(allocated(wavelengthDifference)) call deallocateArray(wavelengthDifference)
     return
   end function fileWavelengthInterval
+
+  subroutine spectralTableInterpolatorsDeepCopy(self)
+    !% Perform deep copy actions on interpolators.
+    implicit none
+    class(spectralTable), intent(inout) :: self
+
+    call self%interpolatorAge        %GSLReallocate(gslFree=.false.)
+    call self%interpolatorMetallicity%GSLReallocate(gslFree=.false.)
+    call self%interpolatorWavelength %GSLReallocate(gslFree=.false.)
+    return
+  end subroutine spectralTableInterpolatorsDeepCopy

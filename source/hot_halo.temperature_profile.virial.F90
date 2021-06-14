@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +22,10 @@
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !# <hotHaloTemperatureProfile name="hotHaloTemperatureProfileVirial">
-  !#  <description>Provides an implementation of the hot halo temperature profile class which uses an isothermal virial temperature.</description>
+  !#  <description>
+  !#   A hot halo temperture profile class which assumes an isothermal halo with a temperature equal to the virial temperature of
+  !#   the halo.
+  !#  </description>
   !# </hotHaloTemperatureProfile>
   type, extends(hotHaloTemperatureProfileClass) :: hotHaloTemperatureProfileVirial
      !% An implementation of the hot halo temperature profile class which uses an isothermal virial temperature.
@@ -82,7 +85,7 @@ contains
     class           (hotHaloTemperatureProfileVirial), intent(inout) :: self
     type            (treeNode                       ), intent(inout) :: node
     double precision                                 , intent(in   ) :: radius
-    !GCC$ attributes unused :: radius
+    !$GLC attributes unused :: radius
 
     virialTemperature=self%darkMatterHaloScale_%virialTemperature(node)
     return
@@ -95,7 +98,7 @@ contains
     class           (hotHaloTemperatureProfileVirial), intent(inout) :: self
     type            (treeNode                       ), intent(inout) :: node
     double precision                                 , intent(in   ) :: radius
-    !GCC$ attributes unused :: self, node, radius
+    !$GLC attributes unused :: self, node, radius
 
     virialTemperatureLogSlope=0.0d0
     return

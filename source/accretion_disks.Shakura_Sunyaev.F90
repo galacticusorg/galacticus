@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,15 @@
   !% Implementation of a \cite{shakura_black_1973} accretion disk.
 
   !# <accretionDisks name="accretionDisksShakuraSunyaev">
-  !#  <description>A \cite{shakura_black_1973} accretion disk class.</description>
+  !#  <description>
+  !#   A circumnuclear accretion disk class, in which the accretion disks are always described by a radiatively efficient,
+  !#   geometrically thin accretion disk as described by \cite{shakura_black_1973}. The radiative efficiency of the flow is
+  !#   computed assuming that material falls into the black hole without further energy loss from the \gls{isco}, while the
+  !#   spin-up rate of the black hole is computed assuming that the material enters the black hole with the specific angular
+  !#   momentum of the \gls{isco} (i.e. there are no torques on the material once it begins to fall in from the \gls{isco};
+  !#   \citealt{bardeen_kerr_1970}). For these thin disks, jet power is computed, using the expressions from
+  !#   \citeauthor{meier_association_2001}~(\citeyear{meier_association_2001}; his equations 4 and 5).
+  !#  </description>
   !# </accretionDisks>
   type, extends(accretionDisksClass) :: accretionDisksShakuraSunyaev
      !% Implementation of a \cite{shakura_black_1973} accretion disk class.
@@ -44,7 +52,7 @@ contains
     implicit none
     type(accretionDisksShakuraSunyaev)                :: self
     type(inputParameters             ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=accretionDisksShakuraSunyaev()
     return
@@ -57,7 +65,7 @@ contains
     class           (accretionDisksShakuraSunyaev), intent(inout) :: self
     class           (nodeComponentBlackHole      ), intent(inout) :: blackHole
     double precision                              , intent(in   ) :: accretionRateMass
-    !GCC$ attributes unused :: self, accretionRateMass
+    !$GLC attributes unused :: self, accretionRateMass
 
     shakuraSunyaevEfficiencyRadiative=+1.0d0                                                                                   &
          &                            -Black_Hole_ISCO_Specific_Energy(blackHole,units=unitsGravitational,orbit=orbitPrograde)
@@ -82,7 +90,7 @@ contains
     double precision                              , parameter     :: meierMassNormalization        =1.0d9
     double precision                                              :: accretionRateDimensionless                                                   , massBlackHoleDimensionless, &
          &                                                           spinBlackHole
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Return immediately for non-positive accretion rates.
     if (accretionRateMass <= 0.0d0) then
@@ -134,7 +142,7 @@ contains
     class           (nodeComponentBlackHole      ), intent(inout) :: blackHole
     double precision                              , intent(in   ) :: accretionRateMass
     double precision                                              :: spinToMassRateOfChangeRatio
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     spinToMassRateOfChangeRatio=+Black_Hole_ISCO_Specific_Angular_Momentum(blackHole       ,units=unitsGravitational,orbit=orbitPrograde) &
          &                      -2.0d0                                                                                                    &

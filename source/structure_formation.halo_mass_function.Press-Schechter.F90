@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +22,14 @@
   use :: Excursion_Sets_First_Crossings, only : excursionSetFirstCrossingClass
 
   !# <haloMassFunction name="haloMassFunctionPressSchechter">
-  !#  <description>The halo mass function is computed from the function given by \cite{press_formation_1974}.</description>
+  !#  <description>
+  !#   A dark matter halo mass function class using the function given by \cite{press_formation_1974}. Specifically,
+  !#   \begin{equation}
+  !#   n(M,t) = 2 {\Omega_\mathrm{M} \rho_\mathrm{crit} \over M^2} \alpha \sigma^2(M) f[S(M,t)],
+  !#   \end{equation}
+  !#   where $\alpha = \mathrm{d}\ln\sigma/\mathrm{d}\ln M$ and $f[S]$ is the excursion set barrier first crossing distribution
+  !#   for variance $S(M)=\sigma^2(M)$, computed using the selected \refClass{excursionSetFirstCrossingClass}.
+  !#  </description>
   !# </haloMassFunction>
   type, extends(haloMassFunctionClass) :: haloMassFunctionPressSchechter
      !% A halo mass function class using the model of \cite{press_formation_1974}.

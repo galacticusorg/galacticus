@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,7 +26,9 @@ module Virial_Density_Contrast
   !# <functionClass>
   !#  <name>virialDensityContrast</name>
   !#  <descriptiveName>Virial Density Contrasts</descriptiveName>
-  !#  <description>Class providing dark matter halo virial density contrasts.</description>
+  !#  <description>
+  !#   Class providing dark matter halo virial mean density contrasts.
+  !#  </description>
   !#  <default>sphericalCollapseClsnlssMttrCsmlgclCnstnt</default>
   !#  <method name="densityContrast" >
   !#   <description>Returns the virial density contrast at the given epoch.</description>
@@ -53,7 +55,7 @@ module Virial_Density_Contrast
   !#   <argument>double precision, intent(in   ), optional :: time      , expansionFactor</argument>
   !#   <argument>logical         , intent(in   ), optional :: collapsing</argument>
   !#   <code>
-  !#    !GCC$ attributes unused :: self, mass, time, expansionFactor, collapsing
+  !#    !$GLC attributes unused :: self, mass, time, expansionFactor, collapsing
   !#    virialDensityContrastTurnaroundOverVirialRadii=0.0d0
   !#    call Galacticus_Error_Report('ratio is undefined for the "'//char(self%objectType())//'" density contrast class'//{introspection:location})
   !#   </code>
@@ -63,7 +65,7 @@ module Virial_Density_Contrast
   !#   <type>logical</type>
   !#   <pass>yes</pass>
   !#   <code>
-  !#    !GCC$ attributes unused :: self
+  !#    !$GLC attributes unused :: self
   !#    virialDensityContrastIsMassDependent=.false.
   !#   </code>
   !#  </method>

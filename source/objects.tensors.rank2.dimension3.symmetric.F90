@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -54,16 +54,16 @@ contains
   module procedure Tensor_R2_D3_Sym_Destroy
     !% Destroy a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} symmetric object.
     implicit none
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     return
   end procedure Tensor_R2_D3_Sym_Destroy
 
   module procedure Tensor_R2_D3_Sym_Builder
     !% Build a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object from the given XML {\normalfont \ttfamily tensorDefinition}.
-    use :: FoX_DOM         , only : extractDataContent          , node
+    use :: FoX_DOM         , only : node
     use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: IO_XML          , only : XML_Get_Elements_By_Tag_Name, xmlNodeList
+    use :: IO_XML          , only : XML_Get_Elements_By_Tag_Name, xmlNodeList, extractDataContent => extractDataContentTS
     implicit none
     type     (node       )               , pointer     :: element
     type     (xmlNodeList), dimension(:) , allocatable :: elementList
@@ -96,30 +96,30 @@ contains
 
   module procedure Tensor_R2_D3_Sym_Dump
     !% Reset a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} symmetric object.
-    use :: Galacticus_Display, only : Galacticus_Display_Message
-    use :: ISO_Varying_String, only : varying_string            , assignment(=)
+    use :: Display           , only : displayMessage
+    use :: ISO_Varying_String, only : assignment(=) , varying_string
     implicit none
     character(len=22        ) :: label
     type     (varying_string):: message
 
     write (label,'(e22.16)') self%x00
     message='x00: '//label
-    call Galacticus_Display_Message(message)
+    call displayMessage(message)
     write (label,'(e22.16)') self%x01
     message='x01: '//label
-    call Galacticus_Display_Message(message)
+    call displayMessage(message)
     write (label,'(e22.16)') self%x02
     message='x02: '//label
-    call Galacticus_Display_Message(message)
+    call displayMessage(message)
     write (label,'(e22.16)') self%x11
     message='x11: '//label
-    call Galacticus_Display_Message(message)
+    call displayMessage(message)
     write (label,'(e22.16)') self%x12
     message='x12: '//label
-    call Galacticus_Display_Message(message)
+    call displayMessage(message)
     write (label,'(e22.16)') self%x22
     message='x22: '//label
-    call Galacticus_Display_Message(message)
+    call displayMessage(message)
     return
   end procedure Tensor_R2_D3_Sym_Dump
 
@@ -482,7 +482,7 @@ contains
     !% Return the size of any non-static components of the object.
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     Tensor_R2_D3_Sym_Non_Static_Size_Of=0_c_size_t
     return

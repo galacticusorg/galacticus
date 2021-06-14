@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -45,7 +45,7 @@ contains
     implicit none
     type(outputAnalysisNull)                :: nullConstructorParameters
     type(inputParameters   ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     nullConstructorParameters=outputAnalysisNull()
     return
@@ -57,7 +57,7 @@ contains
     class  (outputAnalysisNull), intent(inout) :: self
     type   (treeNode          ), intent(inout) :: node
     integer(c_size_t          ), intent(in   ) :: iOutput
-    !GCC$ attributes unused :: self, node, iOutput
+    !$GLC attributes unused :: self, node, iOutput
 
     return
   end subroutine nullAnalyze
@@ -66,7 +66,7 @@ contains
     !% Implement a null output analysis finalization.
     implicit none
     class(outputAnalysisNull), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     return
   end subroutine nullFinalize
@@ -76,7 +76,7 @@ contains
     implicit none
     class(outputAnalysisNull ), intent(inout) :: self
     class(outputAnalysisClass), intent(inout) :: reduced
-    !GCC$ attributes unused :: self, reduced
+    !$GLC attributes unused :: self, reduced
 
     return
   end subroutine nullReduce
@@ -85,7 +85,7 @@ contains
     !% Return the log-likelihood of a null output analysis.
     implicit none
     class(outputAnalysisNull), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     nullLogLikelihood=0.0d0
     return

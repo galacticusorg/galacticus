@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -81,12 +81,9 @@ contains
 
     !# <inputParameter>
     !#   <name>tripleBlackHoleInteraction</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Determines whether or not triple black hole interactions will be accounted for.</description>
-    !#   <group>blackHoles</group>
     !#   <source>parameters_</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     return
   end subroutine Node_Component_Black_Hole_Noncentral_Initialize
@@ -130,15 +127,14 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Black_Hole_Noncentral_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Black_Hole_Noncentral_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
+  subroutine Node_Component_Black_Hole_Noncentral_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
     !% Compute the black hole node mass rate of change.
-    use :: Galacticus_Nodes            , only : defaultBlackHoleComponent      , interruptTask, nodeComponentBlackHole, propertyTypeInactive, &
-          &                                     treeNode
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Galacticus_Nodes                , only : defaultBlackHoleComponent      , interruptTask, nodeComponentBlackHole, propertyTypeInactive, &
+          &                                         treeNode
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    type            (treeNode              ), intent(inout), pointer :: node
+    type            (treeNode              ), intent(inout)          :: node
     logical                                 , intent(inout)          :: interrupt
-    logical                                 , intent(in   )          :: odeConverged
     procedure       (interruptTask         ), intent(inout), pointer :: interruptProcedure
     integer                                 , intent(in   )          :: propertyType
     class           (nodeComponentBlackHole)               , pointer :: blackHoleBinary   , blackHoleCentral   , &
@@ -148,7 +144,6 @@ contains
     double precision                                                 :: binaryRadius      , radialMigrationRate, &
          &                                                              radiusHardBinary
     logical                                                          :: binaryRadiusFound
-    !GCC$ attributes unused :: odeConverged
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
@@ -343,7 +338,7 @@ contains
   subroutine Node_Component_Black_Hole_Noncentral_Triple_Interaction(node)
     !% Handles triple black holes interactions, using conditions similar to those of \cite{volonteri_assembly_2003}.
     use :: Galacticus_Nodes            , only : nodeComponentBasic             , nodeComponentBlackHole, treeNode
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     type            (treeNode              ), intent(inout), target  :: node
     class           (nodeComponentBasic    )               , pointer :: basic

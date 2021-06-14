@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +22,7 @@
 module FFTLogs
   !% Wraps the \gls{FFTLog} functions.
   private
-  public :: FFTLog
+  public :: FFTLog, FFTLogSineTransform, FFTLogCosineTransform
 
   !: $(BUILDPATH)/FFTlog/cdgamma.o
   !: $(BUILDPATH)/FFTlog/drfftb.o
@@ -40,6 +40,44 @@ module FFTLogs
 
 contains
 
+  subroutine FFTLogSineTransform(r,k,f,ft,direction)
+    !% Wrapper function for \hyperlink{numerical.FFTlog.F90:fftlogs:fftlog}{{\normalfont \ttfamily FFTLog()}} which performs a
+    !% Fourier sine transform. Since \hyperlink{numerical.FFTlog.F90:fftlogs:fftlog}{{\normalfont \ttfamily FFTLog()}} achieves
+    !% this by using the $J_{1/2}(x)=(2/\pi x)^{1/2} \sin(x)$ Bessel function we apply the inverse of these factors to get a sine
+    !% transform.
+    use :: Numerical_Constants_Math, only : Pi
+    implicit none
+    double precision, intent(in   ), dimension(     : ) :: r        , f
+    double precision, intent(inout), dimension(     : ) :: k
+    double precision, intent(  out), dimension(     : ) :: ft
+    integer         , intent(in   )                     :: direction
+    double precision               , dimension(size(f)) :: fScaled
+
+    fScaled=f*sqrt(r)
+    call FFTLog(r,k,fScaled,ft,fftLogSine,direction)
+    ft=ft*sqrt(k)*sqrt(Pi/2.0d0)
+    return
+  end subroutine FFTLogSineTransform
+  
+  subroutine FFTLogCosineTransform(r,k,f,ft,direction)
+    !% Wrapper function for \hyperlink{numerical.FFTlog.F90:fftlogs:fftlog}{{\normalfont \ttfamily FFTLog()}} which performs a
+    !% Fourier cosine transform. Since \hyperlink{numerical.FFTlog.F90:fftlogs:fftlog}{{\normalfont \ttfamily FFTLog()}} achieves
+    !% this by using the $J_{1/2}(x)=(2/\pi x)^{1/2} \cos(x)$ Bessel function we apply the inverse of these factors to get a
+    !% cosine transform.
+    use :: Numerical_Constants_Math, only : Pi
+    implicit none
+    double precision, intent(in   ), dimension(     : ) :: r        , f
+    double precision, intent(inout), dimension(     : ) :: k
+    double precision, intent(  out), dimension(     : ) :: ft
+    integer         , intent(in   )                     :: direction
+    double precision               , dimension(size(f)) :: fScaled
+
+    fScaled=f*sqrt(r)
+    call FFTLog(r,k,fScaled,ft,fftLogCosine,direction)
+    ft=ft*sqrt(k)*sqrt(Pi/2.0d0)
+    return
+  end subroutine FFTLogCosineTransform
+  
   subroutine FFTLog(r,k,f,ft,mu,direction)
     !% Perform a discrete FFT on logarithmically spaced data.
     use :: Galacticus_Error, only : Galacticus_Error_Report

@@ -3,25 +3,5 @@
 <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
-  <cosmologyFunctionsMethod value="matterLambda"/>
-  <cosmologyParametersMethod value="simple">
-    <OmegaMatter value="0.3"/>
-    <OmegaDarkEnergy value="0.7"/>
-    <OmegaBaryon value="0.029585799"/>
-    <HubbleConstant value="65.0"/>
-  </cosmologyParametersMethod><cosmologicalMassVarianceMethod value="filteredPower">
-    <sigma_8 value="0.9"/>
-  </cosmologicalMassVarianceMethod><transferFunctionMethod value="BBKS"/>
-  <powerSpectrumPrimordialMethod value="powerLaw">
-    <index value="1.000"/>
-    <wavenumberReference value="1.000"/>
-    <running value="0.000"/>
-  </powerSpectrumPrimordialMethod>
-  <darkMatterProfileConcentrationMethod value="NFW1996">
-    <C value="3000.0"/>
-  </darkMatterProfileConcentrationMethod>
-  <virialDensityContrastMethod value="fixed">
-    <densityContrastValue value="200"/>
-    <densityType value="critical"/>
-  </virialDensityContrastMethod>
+  <componentBasic value="standard"/>
 </parameters>

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,7 +23,8 @@
 
   !# <darkMatterHaloBias name="darkMatterHaloBiasPressSchechter">
   !#  <description>
-  !#   A dark matter halo mass bias class utilizing the Press-Schechter algorithm \citep{cole_biased_1989}.
+  !#   A dark matter halo mass bias class consistent with the halo mass function of \cite{press_formation_1974} (see
+  !#   \citep{mo_analytic_1996}).
   !#  </description>
   !# </darkMatterHaloBias>
   type, extends(darkMatterHaloBiasClass) :: darkMatterHaloBiasPressSchechter
@@ -83,14 +84,16 @@ contains
     return
   end subroutine pressSchechterDestructor
 
-  double precision function pressSchechterBiasByMass(self,mass,time)
+  double precision function pressSchechterBiasByMass(self,mass,time,radius)
     !% Returns the bias of a dark matter halo given the mass and time.
     implicit none
-    class           (darkMatterHaloBiasPressSchechter), intent(inout) :: self
-    double precision                                  , intent(in   ) :: mass         , time
-    double precision                                                  :: deltaCritical, sigma, &
-         &                                                               nu
-
+    class           (darkMatterHaloBiasPressSchechter), intent(inout)           :: self
+    double precision                                  , intent(in   )           :: mass         , time
+    double precision                                  , intent(in   ), optional :: radius
+    double precision                                                            :: deltaCritical, sigma, &
+         &                                                                         nu
+    !$GLC attributes unused :: radius
+    
     ! Get critical overdensity for collapse and root-variance, then compute peak height parameter, nu.
     deltaCritical=+self%criticalOverdensity_     %value       (time=time,mass=mass)
     sigma        =+self%cosmologicalMassVariance_%rootVariance(time=time,mass=mass)

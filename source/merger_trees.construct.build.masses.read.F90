@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -28,15 +28,9 @@
      type            (varying_string) :: fileName
      double precision                 :: massIntervalFractional
    contains
-     !@ <objectMethods>
-     !@   <object>mergerTreeBuildMassesRead</object>
-     !@   <objectMethod>
-     !@     <method>read</method>
-     !@     <arguments>\doubleone\ mass\argout, \doubleone\ weight\argout</arguments>
-     !@     <type>\void</type>
-     !@     <description>Read the halo masses, and, optionally, weights, from file..</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Read the halo masses, and, optionally, weights, from file.." method="read" />
+     !# </methods>
      procedure                             :: construct => readConstruct
      procedure(readReadTemplate), deferred :: read
   end type mergerTreeBuildMassesRead
@@ -54,20 +48,20 @@ contains
   subroutine readConstruct(self,time,mass,massMinimum,massMaximum,weight)
     !% Construct a set of merger tree masses by reading from a file.
     use :: Memory_Management, only : allocateArray
-    use :: Sort             , only : Sort_Do
+    use :: Sorting          , only : sort
     implicit none
     class           (mergerTreeBuildMassesRead), intent(inout)                            :: self
     double precision                           , intent(in   )                            :: time
     double precision                           , intent(  out), allocatable, dimension(:) :: mass        , weight     , &
          &                                                                                   massMinimum , massMaximum
     integer                                                                               :: i
-    !GCC$ attributes unused :: time
+    !$GLC attributes unused :: time
 
     call self%read(mass,weight)
     if (allocated(weight)) then
-       call Sort_Do(mass,weight)
+       call sort(mass,weight)
     else
-       call Sort_Do(mass       )
+       call sort(mass       )
        call allocateArray(massMinimum,shape(mass))
        call allocateArray(massMaximum,shape(mass))
        do i=1,size(mass)

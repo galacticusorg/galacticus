@@ -5,21 +5,48 @@
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
   <!-- Cosmological parameters and options -->
-  <cosmologyParametersMethod value="simple">
+  <cosmologyParameters value="simple">
     <HubbleConstant value="70.2"/>
     <OmegaMatter value="0.2725"/>
     <OmegaDarkEnergy value="0.7275"/>
     <OmegaBaryon value="0.0455"/>
     <temperatureCMB value="2.72548"/>
-  </cosmologyParametersMethod>
+  </cosmologyParameters>
 
   <dblFromC value="1.2434"/>
   <longFromC value="12434"/>
 
-  <cosmologicalMassVarianceMethod value="filteredPower" id="myCMV">
+  <cosmologicalMassVariance value="filteredPower" id="myCMV">
     <sigma_8 value="0.912"/>
-  </cosmologicalMassVarianceMethod>
-  
-  <cosmologicalMassVarianceMethod idRef="myCMV"/>
-  
+  </cosmologicalMassVariance>
+
+  <cosmologicalMassVariance idRef="myCMV"/>
+
+  <nodeOperator value="multi"><!--Stellar feedback outflows-->
+    <nodeOperator value="stellarFeedbackDisks">
+      <stellarFeedbackOutflows value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflows value="powerLaw">
+          <velocityCharacteristic value="250.0"/>
+          <exponent value="3.5"/>
+        </stellarFeedbackOutflows>
+      </stellarFeedbackOutflows>
+    </nodeOperator>
+    <nodeOperator value="stellarFeedbackSpheroids">
+      <stellarFeedbackOutflows value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflows value="powerLaw">
+          <velocityCharacteristic value="250.0"/>
+          <exponent value="3.5"/>
+        </stellarFeedbackOutflows>
+      </stellarFeedbackOutflows>
+    </nodeOperator>
+  </nodeOperator>
+
+  <fixedValue value="1.234"/>
+  <derivedValue1 value="=10.0*[fixedValue]"/>
+  <derivedValue2 value="=2.3+[fixedValue]-[derivedValue2:derivedValue3]^2">
+    <derivedValue3 value="=exp([fixedValue])"/>
+  </derivedValue2>
+
 </parameters>

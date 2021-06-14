@@ -58,7 +58,7 @@ foreach my $allocatable ( @{$allocatables->{'allocatable'}}  ) {
     $codeFragments->{'postContain'}->{"dealloc".$code::functionLabel} = fill_in_string(<<'CODE', PACKAGE => 'code');
 subroutine deallocateArray_{$functionLabel}(thisArray,memoryType,file,line)
   !% Deallocate a {$rank}D \{\normalfont \ttfamily {&LaTeX::Encode::latex_encode($typeName)}\} array.
-  use Galacticus_Display
+  use Display
   use ISO_Varying_String
   use String_Handling
   implicit none
@@ -78,12 +78,12 @@ subroutine deallocateArray_{$functionLabel}(thisArray,memoryType,file,line)
   !$omp atomic
   usedMemory%memoryType(memoryTypeActual)%usage=usedMemory%memoryType(memoryTypeActual)%usage-accumulation
   deallocate(thisArray)
-  if (Galacticus_Verbosity_Level() >= verbosityDebug) then
+  if (displayVerbosity() >= verbosityLevelDebug) then
      if (present(file).and.present(line)) then
       message='memory deallocate: '
       message=message//sizeof(thisArray)+allocationOverhead
       message=message//' ['//file//':'//line//']'
-      call Galacticus_Display_Message(message)
+      call displayMessage(message)
     end if
   end if
   return
@@ -96,7 +96,7 @@ CODE
 	$codeFragments->{'postContain'}->{"alloc".$code::functionLabel.$code::suffix} = fill_in_string(<<'CODE', PACKAGE => 'code');
 subroutine allocateArray_{$functionLabel.$suffix}(thisArray,dimensions,lowerBounds,memoryType,file,line)
   !% Allocate a {$rank}D \{\normalfont \ttfamily {&LaTeX::Encode::latex_encode($typeName)}\} array.
-  use Galacticus_Display
+  use Display
   use ISO_Varying_String
   use String_Handling
   implicit none
@@ -123,12 +123,12 @@ subroutine allocateArray_{$functionLabel.$suffix}(thisArray,dimensions,lowerBoun
   accumulation=sizeof(thisArray)+allocationOverhead
   !$omp atomic
   usedMemory%memoryType(memoryTypeActual)%usage=usedMemory%memoryType(memoryTypeActual)%usage+accumulation
-  if (Galacticus_Verbosity_Level() >= verbosityDebug) then
+  if (displayVerbosity() >= verbosityLevelDebug) then
      if (present(file).and.present(line)) then
       message='memory allocate: '
       message=message//sizeof(thisArray)+allocationOverhead
       message=message//' ['//file//':'//line//']'
-      call Galacticus_Display_Message(message)
+      call displayMessage(message)
     end if
   end if
   call Memory_Usage_Report

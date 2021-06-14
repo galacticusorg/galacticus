@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,9 @@
   !% An implementation of a spectrum postprocessor that does nothing.
 
   !# <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorIdentity">
-  !#  <description>Performs an indentity postprocessing of spectra.</description>
+  !#  <description>
+  !#   A stellar population postprocessing class which leaves the spectrum unchanged.
+  !#  </description>
   !# </stellarPopulationSpectraPostprocessor>
   type, extends(stellarPopulationSpectraPostprocessorClass) :: stellarPopulationSpectraPostprocessorIdentity
      !% An identity spectrum postprocessor.
@@ -43,7 +45,7 @@ contains
     implicit none
     type(stellarPopulationSpectraPostprocessorIdentity)                :: self
     type(inputParameters                              ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=stellarPopulationSpectraPostprocessorIdentity()
     return
@@ -54,7 +56,7 @@ contains
     implicit none
     class           (stellarPopulationSpectraPostprocessorIdentity), intent(inout) :: self
     double precision                                               , intent(in   ) :: age , redshift, wavelength
-    !GCC$ attributes unused :: self, age, redshift, wavelength
+    !$GLC attributes unused :: self, age, redshift, wavelength
 
     identityMultiplier=1.0d0
     return

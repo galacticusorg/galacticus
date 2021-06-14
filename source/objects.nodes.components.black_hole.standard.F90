@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -77,8 +77,7 @@ module Node_Component_Black_Hole_Standard
   !#     <name>massSeed</name>
   !#     <type>double</type>
   !#     <rank>0</rank>
-  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
-  !#     <getFunction>Node_Component_Black_Hole_Standard_Seed_Mass</getFunction>
+  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" isDeferred="get"  />
   !#   </property>
   !#   <property>
   !#     <name>spinSeed</name>
@@ -128,6 +127,9 @@ module Node_Component_Black_Hole_Standard
   ! Control for hot mode only accretion.
   logical          :: bondiHoyleAccretionHotModeOnly
 
+  ! Seed mass for black holes.
+  double precision :: blackHoleSeedMass
+
   ! Feedback parameters.
   double precision :: blackHoleWindEfficiency                       , blackHoleRadioModeFeedbackEfficiency
   logical          :: blackHoleHeatsHotHalo                         , blackHoleWindEfficiencyScalesWithRadiativeEfficiency
@@ -153,116 +155,92 @@ contains
     type(inputParameters               ), intent(inout) :: parameters_
     type(nodeComponentBlackHoleStandard)                :: blackHoleStandardComponent
 
+    ! Bind deferred functions.
+    call blackHoleStandardComponent%massSeedFunction(Node_Component_Black_Hole_Standard_Seed_Mass)
+    ! Get the seed mass
+    !# <inputParameter>
+    !#   <name>blackHoleSeedMass</name>
+    !#   <source>parameters_</source>
+    !#   <defaultValue>100.0d0</defaultValue>
+    !#   <description>The mass of the seed black hole placed at the center of each newly formed galaxy.</description>
+    !# </inputParameter>
     ! Get accretion rate enhancement factors.
     !# <inputParameter>
     !#   <name>bondiHoyleAccretionEnhancementSpheroid</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>5.0d0</defaultValue>
     !#   <description>The factor by which the Bondi-Hoyle accretion rate of spheroid gas onto black holes in enhanced.</description>
-    !#   <group>blackHoles</group>
     !#   <source>parameters_</source>
-    !#   <type>double</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>bondiHoyleAccretionEnhancementHotHalo</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>6.0d0</defaultValue>
     !#   <description>The factor by which the Bondi-Hoyle accretion rate of hot halo gas onto black holes in enhanced.</description>
-    !#   <group>blackHoles</group>
     !#   <source>parameters_</source>
-    !#   <type>double</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>bondiHoyleAccretionHotModeOnly</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>Determines whether accretion from the hot halo should only occur if the halo is in the hot accretion mode.</description>
-    !#   <group>blackHoles</group>
     !#   <source>parameters_</source>
-    !#   <type>double</type>
     !# </inputParameter>
 
     ! Get temperature of accreting gas.
     !# <inputParameter>
     !#   <name>bondiHoyleAccretionTemperatureSpheroid</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d2</defaultValue>
     !#   <description>The assumed temperature (in Kelvin) of gas in the spheroid when computing Bondi-Hoyle accretion rates onto black holes.</description>
-    !#   <group>blackHoles</group>
     !#   <source>parameters_</source>
-    !#   <type>double</type>
     !# </inputParameter>
 
     ! Get wind efficiency and scaling.
     !# <inputParameter>
     !#   <name>blackHoleWindEfficiency</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>2.4d-3</defaultValue>
     !#   <description>The efficiency of the black hole-driven wind: $L_\mathrm{wind} = \epsilon_\mathrm{wind} \dot{M}_\bullet \clight^2$.</description>
-    !#   <group>blackHoles</group>
     !#   <source>parameters_</source>
-    !#   <type>double</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>blackHoleWindEfficiencyScalesWithRadiativeEfficiency</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Specifies whether the black hole wind efficiency should scale with the radiative efficiency of the accretion disk.</description>
-    !#   <group>blackHoles</group>
     !#   <source>parameters_</source>
-    !#   <type>double</type>
     !# </inputParameter>
 
     ! Options controlling AGN feedback.
     !# <inputParameter>
     !#   <name>blackHoleHeatsHotHalo</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>Specifies whether or not the black hole launched jets should heat the hot halo.</description>
-    !#   <group>blackHoles</group>
     !#   <source>parameters_</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>blackHoleRadioModeFeedbackEfficiency</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>Efficiency with which radio-mode feedback is coupled to the hot halo.</description>
-    !#   <group>blackHoles</group>
     !#   <source>parameters_</source>
-    !#   <type>double</type>
     !# </inputParameter>
 
     ! Get options controlling output.
     !# <inputParameter>
     !#   <name>blackHoleOutputAccretion</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Determines whether or not accretion rates and jet powers will be output.</description>
-    !#   <group>output</group>
     !#   <source>parameters_</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
 
     ! Get options controlling output.
     !# <inputParameter>
     !#   <name>blackHoleOutputData</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Determines whether or not properties for all black holes (rather than just the central black hole) will be output.</description>
-    !#   <group>output</group>
     !#   <source>parameters_</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
 
     !# <inputParameter>
     !#   <name>blackHoleOutputMergers</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Determines whether or not properties of black hole mergers will be output.</description>
-    !#   <group>output</group>
     !#   <source>parameters_</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
 
     ! Check if cold mode is explicitly tracked.
@@ -328,7 +306,7 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Black_Hole_Standard_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Black_Hole_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
+  subroutine Node_Component_Black_Hole_Standard_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
     !% Compute the black hole node mass rate of change.
     use :: Galacticus_Nodes                , only : defaultBlackHoleComponent, interruptTask        , nodeComponentBasic  , nodeComponentBlackHole, &
           &                                         nodeComponentHotHalo     , nodeComponentSpheroid, propertyTypeInactive, treeNode
@@ -338,9 +316,8 @@ contains
     use :: Numerical_Constants_Physical    , only : boltzmannsConstant       , speedLight
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
-    type            (treeNode              ), intent(inout), pointer   :: node
+    type            (treeNode              ), intent(inout)            :: node
     logical                                 , intent(inout)            :: interrupt
-    logical                                 , intent(in   )            :: odeConverged
     procedure       (interruptTask         ), intent(inout), pointer   :: interruptProcedure
     integer                                 , intent(in   )            :: propertyType
     class           (nodeComponentBlackHole)               , pointer   :: blackHoleCentral                                                                                                                                   , blackHole
@@ -359,7 +336,6 @@ contains
          &                                                                spheroidDensityRadius2                                                                                                                            , spheroidGasMass                                                , &
          &                                                                spheroidRadius                                                                                                                                    , windEfficiencyNet                                              , &
          &                                                                windFraction                                                                                                                                      , hotModeFraction
-    !GCC$ attributes unused :: odeConverged
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
@@ -527,7 +503,7 @@ contains
          &                                                     massBlackHole1      , massBlackHole2    , &
          &                                                     radiusInitial       , recoilVelocity    , &
          &                                                     spinBlackHole1      , spinBlackHole2
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
     
     ! Find the node to merge with.
     hostNode => node%mergesWith()
@@ -789,7 +765,7 @@ contains
     ! Set to the seed mass.
     call blackHole%          massSet(blackHole%massSeed())
     call blackHole%          spinSet(blackHole%spinSeed())
-    call blackHole%radialPositionSet(                            0.0d0)
+    call blackHole%radialPositionSet(               0.0d0)
     return
   end subroutine Node_Component_Black_Hole_Standard_Create
 
@@ -797,40 +773,38 @@ contains
   !#  <unitName>Node_Component_Black_Hole_Standard_Output_Names</unitName>
   !#  <sortName>Node_Component_Black_Hole_Standard_Output</sortName>
   !# </mergerTreeOutputNames>
-  subroutine Node_Component_Black_Hole_Standard_Output_Names(node,integerProperty,integerPropertyNames&
-       &,integerPropertyComments,integerPropertyUnitsSI ,doubleProperty,doublePropertyNames,doublePropertyComments&
-       &,doublePropertyUnitsSI,time)
+  subroutine Node_Component_Black_Hole_Standard_Output_Names(node,integerProperty,integerProperties,doubleProperty,doubleProperties,time)
     !% Set names of black hole properties to be written to the \glc\ output file.
-    use :: Galacticus_Nodes                , only : treeNode
-    use :: Numerical_Constants_Astronomical, only : gigaYear, massSolar
-    use :: Numerical_Constants_Prefixes    , only : kilo
+    use :: Galacticus_Nodes                  , only : treeNode
+    use :: Numerical_Constants_Astronomical  , only : gigaYear             , massSolar
+    use :: Numerical_Constants_Prefixes      , only : kilo
+    use :: Merger_Tree_Outputter_Buffer_Types, only : outputPropertyInteger, outputPropertyDouble
     implicit none
-    type            (treeNode)              , intent(inout), pointer :: node
-    double precision                        , intent(in   )          :: time
-    integer                                 , intent(inout)          :: doubleProperty         , integerProperty
-    character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , &
-         &                                                              integerPropertyComments, integerPropertyNames
-    double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
-    !GCC$ attributes unused :: time
+    type            (treeNode             )              , intent(inout) :: node
+    double precision                                     , intent(in   ) :: time
+    integer                                              , intent(inout) :: doubleProperty   , integerProperty
+    type            (outputPropertyInteger), dimension(:), intent(inout) :: integerProperties
+    type            (outputPropertyDouble ), dimension(:), intent(inout) :: doubleProperties
+    !$GLC attributes unused :: time
 
     if (Node_Component_Black_Hole_Standard_Matches(node)) then
        integerProperty=integerProperty+1
-       integerPropertyNames   (integerProperty)='blackHoleCount'
-       integerPropertyComments(integerProperty)='Number of super-massive black holes in the galaxy.'
-       integerPropertyUnitsSI (integerProperty)=0.0d0
+       integerProperties(integerProperty)%name     ='blackHoleCount'
+       integerProperties(integerProperty)%comment  ='Number of super-massive black holes in the galaxy.'
+       integerProperties(integerProperty)%unitsInSI=0.0d0
        if (blackHoleOutputAccretion) then
           doubleProperty=doubleProperty+1
-          doublePropertyNames   (doubleProperty)='blackHoleAccretionRate'
-          doublePropertyComments(doubleProperty)='Rest-mass accretion rate onto the black hole.'
-          doublePropertyUnitsSI (doubleProperty)=massSolar/gigaYear
+          doubleProperties(doubleProperty)%name     ='blackHoleAccretionRate'
+          doubleProperties(doubleProperty)%comment  ='Rest-mass accretion rate onto the black hole.'
+          doubleProperties(doubleProperty)%unitsInSI=massSolar/gigaYear
           doubleProperty=doubleProperty+1
-          doublePropertyNames   (doubleProperty)='blackHoleJetPower'
-          doublePropertyComments(doubleProperty)='Power of the black hole-driven jet.'
-          doublePropertyUnitsSI (doubleProperty)=massSolar*kilo**2/gigaYear
+          doubleProperties(doubleProperty)%name     ='blackHoleJetPower'
+          doubleProperties(doubleProperty)%comment  ='Power of the black hole-driven jet.'
+          doubleProperties(doubleProperty)%unitsInSI=massSolar*kilo**2/gigaYear
           doubleProperty=doubleProperty+1
-          doublePropertyNames   (doubleProperty)='blackHoleRadiativeEfficiency'
-          doublePropertyComments(doubleProperty)='The radiative efficiency of the black hole accretion system.'
-          doublePropertyUnitsSI (doubleProperty)=0.0d0
+          doubleProperties(doubleProperty)%name     ='blackHoleRadiativeEfficiency'
+          doubleProperties(doubleProperty)%comment  ='The radiative efficiency of the black hole accretion system.'
+          doubleProperties(doubleProperty)%unitsInSI=0.0d0
        end if
     end if
     return
@@ -844,11 +818,11 @@ contains
     !% Account for the number of black hole properties to be written to the the \glc\ output file.
     use :: Galacticus_Nodes, only : treeNode
     implicit none
-    type            (treeNode), intent(inout), pointer :: node
-    double precision          , intent(in   )          :: time
-    integer                   , intent(inout)          :: doublePropertyCount  , integerPropertyCount
-    integer                   , parameter              :: extraPropertyCount =3
-    !GCC$ attributes unused :: time
+    type            (treeNode), intent(inout) :: node
+    double precision          , intent(in   ) :: time
+    integer                   , intent(inout) :: doublePropertyCount  , integerPropertyCount
+    integer                   , parameter     :: extraPropertyCount =3
+    !$GLC attributes unused :: time
 
     if (Node_Component_Black_Hole_Standard_Matches(node)) then
        integerPropertyCount=integerPropertyCount+1
@@ -861,23 +835,24 @@ contains
   !#  <unitName>Node_Component_Black_Hole_Standard_Output</unitName>
   !#  <sortName>Node_Component_Black_Hole_Standard_Output</sortName>
   !# </mergerTreeOutputTask>
-  subroutine Node_Component_Black_Hole_Standard_Output(node,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
-       &,doubleBufferCount,doubleBuffer,time,instance)
+  subroutine Node_Component_Black_Hole_Standard_Output(node,integerProperty,integerBufferCount,integerProperties,doubleProperty,doubleBufferCount,doubleProperties,time,instance)
     !% Store black hole properties in the \glc\ output file buffers.
-    use :: Galacticus_Nodes, only : nodeComponentBlackHole, treeNode
-    use :: Kind_Numbers    , only : kind_int8
-    use :: Multi_Counters  , only : multiCounter
+    use :: Galacticus_Nodes                  , only : nodeComponentBlackHole, treeNode
+    use :: Kind_Numbers                      , only : kind_int8
+    use :: Multi_Counters                    , only : multiCounter
+    use :: Merger_Tree_Outputter_Buffer_Types, only : outputPropertyInteger , outputPropertyDouble
     implicit none
-    double precision                        , intent(in   )          :: time
-    type            (treeNode              ), intent(inout), pointer :: node
-    integer                                 , intent(inout)          :: doubleBufferCount          , doubleProperty       , integerBufferCount   , &
-         &                                                              integerProperty
-    integer         (kind=kind_int8        ), intent(inout)          :: integerBuffer         (:,:)
-    double precision                        , intent(inout)          :: doubleBuffer          (:,:)
-    type            (multiCounter          ), intent(inout)          :: instance
-    class           (nodeComponentBlackHole)               , pointer :: blackHole
-    double precision                                                 :: accretionRateHotHalo       , accretionRateSpheroid, restMassAccretionRate
-    !GCC$ attributes unused :: time, instance
+    double precision                        , intent(in   )               :: time
+    type            (treeNode              ), intent(inout)               :: node
+    integer                                 , intent(inout)               :: doubleBufferCount    , doubleProperty       , &
+         &                                                                   integerBufferCount   , integerProperty
+    type            (outputPropertyInteger ), intent(inout), dimension(:) :: integerProperties
+    type            (outputPropertyDouble  ), intent(inout), dimension(:) :: doubleProperties
+    type            (multiCounter          ), intent(inout)               :: instance
+    class           (nodeComponentBlackHole)               , pointer      :: blackHole
+    double precision                                                      :: accretionRateHotHalo , accretionRateSpheroid, &
+         &                                                                   restMassAccretionRate
+    !$GLC attributes unused :: time, instance
 
     if (Node_Component_Black_Hole_Standard_Matches(node)) then
        ! Store the properties.
@@ -885,19 +860,18 @@ contains
           ! Get the black hole component.
           blackHole => node%blackHole(instance=1)
           ! Get the rest mass accretion rate.
-          call Node_Component_Black_Hole_Standard_Mass_Accretion_Rate(blackHole,accretionRateSpheroid&
-               &,accretionRateHotHalo)
+          call Node_Component_Black_Hole_Standard_Mass_Accretion_Rate(blackHole,accretionRateSpheroid,accretionRateHotHalo)
           restMassAccretionRate=accretionRateSpheroid+accretionRateHotHalo
           doubleProperty=doubleProperty+1
-          doubleBuffer(doubleBufferCount,doubleProperty)=restMassAccretionRate
+          doubleProperties(doubleProperty)%scalar(doubleBufferCount)=restMassAccretionRate
           doubleProperty=doubleProperty+1
-          doubleBuffer(doubleBufferCount,doubleProperty)=accretionDisks_%powerJet           (blackHole,restMassAccretionRate)
+          doubleProperties(doubleProperty)%scalar(doubleBufferCount)=accretionDisks_%powerJet           (blackHole,restMassAccretionRate)
           doubleProperty=doubleProperty+1
-          doubleBuffer(doubleBufferCount,doubleProperty)=accretionDisks_%efficiencyRadiative(blackHole,restMassAccretionRate)
+          doubleProperties(doubleProperty)%scalar(doubleBufferCount)=accretionDisks_%efficiencyRadiative(blackHole,restMassAccretionRate)
        end if
        ! Count number of black holes associated with this galaxy.
        integerProperty=integerProperty+1
-       integerBuffer(integerBufferCount,integerProperty)=node%blackHoleCount()
+       integerProperties(integerProperty)%scalar(integerBufferCount)=node%blackHoleCount()
     end if
     return
   end subroutine Node_Component_Black_Hole_Standard_Output
@@ -906,8 +880,8 @@ contains
     !% Return true if the black hole component of {\normalfont \ttfamily node} is a match to the standard implementation.
     use :: Galacticus_Nodes, only : defaultBlackHoleComponent, nodeComponentBlackHole, nodeComponentBlackHoleStandard, treeNode
     implicit none
-    type (treeNode              ), intent(inout), pointer :: node
-    class(nodeComponentBlackHole)               , pointer :: blackHole
+    type (treeNode              ), intent(inout) :: node
+    class(nodeComponentBlackHole), pointer       :: blackHole
 
     ! Get the black hole component.
     blackHole => node%blackHole()
@@ -1057,10 +1031,10 @@ contains
     !% A simple interpolating function which is used as a measure of the fraction of a halo which is in the hot accretion mode.
     use :: Galacticus_Nodes, only : treeNode
     implicit none
-    type            (treeNode), intent(inout), pointer :: node
-    double precision          , parameter              :: coolingRadiusFractionalTransitionMinimum=0.9d0
-    double precision          , parameter              :: coolingRadiusFractionalTransitionMaximum=1.0d0
-    double precision                                   :: coolingRadiusFractional                       , x
+    type            (treeNode), intent(inout) :: node
+    double precision          , parameter     :: coolingRadiusFractionalTransitionMinimum=0.9d0
+    double precision          , parameter     :: coolingRadiusFractionalTransitionMaximum=1.0d0
+    double precision                          :: coolingRadiusFractional                       , x
 
     coolingRadiusFractional=+coolingRadius_      %      radius(node) &
          &                  /darkMatterHaloScale_%virialRadius(node)
@@ -1103,8 +1077,8 @@ contains
   !# </postStepTask>
   subroutine Node_Component_Black_Hole_Standard_Post_Evolve(node,status)
     !% Keep black hole spin in physical range.
-    use :: FGSL            , only : FGSL_Failure
     use :: Galacticus_Nodes, only : defaultBlackHoleComponent, nodeComponentBlackHole, treeNode
+    use :: Interface_GSL   , only : GSL_Failure
     implicit none
     type            (treeNode              ), intent(inout), pointer :: node
     integer                                 , intent(inout)          :: status
@@ -1123,7 +1097,7 @@ contains
              ! Get the black hole component.
              blackHole => node%blackHole(instance=i)
              if (blackHole%spin() > spinMaximum .or. blackHole%spin() < 0.0d0) then
-                status    =FGSL_Failure
+                status    =GSL_Failure
                 spin      =max(min(blackHole%spin(),spinMaximum),0.0d0)
                 call blackHole%spinSet(spin)
              end if
@@ -1132,5 +1106,16 @@ contains
     end if
     return
   end subroutine Node_Component_Black_Hole_Standard_Post_Evolve
+
+  double precision function Node_Component_Black_Hole_Standard_Seed_Mass(self)
+    !% Return the seed mass for standard black holes.
+    use :: Galacticus_Nodes, only : nodeComponentBlackHoleStandard
+    implicit none
+    class(nodeComponentBlackHoleStandard), intent(inout) :: self
+    !$GLC attributes unused :: self
+    
+    Node_Component_Black_Hole_Standard_Seed_Mass=blackHoleSeedMass
+    return
+  end function Node_Component_Black_Hole_Standard_Seed_Mass
 
 end module Node_Component_Black_Hole_Standard

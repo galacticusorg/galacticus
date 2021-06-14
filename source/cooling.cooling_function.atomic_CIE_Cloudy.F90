@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,13 +22,13 @@
 
   !# <coolingFunction name="coolingFunctionAtomicCIECloudy">
   !#  <description>
-  !#   Class providing cooling function by utilizing the {\normalfont \scshape Cloudy} code to
-  !#   compute cooling in collisional ionization equilibrium. {\normalfont \scshape Cloudy} will
-  !#   be downloaded, compiled and run automatically if necessary\footnote{{\normalfont \scshape
-  !#   Cloudy} is used to generate a file which contains a tabulation of the cooling function
-  !#   suitable for reading by the {\normalfont \ttfamily CIE from file} method. Generation of
-  !#   the tabulation typically takes several hours, but only needs to be done once as the
-  !#   stored table is simply read back in on later runs.}.
+  !#   A cooling function class that computes the cooling function using the {\normalfont \scshape Cloudy} code and under the
+  !#   assumption of collisional ionization equilibrium with no molecular contribution. Abundances are Solar, except for zero
+  !#   metallicity calculations which use {\normalfont \scshape Cloudy}'s ``primordial'' metallicity. The helium abundance for
+  !#   non-zero metallicity is scaled between primordial and Solar values linearly with metallicity. The {\normalfont \scshape
+  !#   Cloudy} code will be downloaded and run to compute the cooling function as needed, which will then be stored for future
+  !#   use. As this process is slow, a precomputed table is provided with \glc. If metallicities outside the range tabulated in
+  !#   this file are required it will be regenerated with an appropriate range.
   !#  </description>
   !# </coolingFunction>
   type, extends(coolingFunctionCIEFile) :: coolingFunctionAtomicCIECloudy
@@ -37,18 +37,13 @@
      private
      logical :: initialized
    contains
-     !@ <objectMethods>
-     !@   <object>coolingFunctionAtomicCIECloudy</object>
-     !@   <objectMethod>
-     !@     <method>tabulate</method>
-     !@     <type>void</type>
-     !@     <arguments>\textcolor{red}{\textless type(abundances)\textgreater} gasAbunances\argin</arguments>
-     !@     <description>Run {\normalfont \scshape Cloudy} to tabulate the cooling function as necessary.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Run {\normalfont \scshape Cloudy} to tabulate the cooling function as necessary." method="tabulate" />
+     !# </methods>
      final     ::                                       atomicCIECloudyDestructor
      procedure :: tabulate                           => atomicCIECloudyTabulate
      procedure :: coolingFunction                    => atomicCIECloudyCoolingFunction
+     procedure :: coolingFunctionFractionInBand      => atomicCIECloudyCoolingFunctionFractionInBand
      procedure :: coolingFunctionTemperatureLogSlope => atomicCIECloudyCoolingFunctionTemperatureLogSlope
      procedure :: coolingFunctionDensityLogSlope     => atomicCIECloudyCoolingFunctionDensityLogSlope
   end type coolingFunctionAtomicCIECloudy
@@ -74,31 +69,29 @@
 
 contains
 
-  function atomicCIECloudyConstructorParameters(parameters)
+  function atomicCIECloudyConstructorParameters(parameters) result(self)
     !% Constructor for the ``atomic CIE Cloudy'' cooling function class which takes a parameter set as input.
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(coolingFunctionAtomicCIECloudy)                :: atomicCIECloudyConstructorParameters
+    type(coolingFunctionAtomicCIECloudy)                :: self
     type(inputParameters               ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
-    atomicCIECloudyConstructorParameters=atomicCIECloudyConstructorInternal()
+    self=coolingFunctionAtomicCIECloudy()
     return
   end function atomicCIECloudyConstructorParameters
 
-  function atomicCIECloudyConstructorInternal()
+  function atomicCIECloudyConstructorInternal() result(self)
     !% Internal constructor for the ``atomic CIE Cloudy'' cooling function class.
     implicit none
-    type(coolingFunctionAtomicCIECloudy) :: atomicCIECloudyConstructorInternal
+    type(coolingFunctionAtomicCIECloudy) :: self
 
     ! Initialize.
-    atomicCIECloudyConstructorInternal%temperaturePrevious     =-1.0d0
-    atomicCIECloudyConstructorInternal%metallicityPrevious     =-1.0d0
-    atomicCIECloudyConstructorInternal%temperatureSlopePrevious=-1.0d0
-    atomicCIECloudyConstructorInternal%metallicitySlopePrevious=-1.0d0
-    atomicCIECloudyConstructorInternal%resetMetallicity        =.true.
-    atomicCIECloudyConstructorInternal%resetTemperature        =.true.
-    atomicCIECloudyConstructorInternal%initialized             =.false.
+    self%temperaturePrevious     =-1.0d0
+    self%metallicityPrevious     =-1.0d0
+    self%temperatureSlopePrevious=-1.0d0
+    self%metallicitySlopePrevious=-1.0d0
+    self%initialized             =.false.
    return
   end function atomicCIECloudyConstructorInternal
 
@@ -106,7 +99,7 @@ contains
     !% Destructor for the ``atomic CIE Cloudy'' cooling function class.
     implicit none
     type(coolingFunctionAtomicCIECloudy), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Nothing to do.
     return
@@ -166,55 +159,75 @@ contains
             &                                   cieFileFormatVersionCurrent                                                       &
             &                            )
        ! Call routine to read in the tabulated data.
-       call self%readFile(char(galacticusPath(pathTypeDataStatic)//trim(atomicCIECloudyCoolingFunctionFileName)))
+       call self%readFile(galacticusPath(pathTypeDataStatic)//trim(atomicCIECloudyCoolingFunctionFileName))
        ! Flag that cooling function is now initialized.
        self%initialized=.true.
     end if
     return
   end subroutine atomicCIECloudyTabulate
 
-  double precision function atomicCIECloudyCoolingFunction(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
+  double precision function atomicCIECloudyCoolingFunction(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     !% Return the cooling function for collisional ionization equilibrium as computed by
     !% {\normalfont \scshape Cloudy}.
     implicit none
     class           (coolingFunctionAtomicCIECloudy), intent(inout) :: self
+    type            (treeNode                      ), intent(inout) :: node
     double precision                                , intent(in   ) :: numberDensityHydrogen, temperature
     type            (abundances                    ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances            ), intent(in   ) :: chemicalDensities
     class           (radiationFieldClass           ), intent(inout) :: radiation
 
-    call                           self%tabulate                              (                                  gasAbundances                            )
-    atomicCIECloudyCoolingFunction=self%coolingFunctionCIEFile%coolingFunction(numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
+    call                           self%tabulate                              (                                       gasAbundances                            )
+    atomicCIECloudyCoolingFunction=self%coolingFunctionCIEFile%coolingFunction(node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     return
   end function atomicCIECloudyCoolingFunction
 
-  double precision function atomicCIECloudyCoolingFunctionTemperatureLogSlope(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
+  double precision function atomicCIECloudyCoolingFunctionFractionInBand(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation,energyLow,energyHigh)
+    !% Return the fraction of the cooling luminosity due to emission in the given energy range as computed by
+    !% {\normalfont \scshape Cloudy}.
+    implicit none
+    class           (coolingFunctionAtomicCIECloudy), intent(inout) :: self
+    type            (treeNode                      ), intent(inout) :: node
+    double precision                                , intent(in   ) :: numberDensityHydrogen, temperature, &
+         &                                                             energyLow            , energyHigh
+    type            (abundances                    ), intent(in   ) :: gasAbundances
+    type            (chemicalAbundances            ), intent(in   ) :: chemicalDensities
+    class           (radiationFieldClass           ), intent(inout) :: radiation
+
+    call                                         self%tabulate                                            (                                       gasAbundances                                                 )
+    atomicCIECloudyCoolingFunctionFractionInBand=self%coolingFunctionCIEFile%coolingFunctionFractionInBand(node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation,energyLow,energyHigh)
+    return
+  end function atomicCIECloudyCoolingFunctionFractionInBand
+
+  double precision function atomicCIECloudyCoolingFunctionTemperatureLogSlope(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     !% Return the logarithmic slope of the cooling function with respect to temperature for
     !% collisional ionization equilibrium as computed by {\normalfont \scshape Cloudy}.  read
     !% from a file.
     implicit none
     class           (coolingFunctionAtomicCIECloudy), intent(inout) :: self
+    type            (treeNode                      ), intent(inout) :: node
     double precision                                , intent(in   ) :: numberDensityHydrogen, temperature
     type            (abundances                    ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances            ), intent(in   ) :: chemicalDensities
     class           (radiationFieldClass           ), intent(inout) :: radiation
 
-    call                                              self%tabulate                                                 (                                  gasAbundances                            )
-    atomicCIECloudyCoolingFunctionTemperatureLogSlope=self%coolingFunctionCIEFile%coolingFunctionTemperatureLogSlope(numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
+    call                                              self%tabulate                                                 (                                       gasAbundances                            )
+    atomicCIECloudyCoolingFunctionTemperatureLogSlope=self%coolingFunctionCIEFile%coolingFunctionTemperatureLogSlope(node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     return
   end function atomicCIECloudyCoolingFunctionTemperatureLogSlope
 
-  double precision function atomicCIECloudyCoolingFunctionDensityLogSlope(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
+  double precision function atomicCIECloudyCoolingFunctionDensityLogSlope(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     !% Return the logarithmic slope of the cooling function with respect to density for
     !% collisional ionization equilibrium as computed by {\normalfont \scshape Cloudy}.
     implicit none
     class           (coolingFunctionAtomicCIECloudy), intent(inout) :: self
+    type            (treeNode                      ), intent(inout) :: node
     double precision                                , intent(in   ) :: numberDensityHydrogen, temperature
     type            (abundances                    ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances            ), intent(in   ) :: chemicalDensities
     class           (radiationFieldClass           ), intent(inout) :: radiation
 
-    call                                          self%tabulate                                             (                                  gasAbundances                            )
-    atomicCIECloudyCoolingFunctionDensityLogSlope=self%coolingFunctionCIEFile%coolingFunctionDensityLogSlope(numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
+    call                                          self%tabulate                                             (                                       gasAbundances                            )
+    atomicCIECloudyCoolingFunctionDensityLogSlope=self%coolingFunctionCIEFile%coolingFunctionDensityLogSlope(node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     return
   end function atomicCIECloudyCoolingFunctionDensityLogSlope

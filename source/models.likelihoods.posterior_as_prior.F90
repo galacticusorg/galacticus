@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,7 +23,26 @@
   use :: Nearest_Neighbors, only : nearestNeighbors
 
   !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodPosteriorAsPrior">
-  !#  <description>A posterior sampling likelihood class which implements a likelihood using a given posterior distribution over the parameters in the form of a set of MCMC chains.</description>
+  !#  <description>
+  !#   The likelihood is computed either using another likelihood function (the ``wrapped'' likelihood), while including in the
+  !#   likelihood an esimate of the posterior probability of a previous simulation. This effectively allows the posterior of the previous
+  !#   simulation to be used as a prior on the current simulation. The details of the likelihood are specified by the follow
+  !#   subparameters:
+  !#   \begin{description}
+  !#   \item[{\normalfont \ttfamily chainBaseName}] The base name for the old set of MCMC chains to use as the new prior;
+  !#   \item[{\normalfont \ttfamily neighborCount}] The number of neighbor points to use in kernel density estimation of the posterior probability;
+  !#   \item[{\normalfont \ttfamily tolerance}] Tolerance used in finding nearest neighbors;
+  !#   \item[{\normalfont \ttfamily wrappedLikelihood}] Contains another likelihood function definition which will be used to provide the current likelihood.
+  !#   \end{description}
+  !#   
+  !#   This method uses the \gls{ann} library to locate {\normalfont \ttfamily neightborCount} nearest neighbor points in the set of
+  !#   converged states found in the given chains. The {\normalfont \ttfamily tolerance} element determines the accuracy of nearest
+  !#   neighbor finding (see the \gls{ann} documentation for details).When finding nearest neighbors in the MCMC chains, parameters are
+  !#   mapped using whatever mappings are currently active, and distances in each dimension (as used in the metric to determine nearest
+  !#   neighbors) are scaled by the root-variance in that parameter in the converged MCMC chains. The posterior likelihood of the MCMC
+  !#   chains is then estimated from the nearest neighbors using kernel density estimation with a Gaussian kernel with bandwidth equal to
+  !#   the distance to the furthest of the nearest neighbors.
+  !#  </description>
   !# </posteriorSampleLikelihood>
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodPosteriorAsPrior
      !% Implementation of a posterior sampling likelihood class which implements a likelihood using a given posterior distribution
@@ -40,15 +59,9 @@
      double precision                                                              :: tolerance                 , logPriorNormalization
      logical                                                                       :: initialized
    contains
-     !@ <objectMethods>
-     !@   <object>posteriorSampleLikelihoodPosteriorAsPrior</object>
-     !@   <objectMethod>
-     !@     <method>initialize</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(mappingList)[:]\textgreater} modelParametersActive_\argin</arguments>
-     !@     <description>Initialize the posterior-as-prior likelihood.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Initialize the posterior-as-prior likelihood." method="initialize" />
+     !# </methods>
      final     ::                    posteriorAsPriorDestructor
      procedure :: evaluate        => posteriorAsPriorEvaluate
      procedure :: functionChanged => posteriorAsPriorFunctionChanged
@@ -78,32 +91,24 @@ contains
 
     !# <inputParameter>
     !#   <name>chainBaseName</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The base name of the MCMC chain files to read.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>neighborCount</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The number of nearest neighbors to use when estimating the posterior likelihood.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>tolerance</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>Tolerance to use when estimating the posterior likelihood.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>exclusions</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>List of parameter indices to exclude from the posterior likelihood calculation.</description>
     !#   <defaultValue>[integer :: ]</defaultValue>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <objectBuilder class="posteriorSampleLikelihood" name="posteriorSampleLikelihood_" source="parameters"/>
     self=posteriorSampleLikelihoodPosteriorAsPrior(char(chainBaseName),neighborCount,tolerance,exclusions,posteriorSampleLikelihood_)
@@ -276,7 +281,7 @@ contains
     double precision                                           , allocatable  , dimension(:) :: stateVector           , stateVectorPacked
     double precision                                                                         :: kernelScale           , weight
     integer                                                                                  :: i
-    !GCC$ attributes unused :: forceAcceptance
+    !$GLC attributes unused :: forceAcceptance
 
     ! Initialize.
     call self%initialize(modelParametersActive_)
@@ -317,7 +322,7 @@ contains
     !% Respond to possible changes in the likelihood function.
     implicit none
     class(posteriorSampleLikelihoodPosteriorAsPrior), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     return
   end subroutine posteriorAsPriorFunctionChanged

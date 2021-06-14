@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -24,7 +24,17 @@
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !# <blackHoleBinaryInitialSeparation name="blackHoleBinaryInitialSeparationVolonteri2003">
-  !#  <description>A black hole binary initial separation class based on the model of \cite{volonteri_assembly_2003}.</description>
+  !#  <description>
+  !#   A black hole binary initial separation class that assumes that the initial separation follows the relationship described in
+  !#   \cite{volonteri_assembly_2003}
+  !#   \begin{equation}
+  !#    r_\mathrm{initial} = { \mathrm{G} (M_{\bullet,1} + M_{\bullet, 2}) \over 2
+  !#   \sigma_\mathrm{DM}^2 }
+  !#   \end{equation}
+  !#   where $M_{\bullet, 1}$ and $M_{\bullet, 2}$ are the masses of the black holes
+  !#   and $\sigma_\mathrm{DM}$ is the velocity dispersion of the dark matter, which we
+  !#   assume to equal the virial velocity of the dark matter halo.
+  !#  </description>
   !# </blackHoleBinaryInitialSeparation>
   type, extends(blackHoleBinaryInitialSeparationClass) :: blackHoleBinaryInitialSeparationVolonteri2003
      !% A black hole binary initial separation class based on the model of \cite{volonteri_assembly_2003}.
@@ -83,7 +93,7 @@ contains
     !% Returns an initial separation for binary black holes using the method of \cite{volonteri_assembly_2003}, with the
     !% assumption that the local velocity dispersion is approximately the dark matter halo virial velocity.
     use :: Galacticus_Nodes            , only : nodeComponentBlackHole         , treeNode
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class(blackHoleBinaryInitialSeparationVolonteri2003), intent(inout)         :: self
     type (treeNode                                     ), intent(inout), target :: nodeHost     , node

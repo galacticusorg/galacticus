@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -25,7 +25,7 @@ module MPI_Utilities
   use               :: MPI_F08           , only : MPI_Win                , MPI_Datatype
 #endif
   !$ use            :: Locks             , only : ompLock
-  use   , intrinsic :: ISO_C_Binding     , only : c_size_t
+  use   , intrinsic :: ISO_C_Binding     , only : c_size_t              , c_ptr
   use               :: ISO_Varying_String, only : varying_string
   private
   public :: mpiInitialize, mpiFinalize, mpiBarrier, mpiSelf, mpiCounter
@@ -38,135 +38,29 @@ module MPI_Utilities
      type   (varying_string)                            :: hostName
      integer                , allocatable, dimension(:) :: allRanks      , nodeAffinities
    contains
-     !@ <objectMethods>
-     !@   <object>mpiObject</object>
-     !@   <objectMethod>
-     !@     <method>isMaster</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return true if this is the master process (i.e. rank-0 process).</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>isActive</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return true if MPI is active.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>rank</method>
-     !@     <type>\intzero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return the rank of this process.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>count</method>
-     !@     <type>\intzero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return the total number of processes.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>rankLabel</method>
-     !@     <type>\textcolor{red}{\textless type(varying\_string)\textgreater}</type>
-     !@     <arguments></arguments>
-     !@     <description>Return a label containing the rank of the process.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>nodeCount</method>
-     !@     <type>\intzero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return the number of nodes on which this MPI job is running.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>nodeAffinity</method>
-     !@     <type>\intzero</type>
-     !@     <arguments>\intzero\ [rank]\argin</arguments>
-     !@     <description>Return the index of the node on which the MPI process of the given rank (or this process if no rank is given) is running.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>hostAffinity</method>
-     !@     <type>\textcolor{red}{\textless type(varying\_string)\textgreater}</type>
-     !@     <arguments></arguments>
-     !@     <description>Return the name of the host on which this MPI process is running.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>requestData</method>
-     !@     <type>\doubletwo|\inttwo|\logicaltwo</type>
-     !@     <arguments>\intone requestFrom\argin, \doubleone|\intone|\logicalone array</arguments>
-     !@     <description>Request the content of {\normalfont \ttfamily array} from each processes listed in {\normalfont \ttfamily requestFrom}.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>broadcastData</method>
-     !@     <type>void</type>
-     !@     <arguments>\intzero sendFrom\argin, \doublezero|\doubleone|\doubletwo|\doublethree\ array\arginout</arguments>
-     !@     <description>Broadcast the content of {\normalfont \ttfamily array} from the {\normalfont \ttfamily sendFrom} processes to all other processes.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>messageWaiting</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments>\intzero\ [from]\argin, \intzero\ [tag]\argin</arguments>
-     !@     <description>Return true if a message is waiting, optionally from the specified process and with the specified tag.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>average</method>
-     !@     <type>\doubleone</type>
-     !@     <arguments>\doubleone array\argin</arguments>
-     !@     <description>Return the average of {\normalfont \ttfamily array} over all processes.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>median</method>
-     !@     <type>\intone</type>
-     !@     <arguments>\intone array\argin</arguments>
-     !@     <description>Return the median of {\normalfont \ttfamily array} over all processes.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>sum</method>
-     !@     <type>\intzero|\intone</type>
-     !@     <arguments>(\intzero|\intone|\doublezero|\doubleone|\doubletwo) array\argin</arguments>
-     !@     <description>Return the sum of {\normalfont \ttfamily array} over all processes.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>maxval</method>
-     !@     <type>\doubleone</type>
-     !@     <arguments>(\doublezero|\doubleone) array\argin</arguments>
-     !@     <description>Return the maximum value of {\normalfont \ttfamily array} over all processes.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>maxloc</method>
-     !@     <type>\intone</type>
-     !@     <arguments>\doubleone array\argin</arguments>
-     !@     <description>Return the rank of the process with the maximum value of {\normalfont \ttfamily array} over all processes.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>minval</method>
-     !@     <type>\doublezero|\doubleone|\intzero|\intone</type>
-     !@     <arguments>(\doublezero|\doubleone|\intzero|\intone) array\argin</arguments>
-     !@     <description>Return the minimum value of {\normalfont \ttfamily array} over all processes.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>any</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments>\logicalzero\ scalar\argin, \logicalzero\ [mask]\argin</arguments>
-     !@     <description>Return true if any of {\normalfont \ttfamily scalar} is true over all processes.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>all</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments>\logicalzero\ scalar\argin, \logicalzero\ [mask]\argin</arguments>
-     !@     <description>Return true if every {\normalfont \ttfamily scalar} is true over all processes.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>minloc</method>
-     !@     <type>\intone</type>
-     !@     <arguments>\doubleone array\argin</arguments>
-     !@     <description>Return the rank of the process with the minimum value of {\normalfont \ttfamily array} over all processes.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>gather</method>
-     !@     <type>(\doubleone|\doubletwo|\doublethree|\inttwo)</type>
-     !@     <arguments>(\doublezero|\doubleone|\doubletwo|\intone) array\argin</arguments>
-     !@     <description>Gather arrays from all processes into an array of rank one higher.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return true if this is the master process (i.e. rank-0 process)." method="isMaster" />
+     !#   <method description="Return true if MPI is active." method="isActive" />
+     !#   <method description="Return the rank of this process." method="rank" />
+     !#   <method description="Return the total number of processes." method="count" />
+     !#   <method description="Return a label containing the rank of the process." method="rankLabel" />
+     !#   <method description="Return the number of nodes on which this MPI job is running." method="nodeCount" />
+     !#   <method description="Return the index of the node on which the MPI process of the given rank (or this process if no rank is given) is running." method="nodeAffinity" />
+     !#   <method description="Return the name of the host on which this MPI process is running." method="hostAffinity" />
+     !#   <method description="Request the content of {\normalfont \ttfamily array} from each processes listed in {\normalfont \ttfamily requestFrom}." method="requestData" />
+     !#   <method description="Broadcast the content of {\normalfont \ttfamily array} from the {\normalfont \ttfamily sendFrom} processes to all other processes." method="broadcastData" />
+     !#   <method description="Return true if a message is waiting, optionally from the specified process and with the specified tag." method="messageWaiting" />
+     !#   <method description="Return the average of {\normalfont \ttfamily array} over all processes." method="average" />
+     !#   <method description="Return the median of {\normalfont \ttfamily array} over all processes." method="median" />
+     !#   <method description="Return the sum of {\normalfont \ttfamily array} over all processes." method="sum" />
+     !#   <method description="Return the maximum value of {\normalfont \ttfamily array} over all processes." method="maxval" />
+     !#   <method description="Return the rank of the process with the maximum value of {\normalfont \ttfamily array} over all processes." method="maxloc" />
+     !#   <method description="Return the minimum value of {\normalfont \ttfamily array} over all processes." method="minval" />
+     !#   <method description="Return true if any of {\normalfont \ttfamily scalar} is true over all processes." method="any" />
+     !#   <method description="Return true if every {\normalfont \ttfamily scalar} is true over all processes." method="all" />
+     !#   <method description="Return the rank of the process with the minimum value of {\normalfont \ttfamily array} over all processes." method="minloc" />
+     !#   <method description="Gather arrays from all processes into an array of rank one higher." method="gather" />
+     !# </methods>
      procedure :: isMaster       => mpiIsMaster
      procedure :: isActive       => mpiIsActive
      procedure :: rank           => mpiGetRank
@@ -175,45 +69,49 @@ module MPI_Utilities
      procedure :: nodeCount      => mpiGetNodeCount
      procedure :: nodeAffinity   => mpiGetNodeAffinity
      procedure :: hostAffinity   => mpiGetHostAffinity
-     procedure ::                   mpiRequestData1D    , mpiRequestData2D       , &
-          &                         mpiRequestDataInt1D , mpiRequestDataLogical1D
-     generic   :: requestData    => mpiRequestData1D    , mpiRequestData2D       , &
-          &                         mpiRequestDataInt1D , mpiRequestDataLogical1D
-     procedure ::                   mpiBroadcastData1D  , mpiBroadcastData2D     , &
-          &                         mpiBroadcastData3D  , mpiBroadcastDataScalar
-     generic   :: broadcastData  => mpiBroadcastData1D  , mpiBroadcastData2D     , &
-          &                         mpiBroadcastData3D  , mpiBroadcastDataScalar
+     procedure ::                   mpiRequestData1D           , mpiRequestData2D       , &
+          &                         mpiRequestDataInt1D        , mpiRequestDataLogical1D
+     generic   :: requestData    => mpiRequestData1D           , mpiRequestData2D       , &
+          &                         mpiRequestDataInt1D        , mpiRequestDataLogical1D
+     procedure ::                   mpiBroadcastData1D         , mpiBroadcastData2D     , &
+          &                         mpiBroadcastData3D         , mpiBroadcastDataScalar , &
+          &                         mpiBroadcastDataSizeTScalar
+     generic   :: broadcastData  => mpiBroadcastData1D         , mpiBroadcastData2D     , &
+          &                         mpiBroadcastData3D         , mpiBroadcastDataScalar , &
+          &                         mpiBroadcastDataSizeTScalar
      procedure :: messageWaiting => mpiMessageWaiting
-     procedure ::                   mpiAverageScalar    , mpiAverageArray
-     generic   :: average        => mpiAverageScalar    , mpiAverageArray
+     procedure ::                   mpiAverageScalar           , mpiAverageArray
+     generic   :: average        => mpiAverageScalar           , mpiAverageArray
      procedure ::                   mpiMedianArray
      generic   :: median         => mpiMedianArray
-     procedure ::                   mpiSumScalarInt     , mpiSumArrayInt
-     procedure ::                   mpiSumScalarSizeT   , mpiSumArraySizeT
-     procedure ::                   mpiSumScalarDouble  , mpiSumArrayDouble      , &
-          &                         mpiSumArrayTwoDouble, mpiSumArrayThreeDouble
-     generic   :: sum            => mpiSumScalarInt     , mpiSumArrayInt         , &
-          &                         mpiSumScalarDouble  , mpiSumArrayDouble      , &
-          &                         mpiSumArrayTwoDouble, mpiSumArrayThreeDouble , &
-          &                         mpiSumScalarSizeT   , mpiSumArraySizeT
+     procedure ::                   mpiSumScalarInt            , mpiSumArrayInt
+     procedure ::                   mpiSumScalarSizeT          , mpiSumArraySizeT       , &
+          &                         mpiSumArrayTwoSizeT        , mpiSumArrayThreeSizeT
+     procedure ::                   mpiSumScalarDouble         , mpiSumArrayDouble      , &
+          &                         mpiSumArrayTwoDouble       , mpiSumArrayThreeDouble
+     generic   :: sum            => mpiSumScalarInt            , mpiSumArrayInt         , &
+          &                         mpiSumScalarDouble         , mpiSumArrayDouble      , &
+          &                         mpiSumArrayTwoDouble       , mpiSumArrayThreeDouble , &
+          &                         mpiSumScalarSizeT          , mpiSumArraySizeT       , &
+          &                         mpiSumArrayTwoSizeT        , mpiSumArrayThreeSizeT
      procedure ::                   mpiAnyLogicalScalar
      generic   :: any            => mpiAnyLogicalScalar
      procedure ::                   mpiAllLogicalScalar
      generic   :: all            => mpiAllLogicalScalar
      procedure :: maxloc         => mpiMaxloc
-     procedure ::                   mpiMaxvalScalar     , mpiMaxvalArray
-     generic   :: maxval         => mpiMaxvalScalar     , mpiMaxvalArray
+     procedure ::                   mpiMaxvalScalar            , mpiMaxvalArray
+     generic   :: maxval         => mpiMaxvalScalar            , mpiMaxvalArray
      procedure :: minloc         => mpiMinloc
-     procedure ::                   mpiMinvalScalar     , mpiMinvalArray         , &
-          &                         mpiMinValIntScalar  , mpiMinvalIntArray
-     generic   :: minval         => mpiMinvalScalar     , mpiMinvalArray         , &
-          &                         mpiMinValIntScalar  , mpiMinvalIntArray
-     procedure ::                   mpiGather1D         , mpiGather2D            , &
-          &                         mpiGatherScalar     , mpiGatherInt1D         , &
-          &                         mpiGatherIntScalar  , mpiGatherLogicalScalar
-     generic   :: gather         => mpiGather1D         , mpiGather2D            , &
-          &                         mpiGatherScalar     , mpiGatherInt1D         , &
-          &                         mpiGatherIntScalar  , mpiGatherLogicalScalar
+     procedure ::                   mpiMinvalScalar            , mpiMinvalArray         , &
+          &                         mpiMinValIntScalar         , mpiMinvalIntArray
+     generic   :: minval         => mpiMinvalScalar            , mpiMinvalArray         , &
+          &                         mpiMinValIntScalar         , mpiMinvalIntArray
+     procedure ::                   mpiGather1D                , mpiGather2D            , &
+          &                         mpiGatherScalar            , mpiGatherInt1D         , &
+          &                         mpiGatherIntScalar         , mpiGatherLogicalScalar
+     generic   :: gather         => mpiGather1D                , mpiGather2D            , &
+          &                         mpiGatherScalar            , mpiGatherInt1D         , &
+          &                         mpiGatherIntScalar         , mpiGatherLogicalScalar
   end type mpiObject
 
   ! Declare an object for interaction with MPI.
@@ -223,29 +121,22 @@ module MPI_Utilities
   type :: mpiCounter
      !% An MPI-global counter class. The counter can be incremented and will return a globally unique integer, beginning at 0.
 #ifdef USEMPI
-     type   (MPI_Win     )                            :: window
-     type   (MPI_Datatype)                            :: typeClass
+     type   (MPI_Win     ) :: window
+     type   (MPI_Datatype) :: typeClass
+     type   (c_ptr       ) :: counter
+#else
+     integer(c_size_t    ) :: counter
 #endif
-     integer(c_size_t    ), allocatable, dimension(:) :: counter
-     !$ type(ompLock )                                :: ompLock_
+     !$ type(ompLock )     :: ompLock_
    contains
-     !@ <objectMethods>
-     !@   <object>mpiCounter</object>
-     !@   <objectMethod>
-     !@     <method>increment</method>
-     !@     <type>\textcolor{red}{\textless integer(c\_size\_t)\textgreater}</type>
-     !@     <arguments></arguments>
-     !@     <description>Increment the counter and return the new value.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>get</method>
-     !@     <type>\textcolor{red}{\textless integer(c\_size\_t)\textgreater}</type>
-     !@     <arguments></arguments>
-     !@     <description>Get the current value of the counter.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Increment the counter and return the new value." method="increment"/>
+     !#   <method description="Decrement the counter and return the new value." method="decrement"/>
+     !#   <method description="Get the current value of the counter."           method="get"      />
+     !# </methods>
      final     ::              counterDestructor
      procedure :: increment => counterIncrement
+     procedure :: decrement => counterDecrement
      procedure :: get       => counterGet
   end type mpiCounter
 
@@ -269,7 +160,7 @@ contains
          &                            MPI_Character
     use :: Memory_Management , only : allocateArray
     use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: Hashes            , only : integerScalarHash
+    use :: Hashes            , only : integerHash
     use :: ISO_Varying_String, only : assignment(=)          , operator(==), var_str, operator(//), char
     use :: String_Handling   , only : operator(//)
 #endif
@@ -281,7 +172,7 @@ contains
          &                                                                iProcess
     character(len=MPI_Max_Processor_Name), dimension(1)                :: processorName
     character(len=MPI_Max_Processor_Name), dimension(:), allocatable   :: processorNames
-    type     (integerScalarHash         )                              :: processCount
+    type     (integerHash               )                              :: processCount
     type     (varying_string            )                              :: message
     !# <optionalArgument name="mpiThreadingRequired" defaultsTo="MPI_Thread_Funneled" />
 
@@ -337,7 +228,7 @@ contains
     ! Record that MPI is active.
     mpiIsActiveValue=.true.
 #else
-    !GCC$ attributes unused :: mpiThreadingRequired
+    !$GLC attributes unused :: mpiThreadingRequired
 #endif
     return
   end subroutine mpiInitialize
@@ -375,7 +266,7 @@ contains
     !% Return true if MPI is active.
     implicit none
     class(mpiObject), intent(in   ) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     mpiIsActive=mpiIsActiveValue
     return
@@ -389,7 +280,7 @@ contains
 #ifdef USEMPI
     mpiIsMaster=(.not.self%isActive() .or. self%rank() == 0)
 #else
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
     mpiIsMaster=.true.
 #endif
     return
@@ -406,7 +297,7 @@ contains
 #ifdef USEMPI
     mpiGetRank=self%rankValue
 #else
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
     mpiGetRank=0
     call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
@@ -434,7 +325,7 @@ contains
        mpiGetRankLabel=''
     end if
 #else
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
     mpiGetRankLabel=''
     call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
@@ -452,7 +343,7 @@ contains
 #ifdef USEMPI
     mpiGetCount=self%countValue
 #else
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
     mpiGetCount=0
     call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
@@ -470,7 +361,7 @@ contains
 #ifdef USEMPI
     mpiGetNodeCount=self%nodeCountValue
 #else
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
     mpiGetNodeCount=0
     call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
@@ -494,7 +385,7 @@ contains
     if (present(rank)) rankActual=rank
     mpiGetNodeAffinity=self%nodeAffinities(rankActual)
 #else
-    !GCC$ attributes unused :: self, rank
+    !$GLC attributes unused :: self, rank
     mpiGetNodeAffinity=0
     call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
@@ -514,7 +405,7 @@ contains
 #ifdef USEMPI
     mpiGetHostAffinity=self%hostName
 #else
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
     mpiGetHostAffinity=""
     call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
@@ -544,7 +435,7 @@ contains
     call MPI_IProbe(fromActual,tagActual,MPI_Comm_World,mpiMessageWaiting,messageStatus,iError)
     if (iError /= 0) call Galacticus_Error_Report('failed to probe for waiting messages'//{introspection:location})
 #else
-    !GCC$ attributes unused :: self, from, tag
+    !$GLC attributes unused :: self, from, tag
     mpiMessageWaiting=.false.
     call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
@@ -631,7 +522,7 @@ contains
     ! Deallocate request ID workspace.
     deallocate(requestID)
 #else
-    !GCC$ attributes unused :: self, requestFrom, array
+    !$GLC attributes unused :: self, requestFrom, array
     mpiRequestData1D=0.0d0
     call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
@@ -718,7 +609,7 @@ contains
     ! Deallocate request ID workspace.
     deallocate(requestID)
 #else
-    !GCC$ attributes unused :: self, requestFrom, array
+    !$GLC attributes unused :: self, requestFrom, array
     mpiRequestData2D=0.0d0
     call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
@@ -804,7 +695,7 @@ contains
     ! Deallocate request ID workspace.
     deallocate(requestID)
 #else
-    !GCC$ attributes unused :: self, requestFrom, array
+    !$GLC attributes unused :: self, requestFrom, array
     mpiRequestDataInt1D=0
     call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
@@ -890,7 +781,7 @@ contains
     ! Deallocate request ID workspace.
     deallocate(requestID)
 #else
-    !GCC$ attributes unused :: self, requestFrom, array
+    !$GLC attributes unused :: self, requestFrom, array
     mpiRequestDataLogical1D=.false.
     call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
@@ -909,16 +800,39 @@ contains
     double precision           , intent(inout) :: scalar
 #ifdef USEMPI
     integer                                    :: status
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
     
     call MPI_Bcast(scalar,1,MPI_Double_Precision,sendFrom,MPI_Comm_World,status)
     if (status /= 0) call galacticus_Error_Report('failed to broadcast data'//{introspection:location})
 #else
-    !GCC$ attributes unused :: self, sendFrom, scalar
+    !$GLC attributes unused :: self, sendFrom, scalar
     call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
     return
   end subroutine mpiBroadcastDataScalar
+
+  subroutine mpiBroadcastDataSizeTScalar(self,sendFrom,scalar)
+    !% Broadcast data to all other MPI processes.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+#ifdef USEMPI
+    use :: MPI_F08         , only : MPI_Comm_World, MPI_Integer8, MPI_Bcast
+#endif
+    implicit none
+    class           (mpiObject), intent(in   ) :: self
+    integer                    , intent(in   ) :: sendFrom
+    integer         (c_size_t ), intent(inout) :: scalar
+#ifdef USEMPI
+    integer                                    :: status
+    !$GLC attributes unused :: self
+    
+    call MPI_Bcast(scalar,1,MPI_Integer8,sendFrom,MPI_Comm_World,status)
+    if (status /= 0) call galacticus_Error_Report('failed to broadcast data'//{introspection:location})
+#else
+    !$GLC attributes unused :: self, sendFrom, scalar
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
+#endif
+    return
+  end subroutine mpiBroadcastDataSizeTScalar
   
   subroutine mpiBroadcastData1D(self,sendFrom,array)
     !% Broadcast data to all other MPI processes.
@@ -932,12 +846,12 @@ contains
     double precision           , intent(inout), dimension(:) :: array
 #ifdef USEMPI
     integer                                                  :: status
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
     
     call MPI_Bcast(array,size(array),MPI_Double_Precision,sendFrom,MPI_Comm_World,status)
     if (status /= 0) call galacticus_Error_Report('failed to broadcast data'//{introspection:location})
 #else
-    !GCC$ attributes unused :: self, sendFrom, array
+    !$GLC attributes unused :: self, sendFrom, array
     call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
     return
@@ -955,12 +869,12 @@ contains
     double precision           , intent(inout), dimension(:,:) :: array
 #ifdef USEMPI
     integer                                                    :: status
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
     
     call MPI_Bcast(array,size(array),MPI_Double_Precision,sendFrom,MPI_Comm_World,status)
     if (status /= 0) call galacticus_Error_Report('failed to broadcast data'//{introspection:location})
 #else
-    !GCC$ attributes unused :: self, sendFrom, array
+    !$GLC attributes unused :: self, sendFrom, array
     call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
     return
@@ -978,12 +892,12 @@ contains
     double precision           , intent(inout), dimension(:,:,:) :: array
 #ifdef USEMPI
     integer                                                      :: status
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     call MPI_Bcast(array,size(array),MPI_Double_Precision,sendFrom,MPI_Comm_World,status)
     if (status /= 0) call galacticus_Error_Report('failed to broadcast data'//{introspection:location})
 #else
-    !GCC$ attributes unused :: self, sendFrom, array
+    !$GLC attributes unused :: self, sendFrom, array
     call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
     return
@@ -1016,7 +930,7 @@ contains
     call MPI_AllReduce(maskedArray,mpiSumArrayInt,size(array),MPI_Integer,MPI_Sum,MPI_Comm_World,iError)
     if (iError /= 0) call Galacticus_Error_Report('MPI all reduce failed'//{introspection:location})
 #else
-    !GCC$ attributes unused :: self, array, mask
+    !$GLC attributes unused :: self, array, mask
     mpiSumArrayInt=0
     call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
@@ -1050,13 +964,81 @@ contains
     call MPI_AllReduce(maskedArray,mpiSumArraySizeT,size(array),MPI_Integer8,MPI_Sum,MPI_Comm_World,iError)
     if (iError /= 0) call Galacticus_Error_Report('MPI all reduce failed'//{introspection:location})
 #else
-    !GCC$ attributes unused :: self, array, mask
+    !$GLC attributes unused :: self, array, mask
     mpiSumArraySizeT=0_c_size_t
     call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
     return
   end function mpiSumArraySizeT
 
+  function mpiSumArrayTwoSizeT(self,array,mask)
+    !% Sum a rank-2 integer array over all processes, returning it to all processes.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+#ifdef USEMPI
+    use :: MPI             , only : MPI_AllReduce          , MPI_Integer8, MPI_Sum, MPI_Comm_World
+#endif
+    implicit none
+    class  (mpiObject), intent(in   )                                                           :: self
+    integer(c_size_t ), intent(in   ), dimension( :               , :               )           :: array
+    logical           , intent(in   ), dimension(0:                                 ), optional :: mask
+    integer(c_size_t )               , dimension(size(array,dim=1),size(array,dim=2))           :: mpiSumArrayTwoSizeT
+#ifdef USEMPI
+    integer(c_size_t )               , dimension(size(array,dim=1),size(array,dim=2))           :: maskedArray
+    integer                                                                                     :: iError             , activeCount
+#endif
+
+#ifdef USEMPI
+    ! Sum the array over all processes.
+    maskedArray=array
+    activeCount=self%count()
+    if (present(mask)) then
+       if (.not.mask(self%rank())) maskedArray=0_c_size_t
+       activeCount=count(mask)
+    end if
+    call MPI_AllReduce(maskedArray,mpiSumArrayTwoSizeT,size(array),MPI_Integer8,MPI_Sum,MPI_Comm_World,iError)
+    if (iError /= 0) call Galacticus_Error_Report('MPI all reduce failed'//{introspection:location})
+#else
+    !$GLC attributes unused :: self, array, mask
+    mpiSumArrayTwoSizeT=0_c_size_t
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
+#endif
+    return
+  end function mpiSumArrayTwoSizeT
+
+  function mpiSumArrayThreeSizeT(self,array,mask)
+    !% Sum a rank-3 integer array over all processes, returning it to all processes.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+#ifdef USEMPI
+    use :: MPI             , only : MPI_AllReduce          , MPI_Integer8, MPI_Sum, MPI_Comm_World
+#endif
+    implicit none
+    class  (mpiObject), intent(in   )                                                                             :: self
+    integer(c_size_t ), intent(in   ), dimension( :               , :               , :               )           :: array
+    logical           , intent(in   ), dimension(0:                                                   ), optional :: mask
+    integer(c_size_t )               , dimension(size(array,dim=1),size(array,dim=2),size(array,dim=3))           :: mpiSumArrayThreeSizeT
+#ifdef USEMPI
+    integer(c_size_t )               , dimension(size(array,dim=1),size(array,dim=2),size(array,dim=3))           :: maskedArray
+    integer                                                                                                       :: iError               , activeCount
+#endif
+
+#ifdef USEMPI
+    ! Sum the array over all processes.
+    maskedArray=array
+    activeCount=self%count()
+    if (present(mask)) then
+       if (.not.mask(self%rank())) maskedArray=0_c_size_t
+       activeCount=count(mask)
+    end if
+    call MPI_AllReduce(maskedArray,mpiSumArrayThreeSizeT,size(array),MPI_Integer8,MPI_Sum,MPI_Comm_World,iError)
+    if (iError /= 0) call Galacticus_Error_Report('MPI all reduce failed'//{introspection:location})
+#else
+    !$GLC attributes unused :: self, array, mask
+    mpiSumArrayThreeSizeT=0_c_size_t
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
+#endif
+    return
+  end function mpiSumArrayThreeSizeT
+  
   integer function mpiSumScalarInt(self,scalar,mask)
     !% Sum an integer scalar over all processes, returning it to all processes.
 #ifndef USEMPI
@@ -1074,7 +1056,7 @@ contains
     array=self%sum([scalar],mask)
     mpiSumScalarInt=array(1)
 #else
-    !GCC$ attributes unused :: self, scalar, mask
+    !$GLC attributes unused :: self, scalar, mask
     mpiSumScalarInt=0
     call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
@@ -1099,7 +1081,7 @@ contains
     array=self%sum([scalar],mask)
     mpiSumScalarSizeT=array(1)
 #else
-    !GCC$ attributes unused :: self, scalar, mask
+    !$GLC attributes unused :: self, scalar, mask
     mpiSumScalarSizeT=0_c_size_t
     call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
@@ -1133,7 +1115,7 @@ contains
     call MPI_AllReduce(maskedArray,mpiSumArrayDouble,size(array),MPI_Double_Precision,MPI_Sum,MPI_Comm_World,iError)
     if (iError /= 0) call Galacticus_Error_Report('MPI all reduce failed'//{introspection:location})
 #else
-    !GCC$ attributes unused :: self, array, mask
+    !$GLC attributes unused :: self, array, mask
     mpiSumArrayDouble=0.0d0
     call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
@@ -1167,7 +1149,7 @@ contains
     call MPI_AllReduce(maskedArray,mpiSumArrayTwoDouble,size(array),MPI_Double_Precision,MPI_Sum,MPI_Comm_World,iError)
     if (iError /= 0) call Galacticus_Error_Report('MPI all reduce failed'//{introspection:location})
 #else
-    !GCC$ attributes unused :: self, array, mask
+    !$GLC attributes unused :: self, array, mask
     mpiSumArrayTwoDouble=0.0d0
     call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
@@ -1201,7 +1183,7 @@ contains
     call MPI_AllReduce(maskedArray,mpiSumArrayThreeDouble,size(array),MPI_Double_Precision,MPI_Sum,MPI_Comm_World,iError)
     if (iError /= 0) call Galacticus_Error_Report('MPI all reduce failed'//{introspection:location})
 #else
-    !GCC$ attributes unused :: self, array, mask
+    !$GLC attributes unused :: self, array, mask
     mpiSumArrayThreeDouble=0.0d0
     call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
@@ -1225,7 +1207,7 @@ contains
     array=self%sum([scalar],mask)
     mpiSumScalarDouble=array(1)
 #else
-    !GCC$ attributes unused :: self, scalar, mask
+    !$GLC attributes unused :: self, scalar, mask
     mpiSumScalarDouble=0.0d0
     call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
@@ -1261,7 +1243,7 @@ contains
     ! Convert the sum into an average.
     mpiAverageArray=mpiAverageArray/dble(activeCount)
 #else
-    !GCC$ attributes unused :: self, array, mask
+    !$GLC attributes unused :: self, array, mask
     mpiAverageArray=0.0d0
     call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
@@ -1271,7 +1253,7 @@ contains
   function mpiMedianArray(self,array,mask)
     !% Find the median of an array over all processes, returning it to all processes.
 #ifdef USEMPI
-    use :: Sort            , only : Sort_Do
+    use :: Sorting         , only : sort
 #else
     use :: Galacticus_Error, only : Galacticus_Error_Report
 #endif
@@ -1310,12 +1292,12 @@ contains
           end where
        end if
        ! Sort over processes.
-       call Sort_Do(allArray(i,:))
+       call sort(allArray(i,:))
        ! Compute the median.
        mpiMedianArray(i)=(allArray(i,indexMedian(1))+allArray(i,indexMedian(2)))/2
     end do
 #else
-    !GCC$ attributes unused :: self, array, mask
+    !$GLC attributes unused :: self, array, mask
     mpiMedianArray=0.0d0
     call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
@@ -1339,7 +1321,7 @@ contains
     array=self%average([scalar],mask)
     mpiAverageScalar=array(1)
 #else
-    !GCC$ attributes unused :: self, scalar, mask
+    !$GLC attributes unused :: self, scalar, mask
     mpiAverageScalar=0.0d0
     call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
@@ -1371,7 +1353,7 @@ contains
     call MPI_AllReduce(maskedArray,mpiMaxvalArray,size(array),MPI_Double_Precision,MPI_Max,MPI_Comm_World,iError)
     if (iError /= 0) call Galacticus_Error_Report('MPI all reduce failed'//{introspection:location})
 #else
-    !GCC$ attributes unused :: self, array, mask
+    !$GLC attributes unused :: self, array, mask
     mpiMaxvalArray=0.0d0
     call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
@@ -1395,7 +1377,7 @@ contains
     array=self%maxval([scalar],mask)
     mpiMaxvalScalar=array(1)
 #else
-    !GCC$ attributes unused :: self, scalar, mask
+    !$GLC attributes unused :: self, scalar, mask
     mpiMaxvalScalar=0.0d0
     call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
@@ -1429,7 +1411,7 @@ contains
     if (iError /= 0) call Galacticus_Error_Report('MPI all reduce failed'//{introspection:location})
     mpiMaxloc=int(arrayOut(2,:))
 #else
-    !GCC$ attributes unused :: self, array, mask
+    !$GLC attributes unused :: self, array, mask
     mpiMaxloc=0
     call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
@@ -1461,7 +1443,7 @@ contains
     call MPI_AllReduce(maskedArray,mpiMinvalArray,size(array),MPI_Double_Precision,MPI_Min,MPI_Comm_World,iError)
     if (iError /= 0) call Galacticus_Error_Report('MPI all reduce failed'//{introspection:location})
 #else
-    !GCC$ attributes unused :: self, array, mask
+    !$GLC attributes unused :: self, array, mask
     mpiMinvalArray=0.0d0
     call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
@@ -1493,7 +1475,7 @@ contains
     call MPI_AllReduce(maskedArray,mpiMinvalIntArray,size(array),MPI_Integer,MPI_Min,MPI_Comm_World,iError)
     if (iError /= 0) call Galacticus_Error_Report('MPI all reduce failed'//{introspection:location})
 #else
-    !GCC$ attributes unused :: self, array, mask
+    !$GLC attributes unused :: self, array, mask
     mpiMinvalIntArray=0
     call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
@@ -1517,7 +1499,7 @@ contains
     array=self%minval([scalar],mask)
     mpiMinvalScalar=array(1)
 #else
-    !GCC$ attributes unused :: self, scalar, mask
+    !$GLC attributes unused :: self, scalar, mask
     mpiMinvalScalar=0.0d0
     call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
@@ -1541,7 +1523,7 @@ contains
     array=self%minval([scalar],mask)
     mpiMinvalIntScalar=array(1)
 #else
-    !GCC$ attributes unused :: self, scalar, mask
+    !$GLC attributes unused :: self, scalar, mask
     mpiMinvalIntScalar=0
     call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
@@ -1575,7 +1557,7 @@ contains
     if (iError /= 0) call Galacticus_Error_Report('MPI all reduce failed'//{introspection:location})
     mpiMinloc=int(arrayOut(2,:))
 #else
-    !GCC$ attributes unused :: self, array, mask
+    !$GLC attributes unused :: self, array, mask
     mpiMinloc=0
     call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
@@ -1605,7 +1587,7 @@ contains
     end if
     call MPI_AllReduce(array,mpiAnyLogicalScalar,size(array),MPI_Logical,MPI_LOr,MPI_Comm_World,iError)
 #else
-    !GCC$ attributes unused :: self, boolean, mask
+    !$GLC attributes unused :: self, boolean, mask
     mpiAnyLogicalScalar=.false.
     call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
@@ -1635,7 +1617,7 @@ contains
     end if
     call MPI_AllReduce(array,mpiAllLogicalScalar,size(array),MPI_Logical,MPI_LAnd,MPI_Comm_World,iError)
 #else
-    !GCC$ attributes unused :: self, boolean, mask
+    !$GLC attributes unused :: self, boolean, mask
     mpiAllLogicalScalar=.false.
     call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
@@ -1659,7 +1641,7 @@ contains
     array=self%requestData(self%allRanks,[scalar])
     mpiGatherScalar=array(1,:)
 #else
-    !GCC$ attributes unused :: self, scalar
+    !$GLC attributes unused :: self, scalar
     mpiGatherScalar=0.0d0
     call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
@@ -1679,7 +1661,7 @@ contains
 #ifdef USEMPI
     mpiGather1D=self%requestData(self%allRanks,array)
 #else
-    !GCC$ attributes unused :: self, array
+    !$GLC attributes unused :: self, array
     mpiGather1D=0.0d0
     call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
@@ -1699,7 +1681,7 @@ contains
 #ifdef USEMPI
     mpiGather2D=self%requestData(self%allRanks,array)
 #else
-    !GCC$ attributes unused :: self, array
+    !$GLC attributes unused :: self, array
     mpiGather2D=0.0d0
     call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
@@ -1723,7 +1705,7 @@ contains
     array=self%requestData(self%allRanks,[scalar])
     mpiGatherLogicalScalar=array(1,:)
 #else
-    !GCC$ attributes unused :: self, scalar
+    !$GLC attributes unused :: self, scalar
     mpiGatherLogicalScalar=.false.
     call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
@@ -1747,7 +1729,7 @@ contains
     array=self%requestData(self%allRanks,[scalar])
     mpiGatherIntScalar=array(1,:)
 #else
-    !GCC$ attributes unused :: self, scalar
+    !$GLC attributes unused :: self, scalar
     mpiGatherIntScalar=0
     call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
@@ -1767,7 +1749,7 @@ contains
 #ifdef USEMPI
     mpiGatherInt1D=self%requestData(self%allRanks,array)
 #else
-    !GCC$ attributes unused :: self, array
+    !$GLC attributes unused :: self, array
     mpiGatherInt1D=0
     call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
@@ -1776,16 +1758,19 @@ contains
 
   function counterConstructor() result(self)
     !% Constructor for MPI counter class.
-    use, intrinsic :: ISO_C_Binding   , only : C_Null_Ptr
+    use, intrinsic :: ISO_C_Binding   , only : C_Null_Ptr, C_F_Pointer
 #ifdef USEMPI
     use            :: Galacticus_Error, only : Galacticus_Error_Report
-    use            :: MPI_F08         , only : MPI_Win_Create         , MPI_Address_Kind, MPI_Info_Null, MPI_Comm_World, &
-         &                                     MPI_TypeClass_Integer  , MPI_SizeOf      , MPI_Type_Match_Size
+    use            :: MPI_F08         , only : MPI_Win_Create         , MPI_Address_Kind, MPI_Info_Null      , MPI_Comm_World    , &
+         &                                     MPI_TypeClass_Integer  , MPI_SizeOf      , MPI_Type_Match_Size, MPI_Alloc_Mem     , &
+         &                                     MPI_Win_Lock           , MPI_Put         , MPI_Win_Unlock     , MPI_Lock_Exclusive
 #endif
     implicit none
-    type   (mpiCounter      ) :: self
+    type   (mpiCounter)               :: self
 #ifdef USEMPI
-    integer                   :: mpiSize, iError
+    integer                           :: mpiSize            , iError
+    integer(c_size_t  ), dimension(1) :: countInitial
+    integer(c_size_t  ), pointer      :: countInitialPointer
 
     call MPI_SizeOf(0_c_size_t,mpiSize,iError)
     if (iError /= 0) call Galacticus_Error_Report('failed to get type size'//{introspection:location})
@@ -1793,17 +1778,29 @@ contains
     if (iError /= 0) call Galacticus_Error_Report('failed to get type'     //{introspection:location})
     if (mpiSelf%rank() == 0) then
        ! The rank-0 process allocates space for the counter and creates its window.
-       allocate(self%counter(1))
-       self%counter=0
-       call MPI_Win_Create(self%counter,int(mpiSize,kind=MPI_Address_Kind),mpiSize,MPI_Info_Null,MPI_Comm_World,self%window,iError)
+       call MPI_Alloc_Mem(int(mpiSize,kind=MPI_Address_Kind),MPI_Info_Null,self%counter,iError)
+       if (iError /= 0) call Galacticus_Error_Report('failed to allocate counter memory'//{introspection:location})
+       call C_F_Pointer(self%counter,countInitialPointer)
+       call MPI_Win_Create(countInitialPointer,int(mpiSize,kind=MPI_Address_Kind),mpiSize,MPI_Info_Null,MPI_Comm_World,self%window,iError)
        if (iError /= 0) call Galacticus_Error_Report('failed to create RMA window'//{introspection:location})
+       call mpiBarrier()
+       !$omp master
+       ! Initialize the counter to zero.
+       call MPI_Win_Lock(MPI_Lock_Exclusive,0,0,self%window,iError)
+       if (iError /= 0) call Galacticus_Error_Report('failed to lock RMA window'  //{introspection:location})
+       countInitial=0_c_size_t
+       call MPI_Put(countInitial,1,self%typeClass,0,0_MPI_Address_Kind,1,self%typeClass,self%window,iError)
+       if (iError /= 0) call Galacticus_Error_Report('failed to set MPI counter'  //{introspection:location})
+       call MPI_Win_Unlock(0,self%window,iError)
+       if (iError /= 0) call Galacticus_Error_Report('failed to unlock RMA window'//{introspection:location})
+       !$omp end master
     else
        ! Other processes create a zero-size window.
        call MPI_Win_Create(C_Null_Ptr  ,               0_MPI_Address_Kind,mpiSize,MPI_Info_Null,MPI_Comm_World,self%window,iError)
        if (iError /= 0) call Galacticus_Error_Report('failed to create RMA window'//{introspection:location})
+call mpiBarrier()
     end if
 #else
-    allocate(self%counter(1))
     self%counter=0
 #endif
     !$ self%ompLock_=ompLock()
@@ -1812,14 +1809,18 @@ contains
 
   subroutine counterDestructor(self)
     !% Destructor for the MPI counter class.
+#ifdef USEMPI
+    use :: MPI_F08, only : MPI_Win_Free, MPI_Free_Mem
+#endif
     implicit none
     type   (mpiCounter), intent(inout) :: self
 #ifdef USEMPI
     integer                            :: iError
 
-    call MPI_Win_Free(self%window,iError)
+    call MPI_Win_Free(self%window ,iError)
+    call MPI_Free_Mem(self%counter,iError)
 #else
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 #endif
     return
   end subroutine counterDestructor
@@ -1850,12 +1851,45 @@ contains
     counterIncrement=counterOut(1)
 #else
     !$ call self%ompLock_%  set()
-    counterIncrement=self%counter(1)
-    self%counter(1)=self%counter(1)+1_c_size_t
+    counterIncrement=self%counter
+    self%counter=self%counter+1_c_size_t
     !$ call self%ompLock_%unset()
 #endif
     return
   end function counterIncrement
+
+  function counterDecrement(self)
+    !% Decrement an MPI counter.
+#ifdef USEMPI
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: MPI_F08         , only : MPI_Win_Lock           , MPI_Get_Accumulate, MPI_Win_Unlock, MPI_Lock_Exclusive, &
+         &                          MPI_Address_Kind       , MPI_Sum
+#endif
+    implicit none
+    integer(c_size_t  )                :: counterDecrement
+    class  (mpiCounter), intent(inout) :: self
+#ifdef USEMPI
+    integer(c_size_t  ), dimension(1)  :: counterIn       , counterOut
+    integer                            :: iError
+
+    counterIn=-1
+    !$ call self%ompLock_%  set()
+    call MPI_Win_Lock(MPI_Lock_Exclusive,0,0,self%window,iError)
+    if (iError /= 0) call Galacticus_Error_Report('failed to lock RMA window'          //{introspection:location})
+    call MPI_Get_Accumulate(counterIn,1,self%typeClass,counterOut,1,self%typeClass,0,0_MPI_Address_Kind,1,self%typeClass,MPI_Sum,self%window,iError)
+    if (iError /= 0) call Galacticus_Error_Report('failed to accumulate to MPI counter'//{introspection:location})
+    call MPI_Win_Unlock(0,self%window,iError)
+    if (iError /= 0) call Galacticus_Error_Report('failed to unlock RMA window'        //{introspection:location})
+    !$ call self%ompLock_%unset()
+    counterDecrement=counterOut(1)
+#else
+    !$ call self%ompLock_%  set()
+    counterDecrement=self%counter
+    self%counter=self%counter-1_c_size_t
+    !$ call self%ompLock_%unset()
+#endif
+    return
+  end function counterDecrement
 
   function counterGet(self)
     !% Return the current value of an MPI counter.
@@ -1879,10 +1913,10 @@ contains
     call MPI_Win_Unlock(0,self%window,iError)
     if (iError /= 0) call Galacticus_Error_Report('failed to unlock RMA window'         //{introspection:location})
     !$ call self%ompLock_%unset()
-    counterGet=counterOut(1)-1
+    counterGet=counterOut(1)-1_c_size_t
 #else
     !$ call self%ompLock_%  set()
-    counterGet=self%counter(1)-1_c_size_t
+    counterGet=self%counter-1_c_size_t
     !$ call self%ompLock_%unset()
 #endif
     return

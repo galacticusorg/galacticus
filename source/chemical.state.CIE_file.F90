@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,12 +19,12 @@
 
   !% Implements a chemical state class which reads and interpolates a collisional ionization equilibrium chemical state from a file.
 
-  use :: FGSL, only : fgsl_interp_accel
+  use :: Numerical_Interpolation, only : interpolator
 
   !# <chemicalState name="chemicalStateCIEFile">
   !#  <description>
-  !#   Class providing chemical state via interpolation of tabulated values read from file. The HDF5 file containing the table
-  !#   should have the following form:
+  !#   A chemical state class providing chemical state via interpolation of tabulated values read from file. The HDF5 file
+  !#   containing the table should have the following form:
   !#   \begin{verbatim}
   !#   HDF5 "chemicalState.hdf5" {
   !#   GROUP "/" {
@@ -139,49 +139,31 @@
      !% A chemical state class which interpolates state given in a file assuming collisional ionization equilibrium.
      private
      type            (varying_string    )                              :: fileName
-     double precision                                                  :: metallicityMaximum                      , metallicityMinimum                , &
-          &                                                               temperatureMaximum                      , temperatureMinimum
-     integer                                                           :: extrapolateMetallicityHigh              , extrapolateMetallicityLow         , &
-          &                                                               extrapolateTemperatureHigh              , extrapolateTemperatureLow
-     logical                                                           :: firstMetallicityIsZero                  , gotHydrogenAtomic                 , &
-          &                                                               gotHydrogenCation                       , logarithmicTable
-     integer                                                           :: metallicityCount                        , temperatureCount
-     double precision                                                  :: firstNonZeroMetallicity                 , electronDensityPrevious           , &
-          &                                                               metallicityPrevious                     , temperaturePrevious               , &
-          &                                                               electronDensitySlopePrevious            , metallicitySlopePrevious          , &
-          &                                                               temperatureSlopePrevious                , metallicityChemicalPrevious       , &
+     double precision                                                  :: metallicityMaximum               , metallicityMinimum         , &
+          &                                                               temperatureMaximum               , temperatureMinimum
+     integer                                                           :: extrapolateMetallicityHigh       , extrapolateMetallicityLow  , &
+          &                                                               extrapolateTemperatureHigh       , extrapolateTemperatureLow
+     logical                                                           :: firstMetallicityIsZero           , gotHydrogenAtomic          , &
+          &                                                               gotHydrogenCation                , logarithmicTable
+     integer                                                           :: metallicityCount                 , temperatureCount
+     double precision                                                  :: firstNonZeroMetallicity          , electronDensityPrevious    , &
+          &                                                               metallicityPrevious              , temperaturePrevious        , &
+          &                                                               electronDensitySlopePrevious     , metallicitySlopePrevious   , &
+          &                                                               temperatureSlopePrevious         , metallicityChemicalPrevious, &
           &                                                               temperatureChemicalPrevious
      type            (chemicalAbundances)                              :: chemicalDensitiesPrevious
-     double precision                    , allocatable, dimension(:  ) :: metallicities                           , temperatures
-     double precision                    , allocatable, dimension(:,:) :: densityElectron                         , densityHydrogenAtomic             , &
+     double precision                    , allocatable, dimension(:  ) :: metallicities                    , temperatures
+     double precision                    , allocatable, dimension(:,:) :: densityElectron                  , densityHydrogenAtomic      , &
           &                                                               densityHydrogenCation
-     logical                                                           :: resetMetallicity                 =.true., resetTemperature           =.true.
-     type            (fgsl_interp_accel )                              :: acceleratorMetallicity                  , acceleratorTemperature
-     integer                                                           :: atomicHydrogenCationChemicalIndex       , atomicHydrogenChemicalIndex       , &
+     type            (interpolator      )                              :: interpolatorMetallicity          , interpolatorTemperature
+     integer                                                           :: atomicHydrogenCationChemicalIndex, atomicHydrogenChemicalIndex, &
           &                                                               electronChemicalIndex
    contains
-     !@ <objectMethods>
-     !@   <object>chemicalStateCIEFile</object>
-     !@   <objectMethod>
-     !@     <method>readFile</method>
-     !@     <type>void</type>
-     !@     <arguments>\textcolor{red}{\textless char(len=*)\textgreater} fileName\argin</arguments>
-     !@     <description>Read the named chemical state file.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>interpolatingFactors</method>
-     !@     <type>void</type>
-     !@     <arguments>\doublezero\ temperature\argin, \doublezero\ metallicity\argin, \textcolor{red}{\textless integer(c\_size\_t)\textgreater} iTemperature\argout, \doublezero\ hTemperature\argout, \textcolor{red}{\textless integer(c\_size\_t)\textgreater} iMetallicity\argout, \doublezero\ hMetallicity\argout</arguments>
-     !@     <description>Compute interpolating factors in a CIE chemical state file.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>interpolate</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\textcolor{red}{\textless integer(c\_size\_t)\textgreater} iTemperature\argin, \doublezero\ hTemperature\argin, \textcolor{red}{\textless integer(c\_size\_t)\textgreater} iMetallicity\argin, \doublezero\ hMetallicity\argin, \doubletwo\ density\argin</arguments>
-     !@     <description>Interpolate in the given density table.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
-     final     ::                                       cieFileDestructor
+     !# <methods>
+     !#   <method description="Read the named chemical state file." method="readFile" />
+     !#   <method description="Compute interpolating factors in a CIE chemical state file." method="interpolatingFactors" />
+     !#   <method description="Interpolate in the given density table." method="interpolate" />
+     !# </methods>
      procedure :: readFile                           => cieFileReadFile
      procedure :: interpolatingFactors               => cieFileInterpolatingFactors
      procedure :: interpolate                        => cieFileInterpolate
@@ -202,10 +184,10 @@
 
 contains
 
-  function cieFileConstructorParameters(parameters)
+  function cieFileConstructorParameters(parameters) result(self)
     !% Constructor for the ``CIE file'' chemical state class which takes a parameter set as input.
     implicit none
-    type(chemicalStateCIEFile)                :: cieFileConstructorParameters
+    type(chemicalStateCIEFile)                :: self
     type(inputParameters     ), intent(inout) :: parameters
     type(varying_string      )                :: fileName
 
@@ -213,57 +195,35 @@ contains
     !#   <name>fileName</name>
     !#   <source>parameters</source>
     !#   <description>The name of the file containing a tabulation of the collisional ionization equilibrium chemical state.</description>
-    !#   <type>string</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     ! Construct the instance.
-    cieFileConstructorParameters=cieFileConstructorInternal(char(fileName))
+    self=cieFileConstructorInternal(char(fileName))
     !# <inputParametersValidate source="parameters"/>
     return
   end function cieFileConstructorParameters
 
-  function cieFileConstructorInternal(fileName)
+  function cieFileConstructorInternal(fileName) result(self)
     !% Internal constructor for the ``CIE file'' chemical state class.
     use :: Chemical_Abundances_Structure, only : unitChemicalAbundances
     implicit none
-    type     (chemicalStateCIEFile)                :: cieFileConstructorInternal
+    type     (chemicalStateCIEFile)                :: self
     character(len=*               ), intent(in   ) :: fileName
 
     ! Read the file.
-    cieFileConstructorInternal%fileName=fileName
-    call cieFileConstructorInternal%readFile(fileName)
+    self%fileName=fileName
+    call self%readFile(fileName)
     ! Initialize.
-    cieFileConstructorInternal%electronDensityPrevious        =-1.0d0
-    cieFileConstructorInternal%electronDensitySlopePrevious   =-1.0d0
-    cieFileConstructorInternal%chemicalDensitiesPrevious      =-unitChemicalAbundances
-    cieFileConstructorInternal%    metallicityPrevious        =-1.0d0
-    cieFileConstructorInternal%    metallicitySlopePrevious   =-1.0d0
-    cieFileConstructorInternal%    metallicityChemicalPrevious=-1.0d0
-    cieFileConstructorInternal%    temperaturePrevious        =-1.0d0
-    cieFileConstructorInternal%    temperatureSlopePrevious   =-1.0d0
-    cieFileConstructorInternal%    temperatureChemicalPrevious=-1.0d0
-    cieFileConstructorInternal%resetMetallicity               =.true.
-    cieFileConstructorInternal%resetTemperature               =.true.
+    self%electronDensityPrevious        =-1.0d0
+    self%electronDensitySlopePrevious   =-1.0d0
+    self%chemicalDensitiesPrevious      =-unitChemicalAbundances
+    self%    metallicityPrevious        =-1.0d0
+    self%    metallicitySlopePrevious   =-1.0d0
+    self%    metallicityChemicalPrevious=-1.0d0
+    self%    temperaturePrevious        =-1.0d0
+    self%    temperatureSlopePrevious   =-1.0d0
+    self%    temperatureChemicalPrevious=-1.0d0
     return
   end function cieFileConstructorInternal
-
-  subroutine cieFileDestructor(self)
-    !% Destructor for the ``CIE file'' chemical state class.
-    use :: Numerical_Interpolation, only : Interpolate_Done
-    implicit none
-    type(chemicalStateCIEFile), intent(inout) :: self
-
-    ! Free all FGSL objects.
-    call Interpolate_Done(                                                      &
-         &                interpolationAccelerator=self%acceleratorMetallicity, &
-         &                reset                   =self%      resetMetallicity  &
-         &               )
-    call Interpolate_Done(                                                      &
-         &                interpolationAccelerator=self%acceleratorTemperature, &
-         &                reset                   =self%      resetTemperature  &
-         &               )
-    return
-  end subroutine cieFileDestructor
 
   double precision function cieFileElectronDensity(self,numberDensityHydrogen,temperature,gasAbundances,radiation)
     !% Return the electron density by interpolating in tabulated CIE data read from a file.
@@ -279,7 +239,7 @@ contains
     integer         (c_size_t            )                :: iMetallicity         , iTemperature
     double precision                                      :: hMetallicity         , hTemperature  , &
          &                                                   metallicityUse       , temperatureUse
-    !GCC$ attributes unused :: radiation
+    !$GLC attributes unused :: radiation
 
     ! Handle out of range temperatures.
     temperatureUse=temperature
@@ -355,7 +315,7 @@ contains
     integer         (c_size_t            )                :: iMetallicity         , iTemperature
     double precision                                      :: hMetallicity         , hTemperature  , &
          &                                                   metallicityUse       , temperatureUse
-    !GCC$ attributes unused :: radiation, numberDensityHydrogen
+    !$GLC attributes unused :: radiation, numberDensityHydrogen
 
     ! Handle out of range temperatures.
     temperatureUse=temperature
@@ -446,7 +406,7 @@ contains
     double precision                      , intent(in   ) :: numberDensityHydrogen, temperature
     type            (abundances          ), intent(in   ) :: gasAbundances
     class           (radiationFieldClass ), intent(inout) :: radiation
-    !GCC$ attributes unused :: self, numberDensityHydrogen, temperature, gasAbundances, radiation
+    !$GLC attributes unused :: self, numberDensityHydrogen, temperature, gasAbundances, radiation
 
     ! Electron density always scales as total density under CIE conditions.
     cieFileElectronDensityDensityLogSlope=1.0d0
@@ -470,7 +430,7 @@ contains
     integer         (c_size_t            )                :: iMetallicity         , iTemperature
     double precision                                      :: hMetallicity         , hTemperature  , &
          &                                                   metallicityUse       , temperatureUse
-    !GCC$ attributes unused :: radiation
+    !$GLC attributes unused :: radiation
 
     ! Handle out of range temperatures.
     temperatureUse=temperature
@@ -555,8 +515,7 @@ contains
 
   subroutine cieFileInterpolatingFactors(self,temperature,metallicity,iTemperature,hTemperature,iMetallicity,hMetallicity)
     !% Determine the interpolating paramters.
-    use, intrinsic :: ISO_C_Binding          , only : c_size_t
-    use            :: Numerical_Interpolation, only : Interpolate_Locate
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     class           (chemicalStateCIEFile), intent(inout) :: self
     double precision                      , intent(in   ) :: metallicity   , temperature
@@ -569,17 +528,12 @@ contains
     metallicityUse=max(metallicity,0.0d0)
     ! Get interpolation in temperature.
     if (self%logarithmicTable) temperatureUse=log(temperatureUse)
-    iTemperature=max(                                                    &
-         &           min(                                                &
-         &               Interpolate_Locate(                             &
-         &                                  self%temperatures          , &
-         &                                  self%acceleratorTemperature, &
-         &                                  temperatureUse             , &
-         &                                  self%resetTemperature        &
-         &                                 )                           , &
-         &               self%temperatureCount-1                         &
-         &              )                                              , &
-         &               1                                               &
+    iTemperature=max(                                                         &
+         &           min(                                                     &
+         &               self%interpolatorTemperature%locate(temperatureUse), &
+         &               self%temperatureCount-1                              &
+         &              )                                                   , &
+         &               1                                                    &
          &          )
     hTemperature=+(     temperatureUse                -self%temperatures(iTemperature)) &
          &       /(self%temperatures  (iTemperature+1)-self%temperatures(iTemperature))
@@ -594,17 +548,12 @@ contains
             &       /self%firstNonZeroMetallicity
     else
        if (self%logarithmicTable) metallicityUse=log(metallicityUse)
-       iMetallicity=max(                                                    &
-            &           min(                                                &
-            &               Interpolate_Locate(                             &
-            &                                  self%metallicities         , &
-            &                                  self%acceleratorMetallicity, &
-            &                                  metallicityUse             , &
-            &                                  self%resetMetallicity        &
-            &                                 )                           , &
-            &               self%metallicityCount-1                         &
-            &              )                                              , &
-            &               1                                               &
+       iMetallicity=max(                                                         &
+            &           min(                                                     &
+            &               self%interpolatorMetallicity%locate(metallicityUse), &
+            &               self%metallicityCount-1                              &
+            &              )                                                   , &
+            &               1                                                    &
             &          )
        hMetallicity=+(     metallicityUse                -self%metallicities(iMetallicity)) &
             &       /(self%metallicities (iMetallicity+1)-self%metallicities(iMetallicity))
@@ -634,24 +583,24 @@ contains
   subroutine cieFileReadFile(self,fileName)
     !% Read in data from an chemical state file.
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
+    use :: Display                      , only : displayIndent                     , displayUnindent     , verbosityLevelDebug
     use :: File_Utilities               , only : File_Name_Expand
-    use :: Galacticus_Display           , only : Galacticus_Display_Indent         , Galacticus_Display_Unindent, verbosityDebug
     use :: Galacticus_Error             , only : Galacticus_Error_Report
     use :: IO_HDF5                      , only : hdf5Access                        , hdf5Object
     use :: ISO_Varying_String           , only : varying_string
-    use :: Table_Labels                 , only : enumerationExtrapolationTypeEncode, extrapolationTypeFix       , extrapolationTypePowerLaw, extrapolationTypeZero
+    use :: Table_Labels                 , only : enumerationExtrapolationTypeEncode, extrapolationTypeFix, extrapolationTypePowerLaw, extrapolationTypeZero
     implicit none
     class           (chemicalStateCIEFile), intent(inout) :: self
     character       (len=*               ), intent(in   ) :: fileName
     double precision                      , parameter     :: metallicityLogarithmicZero=-999.0d0
     type            (varying_string      )                :: limitType
-    integer                                               :: fileFormatVersion
+    integer                                               :: fileFormatVersion                  , status
     type            (hdf5Object          )                :: chemicalStateFile                  , metallicityDataset, &
          &                                                   temperatureDataset
 
     call hdf5Access%set()
     ! Parse the file.
-    call Galacticus_Display_Indent('Reading file: '//fileName,verbosityDebug)
+    call displayIndent('Reading file: '//fileName,verbosityLevelDebug)
     call chemicalStateFile%openFile(char(File_Name_Expand(fileName)),readOnly=.true.)
     ! Check the file format version of the file.
     call chemicalStateFile%readAttribute('fileFormat',fileFormatVersion)
@@ -717,7 +666,7 @@ contains
          & ) call Galacticus_Error_Report('extrapolation type not permitted'//{introspection:location})
     ! Close the file.
     call chemicalStateFile%close()
-    call Galacticus_Display_Unindent('done',verbosityDebug)
+    call displayUnindent('done',verbosityLevelDebug)
     call hdf5Access%unset()
     ! Store table ranges for convenience.
     self%metallicityMinimum=self%metallicities(                    1)
@@ -754,18 +703,18 @@ contains
             & )                                                              &
             & call Galacticus_Error_Report('power law extrapolation allowed only in loggable tables'//{introspection:location})
     end if
-    ! Force interpolation accelerators to be reset.
-    self%resetTemperature=.true.
-    self%resetMetallicity=.true.
+    ! Build interpolators.
+    self%interpolatorTemperature=interpolator(self%temperatures )
+    self%interpolatorMetallicity=interpolator(self%metallicities)
     ! Get chemical indices.
-    self%electronChemicalIndex               =Chemicals_Index("Electron"            )
+    self%electronChemicalIndex               =Chemicals_Index("Electron"            ,status)
     if (self%gotHydrogenAtomic) then
-       self%atomicHydrogenChemicalIndex      =Chemicals_Index("AtomicHydrogen"      )
+       self%atomicHydrogenChemicalIndex      =Chemicals_Index("AtomicHydrogen"      ,status)
     else
        self%atomicHydrogenChemicalIndex      =-1
     end if
     if (self%gotHydrogenCation) then
-       self%atomicHydrogenCationChemicalIndex=Chemicals_Index("AtomicHydrogenCation")
+       self%atomicHydrogenCationChemicalIndex=Chemicals_Index("AtomicHydrogenCation",status)
     else
        self%atomicHydrogenCationChemicalIndex=-1
     end if

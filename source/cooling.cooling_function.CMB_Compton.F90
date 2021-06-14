@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +22,17 @@
   use :: Chemical_States, only : chemicalState, chemicalStateClass
 
   !# <coolingFunction name="coolingFunctionCMBCompton">
-  !#  <description>Class providing a cooling function due to Compton scattering off of \gls{cmb} photons.</description>
+  !#  <description>
+  !#   A cooling function class that computes the cooling function due to Compton scattering off of \gls{cmb} photons:
+  !#   \begin{equation}
+  !#   \Lambda = {4 \sigma_\mathrm{T} \mathrm{a} \mathrm{k}_\mathrm{B} n_\mathrm{e } \over m_\mathrm{e} \clight} T_\mathrm{CMB}^4
+  !#   \left( T - T_\mathrm{CMB} \right),
+  !#   \end{equation}
+  !#   where $\sigma_\mathrm{T}$ is the Thompson cross-section, $a$ is the radiation constant, $\mathrm{k}_\mathrm{B}$ is
+  !#   Boltzmann's constant, $n_\mathrm{e}$ is the number density of electrons, $m_\mathrm{e}$ is the electron mass, $\clight$ is
+  !#   the speed of light, $T_\mathrm{CMB}$ is the \gls{cmb} temperature at the current cosmic epoch and $T$ is the temperature of
+  !#   the gas. The electron density is computed from the selected chemical state method (see \refPhysics{chemicalState}).
+  !#  </description>
   !# </coolingFunction>
   type, extends(coolingFunctionClass) :: coolingFunctionCMBCompton
      !% A cooling function class which implements cooling due to Compton scattering off of \gls{cmb} photons.
@@ -31,6 +41,7 @@
    contains
      final     ::                                       cmbComptonDestructor
      procedure :: coolingFunction                    => cmbComptonCoolingFunction
+     procedure :: coolingFunctionFractionInBand      => cmbComptonCoolingFunctionFractionInBand
      procedure :: coolingFunctionTemperatureLogSlope => cmbComptonCoolingFunctionTemperatureLogSlope
      procedure :: coolingFunctionDensityLogSlope     => cmbComptonCoolingFunctionDensityLogSlope
   end type coolingFunctionCMBCompton
@@ -77,7 +88,7 @@ contains
     return
   end subroutine cmbComptonDestructor
 
-  double precision function cmbComptonCoolingFunction(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
+  double precision function cmbComptonCoolingFunction(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     !% Return the cooling function due to Compton scattering off of \gls{cmb} photons.
     use :: Abundances_Structure         , only : abundances
     use :: Chemical_Abundances_Structure, only : chemicalAbundances
@@ -87,6 +98,7 @@ contains
     use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (coolingFunctionCMBCompton), intent(inout) :: self
+    type            (treeNode                 ), intent(inout) :: node
     double precision                           , intent(in   ) :: numberDensityHydrogen                                    , temperature
     type            (abundances               ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances       ), intent(in   ) :: chemicalDensities
@@ -99,7 +111,7 @@ contains
          &                                                                                             /speedLight                        &
          &                                                                                             /ergs
     double precision                                           :: temperatureCosmicMicrowaveBackground
-    !GCC$ attributes unused :: self, chemicalDensities
+    !$GLC attributes unused :: self, node, chemicalDensities
 
     ! Find the cosmic microwave background radiation field.
     temperatureCosmicMicrowaveBackground=cmbComptonTemperature(radiation)
@@ -119,7 +131,27 @@ contains
     return
   end function cmbComptonCoolingFunction
 
-  double precision function cmbComptonCoolingFunctionDensityLogSlope(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
+  double precision function cmbComptonCoolingFunctionFractionInBand(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation,energyLow,energyHigh)
+    !% Return the fraction of the cooling function due to Compton scattering off of \gls{cmb} photons due to emission in the given
+    !% band. Since this coolant involves no photon emission the fraction is identically zero.
+    use :: Abundances_Structure         , only : abundances
+    use :: Chemical_Abundances_Structure, only : chemicalAbundances
+    use :: Radiation_Fields             , only : radiationFieldClass
+    implicit none
+    class           (coolingFunctionCMBCompton), intent(inout) :: self
+    type            (treeNode                 ), intent(inout) :: node
+    double precision                           , intent(in   ) :: numberDensityHydrogen, temperature, &
+         &                                                        energyLow            , energyHigh
+    type            (abundances               ), intent(in   ) :: gasAbundances
+    type            (chemicalAbundances       ), intent(in   ) :: chemicalDensities
+    class           (radiationFieldClass      ), intent(inout) :: radiation
+    !$GLC attributes unused :: self, node, numberDensityHydrogen, temperature, gasAbundances, chemicalDensities, radiation, energyLow, energyHigh
+
+    cmbComptonCoolingFunctionFractionInBand=0.0d0
+    return
+  end function cmbComptonCoolingFunctionFractionInBand
+
+  double precision function cmbComptonCoolingFunctionDensityLogSlope(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     !% Return the logarithmic gradient with respect to density of the cooling function due to Compton scattering off of \gls{cmb}
     !% photons.
     use :: Abundances_Structure         , only : abundances
@@ -127,11 +159,12 @@ contains
     use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (coolingFunctionCMBCompton), intent(inout) :: self
+    type            (treeNode                 ), intent(inout) :: node
     double precision                           , intent(in   ) :: numberDensityHydrogen, temperature
     type            (abundances               ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances       ), intent(in   ) :: chemicalDensities
     class           (radiationFieldClass      ), intent(inout) :: radiation
-    !GCC$ attributes unused :: self, chemicalDensities
+    !$GLC attributes unused :: self, node, chemicalDensities
 
     ! Slope depends only on the behavior of electron density with density.
     cmbComptonCoolingFunctionDensityLogSlope=+self%chemicalState_%electronDensityDensityLogSlope(                       &
@@ -143,7 +176,7 @@ contains
     return
   end function cmbComptonCoolingFunctionDensityLogSlope
 
-  double precision function cmbComptonCoolingFunctionTemperatureLogSlope(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
+  double precision function cmbComptonCoolingFunctionTemperatureLogSlope(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     !% Return the logarithmic gradient with respect to temperature of the cooling function due to Compton scattering off of
     !% \gls{cmb} photons.
     use :: Abundances_Structure         , only : abundances
@@ -151,12 +184,13 @@ contains
     use :: Radiation_Fields             , only : radiationFieldClass
     implicit none
     class           (coolingFunctionCMBCompton), intent(inout) :: self
+    type            (treeNode                 ), intent(inout) :: node
     double precision                           , intent(in   ) :: numberDensityHydrogen               , temperature
     type            (abundances               ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances       ), intent(in   ) :: chemicalDensities
     class           (radiationFieldClass      ), intent(inout) :: radiation
     double precision                                           :: temperatureCosmicMicrowaveBackground
-    !GCC$ attributes unused :: self, chemicalDensities
+    !$GLC attributes unused :: self, node, chemicalDensities
 
     ! Find the cosmic microwave background radiation field.
     temperatureCosmicMicrowaveBackground=cmbComptonTemperature(radiation)

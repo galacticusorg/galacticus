@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -25,7 +25,13 @@
   use :: Supernovae_Type_Ia        , only : supernovaeTypeIaClass
 
   !# <stellarFeedback name="stellarFeedbackStandard">
-  !#  <description>A stellar feedback class which performs a simple calculation of energy feedback from stellar populations.</description>
+  !#  <description>
+  !#   A stellar feedback class which assumes that the cumulative energy input from a stellar population is equal to the total
+  !#   number of (Type II and Type Ia) supernovae multiplied by {\normalfont \ttfamily [supernovaEnergy]} (specified in ergs) plus
+  !#   any Population III-specific supernovae energy plus the integrated energy input from stellar winds. The minimum mass of a
+  !#   star required to form a Type II supernova is specified (in $M_\odot$) via the {\normalfont \ttfamily
+  !#   [initialMassForSupernovaeTypeII]} parameter.
+  !#  </description>
   !# </stellarFeedback>
   type, extends(stellarFeedbackClass) :: stellarFeedbackStandard
      !% A stellar feedback class which performs a simple calculation of energy feedback from stellar populations.
@@ -70,19 +76,15 @@ contains
 
     !# <inputParameter>
     !#   <name>initialMassForSupernovaeTypeII</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>8.0d0</defaultValue>
     !#   <description>The minimum mass that a star must have in order that is result in a Type II supernova.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>supernovaEnergy</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d51</defaultValue>
     !#   <description>The energy produced by a supernova (in ergs).</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     ! Convert energy to M☉ (km/s)².
     supernovaEnergy=supernovaEnergy*ergs/massSolar/kilo**2
@@ -127,17 +129,15 @@ contains
 
   double precision function standardEnergyInputCumulative(self,initialMass,age,metallicity)
     !% Compute the cumulative energy input from a star of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age} and {\normalfont \ttfamily metallicity}.
-    use :: FGSL                            , only : fgsl_function   , fgsl_integration_workspace
     use :: Numerical_Constants_Astronomical, only : metallicitySolar
-    use :: Numerical_Integration           , only : Integrate       , Integrate_Done
+    use :: Numerical_Integration           , only : integrator
     implicit none
-    class           (stellarFeedbackStandard   ), intent(inout), target :: self
-    double precision                            , intent(in   )         :: age                                                    , initialMass, metallicity
-    double precision                            , parameter             :: populationIIIMaximumMetallicity=1.0d-4*metallicitySolar
-    double precision                                                    :: energySNe                                              , energyWinds, lifetime
-    type            (fgsl_function             )                        :: integrandFunction
-    type            (fgsl_integration_workspace)                        :: integrationWorkspace
-
+    class           (stellarFeedbackStandard), intent(inout), target :: self
+    double precision                         , intent(in   )         :: age                                                    , initialMass, metallicity
+    double precision                         , parameter             :: populationIIIMaximumMetallicity=1.0d-4*metallicitySolar
+    double precision                                                 :: energySNe                                              , energyWinds, lifetime
+    type            (integrator             )                        :: integrator_
+    
     ! Begin with zero energy input.
     standardEnergyInputCumulative=0.0d0
     ! Check if the star is sufficiently massive to result in a Type II supernova.
@@ -160,12 +160,13 @@ contains
          &                        +self%supernovaeTypeIa_%number         (initialMass,age,metallicity) &
          &                        *self                  %supernovaEnergy
     ! Add in the contribution from stellar winds.
-    standardSelf        => self
-    standardMassInitial =  initialMass
-    standardMetallicity =  metallicity
-    energyWinds=Integrate(0.0d0,age,standardWindEnergyIntegrand,integrandFunction,integrationWorkspace,toleranceAbsolute=1.0d-3*standardEnergyInputCumulative,toleranceRelative=1.0d-3)
-    call Integrate_Done(integrandFunction,integrationWorkspace)
-    standardEnergyInputCumulative=standardEnergyInputCumulative+energyWinds
+    standardSelf                  =>  self
+    standardMassInitial           =   initialMass
+    standardMetallicity           =   metallicity
+    integrator_                   =   integrator           (standardWindEnergyIntegrand,toleranceAbsolute=1.0d-3*standardEnergyInputCumulative,toleranceRelative=1.0d-3)
+    energyWinds                   =   integrator_%integrate(0.0d0,age)
+    standardEnergyInputCumulative =  +standardEnergyInputCumulative &
+         &                           +energyWinds
     return
   end function standardEnergyInputCumulative
 

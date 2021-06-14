@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -102,7 +102,7 @@ contains
     type            (treeNode                                  ), intent(inout) :: node
     double precision                                            , intent(in   ) :: fraction
     type            (treeNode                                  ), pointer       :: nodeHost
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     nodeHost                        => node%parent
     traceDarkMatterInverseCMFRadial =  Galactic_Structure_Radius_Enclosing_Mass(                                 &

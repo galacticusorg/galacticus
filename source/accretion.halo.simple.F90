@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -29,7 +29,37 @@
   use :: Radiation_Fields          , only : radiationFieldCosmicMicrowaveBackground
 
   !# <accretionHalo name="accretionHaloSimple">
-  !#  <description>Accretion onto halos using simple truncation to mimic the effects of reionization.</description>
+  !#  <description>
+  !#   Accretion onto halos using simple truncation to mimic the effects of reionization. The accretion rate of baryons into a
+  !#   halo is given by:
+  !#   \begin{equation}
+  !#    \dot{M}_\mathrm{accretion} = \left\{ \begin{array}{ll} (\Omega_\mathrm{b}/\Omega_\mathrm{M}) \dot{M}_\mathrm{halo} &amp;
+  !#    \hbox{ if } V_\mathrm{virial} &gt; V_\mathrm{reionization} \hbox{ or } z &gt; z_\mathrm{reionization} \\ 0 &amp; \hbox{
+  !#    otherwise,}\end{array} \right.
+  !#   \label{eq:accretionHalo:truncation}
+  !#   \end{equation}
+  !#   where $z_\mathrm{reionization}=${\normalfont \ttfamily [redshiftReionization]} is the redshift at which the Universe is
+  !#   reionized (alternatively, the optical depth to reionization can be specified via {\normalfont \ttfamily
+  !#   [opticalDepthReionization]} and the corresponding redshift will be computed) and $V_\mathrm{reionization}=${\normalfont
+  !#   \ttfamily [velocitySuppressionReionization]} is the virial velocity below which accretion is suppressed after
+  !#   reionization. Setting $V_\mathrm{reionization}$ to zero will effectively switch off the effects of reionization on the
+  !#   accretion of baryonics. This algorithm attempts to offer a simple prescription for the effects of reionization and has been
+  !#   explored by multiple authors (e.g. \citealt{benson_effects_2002}). In particular, \cite{font_modelingmilky_2010} show that
+  !#   it produces results in good agreement with more elaborate treatments of reionization. For halos below the accretion
+  !#   threshold, any accretion rate that would have otherwise occurred is instead placed into the ``failed'' accretion rate. For
+  !#   halos which can accrete, and which have some mass in their ``failed'' reservoir, that mass will be added to the regular
+  !#   accretion rate at a rate equal to the mass of the ``failed'' reservoir times the specific growth rate of the halo. The gas
+  !#   accreted is assumed to be from a pristine \gls{igm} and so has zero abundances. Chemical abundances are computed from the
+  !#   chemical state functions (see \refPhysics{chemicalState}).
+  !#
+  !#   Note that, if $\dot{M}_\mathrm{halo} &lt; 0$ then negative accretion rates of gas into the node can result. This ccan be
+  !#   prevented by setting {\normalfont \ttfamily [accretionNegativeAllowed]}$=${\normalfont \ttfamily false}.
+  !#
+  !#   By default, gas is accreted whenever the halo is growing in total mass. However, setting {\normalfont \ttfamily
+  !#   [accretionNewGrowthOnly]}$=${\normalfont \ttfamily true} causes accretion to occur only if the node mass is growing and
+  !#   exceeds the previous maximum node mass achieved along this branch of the merger tree. This requires use of a basic
+  !#   component which tracks the maximum mass along the branch (i.e. the {\normalfont \ttfamily massMaximum} property).
+  !#  </description>
   !#  <deepCopy>
   !#   <functionClass variables="radiation"/>
   !#  </deepCopy>
@@ -52,21 +82,10 @@
      type            (radiationFieldCosmicMicrowaveBackground), pointer :: radiation                 => null()
      integer                                                            :: countChemicals
    contains
-     !@ <objectMethods>
-     !@   <object>accretionHaloSimple</object>
-     !@   <objectMethod>
-     !@     <method>failedFraction</method>
-     !@     <type>double precision</type>
-     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} *node\arginout</arguments>
-     !@     <description>Returns the fraction of potential accretion onto a halo from the \gls{igm} which fails.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>velocityScale</method>
-     !@     <type>double precision</type>
-     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} *node\arginout</arguments>
-     !@     <description>Returns the velocity scale to use for {\normalfont \ttfamily node}.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Returns the fraction of potential accretion onto a halo from the \gls{igm} which fails." method="failedFraction" />
+     !#   <method description="Returns the velocity scale to use for {\normalfont \ttfamily node}." method="velocityScale" />
+     !# </methods>
      final     ::                           simpleDestructor
      procedure :: branchHasBaryons       => simpleBranchHasBaryons
      procedure :: accretionRate          => simpleAccretionRate
@@ -116,47 +135,37 @@ contains
        if (parameters%isPresent("redshiftReionization")) call Galacticus_Error_Report("only one of [opticalDepthReionization] and [redshiftReionization] should be specified"//{introspection:location})
        !# <inputParameter>
        !#   <name>opticalDepthReionization</name>
-       !#   <cardinality>1</cardinality>
        !#   <description>The optical depth to electron scattering below which baryonic accretion is suppressed.</description>
        !#   <source>parameters</source>
-       !#   <type>real</type>
        !# </inputParameter>
        timeReionization=intergalacticMediumState_%electronScatteringTime(opticalDepthReionization,assumeFullyIonized=.true.)
     else
        !# <inputParameter>
        !#   <name>redshiftReionization</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultSource>(\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultSource>
        !#   <defaultValue>9.97d0</defaultValue>
        !#   <description>The redshift below which baryonic accretion is suppressed.</description>
        !#   <source>parameters</source>
-       !#   <type>real</type>
        !# </inputParameter>
        timeReionization=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftReionization))
     end if
     !# <inputParameter>
     !#   <name>velocitySuppressionReionization</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>35.0d0</defaultValue>
     !#   <description>The velocity scale below which baryonic accretion is suppressed.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>accretionNegativeAllowed</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>Specifies whether negative accretion (mass loss) is allowed in the simple halo accretion model.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>accretionNewGrowthOnly</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Specifies whether accretion from the \gls{igm} is allowed only when a halo is growing past its previous greatest mass.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     self=accretionHaloSimple(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_)
     !# <inputParametersValidate source="parameters"/>
@@ -363,7 +372,7 @@ contains
     class (accretionHaloSimple), intent(inout) :: self
     type  (treeNode           ), intent(inout) :: node
     integer                    , intent(in   ) :: accretionMode
-    !GCC$ attributes unused :: self, node, accretionMode
+    !$GLC attributes unused :: self, node, accretionMode
 
     ! Assume zero metallicity.
     simpleAccretionRateMetals=zeroAbundances
@@ -378,7 +387,7 @@ contains
     class  (accretionHaloSimple), intent(inout) :: self
     type   (treeNode           ), intent(inout) :: node
     integer                     , intent(in   ) :: accretionMode
-    !GCC$ attributes unused :: self, node, accretionMode
+    !$GLC attributes unused :: self, node, accretionMode
 
     ! Assume zero metallicity.
     simpleAccretedMassMetals=zeroAbundances

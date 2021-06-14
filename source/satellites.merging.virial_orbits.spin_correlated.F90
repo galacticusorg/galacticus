@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -38,6 +38,7 @@
      procedure :: angularMomentumVectorMean       => spinCorrelatedAngularMomentumVectorMean
      procedure :: velocityTotalRootMeanSquared    => spinCorrelatedVelocityTotalRootMeanSquared
      procedure :: energyMean                      => spinCorrelatedEnergyMean
+     procedure :: isAngularlyResolved             => spinCorrelatedIsAngularlyResolved
   end type virialOrbitSpinCorrelated
 
   interface virialOrbitSpinCorrelated
@@ -62,8 +63,6 @@ contains
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <source>parameters</source>
     !#   <description>The parameter $\alpha$ which expresses the strength of the correlation between satellite orbital angular momentum and the spin of the host halo.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="virialOrbit"  name="virialOrbit_" source="parameters"/>
     self=virialOrbitSpinCorrelated(alpha,virialOrbit_)
@@ -235,3 +234,14 @@ contains
     spinCorrelatedEnergyMean=self%virialOrbit_%energyMean(node,host)
     return
   end function spinCorrelatedEnergyMean
+
+  logical function spinCorrelatedIsAngularlyResolved(self)
+    !% Return true indicating that orbits are angularly-resolved.
+    implicit none
+    class(virialOrbitSpinCorrelated), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    spinCorrelatedIsAngularlyResolved=.true.
+    return
+  end function spinCorrelatedIsAngularlyResolved
+  

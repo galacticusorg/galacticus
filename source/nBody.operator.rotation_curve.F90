@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -61,23 +61,17 @@ contains
     !#   <name>selfBoundParticlesOnly</name>
     !#   <source>parameters</source>
     !#   <description>If true, the mean position and velocity are computed only for self-bound particles.</description>
-    !#   <type>logical</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>radius</name>
     !#   <source>parameters</source>
     !#   <description>Radii at which the rotation curve should be computed.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>bootstrapSampleCount</name>
     !#   <source>parameters</source>
     !#   <defaultValue>30_c_size_t</defaultValue>
     !#   <description>The number of bootstrap resamples of the particles that should be used.</description>
-    !#   <type>integer</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     self=nbodyOperatorRotationCurve(selfBoundParticlesOnly,bootstrapSampleCount,radius,randomNumberGenerator_)
@@ -108,74 +102,81 @@ contains
     return
   end subroutine rotationCurveDestructor
 
-  subroutine rotationCurveOperate(self,simulation)
+  subroutine rotationCurveOperate(self,simulations)
     !% Determine the mean position and velocity of N-body particles.
     use :: Galacticus_Error            , only : Galacticus_Error_Report
     use :: IO_HDF5                     , only : hdf5Object
     use :: Memory_Management           , only : allocateArray                  , deallocateArray
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (nbodyOperatorRotationCurve), intent(inout)                 :: self
-    type            (nBodyData                 ), intent(inout)                 :: simulation
+    type            (nBodyData                 ), intent(inout), dimension(:  ) :: simulations
     integer                                     , allocatable  , dimension(:,:) :: selfBoundStatus
     double precision                            , parameter                     :: sampleRate           =1.0d0
+    double precision                            , pointer      , dimension(:,:) :: position
     double precision                            , allocatable  , dimension(:,:) :: positionMean                , rotationCurve
     double precision                            , allocatable  , dimension(:  ) :: distanceRadialSquared
     double precision                            , allocatable  , dimension(:,:) :: positionRelative
     integer                                                                     :: k
     type            (hdf5Object                )                                :: rotationCurveGroup
-    integer         (c_size_t                  )                                :: i                           , j
-
-    ! Allocate workspace.
-    call allocateArray(distanceRadialSquared,[  size(simulation%position,dim =2       )                          ])
-    call allocateArray(positionRelative     ,[3,size(simulation%position,dim =2       )                          ])
-    call allocateArray(rotationCurve        ,[  size(self      %radius  ,kind=c_size_t),self%bootstrapSampleCount])
-    ! Determine the particle mask to use.
-    if (self%selfBoundParticlesOnly) then
-       if (simulation%analysis%hasDataset('selfBoundStatus')) then
-          call simulation%analysis%readDataset('selfBoundStatus',selfBoundStatus)
-          if (size(selfBoundStatus,dim=2) /= self%bootstrapSampleCount) call Galacticus_Error_Report('number of selfBoundStatus samples must equal number of requested bootstrap samples'//{introspection:location})
+    integer         (c_size_t                  )                                :: i                           , j            , &
+         &                                                                         iSimulation
+    double precision                                                            :: massParticle
+    
+    do iSimulation=1,size(simulations)
+       ! Allocate workspace.
+       position     => simulations(iSimulation)%propertiesRealRank1%value('position'    )
+       massparticle =  simulations(iSimulation)%attributesReal     %value('massParticle')
+       call allocateArray(distanceRadialSquared,[  size(     position,dim =2       )                          ])
+       call allocateArray(positionRelative     ,[3,size(     position,dim =2       )                          ])
+       call allocateArray(rotationCurve        ,[  size(self%radius  ,kind=c_size_t),self%bootstrapSampleCount])
+       ! Determine the particle mask to use.
+       if (self%selfBoundParticlesOnly) then
+          if (simulations(iSimulation)%analysis%hasDataset('selfBoundStatus')) then
+             call simulations(iSimulation)%analysis%readDataset('selfBoundStatus',selfBoundStatus)
+             if (size(selfBoundStatus,dim=2) /= self%bootstrapSampleCount) call Galacticus_Error_Report('number of selfBoundStatus samples must equal number of requested bootstrap samples'//{introspection:location})
+          else
+             call Galacticus_Error_Report('self-bound status not available - apply a self-bound operator first'//{introspection:location})
+          end if
        else
-          call Galacticus_Error_Report('self-bound status not available - apply a self-bound operator first'//{introspection:location})
-       end if
-    else
-       call allocateArray(selfBoundStatus,[size(simulation%position,dim=2,kind=c_size_t),self%bootstrapSampleCount])
-       do i=1,self%bootstrapSampleCount
-          do j=1,size(simulation%position,dim=2)
-             selfBoundStatus(j,i)=self%randomNumberGenerator_%poissonSample(sampleRate)
+          call allocateArray(selfBoundStatus,[size(position,dim=2,kind=c_size_t),self%bootstrapSampleCount])
+          do i=1,self%bootstrapSampleCount
+             do j=1,size(position,dim=2)
+                selfBoundStatus(j,i)=self%randomNumberGenerator_%poissonSample(sampleRate)
+             end do
           end do
+       end if
+       ! Get mean position.
+       if (.not.simulations(iSimulation)%analysis%hasDataset('positionMean')) call Galacticus_Error_Report('mean position not available - apply the mean position operator first'//{introspection:location})
+       call simulations(iSimulation)%analysis%readDataset('positionMean',positionMean)
+       if (size(positionMean,dim=2) /= self%bootstrapSampleCount) call Galacticus_Error_Report('number of positionMean samples must equal number of requested bootstrap samples'//{introspection:location})
+       do i=1,self%bootstrapSampleCount
+          !$omp parallel workshare
+          ! Compute radial distance from the mean position.
+          forall(k=1:3)
+             positionRelative(k,:)=+position    (k,:) &
+                  &                -positionMean(k,i)
+          end forall
+          distanceRadialSquared=sum(positionRelative**2,dim=1)
+          ! Count particles within each radius.
+          forall(k=1:size(self%radius))
+             rotationCurve(k,i)=dble(sum(selfBoundStatus(:,i),mask=distanceRadialSquared <= self%radius(k)**2))
+          end forall
+          !$omp end parallel workshare
+          ! Compute corresponding rotation curve.
+          rotationCurve(:,i)=sqrt(gravitationalConstantGalacticus*massParticle*rotationCurve(:,i)/self%radius)
        end do
-    end if
-    ! Get mean position.
-    if (.not.simulation%analysis%hasDataset('positionMean')) call Galacticus_Error_Report('mean position not available - apply the mean position operator first'//{introspection:location})
-    call simulation%analysis%readDataset('positionMean',positionMean)
-    if (size(positionMean,dim=2) /= self%bootstrapSampleCount) call Galacticus_Error_Report('number of positionMean samples must equal number of requested bootstrap samples'//{introspection:location})
-    do i=1,self%bootstrapSampleCount
-       !$omp parallel workshare
-       ! Compute radial distance from the mean position.
-       forall(k=1:3)
-          positionRelative(k,:)=+simulation  %position(k,:) &
-               &                -positionMean         (k,i)
-       end forall
-       distanceRadialSquared=sum(positionRelative**2,dim=1)
-       ! Count particles within each radius.
-       forall(k=1:size(self%radius))
-          rotationCurve(k,i)=dble(sum(selfBoundStatus(:,i),mask=distanceRadialSquared <= self%radius(k)**2))
-       end forall
-       !$omp end parallel workshare
-       ! Compute corresponding rotation curve.
-       rotationCurve(:,i)=sqrt(gravitationalConstantGalacticus*simulation%massParticle*rotationCurve(:,i)/self%radius)
+       ! Store results to file.
+       rotationCurveGroup=simulations(iSimulation)%analysis%openGroup('rotationCurve')
+       call rotationCurveGroup%writeDataset(self%radius  ,'rotationCurveRadius'  )
+       call rotationCurveGroup%writeDataset(rotationCurve,'rotationCurveVelocity')
+       call rotationCurveGroup%close()
+       ! Deallocate workspace.
+       call deallocateArray(selfBoundStatus      )
+       call deallocateArray(distanceRadialSquared)
+       call deallocateArray(positionRelative     )
+       call deallocateArray(rotationCurve        )
     end do
-    ! Store results to file.
-    rotationCurveGroup=simulation%analysis%openGroup('rotationCurve')
-    call rotationCurveGroup%writeDataset(self%radius  ,'rotationCurveRadius'  )
-    call rotationCurveGroup%writeDataset(rotationCurve,'rotationCurveVelocity')
-    call rotationCurveGroup%close()
-    ! Deallocate workspace.
-    call deallocateArray(selfBoundStatus      )
-    call deallocateArray(distanceRadialSquared)
-    call deallocateArray(positionRelative     )
-    call deallocateArray(rotationCurve        )
-     return
+    return
   end subroutine rotationCurveOperate
 

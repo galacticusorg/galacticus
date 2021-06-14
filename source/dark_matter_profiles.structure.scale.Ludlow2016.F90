@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -45,21 +45,10 @@
      double precision                                             :: C                                      , f              , &
           &                                                          timeFormationSeekDelta                 , densityContrast
    contains
-     !@ <objectMethods>
-     !@   <object>darkMatterProfileScaleRadiusLudlow2016</object>
-     !@   <objectMethod>
-     !@     <method>formationTimeRoot</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ timeFormation\argin</arguments>
-     !@     <description>Evalute a function which goes to zero at the formation time of the tree.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>formationTimeRootFunctionSet</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(rootFinder)\textgreater} finder\arginout</arguments>
-     !@     <description>Initialize a root finder object for use in finding the formation time of the tree.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Evalute a function which goes to zero at the formation time of the tree."           method="formationTimeRoot"           />
+     !#   <method description="Initialize a root finder object for use in finding the formation time of the tree." method="formationTimeRootFunctionSet"/>
+     !# </methods>
      final             ::                                 ludlow2016Destructor
      procedure         :: radius                       => ludlow2016Radius
      procedure, nopass :: formationTimeRoot            => ludlow2016FormationTimeRoot
@@ -74,13 +63,13 @@
 
   ! Array used to store state.
   type :: ludlow2016State
-     class           (darkMatterProfileScaleRadiusLudlow2016), pointer :: self
-     class           (cosmologyFunctionsClass               ), pointer :: cosmologyFunctions_
-     type            (treeNode                              ), pointer :: node
-     type            (rootFinder                            )          :: finder
-     double precision                                                  :: massHaloCharacteristic, massLimit      , &
-          &                                                               hubbleParameterPresent, densityContrast, &
-          &                                                               timePrevious
+     class           (darkMatterProfileScaleRadiusLudlow2016), pointer     :: self
+     class           (cosmologyFunctionsClass               ), pointer     :: cosmologyFunctions_
+     type            (treeNode                              ), pointer     :: node
+     type            (rootFinder                            ), allocatable :: finder
+     double precision                                                      :: massHaloCharacteristic, massLimit      , &
+          &                                                                   hubbleParameterPresent, densityContrast, &
+          &                                                                   timePrevious
   end type ludlow2016State
   type   (ludlow2016State), allocatable, dimension(:) :: ludlow2016States
   integer                 , parameter                 :: ludlow2016StatesIncrement=10
@@ -103,30 +92,24 @@ contains
     double precision                                                        :: C                            , f, &
          &                                                                     timeFormationSeekDelta
 
-    if (.not.parameters%isPresent('darkMatterProfileScaleRadiusMethod')) call Galacticus_Error_Report('a fallback scale radius method must be specified'//{introspection:location})
+    if (.not.parameters%isPresent('darkMatterProfileScaleRadius')) call Galacticus_Error_Report('a fallback scale radius method must be specified'//{introspection:location})
     !# <inputParameter>
     !#   <name>C</name>
     !#   <source>parameters</source>
     !#   <defaultValue>400.0d0</defaultValue>
     !#   <description>The parameter $C$ appearing in the halo concentration algorithm of \cite{ludlow_mass-concentration-redshift_2016}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>f</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0.02d0</defaultValue>
     !#   <description>The parameter $f$ appearing in the halo concentration algorithm of \cite{ludlow_mass-concentration-redshift_2016}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>timeFormationSeekDelta</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The parameter $\Delta \log t$ by which the logarithm of the trial formation time is incremented when stepping through the formation history of a node to find the formation time. If set to zero (or a negative value) the cumulative mass histories of nodes are assumed to be monotonic functions of time, and the formation time is instead found by a root finding algorithm,</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
     !# <objectBuilder class="cosmologyParameters"          name="cosmologyParameters_"          source="parameters"/>
@@ -176,7 +159,8 @@ contains
     !% \cite{ludlow_mass-concentration-redshift_2016} algorithm.
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Calculations_Resets      , only : Galacticus_Calculations_Reset
-    use :: Galacticus_Error                    , only : Galacticus_Error_Report
+    use :: Display                             , only : displayGreen                       , displayReset
+    use :: Galacticus_Error                    , only : Galacticus_Error_Report            , errorStatusSuccess
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , nodeComponentDarkMatterProfile, treeNode
     use :: Merger_Tree_Walkers                 , only : mergerTreeWalkerIsolatedNodesBranch
     use :: Numerical_Comparison                , only : Values_Agree
@@ -197,7 +181,8 @@ contains
          &                                                                                   timeFormationTrial        , timeFormationEarliest  , &
          &                                                                                   timeFormationLatest       , timeFormationPrevious  , &
          &                                                                                   radiusScalePrevious2nd    , rangeExpandFactor
-    integer                                                                               :: iterationCount            , i
+    integer                                                                               :: iterationCount            , i                      , &
+         &                                                                                   status
 
     ! For halos with no progenitors, simply keep the fall-back result. Otherwise, perform our calculation
     if (.not.associated(node%firstChild)) then
@@ -221,7 +206,13 @@ contains
        end if
        ludlow2016StateCount=ludlow2016StateCount+1
        allocate(ludlow2016States(ludlow2016StateCount)%cosmologyFunctions_,mold=self%cosmologyFunctions_)
+       !$omp critical(darkMatterProfilesStructureScaleLudlow2016DeepCopy)
+       !# <deepCopyReset variables="self%cosmologyFunctions_"/>
        !# <deepCopy source="self%cosmologyFunctions_" destination="ludlow2016States(ludlow2016StateCount)%cosmologyFunctions_"/>
+       !# <deepCopyFinalize variables="ludlow2016States(ludlow2016StateCount)%cosmologyFunctions_"/>
+       !$omp end critical(darkMatterProfilesStructureScaleLudlow2016DeepCopy)
+       allocate(ludlow2016States(ludlow2016StateCount)%finder)
+       call self%formationTimeRootFunctionSet(ludlow2016States(ludlow2016StateCount)%finder)
        ! Get the dark matter profile component of the node.
        darkMatterProfile_ => node%darkMatterProfile()
        ! Set an initial guess to the scale radius. We use the scale radius of the primary progenitor - under the assumption that the scale radius should change only slowly this should be a reasonable guess.
@@ -232,7 +223,8 @@ contains
        call darkMatterProfile_%scaleSet(radiusScalePrevious)
        call Galacticus_Calculations_Reset(node)
        ! Begin iteratively seeking a solution for the scale radius.
-       iterationCount=0
+       iterationCount     =0
+       timeFormationLatest=0.0d0
        do while (iterationCount < iterationCountMaximum)
           iterationCount=iterationCount+1
           ! Compute the characteristic halo mass, M₋₂.
@@ -269,9 +261,13 @@ contains
              ! Force convergence by setting the previous scale radius to that which we just set - since we're choosing a (possibly
              ! random) concentration from a distribution we no longer need to iterate to find a solution.
              radiusScalePrevious=+radiusScale
+          else if (self%formationTimeRoot(basic%time()) < 0.0d0) then
+             ! The characteristic mass exceeds that at the present time. This is possible in early iterations if the progenitor
+             ! halo was assigned a very large scale radius (usually from the fall-through method). Fall through to the alternative
+             ! concentration calculation, but do not force convergence.
+             radiusScale        =+self%darkMatterProfileScaleRadius_%radius(node)
           else
              ! Find the time at which the mass in progenitors equals this characteristic halo mass.
-             call self%formationTimeRootFunctionSet(ludlow2016States(ludlow2016StateCount)%finder)
              if (iterationCount > 2) then
                 if (radiusScalePrevious2nd > radiusScalePrevious) then
                    rangeExpandFactor=radiusScalePrevious2nd/radiusScalePrevious
@@ -291,10 +287,19 @@ contains
                   &                                                         rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive  &
                   &                                                        )
              if (iterationCount == 1) then
-                timeFormation=ludlow2016States(ludlow2016StateCount)%finder%find(rootRange=[timeFormationEarliest,timeFormationLatest])
+                timeFormation=ludlow2016States(ludlow2016StateCount)%finder%find(rootRange=[timeFormationEarliest,timeFormationLatest],status=status)
              else
-                timeFormation=ludlow2016States(ludlow2016StateCount)%finder%find(rootGuess= timeFormationPrevious                     )
+                timeFormation=ludlow2016States(ludlow2016StateCount)%finder%find(rootGuess= timeFormationPrevious                     ,status=status)
              end if
+             if (status /= errorStatusSuccess)                                                                                                                                   &
+                  & call Galacticus_Error_Report(                                                                                                                                &
+                  &                              'solving for formation time failed'//char        (10)                                                                        // &
+                  &                              displayGreen()//' HELP:'           //displayReset(  )                                                                        // &
+                  &                              ' if you are using <darkMatterProfileScaleRadius value="concentration"> as the fall back method for setting scale radii,'    // &
+                  &                              ' consider setting <useMeanConcentration value="true"/> in the fall-back method - scatter in the concentration-mass relation'// &
+                  &                              ' can lead to poor convergence here'                                                                                         // &
+                  &                              {introspection:location}                                                                                                        &
+                  &                             )
              ! If requested, check for possible earlier formation times by simply stepping through trial times and finding the
              ! earliest at which the required mass threshold is reached. This is used for cases where the cumulative mass history
              ! is not monotonic.
@@ -342,6 +347,7 @@ contains
        ludlow2016Radius    =radiusScale
        ! Decrement the state index.
        !# <objectDestructor name="ludlow2016States(ludlow2016StateCount)%cosmologyFunctions_"/>
+       deallocate(ludlow2016States(ludlow2016StateCount)%finder)
        ludlow2016StateCount=ludlow2016StateCount-1
     end if
     return
@@ -354,12 +360,13 @@ contains
     class           (darkMatterProfileScaleRadiusLudlow2016), intent(inout) :: self
     type            (rootFinder                            ), intent(inout) :: finder
     double precision                                        , parameter     :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-4
-    !GCC$ attributes unused :: self
-
-    if (.not.finder%isInitialized()) then
-       call finder%rootFunction(ludlow2016FormationTimeRoot        )
-       call finder%tolerance   (toleranceAbsolute,toleranceRelative)
-    end if
+    !$GLC attributes unused :: self
+    
+    finder=rootFinder(                                               &
+         &            rootFunction     =ludlow2016FormationTimeRoot, &
+         &            toleranceAbsolute=toleranceAbsolute          , &
+         &            toleranceRelative=toleranceRelative            &
+         &           )
     return
   end subroutine ludlow2016FormationTimeRootFunctionSet
 

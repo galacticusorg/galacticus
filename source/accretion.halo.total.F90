@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -28,7 +28,9 @@ module Accretion_Halo_Totals
   !# <functionClass>
   !#  <name>accretionHaloTotal</name>
   !#  <descriptiveName>Halo Total Accretion Rates</descriptiveName>
-  !#  <description>Class providing total accretion rates onto halos.</description>
+  !#  <description>
+  !#   Class providing total accretion rates onto halos, i.e. the mass which would be accreted in a dark matter-only universe.
+  !#  </description>
   !#  <default>simple</default>
   !#  <method name="accretionRate" >
   !#   <description>Return the total accretion rate onto the given {\normalfont \ttfamily node}.</description>

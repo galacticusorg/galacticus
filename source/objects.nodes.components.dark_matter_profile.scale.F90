@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -74,6 +74,10 @@ module Node_Component_Dark_Matter_Profile_Scale
   ! Queriable dark matter profile object.
   type            (nodeComponentDarkMatterProfileScale)          :: darkMatterProfile
 
+  ! Tree-initializing status.
+  logical :: treeInitializing=.false.
+  !$omp threadprivate(treeInitializing)
+
 contains
 
   !# <nodeComponentInitializationTask>
@@ -88,28 +92,21 @@ contains
     ! Get parameters.
     !# <inputParameter>
     !#   <name>darkMatterProfileMinimumConcentration</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>4.0d0</defaultValue>
     !#   <description>The minimum concentration allowed for dark matter profiles.</description>
     !#   <source>parameters_</source>
-    !#   <type>double</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>darkMatterProfileMaximumConcentration</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>100.0d0</defaultValue>
     !#   <description>The maximum concentration allowed for dark matter profiles.</description>
     !#   <source>parameters_</source>
-    !#   <type>double</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>mergerTreeStructureOutputDarkMatterProfileScale</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Determines whether or not dark matter halo scale radius is included in outputs of merger trees.</description>
-    !#   <group>output</group>
     !#   <source>parameters_</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     ! Bind the scale get function.
     call darkMatterProfile%scaleFunction(Node_Component_Dark_Matter_Profile_Scale_Scale)
@@ -163,7 +160,18 @@ contains
 
     ! Set the scale if it isn't already set.
     selfNode => self%host()
-    if (self%scaleValue() < 0.0d0) call self%scaleSet(darkMatterProfileScaleRadius_%radius(selfNode))
+   
+
+    ! Initialize scale radii if necessary. We do this by calling the tree initialization function (which ensures that nodes are
+    ! visited in depth first order), unless tree initialization is alredy underway in which case depth-first ordering is
+    ! guaranteed and we can go ahead and set the scale radius directly.
+    if (self%scaleValue() < 0.0d0) then
+       if (treeInitializing) then
+          call self%scaleSet(darkMatterProfileScaleRadius_%radius(selfNode))
+       else
+          call Node_Component_Dark_Matter_Profile_Scale_Tree_Initialize(selfNode)
+       end if
+    end if
     if (self%scaleIsLimited()) then
        radiusVirial      =darkMatterHaloScale_%virialRadius(selfNode)
        scaleLengthMaximum=radiusVirial/darkMatterProfileMinimumConcentration
@@ -185,18 +193,17 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Dark_Matter_Profile_Scale_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Dark_Matter_Profile_Scale_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
+  subroutine Node_Component_Dark_Matter_Profile_Scale_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
     !% Compute the rate of change of the scale radius.
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileScale, propertyTypeInactive, treeNode
     implicit none
-    type            (treeNode                      ), intent(inout), pointer :: node
-    logical                                         , intent(in   )          :: odeConverged
+    type            (treeNode                      ), intent(inout)          :: node
     logical                                         , intent(inout)          :: interrupt
     procedure       (                              ), intent(inout), pointer :: interruptProcedure
     integer                                         , intent(in   )          :: propertyType
     class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
     double precision                                                         :: concentration       , growthRate
-    !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
+    !$GLC attributes unused :: interrupt, interruptProcedure
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
@@ -268,12 +275,19 @@ contains
              ! Perform our own depth-first tree walk to set scales in all nodes of the tree. This is necessary as we require access
              ! to the parent scale to set scale growth rates, but must initialize scales in a strictly depth-first manner as some
              ! algorithms rely on knowing the progenitor structure of the tree to compute scale radii.
-             treeWalker=mergerTReeWalkerAllNodes(node%hostTree,spanForest=.false.)
+             !
+             ! Record that we are performing tree initalization. During tree intialization the scale get function, which normally
+             ! calls this tree initialization function if scale radii need to be initialized, will instead initialize
+             ! directly. This avoids infinite recursion, and is safe as the scale get function is guaranteed to be called in
+             ! depth-first order by this tree initialization function.
+             treeInitializing=.true.
+             treeWalker=mergerTreeWalkerAllNodes(node%hostTree,spanForest=.false.)
              do while (treeWalker%next(nodeWork))
                 ! Get the scale radius - this will initialize the radius if necessary.
                 darkMatterProfileWork => nodeWork             %darkMatterProfile(autoCreate=.true.)
                 radiusScale           =  darkMatterProfileWork%scale            (                 )
              end do
+             treeInitializing=.false.
           end if
        class default
           call Galacticus_Error_Report('unexpected class'//{introspection:location})
@@ -288,13 +302,13 @@ contains
                &         -basic             %time ()
           if (deltaTime > 0.0d0) then
              darkMatterProfileParent => node%parent%darkMatterProfile(autoCreate=.true.)
-             call darkMatterProfile%scaleGrowthRateSet(                                               &
-                  &                                                 (                                 &
-                  &                                                   darkMatterProfileParent%scale() &
-                  &                                                  -darkMatterProfile      %scale() &
-                  &                                                 )                                 &
-                  &                                                 /deltaTime                        &
-                  &                                                )
+             call darkMatterProfile%scaleGrowthRateSet(                                  &
+                  &                                    (                                 &
+                  &                                      darkMatterProfileParent%scale() &
+                  &                                     -darkMatterProfile      %scale() &
+                  &                                    )                                 &
+                  &                                    /deltaTime                        &
+                  &                                   )
           else
              call darkMatterProfile%scaleGrowthRateSet(0.0d0)
           end if
@@ -316,7 +330,7 @@ contains
     type (treeNode                      ), intent(inout) :: node
     class(nodeComponentDarkMatterProfile), pointer       :: darkMatterProfileParent, darkMatterProfile
     class(nodeComponentBasic            ), pointer       :: basicParent            , basic
-    !GCC$ attributes unused :: self    
+    !$GLC attributes unused :: self    
 
     darkMatterProfile       => node       %darkMatterProfile()
     darkMatterProfileParent => node%parent%darkMatterProfile()

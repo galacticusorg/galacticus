@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -71,11 +71,9 @@ contains
 
     !# <inputParameter>
     !#   <name>gamma</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The multiplicative factor, $\gamma$, used to compute the cooling coefficient in cases of non-hydrogenic or helium-like ions.</description>
     !#   <source>parameters</source>
     !#   <defaultValue>0.67d0</defaultValue>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="atomicRecombinationRateRadiative" name="atomicRecombinationRateRadiative_" source="parameters"/>
     self=atomicRecombinationRateRadiativeCoolingHummer(gamma,atomicRecombinationRateRadiative_)
@@ -151,6 +149,11 @@ contains
           temperatureEffective=+temperature
           scaleFactor         =+1.0d0
           call Galacticus_Error_Report('expected hydrogen- or helium-like ion'//{introspection:location})
+       end if
+       ! Handle zero temperature.
+       if (temperatureEffective <= 0.0d0) then
+          hummerRate=0.0d0
+          return
        end if
        ! Use tabulated solutions for hydrogenic and helium-like sequences.
        select case (level)

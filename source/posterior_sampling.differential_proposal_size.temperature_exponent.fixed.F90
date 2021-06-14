@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +21,9 @@
   !% is fixed.
 
   !# <posteriorSampleDffrntlEvltnPrpslSzTmpExp name="posteriorSampleDffrntlEvltnPrpslSzTmpExpFixed">
-  !#  <description>A posterior sampling differential evolution proposal size class in which the exponent is fixed.</description>
+  !#  <description>
+  !#   This class uses a fixed $\alpha=${\normalfont \ttfamily [alpha]}.
+  !#  </description>
   !# </posteriorSampleDffrntlEvltnPrpslSzTmpExp>
   type, extends(posteriorSampleDffrntlEvltnPrpslSzTmpExpClass) :: posteriorSampleDffrntlEvltnPrpslSzTmpExpFixed
      !% Implementation of a posterior sampling differential evolution proposal size class in which the exponent is fixed.
@@ -50,10 +52,8 @@ contains
 
     !# <inputParameter>
     !#   <name>exponentValue</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The exponent of temperature.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     self=posteriorSampleDffrntlEvltnPrpslSzTmpExpFixed(exponentValue)
     !# <inputParametersValidate source="parameters"/>
@@ -79,7 +79,7 @@ contains
     class           (posteriorSampleStateClass                    ), intent(inout), dimension(:) :: temperedStates
     double precision                                               , intent(in   ), dimension(:) :: temperatures
     class           (posteriorSampleConvergenceClass              ), intent(inout)               :: simulationConvergence
-    !GCC$ attributes unused :: temperedStates, temperatures, simulationState, simulationConvergence
+    !$GLC attributes unused :: temperedStates, temperatures, simulationState, simulationConvergence
 
     fixedExponent=self%exponentValue
     return

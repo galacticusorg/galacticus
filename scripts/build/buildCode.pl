@@ -14,7 +14,6 @@ use File::Changes;
 use Storable;
 use Galacticus::Build::Hooks;
 use Galacticus::Build::ModuleUse;
-use Galacticus::Build::MethodNames;
 use Galacticus::Build::FunctionCall;
 use Galacticus::Build::FunctionGlobal;
 use Galacticus::Build::SourceTree;

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -73,7 +73,7 @@ contains
     !% Returns the total anuglar momentum of {\normalfont \ttfamily node} based on its mass, energy and spin parameter.
     use :: Dark_Matter_Profiles_DMO    , only : darkMatterProfileDMOClass
     use :: Galacticus_Nodes            , only : nodeComponentBasic             , nodeComponentSpin, treeNode
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     type (treeNode                 ), intent(inout) :: node
     class(darkMatterProfileDMOClass), intent(inout) :: darkMatterProfileDMO_
@@ -93,27 +93,46 @@ contains
   double precision function Dark_Matter_Halo_Angular_Momentum_Growth_Rate(node,darkMatterProfileDMO_)
     !% Returns the rate of change of the total anuglar momentum of {\normalfont \ttfamily node} based on its mass, energy and spin parameter.
     use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+    use :: Galacticus_Error        , only : Galacticus_Error_Report
     use :: Galacticus_Nodes        , only : nodeComponentBasic       , nodeComponentSpin, treeNode
     implicit none
-    type (treeNode                 ), intent(inout) :: node
-    class(darkMatterProfileDMOClass), intent(inout) :: darkMatterProfileDMO_
-    class(nodeComponentBasic       ), pointer       :: basic
-    class(nodeComponentSpin        ), pointer       :: spin
+    type            (treeNode                 ), intent(inout) :: node
+    class           (darkMatterProfileDMOClass), intent(inout) :: darkMatterProfileDMO_
+    class           (nodeComponentBasic       ), pointer       :: basic
+    class           (nodeComponentSpin        ), pointer       :: spin
+    double precision                                           :: rateFractional
 
     call assertPropertiesGettable()
     basic                                         =>  node%basic(                 )
     spin                                          =>  node%spin (autoCreate=.true.)
-    Dark_Matter_Halo_Angular_Momentum_Growth_Rate =  +Dark_Matter_Halo_Angular_Momentum    (node,darkMatterProfileDMO_) &
-         &                                           *(                                                                 &
-         &                                             +spin%spinGrowthRate                (                          ) &
-         &                                             /spin%spin                          (                          ) &
-         &                                             +2.5d0                                                           &
-         &                                             *basic%accretionRate                (                          ) &
-         &                                             /basic%mass                         (                          ) &
-         &                                             -0.5d0                                                           &
-         &                                             *darkMatterProfileDMO_%energyGrowthRate(node                   ) &
-         &                                             /darkMatterProfileDMO_%energy          (node                   ) &
-         &                                            )
+    Dark_Matter_Halo_Angular_Momentum_Growth_Rate =  +Dark_Matter_Halo_Angular_Momentum(node,darkMatterProfileDMO_)
+    if (Dark_Matter_Halo_Angular_Momentum_Growth_Rate == 0.0d0) return
+    rateFractional=0.0d0
+    if     (spin                  %spin            (    ) >  0.0d0) then
+       rateFractional=+rateFractional&
+            &         +spin                 %spinGrowthRate   (    ) &
+            &         /spin                 %spin             (    )
+    else if (spin                 %spinGrowthRate  (    ) /= 0.0d0) then
+       call Galacticus_Error_Report('spin is zero, but growth rate is non-zero'  //{introspection:location})
+    end if
+    if     (basic                 %mass            (    ) >  0.0d0) then
+       rateFractional=+rateFractional        &
+            &         +2.5d0                 &
+            &         *basic                %accretionRate   (    ) &
+            &         /basic                %mass            (    )
+    else if (basic                %accretionRate   (    ) /= 0.0d0) then
+       call Galacticus_Error_Report('mass is zero, but growth rate is non-zero'  //{introspection:location})
+    end if
+    if      (darkMatterProfileDMO_%energy          (node) /= 0.0d0) then
+       rateFractional=+rateFractional                               &
+            &         -0.5d0                                        &
+            &         *darkMatterProfileDMO_%energyGrowthRate(node) &
+            &         /darkMatterProfileDMO_%energy          (node)
+    else if (darkMatterProfileDMO_%energyGrowthRate(node) /= 0.0d0) then
+       call Galacticus_Error_Report('energy is zero, but growth rate is non-zero'//{introspection:location})
+    end if
+    Dark_Matter_Halo_Angular_Momentum_Growth_Rate=+Dark_Matter_Halo_Angular_Momentum_Growth_Rate &
+         &                                        *rateFractional
     return
   end function Dark_Matter_Halo_Angular_Momentum_Growth_Rate
 
@@ -121,12 +140,12 @@ contains
     !% Returns the spin of {\normalfont \ttfamily node} given its angular momentum.
     use :: Dark_Matter_Profiles_DMO    , only : darkMatterProfileDMOClass
     use :: Galacticus_Nodes            , only : nodeComponentBasic             , treeNode
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    type            (treeNode                 ), intent(inout), pointer :: node
-    double precision                           , intent(in   )          :: angularMomentum
-    class           (darkMatterProfileDMOClass), intent(inout)          :: darkMatterProfileDMO_
-    class           (nodeComponentBasic       )               , pointer :: basic
+    type            (treeNode                 ), intent(inout) :: node
+    double precision                           , intent(in   ) :: angularMomentum
+    class           (darkMatterProfileDMOClass), intent(inout) :: darkMatterProfileDMO_
+    class           (nodeComponentBasic       ), pointer       :: basic
 
     call assertPropertiesGettable()
     basic                 =>  node             %basic()

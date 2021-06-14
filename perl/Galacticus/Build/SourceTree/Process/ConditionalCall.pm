@@ -36,8 +36,22 @@ sub Process_ConditionalCall {
 		$arguments = $argumentsNew;
 		@argumentNames = sort(keys(%{$arguments}));
 	    }
+	    # Generate hash of unique conditions.
+	    my %uniqueConditions;
+	    foreach my $argument ( &List::ExtraUtils::hashList($arguments,keyAs => "name") ) {
+		my $condition;
+		if      ( exists($argument->{'parameterPresent'}) ) {
+		    $condition = $argument->{'parameterPresent'}."%isPresent('".(exists($argument->{'parameterName'}) ? $argument->{'parameterName'} : $argument->{'name'})."')";
+		} elsif ( exists($argument->{'condition'       }) ) {
+		    $condition = $argument->{'condition'       };
+		}
+		die("Galacticus::Build::SourceTree::Process::ConditionalCall::Process_ConditionalCall: no condition specified")
+		    unless ( defined($condition) );
+		$argument->{'conditionActual'} = $condition;
+		$uniqueConditions{$condition} = 1
+	    }
 	    # Generate code to evaluate conditions.
-	    my @conditionalVariables = map {&Galacticus::Build::SourceTree::Parse::Declarations::DeclarationExists($node->{'parent'},"condition".$_."__") ? () : "condition".$_."__"} 1..scalar(@argumentNames);
+	    my @conditionalVariables = map {&Galacticus::Build::SourceTree::Parse::Declarations::DeclarationExists($node->{'parent'},"condition".$_."__") ? () : "condition".$_."__"} 1..scalar(keys(%uniqueConditions));
 	    push(
 		@variables,
 		{
@@ -47,23 +61,16 @@ sub Process_ConditionalCall {
 		)
 		if ( scalar(@conditionalVariables) > 0 );
 	    my $i = 0;
-	    foreach my $argument ( &List::ExtraUtils::hashList($arguments,keyAs => "name") ) {
-		my $condition;
-		if      ( exists($argument->{'parameterPresent'}) ) {
-		    $condition = $argument->{'parameterPresent'}."%isPresent('".$argument->{'name'}."')";
-		} elsif ( exists($argument->{'condition'       }) ) {
-		    $condition = $argument->{'condition'       }                                        ;
-		}
-		die("Galacticus::Build::SourceTree::Process::ConditionalCall::Process_ConditionalCall: no condition specified")
-		    unless ( defined($condition) );
+	    foreach my $condition ( sort(keys(%uniqueConditions)) ) {
 		++$i;
+		$uniqueConditions{$condition} = $i;
 		$code .= "condition".$i."__=".$condition."\n";
 	    }
 	    # Generate code to call function.
-	    my $formatBinary = "%.".scalar(@argumentNames)."b";
-	    for(my $i=0;$i<2**scalar(@argumentNames);++$i) {
+	    my $formatBinary = "%.".scalar(keys(%uniqueConditions))."b";
+	    for(my $i=0;$i<2**scalar(keys(%uniqueConditions));++$i) {
 		my @state = split(//,sprintf($formatBinary,$i));
-		$code .= "if (".join(" .and. ",map {($state[$_-1] == 0 ? ".not." : "")."condition".$_."__"} 1..scalar(@argumentNames)).") then\n";
+		$code .= "if (".join(" .and. ",map {($state[$_-1] == 0 ? ".not." : "")."condition".$_."__"} 1..scalar(keys(%uniqueConditions))).") then\n";
 		foreach my $call ( &List::ExtraUtils::as_array($node->{'directive'}->{'call'}) ) {
 		    my $valid = 0;
 		    open(my $callStream,"<",\$call);
@@ -72,10 +79,19 @@ sub Process_ConditionalCall {
 			    my $callPre           = $1;
 			    my $callPost          = $2;
 			    my $conditionsPrefix  = ($callPre =~ m/\($/) ? "" : ",";
-			    $code                .= $callPre.($i == 0 ? "" : $conditionsPrefix).join(",",map {$state[$_-1] == 1 ? $argumentNames[$_-1]."=".$arguments->{$argumentNames[$_-1]}->{'value'} : ()} 1..scalar(@argumentNames)).$callPost."\n";
-			    $valid                = 1;
+			    $code .= $callPre;
+			    my @optionalArguments;
+			    foreach my $argument ( &List::ExtraUtils::hashList($arguments,keyAs => "name") ) {
+				my $j = $uniqueConditions{$argument->{'conditionActual'}};
+				push(@optionalArguments,$argument->{'name'}."=".$argument->{'value'})
+				    if ( $state[$j-1] == 1 );
+			    }
+			    $code  .= $conditionsPrefix.join(",",@optionalArguments)
+				if ( @optionalArguments );
+			    $code  .= $callPost."\n";
+			    $valid  = 1;
 			} else {
-			    $code                .= $line;
+			    $code  .= $line;
 			}
 		    }
 		    close($callStream);

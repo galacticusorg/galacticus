@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -58,8 +58,6 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>300.0d-3</defaultValue>
     !#   <description>The maximum distance at which galaxies are to be included in the survey.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=surveyGeometryLocalGroupDES(distanceMaximumSurvey)
     !# <inputParametersValidate source="parameters"/>
@@ -81,7 +79,7 @@ contains
     !% Return the number of fields in this sample.
     implicit none
     class(surveyGeometryLocalGroupDES), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     localGroupDESFieldCount=1
     return
@@ -94,7 +92,7 @@ contains
     class           (surveyGeometryLocalGroupDES), intent(inout)           :: self
     double precision                             , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
     integer                                      , intent(in   ), optional :: field
-    !GCC$ attributes unused :: self, field, magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: self, field, magnitudeAbsolute, luminosity
 
     ! Find the limiting distance for this mass completeness limits. The following functional form should be considered to be
     ! approximate at best. It was derived by fitting a polynomial in stellar mass (assuming a mass-to-light ratio of 1 in Solar
@@ -110,7 +108,7 @@ contains
     !% Return the maximum degree for which angular power is computed for the {\normalfont \ttfamily localGroupDES} survey.
     implicit none
     class(surveyGeometryLocalGroupDES), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     localGroupDESAngularPowerMaximumDegree=localGroupDESAngularPowerMaximumL
     return
@@ -122,7 +120,7 @@ contains
     implicit none
     class(surveyGeometryLocalGroupDES), intent(inout) :: self
     type (varying_string             )                :: localGroupDESMangleDirectory
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     localGroupDESMangleDirectory=galacticusPath(pathTypeDataStatic)//"surveyGeometry/darkEnergySurvey/"
     return

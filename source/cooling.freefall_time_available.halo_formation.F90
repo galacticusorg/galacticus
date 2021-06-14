@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +22,11 @@
 
   !# <freefallTimeAvailable name="freefallTimeAvailableHaloFormation">
   !#  <description>
-  !#   A freefall time available class which computes the freefall time available based on the freefall time in the dark matter halo.
+  !#   A freefall time available class in which the time available for freefall is equal to
+  !#   \begin{equation}
+  !#    t_\mathrm{available} = t - t_\mathrm{form},
+  !#   \end{equation}
+  !#   where $t_\mathrm{form}$ is the time at which the halo formed (see \S\ref{sec:ComponentFormationTimes}).
   !#  </description>
   !# </freefallTimeAvailable>
   type, extends(freefallTimeAvailableClass) :: freefallTimeAvailableHaloFormation
@@ -48,7 +52,7 @@ contains
     implicit none
     type(freefallTimeAvailableHaloFormation)                :: self
     type(inputParameters                   ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     ! Check that there is a gettable formation time property.
     if (.not.defaultFormationTimeComponent%formationTimeIsGettable())                                                          &
@@ -73,7 +77,7 @@ contains
     implicit none
     class(freefallTimeAvailableHaloFormation), intent(inout) :: self
     type (treeNode                          ), intent(inout) :: node
-    !GCC$ attributes unused :: self, node
+    !$GLC attributes unused :: self, node
 
     ! Simply return unit rate.
     haloFormationTimeAvailableIncreaseRate=1.0d0
@@ -89,7 +93,7 @@ contains
     type (treeNode                          ), intent(inout) :: node
     class(nodeComponentBasic                ), pointer       :: basic
     class(nodeComponentFormationTime        ), pointer       :: formationTime
-    !GCC$ attributes unused :: self, node
+    !$GLC attributes unused :: self, node
 
     basic                      =>  node         %basic        ()
     formationTime              =>  node         %formationTime()

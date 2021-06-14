@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,7 +23,40 @@
   use :: Cosmology_Parameters, only : cosmologyParametersClass
 
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationDuttonMaccio2014">
-  !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{dutton_cold_2014}.</description>
+  !#  <description>
+  !#   A dark matter profile concentration class in which the concentration is computed using a fitting function from
+  !#   \cite{dutton_cold_2014}:
+  !#   \begin{equation}
+  !#   \log_{10} c = A + B \log_{10} M_\mathrm{halo}.
+  !#   \end{equation}
+  !#   The parameters are a functon of redshift, $z$. We use the following fit suggested by \cite{dutton_cold_2014} results:
+  !#   \begin{eqnarray}
+  !#   A &amp;=&amp; A_1+(A_2-A_1)\exp[A_3 z^{A_4}] \nonumber \\
+  !#   B &amp;=&amp; B_1+B_2 z.
+  !#   \end{eqnarray}
+  !#   The coefficients are chosen from one of the three sets given by \cite{dutton_cold_2014}, controlled via the {\normalfont
+  !#   \ttfamily [duttonMaccio2014FitType]} parameter, as described in Table~\ref{tb:DuttonMaccioConcentrationCoefficients}.
+  !#   
+  !#   \begin{table}
+  !#   \begin{center}
+  !#   \begin{tabular}{lccrrrrrr}
+  !#   \hline
+  !#   {\normalfont \bfseries Fit type} &amp; {\normalfont \bfseries Profile} &amp; {\boldmath $\Delta_\mathrm{vir}$ } &amp;
+  !#   {\boldmath $A_1$} &amp; {\boldmath $A_2$} &amp; {\boldmath $A_3$} &amp; {\boldmath $A_4$} &amp; {\boldmath $B_1$} &amp;
+  !#   {\boldmath $B_2$} \\
+  !#   \hline
+  !#   {\normalfont \ttfamily nfwVirial}  &amp; \gls{nfw} &amp; Top-hat &amp; $+0.537$ &amp; $+1.025$ &amp; $-0.718$ &amp; $+1.080$ &amp; $-0.097$ &amp; $+0.024$ \\
+  !#   {\normalfont \ttfamily nfw200}     &amp; \gls{nfw} &amp; 200     &amp; $+0.520$ &amp; $+0.905$ &amp; $-0.617$ &amp; $+1.210$ &amp; $-0.101$ &amp; $+0.026$ \\
+  !#   {\normalfont \ttfamily einasto200} &amp; Einasto   &amp; 200     &amp; $+0.459$ &amp; $+0.977$ &amp; $-0.490$ &amp; $+1.303$ &amp; $-0.130$ &amp; $+0.029$ \\
+  !#   \hline
+  !#   \end{tabular}
+  !#   \end{center}
+  !#   \caption{Coefficients appearing in the dark matter halo profile concentration fitting functions of
+  !#   \protect\cite{dutton_cold_2014}. The ``fit type'' is specified by the {\normalfont \ttfamily [duttonMaccio2014FitType]}
+  !#   parameter.}
+  !#   \label{tb:DuttonMaccioConcentrationCoefficients}
+  !#   \end{table}
+  !#  </description>
   !# </darkMatterProfileConcentration>
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationDuttonMaccio2014
      !% A dark matter halo profile concentration class implementing the algorithm of \cite{dutton_cold_2014}.
@@ -37,15 +70,9 @@
           &                                                   b1                                        , b2
      integer                                               :: densityContrastMethod                     , densityProfileMethod
    contains
-     !@ <objectMethods>
-     !@   <object>darkMatterProfileConcentrationDuttonMaccio2014</object>
-     !@   <objectMethod>
-     !@     <method>definitions</method>
-     !@     <arguments></arguments>
-     !@     <type>\void</type>
-     !@     <description>Establish definitions for virial density contrast and dark matter halo profile.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Establish definitions for virial density contrast and dark matter halo profile." method="definitions" />
+     !# </methods>
      final     ::                                   duttonMaccio2014Destructor
      procedure :: definitions                    => duttonMaccio2014Definitions
      procedure :: concentration                  => duttonMaccio2014Concentration
@@ -100,51 +127,37 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>var_str('nfwVirial')</defaultValue>
     !#   <description>The type of halo definition for which the concentration-mass relation should be computed. Allowed values are {\normalfont \ttfamily nfwVirial}, {\normalfont \ttfamily nfwCritical200}, {\normalfont \ttfamily einastoCritical200}, and {\normalfont \ttfamily userDefined}.</description>
-    !#   <type>string</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     if (fitType == "userDefined") then
        !# <inputParameter>
        !#   <name>a1</name>
        !#   <source>parameters</source>
        !#   <description>Parameter $a_1$ in the \cite{dutton_cold_2014} halo concentration--mass relation.</description>
-       !#   <type>real</type>
-       !#   <cardinality>1</cardinality>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>a2</name>
        !#   <source>parameters</source>
        !#   <description>Parameter $a_2$ in the \cite{dutton_cold_2014} halo concentration--mass relation.</description>
-       !#   <type>real</type>
-       !#   <cardinality>1</cardinality>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>a3</name>
        !#   <source>parameters</source>
        !#   <description>Parameter $a_3$ in the \cite{dutton_cold_2014} halo concentration--mass relation.</description>
-       !#   <type>real</type>
-       !#   <cardinality>1</cardinality>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>a4</name>
        !#   <source>parameters</source>
        !#   <description>Parameter $a_4$ in the \cite{dutton_cold_2014} halo concentration--mass relation.</description>
-       !#   <type>real</type>
-       !#   <cardinality>1</cardinality>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>b1</name>
        !#   <source>parameters</source>
        !#   <description>Parameter $b_1$ in the \cite{dutton_cold_2014} halo concentration--mass relation.</description>
-       !#   <type>real</type>
-       !#   <cardinality>1</cardinality>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>b2</name>
        !#   <source>parameters</source>
        !#   <description>Parameter $b_2$ in the \cite{dutton_cold_2014} halo concentration--mass relation.</description>
-       !#   <type>real</type>
-       !#   <cardinality>1</cardinality>
        !# </inputParameter>
        self=darkMatterProfileConcentrationDuttonMaccio2014(a1,a2,a3,a4,b1,b2,cosmologyParameters_,cosmologyFunctions_)
     else
@@ -232,32 +245,70 @@ contains
        allocate(virialDensityContrastFixed                                      :: self%virialDensityContrastDefinition_)
        select type (virialDensityContrastDefinition_ => self%virialDensityContrastDefinition_)
        type is (virialDensityContrastFixed                                     )
-          !# <referenceConstruct object="virialDensityContrastDefinition_" constructor="virialDensityContrastFixed                                     (200.0d0,fixedDensityTypeCritical,2.0d0,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
+          !# <referenceConstruct object="virialDensityContrastDefinition_">
+          !#  <constructor>
+          !#   virialDensityContrastFixed                                    (                                                                            &amp;
+          !#    &amp;                                                         densityContrastValue                =200.0d0                              , &amp;
+          !#    &amp;                                                         densityType                         =fixedDensityTypeCritical             , &amp;
+          !#    &amp;                                                         turnAroundOverVirialRadius          =2.0d0                                , &amp;
+          !#    &amp;                                                         cosmologyParameters_                =self%cosmologyParameters_            , &amp;
+          !#    &amp;                                                         cosmologyFunctions_                 =self%cosmologyFunctions_               &amp;
+          !#    &amp;                                                        )
+          !#  </constructor>
+          !# </referenceConstruct>
        end select
     case (duttonMaccio2014DensityContrastMethodVirial    )
        allocate(virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt :: self%virialDensityContrastDefinition_)
        select type (virialDensityContrastDefinition_ => self%virialDensityContrastDefinition_)
        type is (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt)
-          !# <referenceConstruct object="virialDensityContrastDefinition_" constructor="virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(.true. ,                                                         self%cosmologyFunctions_)"/>
+          !# <referenceConstruct object="virialDensityContrastDefinition_">
+          !#  <constructor>
+          !#   virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(                                                                            &amp;
+          !#    &amp;                                                         tableStore                          =.true.                               , &amp;
+          !#    &amp;                                                         cosmologyFunctions_                 =self%cosmologyFunctions_               &amp;
+          !#    &amp;                                                        )
+          !#  </constructor>
+          !# </referenceConstruct>
        end select
     end select
     allocate(darkMatterHaloScaleDefinition_)
-    !# <referenceConstruct object="darkMatterHaloScaleDefinition_"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,self%virialDensityContrastDefinition_)"/>
+          !# <referenceConstruct object="darkMatterHaloScaleDefinition_"  >
+          !#  <constructor>
+          !#   darkMatterHaloScaleVirialDensityContrastDefinition            (                                                                            &amp;
+          !#    &amp;                                                         cosmologyParameters_                =self%cosmologyParameters_            , &amp;
+          !#    &amp;                                                         cosmologyFunctions_                 =self%cosmologyFunctions_             , &amp;
+          !#    &amp;                                                         virialDensityContrast_              =self%virialDensityContrastDefinition_  &amp;
+          !#    &amp;                                                        )
+          !#  </constructor>
+          !# </referenceConstruct>
     select case (self%densityProfileMethod)
     case (duttonMaccio2014DensityProfileMethodNFW    )
        allocate(darkMatterProfileDMONFW     :: self%darkMatterProfileDMODefinition_)
        select type (darkMatterProfileDMODefinition_ => self%darkMatterProfileDMODefinition_)
        type is (darkMatterProfileDMONFW    )
-          !# <referenceConstruct object="darkMatterProfileDMODefinition_" constructor="darkMatterProfileDMONFW   (darkMatterHaloScaleDefinition_)"/>
+          !# <referenceConstruct object="darkMatterProfileDMODefinition_" >
+          !#  <constructor>
+          !#   darkMatterProfileDMONFW                                       (                                                                            &amp;
+          !#    &amp;                                                         velocityDispersionUseSeriesExpansion=.true.                               , &amp;
+          !#    &amp;                                                         darkMatterHaloScale_                =darkMatterHaloScaleDefinition_         &amp;
+          !#    &amp;                                                        )
+          !#  </constructor>
+          !# </referenceConstruct>
        end select
     case (duttonMaccio2014DensityProfileMethodEinasto)
        allocate(darkMatterProfileDMOEinasto :: self%darkMatterProfileDMODefinition_)
        select type (darkMatterProfileDMODefinition_ => self%darkMatterProfileDMODefinition_)
        type is (darkMatterProfileDMOEinasto)
-          !# <referenceConstruct object="darkMatterProfileDMODefinition_" constructor="darkMatterProfileDMOEinasto(darkMatterHaloScaleDefinition_)"/>
+          !# <referenceConstruct object="darkMatterProfileDMODefinition_" >
+          !#  <constructor>
+          !#   darkMatterProfileDMOEinasto                                   (                                                                            &amp;
+          !#    &amp;                                                         darkMatterHaloScale_                =darkMatterHaloScaleDefinition_         &amp;
+          !#    &amp;                                                        )
+          !#  </constructor>
+          !# </referenceConstruct> 
        end select
     end select
-    !# <objectDestructor name="darkMatterHaloScaleDefinition_"  />
+    !# <objectDestructor name="darkMatterHaloScaleDefinition_"/>
     return
   end subroutine duttonMaccio2014Definitions
 
@@ -269,7 +320,7 @@ contains
     !# <objectDestructor name="self%cosmologyParameters_"            />
     !# <objectDestructor name="self%cosmologyFunctions_"             />
     !# <objectDestructor name="self%virialDensityContrastDefinition_"/>
-    !# <objectDestructor name="self%darkMatterProfileDMODefinition_"    />
+    !# <objectDestructor name="self%darkMatterProfileDMODefinition_" />
     return
   end subroutine duttonMaccio2014Destructor
 

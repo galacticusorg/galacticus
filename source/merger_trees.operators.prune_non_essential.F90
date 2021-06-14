@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -24,9 +24,11 @@
 
   !# <mergerTreeOperator name="mergerTreeOperatorPruneNonEssential">
   !#  <description>
-  !#   Implements a merger tree operator which prunes branches that do not directly influence an
-  !#   ``essential'' node. Any branch which does not connect to the branch into which the node identified by ID {\normalfont
-  !#   \ttfamily [essentialNodeI]} descends by time {\normalfont \ttfamily essetialNodeTime]} will be pruned.
+  !#   A merger tree operator class which prunes branches that do not directly influence an ``essential'' node. Any branch which
+  !#   does not connect to the branch into which the node identified by ID {\normalfont \ttfamily [essentialNodeID]} descends by
+  !#   time {\normalfont \ttfamily essetialNodeTime]} will be pruned. Specifying the time is important---if the node is a
+  !#   satellite at this time, then the pruning will not remove any progenitors of the parent node in which the essential node
+  !#   lives at the specified time.
   !#  </description>
   !# </mergerTreeOperator>
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorPruneNonEssential
@@ -57,16 +59,12 @@ contains
     !#   <source>parameters</source>
     !#   <variable>pruneNonEssentialConstructorParameters%essentialNodeID</variable>
     !#   <description>ID of the essential node to avoid pruning.</description>
-    !#   <type>integer</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>essentialNodeTime</name>
     !#   <source>parameters</source>
     !#   <variable>pruneNonEssentialConstructorParameters%essentialNodeTime</variable>
     !#   <description>Time of the essential node to avoid pruning.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParametersValidate source="parameters"/>
     return
@@ -116,7 +114,7 @@ contains
           do while (treeWalker%next(node))
              ! Record the parent node to which we will return.
              if     (                                                &
-                  &   associated(nodePrevious)                       &
+                  &   associated(node%parent)                        &
                   &  .and.                                           &
                   &   .not.                                          &
                   &    (                                             &
@@ -130,7 +128,7 @@ contains
                 ! Decouple from other nodes.
                 call Merger_Tree_Prune_Unlink_Parent(                                                    &
                      &                               node                                              , &
-                     &                               nodePrevious                                      , &
+                     &                               node%parent                                       , &
                      &                               .not.                                               &
                      &                                    (                                              &
                      &                                      nodePrevious %isProgenitorOf(nodeEssential)  &

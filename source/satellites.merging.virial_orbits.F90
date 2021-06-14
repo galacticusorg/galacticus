@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -29,7 +29,9 @@ module Virial_Orbits
   !# <functionClass>
   !#  <name>virialOrbit</name>
   !#  <descriptiveName>Virial Orbits</descriptiveName>
-  !#  <description>Class providing orbital parameters of satellite halos at the time of merging.</description>
+  !#  <description>
+  !#   Class providing orbital parameters of satellite halos at the time when they first enter the virial radius of their host.
+  !#  </description>
   !#  <default>benson2005</default>
   !#  <method name="orbit" >
   !#   <description>Returns an orbit object.</description>
@@ -38,6 +40,22 @@ module Virial_Orbits
   !#   <selfTarget>yes</selfTarget>
   !#   <argument>type(treeNode), intent(inout) :: node               , host</argument>
   !#   <argument>logical       , intent(in   ) :: acceptUnboundOrbits</argument>
+  !#  </method>
+  !#  <method name="velocityDistributionFunction" >
+  !#   <description>Returns the distribution function of orbital velocity $\mathrm{d}^2p/\mathrm{d}v_r/\mathrm{d}v_\theta(v_r,v_\theta)$.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type            (treeNode), intent(inout) :: node          , host</argument>
+  !#   <argument>double precision          , intent(in   ) :: velocityRadial, velocityTangential</argument>
+  !#  </method>
+  !#  <method name="isAngularlyResolved" >
+  !#   <description>Returns true if this orbit class provides resolution of the orbital angular coordinates ($\theta$,$\phi$) when setting orbits, false otherwise.</description>
+  !#   <type>logical</type>
+  !#   <pass>yes</pass>
+  !#   <code>
+  !#    !$GLC attributes unused :: self
+  !#    virialOrbitIsAngularlyResolved=.false.
+  !#  </code>
   !#  </method>
   !#  <method name="densityContrastDefinition" >
   !#   <description>Returns a {\normalfont \ttfamily virialDensityContrast} object describing the virial density contrast used to define this orbit class.</description>

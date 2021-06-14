@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -55,29 +55,21 @@ contains
     !#   <name>massParticle</name>
     !#   <source>parameters</source>
     !#   <description>The particle mass to use for two-body relaxation calculations.</description>
-    !#   <type>float</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>lengthSoftening</name>
     !#   <source>parameters</source>
     !#   <description>The softening length to use for two-body relaxation calculations.</description>
-    !#   <type>float</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>timeStart</name>
     !#   <source>parameters</source>
     !#   <description>The time at which two-body relaxation is assumed to have begun.</description>
-    !#   <type>float</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>efficiency</name>
     !#   <source>parameters</source>
     !#   <description>The fractional efficiency of two-body relaxation heating.</description>
-    !#   <type>float</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     self=darkMatterProfileHeatingTwoBodyRelaxation(massParticle,lengthSoftening,timeStart,efficiency)
     !# <inputParametersValidate source="parameters"/>
@@ -102,9 +94,8 @@ contains
     !% circular velocity at $r$. The Coulomb logarithm is given by $\log\Lambda=\hbox{max}(\epsilon,b_{90})$ where $\epsilon$ is
     !% the softening length, $b_{90}=2\mathrm{G}m_\mathrm{p}/V^2(r)$, and $m_\mathrm{p}$ is the particle mass. Finally, the
     !% specific energy is assumed to be $\sigma^2(r)/2\approx V^2(r)/4$.
-    use :: Galacticus_Nodes                , only : nodeComponentBasic             , treeNode
-    use :: Numerical_Constants_Astronomical, only : gigaYear                       , megaParsec
-    use :: Numerical_Constants_Physical    , only : gravitationalConstantGalacticus
+    use :: Galacticus_Nodes                , only : nodeComponentBasic, treeNode
+    use :: Numerical_Constants_Astronomical, only : gigaYear          , megaParsec, gravitationalConstantGalacticus
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     class           (darkMatterProfileHeatingTwoBodyRelaxation), intent(inout) :: self
@@ -156,8 +147,8 @@ contains
 
   double precision function twoBodyRelaxationSpecificEnergyGradient(self,node,darkMatterProfileDMO_,radius)
     !% Returns the gradient of the specific energy of heating in the given {\normalfont \ttfamily node}.
-    use :: Galacticus_Nodes            , only : nodeComponentBasic             , treeNode
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Galacticus_Nodes                , only : nodeComponentBasic             , treeNode
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (darkMatterProfileHeatingTwoBodyRelaxation), intent(inout) :: self
     type            (treeNode                                 ), intent(inout) :: node
@@ -235,7 +226,7 @@ contains
     type (treeNode                                 ), intent(inout) :: node
     class(darkMatterProfileDMOClass                ), intent(inout) :: darkMatterProfileDMO_
     class(nodeComponentBasic                       ), pointer       :: basic
-    !GCC$ attributes unused :: self, darkMatterProfileDMO_
+    !$GLC attributes unused :: self, darkMatterProfileDMO_
 
     basic                                           => node %basic()
     twoBodyRelaxationSpecificEnergyIsEverywhereZero =  basic%time () <= self%timeStart

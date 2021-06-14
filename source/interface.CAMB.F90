@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -48,11 +48,12 @@ contains
 
   subroutine Interface_CAMB_Initialize(cambPath,cambVersion,static)
     !% Initialize the interface with CAMB, including downloading and compiling CAMB if necessary.
-    use :: File_Utilities    , only : File_Exists
-    use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWorking
+    use :: Display           , only : displayMessage         , verbosityLevelWorking
+    use :: File_Utilities    , only : Directory_Make         , File_Exists          , File_Lock   , File_Unlock, &
+          &                           lockDescriptor
     use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: Galacticus_Paths  , only : galacticusPath            , pathTypeDataDynamic
-    use :: ISO_Varying_String, only : assignment(=)             , char               , operator(//), replace, &
+    use :: Galacticus_Paths  , only : galacticusPath         , pathTypeDataDynamic
+    use :: ISO_Varying_String, only : assignment(=)          , char                 , operator(//), replace    , &
           &                           varying_string
     use :: System_Command    , only : System_Command_Do
     implicit none
@@ -60,6 +61,7 @@ contains
     logical                , intent(in   ), optional :: static
     integer                                          :: status  , flagsLength
     type   (varying_string)                          :: command
+    type   (lockDescriptor)                          :: fileLock
     !# <optionalArgument name="static" defaultsTo=".false." />
 
     ! Set path and version
@@ -67,29 +69,32 @@ contains
     cambVersion="?"
     ! Build the CAMB code.
     if (.not.File_Exists(cambPath//"camb")) then
+       call Directory_Make(cambPath)
+       call File_Lock(char(cambPath//"camb"),fileLock,lockIsShared=.false.)
        ! Unpack the code.
-       if (.not.File_Exists(cambPath)) then
+       if (.not.File_Exists(cambPath//"Makefile")) then
           ! Download CAMB if necessary.
           if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CAMB.tar.gz")) then
-             call Galacticus_Display_Message("downloading CAMB code....",verbosityWorking)
+             call displayMessage("downloading CAMB code....",verbosityLevelWorking)
              call System_Command_Do("wget http://camb.info/CAMB.tar.gz -O "//galacticusPath(pathTypeDataDynamic)//"CAMB.tar.gz",status)
              if (status /= 0 .or. .not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CAMB.tar.gz")) call Galacticus_Error_Report("unable to download CAMB"//{introspection:location})
           end if
-          call Galacticus_Display_Message("unpacking CAMB code....",verbosityWorking)
+          call displayMessage("unpacking CAMB code....",verbosityLevelWorking)
           call System_Command_Do("tar -x -v -z -C "//galacticusPath(pathTypeDataDynamic)//" -f "//galacticusPath(pathTypeDataDynamic)//"CAMB.tar.gz");
           if (status /= 0 .or. .not.File_Exists(cambPath)) call Galacticus_Error_Report('failed to unpack CAMB code'//{introspection:location})
        end if
-       call Galacticus_Display_Message("compiling CAMB code",verbosityWorking)
+       call displayMessage("compiling CAMB code",verbosityLevelWorking)
        command='cd '//cambPath//'; sed -r -i~ s/"ifortErr\s*=.*"/"ifortErr = 1"/ Makefile; sed -r -i~ s/"gfortErr\s*=.*"/"gfortErr = 0"/ Makefile; sed -r -i~ s/"^FFLAGS\s*\+=\s*\-march=native"/"FFLAGS+="/ Makefile; sed -r -i~ s/"^FFLAGS\s*=\s*.*"/"FFLAGS = -Ofast -fopenmp'
        if (static_) then
           ! Include Galacticus compilation flags here - may be necessary for static linking.
           call Get_Environment_Variable("GALACTICUS_FCFLAGS",length=flagsLength,status=status)
           if (status  == 0) command=command//" "//flagsRetrieve(flagsLength)
-          command=command//" -static"
+          command=command//" -static -Wl,--whole-archive -lpthread -Wl,--no-whole-archive"
        end if
        command=command//'"/ Makefile; find . -name "*.f90" | xargs sed -r -i~ s/"error stop"/"error stop "/; make -j1 camb'
        call System_Command_Do(char(command),status);
        if (status /= 0 .or. .not.File_Exists(cambPath//"camb")) call Galacticus_Error_Report("failed to build CAMB code"//{introspection:location})
+       call File_Unlock(fileLock)
     end if
     return
 
@@ -112,22 +117,22 @@ contains
   subroutine Interface_CAMB_Transfer_Function(cosmologyParameters_,redshifts,wavenumberRequired,wavenumberMaximum,countPerDecade,fileName,wavenumberMaximumReached,transferFunctionDarkMatter,transferFunctionBaryons)
     !% Run CAMB as necessary to compute transfer functions.
     use               :: Cosmology_Parameters            , only : cosmologyParametersClass    , hubbleUnitsLittleH
-    use               :: FGSL                            , only : FGSL_Interp_cSpline
-    use               :: File_Utilities                  , only : Count_Lines_In_File         , Directory_Make     , File_Exists , File_Lock     , &
-          &                                                       File_Path                   , File_Remove        , File_Unlock , lockDescriptor
+    use               :: File_Utilities                  , only : Count_Lines_In_File         , Directory_Make     , File_Exists   , File_Lock     , &
+          &                                                       File_Path                   , File_Remove        , File_Unlock   , lockDescriptor
     use               :: Galacticus_Error                , only : Galacticus_Error_Report
     use               :: Galacticus_Paths                , only : galacticusPath              , pathTypeDataDynamic
     use               :: HDF5                            , only : hsize_t
     use               :: Hashes_Cryptographic            , only : Hash_MD5
     use               :: IO_HDF5                         , only : hdf5Access                  , hdf5Object
     use   , intrinsic :: ISO_C_Binding                   , only : c_size_t
-    use               :: ISO_Varying_String              , only : assignment(=)               , char               , extract     , len        , &
-          &                                                       operator(==)                , varying_string     , operator(//)
+    use               :: ISO_Varying_String              , only : assignment(=)               , char               , extract       , len           , &
+          &                                                       operator(//)                , operator(==)       , varying_string
     use               :: Input_Parameters                , only : inputParameters
     use               :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial
+    use               :: Numerical_Interpolation         , only : GSL_Interp_cSpline
     !$ use            :: OMP_Lib                         , only : OMP_Get_Thread_Num
-    use               :: Sort                            , only : Sort_Index_Do
-    use               :: String_Handling                 , only : operator(//)                , String_C_To_Fortran
+    use               :: Sorting                         , only : sortIndex
+    use               :: String_Handling                 , only : String_C_To_Fortran         , operator(//)
     use               :: System_Command                  , only : System_Command_Do
     use               :: Table_Labels                    , only : extrapolationTypeExtrapolate
     use               :: Tables                          , only : table                       , table1DGeneric
@@ -169,7 +174,7 @@ contains
     ! Build a sorted array of all redshift labels.
     allocate(redshiftRanks (size(redshifts)))
     allocate(redshiftLabels(size(redshifts)))
-    redshiftRanks=Sort_Index_Do(redshifts)
+    redshiftRanks=sortIndex(redshifts)
     do i=1,size(redshifts)
        write (redshiftLabels(i),'(f9.4)') redshifts(redshiftRanks(i))
     end do
@@ -254,7 +259,7 @@ contains
        end do
        allocate(redshiftRanksCombined (size(redshiftsCombined)))
        allocate(redshiftLabelsCombined(size(redshiftsCombined)))
-       redshiftRanksCombined=Sort_Index_Do(redshiftsCombined)
+       redshiftRanksCombined=sortIndex(redshiftsCombined)
        do i=1,size(redshiftsCombined)
           write (redshiftLabelsCombined(i),'(f9.4)') redshiftsCombined(redshiftRanksCombined(i))
        end do
@@ -478,7 +483,7 @@ contains
             &                                                    extrapolationTypeExtrapolate, &
             &                                                    extrapolationTypeExtrapolate  &
             &                                                   ]                            , &
-            &                                 interpolationType=FGSL_Interp_cSpline            &
+            &                                 interpolationType=GSL_Interp_cSpline             &
             &                                )
        deallocate(wavenumbersLogarithmic)
        speciesGroup=cambOutput%openGroup('darkMatter')
@@ -505,7 +510,7 @@ contains
             &                                                    extrapolationTypeExtrapolate, &
             &                                                    extrapolationTypeExtrapolate  &
             &                                                   ]                            , &
-            &                                 interpolationType=FGSL_Interp_cSpline            &
+            &                                 interpolationType=GSL_Interp_cSpline             &
             &                                )
        deallocate(wavenumbersLogarithmic)
        speciesGroup=cambOutput%openGroup('baryons')

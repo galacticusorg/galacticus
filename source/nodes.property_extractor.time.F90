@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -46,7 +46,7 @@ contains
     implicit none
     type (nodePropertyExtractorTime)                :: self
     type (inputParameters          ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
     
     self=nodePropertyExtractorTime()
     return
@@ -60,7 +60,7 @@ contains
     type (treeNode                 ), intent(inout), target   :: node
     type (multiCounter             ), intent(inout), optional :: instance
     class(nodeComponentBasic       ), pointer                 :: basic
-    !GCC$ attributes unused :: self, instance
+    !$GLC attributes unused :: self, instance
 
     basic       => node %basic()
     timeExtract =  basic%time ()
@@ -72,7 +72,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorTime), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     timeType=outputAnalysisPropertyTypeLinear
     return
@@ -83,7 +83,7 @@ contains
     implicit none
     type (varying_string           )                :: timeName
     class(nodePropertyExtractorTime), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     timeName=var_str('time')
     return
@@ -94,7 +94,7 @@ contains
     implicit none
     type (varying_string           )                :: timeDescription
     class(nodePropertyExtractorTime), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     timeDescription=var_str('The cosmic time at which the node exists.')
     return
@@ -105,7 +105,7 @@ contains
     use :: Numerical_Constants_Astronomical, only : gigaYear
     implicit none
     class(nodePropertyExtractorTime), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     timeUnitsInSI=gigaYear
     return

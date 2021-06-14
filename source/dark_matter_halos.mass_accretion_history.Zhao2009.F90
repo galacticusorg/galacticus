@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -24,7 +24,18 @@
   use :: Linear_Growth             , only : linearGrowth                 , linearGrowthClass
 
   !# <darkMatterHaloMassAccretionHistory name="darkMatterHaloMassAccretionHistoryZhao2009">
-  !#  <description>Dark matter halo mass accretion histories using the \cite{zhao_accurate_2009} algorithm.</description>
+  !#  <description>
+  !#   A dark matter halo mass accretion history class which uses the algorithm given by \cite{zhao_accurate_2009} to compute mass
+  !#   accretion histories. In particular, \cite{zhao_accurate_2009} give a fitting function for the quantity $\mathrm{d} \ln
+  !#   \sigma(M)/\mathrm{d} \ln \delta_\mathrm{c}(t)$ for the dimensionless growth rate in a mass accretion history at time $t$
+  !#   and halo mass $M$. This is converted to a dimensionful growth rate using
+  !#   \begin{equation}
+  !#    {\mathrm{d} M \over \mathrm{d} t} = \left({\mathrm{d} \ln \sigma(M) \over \mathrm{d} \ln M}\right)^{-1} \left({\mathrm{d}
+  !#    \delta_c(t) \over \mathrm{d} t}\right) \left( {M \over \delta_\mathrm{c}(t)} \right) \left({\mathrm{d} \ln \sigma(M) \over
+  !#    \mathrm{d} \ln \delta_\mathrm{c}(t)}\right).
+  !#   \end{equation}
+  !#   This differential equation is then solved numerically to find the mass accretion history.
+  !#  </description>
   !# </darkMatterHaloMassAccretionHistory>
   type, extends(darkMatterHaloMassAccretionHistoryClass) :: darkMatterHaloMassAccretionHistoryZhao2009
      !% A dark matter halo mass accretion historiy class using the \cite{zhao_accurate_2009} algorithm.
@@ -34,8 +45,9 @@
      class(linearGrowthClass            ), pointer :: linearGrowth_             => null()
      class(cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_       => null()
    contains
-     final     ::         zhao2009Destructor
-     procedure :: time => zhao2009Time
+     final     ::                      zhao2009Destructor
+     procedure :: time              => zhao2009Time
+     procedure :: massAccretionRate => zhao2009MassAccretionRate
   end type darkMatterHaloMassAccretionHistoryZhao2009
 
   interface darkMatterHaloMassAccretionHistoryZhao2009
@@ -98,29 +110,24 @@ contains
 
   double precision function zhao2009Time(self,node,mass)
     !% Compute the time corresponding to {\normalfont \ttfamily mass} in the mass accretion history of {\normalfont \ttfamily
-    !% thisNode} using the algorithm of \cite{zhao_accurate_2009}.
-    use :: FGSL            , only : FGSL_Success           , fgsl_odeiv_control, fgsl_odeiv_evolve, fgsl_odeiv_step, &
-          &                         fgsl_odeiv_system
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Galacticus_Nodes, only : nodeComponentBasic     , treeNode
-    use :: ODE_Solver      , only : ODE_Solve
+    !% node} using the algorithm of \cite{zhao_accurate_2009}.
+    use :: Galacticus_Error     , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes     , only : nodeComponentBasic     , treeNode
+    use :: Interface_GSL        , only : GSL_Success
+    use :: Numerical_ODE_Solvers, only : odeSolver
     implicit none
-    class           (darkMatterHaloMassAccretionHistoryZhao2009), intent(inout) :: self
-    type            (treeNode                                  ), intent(inout) :: node
-    double precision                                            , intent(in   ) :: mass
-    class           (nodeComponentBasic                        ), pointer       :: baseBasicComponent
-    double precision                                            , parameter     :: odeToleranceAbsolute          =1.0d-10, odeToleranceRelative =1.0d-10
-    double precision                                            , dimension(1)  :: nowTime
-    double precision                                                            :: baseMass                              , baseTime                     , &
-       &                                                                           dSigmadMassLogarithmicObserved        , deltaCriticalObserved        , &
-       &                                                                           pObserved                             , sObserved                    , &
-       &                                                                           sigmaObserved                         , wObserved                    , &
-       &                                                                           currentMass
-    type            (fgsl_odeiv_step                           )                :: odeStepper
-    type            (fgsl_odeiv_control                        )                :: odeController
-    type            (fgsl_odeiv_evolve                         )                :: odeEvolver
-    type            (fgsl_odeiv_system                         )                :: odeSystem
-    logical                                                                     :: odeReset                      =.true.
+    class           (darkMatterHaloMassAccretionHistoryZhao2009), intent(inout), target :: self
+    type            (treeNode                                  ), intent(inout), target :: node
+    double precision                                            , intent(in   )         :: mass
+    class           (nodeComponentBasic                        ), pointer               :: baseBasicComponent
+    double precision                                            , parameter             :: odeToleranceAbsolute          =1.0d-10, odeToleranceRelative =1.0d-10
+    double precision                                            , dimension(1)          :: nowTime
+    double precision                                                                    :: baseMass                              , baseTime                     , &
+       &                                                                                   dSigmadMassLogarithmicObserved        , deltaCriticalObserved        , &
+       &                                                                                   pObserved                             , sObserved                    , &
+       &                                                                                   sigmaObserved                         , wObserved                    , &
+       &                                                                                   currentMass
+    type            (odeSolver                                 )                        :: solver
 
     ! Get properties of the base node.
     baseBasicComponent => node%basic()
@@ -142,9 +149,8 @@ contains
     ! Solve the ODE for the mass evolution.
     nowTime(1) =baseTime
     currentMass=baseMass
-    call ODE_Solve(odeStepper,odeController,odeEvolver,odeSystem,currentMass,mass,1,nowTime &
-         &,growthRateODEs,odeToleranceAbsolute,odeToleranceRelative,reset=odeReset)
-    odeReset=.true.
+    solver     =odeSolver(1_c_size_t,growthRateODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative)    
+    call solver%solve(currentMass,mass,nowTime)
     ! Extract the time corresponding to the specified mass.
     zhao2009Time=nowTime(1)
     return
@@ -165,7 +171,7 @@ contains
       ! Trap unphysical cases.
       if (nowTime(1) <= 0.0d0 .or. nowTime(1) > baseTime .or. mass <= 0.0d0) then
          dNowTimedMass(1)=0.0d0
-         growthRateODEs=FGSL_Success
+         growthRateODEs=GSL_Success
          return
       end if
       ! Get sigma(M) and its logarithmic derivative.
@@ -191,7 +197,22 @@ contains
       ! Convert to dimensionful units.
       dNowTimedMass(1)=(dSigmadMassLogarithmicNow/dDeltaCriticaldtNow)*(deltaCriticalNow/mass)/dSigmadDeltaCriticalLogarithmic
       ! Report success.
-      growthRateODEs=FGSL_Success
+      growthRateODEs=GSL_Success
     end function growthRateODEs
 
   end function zhao2009Time
+
+  double precision function zhao2009MassAccretionRate(self,node,time)
+    !% Compute the mass accretion rate at the given {\normalfont \ttfamily mass} in the mass accretion history of {\normalfont
+    !% \ttfamily node} using the algorithm of \cite{zhao_accurate_2009}.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
+    class           (darkMatterHaloMassAccretionHistoryZhao2009), intent(inout) :: self
+    type            (treeNode                                  ), intent(inout) :: node
+    double precision                                            , intent(in   ) :: time
+    !$GLC attributes unused :: self, node, time
+
+    zhao2009MassAccretionRate=0.0d0
+    call Galacticus_Error_Report('mass accretion rate is not implemented'//{introspection:location})
+    return
+  end function zhao2009MassAccretionRate

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,7 +23,28 @@
   use :: Tables                    , only : table1DLogarithmicLinear
 
   !# <mergerTreeBranchingProbability name="mergerTreeBranchingProbabilityParkinsonColeHelly">
-  !#  <description>Merger tree branching probabilities using the algorithm of \cite{parkinson_generating_2008}..</description>
+  !#  <description>
+  !#   A merger tree branching probability class using the algorithm of \cite{parkinson_generating_2008}. The parameters $G_0$,
+  !#   $\gamma_1$ and $\gamma_2$ of their algorithm are specified by the input parameters {\normalfont \ttfamily [G0]},
+  !#   {\normalfont \ttfamily [gamma]} and {\normalfont \ttfamily [gamma2]} respectively. Additionally, the parameter {\normalfont
+  !#   \ttfamily modifiedPressSchechterFirstOrderAccuracy} limits the step in $\delta_\mathrm{crit}$ so that it never exceeds
+  !#   {\normalfont \ttfamily modifiedPressSchechterFirstOrderAccuracy}$\sqrt{2[\sigma^2(M_2/2)-\sigma^2(M_2)]}$, which ensures
+  !#   the the first order expansion of the merging rate that is assumed is accurate. To find bounds on the branching probability,
+  !#   we make use of the fact that eqn.~(4) of \cite{parkinson_generating_2008} can be written as
+  !#   \begin{equation}
+  !#    {\d f \over \d t} = {\mathrm{d} t \over \mathrm{d}\omega} \int_{M_\mathrm{min}}^{M/2} {M \over M^\prime} {\d f \over \d t}
+  !#    {\d S \over \d M^\prime} \left| {\d t \over \d \omega}\right| G[\omega,\sigma(M),\sigma(M^\prime)] \d M^\prime.
+  !#   \end{equation}
+  !#   By holding the $M^\prime$ in the denominator of the first term in the integrand fixed, we obtain an analytic solution to
+  !#   the integral in terms of hypergeometric functions. If we fix this $M^\prime$ at $M_\mathrm{min}$ we obtain an upper limit
+  !#   on the branching probability, while if we fix it to $M/2$ a lower limit is obtained.
+  !#
+  !#   Calculation of branching probabilities involves computation of several hypergeometric functions which are numerically
+  !#   slow. Two parameters control the accuracy and application of these functions. First, {\normalfont \ttfamily
+  !#   [precisionHypergeometric]}($=10^{-6}$) specifies the fractional tolerance to which these functions should be
+  !#   computed. Second, if {\normalfont \ttfamily [hypergeometricTabulate]}$=${\normalfont \ttfamily true} then these functions
+  !#   will be tabulated for rapid lookup (at some loss of precision).
+  !#  </description>
   !# </mergerTreeBranchingProbability>
   type, extends(mergerTreeBranchingProbabilityClass) :: mergerTreeBranchingProbabilityParkinsonColeHelly
      !% A merger tree branching probability class using the algorithm of \cite{parkinson_generating_2008}.
@@ -49,16 +70,17 @@
      class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_              => null()
      class           (criticalOverdensityClass     ), pointer :: criticalOverdensity_                   => null()
    contains
-     !@ <objectMethods>
-     !@   <object>mergerTreeBranchingProbabilityParkinsonColeHelly</object>
-     !@   <objectMethod>
-     !@     <method>computeCommonFactors</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ deltaParent\argin, \doublezero\ massHaloParent\argin</arguments>
-     !@     <description>Compute common factors needed for the calculations.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Compute common factors needed for the calculations." method="computeCommonFactors" />
+     !#   <method description="Compute the function $V(q)$ from \cite{parkinson_generating_2008}." method="V" />
+     !#   <method description="Compute the part of the modifier term which depends on $\sigma_\mathrm{s}$." method="modifier" />
+     !#   <method description="Compute the $a$ parameter of the hypergeometric function." method="hypergeometricA" />
+     !# </methods>
      final     ::                          parkinsonColeHellyDestructor
+     procedure :: V                     => parkinsonColeHellyV
+     procedure :: modifier              => parkinsonColeHellyModifier
+     procedure :: hypergeometricA       => parkinsonColeHellyHypergeometricA
+     procedure :: rate                  => parkinsonColeHellyRate
      procedure :: probability           => parkinsonColeHellyProbability
      procedure :: probabilityBound      => parkinsonColeHellyProbabilityBound
      procedure :: fractionSubresolution => parkinsonColeHellyFractionSubresolution
@@ -101,60 +123,46 @@ contains
     ! Check and read parameters.
     !# <inputParameter>
     !#   <name>G0</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.57d0</defaultValue>
     !#   <description>The parameter $G_0$ appearing in the modified merger rate expression of \cite{parkinson_generating_2008}.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>gamma1</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.38d0</defaultValue>
     !#   <description>The parameter $\gamma_1$ appearing in the modified merger rate expression of \cite{parkinson_generating_2008}.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>gamma2</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>-0.01d0</defaultValue>
     !#   <description>The parameter $\gamma_2$ appearing in the modified merger rate expression of \cite{parkinson_generating_2008}.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>accuracyFirstOrder</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.1d0</defaultValue>
     !#   <description>Limits the step in $\delta_\mathrm{crit}$ when constructing merger trees using the \cite{parkinson_generating_2008}
     !#      algorithm, so that it never exceeds {\normalfont \ttfamily accuracyFirstOrder}$\sqrt{2[\sigma^2(M_2/2)-\sigma^2(M_2)]}$.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>precisionHypergeometric</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d-6</defaultValue>
     !#   <description>The fractional precision required in evaluates of hypergeometric functions in the modified Press-Schechter tree branching calculations.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>hypergeometricTabulate</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>Specifies whether hypergeometric factors should be precomputed and tabulated in modified Press-Schechter tree branching functions.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>cdmAssumptions</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>If true, assume that $\alpha(=-\mathrm{d}\log \sigma/\mathrm{d}\log M)&gt;0$ and $\mathrm{d}\alpha/\mathrm{d}M&gt;0$ (as is true in the case of \gls{cdm}) when constructing merger trees using the \cite{parkinson_generating_2008}.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
@@ -178,6 +186,9 @@ contains
     class           (criticalOverdensityClass                        ), intent(in   ), target :: criticalOverdensity_
     !# <constructorAssign variables="G0, gamma1, gamma2, accuracyFirstOrder, precisionHypergeometric, hypergeometricTabulate, cdmAssumptions, *cosmologicalMassVariance_, *criticalOverdensity_"/>
 
+    ! Validate inputs.
+    if (gamma1 == 1.0d0) call Galacticus_Error_Report('γ₁=1 leads to divergent integrals'//{introspection:location})
+    ! Initialize.
     self%subresolutionHypergeometricInitialized=.false.
     self%upperBoundHypergeometricInitialized   =.false.
     self%massResolutionTabulated               =-1.0d0
@@ -215,7 +226,7 @@ contains
          &                                                                                       halfPowerEta                  , x                     , &
          &                                                                                       massFraction                  , resolutionSigma       , &
          &                                                                                       massFractionResolutionPowerEta
-    !GCC$ attributes unused :: node
+    !$GLC attributes unused :: node
 
     ! Simply branch to the relevant function.
     if (self%cdmAssumptions) then
@@ -241,18 +252,18 @@ contains
       self%sigmaParentSquared=self%cosmologicalMassVariance_%rootVariance  (time               =self%timeParent   ,mass=haloMass          )**2
       call self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(0.5d0*haloMass,self%timeParent,halfMassSigma,halfMassAlpha)
       ! Compute parameters beta, mu, and B.
-      massFractionResolution=+massResolution                 &
+      massFractionResolution=+massResolution                               &
            &                 /haloMass
-      halfMassV             =+V(0.5d0)
-      beta                  =+log(                           &
-           &                      +V(massFractionResolution) &
-           &                      /halfMassV                 &
-           &                     )                           &
-           &                 /log(                           &
-           &                      +massFractionResolution    &
-           &                      /0.5d0                     &
+      halfMassV             =+self%V(0.5d0,haloMass)
+      beta                  =+log(                                         &
+           &                      +self%V(massFractionResolution,haloMass) &
+           &                      /halfMassV                               &
+           &                     )                                         &
+           &                 /log(                                         &
+           &                      +massFractionResolution                  &
+           &                      /0.5d0                                   &
            &                     )
-      B                     =+halfMassV                      &
+      B                     =+halfMassV                                    &
            &                 *2.0d0    **beta
       if (self%gamma1 >= 0.0d0) then
          mu                 =-halfMassAlpha
@@ -297,51 +308,36 @@ contains
       double precision                :: massFractionSigma, massFractionAlpha
 
       call self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(massFraction*haloMass,self%timeParent,massFractionSigma,massFractionAlpha)
-      R      =+(                   &
-           &    +massFractionAlpha &
-           &    /halfMassAlpha     &
-           &   )                   &
-           &  *V(massFraction)     &
-           &  /B                   &
-           &  /massFraction**beta  &
-           &  *(                   &
-           &    +(                 &
-           &      +2.0d0           &
-           &      *massFraction    &
-           &     )**mu             &
-           &    *massFractionSigma &
-           &    /halfMassSigma     &
+      R      =+(                             &
+           &    +massFractionAlpha           &
+           &    /halfMassAlpha               &
+           &   )                             &
+           &  *self%V(massFraction,haloMass) &
+           &  /B                             &
+           &  /massFraction**beta            &
+           &  *(                             &
+           &    +(                           &
+           &      +2.0d0                     &
+           &      *massFraction              &
+           &     )**mu                       &
+           &    *massFractionSigma           &
+           &    /halfMassSigma               &
            &   )**self%gamma1
       return
     end function R
-
-    double precision function V(massFraction)
-      !% The function $V(q)$ from \cite[][eqn. A4]{parkinson_generating_2008}.
-      implicit none
-      double precision, intent(in   ) :: massFraction
-      double precision                :: childSigmaSquared
-
-      childSigmaSquared=self%cosmologicalMassVariance_%rootVariance(massFraction*haloMass,self%timeParent)**2
-      V                =+       childSigmaSquared  &
-           &            /(                         &
-           &              +     childSigmaSquared  &
-           &              -self%sigmaParentSquared &
-           &             )**1.5d0
-      return
-    end function V
 
     double precision function massBranchGeneric()
       !% Determine the mass of one of the halos to which the given halo branches, given the branching probability, {\normalfont
       !% \ttfamily probability}. Typically, {\normalfont \ttfamily probabilityFraction} is found by multiplying {\normalfont \ttfamily probability}
       !% by a random variable drawn in the interval 0--1 if a halo branches. This routine then finds the progenitor mass
       !% corresponding to this value.
-      use :: FGSL       , only : FGSL_Root_fSolver_Brent
-      use :: Root_Finder, only : rootFinder
+      use :: Root_Finder, only : GSL_Root_fSolver_Brent, rootFinder
       implicit none
-      double precision            , parameter :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-9
+      double precision            , parameter :: toleranceAbsolute=0.0d0  , toleranceRelative=1.0d-9
       type            (rootFinder), save      :: finder
-      !$omp threadprivate(finder)
-      double precision                        :: logMassMinimum         , logMassMaximum
+      logical                     , save      :: finderConstructed=.false.
+      !$omp threadprivate(finder,finderConstructed)
+      double precision                        :: logMassMinimum           , logMassMaximum
 
       ! Initialize global variables.
       call self%computeCommonFactors(deltaCritical,time,haloMass,node)
@@ -357,17 +353,14 @@ contains
          massBranchGeneric=0.5d0*haloMass
       else
          ! Initialize our root finder.
-         if (.not.finder%isInitialized()) then
-            call finder%rootFunction(                                  &
-                 &                   parkinsonColeHellyMassBranchRoot  &
-                 &                  )
-            call finder%tolerance   (                                  &
-                 &                   toleranceAbsolute               , &
-                 &                   toleranceRelative                 &
-                 &                  )
-            call finder%type        (                                  &
-                 &                   FGSL_Root_fSolver_Brent           &
-                 &                  )
+         if (.not.finderConstructed) then
+            finder           =rootFinder(                                                    &
+                 &                       rootFunction     =parkinsonColeHellyMassBranchRoot, &
+                 &                       toleranceAbsolute=toleranceAbsolute               , &
+                 &                       toleranceRelative=toleranceRelative,                &
+                 &                       solverType       =GSL_Root_fSolver_Brent            &
+                 &                      )
+            finderConstructed=.true.
          end if
          ! Split is not binary - seek the actual mass of the smaller progenitor.
          logMassMinimum                                   =log(      massResolution)
@@ -382,15 +375,29 @@ contains
 
   end function parkinsonColeHellyMassBranch
 
+  double precision function parkinsonColeHellyV(self,massFraction,haloMass)
+    !% The function $V(q)$ from \cite[][eqn. A4]{parkinson_generating_2008}.
+    implicit none
+    class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout) :: self
+    double precision                                                  , intent(in   ) :: massFraction     , haloMass
+    double precision                                                                  :: childSigmaSquared
+
+    childSigmaSquared  =+self%cosmologicalMassVariance_%rootVariance(massFraction*haloMass,self%timeParent)**2
+    parkinsonColeHellyV=+       childSigmaSquared  &
+         &              /(                         &
+         &                +     childSigmaSquared  &
+         &                -self%sigmaParentSquared &
+         &               )**1.5d0
+    return
+  end function parkinsonColeHellyV
+
   double precision function parkinsonColeHellyMassBranchRoot(logMassMaximum)
     !% Used to find the mass of a merger tree branching event.
-    use :: FGSL                 , only : FGSL_Integ_Gauss15, fgsl_function , fgsl_integration_workspace
-    use :: Numerical_Integration, only : Integrate         , Integrate_Done
+    use :: Numerical_Integration, only : GSL_Integ_Gauss15, integrator
     implicit none
-    double precision                            , intent(in   ) :: logMassMaximum
-    type            (fgsl_function             )                :: integrandFunction
-    type            (fgsl_integration_workspace)                :: integrationWorkspace
-    double precision                                            :: integral            , massMaximum
+    double precision            , intent(in   ) :: logMassMaximum
+    type            (integrator)                :: integrator_
+    double precision                            :: integral      , massMaximum
 
     if      (logMassMaximum < parkinsonColeHellySelf%probabilityMinimumMassLog) then
        parkinsonColeHellyMassBranchRoot=parkinsonColeHellySelf%probabilitySeek   +parkinsonColeHellySelf%probabilityGradientMinimum*(logMassMaximum-parkinsonColeHellySelf%probabilityMinimumMassLog)
@@ -398,18 +405,13 @@ contains
        parkinsonColeHellyMassBranchRoot=parkinsonColeHellySelf%probabilityMaximum+parkinsonColeHellySelf%probabilityGradientMaximum*(logMassMaximum-parkinsonColeHellySelf%probabilityMaximumMassLog)
     else
        massMaximum=+exp(logMassMaximum)
-       integral   =+parkinsonColeHellySelf%branchingProbabilityPreFactor                              &
-            &      *Integrate(                                                                        &
-            &                                      parkinsonColeHellySelf%probabilityMinimumMassLog , &
-            &                                      logMassMaximum                                   , &
-            &                                      parkinsonColeHellyProbabilityIntegrandLogarithmic, &
-            &                                      integrandFunction                                , &
-            &                                      integrationWorkspace                             , &
-            &                 toleranceAbsolute   =0.0d0                                            , &
-            &                 toleranceRelative   =parkinsonColeHellyIntegrandToleranceRelative     , &
-            &                 integrationRule     =FGSL_Integ_Gauss15                                 &
-            &                )
-       call Integrate_Done(integrandFunction,integrationWorkspace)
+       integrator_= integrator                                          (                                                                     &
+            &                                                                              parkinsonColeHellyProbabilityIntegrandLogarithmic, &
+            &                                                            toleranceRelative=parkinsonColeHellyIntegrandToleranceRelative     , &
+            &                                                            integrationRule  =GSL_Integ_Gauss15                                  &
+            &                                                           )
+       integral   =+parkinsonColeHellySelf%branchingProbabilityPreFactor                                                                      &
+            &      *integrator_           %integrate                    (parkinsonColeHellySelf%probabilityMinimumMassLog,logMassMaximum)
        parkinsonColeHellyMassBranchRoot=parkinsonColeHellySelf%probabilitySeek-integral
     end if
     return
@@ -442,7 +444,7 @@ contains
          &                                                                               massResolution            , time
     double precision                                                  , parameter     :: largeStep          =1.0d10                 !   Effectively infinitely large step in w(=delta_crit).
     double precision                                                                  :: parentHalfMassSigma       , parentSigma
-    !GCC$ attributes unused :: deltaCritical, time
+    !$GLC attributes unused :: deltaCritical, time
 
     ! Get sigma and delta_critical for the parent halo.
     if (haloMass > 2.0d0*massResolution) then
@@ -462,20 +464,42 @@ contains
     return
   end function parkinsonColeHellyStepMaximum
 
+  double precision function parkinsonColeHellyRate(self,mass,deltaCritical,time,massBranch,node)
+    !% Return the rate per unit mass and per unit change in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time
+    !% {\normalfont \ttfamily deltaCritical} will undergo a branching to progenitors with mass {\normalfont \ttfamily massBranch}.
+    implicit none
+    class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout), target :: self
+    double precision                                                  , intent(in   )         :: deltaCritical , mass, &
+         &                                                                                       massBranch    , time
+    type            (treeNode                                        ), intent(inout), target :: node
+    double precision                                                                          :: massBranch_
+    
+    ! Always use the rate from the lower half of the mass range.
+    if (massBranch > 0.5d0*mass) then
+       massBranch_=+mass-massBranch
+    else
+       massBranch_=     +massBranch
+    end if
+    call self%computeCommonFactors(deltaCritical,time,mass,node)
+    parkinsonColeHellySelf =>  self
+    parkinsonColeHellyRate =  +self%branchingProbabilityPreFactor                                  &
+         &                    *parkinsonColeHellyProbabilityIntegrandLogarithmic(log(massBranch_)) &
+         &                    /massBranch_
+    return
+  end function parkinsonColeHellyRate
+
   double precision function parkinsonColeHellyProbability(self,haloMass,deltaCritical,time,massResolution,node)
     !% Return the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time
     !% {\normalfont \ttfamily deltaCritical} will undergo a branching to progenitors with mass greater than {\normalfont \ttfamily massResolution}.
-    use :: FGSL                 , only : FGSL_Integ_Gauss15, fgsl_function , fgsl_integration_workspace
-    use :: Numerical_Integration, only : Integrate         , Integrate_Done
+    use :: Numerical_Integration, only : GSL_Integ_Gauss15, integrator
     implicit none
     class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout), target :: self
-    double precision                                                  , intent(in   )         :: deltaCritical       , haloMass   , &
-         &                                                                                       massResolution      , time
+    double precision                                                  , intent(in   )         :: deltaCritical , haloMass   , &
+         &                                                                                       massResolution, time
     type            (treeNode                                        ), intent(inout), target :: node
-    type            (fgsl_function                                   )                        :: integrandFunction
-    type            (fgsl_integration_workspace                      )                        :: integrationWorkspace
-    double precision                                                                          :: massMaximum         , massMinimum
-    !GCC$ attributes unused :: node
+    type            (integrator                                      )                        :: integrator_
+    double precision                                                                          :: massMaximum   , massMinimum
+    !$GLC attributes unused :: node
 
     ! Recompute branching probability if necessary.
     if     (                                               &
@@ -494,18 +518,16 @@ contains
           call self%computeCommonFactors(deltaCritical,time,haloMass,node)
           massMinimum             =+           massResolution
           massMaximum             =+0.5d0*self%massHaloParent
-          self%probabilityPrevious=+self%branchingProbabilityPreFactor                                             &
-               &                   *Integrate(                                                                     &
-               &                                                log(massMinimum)                                 , &
-               &                                                log(massMaximum)                                 , &
-               &                                                parkinsonColeHellyProbabilityIntegrandLogarithmic, &
-               &                                                integrandFunction                                , &
-               &                                                integrationWorkspace                             , &
-               &                              toleranceAbsolute=0.0d0                                            , &
-               &                              toleranceRelative=parkinsonColeHellyIntegrandToleranceRelative     , &
-               &                              integrationRule  =FGSL_Integ_Gauss15                                 &
-               &                             )
-          call Integrate_Done(integrandFunction,integrationWorkspace)
+          integrator_             = integrator                               (                                                                     &
+               &                                                                                parkinsonColeHellyProbabilityIntegrandLogarithmic, &
+               &                                                              toleranceRelative=parkinsonColeHellyIntegrandToleranceRelative     , &
+               &                                                              integrationRule   =GSL_Integ_Gauss15                                 &
+               &                                                             )
+          self%probabilityPrevious=+self       %branchingProbabilityPreFactor                                                                      &
+               &                   *integrator_%integrate                    (                                                                     &
+               &                                                                                 log(massMinimum)                                , &
+               &                                                                                 log(massMaximum)                                  &
+               &                                                             )
        else
           self%probabilityPrevious=0.0d0
        end if
@@ -534,9 +556,9 @@ contains
     implicit none
     double precision, intent(in   ) :: childAlpha, childHaloMass, childSigma
 
-    parkinsonColeHellyProgenitorMassFunction=+parkinsonColeHellyMergingRate(childSigma   ,childAlpha)    &
-         &                                   *parkinsonColeHellyModifier   (childSigma              )    &
-         &                                   /                              childHaloMass            **2
+    parkinsonColeHellyProgenitorMassFunction=+parkinsonColeHellyMergingRate  (childSigma   ,childAlpha)    &
+         &                                   *parkinsonColeHellySelf%modifier(childSigma              )    &
+         &                                   /                                childHaloMass            **2
     return
   end function parkinsonColeHellyProgenitorMassFunction
 
@@ -556,26 +578,39 @@ contains
     return
   end function parkinsonColeHellyMergingRate
 
-  double precision function parkinsonColeHellyModifier(childSigma)
+  double precision function parkinsonColeHellyModifier(self,childSigma)
     !% Empirical modification of the progenitor mass function from \cite{parkinson_generating_2008}. The constant factors of
     !% $G_0 (\delta_\mathrm{p}/\sigma_\mathrm{p})^{\gamma_2}$ and $1/\sigma_\mathrm{p}^{\gamma_1}$ are not included
     !% here---instead they are included in a multiplicative prefactor by which integrals over this function are multiplied.
     implicit none
-    double precision, intent(in   ) :: childSigma
+    class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout) :: self
+    double precision                                                  , intent(in   ) :: childSigma
 
-    parkinsonColeHellyModifier=childSigma**parkinsonColeHellySelf%gamma1
+    parkinsonColeHellyModifier=childSigma**self%gamma1
     return
   end function parkinsonColeHellyModifier
 
+  function parkinsonColeHellyHypergeometricA(self,gamma) result(a)
+    !% Compute the $a$ parameter of the hypergeometric function.
+    implicit none
+    double precision                                                  , dimension(2)  :: a
+    class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout) :: self
+    double precision                                                  , intent(in   ) :: gamma
+    
+    a=[1.5d0,0.5d0-0.5d0*gamma]
+    return
+  end function parkinsonColeHellyHypergeometricA
+  
   double precision function parkinsonColeHellyProbabilityBound(self,haloMass,deltaCritical,time,massResolution,bound,node)
     !% Return a bound on the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily
     !% haloMass} at time {\normalfont \ttfamily deltaCritical} will undergo a branching to progenitors with mass greater than
     !% {\normalfont \ttfamily massResolution}.
-    use :: FGSL                    , only : FGSL_Int                  , FGSL_Success
-    use :: Galacticus_Display      , only : Galacticus_Display_Message, verbosityWarn
-    use :: Galacticus_Error        , only : Galacticus_Error_Report
-    use :: Hypergeometric_Functions, only : Hypergeometric_2F1
-    use :: Numerical_Constants_Math, only : Pi
+    use            :: Display                 , only : displayMessage         , verbosityLevelWarn, displayMagenta, displayReset
+    use            :: Galacticus_Error        , only : Galacticus_Error_Report
+    use            :: Hypergeometric_Functions, only : Hypergeometric_2F1
+    use, intrinsic :: ISO_C_Binding           , only : c_int
+    use            :: Interface_GSL           , only : GSL_Success
+    use            :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout)         :: self
     double precision                                                  , intent(in   )         :: deltaCritical                                , haloMass                 , &
@@ -588,10 +623,10 @@ contains
          &                                                                                       gammaEffective
     double precision                                                                          :: hyperGeometricFactorLower                    , hyperGeometricFactorUpper, &
          &                                                                                       resolutionSigmaOverParentSigma
-    integer         (fgsl_int                                        )                        :: statusLower                                  , statusUpper
+    integer         (c_int                                           )                        :: statusLower                                  , statusUpper
     logical                                                                                   :: usingCDMAssumptions
     integer                                                                                   :: iBound
-    !GCC$ attributes unused :: node
+    !$GLC attributes unused :: node
 
     ! Get sigma and delta_critical for the parent halo.
     if (haloMass > 2.0d0*massResolution) then
@@ -633,11 +668,11 @@ contains
              ! Compute probability factors. The logic here becomes complicated, as we use various optimizations and tabulations to
              ! speed up calculation.
              !
-             ! Tabulations will only be used if self%abulateHypergeometric is true.
+             ! Tabulations will only be used if self%tabulateHypergeometric is true.
              !
              ! Set status to success by default.
-             statusLower=FGSL_Success
-             statusUpper=FGSL_Success
+             statusLower=GSL_Success
+             statusUpper=GSL_Success
              ! First, check if CDM assumptions are not being used and we're allowed to tabulate hypergeometric factors,
              if (.not.usingCDMAssumptions.and.self%hypergeometricTabulate) then
                 ! CDM assumptions are not being used. In this case we can use the same table of hypergeometric factors as the
@@ -664,22 +699,22 @@ contains
                 else
                    ! Use a direct calculation of the hypergeometric factors in this case.
                    hyperGeometricFactorLower=Hypergeometric_2F1(                                                           &
-                        &                                                         [1.5d0,0.5d0-0.5d0*gammaEffective]     , &
+                        &                                                         self%hypergeometricA(gammaEffective)   , &
                         &                                                         [      1.5d0-0.5d0*gammaEffective]     , &
                         &                                                         1.0d0/resolutionSigmaOverParentSigma**2, &
                         &                                       toleranceRelative=self%precisionHypergeometric           , &
                         &                                       status           =statusLower                              &
                         &                                      )
-                   if (statusLower /= FGSL_Success) then
+                   if (statusLower /= GSL_Success) then
                       if (usingCDMAssumptions) then
                          if (.not.self%hypergeometricFailureWarned) then
                             self%hypergeometricFailureWarned=.true.
-                            call Galacticus_Display_Message(                                                                                &
-                                 &                          'WARNING: hypergeometric function evaluation failed when computing'//char(10)// &
-                                 &                          'merger tree branching probability bounds - will revert to more'   //char(10)// &
-                                 &                          'robust (but less stringent) bound in this and future cases'                 ,  &
-                                 &                          verbosityWarn                                                                   &
-                                 &                         )
+                            call displayMessage(                                                                                                                      &
+                                 &              displayMagenta()//'WARNING:'//displayReset()//' hypergeometric function evaluation failed when computing'//char(10)// &
+                                 &              'merger tree branching probability bounds - will revert to more'                                         //char(10)// &
+                                 &              'robust (but less stringent) bound in this and future cases'                                                       ,  &
+                                 &              verbosityLevelWarn                                                                                                    &
+                                 &             )
                          end if
                          cycle
                       else
@@ -694,22 +729,22 @@ contains
                         &                    *hyperGeometricFactorLower
                    ! Check if we can use a table to compute the upper factor.
                    hyperGeometricFactorUpper=Hypergeometric_2F1(                                                          &
-                        &                                                         [1.5d0,0.5d0-0.5d0*gammaEffective]    , &
+                        &                                                         self%hypergeometricA(gammaEffective)  , &
                         &                                                         [      1.5d0-0.5d0*gammaEffective]    , &
                         &                                                         self%sigmaParent**2/halfParentSigma**2, &
                         &                                       toleranceRelative=self%precisionHypergeometric          , &
                         &                                       status           =statusUpper                             &
                         &                                      )
-                   if (statusUpper /= FGSL_Success) then
+                   if (statusUpper /= GSL_Success) then
                       if (usingCDMAssumptions) then
                          if (.not.self%hypergeometricFailureWarned) then
                             self%hypergeometricFailureWarned=.true.
-                            call Galacticus_Display_Message(                                                                                &
-                                 &                          'WARNING: hypergeometric function evaluation failed when computing'//char(10)// &
-                                 &                          'merger tree branching probability bounds - will revert to more'   //char(10)// &
-                                 &                          'robust (but less stringent) bound in this and future cases'                 ,  &
-                                 &                          verbosityWarn                                                                   &
-                                 &                         )
+                            call displayMessage(                                                                                                                      &
+                                 &              displayMagenta()//'WARNING:'//displayReset()//' hypergeometric function evaluation failed when computing'//char(10)// &
+                                 &              'merger tree branching probability bounds - will revert to more'                                         //char(10)// &
+                                 &              'robust (but less stringent) bound in this and future cases'                                                       ,  &
+                                 &              verbosityLevelWarn                                                                                                    &
+                                 &             )
                          end if
                          cycle
                       else
@@ -770,7 +805,7 @@ contains
                 parkinsonColeHellyProbabilityBound=-1.0d0
                 call Galacticus_Error_Report('unknown bound type'//{introspection:location})
              end select
-             if (statusUpper == FGSL_Success .and. statusLower == FGSL_Success) exit
+             if (statusUpper == GSL_Success .and. statusLower == GSL_Success) exit
           end do
        else
           parkinsonColeHellyProbabilityBound=-1.0d0
@@ -795,7 +830,7 @@ contains
     double precision                                                  , parameter             :: sqrtTwoOverPi       =sqrt(2.0d0/Pi)
     double precision                                                                          :: hyperGeometricFactor               , resolutionSigmaOverParentSigma, &
          &                                                                                       resolutionSigma
-    !GCC$ attributes unused :: node
+    !$GLC attributes unused :: node
 
     ! Get sigma and delta_critical for the parent halo.
     call self%computeCommonFactors(deltaCritical,time,haloMass,node)
@@ -814,7 +849,7 @@ contains
        else
           ! Compute hypergeometric factors directly.
           hyperGeometricFactor=Hypergeometric_2F1(                                                           &
-               &                                                    [1.5d0,0.5d0-0.5d0*self%gamma1]        , &
+               &                                                    self%hypergeometricA(self%gamma1)      , &
                &                                                    [      1.5d0-0.5d0*self%gamma1]        , &
                &                                                    1.0d0/resolutionSigmaOverParentSigma**2, &
                &                                  toleranceRelative=self%precisionHypergeometric             &
@@ -902,7 +937,7 @@ contains
                &                                    *(self%subresolutionHypergeometric%x(i)+1.0d0)**(+self%gamma1-1.0d0)                          &
                &                                    /                                               (-self%gamma1+1.0d0)                          &
                &                                    *Hypergeometric_2F1(                                                                          &
-               &                                                                          [1.5d0,0.5d0-0.5d0*self%gamma1]                       , &
+               &                                                                          self%hypergeometricA(self%gamma1)                     , &
                &                                                                          [      1.5d0-0.5d0*self%gamma1]                       , &
                &                                                                          1.0d0/(self%subresolutionHypergeometric%x(i)+1.0d0)**2, &
                &                                                        toleranceRelative=self%precisionHypergeometric                            &
@@ -970,29 +1005,29 @@ contains
           call           self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(0.5d0*self%upperBoundHypergeometric%x(i),self%timeParent,halfMassSigma,halfMassAlpha)
           massSigma     =self%cosmologicalMassVariance_%rootVariance                      (      self%upperBoundHypergeometric%x(i),self%timeParent                            )
           gammaEffective=self%gamma1-1.0d0/halfMassAlpha
-          call self%upperBoundHypergeometric%populate(                                                                           &
-               &                                      +sqrtTwoOverPi                                                             &
-               &                                      *resolutionMassSigma                                                       &
-               &                                      /massSigma                                                                 &
-               &                                      *(                                                                         &
-               &                                        +(halfMassSigma/massSigma)**(+gammaEffective-1.0d0)                      &
-               &                                        /                           (-gammaEffective+1.0d0)                      &
-               &                                        *Hypergeometric_2F1(                                                     &
-               &                                                                             [1.5d0,0.5d0-0.5d0*gammaEffective], &
-               &                                                                             [      1.5d0-0.5d0*gammaEffective], &
-               &                                                                             (massSigma/halfMassSigma)**2      , &
-               &                                                           toleranceRelative=self%precisionHypergeometric        &
-               &                                                          )                                                      &
-               &                                        -(resolutionMassSigma/massSigma)**(+gammaEffective-1.0d0)                &
-               &                                        /                                 (-gammaEffective+1.0d0)                &
-               &                                        *Hypergeometric_2F1(                                                     &
-               &                                                                             [1.5d0,0.5d0-0.5d0*gammaEffective], &
-               &                                                                             [      1.5d0-0.5d0*gammaEffective], &
-               &                                                                             (massSigma/resolutionMassSigma)**2, &
-               &                                                           toleranceRelative=self%precisionHypergeometric        &
-               &                                                          )                                                      &
-               &                                       )                                                                       , &
-               &                                      i                                                                          &
+          call self%upperBoundHypergeometric%populate(                                                                             &
+               &                                      +sqrtTwoOverPi                                                               &
+               &                                      *resolutionMassSigma                                                         &
+               &                                      /massSigma                                                                   &
+               &                                      *(                                                                           &
+               &                                        +(halfMassSigma/massSigma)**(+gammaEffective-1.0d0)                        &
+               &                                        /                           (-gammaEffective+1.0d0)                        &
+               &                                        *Hypergeometric_2F1(                                                       &
+               &                                                                             self%hypergeometricA(gammaEffective), &
+               &                                                                             [      1.5d0-0.5d0*gammaEffective]  , &
+               &                                                                             (massSigma/halfMassSigma)**2        , &
+               &                                                           toleranceRelative=self%precisionHypergeometric          &
+               &                                                          )                                                        &
+               &                                        -(resolutionMassSigma/massSigma)**(+gammaEffective-1.0d0)                  &
+               &                                        /                                 (-gammaEffective+1.0d0)                  &
+               &                                        *Hypergeometric_2F1(                                                       &
+               &                                                                             self%hypergeometricA(gammaEffective), &
+               &                                                                             [      1.5d0-0.5d0*gammaEffective]  , &
+               &                                                                             (massSigma/resolutionMassSigma)**2  , &
+               &                                                           toleranceRelative=self%precisionHypergeometric          &
+               &                                                          )                                                        &
+               &                                       )                                                                         , &
+               &                                      i                                                                            &
                &                                     )
        end do
        self%upperBoundHypergeometricInitialized=.true.

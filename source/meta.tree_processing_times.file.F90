@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,25 @@
 !% Contains a module which implements a merger tree processing time estimator using a polynomial relation read from file.
 
   !# <metaTreeProcessingTime name="metaTreeProcessingTimeFile">
-  !#  <description>A merger tree processing time estimator using a polynomial relation read from file.</description>
+  !#  <description>
+  !#   A merger tree processing time class which estimates processing times using a polynomial relation read from
+  !#   file. Specifically, the time taken to process a tree is estimate to be
+  !#   \begin{equation}
+  !#    \log_{10} [ \tau_\mathrm{tree}(M)] = \sum_{i=0}^2 C_i (\log_{10} M)^i,
+  !#   \end{equation}
+  !#   where $M$ is the root mass of the tree and the coefficients $C_i$ are read from a file, the name of which is specified via
+  !#   the {\normalfont \ttfamily [fileName]} parameter. This file should be an XML document with the structure:
+  !#   \begin{verbatim}
+  !#   <timing>
+  !#    <fit>
+  !#      <coefficient>-0.73</coefficient>
+  !#      <coefficient>-0.20</coefficient>
+  !#      <coefficient>0.03</coefficient>
+  !#    </fit>
+  !#   </timing>
+  !#   \end{verbatim}
+  !#   where the array of coefficients give the values $C_0$, $C_1$ and $C_2$.
+  !#  </description>
   !# </metaTreeProcessingTime>
   type, extends(metaTreeProcessingTimeClass) :: metaTreeProcessingTimeFile
      !% A merger tree processing time estimator using a polynomial relation read from file.
@@ -48,10 +66,8 @@ contains
 
     !# <inputParameter>
     !#   <name>fileName</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The name of the file which contains fit coefficients for the time per tree fitting function.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     self=metaTreeProcessingTimeFile(fileName)
     return

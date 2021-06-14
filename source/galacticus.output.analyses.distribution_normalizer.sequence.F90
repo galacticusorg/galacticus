@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,6 +21,9 @@
 
   !# <outputAnalysisDistributionNormalizer name="outputAnalysisDistributionNormalizerSequence">
   !#  <description>Provides a sequence of normalizers on on-the-fly outputs.</description>
+  !#  <deepCopy>
+  !#   <linkedList type="normalizerList" variable="normalizers" next="next" object="normalizer_" objectType="outputAnalysisDistributionNormalizerClass"/>
+  !#  </deepCopy>
   !# </outputAnalysisDistributionNormalizer>
 
   type, public :: normalizerList
@@ -33,9 +36,8 @@
      private
      type(normalizerList), pointer :: normalizers => null()
   contains
-     final     ::               sequenceDestructor
-     procedure :: normalize  => sequenceNormalize
-     procedure :: deepCopy   => sequenceDeepCopy
+     final     ::              sequenceDestructor
+     procedure :: normalize => sequenceNormalize
   end type outputAnalysisDistributionNormalizerSequence
 
   interface outputAnalysisDistributionNormalizerSequence
@@ -57,7 +59,7 @@ contains
 
     self       %normalizers => null()
     normalizer_             => null()
-    do i=1,parameters%copiesCount('outputAnalysisDistributionNormalizerMethod',zeroIfNotPresent=.true.)
+    do i=1,parameters%copiesCount('outputAnalysisDistributionNormalizer',zeroIfNotPresent=.true.)
        if (associated(normalizer_)) then
           allocate(normalizer_%next)
           normalizer_ => normalizer_%next
@@ -120,37 +122,3 @@ contains
     end do
     return
   end subroutine sequenceNormalize
-
-  subroutine sequenceDeepCopy(self,destination)
-    !% Perform a deep copy for the {\normalfont \ttfamily sequence} output analysis distribution normalizer operator class.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    implicit none
-    class(outputAnalysisDistributionNormalizerSequence), intent(inout) :: self
-    class(outputAnalysisDistributionNormalizerClass   ), intent(inout) :: destination
-    type (normalizerList                              ), pointer       :: normalizer_   , normalizerDestination_, &
-         &                                                                normalizerNew_
-
-    call self%outputAnalysisDistributionNormalizerClass%deepCopy(destination)
-    select type (destination)
-    type is (outputAnalysisDistributionNormalizerSequence)
-       destination%normalizers => null          ()
-       normalizerDestination_  => null          ()
-       normalizer_             => self%normalizers
-       do while (associated(normalizer_))
-          allocate(normalizerNew_)
-          if (associated(normalizerDestination_)) then
-             normalizerDestination_%next       => normalizerNew_
-             normalizerDestination_            => normalizerNew_
-          else
-             destination          %normalizers => normalizerNew_
-             normalizerDestination_            => normalizerNew_
-          end if
-          allocate(normalizerNew_%normalizer_,mold=normalizer_%normalizer_)
-          !# <deepCopy source="normalizer_%normalizer_" destination="normalizerNew_%normalizer_"/>
-          normalizer_ => normalizer_%next
-       end do
-    class default
-       call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})
-    end select
-    return
-  end subroutine sequenceDeepCopy

@@ -35,7 +35,7 @@ sub Class_Serialize_ASCII {
 	description => "Serialize the content of a {\\normalfont \\ttfamily ".$code::class->{'name'}."} component to ASCII.",
 	modules     =>
 	    [
-	     "Galacticus_Display",
+	     "Display",
 	     "ISO_Varying_String"
 	    ],
 	variables   =>
@@ -50,9 +50,9 @@ sub Class_Serialize_ASCII {
     };
     $code::padding = " " x ($fullyQualifiedNameLengthMax-length($code::class->{'name'}));
     $function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
-!GCC$ attributes unused :: self
-call Galacticus_Display_Indent('{$class->{'name'}}: {$padding}generic')
-call Galacticus_Display_Unindent('done')
+!$GLC attributes unused :: self
+call displayIndent('{$class->{'name'}}: {$padding}generic')
+call displayUnindent('done')
 CODE
     # Insert a type-binding for this function.
     push(

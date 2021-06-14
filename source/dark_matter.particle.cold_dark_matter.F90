@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,6 +27,7 @@
      !% A cold dark matter particle class.
      private
    contains
+     procedure :: mass => CDMMass
   end type darkMatterParticleCDM
 
   interface darkMatterParticleCDM
@@ -42,8 +43,17 @@ contains
     implicit none
     type(darkMatterParticleCDM)                :: CDMConstructorParameters
     type(inputParameters      ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     CDMConstructorParameters=darkMatterParticleCDM()
     return
   end function CDMConstructorParameters
+
+  double precision function CDMMass(self)
+    !% Return the mass, in units of keV, of a cold dark matter particle. An infinite mass is assumed.
+    implicit none
+    class(darkMatterParticleCDM), intent(inout) :: self
+
+    CDMMass=huge(0.0d0)
+    return
+  end function CDMMass

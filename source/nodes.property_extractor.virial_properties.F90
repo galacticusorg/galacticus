@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,14 @@
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScale, darkMatterHaloScaleClass
 
   !# <nodePropertyExtractor name="nodePropertyExtractorVirialProperties">
-  !#  <description>A property extractor class for virial radius and velocity.</description>
+  !#  <description>
+  !#   A node property extractor which extracts the following quantities related to the virialized region of each node:
+  !#   \begin{description}
+  !#    \item [{\normalfont \ttfamily nodeVirialRadius}] The virial radius (following whatever definition of virial overdensity is
+  !#    specified by the virial density contrast (see \refPhysics{virialDensityContrast}) in units of Mpc;
+  !#    \item [{\normalfont \ttfamily nodeVirialVelocity}] The circular velocity at the virial radius (in km/s).
+  !#   \end{description}
+  !#  </description>
   !# </nodePropertyExtractor>
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorVirialProperties
      !% A property extractor which extracts virialProperties properties.
@@ -79,11 +86,11 @@ contains
   end subroutine virialPropertiesDestructor
 
   integer function virialPropertiesElementCount(self,time)
-    !% Return the number of elements in the {\normalfont \ttfamily virialProperies} property extractors.
+    !% Return the number of elements in the {\normalfont \ttfamily virialProperties} property extractors.
     implicit none
     class           (nodePropertyExtractorVirialProperties), intent(inout) :: self
     double precision                                       , intent(in   ) :: time
-    !GCC$ attributes unused :: self, time
+    !$GLC attributes unused :: self, time
 
     virialPropertiesElementCount=2
     return
@@ -97,7 +104,7 @@ contains
     type            (treeNode                             ), intent(inout), target      :: node
     double precision                                       , intent(in   )              :: time
     type            (multiCounter                         ), intent(inout), optional    :: instance
-    !GCC$ attributes unused :: time, instance
+    !$GLC attributes unused :: time, instance
 
     allocate(virialPropertiesExtract(2))
     virialPropertiesExtract=[                                                &
@@ -108,12 +115,12 @@ contains
   end function virialPropertiesExtract
 
   function virialPropertiesNames(self,time)
-    !% Return the names of the {\normalfont \ttfamily virialProperies} properties.
+    !% Return the names of the {\normalfont \ttfamily virialProperties} properties.
     implicit none
     type            (varying_string                       ), dimension(:) , allocatable :: virialPropertiesNames
     class           (nodePropertyExtractorVirialProperties), intent(inout)              :: self
     double precision                                       , intent(in   )              :: time
-    !GCC$ attributes unused :: self, time
+    !$GLC attributes unused :: self, time
 
     allocate(virialPropertiesNames(2))
     virialPropertiesNames=[                                         &
@@ -124,12 +131,12 @@ contains
   end function virialPropertiesNames
 
   function virialPropertiesDescriptions(self,time)
-    !% Return the descriptions of the {\normalfont \ttfamily virialProperies} properties.
+    !% Return the descriptions of the {\normalfont \ttfamily virialProperties} properties.
     implicit none
     type            (varying_string                       ), dimension(:) , allocatable :: virialPropertiesDescriptions
     class           (nodePropertyExtractorVirialProperties), intent(inout)              :: self
     double precision                                       , intent(in   )              :: time
-    !GCC$ attributes unused :: self, time
+    !$GLC attributes unused :: self, time
 
     allocate(virialPropertiesDescriptions(2))
     virialPropertiesDescriptions=[                                                                 &
@@ -140,14 +147,14 @@ contains
   end function virialPropertiesDescriptions
 
   function virialPropertiesUnitsInSI(self,time)
-    !% Return the units of the {\normalfont \ttfamily virialProperies} properties in the SI system.
+    !% Return the units of the {\normalfont \ttfamily virialProperties} properties in the SI system.
     use :: Numerical_Constants_Astronomical, only : megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     double precision                                       , dimension(:) , allocatable :: virialPropertiesUnitsInSI
     class           (nodePropertyExtractorVirialProperties), intent(inout)              :: self
     double precision                                       , intent(in   )              :: time
-   !GCC$ attributes unused :: self, time
+   !$GLC attributes unused :: self, time
 
     allocate(virialPropertiesUnitsInSI(2))
     virialPropertiesUnitsInSI=[            &
@@ -162,7 +169,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorVirialProperties), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     virialPropertiesType=outputAnalysisPropertyTypeLinear
     return

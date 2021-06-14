@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,7 +23,9 @@
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !# <hotHaloRamPressureTimescale name="hotHaloRamPressureTimescaleHaloDynamicalTime">
-  !#  <description>A hot halo ram pressure timescale class in which the timescale is equal to the halo dynamical time.</description>
+  !#  <description>
+  !#   A hot halo ram pressure timescale class in which the timescale is equal to the halo dynamical time of the associated halo.
+  !#  </description>
   !# </hotHaloRamPressureTimescale>
   type, extends(hotHaloRamPressureTimescaleClass) :: hotHaloRamPressureTimescaleHaloDynamicalTime
      !% Implementation of a hot halo ram pressure timescale class in which the timescale is equal to the halo dynamical time.

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,7 +27,12 @@ module Accretion_Disks
   !# <functionClass>
   !#  <name>accretionDisks</name>
   !#  <descriptiveName>Accretion disks</descriptiveName>
-  !#  <description>Class implementing accretion disks.</description>
+  !#  <description>
+  !#   A class implementing circumnuclear accretion disks. Circumnuclear accretion disks surrounding supermassive black holes at
+  !#   the centers of galaxies influence the evolution of both the black hole (via accretion rates of mass and angular momentum
+  !#   and possibly by extracting rotational energy from the black hole) and the surrounding galaxy if they lead to energetic
+  !#   outflows (e.g. jets) from the nuclear region.
+  !#  </description>
   !#  <default>shakuraSunyaev</default>
   !#  <method name="efficiencyRadiative" >
   !#   <description>Returns the radiative efficiency of the accretion disk.</description>

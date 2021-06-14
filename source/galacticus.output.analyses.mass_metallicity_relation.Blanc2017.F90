@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -37,8 +37,10 @@ contains
 
   function massMetallicityBlanc2017ConstructorParameters(parameters) result (self)
     !% Constructor for the ``massMetallicityBlanc2017'' output analysis class which takes a parameter set as input.
-    use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
-    use :: Input_Parameters   , only : inputParameter    , inputParameters
+    use :: Cosmology_Functions           , only : cosmologyFunctions             , cosmologyFunctionsClass
+    use :: Input_Parameters              , only : inputParameter                 , inputParameters
+    use :: Star_Formation_Rates_Disks    , only : starFormationRateDisksClass
+    use :: Star_Formation_Rates_Spheroids, only : starFormationRateSpheroidsClass
     implicit none
     type            (outputAnalysisMassMetallicityBlanc2017)                              :: self
     type            (inputParameters                       ), intent(inout)               :: parameters
@@ -46,8 +48,10 @@ contains
          &                                                                                   metallicitySystematicErrorPolynomialCoefficient
     class           (cosmologyFunctionsClass               ), pointer                     :: cosmologyFunctions_
     class           (outputTimesClass                      ), pointer                     :: outputTimes_
-    double precision                                                                      :: randomErrorMinimum                             , randomErrorMaximum
-
+    class           (starFormationRateDisksClass           ), pointer                     :: starFormationRateDisks_
+    class           (starFormationRateSpheroidsClass       ), pointer                     :: starFormationRateSpheroids_
+    double precision                                                                      :: randomErrorMinimum                             , randomErrorMaximum              , &
+         &                                                                                   fractionGasThreshold
 
     ! Check and read parameters.
     allocate(metallicitySystematicErrorPolynomialCoefficient(max(1,parameters%count('metallicitySystematicErrorPolynomialCoefficient',zeroIfNotPresent=.true.))))
@@ -59,8 +63,6 @@ contains
     !#   <variable>metallicitySystematicErrorPolynomialCoefficient</variable>
     !#   <defaultValue>[0.0d0]</defaultValue>
     !#   <description>The coefficients of the metallicity systematic error polynomial.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>systematicErrorPolynomialCoefficient</name>
@@ -68,8 +70,6 @@ contains
     !#   <variable>systematicErrorPolynomialCoefficient</variable>
     !#   <defaultValue>[0.0d0]</defaultValue>
     !#   <description>The coefficients of the systematic error polynomial.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>randomErrorPolynomialCoefficient</name>
@@ -77,8 +77,6 @@ contains
     !#   <variable>randomErrorPolynomialCoefficient</variable>
     !#   <defaultValue>[0.0d0]</defaultValue>
     !#   <description>The coefficients of the random error polynomial.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>randomErrorMinimum</name>
@@ -86,35 +84,43 @@ contains
     !#   <variable>randomErrorMinimum</variable>
     !#   <defaultValue>0.07d0</defaultValue>
     !#   <description>The minimum random error for stellar masses.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>randomErrorMaximum</name>
     !#   <source>parameters</source>
     !#   <variable>randomErrorMaximum</variable>
     !#   <defaultValue>0.07d0</defaultValue>
-    !#   <description>The minimum random error for stellar masses.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
+    !#   <description>The maximum random error for stellar masses.</description>
     !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
-    !# <objectBuilder class="outputTimes"        name="outputTimes_"        source="parameters"/>
+    !# <inputParameter>
+    !#   <name>fractionGasThreshold</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>0.05d0</defaultValue>
+    !#   <description>The minimum gas fraction to include in the sample.</description>
+    !# </inputParameter>
+    !# <objectBuilder class="cosmologyFunctions"         name="cosmologyFunctions_"         source="parameters"/>
+    !# <objectBuilder class="outputTimes"                name="outputTimes_"                source="parameters"/>
+    !# <objectBuilder class="starFormationRateDisks"     name="starFormationRateDisks_"     source="parameters"/>
+    !# <objectBuilder class="starFormationRateSpheroids" name="starFormationRateSpheroids_" source="parameters"/>
     ! Build the object.
-    self=outputAnalysisMassMetallicityBlanc2017(metallicitySystematicErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_)
+    self=outputAnalysisMassMetallicityBlanc2017(metallicitySystematicErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,fractionGasThreshold,cosmologyFunctions_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_)
     !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"/>
-    !# <objectDestructor name="outputTimes_"       />
+    !# <objectDestructor name="cosmologyFunctions_"        />
+    !# <objectDestructor name="outputTimes_"               />
+    !# <objectDestructor name="starFormationRateDisks_"    />
+    !# <objectDestructor name="starFormationRateSpheroids_"/>
     return
   end function massMetallicityBlanc2017ConstructorParameters
 
-  function massMetallicityBlanc2017ConstructorInternal(metallicitySystematicErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_) result (self)
+  function massMetallicityBlanc2017ConstructorInternal(metallicitySystematicErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,fractionGasThreshold,cosmologyFunctions_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_) result (self)
     !% Constructor for the ``massMetallicityBlanc2017'' output analysis class for internal use.
     use :: Abundances_Structure                  , only : Abundances_Index_From_Name                         , abundances
     use :: Atomic_Data                           , only : Atomic_Mass
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                            , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
-    use :: Galactic_Filters                      , only : filterList                                         , galacticFilterAll                              , galacticFilterStarFormationRate                , galacticFilterStellarMass
+    use :: Display                               , only : displayGreen                                       , displayReset
+    use :: Galactic_Filters                      , only : filterList                                         , galacticFilterAll                              , galacticFilterStarFormationRate                , galacticFilterStellarMass          , &
+         &                                                galacticFilterGasFractionISM
     use :: Galacticus_Error                      , only : Galacticus_Error_Report
     use :: Galacticus_Paths                      , only : galacticusPath                                     , pathTypeDataStatic
     use :: Geometry_Surveys                      , only : surveyGeometryLiWhite2009SDSS
@@ -129,13 +135,18 @@ contains
     use :: Output_Analysis_Utilities             , only : Output_Analysis_Output_Weight_Survey_Volume
     use :: Output_Analysis_Weight_Operators      , only : outputAnalysisWeightOperatorIdentity
     use :: Output_Times                          , only : outputTimesClass
+    use :: Star_Formation_Rates_Disks            , only : starFormationRateDisksClass
+    use :: Star_Formation_Rates_Spheroids        , only : starFormationRateSpheroidsClass
     implicit none
     type            (outputAnalysisMassMetallicityBlanc2017             )                                :: self
-    double precision                                                     , intent(in   )                 :: randomErrorMinimum                                      , randomErrorMaximum
+    double precision                                                     , intent(in   )                 :: randomErrorMinimum                                      , randomErrorMaximum                                            , &
+         &                                                                                                  fractionGasThreshold
     double precision                                                     , intent(in   ), dimension(:  ) :: metallicitySystematicErrorPolynomialCoefficient         , systematicErrorPolynomialCoefficient                          , &
          &                                                                                                  randomErrorPolynomialCoefficient
     class           (cosmologyFunctionsClass                            ), intent(inout), target         :: cosmologyFunctions_
     class           (outputTimesClass                                   ), intent(inout), target         :: outputTimes_
+    class           (starFormationRateDisksClass                        ), intent(in   ), target         :: starFormationRateDisks_
+    class           (starFormationRateSpheroidsClass                    ), intent(in   ), target         :: starFormationRateSpheroids_
     integer                                                              , parameter                     :: covarianceBinomialBinsPerDecade                 =10
     double precision                                                     , parameter                     :: covarianceBinomialMassHaloMinimum               = 1.0d08, covarianceBinomialMassHaloMaximum                      =1.0d16
     double precision                                                     , allocatable  , dimension(:  ) :: masses                                                  , functionValueTarget                                           , &
@@ -143,8 +154,9 @@ contains
     double precision                                                     , allocatable  , dimension(:,:) :: outputWeight                                            , functionCovarianceTarget
     type            (galacticFilterStellarMass                          ), pointer                       :: galacticFilterStellarMass_
     type            (galacticFilterStarFormationRate                    ), pointer                       :: galacticFilterStarFormationRate_
+    type            (galacticFilterGasFractionISM                       ), pointer                       :: galacticFilterGasFractionISM_
     type            (galacticFilterAll                                  ), pointer                       :: galacticFilter_
-    type            (filterList                                         ), pointer                       :: filters_                                       , filter_
+    type            (filterList                                         ), pointer                       :: filters_                                                , filter_
     type            (outputAnalysisDistributionOperatorRandomErrorPlynml), pointer                       :: outputAnalysisDistributionOperator_
     type            (outputAnalysisWeightOperatorIdentity               ), pointer                       :: outputAnalysisWeightOperator_
     type            (outputAnalysisPropertyOperatorSequence             ), pointer                       :: outputAnalysisPropertyOperator_                         , outputAnalysisWeightPropertyOperator_
@@ -218,22 +230,29 @@ contains
     ! distribution).
     allocate(galacticFilterStellarMass_                            )
     !# <referenceConstruct object="galacticFilterStellarMass_" constructor="galacticFilterStellarMass(massThreshold=1.00d8)"/>
-    allocate(galacticFilterStarFormationRate_                                       )
+    allocate(galacticFilterStarFormationRate_                      )
     !# <referenceConstruct object="galacticFilterStarFormationRate_">
     !#  <constructor>
-    !#   galacticFilterStarFormationRate(                      &amp;
-    !#     &amp;                         logM0        =0.00d0, &amp;
-    !#     &amp;                         logSFR0      =0.76d0, &amp;
-    !#     &amp;                         logSFR1      =0.76d0  &amp;
+    !#   galacticFilterStarFormationRate(                                                         &amp;
+    !#     &amp;                         logM0                      =0.00d0                     , &amp;
+    !#     &amp;                         logSFR0                    =0.76d0                     , &amp;
+    !#     &amp;                         logSFR1                    =0.76d0                     , &amp;
+    !#     &amp;                         starFormationRateDisks_    =starFormationRateDisks_    , &amp;
+    !#     &amp;                         starFormationRateSpheroids_=starFormationRateSpheroids_  &amp;
     !#     &amp;                        )
     !#  </constructor>
     !# </referenceConstruct>
+    allocate(galacticFilterGasFractionISM_                         )
+    !# <referenceConstruct object="galacticFilterGasFractionISM_" constructor="galacticFilterGasFractionISM(fractionGasThreshold=fractionGasThreshold)"/>
     allocate(filters_                                              )
     filter_ => filters_
     filter_%filter_ =>galacticFilterStellarMass_
     allocate(filter_%next)
     filter_ => filter_%next
     filter_%filter_ => galacticFilterStarFormationRate_
+    allocate(filter_%next)
+    filter_ => filter_%next
+    filter_%filter_ => galacticFilterGasFractionISM_
     allocate(galacticFilter_                                       )
     !# <referenceConstruct object="galacticFilter_"                                   constructor="galacticFilterAll                                      (filters_                                                                  )"/>
     ! Build identity weight operator.
@@ -292,20 +311,20 @@ contains
     !# <referenceConstruct object="outputAnalysisPropertyUnoperator_"                      constructor="outputAnalysisPropertyOperatorAntiLog10         (                                                             )"/>
     ! Create a stellar mass property extractor.
     allocate(nodePropertyExtractor_                      )
-    !# <referenceConstruct object="nodePropertyExtractor_"                       constructor="nodePropertyExtractorMassStellar      (                                                             )"/>
+    !# <referenceConstruct object="nodePropertyExtractor_"                                 constructor="nodePropertyExtractorMassStellar                (                                                             )"/>
     ! Find the index for the oxygen abundance.
     indexOxygen=Abundances_Index_From_Name("O")
-    if (indexOxygen < 0)                                                                                           &
-         & call Galacticus_Error_Report(                                                                           &
-         &                              'oxygen abundance is required for this analysis'    //char(10)//           &
-         &                              'HELP: you can track oxygen abundance by including:'//char(10)//char(10)// &
-         &                              '         <elementsToTrack value="O"/>'             //char(10)//char(10)// &
-         &                              '      in your parameter file'                      //                     &
-         &                              {introspection:location}                                                   &
+    if (indexOxygen < 0)                                                                                                                               &
+         & call Galacticus_Error_Report(                                                                                                               &
+         &                              'oxygen abundance is required for this analysis'                                        //char(10)//           &
+         &                              displayGreen()//'HELP:'//displayReset()//' you can track oxygen abundance by including:'//char(10)//char(10)// &
+         &                              '         <elementsToTrack value="O"/>'                                                 //char(10)//char(10)// &
+         &                              '      in your parameter file'                                                          //                     &
+         &                              {introspection:location}                                                                                       &
          &                             )
     ! Create an ISM metallicity weight property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_                )
-    !# <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"                 constructor="nodePropertyExtractorMetallicityISM   (Abundances_Index_From_Name('O')                              )"/>
+    !# <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"                 constructor="nodePropertyExtractorMetallicityISM             (Abundances_Index_From_Name('O')                              )"/>
     ! Build the object.
     self%outputAnalysisMeanFunction1D=outputAnalysisMeanFunction1D(                                                         &
          &                                                         var_str('massMetallicityBlanc2017'                    ), &
@@ -347,6 +366,7 @@ contains
     !# <objectDestructor name="galacticFilter_"                                       />
     !# <objectDestructor name="galacticFilterStellarMass_"                            />
     !# <objectDestructor name="galacticFilterStarFormationRate_"                      />
+    !# <objectDestructor name="galacticFilterGasFractionISM_"                         />
     !# <objectDestructor name="surveyGeometry_"                                       />
     !# <objectDestructor name="outputAnalysisDistributionOperator_"                   />
     !# <objectDestructor name="outputAnalysisWeightOperator_"                         />
@@ -360,7 +380,7 @@ contains
     !# <objectDestructor name="outputAnalysisPropertyUnoperator_"                     />
     !# <objectDestructor name="outputAnalysisWeightPropertyOperator_"                 />
     !# <objectDestructor name="outputAnalysisWeightPropertyExtractor_"                />
-    !# <objectDestructor name="nodePropertyExtractor_"                      />
+    !# <objectDestructor name="nodePropertyExtractor_"                                />
     !# <objectDestructor name="cosmologyParametersData"                               />
     !# <objectDestructor name="cosmologyFunctionsData"                                />
     nullify(propertyOperators_      )

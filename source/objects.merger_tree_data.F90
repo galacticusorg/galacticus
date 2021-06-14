@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -48,6 +48,7 @@ module Merger_Tree_Data_Structure
   !#  <visibility>public</visibility>
   !#  <validator>yes</validator>
   !#  <encodeFunction>yes</encodeFunction>
+  !#  <decodeFunction>yes</decodeFunction>
   !#  <entry label="null"                    />
   !#  <entry label="treeIndex"               />
   !#  <entry label="nodeIndex"               />
@@ -110,9 +111,9 @@ module Merger_Tree_Data_Structure
 
   type unitsMetaData
      !% A structure that holds metadata on units used.
-     double precision                 :: unitsInSI
-     integer                          :: hubbleExponent, scaleFactorExponent
-     type            (varying_string) :: name
+     double precision                              :: unitsInSI
+     integer                                       :: hubbleExponent, scaleFactorExponent
+     type            (varying_string), allocatable :: name
   end type unitsMetaData
 
   ! Metadata labels.
@@ -154,187 +155,86 @@ module Merger_Tree_Data_Structure
   type mergerTreeData
      !% A structure that holds raw merger tree data.
      private
-     integer                                                                 :: dummyHostId                        , nodeCount                        , &
-          &                                                                     particlesCount                     , forestCount
-     double precision                                                        :: particleMass               =0.0d0
-     integer                         , allocatable, dimension(:)             :: columnProperties                   , particleColumnProperties         , &
-          &                                                                     treeBeginsAt                       , treeNodeCount
-     integer         (kind=kind_int8), allocatable, dimension(:)             :: descendentIndex                    , hostIndex                        , &
-          &                                                                     mostBoundParticleIndex             , nodeIndex                        , &
-          &                                                                     particleIndex                      , forestID                         , &
-          &                                                                     forestIndex
-     integer         (c_size_t      ), allocatable, dimension(:)             :: particleCount                      , snapshot                         , &
-          &                                                                     particleReferenceCount             , particleReferenceStart           , &
-          &                                                                     particleSnapshot
-     double precision                , allocatable, dimension(:)             :: angularMomentumMagnitude           , halfMassRadius                   , &
-          &                                                                     nodeMass                           , particleRedshift                 , &
-          &                                                                     redshift                           , scaleFactor                      , &
-          &                                                                     scaleRadius                        , spinMagnitude                    , &
-          &                                                                     treeWeight                         , forestWeightNode                 , &
-          &                                                                     specificAngularMomentumMagnitude   , velocityMaximum                  , &
-          &                                                                     velocityDispersion                 , nodeMass200Mean                  , &
-          &                                                                     nodeMass200Crit
-     double precision                , allocatable, dimension(:,:)           :: angularMomentum                    , particlePosition                 , &
-          &                                                                     particleVelocity                   , position                         , &
-          &                                                                     spin                               , velocity                         , &
-          &                                                                     specificAngularMomentum
-     double precision                , dimension(propertyTypeMin:propertyTypeMax)          :: convertProperty            =1.0d0
-     logical                                                                 :: hasAngularMomentumMagnitude        , hasAngularMomentumX              , &
-          &                                                                     hasAngularMomentumY                , hasAngularMomentumZ              , &
-          &                                                                     hasSpecificAngularMomentumMagnitude, hasSpecificAngularMomentumX      , &
-          &                                                                     hasSpecificAngularMomentumY        , hasSpecificAngularMomentumZ      , &
-          &                                                                     hasDescendentIndex                 , hasDummyHostId                   , &
-          &                                                                     hasHalfMassRadius                                                     , &
-          &                                                                     hasHostIndex                       , hasMostBoundParticleIndex        , &
-          &                                                                     hasNodeIndex                       , hasNodeMass                      , &
-          &                                                                     hasNodeMass200Mean                 , hasNodeMass200Crit               , &
-          &                                                                     hasParticleCount                   , hasParticleIndex                 , &
-          &                                                                     hasParticlePositionX               , hasParticlePositionY             , &
-          &                                                                     hasParticlePositionZ               , hasParticleRedshift              , &
-          &                                                                     hasParticleSnapshot                , hasParticleVelocityX             , &
-          &                                                                     hasParticleVelocityY               , hasParticleVelocityZ             , &
-          &                                                                     hasParticles               =.false., hasPositionX                     , &
-          &                                                                     hasPositionY                       , hasPositionZ                     , &
-          &                                                                     hasRedshift                        , hasScaleFactor                   , &
-          &                                                                     hasScaleRadius                     , hasSnapshot                      , &
-          &                                                                     hasSpinMagnitude                   , hasSpinX                         , &
-          &                                                                     hasSpinY                           , hasSpinZ                         , &
-          &                                                                     hasForestIndex                     , hasVelocityX                     , &
-          &                                                                     hasVelocityY                       , hasVelocityZ                     , &
-          &                                                                     hasVelocityMaximum                 , hasVelocityDispersion            , &
-          &                                                                     hasForestWeight                                                       , &
-          &                                                                     hasBoxSize
-     logical                                                                 :: areSelfContained           =.true. , doMakeReferences         =.true. , &
-          &                                                                     includesHubbleFlow         =.false., includesSubhaloMasses    =.false., &
-          &                                                                     isPeriodic                 =.false.
-     type            (unitsMetaData )             , dimension(unitsMin:unitsMax) :: units
-     logical                                      , dimension(unitsMin:unitsMax) :: unitsSet                   =.false.
-     integer                                                                 :: metaDataCount              =0
-     type            (treeMetaData  ), allocatable, dimension(:)             :: metaData
+     integer                                                                                   :: dummyHostId                        , nodeCount                        , &
+          &                                                                                       particlesCount                     , forestCount
+     double precision                                                                          :: particleMass               =0.0d0
+     integer                         , allocatable, dimension(:                              ) :: columnProperties                   , particleColumnProperties         , &
+          &                                                                                       treeBeginsAt                       , treeNodeCount
+     integer         (kind=kind_int8), allocatable, dimension(:                              ) :: descendentIndex                    , hostIndex                        , &
+          &                                                                                       mostBoundParticleIndex             , nodeIndex                        , &
+          &                                                                                       particleIndex                      , forestID                         , &
+          &                                                                                       forestIndex
+     integer         (c_size_t      ), allocatable, dimension(:                              ) :: particleCount                      , snapshot                         , &
+          &                                                                                       particleReferenceCount             , particleReferenceStart           , &
+          &                                                                                       particleSnapshot
+     double precision                , allocatable, dimension(:                              ) :: angularMomentumMagnitude           , halfMassRadius                   , &
+          &                                                                                       nodeMass                           , particleRedshift                 , &
+          &                                                                                       redshift                           , scaleFactor                      , &
+          &                                                                                       scaleRadius                        , spinMagnitude                    , &
+          &                                                                                       treeWeight                         , forestWeightNode                 , &
+          &                                                                                       specificAngularMomentumMagnitude   , velocityMaximum                  , &
+          &                                                                                       velocityDispersion                 , nodeMass200Mean                  , &
+          &                                                                                       nodeMass200Crit
+     double precision                , allocatable, dimension(:,:                            ) :: angularMomentum                    , particlePosition                 , &
+          &                                                                                       particleVelocity                   , position                         , &
+          &                                                                                       spin                               , velocity                         , &
+          &                                                                                       specificAngularMomentum
+     double precision                             , dimension(propertyTypeMin:propertyTypeMax) :: convertProperty            =1.0d0
+     logical                                                                                   :: hasAngularMomentumMagnitude        , hasAngularMomentumX              , &
+          &                                                                                       hasAngularMomentumY                , hasAngularMomentumZ              , &
+          &                                                                                       hasSpecificAngularMomentumMagnitude, hasSpecificAngularMomentumX      , &
+          &                                                                                       hasSpecificAngularMomentumY        , hasSpecificAngularMomentumZ      , &
+          &                                                                                       hasDescendentIndex                 , hasDummyHostId                   , &
+          &                                                                                       hasHalfMassRadius                                                     , &
+          &                                                                                       hasHostIndex                       , hasMostBoundParticleIndex        , &
+          &                                                                                       hasNodeIndex                       , hasNodeMass                      , &
+          &                                                                                       hasNodeMass200Mean                 , hasNodeMass200Crit               , &
+          &                                                                                       hasParticleCount                   , hasParticleIndex                 , &
+          &                                                                                       hasParticlePositionX               , hasParticlePositionY             , &
+          &                                                                                       hasParticlePositionZ               , hasParticleRedshift              , &
+          &                                                                                       hasParticleSnapshot                , hasParticleVelocityX             , &
+          &                                                                                       hasParticleVelocityY               , hasParticleVelocityZ             , &
+          &                                                                                       hasParticles               =.false., hasPositionX                     , &
+          &                                                                                       hasPositionY                       , hasPositionZ                     , &
+          &                                                                                       hasRedshift                        , hasScaleFactor                   , &
+          &                                                                                       hasScaleRadius                     , hasSnapshot                      , &
+          &                                                                                       hasSpinMagnitude                   , hasSpinX                         , &
+          &                                                                                       hasSpinY                           , hasSpinZ                         , &
+          &                                                                                       hasForestIndex                     , hasVelocityX                     , &
+          &                                                                                       hasVelocityY                       , hasVelocityZ                     , &
+          &                                                                                       hasVelocityMaximum                 , hasVelocityDispersion            , &
+          &                                                                                       hasForestWeight                                                       , &
+          &                                                                                       hasBoxSize
+     logical                                                                                   :: areSelfContained           =.true. , doMakeReferences         =.true. , &
+          &                                                                                       includesHubbleFlow         =.false., includesSubhaloMasses    =.false., &
+          &                                                                                       isPeriodic                 =.false.
+     type            (unitsMetaData )             , dimension(unitsMin       :unitsMax       ) :: units
+     logical                                      , dimension(unitsMin       :unitsMax       ) :: unitsSet                   =.false.
+     integer                                                                                   :: metaDataCount              =0
+     type            (treeMetaData  ), allocatable, dimension(               :               ) :: metaData
    contains
-     !@ <objectMethods>
-     !@   <object>mergerTreeData</object>
-     !@   <objectMethod>
-     !@     <method>reset</method>
-     !@     <description>Reset the data structure.</description>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>forestCountSet</method>
-     !@     <description>Set the total number of forests in the data structure.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ forestCount\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>nodeCountSet</method>
-     !@     <description>Set the total number of nodes in the data structure.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ nodeCount\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>particleCountSet</method>
-     !@     <description>Set the total number of particles in the data structure.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ particleCount\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>readASCII</method>
-     !@     <description>Read node data from an ASCII file into the data structure.</description>
-     !@     <type>\void</type>
-     !@     <arguments>inputFile\argin, [commentCharacter]\argin, [separator]\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>readParticlesASCII</method>
-     !@     <description>Read particle data from an ASCII file into the data structure</description>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} inputFile\argin, \textcolor{red}{\textless character(len=1)\textgreater} [commentCharacter]\argin, \textcolor{red}{\textless character(len=*)\textgreater} [separator]\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>setProperty</method>
-     !@     <description>Set a node property in the data structure.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\enumPropertyType\ propertyType\argin, \textcolor{red}{\textless integer(kind=kind\_int8)(:)|\doubleone\textgreater} property\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>setPropertyColumn</method>
-     !@     <description>Set the column in an ASCII data file corresponding to a given node property.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\enumPropertyType\ propertyType\argin, columnNumber\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>setParticlePropertyColumn</method>
-     !@     <description>Set the column in an ASCII data file corresponding to a given particle property.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\enumPropertyType\ propertyType\argin, \intzero\ columnNumber\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>setParticleMass</method>
-     !@     <description>Set the mass of an N-body particle in the simulation from which the trees were derived.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ particleMass\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>setSelfContained</method>
-     !@     <description>Specify if trees are self-contained (i.e. contain no cross-links to other trees).</description>
-     !@     <type>\void</type>
-     !@     <arguments>\logicalzero\ areSelfContained\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>setIncludesHubbleFlow</method>
-     !@     <description>Specify if velocities include the Hubble flow.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\logicalzero\ includesHubbleFlow\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>setPositionsArePeriodic</method>
-     !@     <description>Set if positions are periodic.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\logicalzero\ isPeriodic\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>setIncludesSubhaloMasses</method>
-     !@     <description>Set whether halo masses include the masses of the subhalos.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\logicalzero\ includesSubhaloMasses\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>setDummyHostId</method>
-     !@     <description>Set host ID for self-hosting halos if host ID is not node ID.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ dummyHostId\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>setConversionFactor</method>
-     !@     <description>Set property type and conversion factor to adjust inconsistent units.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\enumPropertyType\ propertyType\argin, \doublezero\ conversionFactor\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>setUnits</method>
-     !@     <description>Set the units used.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\enumMetaDataType\ unitType\argin, \doublezero\ unitsInSI\argin, \intzero\ [hubbleExponent]\argin, \intzero\ [scaleFactorExponent]\argin, \textcolor{red}{\textless character(len=*)\textgreater} [name]\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>addMetadata</method>
-     !@     <description>Add a metadatum to the tree data structure.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\enumMetaDataType\ metadataType\argin, \textcolor{red}{\textless character(len=*)\textgreater} label\argin, \textcolor{red}{\textless (\doublezero,\intzero,character(len=*))\textgreater} value\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>makeReferences</method>
-     !@     <description>Specify whether or not merger tree dataset references should be made.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\logicalzero\ makeReferences\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>export</method>
-     !@     <description>Export the tree data to an output file.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} outputFileName\argin, \enumMergerTreeFormat\ outputFormat\argin, \intzero\ hdfChunkSize\argin, \intzero\ hdfCompressionLevel\argin, \logicalzero\ [append]\argin</arguments>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Reset the data structure." method="reset" />
+     !#   <method description="Set the total number of forests in the data structure." method="forestCountSet" />
+     !#   <method description="Set the total number of nodes in the data structure." method="nodeCountSet" />
+     !#   <method description="Set the total number of particles in the data structure." method="particleCountSet" />
+     !#   <method description="Read node data from an ASCII file into the data structure." method="readASCII" />
+     !#   <method description="Read particle data from an ASCII file into the data structure" method="readParticlesASCII" />
+     !#   <method description="Set a node property in the data structure." method="setProperty" />
+     !#   <method description="Set the column in an ASCII data file corresponding to a given node property." method="setPropertyColumn" />
+     !#   <method description="Set the column in an ASCII data file corresponding to a given particle property." method="setParticlePropertyColumn" />
+     !#   <method description="Set the mass of an N-body particle in the simulation from which the trees were derived." method="setParticleMass" />
+     !#   <method description="Specify if trees are self-contained (i.e. contain no cross-links to other trees)." method="setSelfContained" />
+     !#   <method description="Specify if velocities include the Hubble flow." method="setIncludesHubbleFlow" />
+     !#   <method description="Set if positions are periodic." method="setPositionsArePeriodic" />
+     !#   <method description="Set whether halo masses include the masses of the subhalos." method="setIncludesSubhaloMasses" />
+     !#   <method description="Set host ID for self-hosting halos if host ID is not node ID." method="setDummyHostId" />
+     !#   <method description="Set property type and conversion factor to adjust inconsistent units." method="setConversionFactor" />
+     !#   <method description="Set the units used." method="setUnits" />
+     !#   <method description="Add a metadatum to the tree data structure." method="addMetadata" />
+     !#   <method description="Specify whether or not merger tree dataset references should be made." method="makeReferences" />
+     !#   <method description="Export the tree data to an output file." method="export" />
+     !# </methods>
      procedure :: reset                                           =>Merger_Tree_Data_Structure_Reset
      procedure :: forestCountSet                                  =>Merger_Tree_Data_Structure_Set_Forest_Count
      procedure :: nodeCountSet                                    =>Merger_Tree_Data_Structure_Set_Node_Count
@@ -371,7 +271,8 @@ contains
     !% Reset a merger tree data object.
     use :: Memory_Management, only : deallocateArray
     implicit none
-    class(mergerTreeData), intent(inout) :: mergerTrees
+    class  (mergerTreeData), intent(inout) :: mergerTrees
+    integer                                :: i
 
     ! No properties.
     mergerTrees%hasForestIndex                     =.false.
@@ -380,6 +281,7 @@ contains
     mergerTrees%hasNodeIndex                       =.false.
     mergerTrees%hasDescendentIndex                 =.false.
     mergerTrees%hasHostIndex                       =.false.
+    mergerTrees%hasDummyHostID                     =.false.    
     mergerTrees%hasRedshift                        =.false.
     mergerTrees%hasScaleFactor                     =.false.
     mergerTrees%hasNodeMass                        =.false.
@@ -434,6 +336,9 @@ contains
     if (allocated(mergerTrees%scaleRadius           )) call deallocateArray(mergerTrees%scaleRadius           )
     if (allocated(mergerTrees%velocityMaximum       )) call deallocateArray(mergerTrees%velocityMaximum       )
     if (allocated(mergerTrees%velocityDispersion    )) call deallocateArray(mergerTrees%velocityDispersion    )
+    do i=unitsMin,unitsMax
+       if (allocated(mergerTrees%units(i)%name)) deallocate(mergerTrees%units(i)%name)
+    end do
     return
   end subroutine Merger_Tree_Data_Structure_Reset
 
@@ -540,6 +445,8 @@ contains
        if (mergerTrees%metaData(mergerTrees%metaDataCount)%dataType /= dataTypeNull) call Galacticus_Error_Report('only one data type can be specified'//{introspection:location})
        mergerTrees%metaData(mergerTrees%metaDataCount)%textAttribute   =textValue
        mergerTrees%metaData(mergerTrees%metaDataCount)%dataType        =dataTypeText
+    else
+       mergerTrees%metaData(mergerTrees%metaDataCount)%textAttribute   =""
     end if
     if (mergerTrees%metaData(mergerTrees%metaDataCount)%dataType == dataTypeNull) call Galacticus_Error_Report('no data was given'//{introspection:location})
     return
@@ -706,6 +613,7 @@ contains
     end if
 
     ! Store the name if given.
+    allocate(mergerTrees%units(unitType)%name)
     if (present(name)) then
        mergerTrees%units(unitType)%name=name
     else
@@ -920,12 +828,12 @@ contains
 
   subroutine Merger_Tree_Data_Structure_Read_ASCII(mergerTrees,inputFile,columnHeaders,commentCharacter,separator,maximumRedshift)
     !% Read in merger tree data from an ASCII file.
+    use :: Display           , only : displayMessage
     use :: File_Utilities    , only : Count_Lines_In_File
-    use :: Galacticus_Display, only : Galacticus_Display_Message
     use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String, only : assignment(=)             , operator(//)
-    use :: Memory_Management , only : allocateArray             , deallocateArray
-    use :: String_Handling   , only : String_Count_Words        , String_Split_Words, operator(//)
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//)
+    use :: Memory_Management , only : allocateArray          , deallocateArray
+    use :: String_Handling   , only : String_Count_Words     , String_Split_Words, operator(//)
     implicit none
     class    (mergerTreeData), intent(inout)               :: mergerTrees
     character(len=*         ), intent(in   )               :: inputFile
@@ -1223,7 +1131,7 @@ contains
     ! Report number of forests found.
     message='Found '
     message=message//mergerTrees%forestCount//' forests'
-    call Galacticus_Display_Message(message)
+    call displayMessage(message)
 
     ! Deallocate workspace.
     if (allocated(inputColumns)) call deallocateArray(inputColumns)
@@ -1252,9 +1160,9 @@ contains
        mergerTrees%hasAngularMomentumY        =.true.
        mergerTrees%hasAngularMomentumZ        =.true.
     end if
-
+    
     ! If needed convert host IDs of self-hosting halos.
-    if (mergerTrees%hasDummyHostId) then
+    if (mergerTrees%hasHostIndex .and. mergerTrees%hasDummyHostId) then
        where (mergerTrees%hostIndex == mergerTrees%dummyHostId)
           mergerTrees%hostIndex=mergerTrees%nodeIndex
        end where
@@ -1854,8 +1762,8 @@ contains
          &                                                                               haloTrees                     , mergerTreesGroup    , &
          &                                                                               outputFile                    , particlesGroup      , &
          &                                                                               simulationGroup               , snapshotGroup       , &
-         &                                                                               thisDataset
-    integer                         , allocatable, dimension(:)                ::        nodeSnapshotIndices           , thisSnapshotIndices
+         &                                                                               dataset
+    integer                         , allocatable, dimension(:)                ::        nodeSnapshotIndices           , snapshotIndices
     integer         (c_size_t      ), allocatable, dimension(:)                ::        descendentSnapshot
     double precision                , allocatable, dimension(:)                ::        particleMass
     integer                                                                    ::        iAttribute                    , nodesOnSnapshotCount, &
@@ -1902,65 +1810,65 @@ contains
 
        ! Find those nodes which exist at this snapshot.
        nodesOnSnapshotCount=count(mergerTrees%snapshot == iSnapshot)
-       call allocateArray(thisSnapshotIndices,[nodesOnSnapshotCount])
-       call Array_Which(mergerTrees%snapshot == iSnapshot,thisSnapshotIndices)
+       call allocateArray(snapshotIndices,[nodesOnSnapshotCount])
+       call Array_Which(mergerTrees%snapshot == iSnapshot,snapshotIndices)
 
        ! Write redshift attribute.
-       if (.not.fileExists) call snapshotGroup%writeAttribute(mergerTrees%redshift(thisSnapshotIndices(1)),"Redshift")
+       if (.not.fileExists) call snapshotGroup%writeAttribute(mergerTrees%redshift(snapshotIndices(1)),"Redshift")
 
        ! Write the data.
        if (mergerTrees%hasNodeIndex               ) then
-          call haloTrees%writeDataset(Array_Index(mergerTrees%nodeIndex               ,thisSnapshotIndices),"Index"          ,"The index of each halo."                                                     ,appendTo=appendActual                  )
+          call haloTrees%writeDataset(Array_Index(mergerTrees%nodeIndex               ,snapshotIndices),"Index"          ,"The index of each halo."                                                     ,appendTo=appendActual                  )
        end if
        if (mergerTrees%hasNodeMass                ) then
-          call haloTrees%writeDataset(Array_Index(mergerTrees%nodeMass                ,thisSnapshotIndices),"Mass"           ,"The mass of each halo."                          ,datasetReturned=thisDataset,appendTo=appendActual                  )
-          if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsMass                          ],mergerTrees,thisDataset)
-          call thisDataset%close()
+          call haloTrees%writeDataset(Array_Index(mergerTrees%nodeMass                ,snapshotIndices),"Mass"           ,"The mass of each halo."                          ,datasetReturned=dataset,appendTo=appendActual                  )
+          if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsMass                          ],mergerTrees,dataset)
+          call dataset%close()
        end if
        if (mergerTrees%hasNodeMass200Mean         ) then
-          call haloTrees%writeDataset(Array_Index(mergerTrees%nodeMass200Mean         ,thisSnapshotIndices),"Mass200Mean"    ,"The M200 mass of each halo (200 * mean density).",datasetReturned=thisDataset,appendTo=appendActual                  )
-          if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsMass                          ],mergerTrees,thisDataset)
-          call thisDataset%close()
+          call haloTrees%writeDataset(Array_Index(mergerTrees%nodeMass200Mean         ,snapshotIndices),"Mass200Mean"    ,"The M200 mass of each halo (200 * mean density).",datasetReturned=dataset,appendTo=appendActual                  )
+          if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsMass                          ],mergerTrees,dataset)
+          call dataset%close()
        end if
        if (mergerTrees%hasNodeMass200Crit         ) then
-          call haloTrees%writeDataset(Array_Index(mergerTrees%nodeMass200Crit         ,thisSnapshotIndices),"Mass200Crit"    ,"The M200 mass of each halo (200 * mean density).",datasetReturned=thisDataset,appendTo=appendActual                  )
-          if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsMass                          ],mergerTrees,thisDataset)
-          call thisDataset%close()
+          call haloTrees%writeDataset(Array_Index(mergerTrees%nodeMass200Crit         ,snapshotIndices),"Mass200Crit"    ,"The M200 mass of each halo (200 * mean density).",datasetReturned=dataset,appendTo=appendActual                  )
+          if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsMass                          ],mergerTrees,dataset)
+          call dataset%close()
        end if
        if (mergerTrees%hasPositionX               ) then
-          call haloTrees%writeDataset(Array_Index(mergerTrees%position    ,thisSnapshotIndices,indexOn=2),"Center"         ,"The position of each halo center."                 ,datasetReturned=thisDataset,appendTo=appendActual,appendDimension=2)
-          if (.not.appendActual) call Store_Unit_Attributes_IRATE([          unitsLength              ],mergerTrees,thisDataset)
-          call thisDataset%close()
+          call haloTrees%writeDataset(Array_Index(mergerTrees%position    ,snapshotIndices,indexOn=2),"Center"         ,"The position of each halo center."                 ,datasetReturned=dataset,appendTo=appendActual,appendDimension=2)
+          if (.not.appendActual) call Store_Unit_Attributes_IRATE([          unitsLength              ],mergerTrees,dataset)
+          call dataset%close()
        end if
        if (mergerTrees%hasVelocityX               ) then
-          call haloTrees%writeDataset(Array_Index(mergerTrees%velocity   ,thisSnapshotIndices,indexOn=2),"Velocity"       ,"The velocity of each halo."                         ,datasetReturned=thisDataset,appendTo=appendActual,appendDimension=2)
-          if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsVelocity                      ],mergerTrees,thisDataset)
-          call thisDataset%close()
+          call haloTrees%writeDataset(Array_Index(mergerTrees%velocity   ,snapshotIndices,indexOn=2),"Velocity"       ,"The velocity of each halo."                         ,datasetReturned=dataset,appendTo=appendActual,appendDimension=2)
+          if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsVelocity                      ],mergerTrees,dataset)
+          call dataset%close()
        end if
        if (mergerTrees%hasSpinX                   ) then
-          call haloTrees%writeDataset(Array_Index(mergerTrees%spin                    ,thisSnapshotIndices),"Spin"           ,"The spin of each halo."                                                      ,appendTo=appendActual                  )
+          call haloTrees%writeDataset(Array_Index(mergerTrees%spin                    ,snapshotIndices),"Spin"           ,"The spin of each halo."                                                      ,appendTo=appendActual                  )
        end if
        if (mergerTrees%hasAngularMomentumX        ) then
-          call haloTrees%writeDataset(Array_Index(mergerTrees%angularMomentum         ,thisSnapshotIndices),"AngularMomentum","The angular momentum spin of each halo."         ,datasetReturned=thisDataset,appendTo=appendActual,appendDimension=2)
-          if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsMass,unitsLength,unitsVelocity],mergerTrees,thisDataset)
-          call thisDataset%close()
+          call haloTrees%writeDataset(Array_Index(mergerTrees%angularMomentum         ,snapshotIndices),"AngularMomentum","The angular momentum spin of each halo."         ,datasetReturned=dataset,appendTo=appendActual,appendDimension=2)
+          if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsMass,unitsLength,unitsVelocity],mergerTrees,dataset)
+          call dataset%close()
        end if
        if (mergerTrees%hasSpinMagnitude           ) then
-          call haloTrees%writeDataset(Array_Index(mergerTrees%spinMagnitude           ,thisSnapshotIndices),"Spin"           ,"The spin of each halo."                                                      ,appendTo=appendActual                  )
+          call haloTrees%writeDataset(Array_Index(mergerTrees%spinMagnitude           ,snapshotIndices),"Spin"           ,"The spin of each halo."                                                      ,appendTo=appendActual                  )
        end if
        if (mergerTrees%hasAngularMomentumMagnitude) then
-          call haloTrees%writeDataset(Array_Index(mergerTrees%angularMomentumMagnitude,thisSnapshotIndices),"AngularMomentum","The angular momentum spin of each halo."         ,datasetReturned=thisDataset,appendTo=appendActual                  )
-          if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsMass,unitsLength,unitsVelocity],mergerTrees,thisDataset)
-          call thisDataset%close()
+          call haloTrees%writeDataset(Array_Index(mergerTrees%angularMomentumMagnitude,snapshotIndices),"AngularMomentum","The angular momentum spin of each halo."         ,datasetReturned=dataset,appendTo=appendActual                  )
+          if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsMass,unitsLength,unitsVelocity],mergerTrees,dataset)
+          call dataset%close()
        end if
        if (mergerTrees%hasHalfMassRadius          ) then
-          call haloTrees%writeDataset(Array_Index(mergerTrees%halfMassRadius          ,thisSnapshotIndices),"HalfMassRadius" ,"The half mass radius of each halo."              ,datasetReturned=thisDataset,appendTo=appendActual                  )
-          if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsMass                          ],mergerTrees,thisDataset)
-          call thisDataset%close()
+          call haloTrees%writeDataset(Array_Index(mergerTrees%halfMassRadius          ,snapshotIndices),"HalfMassRadius" ,"The half mass radius of each halo."              ,datasetReturned=dataset,appendTo=appendActual                  )
+          if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsMass                          ],mergerTrees,dataset)
+          call dataset%close()
        end if
 
        ! Destroy snapshot indices.
-       call deallocateArray(thisSnapshotIndices)
+       call deallocateArray(snapshotIndices)
 
        ! Close the group for halo catalogs
        call haloTrees%close()
@@ -2012,8 +1920,8 @@ contains
 
           ! Find those particles which exist at this snapshot.
           particlesOnSnapshotCount=count(mergerTrees%particleSnapshot == iSnapshot)
-          call allocateArray(thisSnapshotIndices,[particlesOnSnapshotCount])
-          call Array_Which(mergerTrees%particleSnapshot == iSnapshot,thisSnapshotIndices)
+          call allocateArray(snapshotIndices,[particlesOnSnapshotCount])
+          call Array_Which(mergerTrees%particleSnapshot == iSnapshot,snapshotIndices)
 
           ! Find those nodes which exist at this snapshot.
           nodesOnSnapshotCount=count(mergerTrees%snapshot == iSnapshot)
@@ -2038,30 +1946,30 @@ contains
           darkParticlesGroup=particlesGroup%openGroup("Dark","Stores all data for dark matter particles.")
 
           ! Write redshift attribute.
-          if (.not.snapshotGroup%hasAttribute("Redshift")) call snapshotGroup%writeAttribute(mergerTrees%particleRedshift(thisSnapshotIndices(1)),"Redshift")
+          if (.not.snapshotGroup%hasAttribute("Redshift")) call snapshotGroup%writeAttribute(mergerTrees%particleRedshift(snapshotIndices(1)),"Redshift")
 
           ! Write the data.
           call allocateArray(particleMass,[particlesOnSnapshotCount])
           particleMass=mergerTrees%particleMass
-          call darkParticlesGroup%writeDataset(particleMass,"Mass","The mass of each particle.",datasetReturned=thisDataset,appendTo=appendActual)
-          if (.not.fileExists) call Store_Unit_Attributes_IRATE([unitsMass],mergerTrees,thisDataset)
-          call thisDataset%close()
+          call darkParticlesGroup%writeDataset(particleMass,"Mass","The mass of each particle.",datasetReturned=dataset,appendTo=appendActual)
+          if (.not.fileExists) call Store_Unit_Attributes_IRATE([unitsMass],mergerTrees,dataset)
+          call dataset%close()
           call deallocateArray(particleMass)
           if (mergerTrees%hasParticleIndex    ) then
-             call darkParticlesGroup%writeDataset(Array_Index(mergerTrees%particleIndex   ,thisSnapshotIndices),"ID"      ,"The index of each particle."                               ,appendTo=appendActual)
+             call darkParticlesGroup%writeDataset(Array_Index(mergerTrees%particleIndex   ,snapshotIndices),"ID"      ,"The index of each particle."                               ,appendTo=appendActual)
           end if
           if (mergerTrees%hasParticlePositionX) then
-             call darkParticlesGroup%writeDataset(Array_Index(mergerTrees%particlePosition,thisSnapshotIndices),"Position","The position of each particle.",datasetReturned=thisDataset,appendTo=appendActual)
-             if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsLength  ],mergerTrees,thisDataset)
-             call thisDataset%close()
+             call darkParticlesGroup%writeDataset(Array_Index(mergerTrees%particlePosition,snapshotIndices),"Position","The position of each particle.",datasetReturned=dataset,appendTo=appendActual)
+             if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsLength  ],mergerTrees,dataset)
+             call dataset%close()
           end if
           if (mergerTrees%hasParticleVelocityX) then
-             call darkParticlesGroup%writeDataset(Array_Index(mergerTrees%particleVelocity,thisSnapshotIndices),"Velocity","The velocity of each particle.",datasetReturned=thisDataset,appendTo=appendActual)
-             if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsVelocity],mergerTrees,thisDataset)
-             call thisDataset%close()
+             call darkParticlesGroup%writeDataset(Array_Index(mergerTrees%particleVelocity,snapshotIndices),"Velocity","The velocity of each particle.",datasetReturned=dataset,appendTo=appendActual)
+             if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsVelocity],mergerTrees,dataset)
+             call dataset%close()
           end if
           ! Destroy the snapshot indices.
-          call deallocateArray(thisSnapshotIndices)
+          call deallocateArray(snapshotIndices    )
           call deallocateArray(nodeSnapshotIndices)
 
           ! Close the groups.
@@ -2143,7 +2051,7 @@ contains
     return
   end subroutine Store_Unit_Attributes_Galacticus
 
-  subroutine Store_Unit_Attributes_IRATE(unitType,mergerTrees,thisDataset)
+  subroutine Store_Unit_Attributes_IRATE(unitType,mergerTrees,dataset)
     !% Store unit attributes in IRATE format files.
     use :: IO_HDF5                     , only : hdf5Object
     use :: ISO_Varying_String          , only : assignment(=), operator(//)
@@ -2151,7 +2059,7 @@ contains
     implicit none
     integer                         , dimension(:), intent(in   ) :: unitType
     class           (mergerTreeData)              , intent(in   ) :: mergerTrees
-    type            (hdf5Object    )              , intent(inout) :: thisDataset
+    type            (hdf5Object    )              , intent(inout) :: dataset
     integer                                                       :: iUnit
     double precision                                              :: cgsUnits   , hubbleExponent, scaleFactorExponent
     type            (varying_string)                              :: unitName
@@ -2180,18 +2088,18 @@ contains
     end do
 
     ! Write the attributes.
-    call thisDataset%writeAttribute(                      &
-         &                          [                     &
-         &                           cgsUnits           , &
-         &                           hubbleExponent     , &
-         &                           scaleFactorExponent  &
-         &                          ],                    &
-         &                          "unitscgs"            &
-         &                         )
-    call thisDataset%writeAttribute(                      &
-         &                           unitName,            &
-         &                          "unitname"            &
-         &                         )
+    call dataset%writeAttribute(                      &
+         &                      [                     &
+         &                       cgsUnits           , &
+         &                       hubbleExponent     , &
+         &                       scaleFactorExponent  &
+         &                      ],                    &
+         &                      "unitscgs"            &
+         &                     )
+    call dataset%writeAttribute(                      &
+         &                       unitName,            &
+         &                      "unitname"            &
+         &                     )
     return
   end subroutine Store_Unit_Attributes_IRATE
 
@@ -2210,6 +2118,7 @@ contains
 
   subroutine Merger_Tree_Data_Set_Subhalo_Masses(mergerTrees)
     !% Set the masses of any subhalos (which have zero mass by default) based on particle count.
+    use :: Display         , only : displayMagenta , displayReset
     use :: Galacticus_Error, only : Galacticus_Warn
     class(mergerTreeData), intent(inout) :: mergerTrees
 
@@ -2218,7 +2127,7 @@ contains
           mergerTrees%nodeMass=dble(mergerTrees%particleCount)*mergerTrees%particleMass
        end where
     end if
-    if (any(mergerTrees%nodeMass <= 0.0d0)) call Galacticus_Warn("WARNING: some nodes have non-positive mass"//{introspection:location})
+    if (any(mergerTrees%nodeMass <= 0.0d0)) call Galacticus_Warn(displayMagenta()//"WARNING:"//displayReset()//" some nodes have non-positive mass"//{introspection:location})
     return
   end subroutine Merger_Tree_Data_Set_Subhalo_Masses
 

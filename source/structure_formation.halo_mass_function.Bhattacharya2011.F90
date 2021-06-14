@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -32,33 +32,12 @@
      double precision                                         :: aValue                             , pValue, &
           &                                                      normalizationValue                 , qValue
    contains
-     !@ <objectMethods>
-     !@   <object>haloMassFunctionBhattacharya2011</object>
-     !@   <objectMethod>
-     !@     <method>a</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ time\argin, \doublezero\ mass\argin</arguments>
-     !@     <description>Return the parameter $\bar{a}$ in the \cite{bhattacharya_mass_2011} halo mass function fit.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>p</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ time\argin, \doublezero\ mass\argin</arguments>
-     !@     <description>Return the parameter $\bar{p}$ in the \cite{bhattacharya_mass_2011} halo mass function fit.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>q</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ time\argin, \doublezero\ mass\argin</arguments>
-     !@     <description>Return the parameter $\bar{q}$ in the \cite{bhattacharya_mass_2011} halo mass function fit.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>normalization</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ time\argin, \doublezero\ mass\argin</arguments>
-     !@     <description>Return the parameter $\bar{A}$ in the \cite{bhattacharya_mass_2011} halo mass function fit.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return the parameter $\bar{a}$ in the \cite{bhattacharya_mass_2011} halo mass function fit." method="a" />
+     !#   <method description="Return the parameter $\bar{p}$ in the \cite{bhattacharya_mass_2011} halo mass function fit." method="p" />
+     !#   <method description="Return the parameter $\bar{q}$ in the \cite{bhattacharya_mass_2011} halo mass function fit." method="q" />
+     !#   <method description="Return the parameter $\bar{A}$ in the \cite{bhattacharya_mass_2011} halo mass function fit." method="normalization" />
+     !# </methods>
      final     ::                  bhattacharya2011Destructor
      procedure :: differential  => bhattacharya2011Differential
      procedure :: a             => bhattacharya2011A
@@ -97,8 +76,6 @@ contains
     !#   <defaultValue>0.788d0</defaultValue>
     !#   <defaultSource>\citep{comparat_accurate_2017}</defaultSource>
     !#   <description>The parameter $\bar{a}$ in the \cite{bhattacharya_mass_2011} halo mass function fit.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>p</name>
@@ -106,8 +83,6 @@ contains
     !#   <defaultValue>0.807d0</defaultValue>
     !#   <defaultSource>\citep{comparat_accurate_2017}</defaultSource>
     !#   <description>The parameter $\bar{p}$ in the \cite{bhattacharya_mass_2011} halo mass function fit.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>q</name>
@@ -115,8 +90,6 @@ contains
     !#   <defaultValue>1.795d0</defaultValue>
     !#   <defaultSource>\citep{comparat_accurate_2017}</defaultSource>
     !#   <description>The parameter $\bar{q}$ in the \cite{bhattacharya_mass_2011} halo mass function fit.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>normalization</name>
@@ -124,8 +97,6 @@ contains
     !#   <defaultValue>0.333d0</defaultValue>
     !#   <defaultSource>\citep{comparat_accurate_2017}</defaultSource>
     !#   <description>The normalization parameter $\bar{A}$ in the \cite{bhattacharya_mass_2011} halo mass function fit.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=haloMassFunctionBhattacharya2011(cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,a,p,q,normalization)
     !# <inputParametersValidate source="parameters"/>
@@ -215,7 +186,7 @@ contains
     implicit none
     class           (haloMassFunctionBhattacharya2011), intent(inout) :: self
     double precision                                  , intent(in   ) :: time , mass
-    !GCC$ attributes unused :: time, mass
+    !$GLC attributes unused :: time, mass
 
     bhattacharya2011A=self%aValue
     return
@@ -226,7 +197,7 @@ contains
     implicit none
     class           (haloMassFunctionBhattacharya2011), intent(inout) :: self
     double precision                                  , intent(in   ) :: time , mass
-    !GCC$ attributes unused :: time, mass
+    !$GLC attributes unused :: time, mass
 
     bhattacharya2011P=self%pValue
     return
@@ -237,7 +208,7 @@ contains
     implicit none
     class           (haloMassFunctionBhattacharya2011), intent(inout) :: self
     double precision                                  , intent(in   ) :: time , mass
-    !GCC$ attributes unused :: time, mass
+    !$GLC attributes unused :: time, mass
 
     bhattacharya2011Q=self%qValue
     return
@@ -248,7 +219,7 @@ contains
     implicit none
     class           (haloMassFunctionBhattacharya2011), intent(inout) :: self
     double precision                                  , intent(in   ) :: time , mass
-    !GCC$ attributes unused :: time, mass
+    !$GLC attributes unused :: time, mass
 
     bhattacharya2011Normalization=self%normalizationValue
     return

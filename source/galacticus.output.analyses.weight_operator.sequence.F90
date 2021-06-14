@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,25 +26,21 @@
 
   !# <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorSequence">
   !#  <description>A sequence output analysis weight operator class.</description>
+  !#  <deepCopy>
+  !#   <linkedList type="weightOperatorList" variable="operators" next="next" object="operator_" objectType="outputAnalysisWeightOperatorClass"/>
+  !#  </deepCopy>
   !# </outputAnalysisWeightOperator>
   type, extends(outputAnalysisWeightOperatorClass) :: outputAnalysisWeightOperatorSequence
      !% A sequence output weight operator class.
      private
      type(weightOperatorList), pointer :: operators => null()
    contains
-     !@ <objectMethods>
-     !@   <object>outputAnalysisWeightOperatorSequence</object>
-     !@   <objectMethod>
-     !@     <method>prepend</method>
-     !@     <arguments>\textcolor{red}{\textless class(outputAnalysisWeightOperatorClass)\textgreater} operator\_\argin</arguments>
-     !@     <type>\void</type>
-     !@     <description>Prepend an operator to a sequence of weight operators.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
-     final     ::             sequenceDestructor
-     procedure :: operate  => sequenceOperate
-     procedure :: prepend  => sequencePrepend
-     procedure :: deepCopy => sequenceDeepCopy
+     !# <methods>
+     !#   <method description="Prepend an operator to a sequence of weight operators." method="prepend" />
+     !# </methods>
+     final     ::            sequenceDestructor
+     procedure :: operate => sequenceOperate
+     procedure :: prepend => sequencePrepend
   end type outputAnalysisWeightOperatorSequence
 
   interface outputAnalysisWeightOperatorSequence
@@ -66,7 +62,7 @@ contains
 
     self     %operators => null()
     operator_           => null()
-    do i=1,parameters%copiesCount('outputAnalysisWeightOperatorMethod',zeroIfNotPresent=.true.)
+    do i=1,parameters%copiesCount('outputAnalysisWeightOperator',zeroIfNotPresent=.true.)
        if (associated(operator_)) then
           allocate(operator_%next)
           operator_ => operator_%next
@@ -146,37 +142,3 @@ contains
     self       %operators => operatorNew
     return
   end subroutine sequencePrepend
-
-  subroutine sequenceDeepCopy(self,destination)
-    !% Perform a deep copy for the {\normalfont \ttfamily sequence} output analysis weight operator class.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    implicit none
-    class(outputAnalysisWeightOperatorSequence), intent(inout) :: self
-    class(outputAnalysisWeightOperatorClass   ), intent(inout) :: destination
-    type (weightOperatorList                  ), pointer       :: operator_   , operatorDestination_, &
-         &                                                        operatorNew_
-
-    call self%outputAnalysisWeightOperatorClass%deepCopy(destination)
-    select type (destination)
-    type is (outputAnalysisWeightOperatorSequence)
-       destination%operators => null          ()
-       operatorDestination_  => null          ()
-       operator_             => self%operators
-       do while (associated(operator_))
-          allocate(operatorNew_)
-          if (associated(operatorDestination_)) then
-             operatorDestination_%next       => operatorNew_
-             operatorDestination_            => operatorNew_
-          else
-             destination          %operators => operatorNew_
-             operatorDestination_            => operatorNew_
-          end if
-          allocate(operatorNew_%operator_,mold=operator_%operator_)
-          !# <deepCopy source="operator_%operator_" destination="operatorNew_%operator_"/>
-          operator_ => operator_%next
-       end do
-    class default
-       call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})
-    end select
-    return
-  end subroutine sequenceDeepCopy

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -53,51 +53,39 @@ contains
 
     !# <inputParameter>
     !#   <name>densityNormalization</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.5d0/Pi</defaultValue>
     !#   <description>The density normalization of the NFW profile.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>scaleLength</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The scale radius of the NFW profile.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>mass</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The mass of the NFW profile.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>concentration</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The concentration of the NFW profile.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>virialRadius</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The virial radius of the NFW profile.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>dimensionless</name>
     !#   <defaultValue>.true.</defaultValue>
-    !#   <cardinality>1</cardinality>
     !#   <description>If true the NFW profile is considered to be dimensionless.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <conditionalCall>
     !#  <call>self=massDistributionNFW({conditions})</call>

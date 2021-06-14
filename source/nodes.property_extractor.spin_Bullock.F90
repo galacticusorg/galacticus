@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -101,7 +101,7 @@ contains
     implicit none
     class           (nodePropertyExtractorSpinBullock), intent(inout) :: self
     double precision                                  , intent(in   ) :: time
-    !GCC$ attributes unused :: time
+    !$GLC attributes unused :: time
 
     spinBullockElementCount=self%elementCount_
     return
@@ -121,7 +121,7 @@ contains
     class           (nodeComponentSpin                ), pointer                    :: spin
     double precision                                   , dimension(3)               :: spinVectorUnit
     double precision                                                                :: spinBullock
-    !GCC$ attributes unused :: time, instance
+    !$GLC attributes unused :: time, instance
 
     allocate(spinBullockExtract(self%elementCount_))
     basic                 =>  node                     %basic         (                               )
@@ -147,7 +147,7 @@ contains
     type            (varying_string                  ), dimension(:) , allocatable :: spinBullockNames
     class           (nodePropertyExtractorSpinBullock), intent(inout)              :: self
     double precision                                  , intent(in   )              :: time
-    !GCC$ attributes unused :: self, time
+    !$GLC attributes unused :: self, time
 
     allocate(spinBullockNames(self%elementCount_))
     spinBullockNames(1)         = var_str('spinBullock' )
@@ -162,7 +162,7 @@ contains
     type            (varying_string                  ), dimension(:) , allocatable :: spinBullockDescriptions
     class           (nodePropertyExtractorSpinBullock), intent(inout)              :: self
     double precision                                  , intent(in   )              :: time
-    !GCC$ attributes unused :: time
+    !$GLC attributes unused :: time
 
     allocate(spinBullockDescriptions(self%elementCount_))
     spinBullockDescriptions       (1  )= var_str('Spin parameter of the halo under the Bullock et al. (2001) definition [].'                   )
@@ -181,7 +181,7 @@ contains
     double precision                                  , allocatable  , dimension(:) :: spinBullockUnitsInSI
     class           (nodePropertyExtractorSpinBullock), intent(inout)               :: self
     double precision                                  , intent(in   )               :: time
-    !GCC$ attributes unused :: self, time
+    !$GLC attributes unused :: self, time
 
     allocate(spinBullockUnitsInSI(self%elementCount_))
     spinBullockUnitsInSI=0.0d0
@@ -193,7 +193,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorSpinBullock), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     spinBullockType=outputAnalysisPropertyTypeLinear
     return

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -60,32 +60,24 @@ contains
     !#   <name>selfBoundParticlesOnly</name>
     !#   <source>parameters</source>
     !#   <description>If true, the gravitational potential is computed only from self-bound particles.</description>
-    !#   <type>logical</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>bootstrapSampleCount</name>
     !#   <source>parameters</source>
     !#   <defaultValue>30_c_size_t</defaultValue>
     !#   <description>The number of bootstrap resamples of the particles that should be used.</description>
-    !#   <type>integer</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>bootstrapSampleRate</name>
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The sampling rate for particles.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>thetaTolerance</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0.5d0</defaultValue>
     !#   <description>The criterion for the opening angle.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     self=nbodyOperatorPotentialEnergy(selfBoundParticlesOnly,bootstrapSampleCount,bootstrapSampleRate,thetaTolerance,randomNumberGenerator_)
@@ -116,83 +108,93 @@ contains
     return
   end subroutine potentialEnergyDestructor
   
-  subroutine potentialEnergyOperate(self,simulation)
+  subroutine potentialEnergyOperate(self,simulations)
     !% Determine the acceleration of bound particles from stripped ones.
     use :: Galacticus_Error                , only : Galacticus_Error_Report
     use :: Memory_Management               , only : allocateArray                  , deallocateArray
     use :: Octree_Data_Structure           , only : octreeData
-    use :: Numerical_Constants_Physical    , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (nbodyOperatorPotentialEnergy), intent(inout)                 :: self
-    type            (nBodyData                   ), intent(inout)                 :: simulation
+    type            (nBodyData                   ), intent(inout), dimension(:  ) :: simulations
     type            (octreeData                  )                                :: octreePosition
     integer                                       , allocatable  , dimension(:,:) :: selfBoundStatus
+    double precision                              , pointer      , dimension(:,:) :: position
     double precision                              , allocatable  , dimension(:,:) :: positionRescaled
     double precision                              , allocatable  , dimension(:,:) :: potentialEnergy
     double precision                              , allocatable  , dimension(:  ) :: sampleRate 
+    double precision                                                              :: lengthSoftening  , massParticle
     integer         (c_size_t                    )                                :: particleCount
-    integer         (c_size_t                    )                                :: i                , j
+    integer         (c_size_t                    )                                :: i                , j           , &
+         &                                                                           iSimulation
 
-    ! Total number of particles.
-    particleCount=size(simulation%position,dim=2,kind=c_size_t)
-    ! Determine the particle mask to use.
-    if (self%selfBoundParticlesOnly) then
-       if (simulation%analysis%hasDataset('selfBoundStatus')) then
-          call simulation%analysis%readDataset('selfBoundStatus',selfBoundStatus)
-          if (simulation%analysis%hasDataset('bootstrapSampleRate')) then
-             call simulation%analysis%readDataset('bootstrapSampleRate',sampleRate)
-          else
-             call allocateArray(sampleRate,[1])
-             sampleRate=1.0d0
-          end if
-          if (size(selfBoundStatus,dim=2) /= self%bootstrapSampleCount) call Galacticus_Error_Report('number of selfBoundStatus samples must equal number of requested bootstrap samples'//{introspection:location})
-       else
-          call Galacticus_Error_Report('self-bound status not available - apply a self-bound operator first'//{introspection:location})
-       end if
-    else
-       call allocateArray(selfBoundStatus,[particleCount,self%bootstrapSampleCount])
-       call allocateArray(sampleRate     ,[1                                      ])
-       sampleRate=self%bootstrapSampleRate
-       do i=1,self%bootstrapSampleCount
-          do j=1,particleCount
-             selfBoundStatus(j,i)=self%randomNumberGenerator_%poissonSample(sampleRate(1))
-          end do
-       end do
-    end if
-    ! Compute the potential energy.
-    call allocateArray(potentialEnergy ,[           particleCount,self%bootstrapSampleCount])
-    call allocateArray(positionRescaled,[3_c_size_t,particleCount                          ])
-    positionRescaled=simulation%position/simulation%lengthSoftening
-    potentialEnergy =0.0d0
-    do i=1,self%bootstrapSampleCount
-       if (sum(selfBoundStatus(:,i)) > 0) then
-          ! Build octree.
-          call octreePosition%build(positionRescaled,dble(selfBoundStatus(:,i)))
-          !$omp parallel private(j)
-          do j=1,particleCount
-             if (selfBoundStatus(j,i) > 0 ) then
-                call octreePosition%traverseCompute(positionRescaled(:,j),dble(selfBoundStatus(j,i)),self%thetaTolerance,potentialEnergy(j,i),potentialEnergyPotential)
-                potentialEnergy(j,i)=+potentialEnergy(j,i)                                      &
-                     &               *gravitationalConstantGalacticus                           &
-                     &               *simulation%massParticle                                   &
-                     &               /sampleRate(1)                                             &
-                     &               /simulation%lengthSoftening                                &
-                     &               * dble(particleCount)                                      &
-                     &               /(dble(particleCount-1_c_size_t)-self%bootstrapSampleRate)
+    do iSimulation=1,size(simulations)
+       ! Get simulation attributes.
+       lengthSoftening=simulations(iSimulation)%attributesReal%value('lengthSoftening')
+       massParticle   =simulations(iSimulation)%attributesReal%value('massParticle'   )
+       ! Get particle data.
+       position => simulations(iSimulation)%propertiesRealRank1%value('position')
+       ! Total number of particles.
+       particleCount=size(position,dim=2,kind=c_size_t)
+       ! Determine the particle mask to use.
+       if (self%selfBoundParticlesOnly) then
+          if (simulations(iSimulation)%analysis%hasDataset('selfBoundStatus')) then
+             call simulations(iSimulation)%analysis%readDataset('selfBoundStatus',selfBoundStatus)
+             if (simulations(iSimulation)%analysis%hasDataset('bootstrapSampleRate')) then
+                call simulations(iSimulation)%analysis%readDataset('bootstrapSampleRate',sampleRate)
+             else
+                call allocateArray(sampleRate,[1])
+                sampleRate=1.0d0
              end if
+             if (size(selfBoundStatus,dim=2) /= self%bootstrapSampleCount) call Galacticus_Error_Report('number of selfBoundStatus samples must equal number of requested bootstrap samples'//{introspection:location})
+          else
+             call Galacticus_Error_Report('self-bound status not available - apply a self-bound operator first'//{introspection:location})
+          end if
+       else
+          call allocateArray(selfBoundStatus,[particleCount,self%bootstrapSampleCount])
+          call allocateArray(sampleRate     ,[1                                      ])
+          sampleRate=self%bootstrapSampleRate
+          do i=1,self%bootstrapSampleCount
+             do j=1,particleCount
+                selfBoundStatus(j,i)=self%randomNumberGenerator_%poissonSample(sampleRate(1))
+             end do
           end do
-          !$omp end parallel
-          ! Destroy the octree.
-          call octreePosition%destroy()
        end if
+       ! Compute the potential energy.
+       call allocateArray(potentialEnergy ,[           particleCount,self%bootstrapSampleCount])
+       call allocateArray(positionRescaled,[3_c_size_t,particleCount                          ])
+       positionRescaled=position/lengthSoftening
+       potentialEnergy =0.0d0
+       do i=1,self%bootstrapSampleCount
+          if (sum(selfBoundStatus(:,i)) > 0) then
+             ! Build octree.
+             call octreePosition%build(positionRescaled,dble(selfBoundStatus(:,i)))
+             !$omp parallel private(j)
+             do j=1,particleCount
+                if (selfBoundStatus(j,i) > 0 ) then
+                   call octreePosition%traverseCompute(positionRescaled(:,j),dble(selfBoundStatus(j,i)),self%thetaTolerance,potentialEnergy(j,i),potentialEnergyPotential)
+                   potentialEnergy(j,i)=+potentialEnergy(j,i)                                      &
+                        &               *gravitationalConstantGalacticus                           &
+                        &               *massParticle                                              &
+                        &               /sampleRate(1)                                             &
+                        &               /lengthSoftening                                           &
+                        &               * dble(particleCount)                                      &
+                        &               /(dble(particleCount-1_c_size_t)-self%bootstrapSampleRate)
+                end if
+             end do
+             !$omp end parallel
+             ! Destroy the octree.
+             call octreePosition%destroy()
+          end if
+       end do
+       ! Store results to file.
+       call simulations(iSimulation)%analysis%writeDataset(potentialEnergy,'energyPotential')
+       ! Dealclocate workspace.
+       call deallocateArray(selfBoundStatus )
+       call deallocateArray(positionRescaled)
+       call deallocateArray(potentialEnergy )
+       call deallocateArray(sampleRate      )
     end do
-    ! Store results to file.
-    call simulation%analysis%writeDataset(potentialEnergy,'energyPotential')
-    ! Dealclocate workspace.
-    call deallocateArray(selfBoundStatus )
-    call deallocateArray(positionRescaled)
-    call deallocateArray(potentialEnergy )
-    call deallocateArray(sampleRate      )
     return
   end subroutine potentialEnergyOperate
 
@@ -205,7 +207,7 @@ contains
     double precision,               intent(in   ) :: nodeWeight       , separation      , &
          &                                           separationSquared
     double precision                              :: potential
-    !GCC$ attributes unused :: centerOfMass, relativePosition
+    !$GLC attributes unused :: centerOfMass, relativePosition
 
     if     (separation == 0.0d0) then
        potential=0.0d0 ! No self-energy.

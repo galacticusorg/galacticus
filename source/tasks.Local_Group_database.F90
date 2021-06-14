@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -41,7 +41,7 @@ contains
     implicit none
     type(taskLocalGroupDatabase)                :: self
     type(inputParameters       ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=taskLocalGroupDatabase()
     return
@@ -49,19 +49,19 @@ contains
 
   subroutine localGroupDatabasePerform(self,status)
     !% Update the database.
-    use :: Galacticus_Display      , only : Galacticus_Display_Indent, Galacticus_Display_Unindent
+    use :: Display                 , only : displayIndent     , displayUnindent
     use :: Galacticus_Error        , only : errorStatusSuccess
     use :: Interface_Local_Group_DB, only : localGroupDB
     implicit none
     class  (taskLocalGroupDatabase), intent(inout), target   :: self
     integer                        , intent(  out), optional :: status
     type   (localGroupDB          )                          :: database
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
-    call Galacticus_Display_Indent  ('Begin task: localGroupDatabase')
+    call displayIndent  ('Begin task: localGroupDatabase')
     database=localGroupDB()
     call database%update()
-    call Galacticus_Display_Unindent('Done task: localGroupDatabase' )
+    call displayUnindent('Done task: localGroupDatabase' )
     if (present(status)) status=errorStatusSuccess
     return
   end subroutine localGroupDatabasePerform
@@ -70,7 +70,7 @@ contains
     !% Specifies that this task does not requires the main output file.
     implicit none
     class(taskLocalGroupDatabase), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     localGroupDatabaseRequiresOutputFile=.false.
     return

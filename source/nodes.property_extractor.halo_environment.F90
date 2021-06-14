@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -85,7 +85,7 @@ contains
     implicit none
     class           (nodePropertyExtractorHaloEnvironment), intent(inout) :: self
     double precision                                      , intent(in   ) :: time
-    !GCC$ attributes unused :: self, time
+    !$GLC attributes unused :: self, time
 
     haloEnvironmentElementCount=2
     return
@@ -99,7 +99,7 @@ contains
     type            (treeNode                            ), intent(inout), target      :: node
     double precision                                      , intent(in   )              :: time
     type            (multiCounter                        ), intent(inout), optional    :: instance
-    !GCC$ attributes unused :: time, instance
+    !$GLC attributes unused :: time, instance
 
     allocate(haloEnvironmentExtract(2))
     haloEnvironmentExtract=[                                                  &
@@ -115,7 +115,7 @@ contains
     type            (varying_string                      ), dimension(:) , allocatable :: haloEnvironmentNames
     class           (nodePropertyExtractorHaloEnvironment), intent(inout)              :: self
     double precision                                      , intent(in   )              :: time
-    !GCC$ attributes unused :: self, time
+    !$GLC attributes unused :: self, time
 
     allocate(haloEnvironmentNames(2))
     haloEnvironmentNames=[                                                &
@@ -131,7 +131,7 @@ contains
     type            (varying_string                      ), dimension(:) , allocatable :: haloEnvironmentDescriptions
     class           (nodePropertyExtractorHaloEnvironment), intent(inout)              :: self
     double precision                                      , intent(in   )              :: time
-    !GCC$ attributes unused :: self, time
+    !$GLC attributes unused :: self, time
 
     allocate(haloEnvironmentDescriptions(2))
     haloEnvironmentDescriptions=[                                                                 &
@@ -147,7 +147,7 @@ contains
     double precision                                      , allocatable  , dimension(:) :: haloEnvironmentUnitsInSI
     class           (nodePropertyExtractorHaloEnvironment), intent(inout)               :: self
     double precision                                      , intent(in   )               :: time
-    !GCC$ attributes unused :: self, time
+    !$GLC attributes unused :: self, time
 
     allocate(haloEnvironmentUnitsInSI(2))
     haloEnvironmentUnitsInSI=0.0d0
@@ -159,7 +159,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorHaloEnvironment), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     haloEnvironmentType=outputAnalysisPropertyTypeLinear
     return

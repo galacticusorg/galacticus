@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -66,11 +66,9 @@ contains
 
     !# <inputParameter>
     !#   <name>sample</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('all')</defaultValue>
     !#   <description>The sample to use for the halo shape parameter algorithm of \cite{klypin_multidark_2014}.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !#   <variable>sampleText</variable>
     !# </inputParameter>
     !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
@@ -113,10 +111,10 @@ contains
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic     , treeNode
     implicit none
-    class           (darkMatterProfileShapeKlypin2015), intent(inout)          :: self
-    type            (treeNode                        ), intent(inout), pointer :: node
-    class           (nodeComponentBasic              )               , pointer :: basic
-    double precision                                                           :: nu
+    class           (darkMatterProfileShapeKlypin2015), intent(inout) :: self
+    type            (treeNode                        ), intent(inout) :: node
+    class           (nodeComponentBasic              ), pointer       :: basic
+    double precision                                                  :: nu
 
     ! Get the basic component.
     basic => node%basic()

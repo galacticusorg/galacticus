@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -25,7 +25,7 @@ subroutine Node_Component_Disk_Very_Simple_Attach_Pipe(self)
   implicit none
   class(nodeComponentDiskVerySimple), intent(in   ) :: self
   type (nodeComponentHotHalo       )                :: hotHalo
-  !GCC$ attributes unused :: self
+  !$GLC attributes unused :: self
 
   if     (                                                                                                 &
        &   hotHalo%      hotHaloCoolingMassRateIsAttached()                                                &
@@ -51,7 +51,7 @@ double precision function Node_Component_Disk_Very_Simple_Enclosed_Mass(self,rad
   class           (nodeComponentDiskVerySimple), intent(inout) :: self
   integer                                      , intent(in   ) :: componentType, massType, weightBy, weightIndex
   double precision                             , intent(in   ) :: radius
-  !GCC$ attributes unused :: weightIndex
+  !$GLC attributes unused :: weightIndex
 
   ! Return zero mass if the mass and component types do not match.
   Node_Component_Disk_Very_Simple_Enclosed_Mass=0.0d0

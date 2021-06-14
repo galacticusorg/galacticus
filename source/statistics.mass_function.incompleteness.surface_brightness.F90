@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,13 @@
   !% Implements calculations of incompleteness assuming a normal distribution of surface brightnesses.
 
   !# <massFunctionIncompleteness name="massFunctionIncompletenessSurfaceBrightness">
-  !#  <description>Computes incompleteness assuming a normal distribution of surface brightnesses.</description>
+  !#  <description>
+  !#   A mass function incompleteness class which models the surface brightness distribution of galaxies as a normal distribution
+  !#   with mean $\langle \mu \rangle (M) = \alpha \log_{10}(M/M_0)+\beta$, with root-variance $\sigma$, where
+  !#   $\alpha=${\normalfont \ttfamily [slope]}, $\beta=${\normalfont \ttfamily [zeroPoint]}, and $\sigma=${\normalfont \ttfamily
+  !#   [scatter]}. The completeness is the fraction of this distribution above the surface brightness limit given by {\normalfont
+  !#   \ttfamily [limit]}.
+  !#  </description>
   !# </massFunctionIncompleteness>
   type, extends(massFunctionIncompletenessClass) :: massFunctionIncompletenessSurfaceBrightness
      !% A class implementing incompleteness calculations assuming a normal distribution of surface brightnesses.
@@ -52,38 +58,28 @@ contains
 
     !# <inputParameter>
     !#   <name>limit</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>Limiting surface brightness for mass function incompleteness calculations.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>zeroPoint</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>Mass zero point for the mass function incompleteness surface brightness model, i.e. $M_0$ in $\mu(M) = \alpha \log_{10}(M/M_0)+\beta$.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>slope</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>Slope of mass function incompleteness surface brightness model, i.e. $\alpha$ in $\mu(M) = \alpha \log_{10}(M/M_0)+\beta$.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>offset</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>Offset in the mass function incompleteness surface brightness model, i.e. $beta$ in $\mu(M) = \alpha \log_{10}(M/M_0)+\beta$.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>scatter</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>Scatter in the mass function incompleteness surface brightness model.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     self=massFunctionIncompletenessSurfaceBrightness(limit,zeroPoint,slope,offset,scatter)
     !# <inputParametersValidate source="parameters"/>

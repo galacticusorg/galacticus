@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,7 +27,18 @@
   use :: Virial_Density_Contrast                  , only : virialDensityContrastBryanNorman1998
 
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationZhao2009">
-  !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{zhao_accurate_2009}.</description>
+  !#  <description>
+  !#   A dark matter profile concentration class in which the concentration is computed using a fitting function from
+  !#   \cite{zhao_accurate_2009}:
+  !#   \begin{equation}
+  !#    c = 4 \left(1 + \left[ {t  \over 3.75 t_\mathrm{form}}\right]^{8.4}\right)^{1/8},
+  !#   \end{equation}
+  !#   where $t$ is the time for the halo and $t_\mathrm{form}$ is a formation time defined by \cite{zhao_accurate_2009} as the
+  !#   time at which the main branch progenitor of the halo had a mass equal to $0.04$ of the current halo mass. This formation
+  !#   time is computed directly from the merger tree branch associated with each halo. If the no branch exists or does not extend
+  !#   to the formation time then the formation time is computed by extrapolating the mass of the earliest resolved main branch
+  !#   progenitor to earlier times using the selected \refClass{darkMatterHaloMassAccretionHistoryClass}.
+  !#  </description>
   !#  <deepCopy>
   !#   <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
   !#  </deepCopy>
@@ -97,10 +108,32 @@ contains
     allocate(self%virialDensityContrastDefinition_)
     allocate(self%darkMatterProfileDMODefinition_ )
     allocate(     darkMatterHaloScaleDefinition_  )
-    !# <referenceConstruct owner="self" object="virialDensityContrastDefinition_" constructor="virialDensityContrastBryanNorman1998              (self%cosmologyParameters_,self%cosmologyFunctions_                                      )"/>
-    !# <referenceConstruct              object="darkMatterHaloScaleDefinition_"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,self%virialDensityContrastDefinition_)"/>
-    !# <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_"  constructor="darkMatterProfileDMONFW                           (                                                          darkMatterHaloScaleDefinition_)"/>
-    !# <objectDestructor                name  ="darkMatterHaloScaleDefinition_"                                                                                                                                                             />
+    !# <referenceConstruct owner="self" object="virialDensityContrastDefinition_">
+    !#  <constructor>
+    !#   virialDensityContrastBryanNorman1998              (                                                                            &amp;
+    !#    &amp;                                             cosmologyParameters_                =self%cosmologyParameters_            , &amp;
+    !#    &amp;                                             cosmologyFunctions_                 =self%cosmologyFunctions_               &amp;
+    !#    &amp;                                            )
+    !#  </constructor>
+    !# </referenceConstruct>
+    !# <referenceConstruct              object="darkMatterHaloScaleDefinition_"  >
+    !#  <constructor>
+    !#   darkMatterHaloScaleVirialDensityContrastDefinition(                                                                            &amp;
+    !#    &amp;                                             cosmologyParameters_                =self%cosmologyParameters_            , &amp;
+    !#    &amp;                                             cosmologyFunctions_                 =self%cosmologyFunctions_             , &amp;
+    !#    &amp;                                             virialDensityContrast_              =self%virialDensityContrastDefinition_  &amp;
+    !#    &amp;                                            )
+    !#  </constructor>
+    !# </referenceConstruct>
+    !# <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_" >
+    !#  <constructor>
+    !#   darkMatterProfileDMONFW                           (                                                                            &amp;
+    !#    &amp;                                             velocityDispersionUseSeriesExpansion=.true.                               , &amp;
+    !#    &amp;                                             darkMatterHaloScale_                =darkMatterHaloScaleDefinition_         &amp;
+    !#    &amp;                                            )
+    !#  </constructor>
+    !# </referenceConstruct>
+    !# <objectDestructor                name  ="darkMatterHaloScaleDefinition_" />
     return
   end function zhao2009ConstructorInternal
 
@@ -129,7 +162,7 @@ contains
     double precision                                        , parameter              :: concentrationMinimum =4.00d0
     double precision                                        , parameter              :: formationMassFraction=0.04d0
     double precision                                                                 :: timeFormation               , timeNode
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Get the basic component.
     basic => node%basic()

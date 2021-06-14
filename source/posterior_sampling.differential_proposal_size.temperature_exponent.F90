@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -30,7 +30,12 @@ module Posterior_Sampling_Prop_Size_Temp_Exp
   !# <functionClass>
   !#  <name>posteriorSampleDffrntlEvltnPrpslSzTmpExp</name>
   !#  <descriptiveName>Posterior Sampling Differential Evolution Proposal Size Temperature Exponent</descriptiveName>
-  !#  <description>Class providing temperature-dependence exponents for proposal sizes for differential evolution posterior samplers.</description>
+  !#  <description>
+  !#   Class providing temperature-dependence exponents for proposal sizes for differential evolution posterior
+  !#   samplers. Specifically, theis class provides the exponent, $\alpha$, for the temperature scaling of the proposal size
+  !#   parameter, $\gamma$ (the fraction of the vector connecting to chain state to be used as the proposal for another chain),
+  !#   for use in tempered differential evolution simulations
+  !#  </description>
   !#  <method name="exponent" >
   !#   <description>Return the temperature exponent.</description>
   !#   <type>double precision</type>

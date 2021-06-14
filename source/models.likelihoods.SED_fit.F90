@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -101,52 +101,38 @@ contains
 
     !# <inputParameter>
     !#   <name>magnitude</name>
-    !#   <cardinality>1..*</cardinality>
     !#   <description>The magnitudes of the broad-band SED.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>error</name>
-    !#   <cardinality>1..*</cardinality>
     !#   <description>The errors on the magnitudes of the broad-band SED.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>filter</name>
-    !#   <cardinality>1..*</cardinality>
     !#   <description>The names of the filters in the broad-band SED.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>system</name>
-    !#   <cardinality>1..*</cardinality>
     !#   <description>The photometric system (AB or Vega) of the broad-band SED.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>burstCount</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The number of bursts events to include in the star formation history.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>dustType</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The type of dust model to apply to the SED.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>startTime</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The definition of start time (absolute {\normalfont \ttfamily time} or {\normalfont \ttfamily age}).</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"                           name="cosmologyFunctions_"                           source="parameters"/>
     !# <objectBuilder class="stellarPopulationSelector"                    name="stellarPopulationSelector_"                    source="parameters"/>
@@ -239,12 +225,11 @@ contains
   double precision function sedFitEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
     !% Return the log-likelihood for the SED fitting likelihood function.
     use            :: Abundances_Structure             , only : abundances                          , max                                      , metallicityTypeLinearByMassSolar
-    use            :: FGSL                             , only : FGSL_Integ_Gauss61                  , fgsl_function                            , fgsl_integration_workspace
     use            :: Galacticus_Error                 , only : Galacticus_Error_Report
     use            :: Galacticus_Nodes                 , only : nodeComponentDisk
     use, intrinsic :: ISO_C_Binding                    , only : c_size_t
     use            :: Models_Likelihoods_Constants     , only : logImpossible
-    use            :: Numerical_Integration            , only : Integrate                           , Integrate_Done
+    use            :: Numerical_Integration            , only : integrator                          , GSL_Integ_Gauss61
     use            :: Posterior_Sampling_Convergence   , only : posteriorSampleConvergenceClass
     use            :: Posterior_Sampling_State         , only : posteriorSampleStateClass
     use            :: Stellar_Populations              , only : stellarPopulationClass
@@ -284,10 +269,9 @@ contains
          &                                                                                 agePrevious                                     , ageNow                       , &
          &                                                                                 ageNext
     type            (abundances                )                                        :: abundancesStars
-    type            (fgsl_function             )                                        :: integrandFunction
-    type            (fgsl_integration_workspace)                                        :: integrationWorkspace
-    logical                                                                             :: integrationReset                                , useRapidEvaluation
-    !GCC$ attributes unused :: simulationConvergence, timeEvaluate, modelParametersInactive_, forceAcceptance
+    type            (integrator                )                                        :: integrator_
+    logical                                                                             :: useRapidEvaluation
+    !$GLC attributes unused :: simulationConvergence, timeEvaluate, modelParametersInactive_, forceAcceptance
 
     ! There is no variance in our likelihood estimate.
     if (present(logLikelihoodVariance)) logLikelihoodVariance=0.0d0
@@ -529,23 +513,13 @@ contains
           end if
        else
           ! Integrate star formation history to get luminosity.
-          integrationReset=.true.
+          integrator_=integrator(luminosityIntegrand,toleranceRelative=toleranceRelative,integrationRule=GSL_Integ_Gauss61)
           if (iMagnitude == 0) then
              toleranceRelative=    1.0d-3
           else
              toleranceRelative=max(1.0d-3,toleranceRelativeFractional*self%error(imagnitude)*log(10.0d0)/2.5d0)
           end if
-          luminosity=Integrate(                                         &
-               &               timeStart                              , &
-               &               timeObserved                           , &
-               &               luminosityIntegrand                    , &
-               &               integrandFunction                      , &
-               &               integrationWorkspace                   , &
-               &               toleranceRelative   =toleranceRelative , &
-               &               integrationRule     =FGSL_Integ_Gauss61, &
-               &               reset               =integrationReset    &
-               &              )
-          call Integrate_Done(integrandFunction,integrationWorkspace)
+          luminosity=integrator_%integrate(timeStart,timeObserved)
        end if
        ! Determine if we're computing mass or luminosity.
        if (iMagnitude > 0) then
@@ -667,7 +641,7 @@ contains
     !% Respond to possible changes in the likelihood function.
     implicit none
     class(posteriorSampleLikelihoodSEDFit), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     return
   end subroutine sedFitFunctionChanged

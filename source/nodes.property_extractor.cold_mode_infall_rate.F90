@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -86,7 +86,7 @@ contains
     class(nodePropertyExtractorRateInfallColdMode), intent(inout)           :: self
     type (treeNode                               ), intent(inout), target   :: node
     type (multiCounter                           ), intent(inout), optional :: instance
-    !GCC$ attributes unused :: instance
+    !$GLC attributes unused :: instance
 
     rateInfallColdModeExtract=self%coldModeInfallRate_%infallRate(node)
     return
@@ -97,7 +97,7 @@ contains
     implicit none
     type (varying_string                         )                :: rateInfallColdModeName
     class(nodePropertyExtractorRateInfallColdMode), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     rateInfallColdModeName=var_str('coldModeInfallRate')
     return
@@ -108,7 +108,7 @@ contains
     implicit none
     type (varying_string                         )                :: rateInfallColdModeDescription
     class(nodePropertyExtractorRateInfallColdMode), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     rateInfallColdModeDescription=var_str('Rate of infall of cold mode material onto the galaxy [M☉/Gyr].')
     return
@@ -119,7 +119,7 @@ contains
     use :: Numerical_Constants_Astronomical, only : gigaYear, massSolar
     implicit none
     class(nodePropertyExtractorRateInfallColdMode), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     rateInfallColdModeUnitsInSI=massSolar/gigaYear
     return
@@ -130,7 +130,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorRateInfallColdMode), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     rateInfallColdModeType=outputAnalysisPropertyTypeLinear
     return

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -28,7 +28,10 @@
   use :: Output_Times             , only : outputTimesClass
 
   !# <mergerTreeConstructor name="mergerTreeConstructorBuild">
-  !#  <description>Merger tree constructor class which builds merger trees.</description>
+  !#  <description>
+  !#   A merger tree constructor class which builds merger trees. This class first creates a distribution of tree root halo masses
+  !#   and then builds a merger tree from each root halo.
+  !#  </description>
   !# </mergerTreeConstructor>
   type, extends(mergerTreeConstructorClass) :: mergerTreeConstructorBuild
      !% A class implementing merger tree construction by building trees.
@@ -52,15 +55,9 @@
      integer         (c_size_t                  ), allocatable, dimension(:) :: treeMassCount                   , rankMass
      logical                                                                 :: computeTreeWeights
    contains
-     !@ <objectMethods>
-     !@   <object>mergerTreeConstructorBuild</object>
-     !@   <objectMethod>
-     !@     <method>constructMasses</method>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@     <description>Construct the set of tree masses to be built.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Construct the set of tree masses to be built." method="constructMasses" />
+     !# </methods>
      final     ::                    buildDestructor
      procedure :: construct       => buildConstruct
      procedure :: constructMasses => buildConstructMasses
@@ -94,35 +91,27 @@ contains
 
     !# <inputParameter>
     !#   <name>redshiftBase</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The redshift at which to plant the base node when building merger trees.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>timeSnapTolerance</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d-6</defaultValue>
     !#   <description>The fractional tolerance within which the tree base time will be snapped to a nearby output time.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>treeBeginAt</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0</defaultValue>
     !#   <description>The index (in order of increasing base halo mass) of the tree at which to begin when building merger trees. A value of ``0'' means to begin with tree number 1 (if processing trees in ascending order), or equal to the number of trees (otherwise).</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>processDescending</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>If true, causes merger trees to be processed in order of decreasing mass.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
@@ -204,7 +193,7 @@ contains
     return
   end subroutine buildDestructor
 
-  function buildConstruct(self,treeNumber) result(tree)
+  function buildConstruct(self,treeNumber,finished) result(tree)
     !% Build a merger tree.
     use :: Functions_Global       , only : Galacticus_State_Retrieve_, Galacticus_State_Store_
     use :: Galacticus_Nodes       , only : mergerTree                , nodeComponentBasic     , treeNode
@@ -212,13 +201,14 @@ contains
     use :: Merger_Tree_State_Store, only : treeStateStoreSequence
     use :: String_Handling        , only : operator(//)
     implicit none
-    type            (mergerTree                ), pointer       :: tree
-    class           (mergerTreeConstructorBuild), intent(inout) :: self
-    integer         (c_size_t                  ), intent(in   ) :: treeNumber
-    class           (nodeComponentBasic        ), pointer       :: basicBase
-    integer         (kind_int8                 ), parameter     :: baseNodeIndex=1
-    integer         (kind_int8                 )                :: treeIndex
-    type            (varying_string            )                :: message
+    type   (mergerTree                ), pointer       :: tree
+    class  (mergerTreeConstructorBuild), intent(inout) :: self
+    integer(c_size_t                  ), intent(in   ) :: treeNumber
+    logical                            , intent(  out) :: finished
+    class  (nodeComponentBasic        ), pointer       :: basicBase
+    integer(kind_int8                 ), parameter     :: baseNodeIndex=1
+    integer(kind_int8                 )                :: treeIndex
+    type   (varying_string            )                :: message
 
     ! Ensure masses are constructed.
     call self%constructMasses()
@@ -252,8 +242,12 @@ contains
        tree%index=treeIndex
        ! Restart the random number sequence.
        allocate(tree%randomNumberGenerator_,mold=self%randomNumberGenerator_)
-       call self%randomNumberGenerator_%deepCopy(     tree%randomNumberGenerator_              )
-       call tree%randomNumberGenerator_%seedSet (seed=tree%index                 ,offset=.true.)
+       !$omp critical(mergerTreeConstructBuildDeepCopyReset)
+       !# <deepCopyReset variables="self%randomNumberGenerator_"/>
+       !# <deepCopy source="self%randomNumberGenerator_" destination="tree%randomNumberGenerator_"/>
+       !# <deepCopyFinalize variables="tree%randomNumberGenerator_"/>
+       !$omp end critical(mergerTreeConstructBuildDeepCopyReset)
+       call tree%randomNumberGenerator_%seedSet(seed=tree%index,offset=.true.)
        ! Store the internal state.
        if (treeStateStoreSequence == -1_c_size_t) treeStateStoreSequence=treeNumber
        message=var_str('Storing state for tree #')//treeNumber
@@ -270,7 +264,7 @@ contains
        ! Assign a mass to it.
        call basicBase%massSet(self%treeMass(self%rankMass(treeIndex)))
        ! Assign a time.
-       call basicBase%timeSet(self%timeBase           )
+       call basicBase%timeSet(self%timeBase                          )
        ! Assign a weight to the tree, computing it if necessary.
        if (self%computeTreeWeights) then
           ! The weight is computed by finding the total mass in halos per unit volume within the mass range represented by this
@@ -299,6 +293,7 @@ contains
     else
        nullify(tree)
     end if
+    finished=.not.associated(tree)
     return
   end function buildConstruct
 
@@ -306,7 +301,7 @@ contains
     !% Construct the set of tree masses to be built.
     use :: Galacticus_Error , only : Galacticus_Error_Report
     use :: Memory_Management, only : allocateArray
-    use :: Sort             , only : Sort_Index_Do
+    use :: Sorting          , only : sortIndex
     implicit none
     class  (mergerTreeConstructorBuild), intent(inout) :: self
     integer(c_size_t                  )                :: iTreeFirst, iTreeLast
@@ -317,7 +312,7 @@ contains
        self%treeCount=size(self%treeMass,kind=c_size_t)
        ! Sort halos by mass.
        allocate(self%rankMass(self%treeCount))
-       self%rankMass=Sort_Index_Do(self%treeMass)
+       self%rankMass=sortIndex(self%treeMass)
        ! Compute the weight (number of trees per unit volume) for each tree if weights were not supplied.
        self%computeTreeWeights=.not.allocated(self%treeWeight)
        if (.not.self%computeTreeWeights) then

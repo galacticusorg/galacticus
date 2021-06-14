@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +21,6 @@
 
 module Numerical_Constants_Units
   !% Contains various useful unit conversions.
-  use :: FGSL                    , only : FGSL_CONST_MKSA_ELECTRON_VOLT, FGSL_CONST_MKSA_RYDBERG
   use :: Numerical_Constants_Math, only : Pi
   implicit none
   public
@@ -30,7 +29,7 @@ module Numerical_Constants_Units
   double precision, parameter :: ergs              =1.0d-7
 
   ! Rydberg in Joules.
-  double precision, parameter :: rydbergs          =FGSL_CONST_MKSA_RYDBERG
+  !# <gslConstant variable="rydbergs" gslSymbol="GSL_CONST_MKSA_RYDBERG" gslHeader="gsl_const_mksa"/>
 
   ! Angstroms in microns.
   double precision, parameter :: angstromsPerMicron=1.0d4
@@ -39,7 +38,7 @@ module Numerical_Constants_Units
   double precision, parameter :: angstromsPerMeter =1.0d10
 
   ! Electron volt (in units of Joules).
-  double precision, parameter :: electronVolt      =FGSL_CONST_MKSA_ELECTRON_VOLT
+  !# <gslConstant variable="electronVolt" gslSymbol="GSL_CONST_MKSA_ELECTRON_VOLT" gslHeader="gsl_const_mksa"/>
 
   ! Barn (cross section unit, in units of m²).
   double precision, parameter :: barn              =1.0d-28

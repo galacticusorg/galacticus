@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -29,7 +29,9 @@ module Stellar_Population_Spectra
   !# <functionClass>
   !#  <name>stellarPopulationSpectra</name>
   !#  <descriptiveName>Stellar Population Spectra</descriptiveName>
-  !#  <description>Class providing stellar population spectra.</description>
+  !#  <description>
+  !#   Class providing stellar population spectra, which are used to construct integrated spectra of galaxies.
+  !#  </description>
   !#  <default>FSPS</default>
   !#  <method name="luminosity" >
   !#   <description>Return the luminosity (in units of $L_\odot$ Hz$^{-1}$) for a stellar population, composition {\normalfont \ttfamily abundances}, of the given {\normalfont \ttfamily age} (in Gyr), at the specified {\normalfont \ttfamily wavelength} (in Angstroms).</description>

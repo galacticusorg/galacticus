@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -35,7 +35,7 @@
      class           (cosmologicalMassVarianceClass  ), pointer :: cosmologicalMassVariance_   => null()
      class           (linearGrowthClass              ), pointer :: linearGrowth_               => null()
      class           (criticalOverdensityClass       ), pointer :: criticalOverdensity_        => null()
-     type            (distributionFunction1DLogNormal)          :: distributionDensityContrast
+     type            (distributionFunction1DLogNormal), pointer :: distributionDensityContrast => null()
      double precision                                           :: radiusEnvironment                    , variance
    contains
      final     ::                                  logNormalDestructor
@@ -82,8 +82,6 @@ contains
     !#   <variable>radiusEnvironment</variable>
     !#   <defaultValue>7.0d0</defaultValue>
     !#   <description>The radius of the sphere used to determine the variance in the environmental density.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=haloEnvironmentLogNormal(radiusEnvironment,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,linearGrowth_,criticalOverdensity_)
     !# <inputParametersValidate source="parameters"/>
@@ -119,12 +117,17 @@ contains
          &                                                                        self%cosmologyFunctions_ %cosmicTime       (1.0d0)     &
          &                                                                      )                                                   **2
     ! Construct a log-normal distribution, for 1+δ.
-    self%distributionDensityContrast= distributionFunction1DLogNormal(                                                                    &
-         &                                                                       +densityContrastMean                                   , &
-         &                                                                       +self%variance                                         , &
-         &                                                            limitUpper=+1.0d0                                                   &
-         &                                                                       +self%criticalOverdensity_%value(expansionFactor=1.0d0)  &
-         &                                                           )
+    allocate(self%distributionDensityContrast)
+    !# <referenceConstruct owner="self" isResult="yes" object="distributionDensityContrast">
+    !#  <constructor>
+    !#   distributionFunction1DLogNormal(                                                                    &amp;
+    !#     &amp;                                    +densityContrastMean                                   , &amp;
+    !#     &amp;                                    +self%variance                                         , &amp;
+    !#     &amp;                         limitUpper=+1.0d0                                                   &amp;
+    !#     &amp;                                    +self%criticalOverdensity_%value(expansionFactor=1.0d0)  &amp;
+    !#     &amp;                        )
+    !#  </constructor>
+    !# </referenceConstruct>
     return
   end function logNormalConstructorInternal
 
@@ -233,7 +236,7 @@ contains
     !% Return the minimum overdensity for which the \gls{pdf} is non-zero.
     implicit none
     class(haloEnvironmentLogNormal), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     logNormalOverdensityLinearMinimum=-1.0d0
     return
@@ -266,7 +269,7 @@ contains
     class           (haloEnvironmentLogNormal), intent(inout) :: self
     type            (treeNode                ), intent(inout) :: node
     double precision                          , intent(in   ) :: overdensity
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     if (overdensity <= -1.0d0) call Galacticus_Error_Report('δ≤-1 is inconsistent with log-normal density field'//{introspection:location})
     call node%hostTree%properties%set('haloEnvironmentOverdensity',overdensity)

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -24,7 +24,12 @@
   use :: File_Utilities, only : lockDescriptor
 
   !# <intergalacticMediumState name="intergalacticMediumStateRecFast">
-  !#  <description>The intergalactic medium state is computed using {\normalfont \scshape RecFast}.</description>
+  !#  <description>
+  !#   An intergalactic medium state class which computes the state of the intergalactic medium using the
+  !#   \href{https://www.astro.ubc.ca/people/scott/recfast.html}{{\normalfont \scshape RecFast}} code
+  !#   \cite{seager_how_2000,wong_how_2008}. The {\normalfont \scshape RecFast} code will be downloaded and run to compute the
+  !#   intergalactic medium state as needed, which will then be stored for future use.
+  !#  </description>
   !# </intergalacticMediumState>
   type, extends(intergalacticMediumStateFile) :: intergalacticMediumStateRecFast
      !% An \gls{igm} state class which computes state using {\normalfont \scshape RecFast}.
@@ -88,12 +93,19 @@ contains
     type            (hdf5Object                     )                              :: outputFile          , dataset          , &
          &                                                                            provenance          , recFastProvenance
     logical                                                                        :: buildFile
+    type            (lockDescriptor                 )                              :: fileLock
     !# <constructorAssign variables="*cosmologyFunctions_, *cosmologyParameters_"/>
 
     ! Compute dark matter density.
     omegaDarkMatter=self%cosmologyParameters_%OmegaMatter()-self%cosmologyParameters_%OmegaBaryon()
     ! Construct the file name.
     self%fileName=char(galacticusPath(pathTypeDataDynamic))//'intergalacticMedium/recFast'
+    !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+    !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
+    !# </workaround>
+#ifdef THREADSAFEIO
+    !$omp critical(gfortranInternalIO)
+#endif
     write (parameterLabel,'(f6.4)') self%cosmologyParameters_%OmegaMatter    (                   )
     self%fileName=self%fileName//'_OmegaMatter'    //trim(parameterLabel)
     write (parameterLabel,'(f6.4)') self%cosmologyParameters_%OmegaDarkEnergy(                   )
@@ -107,11 +119,14 @@ contains
     write (parameterLabel,'(f4.2)') heliumByMassPrimordial
     self%fileName=self%fileName//'_YHe'            //trim(parameterLabel)
     self%fileName=self%fileName//'.hdf5'
+#ifdef THREADSAFEIO
+    !$omp end critical(gfortranInternalIO)
+#endif
     ! Create directory for output.
     call Directory_Make(galacticusPath(pathTypeDataDynamic)//'intergalacticMedium')
     ! Lock file.
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-    call File_Lock(char(self%fileName),self%fileLock,lockIsShared=.true.)
+    call File_Lock(char(self%fileName),self%fileLock,lockIsShared=.false.)
     ! Check existance of file.
     buildFile=.false.
     if (File_Exists(char(self%fileName))) then
@@ -143,7 +158,9 @@ contains
        write (parametersUnit,*    )  6
        close(parametersUnit)
        ! Run RecFast.
+       call File_Lock(char(recfastPath//"recfast.exe"),fileLock,lockIsShared=.false.)
        call System_Command_Do(recfastPath//"recfast.exe < "//parameterFile)
+       call File_Unlock(fileLock)
        ! Parse the output file.
        countRedshift=Count_Lines_in_File(recFastFile)-1
        allocate(redshift         (countRedshift))

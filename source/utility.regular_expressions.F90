@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -33,21 +33,10 @@ module Regular_Expressions
      !% A regular expression object.
      type(c_ptr) :: r=C_NULL_PTR
    contains
-     !@ <objectMethods>
-     !@   <object>regEx</object>
-     !@   <objectMethod>
-     !@     <method>matches</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} string\argin</arguments>
-     !@     <description>Return true if a regular expression matches the supplied {\normalfont \ttfamily string}.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>destroy</method>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@     <description>Destroy the regex.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return true if a regular expression matches the supplied {\normalfont \ttfamily string}." method="matches" />
+     !#   <method description="Destroy the regex." method="destroy" />
+     !# </methods>
      final     ::            Regular_Expression_Destructor
      procedure :: destroy => Regular_Expression_Destroy
      procedure :: matches => Regular_Expression_Match

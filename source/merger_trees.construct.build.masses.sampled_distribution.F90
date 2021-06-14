@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -28,24 +28,13 @@
      !% Implementation of a merger tree masses class which samples masses from a distribution.
      private
      class           (mergerTreeBuildMassDistributionClass), pointer :: mergerTreeBuildMassDistribution_ => null()
-     double precision                                                :: massTreeMinimum                 , massTreeMaximum, &
+     double precision                                                :: massTreeMinimum                           , massTreeMaximum, &
           &                                                             treesPerDecade
    contains
-     !@ <objectMethods>
-     !@   <object>mergerTreeBuildMassesSampledDistribution</object>
-     !@   <objectMethod>
-     !@     <method>constructor</method>
-     !@     <arguments>\textcolor{red}{\textless type(inputParameters)\textgreater} parameters\arginout</arguments>
-     !@     <type>\void</type>
-     !@     <description>Handles construction of the abstract parent class.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>sampleCMF</method>
-     !@     <arguments>\doubleone\ x\argout</arguments>
-     !@     <type>\void</type>
-     !@     <description>Return a set of values {\normalfont \ttfamily sampleCount} in the interval 0--1, corresponding to values of the cumulative mass distribution.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Handles construction of the abstract parent class." method="construct" />
+     !#   <method description="Return a set of values {\normalfont \ttfamily sampleCount} in the interval 0--1, corresponding to values of the cumulative mass distribution." method="sampleCMF" />
+     !# </methods>
      final     ::              sampledDistributionDestructor
      procedure :: construct => sampledDistributionConstruct
      procedure :: sampleCMF => sampledDistributionCMF
@@ -60,9 +49,9 @@ contains
   function sampledDistributionConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily sampledDistribution} merger tree masses class which takes a parameter set as
     !% input.
-    use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWarn
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: Input_Parameters  , only : inputParameter            , inputParameters
+    use :: Display         , only : displayMessage         , verbosityLevelWarn
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Input_Parameters, only : inputParameter         , inputParameters
     implicit none
     type(mergerTreeBuildMassesSampledDistribution)                :: self
     type(inputParameters                         ), intent(inout) :: parameters
@@ -70,38 +59,32 @@ contains
     !# <inputParameter>
     !#   <name>massTreeMinimum</name>
     !#   <variable>self%massTreeMinimum</variable>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d10</defaultValue>
     !#   <description>The minimum mass of merger tree base halos to consider when sampled masses from a distribution, in units of $M_\odot$.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massTreeMaximum</name>
     !#   <variable>self%massTreeMaximum</variable>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d15</defaultValue>
     !#   <description>The maximum mass of merger tree base halos to consider when sampled masses from a distribution, in units of $M_\odot$.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>treesPerDecade</name>
     !#   <variable>self%treesPerDecade</variable>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>10.0d0</defaultValue>
     !#   <description>The number of merger trees masses to sample per decade of base halo mass.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="mergerTreeBuildMassDistribution" name="self%mergerTreeBuildMassDistribution_" source="parameters"/>
-    !# <inputParametersValidate target="self" source="parameters"/>
+    !# <inputParametersValidate source="parameters"/>
     ! Validate input.
     if (self%massTreeMaximum >= 1.0d16              )                                                           &
-         & call Galacticus_Display_Message(                                                                     &
+         & call displayMessage(                                                                     &
          &                                 '[massHaloMaximum] > 10¹⁶ - this seems very large and may lead '//   &
          &                                 'to failures in merger tree construction'                         ,  &
-         &                                 verbosityWarn                                                        &
+         &                                 verbosityLevelWarn                                                        &
          &                                )
     if (self%massTreeMaximum <= self%massTreeMinimum)                                                           &
          & call Galacticus_Error_Report   (                                                                     &
@@ -122,14 +105,13 @@ contains
 
   subroutine sampledDistributionConstruct(self,time,mass,massMinimum,massMaximum,weight)
     !% Construct a set of merger tree masses by sampling from a distribution.
-    use            :: FGSL                   , only : fgsl_function          , fgsl_integration_workspace, fgsl_interp, fgsl_interp_accel
     use            :: Galacticus_Error       , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding          , only : c_size_t
     use            :: Memory_Management      , only : allocateArray          , deallocateArray
-    use            :: Numerical_Integration  , only : Integrate              , Integrate_Done
-    use            :: Numerical_Interpolation, only : Interpolate            , Interpolate_Done
+    use            :: Numerical_Integration  , only : integrator
+    use            :: Numerical_Interpolation, only : interpolator
     use            :: Numerical_Ranges       , only : Make_Range             , rangeTypeLinear
-    use            :: Sort                   , only : Sort_Do
+    use            :: Sorting                , only : sort
     use            :: Table_Labels           , only : extrapolationTypeFix
     implicit none
     class           (mergerTreeBuildMassesSampledDistribution), intent(inout)                            :: self
@@ -144,13 +126,10 @@ contains
     integer                                                                                              :: iSample                              , jSample                                  , &
          &                                                                                                  massFunctionSampleCount
     double precision                                                                                     :: probability                          , massFunctionSampleLogPrevious
-    type            (fgsl_function                           )                                           :: integrandFunction
-    type            (fgsl_integration_workspace              )                                           :: integrationWorkspace
-    type            (fgsl_interp                             )                                           :: interpolationObject
-    type            (fgsl_interp_accel                       )                                           :: interpolationAccelerator
-    logical                                                                                              :: integrandReset                       , interpolationReset                       , &
-         &                                                                                                  monotonize
-    !GCC$ attributes unused :: weight
+    type            (integrator                              )                                           :: integrator_
+    type            (interpolator                            )                                           :: interpolator_
+    logical                                                                                              :: monotonize
+    !$GLC attributes unused :: weight
 
     ! Generate a randomly sampled set of halo masses.
     treeCount=max(2_c_size_t,int(log10(self%massTreeMaximum/self%massTreeMinimum)*self%treesPerDecade,kind=c_size_t))
@@ -165,20 +144,13 @@ contains
     massFunctionSampleLogMass    =Make_Range(log10(self%massTreeMinimum),log10(self%massTreeMaximum),massFunctionSampleCount,rangeType=rangeTypeLinear)
     massFunctionSampleLogPrevious=           log10(self%massTreeMinimum)
     jSample=0
+    integrator_=integrator(distributionIntegrand,toleranceAbsolute=toleranceAbsolute,toleranceRelative=toleranceRelative)
     do iSample=1,massFunctionSampleCount
        if (massFunctionSampleLogMass(iSample) > massFunctionSampleLogPrevious) then
-          integrandReset=.true.
-          probability=Integrate(                                                          &
-               &                                  massFunctionSampleLogPrevious         , &
-               &                                  massFunctionSampleLogMass    (iSample), &
-               &                                  distributionIntegrand                 , &
-               &                                  integrandFunction                     , &
-               &                                  integrationWorkspace                  , &
-               &                toleranceAbsolute=toleranceAbsolute                     , &
-               &                toleranceRelative=toleranceRelative                     , &
-               &                reset            =integrandReset                          &
-               &               )
-          call Integrate_Done(integrandFunction,integrationWorkspace)
+          probability=integrator_%integrate(                                        &
+               &                            massFunctionSampleLogPrevious         , &
+               &                            massFunctionSampleLogMass    (iSample)  &
+               &                           )
        else
           probability=0.0d0
        end if
@@ -208,7 +180,7 @@ contains
          &                                                   /massFunctionSampleProbability(  massFunctionSampleCount)
     ! Generate a set of points in the cumulative distribution, sort them, and find the mass ranges which they occupy.
     call self%sampleCMF(mass)
-    call Sort_Do(mass)
+    call sort(mass)
     do iTree=1,treeCount
         if (iTree == 1       ) then
           massMinimum(iTree)=+0.0d0
@@ -222,40 +194,19 @@ contains
        end if
     end do
     ! Compute the corresponding halo masses by interpolation in the cumulative probability distribution function.
-    interpolationReset=.true.
+    interpolator_=interpolator(                                                                                 &
+            &                                    massFunctionSampleProbability     (1:massFunctionSampleCount), &
+            &                                    massFunctionSampleLogMassMonotonic(1:massFunctionSampleCount), &
+            &                  extrapolationType=extrapolationTypeFix                                           &
+            &                 )
     do iTree=1,treeCount
-       mass       (iTree)=Interpolate(                                                                                 &
-            &                                           massFunctionSampleProbability     (1:massFunctionSampleCount), &
-            &                                           massFunctionSampleLogMassMonotonic(1:massFunctionSampleCount), &
-            &                                           interpolationObject                                          , &
-            &                                           interpolationAccelerator                                     , &
-            &                                           mass                              (  iTree                  ), &
-            &                         reset            =interpolationReset                                           , &
-            &                         extrapolationType=extrapolationTypeFix                                           &
-            &                        )
-       massMinimum(iTree)=Interpolate(                                                                                 &
-            &                                           massFunctionSampleProbability     (1:massFunctionSampleCount), &
-            &                                           massFunctionSampleLogMassMonotonic(1:massFunctionSampleCount), &
-            &                                           interpolationObject                                          , &
-            &                                           interpolationAccelerator                                     , &
-            &                                           massMinimum                       (  iTree                  ), &
-            &                         reset            =interpolationReset                                           , &
-            &                         extrapolationType=extrapolationTypeFix                                           &
-            &                        )
-       massMaximum(iTree)=Interpolate(                                                                                 &
-            &                                           massFunctionSampleProbability     (1:massFunctionSampleCount), &
-            &                                           massFunctionSampleLogMassMonotonic(1:massFunctionSampleCount), &
-            &                                           interpolationObject                                          , &
-            &                                           interpolationAccelerator                                     , &
-            &                                           massMaximum                       (  iTree                  ), &
-            &                         reset            =interpolationReset                                           , &
-            &                         extrapolationType=extrapolationTypeFix                                           &
-            &                        )
+       mass       (iTree)=interpolator_%interpolate(mass       (iTree ))
+       massMinimum(iTree)=interpolator_%interpolate(massMinimum(iTree ))
+       massMaximum(iTree)=interpolator_%interpolate(massMaximum(iTree ))
     end do
     mass       =10.0d0**mass
     massMinimum=10.0d0**massMinimum
     massMaximum=10.0d0**massMaximum
-    call Interpolate_Done(interpolationObject,interpolationAccelerator,interpolationReset)
     call deallocateArray(massFunctionSampleLogMass         )
     call deallocateArray(massFunctionSampleProbability     )
     call deallocateArray(massFunctionSampleLogMassMonotonic)
@@ -280,7 +231,7 @@ contains
     implicit none
     class           (mergerTreeBuildMassesSampledDistribution), intent(inout)               :: self
     double precision                                          , intent(  out), dimension(:) :: x
-    !GCC$ attributes unused :: self, x
+    !$GLC attributes unused :: self, x
 
     call Galacticus_Error_Report('attempt to call function in abstract type'//{introspection:location})
     return

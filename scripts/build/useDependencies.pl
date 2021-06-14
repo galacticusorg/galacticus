@@ -25,14 +25,12 @@ my $xml                     = new XML::Simple();
 # Load the file of directive locations.
 my $locations               = -e $workDirectoryName."directiveLocations.xml" ? $xml->XMLin($workDirectoryName."directiveLocations.xml") : undef();
 # List of external modules (which will be ignored for dependency analysis of the source code).
-my @externalModules = ( "omp_lib", "hdf5", "h5tb", "h5lt", "h5global", "h5fortran_types", "fox_common", "fox_dom", "fox_wxml", "fox_utils",
-			"fgsl", "mpi", "mpi_f08", "yeplibrary", "yepcore", "yepmath");
+my @externalModules = ( "omp_lib", "hdf5", "h5tb", "h5lt", "h5global", "h5fortran_types", "fox_common", "fox_dom", "fox_wxml", "fox_utils", "mpi", "mpi_f08" );
 # Modules that require a library to be linked. These are key-value pairs with the key being the module name, and the value the
 # name of the required library.
 my %moduleLibararies = (
     nearest_neighbors   => "ANN"           ,
     fftw3               => "fftw3"         ,
-    fgsl                => "fgsl_gfortran" ,
     fox_common          => "FoX_common"    ,
     fox_dom             => "FoX_dom"       ,
     fox_wxml            => "FoX_wxml"      ,
@@ -40,10 +38,9 @@ my %moduleLibararies = (
     hdf5                => "hdf5_fortran"  ,
     h5tb                => "hdf5hl_fortran",
     vectors             => "blas"          ,
-    yeplibrary          => "yeppp"         ,
-    yepcore             => "yeppp"         ,
-    yepmath             => "yeppp"         ,
-    models_likelihoods  => "matheval"
+    models_likelihoods  => "matheval"      ,
+    input_parameters    => "matheval"      ,
+    interface_gsl       => "gsl"
     );
 # C includes that require a library to be linked. These are key-value pairs with the key being the include name, and the value the
 # name of the required library.
@@ -173,7 +170,11 @@ foreach my $sourceFile ( @sourceFilesToProcess ) {
 	if ( scalar(@{$directives->{'functionClass'}}) > 0 ||  scalar(@{$directives->{'inputParameter'}}) > 0 );
     # Add dependence on error reporting module if necessary.
     push(@{$usesPerFile->{$fileIdentifier}->{'modulesUsed'}},$workDirectoryName."galacticus_error.mod")
-	if ( grep {exists($_->{'encodeFunction'}) && $_->{'encodeFunction'} eq "yes"} @{$directives->{'enumeration'}} );
+	if (
+	    (grep {exists($_->{'encodeFunction'}) && $_->{'encodeFunction'} eq "yes" && ! exists($_->{'errorValue'})} @{$directives->{'enumeration'}})
+	    ||
+	    (grep {exists($_->{'decodeFunction'}) && $_->{'decodeFunction'} eq "yes"                                } @{$directives->{'enumeration'}})
+	);
     # Find modules used in functionClass directives.
     foreach my $functionClass ( @{$directives->{'functionClass'}} ) {
 	next 

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,22 +19,23 @@
 
   !% Implements a Population III supernovae class based on \cite{heger_nucleosynthetic_2002}.
   
-  use            :: FGSL                , only : fgsl_interp        , fgsl_interp_accel
-  use, intrinsic :: ISO_C_Binding       , only : c_size_t
-  use            :: Stellar_Astrophysics, only : stellarAstrophysics, stellarAstrophysicsClass
+  use, intrinsic :: ISO_C_Binding          , only : c_size_t
+  use            :: Numerical_Interpolation, only : interpolator
+  use            :: Stellar_Astrophysics   , only : stellarAstrophysics, stellarAstrophysicsClass
 
   !# <supernovaePopulationIII name="supernovaePopulationIIIHegerWoosley2002">
-  !#  <description>A Population III supernovae class based on \cite{heger_nucleosynthetic_2002}.</description>
+  !#  <description>
+  !#   A Population III supernovae class that computes the energies of pair instability supernovae from the results of
+  !#   \cite{heger_nucleosynthetic_2002}.
+  !#  </description>
   !# </supernovaePopulationIII>
   type, extends(supernovaePopulationIIIClass) :: supernovaePopulationIIIHegerWoosley2002
      !% A Population III supernovae class based on \cite{heger_nucleosynthetic_2002}
      private
      class           (stellarAstrophysicsClass), pointer                   :: stellarAstrophysics_ => null()
      integer         (c_size_t                )                            :: countTable
-     double precision                          , allocatable, dimension(:) :: energy                  , massHeliumCore
-     type            (fgsl_interp             )                            :: interpolationObject
-     type            (fgsl_interp_accel       )                            :: interpolationAccelerator
-     logical                                                               :: interpolationReset
+     double precision                          , allocatable, dimension(:) :: energy                        , massHeliumCore
+     type            (interpolator            )                            :: interpolator
    contains
      final     ::                     hegerWoosley2002Destructor
      procedure :: energyCumulative => hegerWoosley2002EnergyCumulative
@@ -97,7 +98,7 @@ contains
     ! Destroy the document.
     call destroy(doc)
     !$omp end critical (FoX_DOM_Access)
-    self%interpolationReset=.true.
+    self%interpolator=interpolator(self%massHeliumCore,self%energy)
     return
   end function hegerWoosley2002ConstructorInternal
 
@@ -113,7 +114,6 @@ contains
   double precision function hegerWoosley2002EnergyCumulative(self,initialMass,age,metallicity)
     !% Compute the cumulative energy input from Population III star pair instability supernovae using the results of
     !% \cite{heger_nucleosynthetic_2002}.
-    use :: Numerical_Interpolation, only : Interpolate
     implicit none
     class           (supernovaePopulationIIIHegerWoosley2002), intent(inout) :: self
     double precision                                         , intent(in   ) :: age        , initialMass   , &
@@ -132,14 +132,7 @@ contains
             &  .and.                                                   &
             &   massHeliumCore <= self%massHeliumCore(self%countTable) &
             & ) then
-          hegerWoosley2002EnergyCumulative=Interpolate(                                     &
-               &                                             self%massHeliumCore          , &
-               &                                             self%energy                  , &
-               &                                             self%interpolationObject     , &
-               &                                             self%interpolationAccelerator, &
-               &                                                  massHeliumCore          , &
-               &                                       reset=self%interpolationReset        &
-               &                                      )
+          hegerWoosley2002EnergyCumulative=self%interpolator%interpolate(massHeliumCore)
        else
           hegerWoosley2002EnergyCumulative=0.0d0
        end if

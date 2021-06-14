@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +21,39 @@
 
 
   !# <surveyGeometry name="surveyGeometryBernardi2013SDSS">
-  !#  <description>Implements the geometry of the SDSS survey of \cite{bernardi_massive_2013}.</description>
+  !#  <description>
+  !#   A survey geometry class that describes the survey geometry of \cite{bernardi_massive_2013}. 
+  !#   
+  !#   For the angular mask, we make use of the \gls{mangle} polygon file provided by the \gls{mangle}
+  !#   project\footnote{Specifically,
+  !#   \href{http://space.mit.edu/~molly/mangle/download/data/sdss_dr72safe0_res6d.pol.gz}{http://space.mit.edu/~molly/mangle/download/data/sdss\_dr72safe0\_res6d.pol.gz}.}
+  !#   The solid angle of this mask, computed using the \gls{mangle} {\normalfont \ttfamily harmonize} command is
+  !#   2.232262776405~sr.
+  !#   
+  !#   To determine the depth as a function of stellar mass, we make use of results provided by M. Bernardi (private
+  !#   communication), giving the mean maximum volume, $V_\mathrm{max}$, as a function of stellar mass for galaxies in this
+  !#   sample. These maximum volumes are converted to maximum distances using the solid angle quoted above. The results mass
+  !#   vs. distance relation is fit with a $5^\mathrm{th}$-order polynomial. Figure~\ref{fig:BernardiSDSSDepthFit} shows the
+  !#   resulting relation between stellar mass and the maximum distance at which such a galaxy would be included in the
+  !#   sample. Points indicate results from Bernardi, while the line shows a polynomial fit:
+  !#   \begin{equation}
+  !#    \log_{10} \left[ {D_\mathrm{max}(M_\star) \over \hbox{Mpc}}\right] = 1282.11+m (-626.644+m (122.091+m (-11.8431+m
+  !#    (0.572399+m (-0.0110301)))))
+  !#    \label{eq:BernardiDepthPolynomial}
+  !#   \end{equation}
+  !#   where $m= \log_{10}(M_\star/M_\odot)$. We use this polynomial fit to determine the depth of the sample as a function of
+  !#   stellar mass.
+  !#   
+  !#   \begin{figure}
+  !#    \begin{center}
+  !#    \includegraphics[width=85mm,trim=0mm 0mm 0mm 4mm,clip]{Plots/DataAnalysis/BernardiSDSSMassLuminosityRelation.pdf}
+  !#    \end{center}
+  !#    \caption{The maximum distance at which a galaxy of given stellar mass can be detected in the sample of
+  !#    \protect\cite{bernardi_massive_2013}. Points show the results obtained from data provided by Bernardi, while the lines
+  !#    shows a polynomial fit to these results (given in eqn.~\ref{eq:BernardiDepthPolynomial}).}
+  !#    \label{fig:BernardiSDSSDepthFit}
+  !#   \end{figure}
+  !#  </description>
   !# </surveyGeometry>
   type, extends(surveyGeometryMangle) :: surveyGeometryBernardi2013SDSS
      private
@@ -51,7 +83,7 @@ contains
     implicit none
     type(surveyGeometryBernardi2013SDSS)                :: self
     type(inputParameters               ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     ! Build the object.
     self=surveyGeometryBernardi2013SDSS()
@@ -71,7 +103,7 @@ contains
     !% Return the number of fields in this sample.
     implicit none
     class(surveyGeometryBernardi2013SDSS), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     bernardi2013SDSSFieldCount=1
     return
@@ -85,7 +117,7 @@ contains
     double precision                                , intent(in   ), optional :: mass           , magnitudeAbsolute, luminosity
     integer                                         , intent(in   ), optional :: field
     double precision                                                          :: logarithmicMass
-    !GCC$ attributes unused :: self, field, magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: self, field, magnitudeAbsolute, luminosity
 
     ! Find the limiting distance for this mass completeness limits. (See
     ! constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07_Bernardi/massDistanceRelation.pl for details.)
@@ -111,7 +143,7 @@ contains
     !% Return the maximum degree for which angular power is computed for the \cite{bernardi_massive_2013} survey.
     implicit none
     class(surveyGeometryBernardi2013SDSS), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     bernardi2013SDSSAngularPowerMaximumDegree=bernardi2013SDSSAngularPowerMaximumL
     return
@@ -119,13 +151,13 @@ contains
 
   function bernardi2013SDSSMangleDirectory(self)
     !% Return the path to the directory containing \gls{mangle} files.
-    use :: Galacticus_Paths, only : galacticusPath, pathTypeExec
+    use :: Galacticus_Paths, only : galacticusPath, pathTypeDataStatic
     implicit none
     class(surveyGeometryBernardi2013SDSS), intent(inout) :: self
     type (varying_string                )                :: bernardi2013SDSSMangleDirectory
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
-    bernardi2013SDSSMangleDirectory=galacticusPath(pathTypeExec)//"constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07_Bernardi/"
+    bernardi2013SDSSMangleDirectory=galacticusPath(pathTypeDataStatic)//"surveyGeometry/SDSS/"
     return
   end function bernardi2013SDSSMangleDirectory
 

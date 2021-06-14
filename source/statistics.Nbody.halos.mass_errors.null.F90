@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -56,7 +56,7 @@ contains
     implicit none
     class(nbodyHaloMassErrorNull), intent(inout) :: self
     type (treeNode              ), intent(inout) :: node
-    !GCC$ attributes unused :: self, node
+    !$GLC attributes unused :: self, node
 
     nullErrorFractional=0.0d0
     return
@@ -69,7 +69,7 @@ contains
     class(nbodyHaloMassErrorNull), intent(inout) :: self
     type (treeNode              ), intent(inout) :: node1 , node2
     class(nodeComponentBasic    ), pointer       :: basic1, basic2
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     basic1 => node1%basic()
     basic2 => node2%basic()
@@ -89,7 +89,7 @@ contains
     !% Return true since errors are always zero in this model.
     implicit none
     class(nbodyHaloMassErrorNull), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     nullErrorZeroAlways=.true.
     return

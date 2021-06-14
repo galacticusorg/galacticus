@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -61,7 +61,7 @@ contains
     use :: Input_Parameters, only : inputParameter                   , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
-    !GCC$ attributes unused :: parameters_
+    !$GLC attributes unused :: parameters_
 
     if (defaultDarkMatterProfileComponent%scalePresetIsActive()) &
          & call nodePromotionEvent%attach(defaultDarkMatterProfileComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentDarkMatterProfileScalePreset')
@@ -85,18 +85,17 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Dark_Matter_Profile_Scale_Preset_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Dark_Matter_Profile_Scale_Preset_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
+  subroutine Node_Component_Dark_Matter_Profile_Scale_Preset_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
     !% Compute the rate of change of the scale radius.
     use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent, nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileScalePreset, propertyTypeInactive, &
           &                         treeNode
     implicit none
-    type            (treeNode                      ), intent(inout), pointer :: node
-    logical                                         , intent(in   )          :: odeConverged
+    type            (treeNode                      ), intent(inout)          :: node
     logical                                         , intent(inout)          :: interrupt
     procedure       (                              ), intent(inout), pointer :: interruptProcedure
     integer                                         , intent(in   )          :: propertyType
     class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
-    !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
+    !$GLC attributes unused :: interrupt, interruptProcedure
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
@@ -164,7 +163,7 @@ contains
     type (treeNode                      ), intent(inout), target  :: node
     class(nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfileParent, darkMatterProfile
     class(nodeComponentBasic            )               , pointer :: basicParent            , basic
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
     
     darkMatterProfile       => node       %darkMatterProfile()
     darkMatterProfileParent => node%parent%darkMatterProfile()

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -32,21 +32,10 @@ module Nearest_Neighbors
      !% Wrapper object for nearest neighbor searching.
      type(c_ptr) :: ANNkd_tree=C_Null_Ptr
    contains
-     !@ <objectMethods>
-     !@   <object>nearestNeighbors</object>
-     !@   <objectMethod>
-     !@     <method>search</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doubleone\ point\argin, \intzero\ neighborCount\argin, \doublezero\ tolerance\argin, \intone\ neighborIndex\argout, \doubleone\ neighborDistance\argout</arguments>
-     !@     <description>Compute indices and distances to the approximate nearest neighbors.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>searchFixedRadius</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doubleone\ point\argin, \doublezero\ radius\argin, \intzero\ neighborCount\argin, \doublezero\ tolerance\argin, \intone\ neighborIndex\argout, \doubleone\ neighborDistance\argout</arguments>
-     !@     <description>Compute indices and distances to the approximate nearest neighbors.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Compute indices and distances to the approximate nearest neighbors." method="search" />
+     !#   <method description="Compute indices and distances to the approximate nearest neighbors." method="searchFixedRadius" />
+     !# </methods>
      final     ::                      nearestNeighborsDestructor
      procedure :: search            => nearestNeighborsSearch
      procedure :: searchFixedRadius => nearestNeighborsSearchFixedRadius
@@ -125,7 +114,7 @@ contains
 #ifdef ANNAVAIL
     nearestNeighborsConstructor%ANNkd_tree=nearestNeighborsConstructorC(size(points,dim=1),size(points,dim=2),points)
 #else
-    !GCC$ attributes unused :: points
+    !$GLC attributes unused :: points
     nearestNeighborsConstructor%ANNkd_tree=C_Null_Ptr
     call Galacticus_Error_Report('ANN library is required but was not found'//{introspection:location})
 #endif
@@ -143,7 +132,7 @@ contains
 #ifdef ANNAVAIL
     call nearestNeighborsDestructorC(self%ANNkd_tree)
 #else
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
     call Galacticus_Error_Report('ANN library is required but was not found'//{introspection:location})
 #endif
     return
@@ -183,7 +172,7 @@ contains
     ! Adjust indices to Fortran standard.
     neighborIndex=neighborIndex+1
 #else
-    !GCC$ attributes unused :: self, point, neighborCount, tolerance
+    !$GLC attributes unused :: self, point, neighborCount, tolerance
     neighborIndex   =0
     neighborDistance=0.0d0
     call Galacticus_Error_Report('ANN library is required but was not found'//{introspection:location})
@@ -198,39 +187,42 @@ contains
 #endif
     use :: Memory_Management, only : allocateArray          , deallocateArray
     implicit none
-    class           (nearestNeighbors)                           , intent(inout) :: self
-    double precision                  , dimension(:)             , intent(in   ) :: point
-    double precision                                             , intent(in   ) :: radius
-    double precision                                             , intent(in   ) :: tolerance
-    integer                           , dimension(:), allocatable, intent(inout) :: neighborIndex
-    double precision                  , dimension(:), allocatable, intent(inout) :: neighborDistance
-    integer                                                      , intent(  out) :: neighborCount
+    class           (nearestNeighbors)                           , intent(inout)           :: self
+    double precision                  , dimension(:)             , intent(in   )           :: point
+    double precision                                             , intent(in   )           :: radius
+    double precision                                             , intent(in   )           :: tolerance
+    integer                           , dimension(:), allocatable, intent(inout), optional :: neighborIndex
+    double precision                  , dimension(:), allocatable, intent(inout), optional :: neighborDistance
+    integer                                                      , intent(  out)           :: neighborCount
 #ifdef ANNAVAIL
-    double precision                                                             :: radiusSquared
-    integer                                                                      :: arraySize
+    double precision                                                                       :: radiusSquared
+    integer                           , dimension(0)                                       :: neighborIndex0
+    double precision                  , dimension(0)                                       :: neighborDistance0
+    integer                                                                                :: arraySize
 
     ! Get the squared radius.
     radiusSquared=radius**2
     ! Call once with current array sizes.
-    if (allocated(neighborIndex)) then
-       arraySize=size(neighborIndex)
+    arraySize=0
+    if (present(neighborIndex)) then
+       if (allocated(neighborIndex)) arraySize=size(neighborIndex)
+       neighborCount=nearestNeighborsSearchFixedRadiusC(self%ANNkd_tree,point,radiusSquared,arraySize,neighborIndex,neighborDistance,tolerance)
+       ! Resize arrays if necessary.
+       if (neighborCount > arraySize) then
+          if (allocated(neighborIndex   )) call deallocateArray(neighborIndex   )
+          if (allocated(neighborDistance)) call deallocateArray(neighborDistance)
+          call allocateArray(neighborIndex   ,[neighborCount])
+          call allocateArray(neighborDistance,[neighborCount])
+          ! Call again to get all neighbors.
+          neighborCount=nearestNeighborsSearchFixedRadiusC(self%ANNkd_tree,point,radiusSquared,neighborCount,neighborIndex,neighborDistance,tolerance)
+       end if
     else
-       arraySize=0
-    end if
-    neighborCount=nearestNeighborsSearchFixedRadiusC(self%ANNkd_tree,point,radiusSquared,arraySize,neighborIndex,neighborDistance,tolerance)
-    ! Resize arrays if necessary.
-    if (neighborCount > arraySize) then
-       if (allocated(neighborIndex   )) call deallocateArray(neighborIndex   )
-       if (allocated(neighborDistance)) call deallocateArray(neighborDistance)
-       call allocateArray(neighborIndex   ,[neighborCount])
-       call allocateArray(neighborDistance,[neighborCount])
-       ! Call again to get all neighbors.
-       neighborCount=nearestNeighborsSearchFixedRadiusC(self%ANNkd_tree,point,radiusSquared,neighborCount,neighborIndex,neighborDistance,tolerance)
+       neighborCount=nearestNeighborsSearchFixedRadiusC(self%ANNkd_tree,point,radiusSquared,arraySize,neighborIndex0,neighborDistance0,tolerance)
     end if
     ! Adjust indices to Fortran standard.
-    if (neighborCount > 0) neighborIndex=neighborIndex+1
+    if (neighborCount > 0 .and. present(neighborIndex)) neighborIndex=neighborIndex+1
 #else
-    !GCC$ attributes unused :: neighborDistance, neighborIndex, point, radius, self, tolerance
+    !$GLC attributes unused :: neighborDistance, neighborIndex, point, radius, self, tolerance
     neighborCount=0
     call Galacticus_Error_Report('ANN library is required but was not found'//{introspection:location})
 #endif

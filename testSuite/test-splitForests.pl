@@ -28,7 +28,7 @@ my @forestFiles =
      	 fileName    => "testSuite/data/mergerTrees/splitForests-milliMillennium-tree12000000.hdf5",
      	 parameters  => 
      	 {
-     	     mergerTreeConstructorMethod => {satelliteMergingTimescalesSubresolutionMethod => {value => "infinite"}}
+     	     mergerTreeConstructor => {satelliteMergingTimescalesSubresolution => {value => "infinite"}}
      	 }
      },
      {
@@ -37,11 +37,11 @@ my @forestFiles =
      	 skipOrphans => 1,     
      	 parameters  => 
      	 {
-     	     virialOrbitMethod                                 => {value => "fixed"            },
-     	     mergerTreeConstructorMethod => {
-		 satelliteMergingTimescalesSubresolutionMethod => {value => "boylanKolchin2008"},
-		 presetMergerTimes                             => {value => "true"             },
-		 presetMergerNodes                             => {value => "false"            }
+     	     virialOrbit                                 => {value => "fixed"            },
+     	     mergerTreeConstructor => {
+		 satelliteMergingTimescalesSubresolution => {value => "boylanKolchin2008"},
+		 presetMergerTimes                       => {value => "true"             },
+		 presetMergerNodes                       => {value => "false"            }
 	     }
      	 }
      },
@@ -51,11 +51,11 @@ my @forestFiles =
      	 skipOrphans => 1,     
      	 parameters  => 
      	 {
-     	     virialOrbitMethod                                 => {value => "fixed"            },
-     	     mergerTreeConstructorMethod => {
-		 satelliteMergingTimescalesSubresolutionMethod => {value => "boylanKolchin2008"},
-		 presetMergerTimes                             => {value => "true"             },
-		 presetMergerNodes                             => {value => "true"             }
+     	     virialOrbit                                 => {value => "fixed"            },
+     	     mergerTreeConstructor => {
+		 satelliteMergingTimescalesSubresolution => {value => "boylanKolchin2008"},
+		 presetMergerTimes                       => {value => "true"             },
+		 presetMergerNodes                       => {value => "true"             }
 	     }
      	 }
      },
@@ -67,11 +67,11 @@ my @forestFiles =
      	 fileName    => "testSuite/data/mergerTrees/splitForests-milliMillennium-tree3000055000000.hdf5",
      	 parameters  => 
      	 {
-     	     virialOrbitMethod                                 => {value => "fixed"            } ,
-     	     mergerTreeConstructorMethod => {
-		 satelliteMergingTimescalesSubresolutionMethod => {value => "boylanKolchin2008"},
-		 presetMergerTimes                             => {value => "true"             },
-		 presetMergerNodes                             => {value => "true"             }		 
+     	     virialOrbit                                 => {value => "fixed"            } ,
+     	     mergerTreeConstructor => {
+		 satelliteMergingTimescalesSubresolution => {value => "boylanKolchin2008"},
+		 presetMergerTimes                       => {value => "true"             },
+		 presetMergerNodes                       => {value => "true"             }		 
 	     }
 	 }
      },
@@ -82,9 +82,9 @@ my @forestFiles =
      	 fileName    => "testSuite/data/mergerTrees/splitForests-milliMillennium-tree2000024000000.hdf5",
      	 parameters  => 
      	  {
-     	      mergerTreeConstructorMethod => {
-		  satelliteMergingTimescalesSubresolutionMethod => {value => "infinite"},
-		  presetMergerNodes                             => {value => "true"    }
+     	      mergerTreeConstructor => {
+		  satelliteMergingTimescalesSubresolution => {value => "infinite"},
+		  presetMergerNodes                       => {value => "true"    }
 	      }
      	  }
      },
@@ -96,9 +96,9 @@ my @forestFiles =
      	 fileName    => "testSuite/data/mergerTrees/splitForests-milliMillennium-tree1000019000000.hdf5",
      	 parameters  => 
      	  {
-     	      mergerTreeConstructorMethod => {
-		  satelliteMergingTimescalesSubresolutionMethod => {value => "infinite"},
-		  presetMergerNodes                             => {value => "true"    }
+     	      mergerTreeConstructor => {
+		  satelliteMergingTimescalesSubresolution => {value => "infinite"},
+		  presetMergerNodes                       => {value => "true"    }
 	      }
      	  }
      },
@@ -109,8 +109,8 @@ my @forestFiles =
      	 fileName    => "testSuite/data/mergerTrees/splitForests-milliMillennium-tree1000020000000.hdf5",
      	 parameters  => 
      	  {
-     	      mergerTreeConstructorMethod => {satelliteMergingTimescalesSubresolutionMethod => {value => "infinite"}},
-     	      mergerTreeConstructorMethod => {presetMergerNodes                             => {value => "true"    }}
+     	      mergerTreeConstructor => {satelliteMergingTimescalesSubresolution => {value => "infinite"}},
+     	      mergerTreeConstructor => {presetMergerNodes                       => {value => "true"    }}
      	  }
      },
      # A milli-Millennium tree which fails unless orphaned mergees are reassigned to their merge target branch in cases where their
@@ -120,9 +120,9 @@ my @forestFiles =
      	 fileName    => "testSuite/data/mergerTrees/splitForests-milliMillennium-tree4000027000000.hdf5",
      	 parameters  => 
      	  {
-     	      mergerTreeConstructorMethod => {
-		  satelliteMergingTimescalesSubresolutionMethod => {value => "infinite"},
-		  presetMergerNodes                             => {value => "true"    }
+     	      mergerTreeConstructor => {
+		  satelliteMergingTimescalesSubresolution => {value => "infinite"},
+		  presetMergerNodes                       => {value => "true"    }
 	      }
      	  }
      },
@@ -134,11 +134,11 @@ my @forestFiles =
      	 skipOrphans => 1,     
      	 parameters  => 
 	 {
-	     virialOrbitMethod                                 => {value => "fixed"            },
-	     mergerTreeConstructorMethod => {
-		 satelliteMergingTimescalesSubresolutionMethod => {value => "boylanKolchin2008"},
-		 presetMergerTimes                             => {value => "true"             },
-		 presetMergerNodes                             => {value => "false"            }
+	     virialOrbit                                 => {value => "fixed"            },
+	     mergerTreeConstructor => {
+		 satelliteMergingTimescalesSubresolution => {value => "boylanKolchin2008"},
+		 presetMergerTimes                       => {value => "true"             },
+		 presetMergerNodes                       => {value => "false"            }
 	     }
 	 }
      }
@@ -170,10 +170,10 @@ push(
 	skipOrphans => 1,     
 	parameters  => 
 	{
-	    mergerTreeConstructorMethod => {satelliteMergingTimescalesSubresolutionMethod => {value => "boylanKolchin2008"}},
-	    virialOrbitMethod                                                             => {value => "fixed"            } ,
-	    mergerTreeConstructorMethod => {presetMergerTimes                             => {value => "true"             }},
-	    mergerTreeConstructorMethod => {presetMergerNodes                             => {value => "true"             }}
+	    mergerTreeConstructor => {satelliteMergingTimescalesSubresolution => {value => "boylanKolchin2008"}},
+	    virialOrbit                                                       => {value => "fixed"            } ,
+	    mergerTreeConstructor => {presetMergerTimes                       => {value => "true"             }},
+	    mergerTreeConstructor => {presetMergerNodes                       => {value => "true"             }}
 	}
     }
     )
@@ -207,9 +207,9 @@ foreach my $forestFile ( @forestFiles ) {
 	    # Read and modify parameter file.
 	    my $xml        = new XML::Simple(RootName => "parameters");
 	    my $parameters = $xml->XMLin("parameters/test-splitForests-".$_.".xml");
-	    $parameters->{'galacticusOutputFileName'   }                 ->{'value'} = "testSuite/".$outputDirectoryName.$_.".hdf5";
-	    $parameters->{'mergerTreeConstructorMethod'}->{'fileNames'  }->{'value'} = $forestFile->{'fileName'};
-	    $parameters->{'taskMethod'                 }->{'suspendPath'}->{'value'} = defined($scratchConfig) ? $scratchConfig->{'path'} : ".";
+	    $parameters->{'galacticusOutputFileName'}                 ->{'value'} = "testSuite/".$outputDirectoryName.$_.".hdf5";
+	    $parameters->{'mergerTreeConstructor'   }->{'fileNames'  }->{'value'} = $forestFile->{'fileName'};
+	    $parameters->{'task'                    }->{'suspendPath'}->{'value'} = defined($scratchConfig) ? $scratchConfig->{'path'} : ".";
 	    my @stack  = ( { node => $parameters, content => $forestFile->{'parameters'} } );
 	    while ( scalar(@stack) > 0 ) {
 		my $entry = pop(@stack);

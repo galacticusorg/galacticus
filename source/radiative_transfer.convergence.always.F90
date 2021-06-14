@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -24,7 +24,8 @@
      !% A convergence criterion for radiative transfer which always passes.
      private
    contains
-     procedure :: testConvergence => alwaysTestConvergence
+     procedure :: testConvergence     => alwaysTestConvergence
+     procedure :: photonPacketEscapes => alwaysPhotonPacketEscapes
   end type radiativeTransferConvergenceAlways
   
   interface radiativeTransferConvergenceAlways
@@ -40,7 +41,7 @@ contains
     implicit none
     type(radiativeTransferConvergenceAlways)                :: self
     type(inputParameters                   ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
     
     self=radiativeTransferConvergenceAlways()
     return
@@ -54,8 +55,18 @@ contains
     class    (radiativeTransferPropertiesMatter      ), intent(inout) :: properties
     integer                                           , intent(in   ) :: statusCell
     logical                                           , intent(  out) :: converged
-    !GCC$ attributes unused :: self, radiativeTransferMatter_, properties, statusCell
+    !$GLC attributes unused :: self, radiativeTransferMatter_, properties, statusCell
     
     converged=.true.
     return
   end subroutine alwaysTestConvergence
+
+  subroutine alwaysPhotonPacketEscapes(self,photonPacket)
+    !% Process an escaping photon packet.
+    implicit none
+    class(radiativeTransferConvergenceAlways), intent(inout) :: self
+    class(radiativeTransferPhotonPacketClass), intent(inout) :: photonPacket
+    !$GLC attributes unused :: self, photonPacket
+
+    return
+  end subroutine alwaysPhotonPacketEscapes

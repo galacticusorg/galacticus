@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,36 +19,69 @@
 
   !% Implements a class for intergalactic background light.
 
-  use            :: Cosmology_Functions, only : cosmologyFunctionsClass
-  use            :: FGSL               , only : fgsl_interp_accel
-  use, intrinsic :: ISO_C_Binding      , only : c_size_t
+  use            :: Cosmology_Functions    , only : cosmologyFunctionsClass
+  use, intrinsic :: ISO_C_Binding          , only : c_size_t
+  use            :: Numerical_Interpolation, only : interpolator
 
   !# <radiationField name="radiationFieldIntergalacticBackgroundFile">
-  !#  <description>A radiation field class for intergalactic background light with properties read from file.</description>
+  !#  <description>
+  !#   A radiation field class for intergalactic background light with properties read from file. The flux is determined by
+  !#   linearly interpolating to the required time and wavelength. The XML file to read is specified by {\normalfont \ttfamily
+  !#   [fileName]}. An example of the required file structure is:
+  !#    \begin{verbatim}
+  !#   <spectrum>
+  !#     <URL>http://adsabs.harvard.edu/abs/1996ApJ...461...20H</URL>
+  !#     <description>Cosmic background radiation spectrum from quasars alone.</description>
+  !#     <reference>Haardt, F. &amp; Madau, P. 1996, ApJ, 461, 20</reference>
+  !#     <source>Francesco Haardt on Aug 6 2005, via Cloudy 08.00</source>
+  !#     <wavelengths>
+  !#       <datum>0.0002481</datum>
+  !#       <datum>0.001489</datum>
+  !#       .
+  !#       .
+  !#       .
+  !#       <units>Angstroms</units>
+  !#     </wavelengths>
+  !#     <spectra>
+  !#       <datum>7.039E-49</datum>
+  !#       <datum>8.379E-48</datum>
+  !#       <datum>1.875E-39</datum>
+  !#       <datum>7.583E-38</datum>
+  !#       .
+  !#       .
+  !#       .
+  !#       <redshift>0</redshift>
+  !#       <units>erg cm^-2 s^-1 Hz^-1 sr^-1</units>
+  !#     </spectra>
+  !#   </spectrum>
+  !#    \end{verbatim}
+  !#   \end{description}
+  !#   The optional {\normalfont \ttfamily URL}, {\normalfont \ttfamily description}, {\normalfont \ttfamily reference} and
+  !#   {\normalfont \ttfamily source} elements can be used to give the provenance of the data. The {\normalfont \ttfamily
+  !#   wavelengths} element should contain a set of {\normalfont \ttfamily datum} elements each containing a wavelength (in
+  !#   increasing order) at which the spectrum will be tabulated. Wavelengths must be given in Angstroms. Multiple {\normalfont
+  !#   \ttfamily spectra} elements can be given, each specifying the spectrum at a redshift as given in the {\normalfont \ttfamily
+  !#   redshift} element. Each {\normalfont \ttfamily spectra} element must contain an array of {\normalfont \ttfamily datum}
+  !#   elements that gives the spectrum at each wavelength listed in the {\normalfont \ttfamily wavelength} element. Spectra must
+  !#   be in units of erg cm$^{-2}$ s$^{-1}$ Hz$^{-1}$ sr$^{-1}$.
+  !#  </description>
   !# </radiationField>
   type, extends(radiationFieldIntergalacticBackground) :: radiationFieldIntergalacticBackgroundFile
      !% A radiation field class for intergalactic background light with properties read from file.
      private
-     class           (cosmologyFunctionsClass), pointer                     :: cosmologyFunctions_ => null()
+     class           (cosmologyFunctionsClass), pointer                     :: cosmologyFunctions_     => null()
      type            (varying_string         )                              :: fileName
      double precision                                                       :: time
-     integer                                                                :: spectraTimesCount       , spectraWavelengthsCount
-     double precision                         , allocatable, dimension(:  ) :: spectraTimes            , spectraWavelengths
+     integer                                                                :: spectraTimesCount                , spectraWavelengthsCount
+     double precision                         , allocatable, dimension(:  ) :: spectraTimes                     , spectraWavelengths
      double precision                         , allocatable, dimension(:,:) :: spectra
-     logical                                                                :: interpolationReset      , interpolationResetTimes
-     type            (fgsl_interp_accel      )                              :: interpolationAccelerator, interpolationAcceleratorTimes
+     type            (interpolator           )                              :: interpolatorWavelengths          , interpolatorTimes
      integer         (c_size_t               )                              :: iTime
      double precision                         , dimension(0:1)              :: hTime
    contains
-     !@ <objectMethods>
-     !@  <object>radiationFieldIntergalacticBackground</object>
-     !@  <objectMethod>
-     !@   <method>timeSet</method>
-     !@   <type>\void</type>
-     !@   <arguments>\doublezero\ time\argin</arguments>
-     !@   <description>Set the time for the radiation field.</description>
-     !@  </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Set the time for the radiation field." method="timeSet" />
+     !# </methods>
      final     ::            intergalacticBackgroundFileDestructor
      procedure :: flux    => intergalacticBackgroundFileFlux
      procedure :: timeSet => intergalacticBackgroundFileTimeSet
@@ -76,10 +109,8 @@ contains
 
     !# <inputParameter>
     !#   <name>fileName</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The name of the file from which to read intergalactic background light properties.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     self=radiationFieldIntergalacticBackgroundFile(fileName,cosmologyFunctions_)
@@ -91,10 +122,10 @@ contains
   function intergalacticBackgroundFileConstructorInternal(fileName,cosmologyFunctions_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily intergalacticBackgroundFile} radiation field class.
     use :: Array_Utilities  , only : Array_Is_Monotonic            , Array_Reverse     , directionIncreasing
-    use :: FoX_DOM          , only : destroy                       , extractDataContent, node                 , parseFile
+    use :: FoX_DOM          , only : destroy                       , node              , extractDataContent
     use :: Galacticus_Error , only : Galacticus_Error_Report
     use :: IO_XML           , only : XML_Count_Elements_By_Tag_Name, XML_Array_Read    , XML_Array_Read_Static, XML_Get_First_Element_By_Tag_Name, &
-         &                           XML_Get_Elements_By_Tag_Name  , xmlNodeList
+         &                           XML_Get_Elements_By_Tag_Name  , xmlNodeList       , XML_Parse
     use :: Memory_Management, only : allocateArray
     implicit none
     type   (radiationFieldIntergalacticBackgroundFile)                              :: self
@@ -109,7 +140,7 @@ contains
     !# <constructorAssign variables="fileName, *cosmologyFunctions_"/>
 
     !$omp critical (FoX_DOM_Access)
-    doc => parseFile(char(fileName),iostat=status)
+    doc => XML_Parse(char(fileName),iostat=status)
     if (status /= 0) call Galacticus_Error_Report('Unable to find or parse data file'//{introspection:location})
     ! Check the file format version of the file.
     datum => XML_Get_First_Element_By_Tag_Name(doc,"fileFormat")
@@ -157,8 +188,8 @@ contains
     ! Destroy the document.
     call destroy(doc)
     !$omp end critical (FoX_DOM_Access)
-    self%interpolationReset     =.true.
-    self%interpolationResetTimes=.true.
+    self%interpolatorWavelengths=interpolator(self%spectraWavelengths)
+    self%interpolatorTimes      =interpolator(self%spectraTimes      )
     return
   end function intergalacticBackgroundFileConstructorInternal
 
@@ -173,7 +204,6 @@ contains
 
   double precision function intergalacticBackgroundFileFlux(self,wavelength,node)
     !% Return the flux in the intergalactic background radiation field.
-    use :: Numerical_Interpolation, only : Interpolate_Linear_Generate_Factors, Interpolate_Locate
     implicit none
     class           (radiationFieldIntergalacticBackgroundFile), intent(inout)  :: self
     double precision                                           , intent(in   )  :: wavelength
@@ -181,7 +211,7 @@ contains
     double precision                                           , dimension(0:1) :: hWavelength
     integer         (c_size_t                                 )                 :: iWavelength, jTime, &
          &                                                                         jWavelength
-    !GCC$ attributes unused :: node
+    !$GLC attributes unused :: node
 
     intergalacticBackgroundFileFlux=0.0d0
     ! Return if out of range.
@@ -195,8 +225,7 @@ contains
          &   wavelength > self%spectraWavelengths(self%spectraWavelengthsCount) &
          & ) return
     ! Find interpolation in the array of wavelengths.
-    iWavelength=Interpolate_Locate                 (self%spectraWavelengths,self%interpolationAccelerator,wavelength,reset=self%interpolationReset)
-    hWavelength=Interpolate_Linear_Generate_Factors(self%spectraWavelengths,iWavelength                  ,wavelength                              )
+    call self%interpolatorWavelengths%linearFactors(wavelength,iWavelength,hWavelength)
     do jTime=0,1
        do jWavelength=0,1
           if (self%iTime+jTime > 0)                                                                          &
@@ -211,14 +240,12 @@ contains
 
   subroutine intergalacticBackgroundFileTimeSet(self,time)
     !% Set the time of the intergalactic backgroun radiation field.
-    use :: Numerical_Interpolation, only : Interpolate_Linear_Generate_Factors, Interpolate_Locate
     implicit none
     class           (radiationFieldIntergalacticBackgroundFile), intent(inout) :: self
     double precision                                           , intent(in   ) :: time
 
     self%time=time
     ! Find interpolating factors in the array of times.
-    self%iTime=Interpolate_Locate                 (self%spectraTimes,self%interpolationAcceleratorTimes,time,reset=self%interpolationResetTimes)
-    self%hTime=Interpolate_Linear_Generate_Factors(self%spectraTimes,self%iTime                        ,time                                   )
+    call self%interpolatorTimes%linearFactors(time,self%iTime,self%hTime)
     return
   end subroutine intergalacticBackgroundFileTimeSet

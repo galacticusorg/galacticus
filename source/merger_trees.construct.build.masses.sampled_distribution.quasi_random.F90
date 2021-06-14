@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -72,21 +72,18 @@ contains
 
   subroutine sampledDistributionQuasiRandomSampleCMF(self,x)
     !% Generate a quasiRandom sample of points from the merger tree mass distribution.
-    use            :: FGSL         , only : fgsl_qrng
-    use, intrinsic :: ISO_C_Binding, only : c_size_t
-    use            :: Quasi_Random , only : Quasi_Random_Free, Quasi_Random_Get
+    use, intrinsic :: ISO_C_Binding                   , only : c_size_t
+    use            :: Numerical_Quasi_Random_Sequences, only : quasiRandomNumberGenerator, gsl_qrng_sobol
     implicit none
     class           (mergerTreeBuildMassesSampledDistributionQuasiRandom), intent(inout)               :: self
     double precision                                                     , intent(  out), dimension(:) :: x
-    type            (fgsl_qrng                                          )                              :: quasiSequenceObject
-    logical                                                                                            :: quasiSequenceReset
+    type            (quasiRandomNumberGenerator                         )                              :: quasiRandomSequence
     integer         (c_size_t                                           )                              :: iTree
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
-    quasiSequenceReset=.true.
+    quasiRandomSequence=quasiRandomNumberGenerator(gsl_qrng_sobol)
     do iTree=1,size(x)
-       x(iTree)=Quasi_Random_Get(quasiSequenceObject,reset=quasiSequenceReset)
+       x(iTree)=quasiRandomSequence%get()
     end do
-    call Quasi_Random_Free(quasiSequenceObject)
     return
   end subroutine sampledDistributionQuasiRandomSampleCMF

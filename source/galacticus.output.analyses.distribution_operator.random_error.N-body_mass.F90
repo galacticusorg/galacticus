@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -82,7 +82,7 @@ contains
     class           (outputAnalysisDistributionOperatorRndmErrNbodyMass), intent(inout) :: self
     double precision                                                    , intent(in   ) :: propertyValue
     type            (treeNode                                          ), intent(inout) :: node
-    !GCC$ attributes unused :: propertyValue
+    !$GLC attributes unused :: propertyValue
 
     ! Return the fractional error in halo mass, divided by log(10) to convert from natural to base-10 logarithm.
     randomErrorNbodyMassRootVariance=+self%nbodyHaloMassError_%errorFractional(node  ) &

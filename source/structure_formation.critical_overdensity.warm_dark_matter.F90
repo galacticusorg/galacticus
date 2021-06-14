@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,26 +18,44 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Contains a module which implements a critical overdensity for collapse the \gls{wdm} modifier of \cite{barkana_constraints_2001}.
-  use :: Cosmology_Parameters , only : cosmologyParametersClass
-  use :: Dark_Matter_Particles, only : darkMatterParticleClass
-  use :: FGSL                 , only : fgsl_interp             , fgsl_interp_accel
+  use :: Cosmology_Parameters   , only : cosmologyParametersClass
+  use :: Dark_Matter_Particles  , only : darkMatterParticleClass
+  use :: Numerical_Interpolation, only : interpolator
 
   !# <criticalOverdensity name="criticalOverdensityBarkana2001WDM" defaultThreaedPrivate="yes">
-  !#  <description>Provides a critical overdensity for collapse based on the \gls{wdm} modifier of \cite{barkana_constraints_2001} applied to some other critical overdensity class.</description>
+  !#  <description>
+
+  !#   A critical overdensity for collapse class based on the \gls{wdm} modifier of \cite{barkana_constraints_2001} applied to
+  !#   some other, \gls{cdm} critical overdensity class. Specifically, the critical overdensity is multiplied by a factor
+  !#   \begin{equation}
+  !#    \exp\left[ \left({M_\mathrm{J} \over 8 M}\right)^{1.40}+\left({M_\mathrm{J} \over 8 M}\right)^{0.45} \right],
+  !#   \end{equation}
+  !#   where $M$ is the mass in question, $M_\mathrm{J}$ is the effective Jeans mass of the warm dark matter as defined by
+  !#   \citeauthor{barkana_constraints_2001}~[\citeyear{barkana_constraints_2001}; their eqn.~10]:
+  !#   \begin{equation}
+  !#   M_\mathrm{J} = 3.06 \times 10^8 \left( {1+z_\mathrm{eq} \over 3000}\right)^{1.5} \left({\Omega_\mathrm{M} h_0^2 \over
+  !#   0.15}\right)^{1/2} \left({g_\mathrm{X} \over 1.5} \right)^{-1} \left({m_\mathrm{X}/1.0\hbox{keV}}\right)^{-4},
+  !#   \end{equation}
+  !#   the redshift of matter-radiation equality is given by
+  !#   \begin{equation}
+  !#   z_\mathrm{eq} = 3600 \left({\Omega_\mathrm{M} h_0^2 \over 0.15}\right)-1,
+  !#   \end{equation}
+  !#   and $g_\mathrm{X}$ and $m_\mathrm{X}$ are the effective number of degrees of freedom and the mass of the warm dark matter
+  !#   particle respectively. This fitting function has been found the fit the numerical results of
+  !#   \cite{barkana_constraints_2001} well.
+  !#  </description>
   !# </criticalOverdensity>
   type, extends(criticalOverdensityClass) :: criticalOverdensityBarkana2001WDM
      !% A critical overdensity for collapse class which modifies another transfer function using the \gls{wdm} modifier of \cite{barkana_constraints_2001}.
      private
-     class           (criticalOverdensityClass), pointer                   :: criticalOverdensityCDM   => null()
-     class           (cosmologyParametersClass), pointer                   :: cosmologyParameters_     => null()
-     class           (darkMatterParticleClass ), pointer                   :: darkMatterParticle_      => null()
+     class           (criticalOverdensityClass), pointer                   :: criticalOverdensityCDM => null()
+     class           (cosmologyParametersClass), pointer                   :: cosmologyParameters_   => null()
+     class           (darkMatterParticleClass ), pointer                   :: darkMatterParticle_    => null()
      logical                                                               :: useFittingFunction
      double precision                                                      :: jeansMass
      integer                                                               :: deltaTableCount
-     double precision                          , allocatable, dimension(:) :: deltaTableDelta                   , deltaTableMass
-     logical                                                               :: interpolationReset       =  .true.
-     type            (fgsl_interp_accel       )                            :: interpolationAccelerator
-     type            (fgsl_interp             )                            :: interpolationObject
+     double precision                          , allocatable, dimension(:) :: deltaTableDelta                 , deltaTableMass
+     type            (interpolator            )                            :: interpolator_
    contains
      final     ::                    barkana2001WDMDestructor
      procedure :: value           => barkana2001WDMValue
@@ -83,8 +101,6 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>Specifies whether the warm dark matter critical overdensity mass scaling should be computed from a fitting function or from tabulated data.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensityCDM"    source="parameters"/>
     !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
@@ -106,12 +122,14 @@ contains
 
   function barkana2001WDMConstructorInternal(criticalOverdensityCDM,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,linearGrowth_,useFittingFunction) result(self)
     !% Internal constructor for the ``{\normalfont \ttfamily barkana2001WDM}'' critical overdensity for collapse class.
-    use :: Cosmology_Parameters , only : hubbleUnitsLittleH
-    use :: Dark_Matter_Particles, only : darkMatterParticleWDMThermal
-    use :: FoX_DOM              , only : destroy                     , node                             , parseFile
-    use :: Galacticus_Error     , only : Galacticus_Error_Report
-    use :: Galacticus_Paths     , only : galacticusPath              , pathTypeDataStatic
-    use :: IO_XML               , only : XML_Array_Read              , XML_Get_First_Element_By_Tag_Name
+    use :: Cosmology_Parameters   , only : hubbleUnitsLittleH
+    use :: Dark_Matter_Particles  , only : darkMatterParticleWDMThermal
+    use :: FoX_DOM                , only : destroy                     , node                             , parseFile
+    use :: Galacticus_Error       , only : Galacticus_Error_Report
+    use :: Galacticus_Paths       , only : galacticusPath              , pathTypeDataStatic
+    use :: IO_XML                 , only : XML_Array_Read              , XML_Get_First_Element_By_Tag_Name
+    use :: Numerical_Interpolation, only : GSL_Interp_CSpline
+    use :: Table_Labels           , only : extrapolationTypeFix
     implicit none
     type            (criticalOverdensityBarkana2001WDM)                        :: self
     class           (criticalOverdensityClass         ), target, intent(in   ) :: criticalOverdensityCDM
@@ -134,7 +152,7 @@ contains
          &                            /0.15d0                                                          &
          &                          )                                                                  &
          &                          -1.0d0
-    select type (darkMatterParticle_)
+    select type (darkMatterParticleWDMThermal_ => self%darkMatterParticle_)
     class is (darkMatterParticleWDMThermal)
        self%jeansMass=+3.06d8                                                                    &
             &         *((1.0d0+matterRadiationEqualityRedshift)/3000.0d0)                **1.5d0 &
@@ -143,8 +161,8 @@ contains
             &               *self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2     &
             &               /0.15d0                                                              &
             &              )                                                                     &
-            &         /(darkMatterParticle_%degreesOfFreedomEffective()/1.5d0)                   &
-            &         /(darkMatterParticle_%mass                     ()/1.0d0)           **4
+            &         /(darkMatterParticleWDMThermal_%degreesOfFreedomEffective()/1.5d0)         &
+            &         /(darkMatterParticleWDMThermal_%mass                     ()/1.0d0) **4
     class default
        call Galacticus_Error_Report('critical overdensity expects a thermal warm dark matter particle'//{introspection:location})
     end select
@@ -163,6 +181,8 @@ contains
     ! Convert tabulations to logarithmic versions.
     self%deltaTableMass =log(self%deltaTableMass )
     self%deltaTableDelta=log(self%deltaTableDelta)
+    ! Build interpolator.
+    self%interpolator_=interpolator(self%deltaTableMass,self%deltaTableDelta,interpolationType=GSL_Interp_CSpline,extrapolationType=extrapolationTypeFix)
     return
   end function barkana2001WDMConstructorInternal
 
@@ -184,10 +204,7 @@ contains
     !% Returns a mass scaling for critical overdensities based on the results of \cite{barkana_constraints_2001}. This method
     !% assumes that their results for the original collapse barrier (i.e. the critical overdensity, and which they call $B_0$)
     !% scale with the effective Jeans mass of the warm dark matter particle as computed using their eqn.~(10).
-    use :: FGSL                   , only : FGSL_Interp_CSpline
-    use :: Galacticus_Error       , only : Galacticus_Error_Report
-    use :: Numerical_Interpolation, only : Interpolate
-    use :: Table_Labels           , only : extrapolationTypeFix
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (criticalOverdensityBarkana2001WDM), intent(inout)           :: self
     double precision                                   , intent(in   ), optional :: time                         , expansionFactor
@@ -198,7 +215,7 @@ contains
     double precision                                   , parameter               :: massScaleFreeLarge  =+100.0d0
     double precision                                                             :: exponentialFit               , massScaleFree   , &
          &                                                                          powerLawFit                  , smoothTransition
-    !GCC$ attributes unused :: node
+    !$GLC attributes unused :: node
 
     ! Validate.
     if (.not.present(mass)) call Galacticus_Error_Report('mass is required for this critical overdensity class'//{introspection:location})
@@ -255,18 +272,7 @@ contains
                &                  *barkana2001WDMSmallMassLogarithmicSlope &
                &                 )
        else
-          barkana2001WDMValue=exp(                                                                     &
-               &                  Interpolate(                                                         &
-               &                              self%deltaTableMass                                    , &
-               &                              self%deltaTableDelta                                   , &
-               &                              self%interpolationObject                               , &
-               &                              self%interpolationAccelerator                          , &
-               &                              massScaleFree                                          , &
-               &                              extrapolationType            =extrapolationTypeFix     , &
-               &                              reset                        =self%interpolationReset  , &
-               &                              interpolationType            =FGSL_Interp_CSpline        &
-               &                  )                                                                    &
-               &                 )
+          barkana2001WDMValue=exp(self%interpolator_%interpolate(massScaleFree))
        end if
     end if
     barkana2001WDMValue=barkana2001WDMValue*self%criticalOverdensityCDM%value(time,expansionFactor,collapsing,mass)
@@ -281,7 +287,7 @@ contains
     logical                                            , intent(in   ), optional :: collapsing
     double precision                                   , intent(in   ), optional :: mass
     type            (treeNode                         ), intent(inout), optional :: node
-    !GCC$ attributes unused :: node
+    !$GLC attributes unused :: node
 
     barkana2001WDMGradientTime=+self                       %value       (time,expansionFactor,collapsing,mass) &
          &                     *self%criticalOverdensityCDM%gradientTime(time,expansionFactor,collapsing,mass) &
@@ -291,10 +297,7 @@ contains
 
   double precision function barkana2001WDMGradientMass(self,time,expansionFactor,collapsing,mass,node)
     !% Return the gradient with respect to mass of critical overdensity at the given time and mass.
-    use :: FGSL                   , only : FGSL_Interp_CSpline
-    use :: Galacticus_Error       , only : Galacticus_Error_Report
-    use :: Numerical_Interpolation, only : Interpolate_Derivative
-    use :: Table_Labels           , only : extrapolationTypeFix
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (criticalOverdensityBarkana2001WDM), intent(inout)           :: self
     double precision                                   , intent(in   ), optional :: time                    , expansionFactor
@@ -305,7 +308,7 @@ contains
          &                                                                          massScaleFree           , powerLawFit           , &
          &                                                                          powerLawFitGradient     , smoothTransition      , &
          &                                                                          smoothTransitionGradient
-    !GCC$ attributes unused :: node
+    !$GLC attributes unused :: node
 
     ! Validate.
     if (.not.present(mass)) call Galacticus_Error_Report('mass is required for this critical overdensity class'//{introspection:location})
@@ -385,18 +388,9 @@ contains
                &                     *self%value(time,expansionFactor,collapsing,mass)                              &
                &                     /mass
        else
-          barkana2001WDMGradientMass=+Interpolate_Derivative(                                                       &
-               &                                             self%deltaTableMass                                  , &
-               &                                             self%deltaTableDelta                                 , &
-               &                                             self%interpolationObject                             , &
-               &                                             self%interpolationAccelerator                        , &
-               &                                             massScaleFree                                        , &
-               &                                             extrapolationType            =extrapolationTypeFix   , &
-               &                                             reset                        =self%interpolationReset, &
-               &                                             interpolationType            =FGSL_Interp_CSpline      &
-               &                                            )                                                       &
-               &                     *self%value(time,expansionFactor,collapsing,mass)                              &
-               &                     /mass
+          barkana2001WDMGradientMass=+self%interpolator_%derivative(                                massScaleFree) &
+               &                     *self               %value    (time,expansionFactor,collapsing,mass         ) &
+               &                     /                                                              mass
        end if
     end if
     ! Include gradient from CDM critical overdensity.
@@ -411,7 +405,7 @@ contains
     !% Return whether the critical overdensity is mass dependent.
     implicit none
     class(criticalOverdensityBarkana2001WDM), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     barkana2001WDMIsMassDependent=.true.
     return
@@ -421,7 +415,7 @@ contains
     !% Return whether the critical overdensity is node dependent.
     implicit none
     class(criticalOverdensityBarkana2001WDM), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     barkana2001WDMIsNodeDependent=.false.
     return

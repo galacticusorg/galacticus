@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -29,8 +29,18 @@ module Merger_Tree_Branching
   !# <functionClass>
   !#  <name>mergerTreeBranchingProbability</name>
   !#  <descriptiveName>Merger Tree Branching Probabilities</descriptiveName>
-  !#  <description>Class providing merger tree branching probabilities.</description>
+  !#  <description>
+  !#   Class providing merger tree branching probabilities.
+  !#  </description>
   !#  <default>parkinsonColeHelly</default>
+  !#  <method name="rate" >
+  !#   <description>Computes the probability per unit ``time'' of branching at the given mass.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <selfTarget>yes</selfTarget>
+  !#   <argument>double precision          , intent(in   )         :: mass, deltaCritical, time, massBranch</argument>
+  !#   <argument>type            (treeNode), intent(inout), target :: node</argument>
+  !#  </method>
   !#  <method name="probability" >
   !#   <description>Computes the probability per unit ``time'' that a branching event occurs.</description>
   !#   <type>double precision</type>

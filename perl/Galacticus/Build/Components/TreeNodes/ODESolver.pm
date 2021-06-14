@@ -68,7 +68,7 @@ sub Tree_Node_ODE_Step_Initialize {
 		]
 	};    
 	$function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
-!GCC$ attributes unused :: self
+!$GLC attributes unused :: self
 node{ucfirst($quantity->{'name'})}s={$quantity->{'value'}}
 CODE
 	# Insert a type-binding for this function into the treeNode type.
@@ -296,7 +296,7 @@ sub Tree_Node_ODE_Serialize_Scales {
 	    ]
     };    
     $function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
-!GCC$ attributes unused :: self
+!$GLC attributes unused :: self
 select case (propertyType)
 case (propertyTypeAll     )
  array(1:nodeSerializationCount        )=     nodeScales(1:nodeSerializationCount)
@@ -347,7 +347,7 @@ sub Tree_Node_ODE_Serialize_Rates {
 	    ]
     };    
     $function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
-!GCC$ attributes unused :: self
+!$GLC attributes unused :: self
 select case (propertyType)
 case (propertyTypeAll     )
  array(1:nodeSerializationCount        )=nodeRates(1:nodeSerializationCount        )
@@ -398,7 +398,7 @@ sub Tree_Node_ODE_Deserialize_Rates {
 	    ]
     };    
     $function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
-!GCC$ attributes unused :: self
+!$GLC attributes unused :: self
 select case (propertyType)
 case (propertyTypeAll     )
  nodeRatesActives(1:nodeSerializationCount        )=array(1:nodeSerializationCount        )
@@ -443,7 +443,7 @@ sub Tree_Node_ODE_Serialize_Inactive {
 	    ]
     };    
     $function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
-!GCC$ attributes unused :: self
+!$GLC attributes unused :: self
 array(1:nodeSerializationCount)=nodeInactives(1:nodeSerializationCount)
 CODE
     # Insert a type-binding for this function into the treeNode type.

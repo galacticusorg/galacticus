@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,6 +21,9 @@
 
   !# <galacticFilter name="galacticFilterAny">
   !#  <description>A galactic filter class which is the ``any'' combination of a set of other filters.</description>
+  !#  <deepCopy>
+  !#   <linkedList type="filterList" variable="filters" next="next" object="filter_" objectType="galacticFilterClass"/>
+  !#  </deepCopy>
   !# </galacticFilter>
 
   type, extends(galacticFilterClass) :: galacticFilterAny
@@ -28,9 +31,8 @@
      private
      type(filterList), pointer :: filters => null()
   contains
-     final     ::             anyDestructor
-     procedure :: passes   => anyPasses
-     procedure :: deepCopy => anyDeepCopy
+     final     ::           anyDestructor
+     procedure :: passes => anyPasses
   end type galacticFilterAny
 
   interface galacticFilterAny
@@ -52,7 +54,7 @@ contains
 
     self   %filters => null()
     filter_         => null()
-    do i=1,parameters%copiesCount('galacticFilterMethod',zeroIfNotPresent=.true.)
+    do i=1,parameters%copiesCount('galacticFilter',zeroIfNotPresent=.true.)
        if (associated(filter_)) then
           allocate(filter_%next)
           filter_ => filter_%next
@@ -102,9 +104,9 @@ contains
   logical function anyPasses(self,node)
     !% Apply a set of filters to a {\normalfont \ttfamily node} combined with ``any'' operations.
     implicit none
-    class(galacticFilterAny), intent(inout) :: self
-    type (treeNode         ), intent(inout) :: node
-    type (filterList       ), pointer       :: filter_
+    class(galacticFilterAny), intent(inout)         :: self
+    type (treeNode         ), intent(inout), target :: node
+    type (filterList       ), pointer               :: filter_
 
     ! Assume the node fails to pass initially. Iterate through filters and evaluate each one. If any one evaluates to true, exit
     ! the iteration.
@@ -120,37 +122,3 @@ contains
     end do
     return
   end function anyPasses
-
-  subroutine anyDeepCopy(self,destination)
-    !% Perform a deep copy for the {\normalfont \ttfamily any} galactic filter class.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    implicit none
-    class(galacticFilterAny  ), intent(inout) :: self
-    class(galacticFilterClass), intent(inout) :: destination
-    type (filterList         ), pointer       :: filter_    , filterDestination_, &
-         &                                       filterNew_
-
-    call self%galacticFilterClass%deepCopy(destination)
-    select type (destination)
-    type is (galacticFilterAny)
-       destination%filters => null          ()
-       filterDestination_  => null          ()
-       filter_             => self%filters
-       do while (associated(filter_))
-          allocate(filterNew_)
-          if (associated(filterDestination_)) then
-             filterDestination_%next       => filterNew_
-             filterDestination_            => filterNew_
-          else
-             destination          %filters => filterNew_
-             filterDestination_            => filterNew_
-          end if
-          allocate(filterNew_%filter_,mold=filter_%filter_)
-          !# <deepCopy source="filter_%filter_" destination="filterNew_%filter_"/>
-          filter_ => filter_%next
-       end do
-    class default
-       call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})
-    end select
-    return
-  end subroutine anyDeepCopy

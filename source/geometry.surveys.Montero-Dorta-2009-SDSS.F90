@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -57,8 +57,6 @@ contains
     !#   <name>band</name>
     !#   <source>parameters</source>
     !#   <description>The band for which the survey geometry should be computed.</description>
-    !#   <type>string</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     self=surveyGeometryMonteroDorta2009SDSS(band,cosmologyFunctions_)
@@ -131,7 +129,7 @@ contains
     class           (surveyGeometryMonteroDorta2009SDSS), intent(inout)           :: self
     double precision                                    , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
     integer                                             , intent(in   ), optional :: field
-    !GCC$ attributes unused :: field, mass, luminosity
+    !$GLC attributes unused :: field, mass, luminosity
 
     ! Validate input.
     if (.not.present(magnitudeAbsolute)) call Galacticus_Error_Report('absolute magnitude must be supplied '//{introspection:location})
@@ -155,7 +153,7 @@ contains
     double precision                                    , intent(in   ), optional :: mass                   , magnitudeAbsolute       , luminosity
     integer                                             , intent(in   ), optional :: field
     double precision                                                              :: distanceMaximumRedshift, distanceMaximumMagnitude
-    !GCC$ attributes unused :: field, mass, luminosity
+    !$GLC attributes unused :: field, mass, luminosity
 
     ! Validate input.
     if (.not.present(magnitudeAbsolute)) call Galacticus_Error_Report('absolute magnitude must be supplied '//{introspection:location})

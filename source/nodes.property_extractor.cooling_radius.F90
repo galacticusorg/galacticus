@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +22,9 @@
   use :: Cooling_Radii, only : coolingRadius, coolingRadiusClass
 
   !# <nodePropertyExtractor name="nodePropertyExtractorRadiusCooling">
-  !#  <description>A cooling radius property extractor class.</description>
+  !#  <description>
+  !#   A cooling radius property extractor class. Extracts the characteristic cooling radius in the halo in Mpc.
+  !#  </description>
   !# </nodePropertyExtractor>
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRadiusCooling
      !% A cooling radius property extractor class.
@@ -85,7 +87,7 @@ contains
     class(nodePropertyExtractorRadiusCooling), intent(inout)           :: self
     type (treeNode                          ), intent(inout), target   :: node
     type (multiCounter                      ), intent(inout), optional :: instance
-    !GCC$ attributes unused :: instance
+    !$GLC attributes unused :: instance
 
     radiusCoolingExtract=self%coolingRadius_%radius(node)
     return
@@ -96,7 +98,7 @@ contains
     implicit none
     type (varying_string                    )                :: radiusCoolingName
     class(nodePropertyExtractorRadiusCooling), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     radiusCoolingName=var_str('hotHaloRadiusCooling')
     return
@@ -107,7 +109,7 @@ contains
     implicit none
     type (varying_string                    )                :: radiusCoolingDescription
     class(nodePropertyExtractorRadiusCooling), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     radiusCoolingDescription=var_str('Cooling radius in the hot halo [Mpc].')
     return
@@ -118,7 +120,7 @@ contains
     use :: Numerical_Constants_Astronomical, only : megaParsec
     implicit none
     class(nodePropertyExtractorRadiusCooling), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     radiusCoolingUnitsInSI=megaParsec
     return
@@ -129,7 +131,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorRadiusCooling), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     radiusCoolingType=outputAnalysisPropertyTypeLinear
     return

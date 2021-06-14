@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -54,15 +54,13 @@ contains
 
     !# <inputParameter>
     !#   <name>outputFileName</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('mergerTreeEvolution.xml')</defaultValue>
     !#   <description>The name of the file to which merger tree evolution should be output.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
-    !# <objectBuilder class="galacticFilter" parameterName="galacticFilterMethod" name="galacticFilter_" source="parameters">
+    !# <objectBuilder class="galacticFilter" parameterName="galacticFilter" name="galacticFilter_" source="parameters">
     !#  <default>
-    !#   <galacticFilterMethod value="always"/>
+    !#   <galacticFilter value="always"/>
     !#  </default>
     !# </objectBuilder>
     self=nodeOperatorEvolutionOutput(outputFileName,galacticFilter_)

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -52,35 +52,27 @@ contains
 
     !# <inputParameter>
     !#   <name>fileNameCoolingFunction</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The file name to which the cooling function table should be stored.</description>
     !#   <defaultValue>galacticusPath(pathTypeDataDynamic)//'cooling/cooling_function_Atomic_CIE_Cloudy.hdf5'</defaultValue>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>fileNameChemicalState</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The file name to which the chemical state table should be stored.</description>
     !#   <defaultValue>galacticusPath(pathTypeDataDynamic)//'chemicalState/chemical_state_Atomic_CIE_Cloudy.hdf5'</defaultValue>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>metallicityLogarithmicMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The maximum metallicity to tabulated, expressed as log-10 relative to Solar.</description>
     !#   <defaultValue>1.5d0</defaultValue>
     !#   <source>parameters</source>
-    !#   <type>float</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>includeContinuum</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>If true include the cumulative fraction of total power emitted in the continuum.</description>
     !#   <defaultValue>.true.</defaultValue>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     self=taskBuildTableCIECloudy(fileNameCoolingFunction,fileNameChemicalState,metallicityLogarithmicMaximum,includeContinuum)
     !# <inputParametersValidate source="parameters"/>
@@ -101,14 +93,14 @@ contains
 
   subroutine buildTableCIECloudyPerform(self,status)
     !% Builds the tabulation.
-    use :: Galacticus_Display   , only : Galacticus_Display_Indent    , Galacticus_Display_Message, Galacticus_Display_Unindent
+    use :: Display              , only : displayIndent                , displayMessage, displayUnindent
     use :: Galacticus_Error     , only : errorStatusSuccess
     use :: Interfaces_Cloudy_CIE, only : Interface_Cloudy_CIE_Tabulate
     implicit none
     class  (taskBuildTableCIECloudy), intent(inout), target   :: self
     integer                         , intent(  out), optional :: status
 
-    call Galacticus_Display_Indent  ('Begin task: tabulate collisional ionization equilibrium using Cloudy')
+    call displayIndent  ('Begin task: tabulate collisional ionization equilibrium using Cloudy')
     call Interface_Cloudy_CIE_Tabulate(                                                                  &
          &                             metallicityMaximumLogarithmic=self%metallicityLogarithmicMaximum, &
          &                             fileNameCoolingFunction      =self%fileNameCoolingFunction      , &
@@ -117,7 +109,7 @@ contains
          &                             includeContinuum             =self%includeContinuum               &
          &                            )
     if (present(status)) status=errorStatusSuccess
-    call Galacticus_Display_Unindent('Done task: tabulate collisional ionization equilibrium using Cloudy')
+    call displayUnindent('Done task: tabulate collisional ionization equilibrium using Cloudy')
     return
   end subroutine buildTableCIECloudyPerform
 
@@ -125,7 +117,7 @@ contains
     !% Specifies that this task does not requires the main output file.
     implicit none
     class(taskBuildTableCIECloudy), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     buildTableCIECloudyRequiresOutputFile=.false.
     return

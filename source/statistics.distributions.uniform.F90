@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,17 @@
   !% Implementation of a uniform 1D distibution function.
 
   !# <distributionFunction1D name="distributionFunction1DUniform">
-  !#  <description>A uniform 1D distribution function class.</description>
+  !#  <description>
+  !#   A uniform distribution over a finite range
+  !#   \begin{equation}
+  !#   P(x) \propto \left\{ \begin{array}{ll} 1 &amp; \hbox{ if } x_\mathrm{l} \leq x \leq x_\mathrm{u} \\ 0 &amp; \hbox{ otherwise.}  \end{array} \right.
+  !#   \end{equation}
+  !#   Specified using:
+  !#   \begin{description}
+  !#   \item[{\normalfont \ttfamily [minimum]}] The lower limit of the range, $x_\mathrm{l}$;
+  !#   \item[{\normalfont \ttfamily [maximum]}] The upper limit of the range, $x_\mathrm{u}$.
+  !#   \end{description}
+  !#  </description>
   !# </distributionFunction1D>
   type, extends(distributionFunction1DClass) :: distributionFunction1DUniform
      !% Implementation of a uniform 1D distibution function.
@@ -54,17 +64,13 @@ contains
 
     !# <inputParameter>
     !#   <name>limitLower</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The lower limit of the uniform distribution.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>limitUpper</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The upper limit of the uniform distribution.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     self=distributionFunction1DUniform(limitLower,limitUpper,randomNumberGenerator_)

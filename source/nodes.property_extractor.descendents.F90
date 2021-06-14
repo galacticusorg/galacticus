@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +22,20 @@
   use :: Output_Times, only : outputTimes, outputTimesClass
 
   !# <nodePropertyExtractor name="nodePropertyExtractorDescendents">
-  !#  <description>An ISM mass output analysis property extractor class.</description>
+  !#  <description>
+  !#   A node property extractor which extracts the index of the node containing the galaxy to which each current galaxy will
+  !#   belong at the next output time (i.e. the \gls{forwardDescendent}). To clarify, this will be the index of the node into
+  !#   which the galaxy descends, or the index of a node with which it merges prior to the next output time (and if that node
+  !#   merges with another, the index will be of that node and so on).
+  !#
+  !#   Note that, to operate correctly, information about which node a given node may merge with (and when this merger will
+  !#   happen) must be available. This is typically available in merger trees read from file (i.e. using the ``{\normalfont
+  !#   \ttfamily read}'' \refClass{mergerTreeConstructorClass}) providing {\normalfont \ttfamily [presetMergerNodes]} and {\normalfont
+  !#   \ttfamily [presetMergerTimes]} are both set to {\normalfont \ttfamily true}. When using randomly assigned satellite orbits
+  !#   and merger times, information on when merging occurs does not exist until a node becomes a satellite. Thus, if the node
+  !#   becomes a satellite after the current output, but before the next output, there is no way to know which node it will belong
+  !#   to at the next output (in such cases, the fallback assumption is no merging).
+  !#  </description>
   !# </nodePropertyExtractor>
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorDescendents
      !% A node property extractor descendent indices.
@@ -92,7 +105,7 @@ contains
     class           (nodeComponentSatellite          ), pointer                 :: satellite
     double precision                                                            :: outputTimeNext
     logical                                                                     :: foundDescendent
-    !GCC$ attributes unused :: self, instance
+    !$GLC attributes unused :: self, instance
 
     satellite       => node%satellite            (    )
     outputTimeNext  =  self%outputTimes_%timeNext(time)
@@ -161,7 +174,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorDescendents), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     descendentsType=outputAnalysisPropertyTypeLinear
     return
@@ -172,7 +185,7 @@ contains
     implicit none
     type (varying_string                  )                :: descendentsName
     class(nodePropertyExtractorDescendents), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     descendentsName=var_str('descendentIndex')
     return
@@ -183,7 +196,7 @@ contains
     implicit none
     type (varying_string                  )                :: descendentsDescription
     class(nodePropertyExtractorDescendents), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     descendentsDescription=var_str('ID of the node which this node will have descended into by the next timestep.')
     return

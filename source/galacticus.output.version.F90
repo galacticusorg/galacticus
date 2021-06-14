@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -60,12 +60,12 @@ contains
     !% Output version information to the main output file.
     use :: Dates_and_Times   , only : Formatted_Date_and_Time
     use :: File_Utilities    , only : File_Exists
-    use :: FoX_dom           , only : destroy                          , extractDataContent, node, parseFile
+    use :: FoX_dom           , only : destroy                          , node
     use :: FoX_utils         , only : generate_UUID
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: Galacticus_HDF5   , only : galacticusOutputFile
     use :: IO_HDF5           , only : hdf5Access                       , hdf5Object
-    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists
+    use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists, XML_Parse, extractDataContent => extractDataContentTS
     use :: ISO_Varying_String, only : varying_string
     implicit none
     type     (Node          ), pointer :: doc            , emailNode, nameNode
@@ -89,7 +89,7 @@ contains
     ! Check if a galacticusConfig.xml file exists.
     if (File_Exists("galacticusConfig.xml")) then
        !$omp critical (FoX_DOM_Access)
-       doc => parseFile("galacticusConfig.xml",iostat=ioErr)
+       doc => XML_Parse("galacticusConfig.xml",iostat=ioErr)
        if (ioErr /= 0) call Galacticus_Error_Report('Unable to parse config file'//{introspection:location})
        if (XML_Path_Exists(doc,"contact")) then
           if (XML_Path_Exists(doc,"contact/name")) then

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,11 +21,11 @@
 
   use :: Model_Parameters                    , only : modelParameterList
   use :: Models_Likelihoods                  , only : posteriorSampleLikelihoodClass
+  use :: Numerical_Random_Numbers            , only : randomNumberGeneratorClass
   use :: Posterior_Sampling_Convergence      , only : posteriorSampleConvergenceClass
   use :: Posterior_Sampling_State            , only : posteriorSampleStateClass
   use :: Posterior_Sampling_State_Initialize , only : posteriorSampleStateInitializeClass
   use :: Posterior_Sampling_Stopping_Criteria, only : posteriorSampleStoppingCriterionClass
-  use :: Numerical_Random_Numbers            , only : randomNumberGeneratorClass
 
   !# <posteriorSampleSimulation name="posteriorSampleSimulationParticleSwarm">
   !#  <description>A posterior sampling simulation class which implements the particle swarm algorithm.</description>
@@ -43,20 +43,16 @@
      integer                                                                        :: parameterCount                             , stepsMaximum                          , &
           &                                                                            reportCount                                , logFlushCount
      double precision                                                               :: accelerationCoefficientPersonal            , accelerationCoefficientGlobal         , &
-          &                                                                            inertiaWeight                              , velocityCoefficient
-     logical                                                                        :: isInteractive                              , resume
+          &                                                                            inertiaWeight                              , velocityCoefficient                   , &
+          &                                                                            velocityCoefficientInitial
+     logical                                                                        :: isInteractive                              , resume                                , &
+          &                                                                            appendLogs
      type            (varying_string                       )                        :: logFileRoot                                , interactionRoot                       , &
           &                                                                            logFilePreviousRoot
    contains
-     !@ <objectMethods>
-     !@   <object>posteriorSampleSimulationParticleSwarm</object>
-     !@   <objectMethod>
-     !@     <method>posterior</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\textcolor{red}{\textless class(posteriorSampleStateClass)\textgreater} simulationState\argin</arguments>
-     !@     <description>Return the log of posterior probability for the given {\normalfont \ttfamily simulationState}.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return the log of posterior probability for the given {\normalfont \ttfamily simulationState}." method="posterior" />
+     !# </methods>
      final     ::              particleSwarmDestructor
      procedure :: simulate  => particleSwarmSimulate
      procedure :: posterior => particleSwarmPosterior
@@ -73,12 +69,12 @@ contains
   function particleSwarmConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily particleSwarm} posterior sampling simulation class which builds the object from a
     !% parameter set.
-    use :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityInfo
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: Input_Parameters  , only : inputParameter            , inputParameters
-    use :: MPI_Utilities     , only : mpiSelf
-    use :: Model_Parameters  , only : modelParameterActive      , modelParameterInactive
-    use :: String_Handling   , only : operator(//)
+    use :: Display         , only : displayMessage         , displayVerbosity      , verbosityLevelInfo
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Input_Parameters, only : inputParameter         , inputParameters
+    use :: MPI_Utilities   , only : mpiSelf
+    use :: Model_Parameters, only : modelParameterActive   , modelParameterInactive
+    use :: String_Handling , only : operator(//)
     implicit none
     type            (posteriorSampleSimulationParticleSwarm        )                              :: self
     type            (inputParameters                               ), intent(inout)               :: parameters
@@ -97,95 +93,86 @@ contains
          &                                                                                           activeParameterCount             , iActive                        , &
          &                                                                                           iInactive                        , i
     double precision                                                                              :: inertiaWeight                    , accelerationCoefficientPersonal, &
-         &                                                                                           accelerationCoefficientGlobal    , velocityCoefficient
-    logical                                                                                       :: resume
+         &                                                                                           accelerationCoefficientGlobal    , velocityCoefficient            , &
+         &                                                                                           velocityCoefficientInitial
+    logical                                                                                       :: resume                           , appendLogs
 
     !# <inputParameter>
     !#   <name>stepsMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>huge(0)</defaultValue>
     !#   <description>The maximum number of steps to take.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>logFlushCount</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number of steps between flushing the log file.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>reportCount</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number of steps between issuing reports.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>interactionRoot</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('none')</defaultValue>
     !#   <description>Root file name for interaction files, or `{\normalfont \ttfamily none}' if interaction is not required.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>logFileRoot</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>Root file name for log files.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>logFilePreviousRoot</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('none')</defaultValue>
     !#   <description>Root file name for log files from which to resume.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>resume</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>If true, resume from a previous set of log files.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>appendLogs</name>
+    !#   <description>If true, do not overwrite existing log files, but instead append to them.</description>
+    !#   <source>parameters</source>
+    !#   <defaultValue>.false.</defaultValue>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>inertiaWeight</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.72d0</defaultValue>
     !#   <description>Inertia parameter.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>accelerationCoefficientPersonal</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.193d0</defaultValue>
     !#   <description>Personal accleration parameter.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>accelerationCoefficientGlobal</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.193d0</defaultValue>
     !#   <description>Global accleration parameter.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>velocityCoefficient</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.5d0</defaultValue>
     !#   <description>Velocity parameter.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>velocityCoefficientInitial</name>
+    !#   <defaultValue>0.0d0</defaultValue>
+    !#   <description>Velocity parameter.</description>
+    !#   <source>parameters</source>
     !# </inputParameter>
     !# <objectBuilder class="posteriorSampleLikelihood"        name="posteriorSampleLikelihood_"        source="parameters"/>
     !# <objectBuilder class="posteriorSampleConvergence"       name="posteriorSampleConvergence_"       source="parameters"/>
@@ -196,7 +183,7 @@ contains
     ! Determine the number of parameters.
     activeParameterCount  =0
     inactiveParameterCount=0
-    do i=1,parameters%copiesCount("modelParameterMethod")
+    do i=1,parameters%copiesCount("modelParameter")
        !# <objectBuilder class="modelParameter" name="modelParameter_" source="parameters" copy="i" />
        select type (modelParameter_)
        class is (modelParameterActive  )
@@ -207,17 +194,17 @@ contains
        !# <objectDestructor name="modelParameter_"/>
     end do
     if (activeParameterCount < 1) call Galacticus_Error_Report('at least one active parameter must be specified in config file'//{introspection:location})
-    if (mpiSelf%isMaster() .and. Galacticus_Verbosity_Level() >= verbosityInfo) then
+    if (mpiSelf%isMaster() .and. displayVerbosity() >= verbosityLevelInfo) then
        message='Found '
        message=message//activeParameterCount//' active parameters (and '//inactiveParameterCount//' inactive parameters)'
-       call Galacticus_Display_Message(message)
+       call displayMessage(message)
     end if
     ! Initialize priors and random perturbers.
     allocate(modelParametersActive_  (  activeParameterCount))
     allocate(modelParametersInactive_(inactiveParameterCount))
     iActive  =0
     iInactive=0
-    do i=1,parameters%copiesCount("modelParameterMethod")
+    do i=1,parameters%copiesCount("modelParameter")
        !# <objectBuilder class="modelParameter" name="modelParameter_" source="parameters" copy="i" />
        select type (modelParameter_)
        class is (modelParameterInactive)
@@ -231,7 +218,7 @@ contains
        end select
        !# <objectDestructor name="modelParameter_"/>
     end do
-    self=posteriorSampleSimulationParticleSwarm(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,randomNumberGenerator_,stepsMaximum,char(logFileRoot),logFlushCount,reportCount,inertiaWeight,accelerationCoefficientPersonal,accelerationCoefficientGlobal,velocityCoefficient,char(interactionRoot),resume,char(logFilePreviousRoot))
+    self=posteriorSampleSimulationParticleSwarm(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,randomNumberGenerator_,stepsMaximum,char(logFileRoot),logFlushCount,reportCount,inertiaWeight,accelerationCoefficientPersonal,accelerationCoefficientGlobal,velocityCoefficient,velocityCoefficientInitial,char(interactionRoot),resume,appendLogs,char(logFilePreviousRoot))
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="posteriorSampleLikelihood_"       />
     !# <objectDestructor name="posteriorSampleConvergence_"      />
@@ -250,7 +237,7 @@ contains
     return
   end function particleSwarmConstructorParameters
 
-  function particleSwarmConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,randomNumberGenerator_,stepsMaximum,logFileRoot,logFlushCount,reportCount,inertiaWeight,accelerationCoefficientPersonal,accelerationCoefficientGlobal,velocityCoefficient,interactionRoot,resume,logFilePreviousRoot) result(self)
+  function particleSwarmConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,randomNumberGenerator_,stepsMaximum,logFileRoot,logFlushCount,reportCount,inertiaWeight,accelerationCoefficientPersonal,accelerationCoefficientGlobal,velocityCoefficient,velocityCoefficientInitial,interactionRoot,resume,appendLogs,logFilePreviousRoot) result(self)
     !% Internal constructor for the ``particleSwarm'' simulation class.
     implicit none
     type            (posteriorSampleSimulationParticleSwarm)                                      :: self
@@ -266,10 +253,11 @@ contains
     integer                                                 , intent(in   )                       :: stepsMaximum                     , reportCount                    , &
          &                                                                                           logFlushCount
     double precision                                        , intent(in   )                       :: inertiaWeight                    , accelerationCoefficientPersonal, &
-         &                                                                                           accelerationCoefficientGlobal    , velocityCoefficient
-    logical                                                 , intent(in   )                       :: resume
+         &                                                                                           accelerationCoefficientGlobal    , velocityCoefficient            , &
+         &                                                                                           velocityCoefficientInitial
+    logical                                                 , intent(in   )                       :: resume                           , appendLogs
     integer                                                                                       :: i
-    !# <constructorAssign variables="*posteriorSampleLikelihood_, *posteriorSampleConvergence_, *posteriorSampleStoppingCriterion_, *posteriorSampleState_, *posteriorSampleStateInitialize_, *randomNumberGenerator_, stepsMaximum, logFileRoot, logFlushCount, reportCount, inertiaWeight, accelerationCoefficientPersonal, accelerationCoefficientGlobal, velocityCoefficient, interactionRoot, resume, logFilePreviousRoot"/>
+    !# <constructorAssign variables="*posteriorSampleLikelihood_, *posteriorSampleConvergence_, *posteriorSampleStoppingCriterion_, *posteriorSampleState_, *posteriorSampleStateInitialize_, *randomNumberGenerator_, stepsMaximum, logFileRoot, logFlushCount, reportCount, inertiaWeight, accelerationCoefficientPersonal, accelerationCoefficientGlobal, velocityCoefficient, velocityCoefficientInitial, interactionRoot, resume, appendLogs, logFilePreviousRoot"/>
 
     allocate(self%modelParametersActive_  (size(modelParametersActive_  )))
     allocate(self%modelParametersInactive_(size(modelParametersInactive_)))
@@ -310,10 +298,11 @@ contains
 
   subroutine particleSwarmSimulate(self)
     !% Perform a particle swarm simulation.
-    use :: File_Utilities              , only : File_Exists              , File_Remove
-    use :: Galacticus_Display          , only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent
+    use :: Display                     , only : displayIndent          , displayMessage, displayUnindent, displayMagenta, &
+         &                                      displayReset
+    use :: File_Utilities              , only : File_Exists            , File_Remove
     use :: Galacticus_Error            , only : Galacticus_Error_Report
-    use :: MPI_Utilities               , only : mpiBarrier               , mpiSelf
+    use :: MPI_Utilities               , only : mpiBarrier             , mpiSelf
     use :: Models_Likelihoods_Constants, only : logImpossible
     use :: String_Handling             , only : operator(//)
     implicit none
@@ -345,22 +334,18 @@ contains
     ! Write start-up message.
     message="Process "//mpiSelf%rankLabel()//" [PID: "
     message=message//getPID()//"] is running on host '"//mpiSelf%hostAffinity()//"'"
-    call Galacticus_Display_Message(message)
-    ! Initialize the particle state vector.
-    logPosterior=logImpossible
-    do while (logPosterior <= logImpossible)
-       ! Initialize particle to some state vector.
-       call self%posteriorSampleStateInitialize_%initialize(self%posteriorSampleState_,self%modelParametersActive_,self%posteriorSampleLikelihood_,timeEvaluateInitial,logLikelihood,logPosterior)
-       ! Evaluate the posterior in the initial state.
-       timeEvaluate        =-1.0
-       timeEvaluatePrevious=real(timeEvaluateInitial)
-       forceAcceptance     =.false.
-       call CPU_Time(timePreEvaluate )
-       call self%posterior(self%posteriorSampleState_,logPosterior,logLikelihood,logLikelihoodVariance,timeEvaluate,timeEvaluatePrevious,forceAcceptance)
-       call CPU_Time(timePostEvaluate)
-       if (timeEvaluate < 0.0) timeEvaluate=timePostEvaluate-timePreEvaluate
-       timeEvaluatePrevious=timeEvaluate
-    end do
+    call displayMessage(message)  
+    ! Initialize particle to some state vector.
+    call self%posteriorSampleStateInitialize_%initialize(self%posteriorSampleState_,self%modelParametersActive_,self%posteriorSampleLikelihood_,timeEvaluateInitial,logLikelihood,logPosterior)
+    ! Evaluate the posterior in the initial state.
+    forceAcceptance     =.false.
+    timeEvaluate        =-1.0
+    timeEvaluatePrevious=real(timeEvaluateInitial)
+    call CPU_Time(timePreEvaluate )
+    call self%posterior(self%posteriorSampleState_,logPosterior,logLikelihood,logLikelihoodVariance,timeEvaluate,timeEvaluatePrevious,forceAcceptance)
+    call CPU_Time(timePostEvaluate)
+    if (timeEvaluate < 0.0) timeEvaluate=timePostEvaluate-timePreEvaluate
+    timeEvaluatePrevious=timeEvaluate    
     ! Set the personal best state to the initial state.
     logPosteriorBestPersonal         =logPosterior
     logLikelihoodVarianceBestPersonal=logLikelihoodVariance
@@ -396,8 +381,16 @@ contains
     logLikelihoodVarianceBestGlobal=sum    (mpiSelf%requestData([0],[logLikelihoodVarianceBestGlobal])                      )
     ! Compute maximum velocities.
     do i=1,self%parameterCount
-       positionMinimum(i)=self%modelParametersActive_(i)%modelParameter_%priorMinimum()
-       positionMaximum(i)=self%modelParametersActive_(i)%modelParameter_%priorMaximum()
+       positionMinimum(i)=self%modelParametersActive_(i)%modelParameter_%map(self%modelParametersActive_(i)%modelParameter_%priorMinimum())
+       positionMaximum(i)=self%modelParametersActive_(i)%modelParameter_%map(self%modelParametersActive_(i)%modelParameter_%priorMaximum())
+       ! Adjust minimum and maximum positions to ensure that, when unmapped, they are within the prior ranges of the
+       ! boundaries. (They may not be initially due to finite precision.)
+       do while (self%modelParametersActive_(i)%modelParameter_%unmap(positionMinimum(i)) < self%modelParametersActive_(i)%modelParameter_%priorMinimum())
+          positionMinimum(i)=nearest(positionMinimum(i),+1.0d0)
+       end do
+       do while (self%modelParametersActive_(i)%modelParameter_%unmap(positionMaximum(i)) > self%modelParametersActive_(i)%modelParameter_%priorMaximum())
+          positionMaximum(i)=nearest(positionMaximum(i),-1.0d0)
+       end do
        velocityMaximum(i)=self%velocityCoefficient*(positionMaximum(i)-positionMinimum(i))
     end do
     ! Set initial velocities.
@@ -421,16 +414,20 @@ contains
     else
        ! Simulation is not being resumed, so set an initial velocity for the particle.
        do i=1,self%parameterCount
-          velocityParticle(i)=(2.0d0*self%randomNumberGenerator_%uniformSample()-1.0d0)*velocityMaximum(i)
+          velocityParticle(i)=(2.0d0*self%randomNumberGenerator_%uniformSample()-1.0d0)*velocityMaximum(i)*self%velocityCoefficientInitial
        end do
     end if
     ! Begin the simulation.
     logFileName=self%logFileRoot//'_'//mpiSelf%rankLabel()//'.log'
-    open(newunit=logFileUnit,file=char(logFileName),status='unknown',form='formatted')
+    if (self%appendLogs) then
+       open(newunit=logFileUnit,file=char(logFileName),status='unknown',form='formatted',position='append')
+    else
+       open(newunit=logFileUnit,file=char(logFileName),status='unknown',form='formatted')
+    end if
     isConverged=.false.
-    do while (                                                                                                                  &
-         &          self%posteriorSampleState_            %count(                                               ) < self%stepsMaximum &
-         &    .and.                                                                                                             &
+    do while (                                                                                                   &
+         &          self%posteriorSampleState_            %count(                          ) < self%stepsMaximum &
+         &    .and.                                                                                              &
          &     .not.self%posteriorSampleStoppingCriterion_%stop (self%posteriorSampleState_)                     &
          &   )
        ! Get the current particle state.
@@ -438,11 +435,11 @@ contains
        ! Update the state vector
        stateVector=stateVector+velocityParticle
        do i=1,self%parameterCount
-          if (stateVector(i) < positionMinimum(i)) then
+          if (stateVector(i) <= positionMinimum(i)) then
              velocityParticle(i)=-velocityParticle(i)
              stateVector     (i)=+positionMinimum (i)
           end if
-          if (stateVector(i) > positionMaximum(i)) then
+          if (stateVector(i) >= positionMaximum(i)) then
              velocityParticle(i)=-velocityParticle(i)
              stateVector     (i)=+positionMaximum (i)
           end if
@@ -460,23 +457,23 @@ contains
                    ! Copy the state to the proposed state vector.
                    stateVector=stateVectorInteractive
                    message="Chain "//mpiSelf%rankLabel()//" is being interactively moved to state:"
-                   call Galacticus_Display_Indent(message)
+                   call displayIndent(message)
                    ! Map parameters of interactively proposed state.
                    do i=1,size(stateVector)
                       write (label,*) stateVector(i)
                       message="State["
                       message=message//i//"] = "//trim(adjustl(label))
-                      call Galacticus_Display_Message(message)
+                      call displayMessage(message)
                       stateVector(i)=self%modelParametersActive_(i)%modelParameter_%map(stateVector(i))
                    end do
-                   call Galacticus_Display_Unindent('end')
+                   call displayUnindent('end')
                 else
-                   message="WARNING: state proposed in interaction file '"//interactionFileName//"' cannot be read"
-                   call Galacticus_Display_Message(message)
+                   message=displayMagenta()//"WARNING:"//displayReset()//" state proposed in interaction file '"//interactionFileName//"' cannot be read"
+                   call displayMessage(message)
                 end if
              else
-                message="WARNING: unable to open interaction file '"//interactionFileName//"'"
-                call Galacticus_Display_Message(message)
+                message=displayMagenta()//"WARNING:"//displayReset()//" unable to open interaction file '"//interactionFileName//"'"
+                call displayMessage(message)
              end if
              close(interactionFile)
              ! Remove the interaction file.
@@ -564,7 +561,7 @@ contains
              if (mpiSelf%rank() == 0) then
                 message='Converged after '
                 message=message//convergedAtStep//' steps'
-                call Galacticus_Display_Message(message)
+                call displayMessage(message)
                 logFileName=self%logFileRoot//'_'//mpiSelf%rankLabel()//'.convergence.log'
                 open(newunit=convergenceFileUnit,file=char(logFileName),status='unknown',form='formatted',access='append')
                 write (convergenceFileUnit,'(a,i8)') 'Converged at step: ',convergedAtStep
@@ -580,14 +577,14 @@ contains
 
   subroutine particleSwarmPosterior(self,posteriorSampleState_,logPosterior,logLikelihood,logLikelihoodVariance,timeEvaluate,timeEvaluatePrevious,forceAcceptance)
     !% Return the log of the posterior for the current state.
-    use            :: Galacticus_Display          , only : Galacticus_Display_Indent , Galacticus_Display_Message, Galacticus_Display_Unindent
+    use            :: Display                     , only : displayIndent             , displayMessage, displayUnindent
     use            :: Galacticus_Error            , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding               , only : c_size_t
     use            :: Kind_Numbers                , only : kind_int4
     use            :: MPI_Utilities               , only : mpiBarrier                , mpiSelf
     use            :: Model_Parameters            , only : modelParameterListLogPrior
     use            :: Models_Likelihoods_Constants, only : logImpossible
-    use            :: Sort                        , only : Sort_Index_Do
+    use            :: Sorting                     , only : sortIndex
     implicit none
     class           (posteriorSampleSimulationParticleSwarm), intent(inout)               :: self
     class           (posteriorSampleStateClass             ), intent(inout)               :: posteriorSampleState_
@@ -637,22 +634,22 @@ contains
          & timeEvaluateEffective=0.0d0
     timesEvaluate=mpiSelf%gather(dble(timeEvaluateEffective))
     ! If previous time estimate is negative, don't do load balancing.
-    if (mpiSelf%isMaster() .and. mod(self%posteriorSampleState_%count(),self%reportCount) == 0) call Galacticus_Display_Indent('Load balancing report')
+    if (mpiSelf%isMaster() .and. mod(self%posteriorSampleState_%count(),self%reportCount) == 0) call displayIndent('Load balancing report')
     if (any(timesEvaluate < 0.0d0)) then
        forall(i=0:mpiSelf%count()-1)
           processToProcess  (i)=i
           processFromProcess(i)=i
        end forall
-       if (mpiSelf%isMaster() .and. mod(self%posteriorSampleState_%count(),self%reportCount) == 0) call Galacticus_Display_Message('Not performing load balancing - missing work cost data')
+       if (mpiSelf%isMaster() .and. mod(self%posteriorSampleState_%count(),self%reportCount) == 0) call displayMessage('Not performing load balancing - missing work cost data')
     else
        ! Distribute tasks across nodes.
-       timesEvaluateOrder=Sort_Index_Do(timesEvaluate)-1
+       timesEvaluateOrder=sortIndex(timesEvaluate)-1
        processToProcess=-1
        allocate(nodeWork     (mpiSelf%nodeCount()))
        allocate(nodeWorkOrder(mpiSelf%nodeCount()))
        nodeWork=0.0d0
        do i=mpiSelf%count()-1,0,-1
-          nodeWorkOrder=Sort_Index_Do(nodeWork)
+          nodeWorkOrder=sortIndex(nodeWork)
           do nodeTrial=1,mpiSelf%nodeCount()
              do processTrial=0,mpiSelf%count()-1
                 if (mpiSelf%nodeAffinity(processTrial) == nodeWorkOrder(nodeTrial) .and. .not.any(processToProcess == processTrial)) then
@@ -668,7 +665,7 @@ contains
        end do
        ! Report.
        if (mpiSelf%isMaster() .and. mod(self%posteriorSampleState_%count(),self%reportCount) == 0) then
-          call Galacticus_Display_Indent('Particle redistribution:')
+          call displayIndent('Particle redistribution:')
           do i=0,mpiSelf%count()-1
              write (label,'(i4.4)') i
              message='Particle '//trim(label)//' -> process/node '
@@ -678,21 +675,21 @@ contains
              message=message//trim(label)//' (work = '
              write (label,'(f9.2)') timesEvaluate(i)
              message=message//trim(label)//')'
-             call Galacticus_Display_Message(message)
+             call displayMessage(message)
           end do
-          call Galacticus_Display_Unindent('done')
-          call Galacticus_Display_Indent('Node work loads:')
+          call displayUnindent('done')
+          call displayIndent('Node work loads:')
           do i=1,size(nodeWork)
              write (label,'(i4.4)') i
              message='Node '//trim(label)//': work = '
              write (label,'(f9.2)') nodeWork(i)
              message=message//trim(label)
-             call Galacticus_Display_Message(message)
+             call displayMessage(message)
           end do
-          call Galacticus_Display_Unindent('done')
+          call displayUnindent('done')
        end if
     end if
-    if (mpiSelf%isMaster() .and. mod(self%posteriorSampleState_%count(),self%reportCount) == 0) call Galacticus_Display_Unindent('done')
+    if (mpiSelf%isMaster() .and. mod(self%posteriorSampleState_%count(),self%reportCount) == 0) call displayUnindent('done')
     ! Get state vector, particle index, and prior.
     allocate(stateVectorSelf(self%parameterCount  ))
     allocate(stateVectorWork(self%parameterCount,1))
@@ -740,7 +737,7 @@ contains
     ! Gather actual evaluation times and report.
     timesEvaluateActual=mpiSelf%gather(dble(timeEvaluate))
     if (mpiSelf%isMaster() .and. mod(self%posteriorSampleState_%count(),self%reportCount) == 0) then
-       call Galacticus_Display_Indent('Node work done vs. expected:')
+       call displayIndent('Node work done vs. expected:')
        do i=0,mpiSelf%count()-1
           write (label,'(i4.4)') i
           message='Node '//trim(label)//': work (actual/estimated) = '
@@ -748,9 +745,9 @@ contains
           message=message//trim(label)//" / "
           write (label,'(f9.2)') timesEvaluate      (i)
           message=message//trim(label)
-          call Galacticus_Display_Message(message)
+          call displayMessage(message)
        end do
-       call Galacticus_Display_Unindent('done')
+       call displayUnindent('done')
     end if
     return
   end subroutine particleSwarmPosterior

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -48,17 +48,13 @@ contains
 
     !# <inputParameter>
     !#   <name>mean</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The mean mass of halo to simulate when using a Gaussian sampling of the halo mass function.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>rootVariance</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The dispersion in mass of halo to simulate when using a Gaussian sampling of the halo mass function.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     self=mergerTreeBuildMassDistributionGaussian(mean,rootVariance)
     !# <inputParametersValidate source="parameters"/>
@@ -81,7 +77,7 @@ contains
     class           (mergerTreeBuildMassDistributionGaussian), intent(inout) :: self
     double precision                                            , intent(in   ) :: mass       , massMaximum, &
          &                                                                         massMinimum, time
-    !GCC$ attributes unused :: time
+    !$GLC attributes unused :: time
 
     if (mass <= massMinimum .or. mass > massMaximum) then
        gaussianSample=0.0d0

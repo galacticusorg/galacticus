@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,8 +26,14 @@
 
   !# <mergerTreeOperator name="mergerTreeOperatorExport">
   !#  <description>
-  !#   A merger tree operator which exports merger trees to file.
-  !# </description>
+  !#   This operator will export merger trees to a file specified by the {\normalfont \ttfamily [outputFileName]} using the format
+  !#   specified by {\normalfont \ttfamily [exportFormat]}. Currently, node indices (plus host indices, which are assumed identical to
+  !#   the node indices), descendent indices, masses and redshifts are exported. Positions and velocities are exported if available. If
+  !#   {\normalfont \ttfamily IRATE}-format output is requested then ``snapshot'' numbers will be assigned to nodes based on the time
+  !#   at which they exist. This usually only makes sense if the nodes are defined on a time grid (i.e. if merger trees were extracted
+  !#   from an N-body simulation, or if trees were re-gridded onto such a time grid; see \refPhysics{mergerTreeOperatorRegridTimes}).
+  !#   Export happens during the merger tree pre-evolution phase.
+  !#  </description>
   !# </mergerTreeOperator>
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorExport
      !% A merger tree operator class which exports merger trees to file.
@@ -70,8 +76,6 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>var_str('galacticusExportedTrees.hdf5')</defaultValue>
     !#   <description>The name of the file to which merger trees should be exported.</description>
-    !#   <type>string</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>exportFormat</name>
@@ -79,8 +83,6 @@ contains
     !#   <variable>exportFormatText</variable>
     !#   <defaultValue>var_str('galacticus')</defaultValue>
     !#   <description>The output format to use when exporting merger trees.</description>
-    !#   <type>string</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
@@ -126,10 +128,9 @@ contains
   end subroutine exportDestructor
 
   subroutine exportOperatePreEvolution(self,tree)
-    !% Output the structure of {\normalfont \ttfamily thisTree}.
+    !% Output the structure of {\normalfont \ttfamily tree}.
     use :: Cosmology_Parameters            , only : hubbleUnitsLittleH
     use :: Dates_and_Times                 , only : Formatted_Date_and_Time
-    use :: FGSL                            , only : fgsl_interp_accel
     use :: Galacticus_Nodes                , only : defaultPositionComponent     , mergerTree            , nodeComponentBasic    , nodeComponentPosition      , &
           &                                         treeNode
     use :: Memory_Management               , only : allocateArray                , deallocateArray
@@ -141,8 +142,8 @@ contains
     use :: Merger_Tree_Walkers             , only : mergerTreeWalkerIsolatedNodes
     use :: Numerical_Constants_Astronomical, only : massSolar                    , megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
-    use :: Numerical_Interpolation         , only : Interpolate_Done             , Interpolate_Locate
-    use :: Sort                            , only : Sort_Do
+    use :: Numerical_Interpolation         , only : interpolator
+    use :: Sorting                         , only : sort
     implicit none
     class           (mergerTreeOperatorExport     ), intent(inout), target         :: self
     type            (mergerTree                   ), intent(inout), target         :: tree
@@ -159,11 +160,10 @@ contains
     class           (nodeComponentPosition        ), pointer                       :: position
     type            (mergerTree                   ), pointer                       :: treeCurrent
     integer                                        , parameter                     :: snapshotCountIncrement         = 100
+    type            (interpolator                 ), allocatable                   :: snapshotInterpolator
     type            (mergerTreeWalkerIsolatedNodes)                                :: treeWalker
     integer                                                                        :: nodeCount                           , snapshotCount
     type            (mergerTreeData               )                                :: mergerTrees
-    logical                                                                        :: snapshotInterpolatorReset
-    type            (fgsl_interp_accel            )                                :: snapshotInterpolatorAccelerator
 
     ! Iterate over trees.
     treeCurrent => tree
@@ -230,7 +230,10 @@ contains
                 snapshotTime(snapshotCount)=basic%time()
              end if
           end do
-          call Sort_Do(snapshotTime(1:snapshotCount))
+          call sort(snapshotTime(1:snapshotCount))
+          if (allocated(snapshotInterpolator)) deallocate(snapshotInterpolator)
+          allocate(snapshotInterpolator)
+          snapshotInterpolator=interpolator(snapshotTime(1:snapshotCount))
        else
           snapshotCount=0
        end if
@@ -239,7 +242,6 @@ contains
        treeWeight               =                              treeCurrent%volumeWeight
        treeWalker               =mergerTreeWalkerIsolatedNodes(treeCurrent             )
        nodeCount                =0
-       snapshotInterpolatorReset=.true.
        do while (treeWalker%next(node))
           nodeCount=nodeCount+1
           nodeIndex      (nodeCount)=  node       %index   ()
@@ -248,18 +250,10 @@ contains
           position                  => node       %position()
           nodeMass       (nodeCount)=                                                                                              basic%mass()
           nodeRedshift   (nodeCount)=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(basic%time()))
-          if (defaultPositionComponent%positionIsGettable()) nodePosition(nodeCount,:)=position%position()
-          if (defaultPositionComponent%velocityIsGettable()) nodeVelocity(nodeCount,:)=position%velocity()
-          if (self%snapshotsRequired)                                                                                      &
-               & nodeSnapshot(nodeCount)=Interpolate_Locate(                                                               &
-               &                                                    snapshotTime                        (1:snapshotCount), &
-               &                                                    snapshotInterpolatorAccelerator                      , &
-               &                                                    basic                          %time(               ), &
-               &                                            reset  =snapshotInterpolatorReset                            , &
-               &                                            closest=.true.                                                 &
-               &                                           )
+          if (defaultPositionComponent%positionIsGettable()) nodePosition(nodeCount,:)=                            position%position()
+          if (defaultPositionComponent%velocityIsGettable()) nodeVelocity(nodeCount,:)=                            position%velocity()
+          if (self                    %snapshotsRequired   ) nodeSnapshot(nodeCount  )=snapshotInterpolator%locate(basic   %time    (),closest=.true.)
        end do
-       call Interpolate_Done(interpolationAccelerator=snapshotInterpolatorAccelerator,reset=snapshotInterpolatorReset)
        call mergerTrees%setProperty(propertyTypeTreeWeight     ,treeWeight     )
        call mergerTrees%setProperty(propertyTypeTreeIndex      ,treeIndex      )
        call mergerTrees%setProperty(propertyTypeNodeIndex      ,nodeIndex      )

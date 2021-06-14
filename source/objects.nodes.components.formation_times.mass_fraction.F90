@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -60,8 +60,6 @@ contains
     !#   <defaultValue>0.5d0</defaultValue>
     !#   <source>parameters_</source>
     !#   <description>Fractional mass of primary progenitor used to define formation time.</description>
-    !#   <type>double</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     return
   end subroutine Node_Component_Formation_Times_Mass_Fraction_Initialize
@@ -76,7 +74,7 @@ contains
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
-    !GCC$ attributes unused :: parameters_
+    !$GLC attributes unused :: parameters_
 
     if (defaultFormationTimeComponent%massFractionIsActive()) &
          call nodePromotionEvent%attach(defaultFormationTimeComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentFormationTimeMassFraction')
@@ -106,7 +104,7 @@ contains
     type (treeNode                  ), intent(inout), target  :: node
     class(nodeComponentFormationTime)               , pointer :: formationTime, formationTimeParent
     type (treeNode                  )               , pointer :: nodeParent
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
     
     formationTime       => node      %formationTime()
     nodeParent          => node      %parent

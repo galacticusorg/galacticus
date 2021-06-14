@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -41,7 +41,7 @@ contains
     implicit none
     type(taskBuildToolFSPS)                :: self
     type(inputParameters  ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=taskBuildToolFSPS()
     return
@@ -49,20 +49,20 @@ contains
 
   subroutine buildToolFSPSPerform(self,status)
     !% Builds the tabulation.
-    use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent
-    use :: Galacticus_Error  , only : errorStatusSuccess
-    use :: Interfaces_FSPS   , only : Interface_FSPS_Initialize
+    use :: Display         , only : displayIndent            , displayMessage, displayUnindent
+    use :: Galacticus_Error, only : errorStatusSuccess
+    use :: Interfaces_FSPS , only : Interface_FSPS_Initialize
     implicit none
     class  (taskBuildToolFSPS), intent(inout), target   :: self
     integer                   , intent(  out), optional :: status
     type   (varying_string   )                          :: fspsPath, fspsVersion
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
-    call Galacticus_Display_Indent  ('Begin task: FSPS tool build')
+    call displayIndent  ('Begin task: FSPS tool build')
     call Interface_FSPS_Initialize(fspsPath,fspsVersion,static=.true.)
-    call Galacticus_Display_Message('FSPS version '//fspsVersion//' successfully built in: '//fspsPath)
+    call displayMessage('FSPS version '//fspsVersion//' successfully built in: '//fspsPath)
     if (present(status)) status=errorStatusSuccess
-    call Galacticus_Display_Unindent('Done task: FSPS tool build')
+    call displayUnindent('Done task: FSPS tool build')
     return
   end subroutine buildToolFSPSPerform
 
@@ -70,7 +70,7 @@ contains
     !% Specifies that this task does not requires the main output file.
     implicit none
     class(taskBuildToolFSPS), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     buildToolFSPSRequiresOutputFile=.false.
     return

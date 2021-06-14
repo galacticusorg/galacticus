@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,12 +19,35 @@
 
   !% Implements a merger remnant size class which uses the \cite{cole_hierarchical_2000} algorithm.
 
-  use :: Kind_Numbers                           , only : kind_int8
   use :: Dark_Matter_Halo_Scales                , only : darkMatterHaloScaleClass
+  use :: Kind_Numbers                           , only : kind_int8
   use :: Satellite_Merging_Progenitor_Properties, only : mergerProgenitorPropertiesClass
 
   !# <mergerRemnantSize name="mergerRemnantSizeCovington2008">
-  !#  <description>A merger remnant size class which uses the \cite{cole_hierarchical_2000} algorithm.</description>
+  !#  <description>
+  !#   A merger remnant size class which uses the algorithm of \cite{covington_predicting_2008} to compute merger remnant spheroid
+  !#   sizes. Specifically
+  !#   \begin{equation}
+  !#   \frac{(M_1+M_2)^2}{ r_\mathrm{new}} =
+  !#   \left[ \frac{M_1^2}{r_1} + \frac{M_2^2}{r_2} + \frac{ f_\mathrm{orbit}}{c}
+  !#   \frac{M_1 M_2}{r_1+r_2}\right] \left( 1 + f_\mathrm{gas} C_\mathrm{rad} \right),
+  !#   \label{eq:Covington2008Radius}
+  !#   \end{equation}
+  !#   where $M_1$ and $M_2$ are the baryonic masses of the merging galaxies and $r_1$ and $r_2$ are their half mass radii,
+  !#   $r_\mathrm{new}$ is the half mass radius of the spheroidal \gls{component} of the remnant galaxy and $c$ is a constant
+  !#   which depends on the distribution of the mass. For a Hernquist spheroid $c=0.40$ can be found by numerical integration
+  !#   while for a exponential disk $c=0.49$. For simplicity a value of $c=0.5$ is adopted for all components. The parameter
+  !#   $f_\mathrm{orbit}=${\normalfont \ttfamily mergerRemnantSizeOrbitalEnergy} depends on the orbital parameters of the galaxy
+  !#   pair. For example, a value of $f_\mathrm{orbit} = 1$ corresponds to point mass galaxies in circular orbits about their
+  !#   center of mass. The final term on the right hand side of eqn.~(\ref{eq:Covington2008Radius}) gives a correction to the
+  !#   final energy of the remnant due to dissipational losses based on the results of \cite{covington_effects_2011}, with
+  !#   \begin{equation}
+  !#    f_\mathrm{gas} = {M_\mathrm{1,gas}+M_\mathrm{2,gas} \over M_1+M_2}
+  !#   \end{equation}
+  !#   begin the gas fraction of the progenitor galaxies. By default, $C_\mathrm{rad}=2.75$ \citep{covington_effects_2011}. To
+  !#   account for the effects of dark matter and non-spheroid baryonic matter the same approach is used as in the
+  !#   \cite{cole_hierarchical_2000} algorithm (see \refPhysics{mergerRemnantSizeCole2000}).
+  !#  </description>
   !# </mergerRemnantSize>
   type, extends(mergerRemnantSizeClass) :: mergerRemnantSizeCovington2008
      !% A merger remnant size class which uses the \cite{cole_hierarchical_2000} algorithm.
@@ -63,20 +86,16 @@ contains
 
     !# <inputParameter>
     !#   <name>energyOrbital</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The orbital energy in units of the characteristic orbital energy.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>efficiencyRadiative</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultSource>\citep{covington_predicting_2008}</defaultSource>
     !#   <defaultValue>2.75d0</defaultValue>
     !#   <description>The coefficient, $C_\mathrm{rad}$ energy used in the \cite{covington_predicting_2008} merger remnant size algorithm.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="darkMatterHaloScale"        name="darkMatterHaloScale_"        source="parameters"/>
     !# <objectBuilder class="mergerProgenitorProperties" name="mergerProgenitorProperties_" source="parameters"/>
@@ -102,7 +121,7 @@ contains
 
   subroutine covington2008AutoHook(self)
     !% Attach to the calculation reset event.
-    use :: Events_Hooks, only : calculationResetEvent, satelliteMergerEvent, openMPThreadBindingAllLevels
+    use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels, satelliteMergerEvent
     implicit none
     class(mergerRemnantSizeCovington2008), intent(inout) :: self
 
@@ -161,11 +180,12 @@ contains
   
   subroutine covington2008Get(self,node,radius,velocityCircular,angularMomentumSpecific)
     !% Compute the size of the merger remnant for {\normalfont \ttfamily node} using the \cite{covington_predicting_2008} algorithm.
-    use :: Galacticus_Display          , only : Galacticus_Display_Message     , Galacticus_Verbosity_Level, verbosityWarn
-    use :: Galacticus_Error            , only : Galacticus_Error_Report        , Galacticus_Warn
-    use :: Numerical_Comparison        , only : Values_Agree
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
-    use :: String_Handling             , only : operator(//)
+    use :: Display                         , only : displayMessage                 , displayVerbosity, verbosityLevelWarn, displayMagenta, &
+         &                                          displayReset
+    use :: Galacticus_Error                , only : Galacticus_Error_Report        , Galacticus_Warn
+    use :: Numerical_Comparison            , only : Values_Agree
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: String_Handling                 , only : operator(//)
     implicit none
     class           (mergerRemnantSizeCovington2008), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
@@ -244,7 +264,7 @@ contains
                 joinString=", "
              end if
              message=message//' (radius:mass:spheroidMass='//trim(dataString)//')'
-             call Galacticus_Display_Message(message)
+             call displayMessage(message)
              errorCondition=.true.
           end if
           if     (                                             &
@@ -274,7 +294,7 @@ contains
                 joinString=", "
              end if
              message=message//' (radius:mass:spheroidMass='//trim(dataString)//')'
-             call Galacticus_Display_Message(message)
+             call displayMessage(message)
              errorCondition=.true.
           end if
           if (errorCondition) then
@@ -311,14 +331,14 @@ contains
              self%velocityCircular=sqrt(gravitationalConstantGalacticus*(massSpheroidSatellite+massSpheroidHost)/self%radius)
              self%angularMomentumSpecific=self%radius*self%velocityCircular*factorAngularMomentum
              ! Check that the specific angular momentum is reasonable.
-             if (.not.self%warningIssued.and.Galacticus_Verbosity_Level() >= verbosityWarn) then
+             if (.not.self%warningIssued.and.displayVerbosity() >= verbosityLevelWarn) then
                 radiusVirial  =self%darkMatterHaloScale_%virialRadius  (nodeHost)
                 velocityVirial=self%darkMatterHaloScale_%virialVelocity(nodeHost)
                 if (angularMomentumSpecific < fractionAngularMomentumSpecificSmall*radiusVirial*velocityVirial) then
-                   message='WARNING: the specific angular momentum for node '
+                   message=displayMagenta()//'WARNING:'//displayReset()//' the specific angular momentum for node '
                    message=message//nodeHost%index()//' has become very small'//char(10)
                    message=message//' --> this will likely lead to a crash soon'
-                   message=message//'NOTE: this can happen with the covington2008 implementation of the mergerRemnantSizeMethod class'//char(10)
+                   message=message//'NOTE: this can happen with the covington2008 implementation of the mergerRemnantSize class'//char(10)
                    message=message//' --> an alternative choice (e.g. the cole2000 implementation) may avoid this problem'//{introspection:location}
                    call Galacticus_Warn(message)
                    self%warningIssued=.true.

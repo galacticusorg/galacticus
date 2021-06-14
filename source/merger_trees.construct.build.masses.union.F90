@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -55,7 +55,7 @@ contains
 
     self%mergerTreeBuildMasses_ => null()
     mergerTreeBuildMasses_      => null()
-    do i=1,parameters%copiesCount('mergerTreeBuildMassesMethod',zeroIfNotPresent=.true.)
+    do i=1,parameters%copiesCount('mergerTreeBuildMasses',zeroIfNotPresent=.true.)
        if (associated(mergerTreeBuildMasses_)) then
           allocate(mergerTreeBuildMasses_%next)
           mergerTreeBuildMasses_ => mergerTreeBuildMasses_%next
@@ -101,7 +101,7 @@ contains
     use            :: Galacticus_Error , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
     use            :: Memory_Management, only : allocateArray          , deallocateArray
-    use            :: Sort             , only : Sort_Index_Do
+    use            :: Sorting          , only : sortIndex
     implicit none
     class           (mergerTreeBuildMassesUnion), intent(inout)                            :: self
     double precision                            , intent(in   )                            :: time
@@ -166,7 +166,7 @@ contains
     ! Avoid overlapping mass intervals.
     if (.not.useWeight) then
        allocate(rankMass(size(mass)))
-       rankMass=Sort_Index_Do(mass)
+       rankMass=sortIndex(mass)
        do i=1,size(rankMass)
           if (i > 1 .and. massMinimum(rankMass(i)) < massMaximum(rankMass(i-1))) then
              massMinimum(rankMass(i  ))=sqrt(                     &

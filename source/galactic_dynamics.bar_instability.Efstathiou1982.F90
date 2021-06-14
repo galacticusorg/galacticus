@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,23 +20,37 @@
   !% Implementation of the \cite{efstathiou_stability_1982} model for galactic disk bar instability.
 
   !# <galacticDynamicsBarInstability name="galacticDynamicsBarInstabilityEfstathiou1982">
-  !#  <description>The \cite{efstathiou_stability_1982} model for galactic disk bar instability.</description>
+  !#  <description>
+  !#   A galactic dynamics bar instability class that uses the stability criterion of \cite{efstathiou_stability_1982} to estimate
+  !#   when disks are unstable to bar formation:
+  !#   \begin{equation}
+  !#    \epsilon \left( \equiv {V_\mathrm{peak} \over \sqrt{\G M_\mathrm{disk}/r_\mathrm{disk}}} \right) &lt; \epsilon_\mathrm{c},
+  !#   \end{equation}
+  !#   for stability, where $V_\mathrm{peak}$ is the peak velocity in the rotation curve (computed here assuming an isolated
+  !#   exponential disk), $M_\mathrm{disk}$ is the mass of the disk and $r_\mathrm{disk}$ is its scale length (assuming an
+  !#   exponential disk). The value of $\epsilon_\mathrm{c}$ is linearly interpolated in the disk gas fraction between values for
+  !#   purely gaseous and stellar disks as specified by {\normalfont \ttfamily [stabilityThresholdStellar]} and {\normalfont
+  !#   \ttfamily [stabilityThresholdGaseous]} respectively. For disks which are judged to be unstable, the timescale for bar
+  !#   formation is estimated to be
+  !#   \begin{equation}
+  !#    t_\mathrm{bar} = t_\mathrm{disk} \left( {\epsilon_\mathrm{c} - \epsilon_\mathrm{iso} \over \epsilon_\mathrm{c} - \epsilon}
+  !#    \right)^2,
+  !#   \end{equation}
+  !#   where $\epsilon_\mathrm{iso}$ is the value of $\epsilon$ for an isolated disk and $t_\mathrm{disk}$ is the disk dynamical
+  !#   time, defined as $r/V$, at one scale length. This form gives an infinite timescale at the stability threshold, reducing to
+  !#   a dynamical time for highly unstable disks, while also ensuring that the slope of $t_\mathrm{bar}$ is continuous at the
+  !#   instability threshold. This method returns zero external driving torque.
+  !#  </description>
   !# </galacticDynamicsBarInstability>
   type, extends(galacticDynamicsBarInstabilityClass) :: galacticDynamicsBarInstabilityEfstathiou1982
      !% Implementation of the \cite{efstathiou_stability_1982} model for galactic disk bar instability.
      private
-     double precision :: stabilityThresholdStellar, stabilityThresholdGaseous, &
-          &              timescaleMinimum
+     double precision :: stabilityThresholdStellar, stabilityThresholdGaseous       , &
+          &              timescaleMinimum         , fractionAngularMomentumRetained_
    contains
-     !@ <objectMethods>
-     !@   <object>galacticDynamicsBarInstabilityEfstathiou1982</object>
-     !@   <objectMethod>
-     !@     <method>estimator</method>
-     !@     <arguments></arguments>
-     !@     <type>\doublezero</type>
-     !@     <description>Compute the stability estimator for the \cite{efstathiou_stability_1982} model for galactic disk bar instability.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Compute the stability estimator for the \cite{efstathiou_stability_1982} model for galactic disk bar instability." method="estimator" />
+     !# </methods>
      procedure :: timescale => efstathiou1982Timescale
      procedure :: estimator => efstathiou1982Estimator
   end type galacticDynamicsBarInstabilityEfstathiou1982
@@ -58,50 +72,50 @@ contains
     implicit none
     type            (galacticDynamicsBarInstabilityEfstathiou1982)                :: self
     type            (inputParameters                             ), intent(inout) :: parameters
-    double precision                                                              :: stabilityThresholdStellar, stabilityThresholdGaseous, &
-         &                                                                           timescaleMinimum
+    double precision                                                              :: stabilityThresholdStellar, stabilityThresholdGaseous      , &
+         &                                                                           timescaleMinimum         , fractionAngularMomentumRetained
 
     !# <inputParameter>
     !#   <name>stabilityThresholdStellar</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.1d0</defaultValue>
     !#   <description>The stability threshold in the \cite{efstathiou_stability_1982} algorithm for purely stellar disks.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>stabilityThresholdGaseous</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.7d0</defaultValue>
     !#   <description>The stability threshold in the \cite{efstathiou_stability_1982} algorithm for purely gaseous disks.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>timescaleMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d-9</defaultValue>
     !#   <description>The minimum absolute dynamical timescale (in Gyr) to use in the \cite{efstathiou_stability_1982} algorithm.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
-    self=galacticDynamicsBarInstabilityEfstathiou1982(stabilityThresholdStellar,stabilityThresholdGaseous,timescaleMinimum)
+    !# <inputParameter>
+    !#   <name>fractionAngularMomentumRetained</name>
+    !#   <defaultValue>1.0d0</defaultValue>
+    !#   <description>The fraction of angular momentum of material depleted from the disk by bar instability which is retained in the disk.</description>
+    !#   <source>parameters</source>
+    !# </inputParameter>
+    self=galacticDynamicsBarInstabilityEfstathiou1982(stabilityThresholdStellar,stabilityThresholdGaseous,timescaleMinimum,fractionAngularMomentumRetained)
     !# <inputParametersValidate source="parameters"/>
     return
   end function efstathiou1982ConstructorParameters
 
-  function efstathiou1982ConstructorInternal(stabilityThresholdStellar,stabilityThresholdGaseous,timescaleMinimum) result(self)
+  function efstathiou1982ConstructorInternal(stabilityThresholdStellar,stabilityThresholdGaseous,timescaleMinimum,fractionAngularMomentumRetained_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily efstathiou1982} model for galactic disk bar instability class.
     implicit none
     type            (galacticDynamicsBarInstabilityEfstathiou1982)                :: self
-    double precision                                              , intent(in   ) :: stabilityThresholdStellar, stabilityThresholdGaseous, &
-         &                                                                           timescaleMinimum
-    !# <constructorAssign variables="stabilityThresholdStellar, stabilityThresholdGaseous, timescaleMinimum"/>
+    double precision                                              , intent(in   ) :: stabilityThresholdStellar, stabilityThresholdGaseous       , &
+         &                                                                           timescaleMinimum         , fractionAngularMomentumRetained_
+    !# <constructorAssign variables="stabilityThresholdStellar, stabilityThresholdGaseous, timescaleMinimum, fractionAngularMomentumRetained_"/>
 
     return
   end function efstathiou1982ConstructorInternal
 
-  subroutine efstathiou1982Timescale(self,node,timescale,externalDrivingSpecificTorque)
+  subroutine efstathiou1982Timescale(self,node,timescale,externalDrivingSpecificTorque,fractionAngularMomentumRetained)
     !% Computes a timescale for depletion of a disk to a pseudo-bulge via bar instability based on the criterion of
     !% \cite{efstathiou_stability_1982}.
     use :: Galacticus_Nodes                , only : nodeComponentDisk, treeNode
@@ -111,18 +125,21 @@ contains
     implicit none
     class           (galacticDynamicsBarInstabilityEfstathiou1982), intent(inout) :: self
     type            (treeNode                                    ), intent(inout) :: node
-    double precision                                              , intent(  out) :: externalDrivingSpecificTorque                , timescale
+    double precision                                              , intent(  out) :: externalDrivingSpecificTorque                  , timescale                , &
+         &                                                                           fractionAngularMomentumRetained
     class           (nodeComponentDisk                           ), pointer       :: disk
     ! Maximum timescale (in dynamical times) allowed.
-    double precision                                              , parameter     :: timescaleDimensionlessMaximum=1.0000000000d10
-    double precision                                                              :: massDisk                                     , timeDynamical            , &
-         &                                                                           fractionGas                                  , stabilityEstimator       , &
-         &                                                                           stabilityEstimatorRelative                   , stabilityIsolatedRelative, &
-         &                                                                           stabilityThreshold                           , timescaleDimensionless
+    double precision                                              , parameter     :: timescaleDimensionlessMaximum  =1.0000000000d10
+    double precision                                                              :: massDisk                                       , timeDynamical            , &
+         &                                                                           fractionGas                                    , stabilityEstimator       , &
+         &                                                                           stabilityEstimatorRelative                     , stabilityIsolatedRelative, &
+         &                                                                           stabilityThreshold                             , timescaleDimensionless
 
     ! Assume infinite timescale (i.e. no instability) initially.
     timescale                    =-1.0d0
     externalDrivingSpecificTorque= 0.0d0
+    ! Set the fraction of angular momentum retained in the disk.
+    fractionAngularMomentumRetained=self%fractionAngularMomentumRetained_
     ! Get the disk.
     disk => node%disk()
     ! Compute the disk mass.
@@ -160,7 +177,7 @@ contains
   double precision function efstathiou1982Estimator(self,node)
     !% Compute the stability estimator for the \cite{efstathiou_stability_1982} model for galactic disk bar instability.
     use :: Galacticus_Nodes            , only : nodeComponentDisk              , treeNode
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (galacticDynamicsBarInstabilityEfstathiou1982), intent(inout) :: self
     type            (treeNode                                    ), intent(inout) :: node
@@ -169,7 +186,7 @@ contains
     double precision                                              , parameter     :: velocityBoostFactor=1.1800237580d0
     class           (nodeComponentDisk                           ), pointer       :: disk
     double precision                                                              :: massDisk
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Get the disk.
     disk => node%disk()

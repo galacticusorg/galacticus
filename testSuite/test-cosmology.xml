@@ -15,21 +15,21 @@
     <jobWaitSleepDuration>10</jobWaitSleepDuration>
   </pbs>
   <parameters>
-  <formatVersion>2</formatVersion>
-  <version>0.9.4</version>
-    <cosmologyParametersMethod value="simple">
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <cosmologyParameters value="simple">
       <OmegaMatter value="0.25"/>
       <OmegaDarkEnergy value="0.75"/>
       <OmegaDarkEnergy value="0.00"/>
-    </cosmologyParametersMethod>
+    </cosmologyParameters>
   </parameters>
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <cosmologyParametersMethod value="simple">
+    <cosmologyParameters value="simple">
       <OmegaMatter value="1.00"/>
       <OmegaMatter value="1.25"/>
       <OmegaDarkEnergy value="0.00"/>
-    </cosmologyParametersMethod>
+    </cosmologyParameters>
   </parameters>
 </parameterGrid>

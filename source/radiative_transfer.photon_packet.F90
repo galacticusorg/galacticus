@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -93,6 +93,17 @@ module Radiative_Transfer_Photon_Packet
   !#   <description>Get the direction of the photon packet.</description>
   !#   <type>double precision, dimension(3)</type>
   !#   <pass>yes</pass>
+  !#  </method>
+  !#  <method name="sourceType" >
+  !#   <description>Get a integer type describing the source of the photon packet.</description>
+  !#   <type>integer</type>
+  !#   <pass>yes</pass>
+  !#  </method>
+  !#  <method name="sourceTypeSet" >
+  !#   <description>Set an integer type describing the source of the photon packet.</description>
+  !#   <type>void</type>
+  !#   <pass>yes</pass>
+  !#   <argument>integer, intent(in   ) :: sourceType</argument>
   !#  </method>
   !# </functionClass>
 

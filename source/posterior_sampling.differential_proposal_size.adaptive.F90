@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,20 @@
   !% Implementation of a posterior sampling differential evolution proposal size class in which the proposal size is adaptive.
 
   !# <posteriorSampleDffrntlEvltnProposalSize name="posteriorSampleDffrntlEvltnProposalSizeAdaptive">
-  !#  <description>A posterior sampling differential evolution proposal size class in which the proposal size is adaptive.</description>
+  !#  <description>
+  !#   This class adaptively changes $\gamma$ in an attempt to maintain the acceptance rate at an acceptable level. The algorithm is
+  !#   controlled by the following sub-parameters:
+  !#   \begin{description}
+  !#   \item[{\normalfont \ttfamily [gammaInitial]}] The initial value for $\gamma$.
+  !#   \item[{\normalfont \ttfamily [gammaFactor]}] The multiplicative factor by which $\gamma$ should be increased or decreased if the
+  !#     acceptance rate is out of range.
+  !#   \item[{\normalfont \ttfamily [gammaMinimum]}] The smallest value allowed for $\gamma$.
+  !#   \item[{\normalfont \ttfamily [gammaMaximum]}] The largest value allowed for $\gamma$.
+  !#   \item[{\normalfont \ttfamily [acceptanceRateMinimum]}] The minimum acceptance rate to accept before reducing $\gamma$.
+  !#   \item[{\normalfont \ttfamily [acceptanceRateMaximum]}] The maximum acceptance rate to accept before reducing $\gamma$.
+  !#   \item[{\normalfont \ttfamily [updateCount]}] The number of steps between successive checks of the acceptance rate.
+  !#   \end{description}
+  !#  </description>
   !# </posteriorSampleDffrntlEvltnProposalSize>
   type, extends(posteriorSampleDffrntlEvltnProposalSizeClass) :: posteriorSampleDffrntlEvltnProposalSizeAdaptive
      !% Implementation of a posterior sampling differential evolution proposal size class in which the proposal size is adaptive.
@@ -58,60 +71,44 @@ contains
 
     !# <inputParameter>
     !#   <name>gammaInitial</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The initial proposal size, $\gamma$.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>gammaMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The minimum allowed proposal size, $\gamma$.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>gammaMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The maximum allowed proposal size, $\gamma$.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>gammaAdjustFactor</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The factor by which to adjust the proposal size, $\gamma$.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>acceptanceRateMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The minimum acceptable acceptance rate.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>acceptanceRateMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The maximum acceptable acceptance rate.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>updateCount</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The number of steps between potential updates of the proposal size.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>outliersInAcceptanceRate</name>
     !#   <defaultValue>.true.</defaultValue>
-    !#   <cardinality>1</cardinality>
     !#   <description>The number of steps between potential updates of the proposal size.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     self=posteriorSampleDffrntlEvltnProposalSizeAdaptive(gammaInitial,gammaMinimum,gammaMaximum,gammaAdjustFactor,acceptanceRateMinimum,acceptanceRateMaximum,updateCount,outliersInAcceptanceRate)
     !# <inputParametersValidate source="parameters"/>
@@ -136,7 +133,7 @@ contains
 
   double precision function adaptiveGamma(self,simulationState,simulationConvergence)
     !% Return the proposal size.
-    use :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityStandard
+    use :: Display           , only : displayMessage, displayVerbosity, verbosityLevelStandard
     use :: ISO_Varying_String, only : varying_string
     use :: MPI_Utilities     , only : mpiSelf
     use :: String_Handling   , only : operator(//)
@@ -169,7 +166,7 @@ contains
              acceptanceRate=mpiSelf%average(simulationState%acceptanceRate(),mask=.not.areOutliers)
           end if
        end if
-       if (mpiSelf%rank() == 0 .and. Galacticus_Verbosity_Level() >= verbosityStandard) then
+       if (mpiSelf%rank() == 0 .and. displayVerbosity() >= verbosityLevelStandard) then
           if (acceptanceRate < 0.0d0) then
              label="unknown"
           else
@@ -177,21 +174,21 @@ contains
           end if
           message='After '
           message=message//simulationState%count()//' steps, acceptance rate is '//trim(label)
-          call Galacticus_Display_Message(message)
+          call displayMessage(message)
        end if
        ! If the acceptance rate is out of range, adjust gamma.
        if (acceptanceRate >= 0.0d0) then
           if      (acceptanceRate > self%acceptanceRateMaximum .and. self%gammaCurrent < self%gammaMaximum) then
              self%gammaCurrent=min(self%gammaCurrent*self%gammaAdjustFactor,self%gammaMaximum)
-             if (mpiSelf%rank() == 0 .and. Galacticus_Verbosity_Level() >= verbosityStandard) then
+             if (mpiSelf%rank() == 0 .and. displayVerbosity() >= verbosityLevelStandard) then
                 write (label,'(f8.5)') self%gammaCurrent
-                call Galacticus_Display_Message('Adjusting gamma up to '//label)
+                call displayMessage('Adjusting gamma up to '//label)
              end if
           else if (acceptanceRate < self%acceptanceRateMinimum .and. self%gammaCurrent > self%gammaMinimum) then
              self%gammaCurrent=max(self%gammaCurrent/self%gammaAdjustFactor,self%gammaMinimum)
-             if (mpiSelf%rank() == 0 .and. Galacticus_Verbosity_Level() >= verbosityStandard) then
+             if (mpiSelf%rank() == 0 .and. displayVerbosity() >= verbosityLevelStandard) then
                 write (label,'(f8.5)') self%gammaCurrent
-                call Galacticus_Display_Message('Adjusting gamma down to '//label)
+                call displayMessage('Adjusting gamma down to '//label)
              end if
           end if
        end if

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,7 +27,9 @@ module Stellar_Astrophysics_Winds
   !# <functionClass>
   !#  <name>stellarWinds</name>
   !#  <descriptiveName>Stellar Winds</descriptiveName>
-  !#  <description>Class providing models of stellar winds.</description>
+  !#  <description>
+  !#   Class providing models of stellar winds.
+  !#  </description>
   !#  <default>leitherer1992</default>
   !#  <method name="rateMassLoss" >
   !#   <description>Return the mass loss rate (in $M_\odot$/Gyr) from stars of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age} and {\normalfont \ttfamily metallicity}.</description>

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,9 @@
   !% Implements calculations of incompleteness assuming a complete sample.
 
   !# <massFunctionIncompleteness name="massFunctionIncompletenessComplete">
-  !#  <description>Computes incompleteness for a complete survey.</description>
+  !#  <description>
+  !# A mass function incompleteness class which assumes a fully complete mass function.
+  !#  </description>
   !# </massFunctionIncompleteness>
   type, extends(massFunctionIncompletenessClass) :: massFunctionIncompletenessComplete
      !% A class implementing incompleteness calculations for a complete survey.
@@ -42,7 +44,7 @@ contains
     implicit none
     type(massFunctionIncompletenessComplete)                :: self
     type(inputParameters                   ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=massFunctionIncompletenessComplete()
     return
@@ -53,7 +55,7 @@ contains
     implicit none
     class           (massFunctionIncompletenessComplete), intent(inout) :: self
     double precision                                    , intent(in   ) :: mass
-    !GCC$ attributes unused :: self, mass
+    !$GLC attributes unused :: self, mass
 
     completeCompleteness=1.0d0
     return

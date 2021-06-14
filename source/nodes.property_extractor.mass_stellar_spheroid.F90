@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -47,7 +47,7 @@ contains
     implicit none
     type(nodePropertyExtractorMassStellarSpheroid)                :: self
     type(inputParameters                         ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=nodePropertyExtractorMassStellarSpheroid()
     return
@@ -61,7 +61,7 @@ contains
     class           (nodePropertyExtractorMassStellarSpheroid), intent(inout)           :: self
     type            (treeNode                                ), intent(inout), target   :: node
     type            (multiCounter                            ), intent(inout), optional :: instance
-    !GCC$ attributes unused :: self, instance
+    !$GLC attributes unused :: self, instance
 
     massStellarSpheroidExtract=Galactic_Structure_Enclosed_Mass(node,radiusLarge,massType=massTypeStellar,componentType=componentTypeSpheroid)
     return
@@ -72,7 +72,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorMassStellarSpheroid), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     massStellarSpheroidType=outputAnalysisPropertyTypeLinear
     return
@@ -83,7 +83,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityMass
     implicit none
     class(nodePropertyExtractorMassStellarSpheroid), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     massStellarSpheroidQuantity=outputAnalysisPropertyQuantityMass
     return
@@ -94,7 +94,7 @@ contains
     implicit none
     type (varying_string                          )                :: massStellarSpheroidName
     class(nodePropertyExtractorMassStellarSpheroid), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     massStellarSpheroidName=var_str('massStellarSpheroid')
     return
@@ -105,7 +105,7 @@ contains
     implicit none
     type (varying_string                          )                :: massStellarSpheroidDescription
     class(nodePropertyExtractorMassStellarSpheroid), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     massStellarSpheroidDescription=var_str('The stellar mass of the galactic spheroid.')
     return
@@ -116,7 +116,7 @@ contains
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
     class(nodePropertyExtractorMassStellarSpheroid), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     massStellarSpheroidUnitsInSI=massSolar
     return

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +22,20 @@
   use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
 
   !# <coolingRate name="coolingRateSimpleScaling">
-  !#  <description>A cooling rate class in which the cooling rate scales with the mass of the halo.</description>
+  !#  <description>
+  !#   A cooling rate class in which the cooling rate scales with the mass of the halo. Specifically, the cooling rate is given by
+  !#   \begin{equation}
+  !#   \dot{M}_\mathrm{cool} = M_\mathrm{hot}/\tau_\mathrm{cool}(M_\mathrm{halo},z) ,
+  !#   \end{equation}
+  !#   where 
+  !#   \begin{equation}
+  !#   \tau_\mathrm{cool}=\tau_\mathrm{cool,0} (1+z)^{\beta_\mathrm{cool}} \exp \left(\left[{M_\mathrm{halo} \over
+  !#   M_\mathrm{transition}}\right]^{\gamma_\mathrm{cool}}\right),
+  !#   \end{equation}
+  !#   $\tau_\mathrm{cool,0}=${\normalfont \ttfamily [timescale]}, $\beta_\mathrm{cool}=${\normalfont \ttfamily
+  !#   [exponentRedshift]}, $M_\mathrm{transition}=${\normalfont \ttfamily [massCutOff]}, and $\gamma_\mathrm{cool}=${\normalfont
+  !#   \ttfamily [exponentCutOff]}.
+  !#  </description>
   !# </coolingRate>
   type, extends(coolingRateClass) :: coolingRateSimpleScaling
      !% Implementation of cooling rate class in which the cooling rate scales with the mass of the halo.
@@ -64,40 +77,30 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The timescale (in Gyr) for cooling in low mass halos at $z=0$ in the simple caling scaling cooling rate model.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>exponentRedshift</name>
     !#   <source>parameters</source>
     !#   <defaultValue>-1.5d0</defaultValue>
     !#   <description>The exponent of $(1+z)$ in the cooling timescale for low mass halos in the simple caling scaling cooling rate model.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massCutOff</name>
     !#   <source>parameters</source>
     !#   <defaultValue>200.0d0</defaultValue>
     !#   <description>The halo mass scale appearing in the exponential term for cooling timescale in the simple caling cooling rate model.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>widthCutOff</name>
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The width appearing in the exponential term for cooling timescale in the simple caling scaling cooling rate model.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>exponentCutOff</name>
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The exponent appearing in the exponential term for cooling timescale in the simple caling scaling cooling rate model.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     self=coolingRateSimpleScaling(timeScale,exponentRedshift,massCutOff,widthCutOff,exponentCutOff,cosmologyFunctions_)

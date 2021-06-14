@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,6 +19,9 @@
 
 !% Contains a module which implements a galactic high-pass filter for total star formation rate.
 
+  use :: Star_Formation_Rates_Disks    , only : starFormationRateDisksClass
+  use :: Star_Formation_Rates_Spheroids, only : starFormationRateSpheroidsClass
+
   !# <galacticFilter name="galacticFilterStarFormationRate">
   !#  <description>
   !#  A galactic high-pass filter for star formation rate. Galaxies with a combined disk plus
@@ -34,9 +37,12 @@
   type, extends(galacticFilterClass) :: galacticFilterStarFormationRate
      !% A galactic high-pass filter class for star formation rate.
      private
-     double precision :: logM0  , logSFR0, &
-          &              logSFR1
+     class           (starFormationRateDisksClass    ), pointer :: starFormationRateDisks_     => null()
+     class           (starFormationRateSpheroidsClass), pointer :: starFormationRateSpheroids_ => null()
+     double precision                                           :: logM0                                , logSFR0, &
+          &                                                        logSFR1
    contains
+     final     ::           starFormationRateDestructor
      procedure :: passes => starFormationRatePasses
   end type galacticFilterStarFormationRate
 
@@ -48,75 +54,85 @@
 
 contains
 
-  function starFormationRateConstructorParameters(parameters)
+  function starFormationRateConstructorParameters(parameters) result(self)
     !% Constructor for the ``starFormationRate'' galactic filter class which takes a parameter set as input.
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type(galacticFilterStarFormationRate)                :: starFormationRateConstructorParameters
-    type(inputParameters                ), intent(inout) :: parameters
+    type            (galacticFilterStarFormationRate)                :: self
+    type            (inputParameters                ), intent(inout) :: parameters
+    class           (starFormationRateDisksClass    ), pointer       :: starFormationRateDisks_
+    class           (starFormationRateSpheroidsClass), pointer       :: starFormationRateSpheroids_
+    double precision                                                 :: logM0                      , logSFR0, &
+         &                                                              logSFR1
 
     ! Check and read parameters.
     !# <inputParameter>
     !#   <name>logM0</name>
     !#   <source>parameters</source>
-    !#   <variable>starFormationRateConstructorParameters%logM0</variable>
     !#   <defaultValue>10.0d0</defaultValue>
     !#   <description>The parameter $\log_{10} M_0$ (with $M_0$ in units of $M_\odot$) appearing in the star formation rate threshold expression for the star formation rate galactic filter class.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>logSFR0</name>
     !#   <source>parameters</source>
-    !#   <variable>starFormationRateConstructorParameters%logSFR0</variable>
     !#   <defaultValue>9.0d0</defaultValue>
     !#   <description>The parameter $\alpha_0$ appearing in the star formation rate threshold expression for the star formation rate galactic filter class.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>logSFR1</name>
     !#   <source>parameters</source>
-    !#   <variable>starFormationRateConstructorParameters%logSFR1</variable>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The parameter $\alpha_1$ appearing in the star formation rate threshold expression for the star formation rate galactic filter class.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
+    !# <objectBuilder class="starFormationRateDisks"     name="starFormationRateDisks_"     source="parameters"/>
+    !# <objectBuilder class="starFormationRateSpheroids" name="starFormationRateSpheroids_" source="parameters"/>
+    self=galacticFilterStarFormationRate(logM0,logSFR0,logSFR1,starFormationRateDisks_,starFormationRateSpheroids_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="starFormationRateDisks_"    />
+    !# <objectDestructor name="starFormationRateSpheroids_"/>
     return
   end function starFormationRateConstructorParameters
 
-  function starFormationRateConstructorInternal(logM0,logSFR0,logSFR1)
+  function starFormationRateConstructorInternal(logM0,logSFR0,logSFR1,starFormationRateDisks_,starFormationRateSpheroids_) result(self)
     !% Internal constructor for the ``starFormationRate'' galactic filter class.
     implicit none
-    type            (galacticFilterStarFormationRate)                :: starFormationRateConstructorInternal
-    double precision                                 , intent(in   ) :: logM0                               , logSFR0, &
-         &                                                              logSFR1
+    type            (galacticFilterStarFormationRate)                        :: self
+    double precision                                 , intent(in   )         :: logM0                      , logSFR0, &
+         &                                                                      logSFR1
+    class           (starFormationRateDisksClass    ), intent(in   ), target :: starFormationRateDisks_
+    class           (starFormationRateSpheroidsClass), intent(in   ), target :: starFormationRateSpheroids_
+    !# <constructorAssign variables="logM0, logSFR0, logSFR1, *starFormationRateDisks_, *starFormationRateSpheroids_"/>
 
-    starFormationRateConstructorInternal%logM0  =logM0
-    starFormationRateConstructorInternal%logSFR0=logSFR0
-    starFormationRateConstructorInternal%logSFR1=logSFR1
     return
   end function starFormationRateConstructorInternal
 
+  subroutine starFormationRateDestructor(self)
+    !% Destructor for the ``starFormationRate'' galactic filter class.
+    implicit none
+    type(galacticFilterStarFormationRate), intent(inout) :: self
+
+    !# <objectDestructor name="self%starFormationRateDisks_"    />
+    !# <objectDestructor name="self%starFormationRateSpheroids_"/>
+    return
+  end subroutine starFormationRateDestructor
+
   logical function starFormationRatePasses(self,node)
-    !% Implement an starFormationRate-pass galactic filter.
+    !% Implement an star formation rate galactic filter.
     use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid, treeNode
     implicit none
-    class           (galacticFilterStarFormationRate), intent(inout) :: self
-    type            (treeNode                       ), intent(inout) :: node
-    class           (nodeComponentDisk              ), pointer       :: disk
-    class           (nodeComponentSpheroid          ), pointer       :: spheroid
-    double precision                                                 :: starFormationRate         , stellarMass, &
-         &                                                              starFormationRateThreshold
+    class           (galacticFilterStarFormationRate), intent(inout)         :: self
+    type            (treeNode                       ), intent(inout), target :: node
+    class           (nodeComponentDisk              ), pointer               :: disk
+    class           (nodeComponentSpheroid          ), pointer               :: spheroid
+    double precision                                                         :: starFormationRate         , stellarMass, &
+         &                                                                      starFormationRateThreshold
 
-    disk                      => node    %disk             ()
-    spheroid                  => node    %spheroid         ()
-    stellarMass               = +disk    %massStellar      () &
-         &                      +spheroid%massStellar      ()
-    starFormationRate         = +disk    %starFormationRate() &
-         &                      +spheroid%starFormationRate()
+    disk              => node    %disk                            (    )
+    spheroid          => node    %spheroid                        (    )
+    stellarMass       = +disk    %massStellar                     (    ) &
+         &              +spheroid%massStellar                     (    )
+    starFormationRate = +self    %starFormationRateDisks_    %rate(node) &
+         &              +self    %starFormationRateSpheroids_%rate(node)
     if (stellarMass > 0.0d0) then
        starFormationRateThreshold= +10.0d0**(                      &
             &                                +  self%logSFR0       &

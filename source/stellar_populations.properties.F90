@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -30,7 +30,10 @@ module Stellar_Population_Properties
   !# <functionClass>
   !#  <name>stellarPopulationProperties</name>
   !#  <descriptiveName>Stellar Population Properties</descriptiveName>
-  !#  <description>Class providing stellar population properties.</description>
+  !#  <description>
+  !#   Class providing stellar population properties---essentially the rates of change of stellar and gas mass and abundances given
+  !#   a star formation rate and fuel abundances (and perhaps a historical record of star formation in the component).
+  !#  </description>
   !#  <default>instantaneous</default>
   !#  <method name="rates" >
   !#   <description>Returns rates of change of stellar population properties.</description>

@@ -722,7 +722,7 @@ msbdfactive_update (void *vstate, const size_t dim, gsl_matrix * dfdy, double *d
 
       {
         int signum;
-        int s = gsl_linalg_LU_decomp (M, p, &signum);
+        int s = gsl_linalg_LU_decomp_active (M, p, &signum);
         
         if (s != GSL_SUCCESS)
           {

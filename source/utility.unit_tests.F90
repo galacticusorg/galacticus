@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,6 +23,28 @@ module Unit_Tests
   !% Implements unit testing.
   use :: ISO_Varying_String, only : varying_string
   implicit none
+
+  !# <generic identifier="Type">
+  !#  <instance label="integerScalar"       intrinsic="integer"              rank=""                       format="i8"    reduction="regEx¦(.*)¦$1¦"     />
+  !#  <instance label="integerRank1"        intrinsic="integer"              rank=", dimension(:)"         format="i8"    reduction="regEx¦(.*)¦all($1)¦"/>
+  !#  <instance label="integerLongScalar"   intrinsic="integer(kind_int8)"   rank=""                       format="i16"   reduction="regEx¦(.*)¦$1¦"     />
+  !#  <instance label="integerLongRank1"    intrinsic="integer(kind_int8)"   rank=", dimension(:)"         format="i16"   reduction="regEx¦(.*)¦all($1)¦"/>
+  !#  <instance label="logicalScalar"       intrinsic="logical"              rank=""                       format="l1"    reduction="regEx¦(.*)¦$1¦"     />
+  !#  <instance label="logicalRank1"        intrinsic="logical"              rank=", dimension(:)"         format="l1"    reduction="regEx¦(.*)¦all($1)¦"/>
+  !#  <instance label="characterScalar"     intrinsic="character(len=*)"     rank=""                       format=""      reduction="regEx¦(.*)¦$1¦"     />
+  !#  <instance label="characterRank1"      intrinsic="character(len=*)"     rank=", dimension(:)"         format=""      reduction="regEx¦(.*)¦all($1)¦"/>
+  !#  <instance label="varyingStringScalar" intrinsic="type(varying_string)" rank=""                       format=""      reduction="regEx¦(.*)¦$1¦"     />
+  !#  <instance label="varyingStringRank1"  intrinsic="type(varying_string)" rank=", dimension(:)"         format=""      reduction="regEx¦(.*)¦all($1)¦"/>
+  !#  <instance label="doubleScalar"        intrinsic="double precision"     rank=""                       format="e16.8" reduction="regEx¦(.*)¦$1¦"     />
+  !#  <instance label="doubleRank1"         intrinsic="double precision"     rank=", dimension(:)"         format="e16.8" reduction="regEx¦(.*)¦all($1)¦"/>
+  !#  <instance label="doubleRank2"         intrinsic="double precision"     rank=", dimension(:,:)"       format="e16.8" reduction="regEx¦(.*)¦all($1)¦"/>
+  !#  <instance label="doubleRank3"         intrinsic="double precision"     rank=", dimension(:,:,:)"     format="e16.8" reduction="regEx¦(.*)¦all($1)¦"/>
+  !#  <instance label="doubleRank4"         intrinsic="double precision"     rank=", dimension(:,:,:,:)"   format="e16.8" reduction="regEx¦(.*)¦all($1)¦"/>
+  !#  <instance label="doubleRank5"         intrinsic="double precision"     rank=", dimension(:,:,:,:,:)" format="e16.8" reduction="regEx¦(.*)¦all($1)¦"/>
+  !#  <instance label="realRank1"           intrinsic="real"                 rank=", dimension(:)"         format="e16.8" reduction="regEx¦(.*)¦all($1)¦"/>
+  !#  <instance label="doubleComplexRank1"  intrinsic="double complex"       rank=", dimension(:)"         format="e16.8" reduction="regEx¦(.*)¦all($1)¦"/>
+  !# </generic>
+
   private
   public :: Assert, Skip, Unit_Tests_Finish, Unit_Tests_Begin_Group, Unit_Tests_End_Group
 
@@ -59,25 +81,7 @@ module Unit_Tests
   ! Interface for assert routines.
   interface Assert
      !% Generic interface for assert routines.
-     module procedure Assert_Real_Scalar
-     module procedure Assert_Double_Scalar
-     module procedure Assert_Integer_Scalar
-     module procedure Assert_Integer8_Scalar
-     module procedure Assert_Character_Scalar
-     module procedure Assert_VarString_Scalar
-     module procedure Assert_Logical_Scalar
-     module procedure Assert_Real_1D_Array
-     module procedure Assert_Double_1D_Array
-     module procedure Assert_Double_Complex_1D_Array
-     module procedure Assert_Integer_1D_Array
-     module procedure Assert_Integer8_1D_Array
-     module procedure Assert_Character_1D_Array
-     module procedure Assert_VarString_1D_Array
-     module procedure Assert_Logical_1D_Array
-     module procedure Assert_Double_2D_Array
-     module procedure Assert_Double_3D_Array
-     module procedure Assert_Double_4D_Array
-     module procedure Assert_Double_5D_Array
+     module procedure Assert{Type¦label}
   end interface Assert
 
 contains
@@ -100,1085 +104,145 @@ contains
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
     character(len=*       ), intent(in   ) :: testName  , reason
-    type     (assertResult), pointer       :: thisResult
+    type     (assertResult), pointer       :: result
 
     ! Get an object to store the results in.
-    thisResult => Get_New_Assert_Result()
-    thisResult%result=testSkipped
-    thisResult%label =trim(testName)
-    thisResult%note  =trim(reason  )
+    result => Get_New_Assert_Result()
+    result%result=testSkipped
+    result%label =trim(testName)
+    result%note  =trim(reason  )
     return
   end subroutine Skip
 
-  subroutine Assert_Real_Scalar(testName,value1,value2,compare,absTol,relTol)
-    !% Assess and record an assertion about real arguments.
-    use :: Galacticus_Error    , only : Galacticus_Error_Report
-    use :: ISO_Varying_String  , only : assignment(=)
-    use :: Numerical_Comparison, only : Values_Differ
-    implicit none
-    character(len=*       ), intent(in   )           :: testName
-    real                   , intent(in   )           :: value1       , value2
-    integer                , intent(in   ), optional :: compare
-    real                   , intent(in   ), optional :: absTol       , relTol
-    type     (assertResult), pointer                 :: thisResult
-    integer                                          :: compareActual
-    logical                                          :: passed
+  subroutine Assert{Type¦label}(testName,value1,value2,compare{Type¦match¦^(double|real)¦,absTol,relTol¦})
+    !% Assess and record an assertion.
+    use                            :: Galacticus_Error    , only : Galacticus_Error_Report
+    use                            :: ISO_Varying_String  , only : assignment(=)          , operator(//), var_str
+    use                            :: Numerical_Comparison, only : Values_Agree
+    {Type¦match¦^integerLong¦  use :: Kind_Numbers        , only : kind_int8¦}
+    {Type¦match¦^varyingString¦use :: ISO_Varying_String  , only : operator(==)           , operator(/=), operator(<)  , operator(>), operator(>=), operator(<=), assignment(=)¦}
+    character                                  (len=*         ), intent(in   )              :: testName
+    {Type¦intrinsic}                                           , intent(in   )  {Type¦rank} :: value1    , value2
+    integer                                                    , intent(in   ), optional    :: compare
+    {Type¦match¦^(double|real)¦{Type¦intrinsic}                , intent(in   ), optional    :: absTol    , relTol¦}
+    type                                       (assertResult  ), pointer                    :: result
+    logical                                                    , allocatable    {Type¦rank} :: passed
+    type                                       (varying_string)                             :: comparison
+    character                                  (len=256       )                             :: label
+    !# <optionalArgument name="compare" defaultsTo="compareEquals"/>
 
-    ! Determine what type of comparison to perform.
-    if (present(compare)) then
-       compareActual=compare
-    else
-       compareActual=compareEquals
-    end if
-
+    ! Allocate array for results.
+    !# <allocate variable="passed" shape="value1"/>
     ! Perform the comparison.
-    select case (compareActual)
+    select case (compare_)
     case (compareEquals)
-       passed=.not.Values_Differ(value1,value2,absTol,relTol)
-    case (compareNotEqual          )
-       passed=(value1 /= value2)
-    case (compareLessThan          )
-       passed=(value1  < value2)
-    case (compareGreaterThan       )
-       passed=(value1  > value2)
-    case (compareLessThanOrEqual   )
-       passed=(value1 <= value2)
-    case (compareGreaterThanOrEqual)
-       passed=(value1 >= value2)
-    case default
-       passed=.false.
-       call Galacticus_Error_Report('unknown comparison'//{introspection:location})
-    end select
-
-    ! Get an object to store the results in.
-    thisResult => Get_New_Assert_Result()
-
-    ! Store the result.
-    thisResult%result=getStatus(passed)
-    thisResult%label =trim(testName)
-
-    return
-  end subroutine Assert_Real_Scalar
-
-  subroutine Assert_Double_Scalar(testName,value1,value2,compare,absTol,relTol)
-    !% Assess and record an assertion about double precision arguments.
-    use :: Galacticus_Error    , only : Galacticus_Error_Report
-    use :: ISO_Varying_String  , only : operator(//)           , assignment(=)
-    use :: Numerical_Comparison, only : Values_Differ
-    implicit none
-    character       (len=*       ), intent(in   )           :: testName
-    double precision              , intent(in   )           :: value1       , value2
-    integer                       , intent(in   ), optional :: compare
-    double precision              , intent(in   ), optional :: absTol       , relTol
-    type            (assertResult), pointer                 :: thisResult
-    integer                                                 :: compareActual
-    logical                                                 :: passed
-    character       (len=16      )                          :: label        , comparison
-
-    ! Determine what type of comparison to perform.
-    if (present(compare)) then
-       compareActual=compare
-    else
-       compareActual=compareEquals
-    end if
-
-    ! Perform the comparison.
-    select case (compareActual)
-    case (compareEquals)
-       passed=.not.Values_Differ(value1,value2,absTol,relTol)
+       {Type¦match¦^(double|real)¦passed=Values_Agree(value1,value2,absTol,relTol)¦}
+       {Type¦match¦^logical¦passed=value1 .eqv. value2¦}
+       {Type¦match¦^(?!(double|real|logical))¦passed=value1 == value2¦}
        comparison="≉"
     case (compareNotEqual          )
-       passed=(value1 /= value2)
+       passed={Type¦match¦^logical¦value1 .neqv. value2¦value1 /= value2}
        comparison="="
-    case (compareLessThan          )
-       passed=(value1  < value2)
+   case (compareLessThan          )
+       passed={Type¦match¦^(logical|doubleComplex)¦.false.¦value1  < value2}
        comparison="≮"
+       {Type¦match¦^(logical|doubleComplex)¦call Galacticus_Error_Report('unsupported comparison'//{introspection:location})¦}
     case (compareGreaterThan       )
-       passed=(value1  > value2)
+       passed={Type¦match¦^(logical|doubleComplex)¦.false.¦value1  > value2}
        comparison="≯"
+       {Type¦match¦^(logical|doubleComplex)¦call Galacticus_Error_Report('unsupported comparison'//{introspection:location})¦}
     case (compareLessThanOrEqual   )
-       passed=(value1 <= value2)
+       passed={Type¦match¦^(logical|doubleComplex)¦.false.¦value1 <= value2}
        comparison="≰"
+       {Type¦match¦^(logical|doubleComplex)¦call Galacticus_Error_Report('unsupported comparison'//{introspection:location})¦}
     case (compareGreaterThanOrEqual)
-       passed=(value1 >= value2)
+       passed={Type¦match¦^(logical|doubleComplex)¦.false.¦value1 >= value2}
        comparison="≱"
+       {Type¦match¦^(logical|doubleComplex)¦call Galacticus_Error_Report('unsupported comparison'//{introspection:location})¦}
     case default
        passed=.false.
        comparison=""
        call Galacticus_Error_Report('unknown comparison'//{introspection:location})
     end select
-
     ! Get an object to store the results in.
-    thisResult => Get_New_Assert_Result()
-
+    result => Get_New_Assert_Result()
     ! Store the result.
-    thisResult%result=getStatus(passed)
-    thisResult%label =trim(testName)
-    if (.not.passed) then
-       write (label,'(e16.8)') value1
-       thisResult%note=                 trim(adjustl(label))
-       thisResult%note=thisResult%note//" "//trim(comparison)//" "
-       write (label,'(e16.8)') value2
-       thisResult%note=thisResult%note//trim(adjustl(label))
-    end if
+    result%result=getStatus({Type¦reduction¦passed})
+    result%label =trim(testName)
+    if (.not.{Type¦reduction¦passed}) then
+       result%note=var_str('')
+       !# <forEach variable="passed">
+       !#  if (.not.passed{index}) then
+       !#   write (label,'(%index%,1x,a1)') {{index}},':'; result%note=result%note//trim(adjustl(label))
+       !#   {Type¦match¦^varyingString¦result%note=result%note//value1{index}¦}
+       !#   {Type¦match¦^character¦result%note=result%note//trim(value1{index})¦}
+       !#   {Type¦match¦^(?!(character|varyingString))¦write (label,'({Type¦format})') value1{index}; result%note=result%note//trim(adjustl(label))¦}
+       !#   result%note=result%note//" "//comparison//" "
+       !#   {Type¦match¦^varyingString¦result%note=result%note//value2{index}¦}
+       !#   {Type¦match¦^character¦result%note=result%note//trim(value2{index})¦}
+       !#   {Type¦match¦^(?!(character|varyingString))¦write (label,'({Type¦format})') value2{index}; result%note=result%note//trim(adjustl(label))¦}
+       !#  end if
+       !# </forEach>
+     end if
     return
-  end subroutine Assert_Double_Scalar
-
-  subroutine Assert_Integer_Scalar(testName,value1,value2,compare)
-    !% Assess and record an assertion about integer arguments.
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String, only : assignment(=)
-    implicit none
-    character(len=*       ), intent(in   )           :: testName
-    integer                , intent(in   )           :: value1       , value2
-    integer                , intent(in   ), optional :: compare
-    type     (assertResult), pointer                 :: thisResult
-    integer                                          :: compareActual
-    logical                                          :: passed
-
-    ! Determine what type of comparison to perform.
-    if (present(compare)) then
-       compareActual=compare
-    else
-       compareActual=compareEquals
-    end if
-
-    ! Perform the comparison.
-    select case (compareActual)
-    case (compareEquals            )
-       passed=(value1 == value2)
-    case (compareNotEqual          )
-       passed=(value1 /= value2)
-    case (compareLessThan          )
-       passed=(value1  < value2)
-    case (compareGreaterThan       )
-       passed=(value1  > value2)
-    case (compareLessThanOrEqual   )
-       passed=(value1 <= value2)
-    case (compareGreaterThanOrEqual)
-       passed=(value1 >= value2)
-    case default
-       passed=.false.
-       call Galacticus_Error_Report('unknown comparison'//{introspection:location})
-    end select
-
-    ! Get an object to store the results in.
-    thisResult => Get_New_Assert_Result()
-
-    ! Store the result.
-    thisResult%result=getStatus(passed)
-    thisResult%label =trim(testName)
-
-    return
-  end subroutine Assert_Integer_Scalar
-
-  subroutine Assert_Integer8_Scalar(testName,value1,value2,compare)
-    !% Assess and record an assertion about integer arguments.
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String, only : assignment(=)
-    use :: Kind_Numbers      , only : kind_int8
-    implicit none
-    character(len=*         ), intent(in   )           :: testName
-    integer  (kind=kind_int8), intent(in   )           :: value1       , value2
-    integer                  , intent(in   ), optional :: compare
-    type     (assertResult  ), pointer                 :: thisResult
-    integer                                            :: compareActual
-    logical                                            :: passed
-
-    ! Determine what type of comparison to perform.
-    if (present(compare)) then
-       compareActual=compare
-    else
-       compareActual=compareEquals
-    end if
-
-    ! Perform the comparison.
-    select case (compareActual)
-    case (compareEquals            )
-       passed=(value1 == value2)
-    case (compareNotEqual          )
-       passed=(value1 /= value2)
-    case (compareLessThan          )
-       passed=(value1  < value2)
-    case (compareGreaterThan       )
-       passed=(value1  > value2)
-    case (compareLessThanOrEqual   )
-       passed=(value1 <= value2)
-    case (compareGreaterThanOrEqual)
-       passed=(value1 >= value2)
-    case default
-       passed=.false.
-       call Galacticus_Error_Report('unknown comparison'//{introspection:location})
-    end select
-
-    ! Get an object to store the results in.
-    thisResult => Get_New_Assert_Result()
-
-    ! Store the result.
-    thisResult%result=getStatus(passed)
-    thisResult%label =trim(testName)
-
-    return
-  end subroutine Assert_Integer8_Scalar
-
-  subroutine Assert_Character_Scalar(testName,value1,value2,compare)
-    !% Assess and record an assertion about character arguments.
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String, only : assignment(=)
-    implicit none
-    character(len=*       ), intent(in   )           :: testName
-    character(len=*       ), intent(in   )           :: value1       , value2
-    integer                , intent(in   ), optional :: compare
-    type     (assertResult), pointer                 :: thisResult
-    integer                                          :: compareActual
-    logical                                          :: passed
-
-    ! Determine what type of comparison to perform.
-    if (present(compare)) then
-       compareActual=compare
-    else
-       compareActual=compareEquals
-    end if
-
-    ! Perform the comparison.
-    select case (compareActual)
-    case (compareEquals            )
-       passed=(value1 == value2)
-    case (compareNotEqual          )
-       passed=(value1 /= value2)
-    case (compareLessThan          )
-       passed=(value1  < value2)
-    case (compareGreaterThan       )
-       passed=(value1  > value2)
-    case (compareLessThanOrEqual   )
-       passed=(value1 <= value2)
-    case (compareGreaterThanOrEqual)
-       passed=(value1 >= value2)
-    case default
-       passed=.false.
-       call Galacticus_Error_Report('unknown comparison'//{introspection:location})
-    end select
-
-    ! Get an object to store the results in.
-    thisResult => Get_New_Assert_Result()
-
-    ! Store the result.
-    thisResult%result=getStatus(passed)
-    thisResult%label =trim(testName)
-
-    return
-  end subroutine Assert_Character_Scalar
-
-  subroutine Assert_VarString_Scalar(testName,value1,value2,compare)
-    !% Assess and record an assertion about character arguments.
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String, only : operator(==)           , operator(/=), operator(<)  , operator(>), &
-         &                            operator(>=)           , operator(<=), assignment(=)
-    implicit none
-    character(len=*         ), intent(in   )           :: testName
-    type     (varying_string), intent(in   )           :: value1       , value2
-    integer                  , intent(in   ), optional :: compare
-    type     (assertResult  ), pointer                 :: thisResult
-    integer                                            :: compareActual
-    logical                                            :: passed
-
-    ! Determine what type of comparison to perform.
-    if (present(compare)) then
-       compareActual=compare
-    else
-       compareActual=compareEquals
-    end if
-
-    ! Perform the comparison.
-    select case (compareActual)
-    case (compareEquals            )
-       passed=(value1 == value2)
-    case (compareNotEqual          )
-       passed=(value1 /= value2)
-    case (compareLessThan          )
-       passed=(value1  < value2)
-    case (compareGreaterThan       )
-       passed=(value1  > value2)
-    case (compareLessThanOrEqual   )
-       passed=(value1 <= value2)
-    case (compareGreaterThanOrEqual)
-       passed=(value1 >= value2)
-    case default
-       passed=.false.
-       call Galacticus_Error_Report('unknown comparison'//{introspection:location})
-    end select
-
-    ! Get an object to store the results in.
-    thisResult => Get_New_Assert_Result()
-
-    ! Store the result.
-    thisResult%result=getStatus(passed)
-    thisResult%label =trim(testName)
-
-    return
-  end subroutine Assert_VarString_Scalar
-
-  subroutine Assert_Real_1D_Array(testName,value1,value2,compare,absTol,relTol)
-    !% Assess and record an assertion about real arguments.
-    use :: Galacticus_Error    , only : Galacticus_Error_Report
-    use :: ISO_Varying_String  , only : assignment(=)
-    use :: Numerical_Comparison, only : Values_Differ
-    implicit none
-    character(len=*       )              , intent(in   )           :: testName
-    real                   , dimension(:), intent(in   )           :: value1       , value2
-    integer                              , intent(in   ), optional :: compare
-    real                                 , intent(in   ), optional :: absTol       , relTol
-    type     (assertResult), pointer                               :: thisResult
-    integer                                                        :: compareActual, iTest
-    logical                                                        :: passed
-
-    ! Determine what type of comparison to perform.
-    if (present(compare)) then
-       compareActual=compare
-    else
-       compareActual=compareEquals
-    end if
-
-    ! Perform the comparison.
-    select case (compareActual)
-    case (compareEquals)
-       passed=.true.
-       do iTest=1,min(size(value1),size(value2))
-          if (Values_Differ(value1(iTest),value2(iTest),absTol,relTol)) then
-             passed=.false.
-             exit
-          end if
-       end do
-    case (compareNotEqual          )
-       passed=all(value1 /= value2)
-    case (compareLessThan          )
-       passed=all(value1  < value2)
-    case (compareGreaterThan       )
-       passed=all(value1  > value2)
-    case (compareLessThanOrEqual   )
-       passed=all(value1 <= value2)
-    case (compareGreaterThanOrEqual)
-       passed=all(value1 >= value2)
-    case default
-       passed=.false.
-       call Galacticus_Error_Report('unknown comparison'//{introspection:location})
-    end select
-
-    ! Get an object to store the results in.
-    thisResult => Get_New_Assert_Result()
-
-    ! Store the result.
-    thisResult%result=getStatus(passed)
-    thisResult%label =trim(testName)
-
-    return
-  end subroutine Assert_Real_1D_Array
-
-  subroutine Assert_Double_1D_Array(testName,value1,value2,compare,absTol,relTol)
-    !% Assess and record an assertion about double precision arguments.
-    use :: Galacticus_Error    , only : Galacticus_Error_Report
-    use :: ISO_Varying_String  , only : assignment(=)          , operator(//), var_str
-    use :: Numerical_Comparison, only : Values_Agree
-    implicit none
-    character       (len=*       )                         , intent(in   )           :: testName
-    double precision              , dimension(          : ), intent(in   )           :: value1       , value2
-    integer                                                , intent(in   ), optional :: compare
-    double precision                                       , intent(in   ), optional :: absTol       , relTol
-    type            (assertResult), pointer                                          :: thisResult
-    integer                                                                          :: compareActual, iTest
-    logical                       , dimension(size(value1))                          :: passed
-    character       (len=22      )                                                   :: label        , comparison
-
-    ! Determine what type of comparison to perform.
-    if (present(compare)) then
-       compareActual=compare
-    else
-       compareActual=compareEquals
-    end if
-
-    ! Perform the comparison.
-    select case (compareActual)
-    case (compareEquals)
-       passed=.true.
-       do iTest=1,min(size(value1),size(value2))
-          if (.not.Values_Agree(value1(iTest),value2(iTest),absTol,relTol)) passed(iTest)=.false.
-       end do
-       comparison="≉"
-   case (compareNotEqual          )
-       passed=value1 /= value2
-       comparison="="
-    case (compareLessThan          )
-       passed=value1  < value2
-       comparison="≮"
-    case (compareGreaterThan       )
-       passed=value1  > value2
-       comparison="≯"
-    case (compareLessThanOrEqual   )
-       passed=value1 <= value2
-       comparison="≰"
-    case (compareGreaterThanOrEqual)
-       passed=value1 >= value2
-       comparison="≱"
-    case default
-       passed=.false.
-       comparison=""
-       call Galacticus_Error_Report('unknown comparison'//{introspection:location})
-    end select
-
-    ! Get an object to store the results in.
-    thisResult => Get_New_Assert_Result()
-
-    ! Store the result.
-    thisResult%result=getStatus(all(passed))
-    thisResult%label =trim(testName)
-    if (.not.all(passed)) then
-       thisResult%note=var_str('')
-       do iTest=1,min(size(value1),size(value2))
-          if (passed(iTest)) cycle
-          write (label,'(i2,1x,a1,1x,e16.8)') iTest,':',value1(iTest)
-          thisResult%note=thisResult%note//trim(adjustl(label))
-          thisResult%note=thisResult%note//" "//trim(comparison)//" "
-          write (label,'(e16.8)') value2(iTest)
-          thisResult%note=thisResult%note//trim(adjustl(label))//"; "
-       end do
-    end if
-    return
-  end subroutine Assert_Double_1D_Array
-
-  subroutine Assert_Double_Complex_1D_Array(testName,value1,value2,compare,absTol,relTol)
-    !% Assess and record an assertion about double complex arguments.
-    use :: Galacticus_Error    , only : Galacticus_Error_Report
-    use :: ISO_Varying_String  , only : assignment(=)
-    use :: Numerical_Comparison, only : Values_Differ
-    implicit none
-    character       (len=*       )              , intent(in   )           :: testName
-    double complex                , dimension(:), intent(in   )           :: value1       , value2
-    integer                                     , intent(in   ), optional :: compare
-    double complex                              , intent(in   ), optional :: absTol       , relTol
-    double complex                                                        :: absTolActual , relTolActual
-    type            (assertResult), pointer                               :: thisResult
-    integer                                                               :: compareActual, iTest
-    logical                                                               :: passed
-
-    ! Determine what type of comparison to perform.
-    if (present(compare)) then
-       compareActual=compare
-    else
-       compareActual=compareEquals
-    end if
-    ! Determine tolerances.
-    if (present(absTol)) then
-       absTolActual=absTol
-    else
-       absTolActual=dcmplx(huge(1.0d0),huge(1.0d0))
-    end if
-    if (present(relTol)) then
-       relTolActual=relTol
-    else
-       relTolActual=dcmplx(huge(1.0d0),huge(1.0d0))
-    end if
-    ! Perform the comparison.
-    select case (compareActual)
-    case (compareEquals)
-       passed=.true.
-       do iTest=1,min(size(value1),size(value2))
-          if     (                                                                                              &
-               &   Values_Differ(real(value1(iTest)),real(value2(iTest)),real(absTolActual),real(relTolActual)) &
-               &  .or.                                                                                          &
-               &   Values_Differ(imag(value1(iTest)),imag(value2(iTest)),imag(absTolActual),imag(relTolActual)) &
-               & ) then
-             passed=.false.
-             exit
-          end if
-       end do
-    case default
-       passed=.false.
-       call Galacticus_Error_Report('comparison not supported for complex values'//{introspection:location})
-    end select
-    ! Get an object to store the results in.
-    thisResult => Get_New_Assert_Result()
-    ! Store the result.
-    thisResult%result=getStatus(passed)
-    thisResult%label =trim(testName)
-    return
-  end subroutine Assert_Double_Complex_1D_Array
-
-  subroutine Assert_Double_2D_Array(testName,value1,value2,compare,absTol,relTol)
-    !% Assess and record an assertion about double precision arguments.
-    use :: Galacticus_Error    , only : Galacticus_Error_Report
-    use :: ISO_Varying_String  , only : assignment(=)
-    use :: Numerical_Comparison, only : Values_Agree
-    implicit none
-    character       (len=*       )                , intent(in   )           :: testName
-    double precision              , dimension(:,:), intent(in   )           :: value1       , value2
-    integer                                       , intent(in   ), optional :: compare
-    double precision                              , intent(in   ), optional :: absTol       , relTol
-    type            (assertResult), pointer                                 :: thisResult
-    integer                                                                 :: compareActual, iTest , jTest
-    logical                                                                 :: passed
-
-    ! Determine what type of comparison to perform.
-    if (present(compare)) then
-       compareActual=compare
-    else
-       compareActual=compareEquals
-    end if
-
-    ! Perform the comparison.
-    select case (compareActual)
-    case (compareEquals)
-       passed=.true.
-       do iTest=1,min(size(value1,dim=1),size(value2,dim=1))
-          do jTest=1,min(size(value1,dim=2),size(value2,dim=2))
-             if (.not.Values_Agree(value1(iTest,jTest),value2(iTest,jTest),absTol,relTol)) then
-                passed=.false.
-                exit
-             end if
-          end do
-       end do
-    case (compareNotEqual          )
-       passed=all(value1 /= value2)
-    case (compareLessThan          )
-       passed=all(value1  < value2)
-    case (compareGreaterThan       )
-       passed=all(value1  > value2)
-    case (compareLessThanOrEqual   )
-       passed=all(value1 <= value2)
-    case (compareGreaterThanOrEqual)
-       passed=all(value1 >= value2)
-    case default
-       passed=.false.
-       call Galacticus_Error_Report('unknown comparison'//{introspection:location})
-    end select
-
-    ! Get an object to store the results in.
-    thisResult => Get_New_Assert_Result()
-
-    ! Store the result.
-    thisResult%result=getStatus(passed)
-    thisResult%label =trim(testName)
-
-    return
-  end subroutine Assert_Double_2D_Array
-
-  subroutine Assert_Double_3D_Array(testName,value1,value2,compare,absTol,relTol)
-    !% Assess and record an assertion about double precision arguments.
-    use :: Galacticus_Error    , only : Galacticus_Error_Report
-    use :: ISO_Varying_String  , only : assignment(=)
-    use :: Numerical_Comparison, only : Values_Agree
-    implicit none
-    character       (len=*       )                  , intent(in   )           :: testName
-    double precision              , dimension(:,:,:), intent(in   )           :: value1       , value2
-    integer                                         , intent(in   ), optional :: compare
-    double precision                                , intent(in   ), optional :: absTol       , relTol
-    type            (assertResult), pointer                                   :: thisResult
-    integer                                                                   :: compareActual, iTest , jTest, kTest
-    logical                                                                   :: passed
-
-    ! Determine what type of comparison to perform.
-    if (present(compare)) then
-       compareActual=compare
-    else
-       compareActual=compareEquals
-    end if
-
-    ! Perform the comparison.
-    select case (compareActual)
-    case (compareEquals)
-       passed=.true.
-       do iTest=1,min(size(value1,dim=1),size(value2,dim=1))
-          do jTest=1,min(size(value1,dim=2),size(value2,dim=2))
-             do kTest=1,min(size(value1,dim=3),size(value2,dim=3))
-                if (.not.Values_Agree(value1(iTest,jTest,kTest),value2(iTest,jTest,kTest),absTol,relTol)) then
-                   passed=.false.
-                   exit
-                end if
-             end do
-          end do
-       end do
-    case (compareNotEqual          )
-       passed=all(value1 /= value2)
-    case (compareLessThan          )
-       passed=all(value1  < value2)
-    case (compareGreaterThan       )
-       passed=all(value1  > value2)
-    case (compareLessThanOrEqual   )
-       passed=all(value1 <= value2)
-    case (compareGreaterThanOrEqual)
-       passed=all(value1 >= value2)
-    case default
-       passed=.false.
-       call Galacticus_Error_Report('unknown comparison'//{introspection:location})
-    end select
-
-    ! Get an object to store the results in.
-    thisResult => Get_New_Assert_Result()
-
-    ! Store the result.
-    thisResult%result=getStatus(passed)
-    thisResult%label =trim(testName)
-
-    return
-  end subroutine Assert_Double_3D_Array
-
-  subroutine Assert_Double_4D_Array(testName,value1,value2,compare,absTol,relTol)
-    !% Assess and record an assertion about double precision arguments.
-    use :: Galacticus_Error    , only : Galacticus_Error_Report
-    use :: ISO_Varying_String  , only : assignment(=)
-    use :: Numerical_Comparison, only : Values_Agree
-    implicit none
-    character       (len=*       )                    , intent(in   )           :: testName
-    double precision              , dimension(:,:,:,:), intent(in   )           :: value1       , value2
-    integer                                           , intent(in   ), optional :: compare
-    double precision                                  , intent(in   ), optional :: absTol       , relTol
-    type            (assertResult), pointer                                     :: thisResult
-    integer                                                                     :: compareActual, iTest , jTest, kTest, &
-         &                                                                         lTest
-    logical                                                                     :: passed
-
-    ! Determine what type of comparison to perform.
-    if (present(compare)) then
-       compareActual=compare
-    else
-       compareActual=compareEquals
-    end if
-
-    ! Perform the comparison.
-    select case (compareActual)
-    case (compareEquals)
-       passed=.true.
-       do iTest=1,min(size(value1,dim=1),size(value2,dim=1))
-          do jTest=1,min(size(value1,dim=2),size(value2,dim=2))
-             do kTest=1,min(size(value1,dim=3),size(value2,dim=3))
-                do lTest=1,min(size(value1,dim=4),size(value2,dim=4))
-                   if (.not.Values_Agree(value1(iTest,jTest,kTest,lTest),value2(iTest,jTest,kTest,lTest),absTol,relTol)) then
-                      passed=.false.
-                      exit
-                   end if
-                end do
-             end do
-          end do
-       end do
-    case (compareNotEqual          )
-       passed=all(value1 /= value2)
-    case (compareLessThan          )
-       passed=all(value1  < value2)
-    case (compareGreaterThan       )
-       passed=all(value1  > value2)
-    case (compareLessThanOrEqual   )
-       passed=all(value1 <= value2)
-    case (compareGreaterThanOrEqual)
-       passed=all(value1 >= value2)
-    case default
-       passed=.false.
-       call Galacticus_Error_Report('unknown comparison'//{introspection:location})
-    end select
-
-    ! Get an object to store the results in.
-    thisResult => Get_New_Assert_Result()
-
-    ! Store the result.
-    thisResult%result=getStatus(passed)
-    thisResult%label =trim(testName)
-
-    return
-  end subroutine Assert_Double_4D_Array
-
-  subroutine Assert_Double_5D_Array(testName,value1,value2,compare,absTol,relTol)
-    !% Assess and record an assertion about double precision arguments.
-    use :: Galacticus_Error    , only : Galacticus_Error_Report
-    use :: ISO_Varying_String  , only : assignment(=)
-    use :: Numerical_Comparison, only : Values_Agree
-    implicit none
-    character       (len=*       )                      , intent(in   )           :: testName
-    double precision              , dimension(:,:,:,:,:), intent(in   )           :: value1       , value2
-    integer                                             , intent(in   ), optional :: compare
-    double precision                                    , intent(in   ), optional :: absTol       , relTol
-    type            (assertResult), pointer                                       :: thisResult
-    integer                                                                       :: compareActual, iTest , jTest, kTest, &
-         &                                                                           lTest        , mTest
-    logical                                                                       :: passed
-
-    ! Determine what type of comparison to perform.
-    if (present(compare)) then
-       compareActual=compare
-    else
-       compareActual=compareEquals
-    end if
-
-    ! Perform the comparison.
-    select case (compareActual)
-    case (compareEquals)
-       passed=.true.
-       do iTest=1,min(size(value1,dim=1),size(value2,dim=1))
-          do jTest=1,min(size(value1,dim=2),size(value2,dim=2))
-             do kTest=1,min(size(value1,dim=3),size(value2,dim=3))
-                do lTest=1,min(size(value1,dim=4),size(value2,dim=4))
-                   do mTest=1,min(size(value1,dim=5),size(value2,dim=5))
-                      if (.not.Values_Agree(value1(iTest,jTest,kTest,lTest,mTest),value2(iTest,jTest,kTest,lTest,mTest),absTol,relTol)) then
-                         passed=.false.
-                         exit
-                      end if
-                   end do
-                end do
-             end do
-          end do
-       end do
-    case (compareNotEqual          )
-       passed=all(value1 /= value2)
-    case (compareLessThan          )
-       passed=all(value1  < value2)
-    case (compareGreaterThan       )
-       passed=all(value1  > value2)
-    case (compareLessThanOrEqual   )
-       passed=all(value1 <= value2)
-    case (compareGreaterThanOrEqual)
-       passed=all(value1 >= value2)
-    case default
-       passed=.false.
-       call Galacticus_Error_Report('unknown comparison'//{introspection:location})
-    end select
-
-    ! Get an object to store the results in.
-    thisResult => Get_New_Assert_Result()
-
-    ! Store the result.
-    thisResult%result=getStatus(passed)
-    thisResult%label =trim(testName)
-
-    return
-  end subroutine Assert_Double_5D_Array
-
-  subroutine Assert_Integer_1D_Array(testName,value1,value2,compare)
-    !% Assess and record an assertion about integer arguments.
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String, only : assignment(=)
-    implicit none
-    character(len=*       )              , intent(in   )           :: testName
-    integer                , dimension(:), intent(in   )           :: value1       , value2
-    integer                              , intent(in   ), optional :: compare
-    type     (assertResult), pointer                               :: thisResult
-    integer                                                        :: compareActual
-    logical                                                        :: passed
-
-    ! Determine what type of comparison to perform.
-    if (present(compare)) then
-       compareActual=compare
-    else
-       compareActual=compareEquals
-    end if
-
-    ! Perform the comparison.
-    select case (compareActual)
-    case (compareEquals            )
-       passed=all(value1 == value2)
-    case (compareNotEqual          )
-       passed=all(value1 /= value2)
-    case (compareLessThan          )
-       passed=all(value1  < value2)
-    case (compareGreaterThan       )
-       passed=all(value1  > value2)
-    case (compareLessThanOrEqual   )
-       passed=all(value1 <= value2)
-    case (compareGreaterThanOrEqual)
-       passed=all(value1 >= value2)
-    case default
-       passed=.false.
-       call Galacticus_Error_Report('unknown comparison'//{introspection:location})
-    end select
-
-    ! Get an object to store the results in.
-    thisResult => Get_New_Assert_Result()
-
-    ! Store the result.
-    thisResult%result=getStatus(passed)
-    thisResult%label =trim(testName)
-
-    return
-  end subroutine Assert_Integer_1D_Array
-
-  subroutine Assert_Logical_1D_Array(testName,value1,value2,compare)
-    !% Assess and record an assertion about integer arguments.
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String, only : assignment(=)
-    implicit none
-    character(len=*       )              , intent(in   )           :: testName
-    logical                , dimension(:), intent(in   )           :: value1       , value2
-    integer                              , intent(in   ), optional :: compare
-    type     (assertResult), pointer                               :: thisResult
-    integer                                                        :: compareActual
-    logical                                                        :: passed
-
-    ! Determine what type of comparison to perform.
-    if (present(compare)) then
-       compareActual=compare
-    else
-       compareActual=compareEquals
-    end if
-
-    ! Perform the comparison.
-    select case (compareActual)
-    case (compareEquals  )
-       passed=all(value1 .eqv.  value2)
-    case (compareNotEqual)
-       passed=all(value1 .neqv. value2)
-    case default
-       passed=.false.
-       call Galacticus_Error_Report('assertions about logical variables can be equality or non-equality only'//{introspection:location})
-    end select
-
-    ! Get an object to store the results in.
-    thisResult => Get_New_Assert_Result()
-
-    ! Store the result.
-    thisResult%result=getStatus(passed)
-    thisResult%label =trim(testName)
-
-    return
-  end subroutine Assert_Logical_1D_Array
-
-  subroutine Assert_Integer8_1D_Array(testName,value1,value2,compare)
-    !% Assess and record an assertion about integer arguments.
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String, only : assignment(=)
-    use :: Kind_Numbers      , only : kind_int8
-    implicit none
-    character(len=*         )              , intent(in   )           :: testName
-    integer  (kind=kind_int8), dimension(:), intent(in   )           :: value1       , value2
-    integer                                , intent(in   ), optional :: compare
-    type     (assertResult  ), pointer                               :: thisResult
-    integer                                                          :: compareActual
-    logical                                                          :: passed
-
-    ! Determine what type of comparison to perform.
-    if (present(compare)) then
-       compareActual=compare
-    else
-       compareActual=compareEquals
-    end if
-
-    ! Perform the comparison.
-    select case (compareActual)
-    case (compareEquals            )
-       passed=all(value1 == value2)
-    case (compareNotEqual          )
-       passed=all(value1 /= value2)
-    case (compareLessThan          )
-       passed=all(value1  < value2)
-    case (compareGreaterThan       )
-       passed=all(value1  > value2)
-    case (compareLessThanOrEqual   )
-       passed=all(value1 <= value2)
-    case (compareGreaterThanOrEqual)
-       passed=all(value1 >= value2)
-    case default
-       passed=.false.
-       call Galacticus_Error_Report('unknown comparison'//{introspection:location})
-    end select
-
-    ! Get an object to store the results in.
-    thisResult => Get_New_Assert_Result()
-
-    ! Store the result.
-    thisResult%result=getStatus(passed)
-    thisResult%label =trim(testName)
-
-    return
-  end subroutine Assert_Integer8_1D_Array
-
-  subroutine Assert_Logical_Scalar(testName,value1,value2,compare)
-    !% Assess and record an assertion about logical arguments.
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String, only : assignment(=)
-    implicit none
-    character(len=*       ), intent(in   )           :: testName
-    logical                , intent(in   )           :: value1       , value2
-    integer                , intent(in   ), optional :: compare
-    type     (assertResult), pointer                 :: thisResult
-    integer                                          :: compareActual
-    logical                                          :: passed
-
-    ! Determine what type of comparison to perform.
-    if (present(compare)) then
-       compareActual=compare
-    else
-       compareActual=compareEquals
-    end if
-
-    ! Perform the comparison.
-    select case (compareActual)
-    case (compareEquals            )
-       passed=value1 .eqv.  value2
-    case (compareNotEqual          )
-       passed=value1 .neqv. value2
-    case default
-       passed=.false.
-       call Galacticus_Error_Report('assertions about logical variables can be equality or non-equality only'//{introspection:location})
-    end select
-
-    ! Get an object to store the results in.
-    thisResult => Get_New_Assert_Result()
-
-    ! Store the result.
-    thisResult%result=getStatus(passed)
-    thisResult%label =trim(testName)
-
-    return
-  end subroutine Assert_Logical_Scalar
-
-  subroutine Assert_Character_1D_Array(testName,value1,value2,compare)
-    !% Assess and record an assertion about character arguments.
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String, only : assignment(=)
-    implicit none
-    character(len=*       )              , intent(in   )           :: testName
-    character(len=*       ), dimension(:), intent(in   )           :: value1       , value2
-    integer                              , intent(in   ), optional :: compare
-    type     (assertResult), pointer                               :: thisResult
-    integer                                                        :: compareActual
-    logical                                                        :: passed
-
-    ! Determine what type of comparison to perform.
-    if (present(compare)) then
-       compareActual=compare
-    else
-       compareActual=compareEquals
-    end if
-
-    ! Perform the comparison.
-    select case (compareActual)
-    case (compareEquals            )
-       passed=all(value1 == value2)
-    case (compareNotEqual          )
-       passed=all(value1 /= value2)
-    case (compareLessThan          )
-       passed=all(value1  < value2)
-    case (compareGreaterThan       )
-       passed=all(value1  > value2)
-    case (compareLessThanOrEqual   )
-       passed=all(value1 <= value2)
-    case (compareGreaterThanOrEqual)
-       passed=all(value1 >= value2)
-    case default
-       passed=.false.
-       call Galacticus_Error_Report('unknown comparison'//{introspection:location})
-    end select
-
-    ! Get an object to store the results in.
-    thisResult => Get_New_Assert_Result()
-
-    ! Store the result.
-    thisResult%result=getStatus(passed)
-    thisResult%label =trim(testName)
-
-    return
-  end subroutine Assert_Character_1D_Array
-
-  subroutine Assert_VarString_1D_Array(testName,value1,value2,compare)
-    !% Assess and record an assertion about character arguments.
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String, only : operator(==)           , operator(/=), operator(<)  , operator(>), &
-         &                            operator(>=)           , operator(<=), assignment(=)
-    implicit none
-    character(len=*         )              , intent(in   )           :: testName
-    type     (varying_string), dimension(:), intent(in   )           :: value1       , value2
-    integer                                , intent(in   ), optional :: compare
-    type     (assertResult  ), pointer                               :: thisResult
-    integer                                                          :: compareActual
-    logical                                                          :: passed
-
-    ! Determine what type of comparison to perform.
-    if (present(compare)) then
-       compareActual=compare
-    else
-       compareActual=compareEquals
-    end if
-
-    ! Perform the comparison.
-    select case (compareActual)
-    case (compareEquals            )
-       passed=all(value1 == value2)
-    case (compareNotEqual          )
-       passed=all(value1 /= value2)
-    case (compareLessThan          )
-       passed=all(value1  < value2)
-    case (compareGreaterThan       )
-       passed=all(value1  > value2)
-    case (compareLessThanOrEqual   )
-       passed=all(value1 <= value2)
-    case (compareGreaterThanOrEqual)
-       passed=all(value1 >= value2)
-    case default
-       passed=.false.
-       call Galacticus_Error_Report('unknown comparison'//{introspection:location})
-    end select
-
-    ! Get an object to store the results in.
-    thisResult => Get_New_Assert_Result()
-
-    ! Store the result.
-    thisResult%result=getStatus(passed)
-    thisResult%label =trim(testName)
-
-    return
-  end subroutine Assert_VarString_1D_Array
+  end subroutine Assert{Type¦label}
 
   subroutine Unit_Tests_Begin_Group(groupName)
     !% Marks that a unit test group has begun.
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
     character(len=*       ), intent(in   ) :: groupName
-    type     (assertResult), pointer       :: thisResult
+    type     (assertResult), pointer       :: result
 
-    thisResult => Get_New_Assert_Result()
-    thisResult%beginGroup=.true.
-    thisResult%label     =trim(groupName)
+    result => Get_New_Assert_Result()
+    result%beginGroup=.true.
+    result%label     =trim(groupName)
     return
   end subroutine Unit_Tests_Begin_Group
 
   subroutine Unit_Tests_End_Group
     !% Marks that a unit test group has ended.
     implicit none
-    type(assertResult), pointer :: thisResult
+    type(assertResult), pointer :: result
 
-    thisResult => Get_New_Assert_Result()
-    thisResult%endGroup=.true.
+    result => Get_New_Assert_Result()
+    result%endGroup=.true.
     return
   end subroutine Unit_Tests_End_Group
 
   subroutine Unit_Tests_Finish
     !% Write out the results of unit testing.
-    use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent
-    use :: ISO_Varying_String, only : assignment(=)            , operator(//)              , operator(/=)
+    use :: Display           , only : displayIndent      , displayMessage, displayUnindent
+    use :: ISO_Varying_String, only : assignment(=)      , operator(//)  , operator(/=)
     use :: Memory_Management , only : Memory_Usage_Record
     use :: String_Handling   , only : operator(//)
     implicit none
-    type   (assertResult  ), pointer :: nextResult, thisResult
+    type   (assertResult  ), pointer :: nextResult, result
     integer                          :: failCount , passCount , percentage
     type   (varying_string)          :: message
 
     passCount=0
     failCount=0
-    thisResult => firstResult
-    do while (associated(thisResult))
-       if (.not.(thisResult%beginGroup.or.thisResult%endGroup)) then
-          select case (thisResult%result)
+    result => firstResult
+    do while (associated(result))
+       if (.not.(result%beginGroup.or.result%endGroup)) then
+          select case (result%result)
           case (testFailed)
              failCount=failCount+1
-             message=" FAILED: "//thisResult%label
-             if (thisResult%note /= "") message=message//" ["//thisResult%note//"]"
+             message=" FAILED: "//result%label
+             if (result%note /= "") message=message//" ["//result%note//"]"
           case (testPassed)
              passCount=passCount+1
-             message=" passed: "//thisResult%label
+             message=" passed: "//result%label
           case (testSkipped)
-             message="skipped: "//thisResult%label//" ["//thisResult%note//"]"
+             message="skipped: "//result%label//" ["//result%note//"]"
           end select
-          call Galacticus_Display_Message(message)
+          call displayMessage(message)
        else
-          if (thisResult%beginGroup) call Galacticus_Display_Indent  (thisResult%label)
-          if (thisResult%endGroup  ) call Galacticus_Display_Unindent("")
+          if (result%beginGroup) call displayIndent  (result%label)
+          if (result%endGroup  ) call displayUnindent("")
        end if
-       thisResult => thisResult%nextResult
+       result => result%nextResult
     end do
     if (passCount+failCount > 0) then
        percentage=int(100.0d0*dble(passCount)/dble(passCount+failCount))
@@ -1187,7 +251,7 @@ contains
     end if
     message="Tests passed: "
     message=message//passCount//" ("//percentage//"%)"
-    call Galacticus_Display_Message(message)
+    call displayMessage(message)
     if (passCount+failCount > 0) then
        percentage=int(100.0d0*dble(failCount)/dble(passCount+failCount))
     else
@@ -1195,16 +259,16 @@ contains
     end if
     message="Tests failed: "
     message=message//failCount//" ("//percentage//"%)"
-    call Galacticus_Display_Message(message)
+    call displayMessage(message)
 
     ! Destroy the list of results.
-    thisResult => firstResult%nextResult
-    do while (associated(thisResult))
-       nextResult => thisResult%nextResult
-       call thisResult%label%destroy()
-       deallocate(thisResult)
-       call Memory_Usage_Record(sizeof(thisResult),addRemove=-1)
-       thisResult => nextResult
+    result => firstResult%nextResult
+    do while (associated(result))
+       nextResult => result%nextResult
+       call result%label%destroy()
+       deallocate(result)
+       call Memory_Usage_Record(sizeof(result),addRemove=-1)
+       result => nextResult
     end do
     return
   end subroutine Unit_Tests_Finish

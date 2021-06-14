@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,6 +26,9 @@
 
   !# <outputAnalysis name="outputAnalysisMulti">
   !#  <description>A merger tree analysis class which combines multiple other analyses.</description>
+  !#  <deepCopy>
+  !#   <linkedList type="multiAnalysisList" variable="analyses" next="next" object="analysis_" objectType="outputAnalysisClass"/>
+  !#  </deepCopy>
   !# </outputAnalysis>
   type, extends(outputAnalysisClass) :: outputAnalysisMulti
      !% Implementation of a merger tree analysis class which combines multiple other analyses.
@@ -37,7 +40,6 @@
      procedure :: analyze       => multiAnalyze
      procedure :: finalize      => multiFinalize
      procedure :: reduce        => multiReduce
-     procedure :: deepCopy      => multiDeepCopy
      procedure :: logLikelihood => multiLoglikelihood
   end type outputAnalysisMulti
 
@@ -60,7 +62,7 @@ contains
 
     self      %analyses => null()
     analysis_           => null()
-    do i=1,parameters%copiesCount('outputAnalysisMethod',zeroIfNotPresent=.true.)
+    do i=1,parameters%copiesCount('outputAnalysis',zeroIfNotPresent=.true.)
        if (associated(analysis_)) then
           allocate(analysis_%next)
           analysis_ => analysis_%next
@@ -190,37 +192,3 @@ contains
     end select
     return
   end subroutine multiReduce
-
-  subroutine multiDeepCopy(self,destination)
-    !% Perform a deep copy for the {\normalfont \ttfamily multi} analysis class.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    implicit none
-    class(outputAnalysisMulti), intent(inout) :: self
-    class(outputAnalysisClass), intent(inout) :: destination
-    type (multiAnalysisList  ), pointer       :: analysis_   , analysisDestination_, &
-         &                                       analysisNew_
-
-    call self%outputAnalysisClass%deepCopy(destination)
-    select type (destination)
-    type is (outputAnalysisMulti)
-       destination%analyses => null         ()
-       analysisDestination_ => null         ()
-       analysis_            => self%analyses
-       do while (associated(analysis_))
-          allocate(analysisNew_)
-          if (associated(analysisDestination_)) then
-             analysisDestination_%next     => analysisNew_
-             analysisDestination_          => analysisNew_
-          else
-             destination         %analyses => analysisNew_
-             analysisDestination_          => analysisNew_
-          end if
-          allocate(analysisNew_%analysis_,mold=analysis_%analysis_)
-          !# <deepCopy source="analysis_%analysis_" destination="analysisNew_%analysis_"/>
-          analysis_ => analysis_%next
-       end do
-    class default
-       call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})
-    end select
-    return
-  end subroutine multiDeepCopy

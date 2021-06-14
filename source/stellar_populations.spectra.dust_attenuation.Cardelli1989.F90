@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,21 +27,10 @@
      private
      double precision :: Rv
    contains
-     !@ <objectMethods>
-     !@   <object>stellarSpectraDustAttenuationCardelli1989</object>
-     !@   <objectMethod>
-     !@     <method>a</method>
-     !@     <description>Return fitting function $a(x)$ for the dust attenuation model of \cite{cardelli_relationship_1989}.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ x\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>b</method>
-     !@     <description>Return fitting function $b(x)$ for the dust attenuation model of \cite{cardelli_relationship_1989}.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ x\argin</arguments>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return fitting function $a(x)$ for the dust attenuation model of \cite{cardelli_relationship_1989}." method="a" />
+     !#   <method description="Return fitting function $b(x)$ for the dust attenuation model of \cite{cardelli_relationship_1989}." method="b" />
+     !# </methods>
      procedure :: attenuation => cardelli1989Attenuation
      procedure :: a           => cardelli1989A
      procedure :: b           => cardelli1989B
@@ -66,11 +55,9 @@ contains
 
     !# <inputParameter>
     !#   <name>Rv</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>3.1d0</defaultValue>
     !#   <description>The relative visibility, $R_\mathrm{V}$.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     self=stellarSpectraDustAttenuationCardelli1989(Rv)
     !# <inputParametersValidate source="parameters"/>
@@ -95,7 +82,7 @@ contains
     double precision                                           , intent(in   ) :: wavelength      , age, &
          &                                                                        vBandAttenuation
     double precision                                                           :: x
-    !GCC$ attributes unused :: age
+    !$GLC attributes unused :: age
 
     x                      =1.0d0/(wavelength/angstromsPerMicron)
     cardelli1989Attenuation=vBandAttenuation*(self%a(x)+self%b(x)/self%Rv) ! Eqn. (1) of Cardelli et al.
@@ -108,7 +95,7 @@ contains
     class           (stellarSpectraDustAttenuationCardelli1989), intent(inout) :: self
     double precision                                           , intent(in   ) :: x
     double precision                                                           :: y   , Fa
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     cardelli1989A=0.0d0
     if      (x >= 0.3d0 .and. x < 1.1d0) then
@@ -144,7 +131,7 @@ contains
     class           (stellarSpectraDustAttenuationCardelli1989), intent(inout) :: self
     double precision                                           , intent(in   ) :: x
     double precision                                                           :: y   , Fb
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     cardelli1989B=0.0d0
     if      (x >= 0.3d0 .and. x < 1.1d0) then

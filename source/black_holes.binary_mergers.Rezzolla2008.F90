@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +21,11 @@
   !% approximations of \cite{rezzolla_final_2008}.
 
   !# <blackHoleBinaryMerger name="blackHoleBinaryMergerRezzolla2008">
-  !#  <description>A black hole binary merger class in which the black hole mass and spin resulting from binary mergers utilizing the approximations of \cite{rezzolla_final_2008}.</description>
+  !#  <description>
+  !#   A black hole binary merger class that uses the fitting function of \cite{rezzolla_final_2008} to compute the spin of the
+  !#   black hole resulting from a binary merger. The mass of the resulting black hole is assumed to equal the sum of the mass of
+  !#   the initial black holes (i.e. there is negligible energy loss through gravitational waves).
+  !#  </description>
   !# </blackHoleBinaryMerger>
   type, extends(blackHoleBinaryMergerClass) :: blackHoleBinaryMergerRezzolla2008
      !% A black hole binary merger class in which the black hole mass and spin resulting from binary mergers utilizing the approximations of \cite{rezzolla_final_2008}.
@@ -44,7 +48,7 @@ contains
     implicit none
     type(blackHoleBinaryMergerRezzolla2008)                :: self
     type(inputParameters                  ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=blackHoleBinaryMergerRezzolla2008()
     return
@@ -66,7 +70,7 @@ contains
     double precision                                                   :: blackHoleMass1             , blackHoleMass2             , blackHoleSpin1                 , &
          &                                                                blackHoleSpin2             , massRatio                  , orbitalAngularMomentum         , &
          &                                                                symmetricMassRatio         , argumentSqrt
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Check for case of two zero-mass black holes.
     if (blackHoleMassA <= 0.0d0 .and. blackHoleMassB <= 0.0d0) then

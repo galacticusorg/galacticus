@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,28 @@
   !% Implementation of a merger tree masses class which reads masses from an XML file.
 
   !# <mergerTreeBuildMasses name="mergerTreeBuildMassesReadXML">
-  !#  <description>A merger tree masses class which reads masses from an XML file.</description>
+  !#  <description>
+  !#   A merger tree build masses class which reads masses from an XML file. The XML file should have the following form:
+  !# \begin{verbatim}
+  !#    <mergerTrees>
+  !#     <treeRootMass>13522377303.5998</treeRootMass>
+  !#     <treeRootMass>19579530191.8709</treeRootMass>
+  !#     <treeRootMass>21061025282.9613</treeRootMass>
+  !#     .
+  !#     .
+  !#     .
+  !#     <treeWeight>13522377303.5998</treeWeight>
+  !#     <treeWeight>19579530191.8709</treeWeight>
+  !#     <treeWeight>21061025282.9613</treeWeight>
+  !#     .
+  !#     .
+  !#     .
+  !#    </mergerTrees>
+  !#   \end{verbatim}
+  !#   where each {\normalfont \ttfamily treeRootMass} element gives the mass (in Solar masses) of the root halo of a tree to
+  !#   generate, and the (optional) {\normalfont \ttfamily treeWeight} elements give the corresponding weight (in units of
+  !#   Mpc$^{-3}$) to assign to each tree.
+  !#  </description>
   !# </mergerTreeBuildMasses>
   type, extends(mergerTreeBuildMassesRead) :: mergerTreeBuildMassesReadXML
      !% Implementation of a merger tree masses class which reads masses from an XML file.
@@ -48,21 +69,17 @@ contains
 
     !# <inputParameter>
     !#   <name>fileName</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The name of the file from which to read merger tree masses.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massIntervalFractional</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.1d0</defaultValue>
     !#   <description>The fractional mass interval occupied by the trees. Where the intervals of trees of different mass would overlap this interval will be truncated.</description>
     !#   <source>parameters</source>
-    !#   <type>float</type>
     !# </inputParameter>
     self=mergerTreeBuildMassesReadXML(fileName,massIntervalFractional)
-    !# <inputParametersValidate target="self" source="parameters"/>
+    !# <inputParametersValidate source="parameters"/>
     return
   end function readXMLConstructorParameters
 
@@ -82,6 +99,7 @@ contains
     use :: FoX_DOM         , only : destroy                , getDocumentElement   , node           , parseFile
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: IO_XML          , only : XML_Array_Read         , XML_Array_Read_Static, XML_Path_Exists
+    use :: File_Utilities  , only : File_Name_Expand
     implicit none
     class           (mergerTreeBuildMassesReadXML), intent(inout)                            :: self
     double precision                              , intent(  out), allocatable, dimension(:) :: mass, weight
@@ -89,7 +107,7 @@ contains
     integer                                                                                  :: ioErr
 
     !$omp critical (FoX_DOM_Access)
-    doc => parseFile(char(self%fileName),iostat=ioErr)
+    doc => parseFile(char(File_Name_Expand(char(self%fileName))),iostat=ioErr)
     if (ioErr /= 0) call Galacticus_Error_Report('unable to read or parse merger tree root mass file'//{introspection:location})
     rootNode => getDocumentElement(doc)
     ! Read all tree masses.

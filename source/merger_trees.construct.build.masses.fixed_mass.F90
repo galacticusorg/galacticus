@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -103,40 +103,32 @@ contains
     call allocateArray(radiusTree,[fixedHalosCount])
     !# <inputParameter>
     !#   <name>massTree</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>spread(1.0d12,1,fixedHalosCount)</defaultValue>
     !#   <description>Specifies the masses of halos to use when building halos.</description>
     !#   <source>parameters</source>
-    !#   <type>float</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>treeCount</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>spread(1,1,fixedHalosCount)</defaultValue>
     !#   <description>Specifies the number of halos to use when building halos.</description>
     !#   <source>parameters</source>
-    !#   <type>float</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>radiusTree</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>spread(-1.0d0,1,fixedHalosCount)</defaultValue>
     !#   <description>Specifies the radii within which halo masses are specified when building halos.</description>
     !#   <source>parameters</source>
-    !#   <type>float</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massIntervalFractional</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.1d0</defaultValue>
     !#   <description>The fractional mass interval occupied by the trees. Where the intervals of trees of different mass would overlap this interval will be truncated.</description>
     !#   <source>parameters</source>
-    !#   <type>float</type>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     self=mergerTreeBuildMassesFixedMass(massTree,radiusTree,treeCount,massIntervalFractional,cosmologyParameters_,darkMatterHaloScale_)
-    !# <inputParametersValidate target="self" source="parameters"/>
+    !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyParameters_"/>
     !# <objectDestructor name="darkMatterHaloScale_"/>
     return
@@ -172,7 +164,7 @@ contains
     use :: Galacticus_Nodes              , only : nodeComponentBasic           , treeNode
     use :: Memory_Management             , only : allocateArray
     use :: Root_Finder                   , only : rangeExpandMultiplicative    , rootFinder
-    use :: Sort                          , only : Sort_Do
+    use :: Sorting                       , only : sort
     implicit none
     class           (mergerTreeBuildMassesFixedMass), intent(inout)                            :: self
     double precision                                , intent(in   )                            :: time
@@ -182,8 +174,16 @@ contains
     type            (treeNode                      ), pointer                                  :: node
     class           (nodeComponentBasic            ), pointer                                  :: basic
     integer                                                                                    :: indexStart , i
-    !GCC$ attributes unused :: weight
+    !$GLC attributes unused :: weight
 
+    finder=rootFinder(                                               &
+         &            rootFunction       =massEnclosed             , &
+         &            toleranceAbsolute  =1.0d-6                   , &
+         &            toleranceRelative  =1.0d-6                   , &
+         &            rangeExpandUpward  =2.0d+0                   , &
+         &            rangeExpandDownward=0.5d+0                   , &
+         &            rangeExpandType    =rangeExpandMultiplicative  &
+         &           )
     node  => treeNode      (                 )
     basic => node    %basic(autoCreate=.true.)
     call basic%timeSet            (time)
@@ -192,19 +192,7 @@ contains
        if (self%radiusTree(i) > 0.0d0) then
           ! Set the halo mass.
           call Galacticus_Calculations_Reset(node)
-          ! Convert masses to virial masses.
-          call finder%tolerance   (                                               &
-               &                   toleranceAbsolute  =1.0d-6                   , &
-               &                   toleranceRelative  =1.0d-6                     &
-               &                  )
-          call finder%rangeExpand (                                               &
-               &                   rangeExpandUpward  =2.0d+0                   , &
-               &                   rangeExpandDownward=0.5d+0                   , &
-               &                   rangeExpandType    =rangeExpandMultiplicative  &
-               &                  )
-          call finder%rootFunction(                                               &
-               &                                       massEnclosed               &
-               &                  )
+          ! Convert masses to virial masses.        
           self%massTree(i)=finder%find(rootGuess=self%massTree(i))
        end if
     end do
@@ -219,7 +207,7 @@ contains
        indexStart                                           =+self%treeCount(i) &
             &                                                +indexStart
     end do
-    call Sort_Do(mass)
+    call sort(mass)
     indexStart=1
     do i=1,size(self%treeCount)
        massMinimum(indexStart:indexStart+self%treeCount(i)-1)=+self%massTree (i)/sqrt(1.0d0+self%massIntervalFractional)

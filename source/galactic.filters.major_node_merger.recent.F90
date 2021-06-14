@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -55,8 +55,6 @@ contains
     !#   <source>parameters</source>
     !#   <variable>timeRecent</variable>
     !#   <description>The parameter $\Delta t$ (in units of Gyr) appearing in the recent node major merger galactic filter class.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=galacticFilterNodeMajorMergerRecent(timeRecent)
     !# <inputParametersValidate source="parameters"/>
@@ -76,10 +74,10 @@ contains
     !% Implement a low-pass filter for time since the last major node merger.
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentMergingStatistics, treeNode
     implicit none
-    class(galacticFilterNodeMajorMergerRecent), intent(inout) :: self
-    type (treeNode                           ), intent(inout) :: node
-    class(nodeComponentBasic                 ), pointer       :: basic
-    class(nodeComponentMergingStatistics     ), pointer       :: mergingStatistics
+    class(galacticFilterNodeMajorMergerRecent), intent(inout)         :: self
+    type (treeNode                           ), intent(inout), target :: node
+    class(nodeComponentBasic                 ), pointer               :: basic
+    class(nodeComponentMergingStatistics     ), pointer               :: mergingStatistics
 
     basic                       =>   node             %basic              ()
     mergingStatistics           =>   node             %mergingStatistics  ()

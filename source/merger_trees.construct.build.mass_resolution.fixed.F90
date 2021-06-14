@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,10 @@
   !% An implementation of a merger tree builder mass resolution which assumes a fixed resolution.
 
   !# <mergerTreeMassResolution name="mergerTreeMassResolutionFixed">
-  !#  <description>Provides a fixed mass resolution for merger tree building.</description>
+  !#  <description>
+  !#   A merger tree mass resolution class which assumes a fixed mass resolution of {\normalfont \ttfamily [massResolution]} for
+  !#   all merger trees.
+  !#  </description>
   !# </mergerTreeMassResolution>
   type, extends(mergerTreeMassResolutionClass) :: mergerTreeMassResolutionFixed
      !% A merger tree mass resolution class which assumes a fixed mass resolution.
@@ -52,8 +55,6 @@ contains
     !#   <variable>fixedConstructorParameters%massResolution</variable>
     !#   <defaultValue>5.0d9</defaultValue>
     !#   <description>The mass resolution to use when building merger trees.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParametersValidate source="parameters"/>
     return
@@ -74,7 +75,7 @@ contains
     implicit none
     class(mergerTreeMassResolutionFixed), intent(inout) :: self
     type (mergerTree                   ), intent(in   ) :: tree
-    !GCC$ attributes unused :: tree
+    !$GLC attributes unused :: tree
 
     fixedResolution=self%massResolution
     return

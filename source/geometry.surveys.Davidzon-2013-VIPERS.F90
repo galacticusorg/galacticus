@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +22,41 @@
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !# <surveyGeometry name="surveyGeometryDavidzon2013VIPERS">
-  !#  <description>Implements the geometry of the VIPERS survey of \cite{davidzon_vimos_2013}.</description>
+  !#  <description>
+  !#   A survey geometry class that describes the survey geometry of \cite{davidzon_vimos_2013}. 
+  !#   
+  !#   For the angular mask, we make use of {\normalfont \ttfamily mangle} polygon files provided by I.~Davidzon (private
+  !#   communication) corresponding to the VIPERS fields. The solid angle of each mask is computed using the {\normalfont
+  !#   \ttfamily mangle} {\normalfont \ttfamily harmonize} command.
+  !#   
+  !#   To determine the depth as a function of stellar mass, we make use of the tabulated mass function, $\phi$, and number of
+  !#   galaxies per bin, $N$, supplied by I.~Davidzon (private communication). The effective volume of each bin is found as $V_i =
+  !#   N_i/f_\mathrm{complete}\phi_i\Delta\log_{10}M_\star$, where $\Delta\log_{10}M_\star$ is the width of the bin, and
+  !#   $f_\mathrm{complete}$ is the completeness of the survey, estimated to be approximately 40\% \citep{guzzo_vimos_2013}. These
+  !#   volumes are converted to maximum distances in each field using the survey solid angle. The resulting mass vs. distance
+  !#   relation in each field is fit with a $1^\mathrm{st}$-order polynomial in log-log space over the range where the maximum
+  !#   volume is limited by the survey depth and not by the imposed upper limit to redshift. Figure~\ref{fig:Davidzon2013DepthFit}
+  !#   shows the resulting relation between stellar mass and the maximum distance at which such a galaxy would be included in the
+  !#   sample. Points indicate results from VIPERS, while the lines show polynomial fits:
+  !#   \begin{equation}
+  !#    \log_{10} \left[ {D_\mathrm{max}(M_\star) \over \hbox{Mpc}}\right] = \left\{ \begin{array}{ll} 3.207 + 0.0124m &amp; 0.5 &lt; z &lt;
+  !#    0.6 \\ 3.148 + 0.0268m &amp; 0.6 &lt; z &lt; 0.8 \\ 3.207 + 0.0273m &amp; 0.8 &lt; z &lt; 1.0 \end{array} \right.
+  !#    \label{eq:DavidzonDepthPolynomial}
+  !#   \end{equation}
+  !#   where $m= \log_{10}(M_\star/M_\odot)$. We use this polynomial fit to determine the depth of the sample as a function of
+  !#   stellar mass.
+  !#   
+  !#   \begin{figure}
+  !#    \begin{center}
+  !#    \includegraphics[width=85mm,trim=0mm 0mm 0mm 4mm,clip]{Plots/DataAnalysis/DavidzonVIPERSMassDistanceRelation.pdf}
+  !#    \end{center}
+  !#    \caption{The maximum distance at which a galaxy of given stellar mass can be detected in the sample of
+  !#    \protect\cite{davidzon_vimos_2013}. Points show the results obtained from data provided by Davidzon, while the lines shows
+  !#    a polynomial fit to these results (given in eqn.~\ref{eq:DavidzonDepthPolynomial}). Note that at high masses the distance
+  !#    is limited by the imposed upper limit---the polynomial fit does not consider these points.}
+  !#    \label{fig:Davidzon2013DepthFit}
+  !#   \end{figure}
+  !#  </description>
   !# </surveyGeometry>
   type, extends(surveyGeometryMangle) :: surveyGeometryDavidzon2013VIPERS
      private
@@ -69,8 +103,6 @@ contains
     !#   <name>redshiftBin</name>
     !#   <source>parameters</source>
     !#   <description>The redshift bin (0, 1, 2) of the \cite{davidzon_vimos_2013} mass function to use.</description>
-    !#   <type>integer</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     self=surveyGeometryDavidzon2013VIPERS(redshiftBin,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
@@ -131,7 +163,7 @@ contains
     !% Return the number of fields in this sample.
     implicit none
     class(surveyGeometryDavidzon2013VIPERS), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     davidzon2013VIPERSFieldCount=davidzon2013VIPERSFields
     return
@@ -143,7 +175,7 @@ contains
     class           (surveyGeometryDavidzon2013VIPERS), intent(inout)           :: self
     double precision                                  , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
     integer                                           , intent(in   ), optional :: field
-    !GCC$ attributes unused :: mass, field, magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: mass, field, magnitudeAbsolute, luminosity
 
     davidzon2013VIPERSDistanceMinimum=self%binDistanceMinimum
     return
@@ -157,7 +189,7 @@ contains
     double precision                                  , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
     integer                                           , intent(in   ), optional :: field
     double precision                                                            :: logarithmicMass
-    !GCC$ attributes unused :: field, magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: field, magnitudeAbsolute, luminosity
 
     ! Find the limiting distance for this mass. (See
     ! constraints/dataAnalysis/stellarMassFunctions_VIPERS_z0_1/massDistanceRelation.pl for details.)
@@ -202,13 +234,13 @@ contains
 
   function davidzon2013VIPERSMangleDirectory(self)
     !% Return the path to the directory containing \gls{mangle} files.
-    use :: Galacticus_Paths, only : galacticusPath, pathTypeExec
+    use :: Galacticus_Paths, only : galacticusPath, pathTypeDataStatic
     implicit none
     class(surveyGeometryDavidzon2013VIPERS), intent(inout) :: self
     type (varying_string                  )                :: davidzon2013VIPERSMangleDirectory
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
-    davidzon2013VIPERSMangleDirectory=galacticusPath(pathTypeExec)//"constraints/dataAnalysis/stellarMassFunctions_VIPERS_z0_1/"
+    davidzon2013VIPERSMangleDirectory=galacticusPath(pathTypeDataStatic)//"surveyGeometry/VIPERS/"
     return
   end function davidzon2013VIPERSMangleDirectory
 
@@ -232,7 +264,7 @@ contains
     !% Return the maximum degree for which angular power is computed for the \cite{davidzon_vimos_2013} survey.
     implicit none
     class(surveyGeometryDavidzon2013VIPERS), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     davidzon2013VIPERSAngularPowerMaximumDegree=davidzon2013AngularPowerMaximumL
     return

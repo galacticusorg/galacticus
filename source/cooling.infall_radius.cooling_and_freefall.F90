@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,7 +23,10 @@
   use :: Freefall_Radii, only : freefallRadius, freefallRadiusClass
 
   !# <coolingInfallRadius name="coolingInfallRadiusCoolingFreefall">
-  !#  <description>An infall radius calculation in which the infall radius is the smaller of the cooling and freefall radii.</description>
+  !#  <description>
+  !#   A cooling infall radius class calculation which assumes that the infall radius is equal to the smaller of the cooling and
+  !#   freefall radii (see \refPhysics{coolingRadius} and \refPhysics{freefallRadius}).
+  !#  </description>
   !# </coolingInfallRadius>
   type, extends(coolingInfallRadiusClass) :: coolingInfallRadiusCoolingFreefall
      !% Implementation of an infall radius calculation in which the infall radius is the smaller of the cooling and freefall radii.

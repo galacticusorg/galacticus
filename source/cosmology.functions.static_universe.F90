@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -111,7 +111,7 @@ contains
     logical                                           , intent(in   ), optional :: collapsingIn
     double precision                                  , intent(  out), optional :: expansionFactorOut, timeOut
     logical                                           , intent(  out), optional :: collapsingOut
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Check that we have a uniquely specified epoch.
     if (present(expansionFactorIn)) call Galacticus_Error_Report('time can not be determined from expansion factor'      //{introspection:location})
@@ -148,7 +148,7 @@ contains
     class           (cosmologyFunctionsStaticUniverse), intent(inout)           :: self
     double precision                                  , intent(in   )           :: expansionFactor
     logical                                           , intent(in   ), optional :: collapsingPhase
-    !GCC$ attributes unused :: self, expansionFactor, collapsingPhase
+    !$GLC attributes unused :: self, expansionFactor, collapsingPhase
 
     staticUniverseCosmicTime=0.0d0
     call Galacticus_Error_Report('time can not be determined from expansion factor'//{introspection:location})
@@ -160,7 +160,7 @@ contains
     !% that.
     implicit none
     class(cosmologyFunctionsStaticUniverse), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     staticUniverseTimeBigCrunch=-1.0d0
     return
@@ -171,7 +171,7 @@ contains
     implicit none
     class           (cosmologyFunctionsStaticUniverse), intent(inout) :: self
     double precision                                  , intent(in   ) :: time
-    !GCC$ attributes unused :: self, time
+    !$GLC attributes unused :: self, time
 
     staticUniverseExpansionFactor=1.0d0
     return
@@ -182,7 +182,7 @@ contains
     implicit none
     class           (cosmologyFunctionsStaticUniverse), intent(inout) :: self
     double precision                                  , intent(in   ) :: expansionFactor
-    !GCC$ attributes unused :: self, expansionFactor
+    !$GLC attributes unused :: self, expansionFactor
 
     staticUniverseExpansionRate=0.0d0
     return
@@ -194,7 +194,7 @@ contains
     class           (cosmologyFunctionsStaticUniverse), intent(inout)           :: self
     double precision                                  , intent(in   ), optional :: expansionFactor, time
     logical                                           , intent(in   ), optional :: collapsingPhase
-    !GCC$ attributes unused :: self, time, expansionFactor, collapsingPhase
+    !$GLC attributes unused :: self, time, expansionFactor, collapsingPhase
 
     staticUniverseHubbleParameterEpochal=0.0d0
     return
@@ -206,7 +206,7 @@ contains
     class           (cosmologyFunctionsStaticUniverse), intent(inout)           :: self
     double precision                                  , intent(in   ), optional :: expansionFactor, time
     logical                                           , intent(in   ), optional :: collapsingPhase
-    !GCC$ attributes unused :: self, time, expansionFactor, collapsingPhase
+    !$GLC attributes unused :: self, time, expansionFactor, collapsingPhase
 
     staticUniverseHubbleParameterRateOfChange=0.0d0
     return
@@ -219,7 +219,7 @@ contains
     class           (cosmologyFunctionsStaticUniverse), intent(inout)           :: self
     double precision                                  , intent(in   ), optional :: expansionFactor, time
     logical                                           , intent(in   ), optional :: collapsingPhase
-    !GCC$ attributes unused :: self, time, expansionFactor, collapsingPhase
+    !$GLC attributes unused :: self, time, expansionFactor, collapsingPhase
 
     staticUniverseOmegaMatterEpochal=0.0d0
     call Galacticus_Error_Report('Omega_Matter is undefined in static universe'//{introspection:location})
@@ -232,7 +232,7 @@ contains
     class           (cosmologyFunctionsStaticUniverse), intent(inout)           :: self
     double precision                                  , intent(in   ), optional :: expansionFactor, time
     logical                                           , intent(in   ), optional :: collapsingPhase
-    !GCC$ attributes unused :: self, time, expansionFactor, collapsingPhase
+    !$GLC attributes unused :: self, time, expansionFactor, collapsingPhase
 
     staticUniverseMatterDensityEpochal=self%cosmologyParameters_%omegaMatter()*self%cosmologyParameters_%densityCritical()
     return
@@ -245,7 +245,7 @@ contains
     class           (cosmologyFunctionsStaticUniverse), intent(inout)           :: self
     double precision                                  , intent(in   ), optional :: expansionFactor, time
     logical                                           , intent(in   ), optional :: collapsingPhase
-    !GCC$ attributes unused :: self, time, expansionFactor, collapsingPhase
+    !$GLC attributes unused :: self, time, expansionFactor, collapsingPhase
 
     staticUniverseOmegaMatterRateOfChange=0.0d0
     call Galacticus_Error_Report('Omega_Matter is undefined in static universe'//{introspection:location})
@@ -259,7 +259,7 @@ contains
     class           (cosmologyFunctionsStaticUniverse), intent(inout)           :: self
     double precision                                  , intent(in   ), optional :: expansionFactor, time
     logical                                           , intent(in   ), optional :: collapsingPhase
-    !GCC$ attributes unused :: self, time, expansionFactor, collapsingPhase
+    !$GLC attributes unused :: self, time, expansionFactor, collapsingPhase
 
     staticUniverseOmegaDarkEnergyEpochal=0.0d0
     call Galacticus_Error_Report('Omega_DarkEnergy is undefined in static universe'//{introspection:location})
@@ -273,7 +273,7 @@ contains
     class           (cosmologyFunctionsStaticUniverse), intent(inout)           :: self
     double precision                                  , intent(in   ), optional :: expansionFactor      , time
     logical                                           , intent(in   ), optional :: collapsingPhase
-    !GCC$ attributes unused :: self, time, expansionFactor, collapsingPhase
+    !$GLC attributes unused :: self, time, expansionFactor, collapsingPhase
 
     staticUniverseTemperatureCMBEpochal=self%cosmologyParameters_%temperatureCMB()
     return
@@ -286,7 +286,7 @@ contains
     double precision                                  , intent(in   )           :: dominateFactor
     double precision                                  , intent(  out)           :: densityPower  , expansionFactorDominant
     double precision                                  , intent(  out), optional :: OmegaDominant
-    !GCC$ attributes unused :: self, dominateFactor, densityPower, expansionFactorDominant, OmegaDominant
+    !$GLC attributes unused :: self, dominateFactor, densityPower, expansionFactorDominant, OmegaDominant
 
     densityPower           =0.0d0
     expansionFactorDominant=0.0d0
@@ -300,7 +300,7 @@ contains
     implicit none
     class           (cosmologyFunctionsStaticUniverse), intent(inout) :: self
     double precision                                  , intent(in   ) :: dominateFactor
-    !GCC$ attributes unused :: self, dominateFactor
+    !$GLC attributes unused :: self, dominateFactor
 
     staticUniverseDominationEpochMatter=0.0d0
     call Galacticus_Error_Report('epochs are undefined in static universe'//{introspection:location})
@@ -313,7 +313,7 @@ contains
     implicit none
     class  (cosmologyFunctionsStaticUniverse), intent(inout)           :: self
     integer                                  , intent(in   ), optional :: requestType
-    !GCC$ attributes unused :: self, requestType
+    !$GLC attributes unused :: self, requestType
 
     staticUniverseEqualityEpochMatterDarkEnergy=0.0d0
     call Galacticus_Error_Report('epochs are undefined in static universe'//{introspection:location})
@@ -326,7 +326,7 @@ contains
     implicit none
     class  (cosmologyFunctionsStaticUniverse), intent(inout)           :: self
     integer                                  , intent(in   ), optional :: requestType
-    !GCC$ attributes unused :: self, requestType
+    !$GLC attributes unused :: self, requestType
 
     staticUniverseEqualityEpochMatterCurvature=0.0d0
     call Galacticus_Error_Report('epochs are undefined in static universe'//{introspection:location})
@@ -339,7 +339,7 @@ contains
     implicit none
     class  (cosmologyFunctionsStaticUniverse), intent(inout)           :: self
     integer                                  , intent(in   ), optional :: requestType
-    !GCC$ attributes unused :: self, requestType
+    !$GLC attributes unused :: self, requestType
 
     staticUniverseEqualityEpochMatterRadiation=0.0d0
     call Galacticus_Error_Report('epochs are undefined in static universe'//{introspection:location})
@@ -352,7 +352,7 @@ contains
     implicit none
     class           (cosmologyFunctionsStaticUniverse), intent(inout) :: self
     double precision                                  , intent(in   ) :: comovingDistance
-    !GCC$ attributes unused :: self, comovingDistance
+    !$GLC attributes unused :: self, comovingDistance
 
     staticUniverseTimeAtDistanceComoving=0.0d0
     call Galacticus_Error_Report('absolute times are undefined in static universe'//{introspection:location})
@@ -365,7 +365,7 @@ contains
     implicit none
     class           (cosmologyFunctionsStaticUniverse), intent(inout) :: self
     double precision                                  , intent(in   ) :: time
-    !GCC$ attributes unused :: self, time
+    !$GLC attributes unused :: self, time
 
     staticUniverseDistanceComoving=0.0d0
     call Galacticus_Error_Report('absolute times are undefined in static universe'//{introspection:location})
@@ -407,7 +407,7 @@ contains
          &                                                                         redshift           , distanceLuminosity
     logical                                                                     :: gotComovingDistance
     double precision                                                            :: comovingDistance
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Convert to comoving distance from whatever was supplied.
     gotComovingDistance=.false.
@@ -441,7 +441,7 @@ contains
     implicit none
     class           (cosmologyFunctionsStaticUniverse), intent(inout)           :: self
     double precision                                , intent(in   ), optional :: expansionFactor, time
-    !GCC$ attributes unused :: self, time, expansionFactor
+    !$GLC attributes unused :: self, time, expansionFactor
 
     staticUniverseEquationOfStateDarkEnergy=-1.0d0
     return
@@ -452,7 +452,7 @@ contains
     implicit none
     class           (cosmologyFunctionsStaticUniverse), intent(inout)           :: self
     double precision                                  , intent(in   ), optional :: expansionFactor, time
-    !GCC$ attributes unused :: self, time, expansionFactor
+    !$GLC attributes unused :: self, time, expansionFactor
 
     staticUniverseExponentDarkEnergy=0.0d0
     return

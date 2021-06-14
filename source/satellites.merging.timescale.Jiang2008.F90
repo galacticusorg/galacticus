@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,7 +23,16 @@
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
 
   !# <satelliteMergingTimescales name="satelliteMergingTimescalesJiang2008">
-  !#  <description>Computes the merging timescale using the method of \cite{jiang_fitting_2008}.</description>
+  !#  <description>
+  !#   A satellite merging timescales class which computes merging timescales using the dynamical friction calibration of
+  !#   \cite{jiang_fitting_2008}. \cite{jiang_fitting_2008} find that their fitting formula does not perfectly capture the results
+  !#   of N-body simulations, instead showing a scatter in the ratio $T_\mathrm{fit}/T_\mathrm{sim}$ where $T_\mathrm{fit}$ is the
+  !#   merging time from their fitting formula and $T_\mathrm{sim}$ is that measured from their N-body simulation. Furthermore,
+  !#   they show that the distribution of $T_\mathrm{fit}/T_\mathrm{sim}$ is well described by a log-normal with dispersion (in
+  !#   $\log[T_\mathrm{fit}/T_\mathrm{sim}]$) of $\sigma=0.4$. Random perturbations can be applied to the merger times returned by
+  !#   this implementation by setting $\sigma=${\normalfont \ttfamily [scatter]}$>0$ which will cause the merger time to be drawn
+  !#   from a log-normal distribution of width $\sigma$ with median equal to $T_\mathrm{fit}$.
+  !#  </description>
   !# </satelliteMergingTimescales>
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesJiang2008
      !% A class implementing the \cite{jiang_fitting_2008} method for satellite merging timescales.
@@ -61,20 +70,15 @@ contains
     if (.not.defaultBasicComponent%massIsGettable()) call Galacticus_Error_Report('this method requires that the "mass" property of the basic component be gettable'//{introspection:location})
     !# <inputParameter>
     !#   <name>timescaleMultiplier</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.75d0</defaultValue>
     !#   <description>A multiplier for the merging timescale in dynamical friction timescale calculations.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>scatter</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>Specifies whether or not to add random scatter to the dynamical friction timescales in the {\normalfont \ttfamily Jiang2008} satellite merging time implementation.</description>
-    !#   <group>starFormation</group>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
@@ -128,7 +132,11 @@ contains
          &                                                                  velocityScale
 
     ! Find the host node.
-    nodeHost => node%parent
+    if (node%isSatellite()) then
+       nodeHost => node%parent
+    else
+       nodeHost => node%parent%firstChild
+    end if
     ! Get the equivalent circular orbit.
     equivalentCircularOrbitRadius=Satellite_Orbit_Equivalent_Circular_Orbit_Radius(nodeHost,orbit,self%darkMatterHaloScale_,self%darkMatterProfileDMO_,errorCode)
     ! Check error codes.
@@ -151,12 +159,17 @@ contains
     orbitalCircularity= orbit%angularMomentum()                                                             &
          &             /equivalentCircularOrbitRadius                                                       &
          &             /self%darkMatterProfileDMO_%circularVelocity(nodeHost,equivalentCircularOrbitRadius)
-    ! Compute mass ratio (mass in host [not including satellite] divided by mass in satellite).
+    ! Compute mass ratio (mass in host [not including satellite if the node is already a satellite] divided by mass in satellite).
     basic     =>  node     %basic()
     basicHost =>  nodeHost %basic()
-    massRatio =  +basicHost%mass () &
-         &       /basic    %mass () &
-         &       -1.0d0
+    if (node%isSatellite()) then
+       massRatio=+basicHost%mass () &
+            &    /basic    %mass () &
+            &    -1.0d0
+    else
+       massRatio=+basicHost%mass () &
+            &    /basic    %mass ()
+    end if
     ! Check for a non-zero mass ratio.
     if (massRatio <= 0.0d0) then
        ! Assume zero merging time as the satellite is as massive as the host.

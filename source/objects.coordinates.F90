@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -36,39 +36,13 @@ module Coordinates
      !% The base coordinate object class.
      double precision :: position(3)
    contains
-     !@ <objectMethods>
-     !@   <object>coordinate</object>
-     !@   <objectMethod>
-     !@     <method>toCartesian</method>
-     !@     <description>Return the coordinates in a Cartesian system as a 3-element array.</description>
-     !@     <type>\textcolor{red}{\textless double(3)\textgreater} </type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>fromCartesian</method>
-     !@     <description>Set the coordinates from a Cartesian system specified as a 3-element array.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless double(3)\textgreater} x\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>rCylindrical</method>
-     !@     <description>Return the cylindrical radial coordinate.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>rSpherical</method>
-     !@     <description>Return the spherical radial coordinate.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>rSphericalSquared</method>
-     !@     <description>Return the square of the spherical radial coordinate.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return the coordinates in a Cartesian system as a 3-element array." method="toCartesian" />
+     !#   <method description="Set the coordinates from a Cartesian system specified as a 3-element array." method="fromCartesian" />
+     !#   <method description="Return the cylindrical radial coordinate." method="rCylindrical" />
+     !#   <method description="Return the spherical radial coordinate." method="rSpherical" />
+     !#   <method description="Return the square of the spherical radial coordinate." method="rSphericalSquared" />
+     !# </methods>
      procedure                                      :: toCartesian       => Coordinates_Null_To
      procedure                                      :: fromCartesian     => Coordinates_Null_From
      procedure                                      :: rCylindrical      => Coordinates_Radius_Cylindrical
@@ -79,45 +53,14 @@ module Coordinates
   type, public, extends(coordinate) :: coordinateCartesian
      !% A Cartesian coordinate object class.
    contains
-     !@ <objectMethods>
-     !@   <object>coordinateCartesian</object>
-     !@   <objectMethod>
-     !@     <method>x</method>
-     !@     <description>Get the $x$-coordinate.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>y</method>
-     !@     <description>Get the $y$-coordinate.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>z</method>
-     !@     <description>Get the $z$-coordinate.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>xSet</method>
-     !@     <description>set the $x$-coordinate.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ x\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>ySet</method>
-     !@     <description>set the $y$-coordinate.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ y\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>zSet</method>
-     !@     <description>set the $z$-coordinate.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ z\argin</arguments>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Get the $x$-coordinate." method="x" />
+     !#   <method description="Get the $y$-coordinate." method="y" />
+     !#   <method description="Get the $z$-coordinate." method="z" />
+     !#   <method description="set the $x$-coordinate." method="xSet" />
+     !#   <method description="set the $y$-coordinate." method="ySet" />
+     !#   <method description="set the $z$-coordinate." method="zSet" />
+     !# </methods>
      procedure :: toCartesian       => Coordinates_Cartesian_To_Cartesian
      procedure :: fromCartesian     => Coordinates_Cartesian_From_Cartesian
      procedure :: x                 => Coordinates_Cartesian_X
@@ -132,45 +75,14 @@ module Coordinates
   type, public, extends(coordinate) :: coordinateSpherical
      !% A spherical coordinate object class.
    contains
-     !@ <objectMethods>
-     !@   <object>coordinateSpherical</object>
-     !@   <objectMethod>
-     !@     <method>r</method>
-     !@     <description>Get the $r$-coordinate.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>theta</method>
-     !@     <description>Get the $\theta$-coordinate.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>phi</method>
-     !@     <description>Get the $\phi$-coordinate.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>rSet</method>
-     !@     <description>set the $r$-coordinate.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ r\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>thetaSet</method>
-     !@     <description>set the $\theta$-coordinate.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ theta\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>phiSet</method>
-     !@     <description>set the $\phi$-coordinate.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ phi\argin</arguments>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Get the $r$-coordinate." method="r" />
+     !#   <method description="Get the $\theta$-coordinate." method="theta" />
+     !#   <method description="Get the $\phi$-coordinate." method="phi" />
+     !#   <method description="set the $r$-coordinate." method="rSet" />
+     !#   <method description="set the $\theta$-coordinate." method="thetaSet" />
+     !#   <method description="set the $\phi$-coordinate." method="phiSet" />
+     !# </methods>
      procedure :: toCartesian       => Coordinates_Spherical_To_Cartesian
      procedure :: fromCartesian     => Coordinates_Spherical_From_Cartesian
      procedure :: r                 => Coordinates_Spherical_R
@@ -186,45 +98,14 @@ module Coordinates
   type, public, extends(coordinate) :: coordinateCylindrical
      !% A cylindrical coordinate object class.
    contains
-     !@ <objectMethods>
-     !@   <object>coordinateCylindrical</object>
-     !@   <objectMethod>
-     !@     <method>r</method>
-     !@     <description>Get the $r$-coordinate.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>phi</method>
-     !@     <description>Get the $\phi$-coordinate.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>z</method>
-     !@     <description>Get the $z$-coordinate.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>rSet</method>
-     !@     <description>set the $r$-coordinate.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ r\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>phiSet</method>
-     !@     <description>set the $\phi$-coordinate.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ phi\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>zSet</method>
-     !@     <description>set the $z$-coordinate.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ z\argin</arguments>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Get the $r$-coordinate." method="r" />
+     !#   <method description="Get the $\phi$-coordinate." method="phi" />
+     !#   <method description="Get the $z$-coordinate." method="z" />
+     !#   <method description="set the $r$-coordinate." method="rSet" />
+     !#   <method description="set the $\phi$-coordinate." method="phiSet" />
+     !#   <method description="set the $z$-coordinate." method="zSet" />
+     !# </methods>
      procedure :: toCartesian       => Coordinates_Cylindrical_To_Cartesian
      procedure :: fromCartesian     => Coordinates_Cylindrical_From_Cartesian
      procedure :: r                 => Coordinates_Cylindrical_R
@@ -251,7 +132,7 @@ contains
     implicit none
     class           (coordinate)              , intent(  out) :: self
     double precision            , dimension(3), intent(in   ) :: x
-    !GCC$ attributes unused :: self, x
+    !$GLC attributes unused :: self, x
 
     call Galacticus_Error_Report('no transformation from cartesian coordinates defined'//{introspection:location})
     return
@@ -263,7 +144,7 @@ contains
     implicit none
     class           (coordinate), intent(in   ) :: self
     double precision            , dimension(3)  :: Coordinates_Null_To
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     Coordinates_Null_To=0.0d0
     call Galacticus_Error_Report('no transformation to cartesian coordinates defined'//{introspection:location})

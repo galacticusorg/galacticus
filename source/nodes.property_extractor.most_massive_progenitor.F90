@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,10 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an ISM mass output analysis property extractor class.
+!% Contains a module which implements a node property extractor for the most massive progenitor.
 
   !# <nodePropertyExtractor name="nodePropertyExtractorMostMassiveProgenitor">
-  !#  <description>An ISM mass output analysis property extractor class.</description>
+  !#  <description>
+  !#   A node property extractor class which extracts a value of $1$ for the most massive progenitor node in a tree at each output
+  !#   time and $0$ for all other nodes.
+  !#  </description>
   !# </nodePropertyExtractor>
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorMostMassiveProgenitor
      !% A node property extractor for most massive progenitor status.
@@ -48,7 +51,7 @@ contains
     implicit none
     type(nodePropertyExtractorMostMassiveProgenitor)                :: self
     type(inputParameters                           ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=nodePropertyExtractorMostMassiveProgenitor()
     return
@@ -79,7 +82,7 @@ contains
     class           (nodeComponentBasic                        ), pointer                 :: basicCurrent
     type            (mergerTreeWalkerIsolatedNodes             )                          :: treeWalker
     double precision                                                                      :: massMostMassiveProgenitor
-    !GCC$ attributes unused :: self, instance
+    !$GLC attributes unused :: self, instance
 
     ! Find the root node in the tree.
     nodeCurrent => node
@@ -115,7 +118,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorMostMassiveProgenitor), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     mostMassiveProgenitorType=outputAnalysisPropertyTypeLinear
     return
@@ -126,7 +129,7 @@ contains
     implicit none
     type (varying_string                            )                :: mostMassiveProgenitorName
     class(nodePropertyExtractorMostMassiveProgenitor), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     mostMassiveProgenitorName=var_str('isMostMassiveProgenitor')
     return
@@ -137,7 +140,7 @@ contains
     implicit none
     type (varying_string                            )                :: mostMassiveProgenitorDescription
     class(nodePropertyExtractorMostMassiveProgenitor), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     mostMassiveProgenitorDescription=var_str('Flag indicating if this node is the most massive progenitor in its tree at this time.')
     return

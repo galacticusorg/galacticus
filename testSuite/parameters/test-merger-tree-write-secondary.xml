@@ -17,7 +17,7 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <mergerTreeConstructorMethod value="read">
+    <mergerTreeConstructor value="read">
       <fileNames value="testSuite/outputs/test-merger-tree-write/exportedTreesGLC.hdf5"/>
       <presetSubhaloIndices value="false"/>
       <presetOrbits value="false"/>
@@ -27,6 +27,6 @@
       <presetPositions value="false"/>
       <presetScaleRadii value="false"/>
       <presetSpins value="false"/>
-    </mergerTreeConstructorMethod>
+    </mergerTreeConstructor>
   </parameters>
 </parameterGrid>

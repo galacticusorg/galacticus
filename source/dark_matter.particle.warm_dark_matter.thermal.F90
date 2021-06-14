@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -28,29 +28,12 @@
      !% A thermal warm dark matter particle class.
      private
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
-     double precision                                    :: massValue           , degreesOfFreedomEffectiveValue
+     double precision                                    :: massValue                     , degreesOfFreedomEffectiveValue
    contains
-     !@ <objectMethods>
-     !@   <object>darkMatterParticleWDMThermal</object>
-     !@   <objectMethod>
-     !@     <method>mass</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return the mass of the thermal wark dark matter particle in units of keV.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>degreesOfFreedomEffective</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return the effective number of degrees of freedom of the thermal wark dark matter particle.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>degreesOfFreedomEffectiveDecoupling</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return the effective number of relativisitc degrees of freedom in the universe at the time at which the thermal wark dark matter particle decoupled.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return the effective number of degrees of freedom of the thermal wark dark matter particle." method="degreesOfFreedomEffective" />
+     !#   <method description="Return the effective number of relativisitc degrees of freedom in the universe at the time at which the thermal wark dark matter particle decoupled." method="degreesOfFreedomEffectiveDecoupling" />
+     !# </methods>
      final     ::                                        wdmThermalDestructor
      procedure :: mass                                => wdmThermalMass
      procedure :: degreesOfFreedomEffective           => wdmThermalDegreesOfFreedomEffective
@@ -80,8 +63,6 @@ contains
     !#   <variable>massValue</variable>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The mass (in keV) of the theral warm dark matter particle.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>degreesOfFreedomEffective</name>
@@ -89,8 +70,6 @@ contains
     !#   <variable>degreesOfFreedomEffectiveValue</variable>
     !#   <defaultValue>1.5d0</defaultValue>
     !#   <description>The effective number of degrees of freedom for the thermal warm dark matter particle.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     self=darkMatterParticleWDMThermal(massValue,degreesOfFreedomEffectiveValue,cosmologyParameters_)
@@ -124,7 +103,7 @@ contains
   double precision function wdmThermalMass(self)
     !% Return the mass, in units of keV, of a thermal warm dark matter particle.
     implicit none
-    class(darkMatterParticleWDMThermal), intent(in   ) :: self
+    class(darkMatterParticleWDMThermal), intent(inout) :: self
 
     wdmThermalMass=self%massValue
     return
@@ -133,7 +112,7 @@ contains
   double precision function wdmThermalDegreesOfFreedomEffective(self)
     !% Return the effective number of degrees of freedom of a thermal warm dark matter particle.
     implicit none
-    class(darkMatterParticleWDMThermal), intent(in   ) :: self
+    class(darkMatterParticleWDMThermal), intent(inout) :: self
 
     wdmThermalDegreesOfFreedomEffective=self%degreesOfFreedomEffectiveValue
     return
@@ -146,16 +125,16 @@ contains
     !% \citep[][eqn.~17]{hogan_warm_1999}.
     use :: Cosmology_Parameters, only : hubbleUnitsLittleH
     implicit none
-    class(darkMatterParticleWDMThermal), intent(in   ) :: self
+    class(darkMatterParticleWDMThermal), intent(inout) :: self
 
     wdmThermalDegreesOfFreedomEffectiveDecoupling=+78.3d0                                                                      &
          &                                        *  self                     %degreesOfFreedomEffective(                  )   &
          &                                        *  self                     %mass                     (                  )   &
          &                                        /(                                                                           &
-         &                                          +self%cosmologyParameters_%OmegaMatter             (                  )    &
-         &                                          -self%cosmologyParameters_%OmegaBaryon             (                  )    &
+         &                                          +self%cosmologyParameters_%OmegaMatter              (                  )   &
+         &                                          -self%cosmologyParameters_%OmegaBaryon              (                  )   &
          &                                        )                                                                            &
-         &                                        /  self%cosmologyParameters_%HubbleConstant          (hubbleUnitsLittleH)**2
+         &                                        /  self%cosmologyParameters_%HubbleConstant           (hubbleUnitsLittleH)**2
     return
   end function wdmThermalDegreesOfFreedomEffectiveDecoupling
 

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +22,10 @@
   !% An implementation of multiple dark matter halo profiles which allow different profiles for the host and the satellite.
 
   !# <darkMatterProfileDMO name="darkMatterProfileDMOMultiple">
-  !#  <description>Multiple dark matter halo profiles.</description>
+  !#  <description>
+  !#   A dark matter profile DMO class in which the density profiles of the host halo and the satellite halo can be set separately
+  !#   to any other {\normalfont \ttfamily darkMatterProfileDMO} available.
+  !#  </description>
   !# </darkMatterProfileDMO>
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOMultiple
      !% A dark matter halo profile class implementing multiple dark matter halos which allow different profiles for the host and the satellite.
@@ -38,6 +41,7 @@
      procedure :: enclosedMass                      => multipleEnclosedMass
      procedure :: potential                         => multiplePotential
      procedure :: circularVelocity                  => multipleCircularVelocity
+     procedure :: radiusCircularVelocityMaximum     => multipleRadiusCircularVelocityMaximum
      procedure :: circularVelocityMaximum           => multipleCircularVelocityMaximum
      procedure :: radialVelocityDispersion          => multipleRadialVelocityDispersion
      procedure :: radiusFromSpecificAngularMomentum => multipleRadiusFromSpecificAngularMomentum
@@ -64,8 +68,8 @@ contains
     type   (inputParameters             ), intent(inout) :: parameters
     class  (darkMatterProfileDMOClass   ), pointer       :: darkMatterProfileDMOHost_, darkMatterProfileDMOSatellite_
 
-    !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMOHost_"      parameterName="darkMatterProfileDMOHostMethod"      source="parameters"/>
-    !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMOSatellite_" parameterName="darkMatterProfileDMOSatelliteMethod" source="parameters"/>
+    !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMOHost_"      parameterName="darkMatterProfileDMOHost"      source="parameters"/>
+    !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMOSatellite_" parameterName="darkMatterProfileDMOSatellite" source="parameters"/>
     self=darkMatterProfileDMOMultiple(darkMatterProfileDMOHost_,darkMatterProfileDMOSatellite_)
     !# <objectDestructor name="darkMatterProfileDMOHost_"     />
     !# <objectDestructor name="darkMatterProfileDMOSatellite_"/>
@@ -222,6 +226,20 @@ contains
     return
   end function multipleCircularVelocity
 
+  double precision function multipleRadiusCircularVelocityMaximum(self,node)
+    !% Returns the radius (in Mpc) at which the maximum circular velocity is achieved in the dark matter profile of {\normalfont \ttfamily node}.
+    implicit none
+    class(darkMatterProfileDMOMultiple), intent(inout) :: self
+    type (treeNode                    ), intent(inout) :: node
+
+    if (node%isSatellite()) then
+       multipleRadiusCircularVelocityMaximum=self%darkMatterProfileDMOSatellite_%radiusCircularVelocityMaximum(node)
+    else
+       multipleRadiusCircularVelocityMaximum=self%darkMatterProfileDMOHost_     %radiusCircularVelocityMaximum(node)
+    end if
+    return
+  end function multipleRadiusCircularVelocityMaximum
+
   double precision function multipleCircularVelocityMaximum(self,node)
     !% Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}.
     implicit none
@@ -256,9 +274,9 @@ contains
     !% Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentum} (given
     !% in units of km s$^{-1}$ Mpc).
     implicit none
-    class           (darkMatterProfileDMOMultiple), intent(inout)          :: self
-    type            (treeNode                    ), intent(inout), pointer :: node
-    double precision                              , intent(in   )          :: specificAngularMomentum
+    class           (darkMatterProfileDMOMultiple), intent(inout) :: self
+    type            (treeNode                    ), intent(inout) :: node
+    double precision                              , intent(in   ) :: specificAngularMomentum
 
     if (node%isSatellite()) then
        multipleRadiusFromSpecificAngularMomentum=self%darkMatterProfileDMOSatellite_%radiusFromSpecificAngularMomentum(node,specificAngularMomentum)
@@ -330,9 +348,9 @@ contains
     !% Returns the freefall radius in the multiple density profile at the specified {\normalfont \ttfamily time} (given in
     !% Gyr).
     implicit none
-    class           (darkMatterProfileDMOMultiple), intent(inout) :: self
-    type            (treeNode                    ), intent(inout) :: node
-    double precision                              , intent(in   ) :: time
+    class           (darkMatterProfileDMOMultiple), intent(inout), target :: self
+    type            (treeNode                    ), intent(inout), target :: node
+    double precision                              , intent(in   )         :: time
 
     if (node%isSatellite()) then
        multipleFreefallRadius=self%darkMatterProfileDMOSatellite_%freefallRadius(node,time)
@@ -346,9 +364,9 @@ contains
     !% Returns the rate of increase of the freefall radius in the multiple density profile at the specified {\normalfont
     !% \ttfamily time} (given in Gyr).
     implicit none
-    class           (darkMatterProfileDMOMultiple), intent(inout) :: self
-    type            (treeNode                    ), intent(inout) :: node
-    double precision                              , intent(in   ) :: time
+    class           (darkMatterProfileDMOMultiple), intent(inout), target :: self
+    type            (treeNode                    ), intent(inout), target :: node
+    double precision                              , intent(in   )         :: time
 
     if (node%isSatellite()) then
        multipleFreefallRadiusIncreaseRate=self%darkMatterProfileDMOSatellite_%freefallRadiusIncreaseRate(node,time)

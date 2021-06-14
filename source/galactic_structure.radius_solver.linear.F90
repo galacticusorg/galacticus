@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,7 +23,16 @@
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScale, darkMatterHaloScaleClass
 
   !# <galacticStructureSolver name="galacticStructureSolverLinear">
-  !#  <description>A ``linear'' solver for galactic structure (no self-gravity of baryons, and size simply scales in proportion to specific angular momentum).</description>
+  !#  <description>
+  !#   A galactic structure solver class that determines the sizes of galactic components by assuming that radius scales linearly
+  !#   with specific angular momentum such that
+  !#   \begin{equation}
+  !#    r = r_\mathrm{vir} j/j_\mathrm{vir}
+  !#   \end{equation}
+  !#   where $j$ is the specific angular momentum of the \gls{component} (at whatever point in the profile is to be solved for),
+  !#   $r$ is radius, $r_\mathrm{vir}$ is the virial radius of the \gls{node} and $j_\mathrm{vir}= r_\mathrm{vir} v_\mathrm{vir}$
+  !#   with $v_\mathrm{vir}$ being the virial velocity of the \gls{node}.
+  !#  </description>
   !# </galacticStructureSolver>
   type, extends(galacticStructureSolverClass) :: galacticStructureSolverLinear
      !% Implementation of a ``linear'' solver for galactic structure (no self-gravity of baryons, and size simply scales in
@@ -124,7 +133,7 @@ contains
     class  (*       ), intent(inout)         :: self
     type   (treeNode), intent(inout), target :: node
     integer          , intent(in   )         :: propertyType
-    !GCC$ attributes unused :: propertyType
+    !$GLC attributes unused :: propertyType
 
     select type (self)
     type is (galacticStructureSolverLinear)
@@ -166,7 +175,7 @@ contains
       procedure       (solverGet), intent(in   ), pointer :: radiusGet              , velocityGet
       procedure       (solverSet), intent(in   ), pointer :: radiusSet              , velocitySet
       double precision                                    :: radius                 , velocity
-      !GCC$ attributes unused :: radiusGet, velocityGet
+      !$GLC attributes unused :: radiusGet, velocityGet
 
       ! Return immediately if the specific angular momentum is zero.
       if (specificAngularMomentum <= 0.0d0) return
@@ -186,7 +195,7 @@ contains
     implicit none
     class(galacticStructureSolverLinear), intent(inout) :: self
     type (treeNode                     ), intent(inout) :: node
-    !GCC$ attributes unused :: self, node
+    !$GLC attributes unused :: self, node
 
     return
   end subroutine linearRevert

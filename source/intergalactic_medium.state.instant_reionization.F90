@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -70,8 +70,6 @@ contains
        !#   <source>parameters</source>
        !#   <variable>electronScatteringOpticalDepth</variable>
        !#   <description>The optical depth to reaionization in the instantReionization \gls{igm} state model.</description>
-       !#   <type>real</type>
-       !#   <cardinality>1</cardinality>
        !# </inputParameter>
      else
        haveReionizationRedshift=.true.
@@ -82,8 +80,6 @@ contains
        !#   <defaultValue>9.97d0</defaultValue>
        !#   <defaultSource>(\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultSource>
        !#   <description>The redshift of reionization in the instantReionization \gls{igm} state model.</description>
-       !#   <type>real</type>
-       !#   <cardinality>1</cardinality>
        !# </inputParameter>
     end if
     !# <inputParameter>
@@ -92,8 +88,6 @@ contains
     !#   <variable>reionizationTemperature</variable>
     !#   <defaultValue>1.0d4</defaultValue>
     !#   <description>The post-reionization temperature (in units of Kelvin) in the instantReionization \gls{igm} state model.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>presentDayTemperature</name>
@@ -101,8 +95,6 @@ contains
     !#   <variable>presentDayTemperature</variable>
     !#   <defaultValue>1.0d3</defaultValue>
     !#   <description>The present day temperature (in units of Kelvin) in the instantReionization \gls{igm} state model.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="intergalacticMediumState" name="preReionizationState" source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"  source="parameters"/>
@@ -167,23 +159,17 @@ contains
             &                                                                  reionizationRedshiftCanonical &
             &                                                                 )                              &
             &                                                                )
-       if (.not.finder%isInitialized()) then
-          call finder%rootFunction(                                                             &
-               &                   opticalDepth                                                 &
-               &                  )
-          call finder%tolerance   (                                                             &
-               &                   toleranceAbsolute            =1.0d-3                       , &
-               &                   toleranceRelative            =1.0d-3                         &
-               &                  )
-          call finder%rangeExpand (                                                             &
-               &                   rangeExpandDownward          =0.5d0                        , &
-               &                   rangeExpandUpward            =2.0d0                        , &
-               &                   rangeExpandType              =rangeExpandMultiplicative    , &
-               &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
-               &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
-               &                   rangeUpwardLimit             =timePresent                    &
-               &                  )
-       end if
+       finder=rootFinder(                                                             &
+            &            rootFunction                 =opticalDepth                 , &
+            &            toleranceAbsolute            =1.0d-3                       , &
+            &            toleranceRelative            =1.0d-3                       , &
+            &            rangeExpandDownward          =0.5d0                        , &
+            &            rangeExpandUpward            =2.0d0                        , &
+            &            rangeExpandType              =rangeExpandMultiplicative    , &
+            &            rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
+            &            rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
+            &            rangeUpwardLimit             =timePresent                    &
+            &           )
        self%reionizationTime=finder%find(rootGuess=timeReionizationGuess)
        ! Unset electron scattering table initialization state to force it to be recomputed now that we have the correct
        ! reionization epoch.
@@ -310,18 +296,18 @@ contains
     return
   end function instantReionizationTemperature
 
-  subroutine instantReionizationDescriptor(self,descriptor,includeMethod)
+  subroutine instantReionizationDescriptor(self,descriptor,includeClass)
     !% Return an input parameter list descriptor which could be used to recreate this object.
     use :: Input_Parameters, only : inputParameters
     implicit none
     class    (intergalacticMediumStateInstantReionization), intent(inout)           :: self
     type     (inputParameters                            ), intent(inout)           :: descriptor
-    logical                                               , intent(in   ), optional :: includeMethod
+    logical                                               , intent(in   ), optional :: includeClass
     character(len=18                                     )                          :: parameterLabel
     type     (inputParameters                            )                          :: parameters
 
-    if (.not.present(includeMethod).or.includeMethod) call descriptor%addParameter('intergalacticMediumStateMethod','instantReionization')
-    parameters=descriptor%subparameters('intergalacticMediumStateMethod')
+    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter('intergalacticMediumState','instantReionization')
+    parameters=descriptor%subparameters('intergalacticMediumState')
     write (parameterLabel,'(e17.10)') self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(self%reionizationTime       ))
     call parameters%addParameter('reionizationRedshift'   ,trim(adjustl(parameterLabel)))
     write (parameterLabel,'(e17.10)')                                                                                               self%reionizationTemperature

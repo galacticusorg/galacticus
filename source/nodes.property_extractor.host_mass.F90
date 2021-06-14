@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -46,7 +46,7 @@ contains
     implicit none
     type(nodePropertyExtractorMassHost)                :: self
     type(inputParameters              ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=nodePropertyExtractorMassHost()
     return
@@ -61,7 +61,7 @@ contains
     type            (multiCounter                 ), intent(inout), optional :: instance
     type            (treeNode                     ), pointer                 :: nodeHost
     class           (nodeComponentBasic           ), pointer                 :: basicHost
-    !GCC$ attributes unused :: self, instance
+    !$GLC attributes unused :: self, instance
 
     if (node%isSatellite()) then
        nodeHost        => node     %parent
@@ -78,7 +78,7 @@ contains
     implicit none
     type (varying_string               )                :: massHostName
     class(nodePropertyExtractorMassHost), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     massHostName=var_str('satelliteHostHaloMass')
     return
@@ -89,7 +89,7 @@ contains
     implicit none
     type (varying_string               )                :: massHostDescription
     class(nodePropertyExtractorMassHost), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     massHostDescription=var_str("Mass of the satellite's host halo [M☉].")
     return
@@ -100,7 +100,7 @@ contains
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
     class(nodePropertyExtractorMassHost), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     massHostUnitsInSI=massSolar
     return
@@ -111,7 +111,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorMassHost), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     massHostType=outputAnalysisPropertyTypeLinear
     return

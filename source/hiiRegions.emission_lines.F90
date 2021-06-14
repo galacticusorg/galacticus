@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -58,8 +58,8 @@ contains
   subroutine emissionLineDatabaseInitialize()
     !% Initialize a database of emission line properties.
     use :: Galacticus_Paths  , only : galacticusPath, pathTypeDataStatic
-    use :: IO_HDF5           , only : hdf5Object
-    use :: ISO_Varying_String, only : char
+    use :: IO_HDF5           , only : hdf5Object    , hdf5Access
+    use :: ISO_Varying_String, only : char          , operator(==)
     implicit none
     type   (hdf5Object) :: file   , lines, &
          &                 dataset
@@ -68,18 +68,23 @@ contains
     if (.not.databaseInitialized) then
        !$omp critical (emissionLineDatabaseInitialize)
        if (.not.databaseInitialized) then
-          !$omp critical (HDF5_Access)
+          !$ call hdf5Access%set()
           call file%openFile(char(galacticusPath(pathTypeDataStatic))//'hiiRegions/emissionLines.hdf5',readOnly=.true.)
           lines=file%openGroup("lines")
           call lines%datasets(lineNames)
+          allocate(wavelengths(size(lineNames)))
           do i=1,size(lineNames)
-             dataset=lines%openDataset(char(lineNames(i)))
-             call dataset%readAttribute("wavelength",wavelengths(i))
-             call dataset%close        (                           )
+             if (lineNames(i) == "status") then
+                wavelengths(i)=-1.0d0
+             else
+                dataset=lines%openDataset(char(lineNames(i)))
+                call dataset%readAttribute("wavelength",wavelengths(i))
+                call dataset%close        (                           )
+             end if
           end do
           call lines%close()
           call file %close()
-          !$omp end critical (HDF5_Access)
+          !$ call hdf5Access%unset()
           databaseInitialized=.true.
        end if
        !$omp end critical(emissionLineDatabaseInitialize)

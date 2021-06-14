@@ -1,7 +1,8 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use Sort::Topological qw(toposort);
+use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
+use Sort::Topo;
 use Data::Dumper;
 
 # Output linker options to link required libraries for building an executable.
@@ -20,14 +21,10 @@ my %dependencies =
      hdf5_hl        => [ "hdf5"                             ],
      hdf5_fortran   => [ "hdf5"                             ],
      hdf5           => [ "z"                                ],
-     fgsl_gfortran  => [ "gsl"                              ],
      gsl            => [ "gslcblas"                         ],
      FoX_dom        => [ "FoX_fsys", "FoX_utils", "FoX_sax" ],
      FoX_sax        => [ "FoX_common"                       ],
-     FoX_utils      => [ "FoX_wxml"                         ],
-     yepLibrary     => [ "yeppp"                            ],
-     yepCore        => [ "yeppp"                            ],
-     yepMath        => [ "yeppp"                            ]
+     FoX_utils      => [ "FoX_wxml"                         ]
     );
 # Library order dependencies for static linking. Each key specifies a library name. The associated value is a list of libraries
 # before which the key library must appear in the link command when static linking is used.
@@ -37,15 +34,11 @@ my %staticLinkDependencies =
      hdf5_hl        => [ "hdf5"                                         ],
      hdf5_fortran   => [ "hdf5"                                         ],
      hdf5hl_fortran => [ "hdf5_hl"                                      ],
-     fgsl_gfortran  => [ "gsl"                                          ],
      gsl            => [ "gslcblas"                                     ],
      FoX_dom        => [ "FoX_fsys", "FoX_utils", "FoX_sax", "FoX_wxml" ],
      FoX_sax        => [ "FoX_common"                                   ],
      FoX_wxml       => [ "FoX_utils"                                    ],
-     FoX_common     => [ "FoX_fsys"                                     ],
-     YEPLibrary     => [ "yeppp"                                        ],
-     YEPCore        => [ "yeppp"                                        ],
-     YEPMath        => [ "yeppp"                                        ]
+     FoX_common     => [ "FoX_fsys"                                     ]
     );
 # Detect static linking.
 my $isStatic = grep {$_ eq "-static"} @compilerOptions;
@@ -86,9 +79,6 @@ while ( scalar(keys(%libraries)) != $libraryCount) {
 	}
     }
 }
-# Remove YEPPP library if not used.
-delete($libraries{'yeppp'})
-    if ( exists($libraries{'yeppp'}) && ! grep {$_ eq "-DYEPPP"} @compilerOptions );
 # Remove ANN library if not used.
 delete($libraries{'ANN'})
     if ( exists($libraries{'ANN'}) && ! grep {$_ eq "-DANNAVAIL"} @compilerOptions );
@@ -96,7 +86,8 @@ delete($libraries{'ANN'})
 delete($libraries{'matheval'})
     if ( exists($libraries{'matheval'}) && ! grep {$_ eq "-DMATHEVALAVAIL"} @compilerOptions );
 # Perform a topological sort on libraries to ensure they are in the correct order for static linking.
-my @sortedLibraries = toposort(sub { @{$staticLinkDependencies{$_[0]} || []}; }, [keys(%libraries)]);
+my @libraryNames = keys(%libraries);
+my @sortedLibraries = &Sort::Topo::sort(\@libraryNames,\%staticLinkDependencies);
 # Add static link options.
 my $staticOptions = ( $isStatic && ! $pthreadIncluded ) ? " -Wl,--whole-archive -lpthread -Wl,--no-whole-archive" : "";
 # Determine glibc version.

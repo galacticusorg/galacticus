@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -42,7 +42,7 @@ contains
     implicit none
     type(outputAnalysisPropertyOperatorLog10)                :: log10ConstructorParameters
     type(inputParameters                    ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     log10ConstructorParameters=outputAnalysisPropertyOperatorLog10()
     return
@@ -58,7 +58,7 @@ contains
     type            (treeNode                           ), intent(inout), optional :: node
     integer                                              , intent(inout), optional :: propertyType
     integer         (c_size_t                           ), intent(in   ), optional :: outputIndex
-    !GCC$ attributes unused :: self, outputIndex, node
+    !$GLC attributes unused :: self, outputIndex, node
 
     if (propertyValue > 0.0d0) then
        log10Operate=log10(propertyValue)

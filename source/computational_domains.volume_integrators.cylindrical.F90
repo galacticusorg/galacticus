@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -50,19 +50,15 @@ contains
 
     !# <inputParameter>
     !#   <name>rBoundaries</name>
-    !#   <cardinality>2</cardinality>
     !#   <defaultValue>[0.0d0,1.0d0]</defaultValue>
     !#   <description>The $r$-interval spanned by the computational domain.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>zBoundaries</name>
-    !#   <cardinality>2</cardinality>
     !#   <defaultValue>[-1.0d0,+1.0d0]</defaultValue>
     !#   <description>The $z$-interval spanned by the computational domain.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     boundaries(1,:)=rBoundaries
     boundaries(2,:)=zBoundaries
@@ -97,26 +93,22 @@ contains
 
   double precision function cylindricalIntegrate(self,integrand)
     !% Integrate over the computational domain cell.
-    use :: FGSL                 , only : fgsl_function        , fgsl_integration_workspace
-    use :: Numerical_Integration, only : Integrate            , Integrate_Done
+    use :: Numerical_Integration, only : integrator
     use :: Coordinates          , only : coordinateCylindrical
     implicit none
-    class           (computationalDomainVolumeIntegratorCylindrical), intent(inout), target :: self
-    procedure       (computationalDomainVolumeIntegrand            )                        :: integrand
-    type            (fgsl_function                                 )                        :: integrandFunction
-    type            (fgsl_integration_workspace                    )                        :: integrationWorkspace
-    type            (coordinateCylindrical                         )                        :: coordinates
+    class    (computationalDomainVolumeIntegratorCylindrical), intent(inout), target :: self
+    procedure(computationalDomainVolumeIntegrand            )                        :: integrand
+    type     (integrator                                    )                        :: integrator_
+    type     (coordinateCylindrical                         )                        :: coordinates
 
-    cylindricalIntegrate=Integrate(                                                         &
-         &                                           self                 %boundaries(1,1), &
-         &                                           self                 %boundaries(1,2), &
-         &                                           cylindricalIntegrandR                , &
-         &                                           integrandFunction                    , &
-         &                                           integrationWorkspace                 , &
-         &                         toleranceAbsolute=0.0d0                                , &
-         &                         toleranceRelative=1.0d-2                                 &
-         &                        )  
-    call Integrate_Done(integrandFunction,integrationWorkspace)
+    integrator_         =integrator           (                                         &
+         &                                                       cylindricalIntegrandR, &
+         &                                     toleranceRelative=1.0d-2                 &
+         &                                    )
+    cylindricalIntegrate=integrator_%integrate(                                         &
+         &                                                       self%boundaries(1,1) , &
+         &                                                       self%boundaries(1,2)   &
+         &)                                    
     return
 
   contains
@@ -125,43 +117,31 @@ contains
       !% $r$-integrand over cylindrical computational domain cells.
       use :: Numerical_Constants_Math, only : Pi
       implicit none
-      double precision                            , intent(in   ) :: r
-      type            (fgsl_function             )                :: integrandFunction
-      type            (fgsl_integration_workspace)                :: integrationWorkspace
+      double precision            , intent(in   ) :: r
+      type            (integrator)                :: integrator_
 
       call coordinates%rSet(r)
-      cylindricalIntegrandR=+Integrate(                                           &
-           &                                             0.0d0                  , &
-           &                                             2.0d0*Pi               , &
-           &                                             cylindricalIntegrandPhi, &
-           &                                             integrandFunction      , &
-           &                                             integrationWorkspace   , &
-           &                           toleranceAbsolute=0.0d0                  , &
-           &                           toleranceRelative=1.0d-2                   &
-           &                          )                                           &
-           &              *r
-      call Integrate_Done(integrandFunction,integrationWorkspace)
+      integrator_         =  integrator           (cylindricalIntegrandPhi,toleranceRelative=1.0d-2   )
+      cylindricalIntegrandR=+integrator_%integrate(0.0d0                  ,                  2.0d+0*Pi) &
+           &                *r
       return
     end function cylindricalIntegrandR
 
     double precision function cylindricalIntegrandPhi(phi)
       !% $\phi$-integrand over cylindrical computational domain cells.
       implicit none
-      double precision                            , intent(in   ) :: phi
-      type            (fgsl_function             )                :: integrandFunction
-      type            (fgsl_integration_workspace)                :: integrationWorkspace
+      double precision            , intent(in   ) :: phi
+      type            (integrator)                :: integrator_
 
       call coordinates%phiSet(phi)
-      cylindricalIntegrandPhi=+Integrate(                                                         &
-           &                                               self                 %boundaries(2,1), &
-           &                                               self                 %boundaries(2,2), &
-           &                                               cylindricalIntegrandZ                , &
-           &                                               integrandFunction                    , &
-           &                                               integrationWorkspace                 , &
-           &                             toleranceAbsolute=0.0d0                                , &
-           &                             toleranceRelative=1.0d-2                                 &
-           &                            )
-      call Integrate_Done(integrandFunction,integrationWorkspace)
+      integrator_            = integrator           (                                         &
+           &                                                           cylindricalIntegrandZ, &
+           &                                         toleranceRelative=1.0d-2                 &
+           &                                        )
+      cylindricalIntegrandPhi=+integrator_%integrate(                                         &
+           &                                                           self%boundaries(2,1) , &
+           &                                                           self%boundaries(2,2)   &
+           &                                        )
       return
     end function cylindricalIntegrandPhi
 

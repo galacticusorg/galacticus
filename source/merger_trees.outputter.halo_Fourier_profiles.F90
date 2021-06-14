@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -25,7 +25,33 @@
   use :: IO_HDF5                 , only : hdf5Object
 
   !# <mergerTreeOutputter name="mergerTreeOutputterHaloFourierProfiles">
-  !#  <description>Outputs $k$-space density profiles as needed for halo model calculations.</description>
+  !#  <description>
+  !#   A merger tree outputter class which outputs $k$-space density profiles as needed for halo model calculations. A
+  !#   ``{\normalfont \ttfamily haloModel}'' group is created in the \glc\ output file. This group contains the following:
+  !#
+  !#   \begin{description}
+  !#
+  !#    \item [{\normalfont \ttfamily wavenumber}] A dataset giving the wavenumbers (in units of Mpc$^{-1}$) at which all output
+  !#    power spectra are tabulated. The minimum and maximum wavenumbers to tabulate are determined by the {\normalfont \ttfamily
+  !#    [haloModelWavenumberMinimum]} and {\normalfont \ttfamily [haloModelWavenumberMaximum]} parameters respectively, while the
+  !#    number of points to tabulate in each decade of wavenumber is determined by the {\normalfont \ttfamily
+  !#    [haloModelWavenumberPointsPerDecade]} parameter.
+  !#
+  !#    \item [{\normalfont \ttfamily powerSpectrum}] A dataset giving the linear theory power spectrum (in units of Mpc$^3$
+  !#    normalized to $z=0$ at each wavenumber specified in the {\normalfont \ttfamily wavenumber} dataset.
+  !# 
+  !#    \item [{\normalfont \ttfamily Output\{i\}/mergerTree\{j\}/fourierProfile\{k\}}] A dataset giving the Fourier transform of
+  !#    the dark matter halo density profile (dimensionless and normalized to unity at small wavenumber) for the node with index
+  !#    {\normalfont \ttfamily k} in merger tree with index {\normalfont \ttfamily j} at output number {\normalfont \ttfamily
+  !#    i}. Profiles are written only for nodes which are isolated, and are tabulated at the wavenumbers given in the {\normalfont
+  !#    \ttfamily wavenumber} group. Note that wavenumbers are assumed to be comoving.
+  !#
+  !#   \end{description}
+  !#
+  !#   Finally, each numbered output group is given two additional attributes, {\normalfont \ttfamily linearGrowthFactor} and
+  !#   {\normalfont \ttfamily linearGrowthFactorLogDerivative} which give the growth factor, $D$, and its logarithmic derivative,
+  !#   $\d \ln D / \d \ln a$ at the output time.
+  !#  </description>
   !# </mergerTreeOutputter>
   type, extends(mergerTreeOutputterClass) :: mergerTreeOutputterHaloFourierProfiles
      !% Implementation of a merger tree outputter class that outputs $k$-space density profiles as needed for halo model calculations.
@@ -38,9 +64,10 @@
      double precision                           , allocatable, dimension(:) :: wavenumber
      type            (hdf5Object               )                            :: outputGroup
    contains
-     final     ::             haloFourierProfilesDestructor
-     procedure :: output   => haloFourierProfilesOutput
-     procedure :: finalize => haloFourierProfilesFinalize
+     final     ::               haloFourierProfilesDestructor
+     procedure :: outputTree => haloFourierProfilesOutputTree
+     procedure :: outputNode => haloFourierProfilesOutputNode
+     procedure :: finalize   => haloFourierProfilesFinalize
   end type mergerTreeOutputterHaloFourierProfiles
 
   interface mergerTreeOutputterHaloFourierProfiles
@@ -65,27 +92,21 @@ contains
 
     !# <inputParameter>
     !#   <name>wavenumberPointsPerDecade</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number of points per decade in wavenumber at which to tabulate power spectra for the halo model.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>wavenumberMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d-3</defaultValue>
     !#   <description>The minimum wavenumber (in Mpc${^-1}$) at which to tabulate power spectra for the halo model.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>wavenumberMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d4</defaultValue>
     !#   <description>The maximum wavenumber (in Mpc${^-1}$) at which to tabulate power spectra for the halo model.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="galacticFilter"       name="galacticFilter_"       source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
@@ -141,7 +162,7 @@ contains
     return
   end subroutine haloFourierProfilesFinalize
   
-  subroutine haloFourierProfilesOutput(self,tree,indexOutput,time,isLastOutput)
+  subroutine haloFourierProfilesOutputTree(self,tree,indexOutput,time)
     !% Write properties of nodes in {\normalfont \ttfamily tree} to the \glc\ output file.
     use    :: Galacticus_HDF5                 , only : galacticusOutputFile
     use    :: Galacticus_Nodes                , only : treeNode                , nodeComponentBasic
@@ -155,7 +176,6 @@ contains
     type            (mergerTree                            ), intent(inout), target       :: tree
     integer         (c_size_t                              ), intent(in   )               :: indexOutput
     double precision                                        , intent(in   )               :: time
-    logical                                                 , intent(in   ), optional     :: isLastOutput
     type            (treeNode                              )               , pointer      :: node
     class           (nodeComponentBasic                    )               , pointer      :: basic
     double precision                                        , allocatable  , dimension(:) :: fourierProfile
@@ -165,7 +185,7 @@ contains
     integer         (c_size_t                              )                              :: treeIndexPrevious
     double precision                                                                      :: expansionFactor
     integer                                                                               :: i
-    !GCC$ attributes unused :: time, isLastOutput
+    !$GLC attributes unused :: time
     
     allocate(fourierProfile(self%wavenumberCount))
     !$ call hdf5Access%set  ()
@@ -190,7 +210,7 @@ contains
        end if
        basic           => node%basic                              (            )
        expansionFactor =  self%cosmologyFunctions_%expansionFactor(basic%time())
-       ! Construct profile. (Our wavenumbers are comoving, so we must convert them to physical coordinates before passing them to
+      ! Construct profile. (Our wavenumbers are comoving, so we must convert them to physical coordinates before passing them to
        ! the dark matter profile k-space routine.)
        do i=1,self%waveNumberCount
           fourierProfile(i)=self%darkMatterProfileDMO_%kSpace(node,self%wavenumber(i)/expansionFactor)
@@ -204,5 +224,17 @@ contains
     call                         outputGroup%close()
     !$ call hdf5Access%unset()
     return
-  end subroutine haloFourierProfilesOutput
+  end subroutine haloFourierProfilesOutputTree
 
+  subroutine haloFourierProfilesOutputNode(self,node,indexOutput)
+    !% Perform no output.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
+    class  (mergerTreeOutputterHaloFourierProfiles), intent(inout) :: self
+    type   (treeNode                              ), intent(inout) :: node
+    integer(c_size_t                              ), intent(in   ) :: indexOutput
+    !$GLC attributes unused :: self, node, indexOutput
+
+    call Galacticus_Error_Report('output of single nodes is not supported'//{introspection:location})
+    return
+  end subroutine haloFourierProfilesOutputNode

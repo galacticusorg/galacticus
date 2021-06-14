@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -49,11 +49,9 @@ contains
 
     !# <inputParameter>
     !#   <name>boundaries</name>
-    !#   <cardinality>2</cardinality>
     !#   <defaultValue>[0.0d0,1.0d0]</defaultValue>
     !#   <description>The $r$-interval spanned by the computational domain.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
      self=computationalDomainVolumeIntegratorSpherical(boundaries)
     !# <inputParametersValidate source="parameters"/>
@@ -89,26 +87,22 @@ contains
 
   double precision function sphericalIntegrate(self,integrand)
     !% Integrate over the computational domain cell.
-    use :: FGSL                 , only : fgsl_function      , fgsl_integration_workspace
-    use :: Numerical_Integration, only : Integrate          , Integrate_Done
+    use :: Numerical_Integration, only : integrator
     use :: Coordinates          , only : coordinateSpherical
     implicit none
-    class           (computationalDomainVolumeIntegratorSpherical), intent(inout), target :: self
-    procedure       (computationalDomainVolumeIntegrand          )                        :: integrand
-    type            (fgsl_function                               )                        :: integrandFunction
-    type            (fgsl_integration_workspace                  )                        :: integrationWorkspace
-    type            (coordinateSpherical                         )                        :: coordinates
+    class    (computationalDomainVolumeIntegratorSpherical), intent(inout), target :: self
+    procedure(computationalDomainVolumeIntegrand          )                        :: integrand
+    type     (integrator                                  )                        :: integrator_
+    type     (coordinateSpherical                         )                        :: coordinates
 
-    sphericalIntegrate=Integrate(                                                         &
-         &                                           self                 %boundaries(1), &
-         &                                           self                 %boundaries(2), &
-         &                                           sphericalIntegrandR                , &
-         &                                           integrandFunction                  , &
-         &                                           integrationWorkspace               , &
-         &                         toleranceAbsolute=0.0d0                              , &
-         &                         toleranceRelative=1.0d-2                               &
-         &                        )  
-    call Integrate_Done(integrandFunction,integrationWorkspace)
+    integrator_       = integrator           (                                       &
+         &                                                      sphericalIntegrandR, &
+         &                                    toleranceRelative=1.0d-2               &
+         &                                   )
+    sphericalIntegrate=+integrator_%integrate(                                       &
+         &                                                      self%boundaries(1) , &
+         &                                                      self%boundaries(2)   &
+         &                                   )  
     return
 
   contains
@@ -117,22 +111,19 @@ contains
       !% $r$-integrand over spherical computational domain cells.
       use :: Numerical_Constants_Math, only : Pi
       implicit none
-      double precision                            , intent(in   ) :: r
-      type            (fgsl_function             )                :: integrandFunction
-      type            (fgsl_integration_workspace)                :: integrationWorkspace
+      double precision            , intent(in   ) :: r
+      type            (integrator)                :: integrator_
 
       call coordinates%rSet(r)
-      sphericalIntegrandR=+Integrate(                                             &
-           &                                             0.0d0                  , &
-           &                                             Pi                     , &
-           &                                             sphericalIntegrandTheta, &
-           &                                             integrandFunction      , &
-           &                                             integrationWorkspace   , &
-           &                           toleranceAbsolute=0.0d0                  , &
-           &                           toleranceRelative=1.0d-2                   &
-           &                          )                                           &
+      integrator_        = integrator           (                                           &
+         &                                                         sphericalIntegrandTheta, &
+         &                                       toleranceRelative=1.0d-2                   &
+         &                                      )
+      sphericalIntegrandR=+integrator_%integrate(                                           &
+           &                                                       0.0d+0                 , &
+           &                                                       Pi                       &
+           &                                    )                                           &
            &              *r**2
-      call Integrate_Done(integrandFunction,integrationWorkspace)
       return
     end function sphericalIntegrandR
 
@@ -140,22 +131,19 @@ contains
       !% $\theta$-integrand over spherical computational domain cells.
       use :: Numerical_Constants_Math, only : Pi
       implicit none
-      double precision                            , intent(in   ) :: theta
-      type            (fgsl_function             )                :: integrandFunction
-      type            (fgsl_integration_workspace)                :: integrationWorkspace
+      double precision            , intent(in   ) :: theta
+      type            (integrator)                :: integrator_
 
       call coordinates%thetaSet(theta)
-      sphericalIntegrandTheta=+Integrate(                                         &
-           &                                               0.0d0                , &
-           &                                               2.0d0*Pi             , &
-           &                                               sphericalIntegrandPhi, &
-           &                                               integrandFunction    , &
-           &                                               integrationWorkspace , &
-           &                             toleranceAbsolute=0.0d0                , &
-           &                             toleranceRelative=1.0d-2                 &
-           &                            )                                         &
+      integrator_            = integrator           (                                         &
+         &                                                             sphericalIntegrandPhi, &
+         &                                           toleranceRelative=1.0d-2                 &
+         &                                          )
+      sphericalIntegrandTheta=+integrator_%integrate(                                         &
+           &                                                           0.0d+0               , &
+           &                                                           2.0d+0*Pi              &
+           &                                        )                                         &
            &                  *sin(theta)
-      call Integrate_Done(integrandFunction,integrationWorkspace)
       return
     end function sphericalIntegrandTheta
 

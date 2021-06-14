@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,11 +22,13 @@
 
   !# <chemicalState name="chemicalStateAtomicCIECloudy">
   !#  <description>
-  !#   Class providing chemical state by utilizing the {\normalfont \scshape Cloudy} code to compute state in collisional
-  !#   ionization equilibrium. {\normalfont \scshape Cloudy} will be downloaded, compiled and run automatically if
-  !#   necessary\footnote{{\normalfont \scshape Cloudy} is used to generate a file which contains a tabulation of the chemical
-  !#   state suitable for reading by the {\normalfont \ttfamily CIE from file} method. Generation of the tabulation typically
-  !#   takes several hours, but only needs to be done once as the stored table is simply read back in on later runs.}.
+  !#   A checmical state class that computes the chemical state using the {\normalfont \scshape Cloudy} code and under the
+  !#   assumption of collisional ionization equilibrium with no molecular contribution. Abundances are Solar, except for zero
+  !#   metallicity calculations which use {\normalfont \scshape Cloudy}'s ``primordial'' metallicity. The helium abundance for
+  !#   non-zero metallicity is scaled between primordial and Solar values linearly with metallicity. The {\normalfont \scshape
+  !#   Cloudy} code will be downloaded and run to compute the cooling function as needed, which will then be stored for future
+  !#   use. As this process is slow, a precomputed table is provided with \glc. If metallicities outside the range tabulated in
+  !#   this file are required it will be regenerated with an appropriate range.
   !#  </description>
   !# </chemicalState>
   type, extends(chemicalStateCIEFile) :: chemicalStateAtomicCIECloudy
@@ -35,15 +37,9 @@
      private
      logical :: initialized
    contains
-     !@ <objectMethods>
-     !@   <object>chemicalStateAtomicCIECloudy</object>
-     !@   <objectMethod>
-     !@     <method>tabulate</method>
-     !@     <type>void</type>
-     !@     <arguments>\textcolor{red}{\textless type(abundances)\textgreater} gasAbunances\argin</arguments>
-     !@     <description>Run {\normalfont \scshape Cloudy} to tabulate chemical state as necessary.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Run {\normalfont \scshape Cloudy} to tabulate chemical state as necessary." method="tabulate" />
+     !# </methods>
      final     ::                                       atomicCIECloudyDestructor
      procedure :: tabulate                           => atomicCIECloudyTabulate
      procedure :: electronDensity                    => atomicCIECloudyElectronDensity
@@ -73,37 +69,35 @@
 
 contains
 
-  function atomicCIECloudyConstructorParameters(parameters)
+  function atomicCIECloudyConstructorParameters(parameters) result(self)
     !% Constructor for the ``atomic CIE Cloudy'' chemical state class which takes a parameter set as input.
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(chemicalStateAtomicCIECloudy)                :: atomicCIECloudyConstructorParameters
+    type(chemicalStateAtomicCIECloudy)                :: self
     type(inputParameters             ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
-    atomicCIECloudyConstructorParameters=atomicCIECloudyConstructorInternal()
+    self=chemicalStateAtomicCIECloudy()
     return
   end function atomicCIECloudyConstructorParameters
 
-  function atomicCIECloudyConstructorInternal()
+  function atomicCIECloudyConstructorInternal() result(self)
     !% Internal constructor for the ``atomic CIE Cloudy'' chemical state class.
     use :: Chemical_Abundances_Structure, only : unitChemicalAbundances
     implicit none
-    type(chemicalStateAtomicCIECloudy) :: atomicCIECloudyConstructorInternal
+    type(chemicalStateAtomicCIECloudy) :: self
 
     ! Initialize.
-    atomicCIECloudyConstructorInternal%electronDensityPrevious        =-1.0d0
-    atomicCIECloudyConstructorInternal%electronDensitySlopePrevious   =-1.0d0
-    atomicCIECloudyConstructorInternal%chemicalDensitiesPrevious      =-unitChemicalAbundances
-    atomicCIECloudyConstructorInternal%    metallicityPrevious        =-1.0d0
-    atomicCIECloudyConstructorInternal%    metallicitySlopePrevious   =-1.0d0
-    atomicCIECloudyConstructorInternal%    metallicityChemicalPrevious=-1.0d0
-    atomicCIECloudyConstructorInternal%    temperaturePrevious        =-1.0d0
-    atomicCIECloudyConstructorInternal%    temperatureSlopePrevious   =-1.0d0
-    atomicCIECloudyConstructorInternal%    temperatureChemicalPrevious=-1.0d0
-    atomicCIECloudyConstructorInternal%resetMetallicity               =.true.
-    atomicCIECloudyConstructorInternal%resetTemperature               =.true.
-    atomicCIECloudyConstructorInternal%initialized                    =.false.
+    self%electronDensityPrevious        =-1.0d0
+    self%electronDensitySlopePrevious   =-1.0d0
+    self%chemicalDensitiesPrevious      =-unitChemicalAbundances
+    self%    metallicityPrevious        =-1.0d0
+    self%    metallicitySlopePrevious   =-1.0d0
+    self%    metallicityChemicalPrevious=-1.0d0
+    self%    temperaturePrevious        =-1.0d0
+    self%    temperatureSlopePrevious   =-1.0d0
+    self%    temperatureChemicalPrevious=-1.0d0
+    self%initialized                    =.false.
    return
   end function atomicCIECloudyConstructorInternal
 
@@ -111,7 +105,7 @@ contains
     !% Destructor for the ``atomic CIE Cloudy'' chemical state class.
     implicit none
     type(chemicalStateAtomicCIECloudy), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Nothing to do.
     return

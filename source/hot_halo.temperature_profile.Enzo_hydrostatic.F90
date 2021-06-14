@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +22,15 @@
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
 
   !# <hotHaloTemperatureProfile name="hotHaloTemperatureProfileEnzoHydrostatic">
-  !#  <description>Provides an implementation of the hot halo temperature profile class which uses the ``hydrostatic'' solution from the Enzo code.</description>
+  !#  <description>
+  !#   A hot halo temperature profile class wjocj implements the ``hydrostatic'' temperature profile available in the \gls{enzo}
+  !#   code. Specifically,
+  !#   \begin{equation}
+  !#     T(r) = \hbox{max}\left( {\mathrm{G} M(&lt;r) \mu m_\mathrm{H} \over 3 \mathrm{k_B} r} , T_\mathrm{min} \right),
+  !#   \end{equation}
+  !#   where $M(&lt;r)$ is the total mass enclosed within radius $r$, $\mu$ is the primordial mean atomic mass, and
+  !#   $T_\mathrm{min}=100$~K is a temperature floor introduced so as to avoid the temperature reaching abitrarily low masses.
+  !#  </description>
   !# </hotHaloTemperatureProfile>
   type, extends(hotHaloTemperatureProfileClass) :: hotHaloTemperatureProfileEnzoHydrostatic
      !% An implementation of the hot halo temperature profile class which uses the ``hydrostatic'' solution from the Enzo code.
@@ -80,9 +88,9 @@ contains
 
   double precision function enzoHydrostaticTemperature(self,node,radius)
     !% Return the density in a {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution.
-    use :: Numerical_Constants_Astronomical, only : meanAtomicMassPrimordial
+    use :: Numerical_Constants_Astronomical, only : meanAtomicMassPrimordial, gravitationalConstantGalacticus
     use :: Numerical_Constants_Atomic      , only : massHydrogenAtom
-    use :: Numerical_Constants_Physical    , only : boltzmannsConstant      , gravitationalConstantGalacticus
+    use :: Numerical_Constants_Physical    , only : boltzmannsConstant
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     class           (hotHaloTemperatureProfileEnzoHydrostatic), intent(inout) :: self

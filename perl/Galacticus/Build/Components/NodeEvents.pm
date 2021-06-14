@@ -470,7 +470,7 @@ sub Node_Event_Non_Static_Size_Of {
 		 attributes => [ "intent(in   )" ]
 	     }
 	    ],
-	content    => "!GCC\$ attributes unused :: self\nnodeEventSizeOf=0_c_size_t\n"
+	content    => "!\$GLC attributes unused :: self\nnodeEventSizeOf=0_c_size_t\n"
     };
     # Insert a type-binding for this function.
     push(

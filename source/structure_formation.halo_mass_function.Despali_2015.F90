@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,7 +23,11 @@
   use :: Virial_Density_Contrast, only : virialDensityContrastClass, virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
 
   !# <haloMassFunction name="haloMassFunctionDespali2015">
-  !#  <description>The halo mass function is computed from the function given by \cite{despali_universality_2015}.</description>
+  !#  <description>
+  !#   A dark matter halo mass function class using the function given by \cite{despali_universality_2015}. This uses the
+  !#   functional form proposed by \cite{sheth_ellipsoidal_2001} but with parameters $a$, $p$, and $A$ set using eqn.~(12) of
+  !#   \cite{despali_universality_2015}.
+  !#  </description>
   !#  <deepCopy>
   !#   <functionClass variables="referenceDensityContrast"/>
   !#  </deepCopy>
@@ -34,19 +38,13 @@
   type, extends(haloMassFunctionShethTormen) :: haloMassFunctionDespali2015
      !% A halo mass function class using the fitting function of \cite{despali_universality_2015}.
      private
-     class(cosmologyFunctionsClass                                        ), pointer :: cosmologyFunctions_      => null()
-     class(virialDensityContrastClass                                     ), pointer :: virialDensityContrast_   => null()
+     class(cosmologyFunctionsClass                                       ), pointer :: cosmologyFunctions_      => null()
+     class(virialDensityContrastClass                                    ), pointer :: virialDensityContrast_   => null()
      type (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt), pointer :: referenceDensityContrast => null()
     contains
-     !@ <objectMethods>
-     !@   <object>haloMassFunctionDespali2015</object>
-     !@   <objectMethod>
-     !@     <method>x</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ time\argin, \doublezero\ mass\argin</arguments>
-     !@     <description>Return the parameter $x$ in the \cite{despali_universality_2015} halo mass function fit.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return the parameter $x$ in the \cite{despali_universality_2015} halo mass function fit." method="x" />
+     !# </methods>
      final     ::                  despali2015Destructor
      procedure :: x             => despali2015X
      procedure :: a             => despali2015A

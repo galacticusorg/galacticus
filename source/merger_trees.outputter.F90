@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides a class that implements evolution of merger trees.
+!% Contains a module which provides a class that implements outputting of node data in a merger tree.
 
 module Merger_Tree_Outputters
   !% Provides a class that implements evolution of merger trees.
@@ -30,14 +30,20 @@ module Merger_Tree_Outputters
   !#  <descriptiveName>Merger Tree Outputters</descriptiveName>
   !#  <description>Class providing outputters for merger trees.</description>
   !#  <default>standard</default>
-  !#  <method name="output" >
+  !#  <method name="outputTree" >
   !#   <description>Output a merger tree.</description>
   !#   <type>void</type>
   !#   <pass>yes</pass>
-  !#   <argument>type            (mergerTree), intent(inout), target   :: tree        </argument>
-  !#   <argument>integer         (c_size_t  ), intent(in   )           :: indexOutput </argument>
-  !#   <argument>double precision            , intent(in   )           :: time        </argument>
-  !#   <argument>logical                     , intent(in   ), optional :: isLastOutput</argument>
+  !#   <argument>type            (mergerTree), intent(inout), target :: tree       </argument>
+  !#   <argument>integer         (c_size_t  ), intent(in   )         :: indexOutput</argument>
+  !#   <argument>double precision            , intent(in   )         :: time       </argument>
+  !#  </method>
+  !#  <method name="outputNode" >
+  !#   <description>Output a single node.</description>
+  !#   <type>void</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type   (treeNode), intent(inout) :: node       </argument>
+  !#   <argument>integer(c_size_t), intent(in   ) :: indexOutput</argument>
   !#  </method>
   !#  <method name="finalize" >
   !#   <description>Finalize output of merger trees.</description>
@@ -50,7 +56,7 @@ module Merger_Tree_Outputters
   !#   <pass>yes</pass>
   !#   <argument>class(mergerTreeOutputterClass), intent(inout) :: reduced</argument>
   !#   <code>
-  !#    !GCC$ attributes unused :: self, reduced
+  !#    !$GLC attributes unused :: self, reduced
   !#   </code>
   !#  </method>
   !# </functionClass>

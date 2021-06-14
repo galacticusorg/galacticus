@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -42,7 +42,7 @@ contains
     implicit none
     type(mergerTreeOperatorPruneClones)                :: pruneClonesConstructorParameters
     type(inputParameters              ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     pruneClonesConstructorParameters=mergerTreeOperatorPruneClones()
     return
@@ -60,7 +60,7 @@ contains
     type (treeNode                     ), pointer               :: node      , nodePrevious
     class(nodeComponentBasic           ), pointer               :: basic     , basicPrevious
     type (mergerTreeWalkerIsolatedNodes)                        :: treeWalker
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Iterate over nodes.
     treeWalker=mergerTreeWalkerIsolatedNodes(tree)

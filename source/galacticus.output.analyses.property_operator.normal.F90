@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -56,38 +56,28 @@ contains
     !#   <name>rangeLower</name>
     !#   <source>parameters</source>
     !#   <description>Lower integration limit for the normal distribution weight operator.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>rangeUpper</name>
     !#   <source>parameters</source>
     !#   <description>Upper integration limit for the normal distribution weight operator.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>rootVariance</name>
     !#   <source>parameters</source>
     !#   <description>Root variance for the normal distribution weight operator.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>extentLower</name>
     !#   <defaultValue>-huge(0.0d0)</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Lower extent for the normal distribution weight operator.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>extentUpper</name>
     !#   <defaultValue>+huge(0.0d0)</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Upper extent for the normal distribution weight operator.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=outputAnalysisPropertyOperatorNormal(rangeLower,rangeUpper,extentLower,extentUpper,rootVariance)
     !# <inputParametersValidate source="parameters"/>
@@ -116,7 +106,7 @@ contains
     type            (treeNode                            ), intent(inout), optional :: node
     integer                                               , intent(inout), optional :: propertyType
     integer         (c_size_t                            ), intent(in   ), optional :: outputIndex
-    !GCC$ attributes unused :: propertyType, outputIndex, node
+    !$GLC attributes unused :: propertyType, outputIndex, node
 
     normalOperate=+(                                                                               &
          &          +Error_Function((self% rangeUpper-propertyValue)/sqrt(2.0d0)/self%rootVariance) &

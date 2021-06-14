@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -172,21 +172,10 @@
      type            (varying_string         )                                      :: outputGroupName
      !$ integer      (omp_lock_kind          )                                      :: accumulateLock
    contains
-     !@ <objectMethods>
-     !@   <object>mergerTreeOperatorConditionalMF</object>
-     !@   <objectMethod>
-     !@     <method>binWeights</method>
-     !@     <type>\doubleone</type>
-     !@     <arguments>\doublezero\ mass\argin,\doublezero\ time\argin,\doublezero\ massLogarithmicMinimumBins\argin,\doublezero\ massLogarithmicWidthInverseBins\argin,\intzero\ countBins\argin</arguments>
-     !@     <description>Compute weights for a halo in each bin of the mass function.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>binWeights2D</method>
-     !@     <type>\doubletwo</type>
-     !@     <arguments>\doublezero\ mass1\argin,\doublezero\ time1\argin,\doublezero\ mass2\argin,\doublezero\ time2\argin,\doublezero\ massLogarithmicMinimumBins1\argin,\doublezero\ massLogarithmicWidthInverseBins1\argin,\intzero\ countBins2\argin,\doublezero\ massLogarithmicMinimumBins2\argin,\doublezero\ massLogarithmicWidthInverseBins2\argin,\intzero\ countBins2\argin</arguments>
-     !@     <description>Compute weights for a halo in each bin of a 2D mass function.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Compute weights for a halo in each bin of the mass function." method="binWeights" />
+     !#   <method description="Compute weights for a halo in each bin of a 2D mass function." method="binWeights2D" />
+     !# </methods>
      final     ::                        conditionalMFDestructor
      procedure :: operatePreEvolution => conditionalMFOperatePreEvolution
      procedure :: finalize            => conditionalMFFinalize
@@ -228,48 +217,36 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number of bins in parent mass when constructing conditional halo mass functions.</description>
-    !#   <type>integer</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>parentMassMinimum</name>
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d10</defaultValue>
     !#   <description>The minimum parent halo mass to bin when constructing conditional halo mass functions.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>parentMassMaximum</name>
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d15</defaultValue>
     !#   <description>The maximum parent halo mass to bin when constructing conditional halo mass functions.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massRatioCount</name>
     !#   <source>parameters</source>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number of bins in mass ratio when constructing conditional halo mass functions.</description>
-    !#   <type>integer</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massRatioMinimum</name>
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d-4</defaultValue>
     !#   <description>The minimum mass ratio to bin when constructing conditional halo mass functions.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massRatioMaximum</name>
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d1</defaultValue>
     !#   <description>The maximum mass ratio to bin when constructing conditional halo mass functions.</description>
-    !#   <type>logical</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     call allocateArray(parentRedshifts    ,[max(1,parameters%count('parentRedshifts'    ,zeroIfNotPresent=.true.))])
     !# <inputParameter>
@@ -277,8 +254,6 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>[0.0d0]</defaultValue>
     !#   <description>The set of parent halo redshifts to use when constructing conditional halo mass functions.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1..</cardinality>
     !# </inputParameter>
     call allocateArray(progenitorRedshifts,[max(1,parameters%count('progenitorRedshifts',zeroIfNotPresent=.true.))])
     !# <inputParameter>
@@ -286,64 +261,48 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>[1.0d0]</defaultValue>
     !#   <description>The set of progenitor halo redshifts to use when constructing conditional halo mass functions.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1..</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>primaryProgenitorDepth</name>
     !#   <source>parameters</source>
     !#   <defaultValue>2</defaultValue>
     !#   <description>The depth in progenitor ranking for which to store ranked progenitor mass functions. For example, a value of 2 means store mass functions for the most massive, and second most massive progenitor.</description>
-    !#   <type>integer</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>subhaloHierarchyDepth</name>
     !#   <source>parameters</source>
     !#   <defaultValue>2</defaultValue>
     !#   <description>The depth in the subhalo hierarchy for which to store unevolved subhalo mass functions.</description>
-    !#   <type>integer</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>formationRateTimeFraction</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0.01d0</defaultValue>
     !#   <description>The fraction of the current time over which to estimate the formation rate of halos when computing merger tree statistics.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>alwaysIsolatedHalosOnly</name>
     !#   <source>parameters</source>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Include only halos which have always been isolated when computing merger tree statistics?</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>extendedStatistics</name>
     !#   <source>parameters</source>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>Compute extended statistics (formation rate function, $N^\mathrm{th}$ most-massive progenitor mass functions, etc.)?</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>computeCovariances</name>
     !#   <source>parameters</source>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Compute covariances for accumulated statistics?</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>outputGroupName</name>
     !#   <source>parameters</source>
     !#   <defaultValue>var_str('conditionalMassFunction')</defaultValue>
     !#   <description>The name of the HDF5 group to which the conditional mass function should be output.</description>
-    !#   <type>string</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     ! Construct the instance.
     self=mergerTreeOperatorConditionalMF(                           &
@@ -1115,10 +1074,9 @@ contains
 
   function conditionalMFBinWeights2D(self,mass1,time1,mass2,time2,massLogarithmicMinimumBins1,massLogarithmicWidthInverseBins1,countBins1,massRatioLogarithmicMinimumBins2,massRatioLogarithmicWidthInverseBins2,countBins2,moment)
     !% Computes the weight that a given halo contributes to a 2D array of bins.
-    use :: FGSL                 , only : fgsl_function          , fgsl_integration_workspace
     use :: Galacticus_Error     , only : Galacticus_Error_Report
     use :: Galacticus_Nodes     , only : nodeComponentBasic     , treeNode
-    use :: Numerical_Integration, only : Integrate              , Integrate_Done
+    use :: Numerical_Integration, only : integrator
     implicit none
     class           (mergerTreeOperatorConditionalMF), intent(inout)                    :: self
     double precision                                 , intent(in   )                    :: mass1                                  , time1                                , &
@@ -1136,8 +1094,7 @@ contains
          &                                                                                 mass2LowerLimit                        , mass2UpperLimit                      , &
          &                                                                                 correlation                            , massError2Reduced
     integer                                                                             :: i                                      , j
-    type            (fgsl_function                  )                                   :: integrandFunction
-    type            (fgsl_integration_workspace     )                                   :: integrationWorkspace
+    type            (integrator                     )                                   :: integrator_
 
     ! Validate moment.
     if (moment < 0 .or. moment > 2) call Galacticus_Error_Report('moment must be 0, 1, or 2'//{introspection:location})
@@ -1185,6 +1142,7 @@ contains
             & conditionalMFBinWeights2D(i,j)=(mass2/mass1)**moment
     else
        ! Find the contribution to each bin.
+       integrator_=integrator(conditionalMFBinWeights2DIntegrand,toleranceAbsolute=1.0d-10,toleranceRelative=1.0d-03)
        do i=1,countBins1
           mass1LowerLimit=max(                                        &
                &              +exp(                                   &
@@ -1249,19 +1207,10 @@ contains
                      & ) then
                    conditionalMFBinWeights2D(i,j)=0.0d0
                 else
-                   conditionalMFBinWeights2D(i,j)=max(                                                      &
-                        &                             Integrate(                                            &
-                        &                                       mass1LowerLimit                           , &
-                        &                                       mass1UpperLimit                           , &
-                        &                                       conditionalMFBinWeights2DIntegrand        , &
-                        &                                       integrandFunction                         , &
-                        &                                       integrationWorkspace                      , &
-                        &                                       toleranceAbsolute                 =1.0d-10, &
-                        &                                       toleranceRelative                 =1.0d-03  &
-                        &                                      )                                          , &
-                        &                             0.0d0                                                 &
+                   conditionalMFBinWeights2D(i,j)=max(                                                        &
+                        &                             integrator_%integrate(mass1LowerLimit,mass1UpperLimit), &
+                        &                             0.0d0                                                   &
                         &                            )
-                   call Integrate_Done(integrandFunction,integrationWorkspace)
                 end if
              end do
           else

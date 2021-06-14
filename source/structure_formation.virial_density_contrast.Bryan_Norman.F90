@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,13 +23,17 @@
   use :: Cosmology_Parameters, only : cosmologyParametersClass
 
   !# <virialDensityContrast name="virialDensityContrastBryanNorman1998">
-  !#  <description>\cite{bryan_statistical_1998} dark matter halo virial density contrasts.</description>
+  !#  <description>
+  !#   A dark matter halo virial density contrast class using the fitting functions given by \cite{bryan_statistical_1998}. As
+  !#   such, it is valid only for $\Omega_\Lambda=0$ or $\Omega_\mathrm{M}+\Omega_\Lambda=1$ cosmologies and will abort on other
+  !#   cosmologies.
+  !#  </description>
   !# </virialDensityContrast>
   type, extends(virialDensityContrastClass) :: virialDensityContrastBryanNorman1998
      !% A dark matter halo virial density contrast class using the fitting functions of \cite{bryan_statistical_1998}.
      private
      class (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
-     class (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_ => null()
+     class (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
      integer                                   :: fitType
    contains
      final     ::                                bryanNorman1998Destructor
@@ -113,7 +117,7 @@ contains
     double precision                                      , intent(in   ), optional :: time      , expansionFactor
     logical                                               , intent(in   ), optional :: collapsing
     double precision                                                                :: x
-    !GCC$ attributes unused :: mass
+    !$GLC attributes unused :: mass
 
     x=self%cosmologyFunctions_%omegaMatterEpochal(time,expansionFactor,collapsing)-1.0d0
     select case (self%fitType)
@@ -138,7 +142,7 @@ contains
     double precision                                      , intent(in   ), optional :: time      , expansionFactor
     logical                                               , intent(in   ), optional :: collapsing
     double precision                                                                :: x
-    !GCC$ attributes unused :: mass
+    !$GLC attributes unused :: mass
 
     x=self%cosmologyFunctions_%omegaMatterEpochal(time,expansionFactor,collapsing)-1.0d0
     select case (self%fitType)
@@ -175,7 +179,7 @@ contains
     double precision                                      , intent(in   )           :: mass
     double precision                                      , intent(in   ), optional :: time      , expansionFactor
     logical                                               , intent(in   ), optional :: collapsing
-    !GCC$ attributes unused :: self, mass, time, expansionFactor, collapsing
+    !$GLC attributes unused :: self, mass, time, expansionFactor, collapsing
 
     ! In simple cosmological constant dark energy universes, this ratio is always precisely 2 (e.g. Percival 2005;
     ! http://adsabs.harvard.edu/abs/2005A%26A...443..819P)

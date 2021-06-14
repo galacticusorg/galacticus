@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -53,18 +53,16 @@ contains
     integer                                                                                  :: countPostprocessors, countPostprocessorNames, &
          &                                                                                      i
 
-    countPostprocessors    =max(parameters%copiesCount('stellarPopulationSpectraPostprocessorMethod',zeroIfNotPresent=.true.),1)
-    countPostprocessorNames=max(parameters%      count('names'                                      ,zeroIfNotPresent=.true.),1)
+    countPostprocessors    =max(parameters%copiesCount('stellarPopulationSpectraPostprocessor',zeroIfNotPresent=.true.),1)
+    countPostprocessorNames=max(parameters%      count('names'                                ,zeroIfNotPresent=.true.),1)
     if (countPostprocessors /= countPostprocessorNames) call Galacticus_Error_Report('number of names must match number of postprocessors'//{introspection:location})
     allocate(names         (countPostprocessors))
     allocate(postprocessors(countPostprocessors))
     !# <inputParameter>
     !#   <name>names</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>[var_str('default')]</defaultValue>
     !#   <description>The names assigned to stellar spectra postprocessors.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <objectBuilder class="stellarPopulationSpectraPostprocessor" name="postprocessors(i)%stellarPopulationSpectraPostprocessor_" source="parameters" copy="i=1,countPostprocessors"/>
     self=stellarPopulationSpectraPostprocessorBuilderLookup(names,postprocessors)

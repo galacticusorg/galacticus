@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,14 @@
   !% Implementation of the \cite{cole_hierarchical_2000} time available for cooling class.
 
   !# <coolingTimeAvailable name="coolingTimeAvailableFormationTime">
-  !#  <description>A time available for cooling class which implements the algorithm of \cite{cole_hierarchical_2000}, that is, the time available is the time since the halo ``formed''.</description>
+  !#  <description>
+  !#   A time available for cooling class which implements the algorithm of \cite{cole_hierarchical_2000}, that is, the time
+  !#   available is equal to
+  !#   \begin{equation}
+  !#    t_\mathrm{available} = t - t_\mathrm{form},
+  !#   \end{equation}
+  !#   where $t_\mathrm{form}$ is the time at which the halo formed (see \S\ref{sec:ComponentFormationTimes}).
+  !#  </description>
   !# </coolingTimeAvailable>
   type, extends(coolingTimeAvailableClass) :: coolingTimeAvailableFormationTime
      !% Implementation of a time available for cooling class which implements the algorithm of \cite{cole_hierarchical_2000}.
@@ -45,7 +52,7 @@ contains
     implicit none
     type(coolingTimeAvailableFormationTime)                :: self
     type(inputParameters                  ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     ! Check that there is a gettable formation time property.
     if (.not.defaultFormationTimeComponent%formationTimeIsGettable())                                                          &
@@ -71,7 +78,7 @@ contains
     type (treeNode                         ), intent(inout) :: node
     class(nodeComponentBasic               ), pointer       :: basic
     class(nodeComponentFormationTime       ), pointer       :: formationTime
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     basic                      =>  node         %basic        ()
     formationTime              =>  node         %formationTime()
@@ -86,7 +93,7 @@ contains
     implicit none
     class(coolingTimeAvailableFormationTime), intent(inout) :: self
     type (treeNode                         ), intent(inout) :: node
-    !GCC$ attributes unused :: self, node
+    !$GLC attributes unused :: self, node
 
     ! Simply return unit rate.
     formationTimeTimeAvailableIncreaseRate=1.0d0

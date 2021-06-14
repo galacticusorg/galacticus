@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,10 @@
 !% Contains a module which implements a radiusHalfMass property extractor class.
 
   !# <nodePropertyExtractor name="nodePropertyExtractorRadiusHalfMass">
-  !#  <description>A radiusHalfMass property extractor class.</description>
+  !#  <description>
+  !#   A node property extractor which extracts the half-mass radius of the galaxy. The half-mass radius is output as {\normalfont
+  !#   \ttfamily [halfMassRadius]} (in Mpc).
+  !#  </description>
   !# </nodePropertyExtractor>
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRadiusHalfMass
      !% A half-mass radius property extractor class.
@@ -46,7 +49,7 @@ contains
     implicit none
     type (nodePropertyExtractorRadiusHalfMass)                :: self
     type (inputParameters                    ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=nodePropertyExtractorRadiusHalfMass()
     return
@@ -60,7 +63,7 @@ contains
     class(nodePropertyExtractorRadiusHalfMass), intent(inout)           :: self
     type (treeNode                           ), intent(inout), target   :: node
     type (multiCounter                       ), intent(inout), optional :: instance
-    !GCC$ attributes unused :: self, instance
+    !$GLC attributes unused :: self, instance
 
     radiusHalfMassExtract=Galactic_Structure_Radius_Enclosing_Mass(node,fractionalMass=0.5d0,massType=massTypeStellar)
     return
@@ -71,7 +74,7 @@ contains
     implicit none
     type (varying_string                     )                :: radiusHalfMassName
     class(nodePropertyExtractorRadiusHalfMass), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     radiusHalfMassName=var_str('radiusHalfMassStellar')
     return
@@ -82,7 +85,7 @@ contains
     implicit none
     type (varying_string                     )                :: radiusHalfMassDescription
     class(nodePropertyExtractorRadiusHalfMass), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     radiusHalfMassDescription=var_str('Radius enclosing half the galaxy stellar mass [Mpc].')
     return
@@ -93,7 +96,7 @@ contains
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
     class(nodePropertyExtractorRadiusHalfMass), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     radiusHalfMassUnitsInSI=massSolar
     return
@@ -104,7 +107,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorRadiusHalfMass), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     radiusHalfMassType=outputAnalysisPropertyTypeLinear
     return

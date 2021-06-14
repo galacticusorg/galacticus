@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,9 +21,9 @@
 
 program Test_Interpolation_2D
   !% Tests that 2D interpolation routines work.
-  use :: Galacticus_Display                  , only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use :: Numerical_Interpolation_2D_Irregular, only : Interpolate_2D_Irregular      , interp2dIrregularObject
-  use :: Unit_Tests                          , only : Assert                        , Unit_Tests_Begin_Group , Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Display                             , only : displayVerbositySet     , verbosityLevelStandard
+  use :: Numerical_Interpolation_2D_Irregular, only : Interpolate_2D_Irregular, interp2dIrregularObject
+  use :: Unit_Tests                          , only : Assert                  , Unit_Tests_Begin_Group , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   double precision                         , dimension(30) :: xTable                       , yTable    , &
        &                                                      zTable
@@ -34,7 +34,7 @@ program Test_Interpolation_2D
   integer                                                  :: i
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("2D interpolation")

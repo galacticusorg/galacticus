@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,7 +23,10 @@
   use :: Stellar_Astrophysics_Tracks     , only : stellarTracksClass
 
   !# <stellarWinds name="stellarWindsLeitherer1992">
-  !#  <description>A stellar winds class based on \cite{leitherer_deposition_1992}.</description>
+  !#  <description>
+  !#   A stellar winds class using the fitting formulae of \cite{leitherer_deposition_1992} to compute stellar wind energy input
+  !#   from the luminosity and effective temperature of a star.
+  !#  </description>
   !# </stellarWinds>
   type, extends(stellarWindsClass) :: stellarWindsLeitherer1992
      !% A stellar winds class based on \cite{leitherer_deposition_1992}.
@@ -88,7 +91,7 @@ contains
     double precision                           , intent(in   ) :: age                        , initialMass       , &
          &                                                        metallicity
     double precision                                           :: stellarEffectiveTemperature, stellarLuminosity
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Get luminosity and effective temperature of the star.
     stellarLuminosity          =self%stellarTracks_%luminosity          (initialMass,metallicity,age)
@@ -121,7 +124,7 @@ contains
      double precision                           , intent(in   ) :: age                        , initialMass       , &
          &                                                         metallicity
     double precision                                            :: stellarEffectiveTemperature, stellarLuminosity
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Get luminosity and effective temperature of the star.
     stellarLuminosity          =self%stellarTracks_%luminosity          (initialMass,metallicity,age)

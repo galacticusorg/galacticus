@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -54,7 +54,7 @@ contains
          &                                                                     vBandAttenuation
     double precision                                        , parameter     :: xV=1.0d0/(5504.61227375652d0/angstromsPerMicron)
     double precision                                                        :: x
-    !GCC$ attributes unused :: age
+    !$GLC attributes unused :: age
 
     x=1.0d0/(wavelength/angstromsPerMicron)
     tabulatedAttenuation=vBandAttenuation*self%attenuationTable%interpolate(x)/self%attenuationTable%interpolate(xV)

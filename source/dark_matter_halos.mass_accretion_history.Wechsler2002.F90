@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,7 +23,16 @@
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
 
   !# <darkMatterHaloMassAccretionHistory name="darkMatterHaloMassAccretionHistoryWechsler2002">
-  !#  <description>Dark matter halo mass accretion histories using the \cite{wechsler_concentrations_2002} algorithm.</description>
+  !#  <description>
+  !#   A dark matter halo mass accretion history class in which the mass accretion history is given by
+  !#   \citep{wechsler_concentrations_2002}:
+  !#   \begin{equation}
+  !#   M(t) = M(t_0) \exp \left( - 2 a_\mathrm{c} \left[ {a(t_0)\over a(t)}-1 \right] \right),
+  !#   \end{equation}
+  !#   where $t_0$ is some reference time and $a_\mathrm{c}$ is a characteristic expansion factor defined by
+  !#   \cite{wechsler_concentrations_2002} to correspond to the formation time of the halo (using the formation time definition of
+  !#   \citealt{bullock_profiles_2001}).
+  !#  </description>
   !# </darkMatterHaloMassAccretionHistory>
   type, extends(darkMatterHaloMassAccretionHistoryClass) :: darkMatterHaloMassAccretionHistoryWechsler2002
      !% A dark matter halo mass accretion historiy class using the \cite{wechsler_concentrations_2002} algorithm.
@@ -34,8 +43,13 @@
      logical                                                  :: formationRedshiftCompute
      double precision                                         :: formationRedshift
    contains
-     final     ::         wechsler2002Destructor
-     procedure :: time => wechsler2002Time
+     !# <methods>
+     !#   <method description="Compute the formation expansion factor." method="expansionFactorAtFormation" />
+     !# </methods>
+     final     ::                               wechsler2002Destructor
+     procedure :: time                       => wechsler2002Time
+     procedure :: massAccretionRate          => wechsler2002MassAccretionRate
+     procedure :: expansionFactorAtFormation => wechsler2002ExpansionFactorAtFormation
   end type darkMatterHaloMassAccretionHistoryWechsler2002
 
   interface darkMatterHaloMassAccretionHistoryWechsler2002
@@ -60,20 +74,16 @@ contains
 
     !# <inputParameter>
     !#   <name>formationRedshiftCompute</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>If true, compute formation redshift automatically for \cite{wechsler_concentrations_2002} halo mass accretion histories.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     if (.not.formationRedshiftCompute) then
        ! In this case, read the formation redshift.
        !# <inputParameter>
        !#   <name>formationRedshift</name>
-       !#   <cardinality>1</cardinality>
        !#   <description>The formation redshift to use in \cite{wechsler_concentrations_2002} halo mass accretion histories.</description>
        !#   <source>parameters</source>
-       !#   <type>real</type>
        !# </inputParameter>
     end if
     !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
@@ -118,22 +128,22 @@ contains
   end subroutine wechsler2002Destructor
 
   double precision function wechsler2002Time(self,node,mass)
-    !% Compute the time corresponding to {\normalfont \ttfamily mass} in the mass accretion history of {\normalfont \ttfamily thisNode} using the algorithm of
+    !% Compute the time corresponding to {\normalfont \ttfamily mass} in the mass accretion history of {\normalfont \ttfamily node} using the algorithm of
     !% \cite{wechsler_concentrations_2002}.
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
-    class           (darkMatterHaloMassAccretionHistoryWechsler2002), intent(inout) :: self
-    type            (treeNode                                      ), intent(inout) :: node
-    double precision                                                , intent(in   ) :: mass
-    class           (nodeComponentBasic                            ), pointer       :: baseBasic
-    double precision                                                                :: expansionFactor                   , expansionFactorBase, &
-         &                                                                             mergerTreeFormationExpansionFactor
+    class           (darkMatterHaloMassAccretionHistoryWechsler2002), intent(inout), target :: self
+    type            (treeNode                                      ), intent(inout), target :: node
+    double precision                                                , intent(in   )         :: mass
+    class           (nodeComponentBasic                            ), pointer               :: baseBasic
+    double precision                                                                        :: expansionFactor                   , expansionFactorBase, &
+         &                                                                                     mergerTreeFormationExpansionFactor
 
     baseBasic => node%basic()
     select case (self%formationRedshiftCompute)
     case (.true.)
        ! Compute the expansion factor at formation.
-       mergerTreeFormationExpansionFactor=expansionFactorAtFormation(baseBasic%mass())
+       mergerTreeFormationExpansionFactor=self%expansionFactorAtFormation(baseBasic%mass())
     case (.false.)
        ! Use the specified formation redshift.
        mergerTreeFormationExpansionFactor=self%cosmologyFunctions_%expansionFactorFromRedshift(self%formationRedshift)
@@ -145,26 +155,68 @@ contains
     ! Find the time corresponding to this expansion factor.
     wechsler2002Time=self%cosmologyFunctions_%cosmicTime(expansionFactor)
     return
-
-  contains
-
-    double precision function expansionFactorAtFormation(haloMass)
-      !% Computes the expansion factor at formation using the simple model of \cite{bullock_profiles_2001}.
-      implicit none
-      double precision, intent(in   ) :: haloMass
-      double precision, parameter     :: haloMassFraction   =0.015d0 ! Wechsler et al. (2002;  Astrophysical Journal, 568:52-70).
-      double precision                :: formationTime              , haloMassCharacteristic, &
-           &                             sigmaCharacteristic
-
-      ! Compute the characteristic mass at formation time.
-      haloMassCharacteristic=haloMassFraction*haloMass
-      ! Compute the corresponding rms fluctuation in the density field (i.e. sigma(M)).
-      sigmaCharacteristic=self%cosmologicalMassVariance_%rootVariance(haloMassCharacteristic,self%cosmologyFunctions_%cosmicTime(1.0d0))
-      ! Get the time at which this equals the critical overdensity for collapse.
-      formationTime=self%criticalOverdensity_%timeOfCollapse(criticalOverdensity=sigmaCharacteristic,mass=haloMass)
-      ! Get the corresponding expansion factor.
-      expansionFactorAtFormation=self%cosmologyFunctions_%expansionFactor(formationTime)
-      return
-    end function expansionFactorAtFormation
-
   end function wechsler2002Time
+
+  double precision function wechsler2002MassAccretionRate(self,node,time)
+    !% Compute the mass accretion rate at the given {\normalfont \ttfamily time} in the mass accretion history of {\normalfont
+    !% \ttfamily node} using the algorithm of \cite{wechsler_concentrations_2002}.
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
+    implicit none
+    class           (darkMatterHaloMassAccretionHistoryWechsler2002), intent(inout) :: self
+    type            (treeNode                                      ), intent(inout) :: node
+    double precision                                                , intent(in   ) :: time
+    class           (nodeComponentBasic                            ), pointer       :: baseBasic
+    double precision                                                                :: expansionFactor                   , expansionFactorBase, &
+         &                                                                             mergerTreeFormationExpansionFactor
+
+    baseBasic => node%basic()
+    select case (self%formationRedshiftCompute)
+    case (.true.)
+       ! Compute the expansion factor at formation.
+       mergerTreeFormationExpansionFactor=self%expansionFactorAtFormation(baseBasic%mass())
+    case (.false.)
+       ! Use the specified formation redshift.
+       mergerTreeFormationExpansionFactor=self%cosmologyFunctions_%expansionFactorFromRedshift(self%formationRedshift)
+    end select
+    ! Get the expansion factor at the tree base.
+    expansionFactorBase=self%cosmologyFunctions_%expansionFactor(baseBasic%time())
+    ! Get the expansion factor at the current time.
+    expansionFactor    =self%cosmologyFunctions_%expansionFactor(          time  )
+    ! Compute the mass accretion rate.
+    wechsler2002MassAccretionRate=+baseBasic%mass()                                        &
+         &                        *2.0d0                                                   &
+         &                        *mergerTreeFormationExpansionFactor                      &
+         &                        *expansionFactorBase                                     &
+         &                        /expansionFactor                                         &
+         &                        *exp(                                                    &
+         &                             -2.0d0                                              &
+         &                             *mergerTreeFormationExpansionFactor                 &
+         &                             *(                                                  &
+         &                               +expansionFactorBase                              &
+         &                               /expansionFactor                                  &
+         &                               -1.0d0                                            &
+         &                              )                                                  &
+         &                            )                                                    &
+         &                        *self%cosmologyFunctions_%expansionRate(expansionFactor)
+    return
+  end function wechsler2002MassAccretionRate
+
+  double precision function wechsler2002ExpansionFactorAtFormation(self,haloMass)
+    !% Computes the expansion factor at formation using the simple model of \cite{bullock_profiles_2001}.
+    implicit none
+    class           (darkMatterHaloMassAccretionHistoryWechsler2002), intent(inout) :: self
+    double precision                                                , intent(in   ) :: haloMass
+    double precision                                                , parameter     :: haloMassFraction   =0.015d0 ! Wechsler et al. (2002;  Astrophysical Journal, 568:52-70).
+    double precision                                                                :: formationTime              , haloMassCharacteristic, &
+         &                                                                             sigmaCharacteristic
+
+    ! Compute the characteristic mass at formation time.
+    haloMassCharacteristic=haloMassFraction*haloMass
+    ! Compute the corresponding rms fluctuation in the density field (i.e. sigma(M)).
+    sigmaCharacteristic=self%cosmologicalMassVariance_%rootVariance(haloMassCharacteristic,self%cosmologyFunctions_%cosmicTime(1.0d0))
+    ! Get the time at which this equals the critical overdensity for collapse.
+    formationTime=self%criticalOverdensity_%timeOfCollapse(criticalOverdensity=sigmaCharacteristic,mass=haloMass)
+    ! Get the corresponding expansion factor.
+    wechsler2002ExpansionFactorAtFormation=self%cosmologyFunctions_%expansionFactor(formationTime)
+    return
+  end function wechsler2002ExpansionFactorAtFormation

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -64,8 +64,6 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>Parameter controling environmental dependence of critical overdensity.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
     !# <objectBuilder class="haloEnvironment"          name="haloEnvironment_"          source="parameters"/>
@@ -210,7 +208,7 @@ contains
     !% Return whether the critical overdensity is node dependent.
     implicit none
     class(criticalOverdensityEnvironmental), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     environmentalIsNodeDependent=.true.
     return

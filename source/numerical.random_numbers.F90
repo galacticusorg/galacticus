@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +21,7 @@
 
 module Numerical_Random_Numbers
   !% Provides a class that implements random number generators.
-  use :: FGSL, only : FGSL_Long
+  use, intrinsic :: ISO_C_Binding, only : c_long
   private
 
   !# <functionClass>
@@ -54,8 +54,8 @@ module Numerical_Random_Numbers
   !#   <description>Reset the seed for this random number generator.</description>
   !#   <type>void</type>
   !#   <pass>yes</pass>
-  !#   <argument>integer(FGSL_Long), intent(in   ) :: seed</argument>
-  !#   <argument>logical           , intent(in   ) :: offset</argument>
+  !#   <argument>integer(c_long), intent(in   ) :: seed</argument>
+  !#   <argument>logical        , intent(in   ) :: offset</argument>
   !#  </method>
   !# </functionClass>
   

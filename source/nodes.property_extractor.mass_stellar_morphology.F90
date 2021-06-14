@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -46,7 +46,7 @@ contains
     implicit none
     type(nodePropertyExtractorMassStellarMorphology)                :: self
     type(inputParameters                           ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=nodePropertyExtractorMassStellarMorphology()
     return
@@ -61,7 +61,7 @@ contains
     type            (treeNode                                  ), intent(inout), target   :: node
     type            (multiCounter                              ), intent(inout), optional :: instance
     double precision                                                                      :: massStellarDisk, massStellarSpheroid
-    !GCC$ attributes unused :: self, instance
+    !$GLC attributes unused :: self, instance
 
     massStellarDisk    =Galactic_Structure_Enclosed_Mass(node,radiusLarge,massType=massTypeStellar,componentType=componentTypeDisk    )
     massStellarSpheroid=Galactic_Structure_Enclosed_Mass(node,radiusLarge,massType=massTypeStellar,componentType=componentTypeSpheroid)
@@ -82,7 +82,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorMassStellarMorphology), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     massStellarMorphologyType=outputAnalysisPropertyTypeLinear
     return
@@ -93,7 +93,7 @@ contains
     implicit none
     type (varying_string                            )                :: massStellarMorphologyName
     class(nodePropertyExtractorMassStellarMorphology), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     massStellarMorphologyName=var_str('morphologyMassStellarWeighted')
     return
@@ -104,7 +104,7 @@ contains
     implicit none
     type (varying_string                            )                :: massStellarMorphologyDescription
     class(nodePropertyExtractorMassStellarMorphology), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     massStellarMorphologyDescription=var_str('The stellar mass-weighted mophology (bulge-to-total ratio) of the galaxy.')
     return
@@ -114,7 +114,7 @@ contains
     !% Return the units of the massStellarMorphology property in the SI system.
     implicit none
     class(nodePropertyExtractorMassStellarMorphology), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     massStellarMorphologyUnitsInSI=0.0d0
     return

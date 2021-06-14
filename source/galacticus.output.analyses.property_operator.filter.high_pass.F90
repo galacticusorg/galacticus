@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -52,8 +52,6 @@ contains
     !#   <source>parameters</source>
     !#   <variable>filterThreshold</variable>
     !#   <description>Threshold for the high-pass filter distribution operator.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=outputAnalysisPropertyOperatorFilterHighPass(filterThreshold)
     !# <inputParametersValidate source="parameters"/>
@@ -79,7 +77,7 @@ contains
     type            (treeNode                                    ), intent(inout), optional :: node
     integer                                                       , intent(inout), optional :: propertyType
     integer         (c_size_t                                    ), intent(in   ), optional :: outputIndex
-    !GCC$ attributes unused :: propertyType, outputIndex, node
+    !$GLC attributes unused :: propertyType, outputIndex, node
 
     if (propertyValue > self%filterThreshold) then
        filterHighPassOperate=propertyValue

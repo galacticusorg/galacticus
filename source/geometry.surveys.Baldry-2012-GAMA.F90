@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +22,41 @@
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !# <surveyGeometry name="surveyGeometryBaldry2012GAMA">
-  !#  <description>Implements the geometry of the GAMA survey of \cite{baldry_galaxy_2012}.</description>
+  !#  <description>
+  !#   A survey geometry class that describes the survey geometry of \cite{baldry_galaxy_2012}. 
+  !#   
+  !#   For the angular mask we use the specifications of the G09, G12, and G15 fields given by \cite{driver_galaxy_2011} to
+  !#   construct {\normalfont \scshape mangle} polygon files.
+  !#   
+  !#   To determine the depth as a function of stellar mass, we make use of the publicly available tabulated mass function,
+  !#   $\phi$, and number of galaxies per bin, $N$. The effective volume of each bin is found as $V_i =
+  !#   N_i/\phi_i\Delta\log_{10}M_\star$, where $\Delta\log_{10}M_\star$ is the width of the bin. The GAMA survey consists of
+  !#   three fields, each of the same solid angle, but with differing depths. We assume that the relative depths in terms of
+  !#   stellar mass scale with the depth in terms of flux. Given this assumption, these volumes are converted to maximum distances
+  !#   in each field using the solid angle quoted above. The resulting mass vs. distance relation in each field is fit with a
+  !#   $1^\mathrm{st}$-order polynomial in log-log space over the range where the maximum volume is limited by the survey depth
+  !#   and not by the imposed $z=0.06$ upper limit to redshift. Figure~\ref{fig:BaldryGAMADepthFit} shows the resulting relation
+  !#   between stellar mass and the maximum distance at which such a galaxy would be included in the sample. Points indicate
+  !#   results from GAMA, while the line shows a polynomial fit:
+  !#   \begin{equation}
+  !#    \log_{10} \left[ {D_\mathrm{max}(M_\star) \over \hbox{Mpc}}\right] = \left\{ \begin{array}{ll} -0.521 + 0.319m &amp;
+  !#    \hbox{fields G09/G15} \\ -0.361 + 0.319m &amp; \hbox{field G12} \end{array} \right.
+  !#    \label{eq:BaldryDepthPolynomial}
+  !#   \end{equation}
+  !#   where $m= \log_{10}(M_\star/M_\odot)$. We use this polynomial fit to determine the depth of the sample as a function of
+  !#   stellar mass.
+  !#   
+  !#   \begin{figure}
+  !#    \begin{center}
+  !#    \includegraphics[width=85mm,trim=0mm 0mm 0mm 4mm,clip]{Plots/DataAnalysis/BaldryGAMAMassDistanceRelation.pdf}
+  !#    \end{center}
+  !#    \caption{The maximum distance at which a galaxy of given stellar mass can be detected in the sample of
+  !#    \protect\cite{baldry_galaxy_2012}. Points show the results obtained from data provided by Baldry, while the lines shows a
+  !#    polynomial fit to these results (given in eqn.~\ref{eq:BaldryDepthPolynomial}). Note that above $10^9M_\odot$ the distance
+  !#    is limited by the imposed upper limit of $z=0.06$ in the GAMA sample---the polynomial fit does not consider these points.}
+  !#    \label{fig:BaldryGAMADepthFit}
+  !#   \end{figure}
+  !#  </description>
   !# </surveyGeometry>
   type, extends(surveyGeometryMangle) :: surveyGeometryBaldry2012GAMA
      private
@@ -96,7 +130,7 @@ contains
     !% Return the number of fields in this sample.
     implicit none
     class(surveyGeometryBaldry2012GAMA), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     baldry2012GAMAFieldCount=baldry2012GAMAFields
     return
@@ -110,7 +144,7 @@ contains
     double precision                              , intent(in   ), optional :: mass           , magnitudeAbsolute, luminosity
     integer                                       , intent(in   ), optional :: field
     double precision                                                        :: logarithmicMass
-    !GCC$ attributes unused :: magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: magnitudeAbsolute, luminosity
 
     ! Validate field.
     if (.not.present(field)) call Galacticus_Error_Report('field must be specified'//{introspection:location})
@@ -139,13 +173,13 @@ contains
 
   function baldry2012GAMAMangleDirectory(self)
     !% Return the path to the directory containing \gls{mangle} files.
-    use :: Galacticus_Paths, only : galacticusPath, pathTypeExec
+    use :: Galacticus_Paths, only : galacticusPath, pathTypeDataStatic
     implicit none
     class(surveyGeometryBaldry2012GAMA), intent(inout) :: self
     type (varying_string              )                :: baldry2012GAMAMangleDirectory
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
-    baldry2012GAMAMangleDirectory=galacticusPath(pathTypeExec)//"constraints/dataAnalysis/stellarMassFunction_GAMA_z0.03/"
+    baldry2012GAMAMangleDirectory=galacticusPath(pathTypeDataStatic)//"surveyGeometry/GAMA/"
     return
   end function baldry2012GAMAMangleDirectory
 
@@ -169,7 +203,7 @@ contains
     !% Return the maximum degree for which angular power is computed for the \cite{bernardi_massive_2013} survey.
     implicit none
     class(surveyGeometryBaldry2012GAMA), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     baldry2012GAMAAngularPowerMaximumDegree=baldry2012GAMAAngularPowerMaximumL
     return

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -24,7 +24,15 @@
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO, darkMatterProfileDMOClass
 
   !# <galacticStructureSolver name="galacticStructureSolverFixed">
-  !#  <description>A ``fixed'' solver for galactic structure (no self-gravity of baryons, and size simply scales in proportion to specific angular momentum).</description>
+  !#  <description>
+  !#   A galactic structure solver that determines the sizes of galactic components by assuming that radius equals
+  !#   \begin{equation}
+  !#    r = f_\mathrm{r} \lambda r_0
+  !#   \end{equation}
+  !#   where $r_0$ is the virial or turnaround radius of the \gls{node} if {\normalfont \ttfamily [radiusFixed]}$=${\normalfont
+  !#   \ttfamily virialRadius} or {\normalfont \ttfamily turnaround} respectively, $\lambda$ is its spin parameter and
+  !#   $f_\mathrm{r}=${\normalfont \ttfamily [radiusFixed]} is a parameter.
+  !#  </description>
   !# </galacticStructureSolver>
   type, extends(galacticStructureSolverClass) :: galacticStructureSolverFixed
      !% Implementation of a ``fixed'' solver for galactic structure (no self-gravity of baryons, and size simply scales in
@@ -73,20 +81,16 @@ contains
 
     !# <inputParameter>
     !#   <name>factor</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultSource>\citep{mo_formation_1998}</defaultSource>
     !#   <defaultValue>sqrt(0.5d0)</defaultValue>
     !#   <description>The ratio of galaxy radius to $\lambda r_\mathrm{vir}$ in the ``fixed'' galactic structure radius solver algorithm.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>radiusFixed</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('virial')</defaultValue>
     !#   <description>The radius to use in the ``fixed'' galactic structure radius solver algorithm. Allowed options are ``virial'' and ``turnaround''.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
@@ -179,7 +183,7 @@ contains
     class  (*       ), intent(inout)         :: self
     type   (treeNode), intent(inout), target :: node
     integer          , intent(in   )         :: propertyType
-    !GCC$ attributes unused :: propertyType
+    !$GLC attributes unused :: propertyType
 
     select type (self)
     type is (galacticStructureSolverFixed)
@@ -225,7 +229,7 @@ contains
       class           (nodeComponentSpin )               , pointer :: spin
       class           (nodeComponentBasic)               , pointer :: basic
       double precision                                             :: radius                 , velocity
-      !GCC$ attributes unused :: radiusGet, velocityGet, specificAngularMomentum
+      !$GLC attributes unused :: radiusGet, velocityGet, specificAngularMomentum
 
       ! Find the radius of the component, assuming radius is a fixed fraction of radius times spin parameter.
       spin => node%spin()
@@ -251,7 +255,7 @@ contains
     implicit none
     class(galacticStructureSolverFixed), intent(inout) :: self
     type (treeNode                     ), intent(inout) :: node
-    !GCC$ attributes unused :: self, node
+    !$GLC attributes unused :: self, node
 
     return
   end subroutine fixedRevert

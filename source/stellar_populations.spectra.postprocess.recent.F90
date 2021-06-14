@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,10 @@
   !% An implementation of a spectrum postprocessor that keeps only recent populations.
 
   !# <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorRecent">
-  !#  <description>Retains only recent stellar populations.</description>
+  !#  <description>
+  !#   A stellar population postprocessor class which suppresses all emission from populations older than {\normalfont \ttfamily
+  !#   [timeLimit]} (in Gyr).
+  !#  </description>
   !# </stellarPopulationSpectraPostprocessor>
   type, extends(stellarPopulationSpectraPostprocessorClass) :: stellarPopulationSpectraPostprocessorRecent
      !% An recent spectrum postprocessor.
@@ -48,11 +51,9 @@ contains
 
     !# <inputParameter>
     !#   <name>timeLimit</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d-2</defaultValue>
     !#   <description>The maximum age of stellar populations to retain in the ``recent'' spectra postprocessing method.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     self=stellarPopulationSpectraPostprocessorRecent(timeLimit)
     return
@@ -74,7 +75,7 @@ contains
     class           (stellarPopulationSpectraPostprocessorRecent), intent(inout) :: self
     double precision                                             , intent(in   ) :: age       , redshift, &
          &                                                                          wavelength
-    !GCC$ attributes unused :: redshift, wavelength
+    !$GLC attributes unused :: redshift, wavelength
 
     if (age > self%timeLimit) then
        recentMultiplier=0.0d0

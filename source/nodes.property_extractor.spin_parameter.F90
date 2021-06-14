@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -46,7 +46,7 @@ contains
     implicit none
     type (nodePropertyExtractorSpin)                :: self
     type (inputParameters          ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     ! Build the object.
     self=nodePropertyExtractorSpin()
@@ -61,7 +61,7 @@ contains
     type (treeNode                 ), intent(inout), target   :: node
     type (multiCounter             ), intent(inout), optional :: instance
     class(nodeComponentSpin        ), pointer                 :: spin
-    !GCC$ attributes unused :: self, instance
+    !$GLC attributes unused :: self, instance
 
     spin        => node%spin()
     spinExtract =  spin%spin()
@@ -73,7 +73,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorSpin), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     spinType=outputAnalysisPropertyTypeLinear
     return
@@ -84,7 +84,7 @@ contains
     implicit none
     type (varying_string           )                :: spinName
     class(nodePropertyExtractorSpin), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     spinName=var_str('spinParameter')
     return
@@ -95,7 +95,7 @@ contains
     implicit none
     type (varying_string           )                :: spinDescription
     class(nodePropertyExtractorSpin), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     spinDescription=var_str('The spin parameter of the dark matter halos.')
     return
@@ -105,7 +105,7 @@ contains
     !% Return the units of the spin property in the SI system.
     implicit none
     class(nodePropertyExtractorSpin), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     spinUnitsInSI=0.0d0
     return

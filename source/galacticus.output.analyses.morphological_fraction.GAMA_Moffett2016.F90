@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -59,19 +59,15 @@ contains
     allocate(    randomErrorPolynomialCoefficient(max(1,parameters%count(    'randomErrorPolynomialCoefficient',zeroIfNotPresent=.true.))))
     !# <inputParameter>
     !#   <name>ratioEarlyType</name>
-    !#   <cardinality>0..1</cardinality>
     !#   <defaultValue>0.5d0</defaultValue>
     !#   <description>The minimum spheroid-to-total ratio for a galaxy to be classified as ``early-type'' when constructing the \gls{gama} early-type fraction function.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>ratioEarlyTypeError</name>
-    !#   <cardinality>0..1</cardinality>
     !#   <defaultValue>0.3d0</defaultValue>
     !#   <description>The error in spheroid fraction to be used when constructing the \gls{gama} early-type fraction function.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>systematicErrorPolynomialCoefficient</name>
@@ -79,8 +75,6 @@ contains
     !#   <variable>systematicErrorPolynomialCoefficient</variable>
     !#   <defaultValue>[0.0d0]</defaultValue>
     !#   <description>The coefficients of the systematic error polynomial.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>randomErrorPolynomialCoefficient</name>
@@ -88,8 +82,6 @@ contains
     !#   <variable>randomErrorPolynomialCoefficient</variable>
     !#   <defaultValue>[0.0d0]</defaultValue>
     !#   <description>The coefficients of the random error polynomial.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>randomErrorMinimum</name>
@@ -97,8 +89,6 @@ contains
     !#   <variable>randomErrorMinimum</variable>
     !#   <defaultValue>0.07d0</defaultValue>
     !#   <description>The minimum random error for stellar masses.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>randomErrorMaximum</name>
@@ -106,8 +96,6 @@ contains
     !#   <variable>randomErrorMaximum</variable>
     !#   <defaultValue>0.07d0</defaultValue>
     !#   <description>The minimum random error for stellar masses.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     !# <objectBuilder class="outputTimes"        name="outputTimes_"        source="parameters"/>
@@ -163,6 +151,7 @@ contains
     type            (cosmologyParametersSimple                            ), pointer                       :: cosmologyParametersData
     type            (cosmologyFunctionsMatterLambda                       ), pointer                       :: cosmologyFunctionsData
     type            (propertyOperatorList                                 ), pointer                       :: propertyOperators_
+    type            (surveyGeometryBaldry2012GAMA                         ), pointer                       :: surveyGeometry_
     logical                                                                , parameter                     :: likelihoodNormalize                             =.false.
     double precision                                                       , parameter                     :: errorPolynomialZeroPoint                        =11.300d00
     double precision                                                       , parameter                     :: confidenceLevel                                 = 0.683d00 ! 1-sigma confidence level
@@ -170,7 +159,6 @@ contains
     integer         (c_size_t                                             ), parameter                     :: bufferCount                                     =10
     type            (distributionFunction1DBeta                           )                                :: betaDistributionLower                                                  , betaDistributionUpper
     integer         (c_size_t                                             )                                :: iBin                                                                   , binCount
-    type            (surveyGeometryBaldry2012GAMA                         )                                :: surveyGeometry_
     type            (hdf5Object                                           )                                :: dataFile
     double precision                                                                                       :: probit,sqrtArg
 
@@ -236,6 +224,7 @@ contains
     self%functionErrorLowerTarget=-self%functionErrorLowerTarget+functionValueTarget
     self%functionErrorUpperTarget=+self%functionErrorUpperTarget-functionValueTarget
     ! Construct survey geometry.
+    allocate(surveyGeometry_)
     !# <referenceConstruct object="surveyGeometry_" constructor="surveyGeometryBaldry2012GAMA(cosmologyFunctions_)"/>
     ! Compute weights that apply to each output redshift.
     call allocateArray(outputWeight,[binCount,outputTimes_%count()])
@@ -356,6 +345,7 @@ contains
          &                                                         functionCovarianceTarget                         &
          &                                                        )
     ! Clean up.
+    !# <objectDestructor name="surveyGeometry_"                                 />
     !# <objectDestructor name="galacticFilter_"                                 />
     !# <objectDestructor name="outputAnalysisDistributionOperator_"             />
     !# <objectDestructor name="outputAnalysisWeightOperator_"                   />
@@ -366,7 +356,7 @@ contains
     !# <objectDestructor name="outputAnalysisPropertyUnoperator_"               />
     !# <objectDestructor name="outputAnalysisWeightPropertyOperator_"           />
     !# <objectDestructor name="outputAnalysisWeightPropertyExtractor_"          />
-    !# <objectDestructor name="nodePropertyExtractor_"                />
+    !# <objectDestructor name="nodePropertyExtractor_"                          />
     !# <objectDestructor name="cosmologyParametersData"                         />
     !# <objectDestructor name="cosmologyFunctionsData"                          />
     nullify(propertyOperators_)

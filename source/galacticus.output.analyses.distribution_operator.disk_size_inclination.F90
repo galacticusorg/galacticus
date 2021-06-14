@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -29,7 +29,8 @@
      private
      type (table1DLinearLinear)              :: inclinationTable
      class(table1D            ), allocatable :: sizeTable
-  contains
+   contains
+     final     ::                        diskSizeInclinationDestructor
      procedure :: operateScalar       => diskSizeInclinationOperateScalar
      procedure :: operateDistribution => diskSizeInclinationOperateDistribution
   end type outputAnalysisDistributionOperatorDiskSizeInclntn
@@ -52,7 +53,7 @@ contains
     implicit none
     type(outputAnalysisDistributionOperatorDiskSizeInclntn)                :: self
     type(inputParameters                                  ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=outputAnalysisDistributionOperatorDiskSizeInclntn()
     return
@@ -99,20 +100,16 @@ contains
        call self%inclinationTable%populate(halfMassRadii)
     else
        ! Tabulate dependence of projected half-light radius on disk inclination angle.
-       call finder               %tolerance   (                                                                           &
-            &                                  toleranceRelative            =1.0d-6                                     , &
-            &                                  toleranceAbsolute            =1.0d-6                                       &
-            &                                 )
-       call finder               %rootFunction(                                                                           &
-            &                                                               diskSizeInclntnRoot                           &
-            &                                 )
-       call finder               %rangeExpand (                                                                           &
-            &                                  rangeExpandUpward            =2.0d0                                      , &
-            &                                  rangeExpandDownward          =0.5d0                                      , &
-            &                                  rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive              , &
-            &                                  rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative              , &
-            &                                  rangeExpandType              =rangeExpandMultiplicative                    &
-            &                                 )
+       finder=rootFinder(                                                             &
+            &            rootFunction                 =diskSizeInclntnRoot          , &
+            &            toleranceRelative            =1.0d-6                       , &
+            &            toleranceAbsolute            =1.0d-6                       , &
+            &            rangeExpandUpward            =2.0d0                        , &
+            &            rangeExpandDownward          =0.5d0                        , &
+            &            rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+            &            rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+            &            rangeExpandType              =rangeExpandMultiplicative      &
+            &           )
        diskSizeInclntnAngle =acos(self%inclinationTable%x(1))
        halfLightRadiusFaceOn=finder%find(rootGuess=1.0d0)
        call self%inclinationTable%populate(0.0d0,1)
@@ -139,38 +136,44 @@ contains
     return
   end function diskSizeInclinationConstructorInternal
 
+  subroutine diskSizeInclinationDestructor(self)
+    !% Destructor for the ``diskSizeInclination'' output analysis distribution operator operator class.
+    implicit none
+    type(outputAnalysisDistributionOperatorDiskSizeInclntn), intent(inout) :: self
+
+    call self%inclinationTable%destroy()
+    call self%sizeTable       %destroy()
+    deallocate(self%sizeTable)
+    return
+  end subroutine diskSizeInclinationDestructor
+
   double precision function diskSizeInclntnRoot(xHalf)
     !% Function used in solving for the half-light radii of inclined disks.
-    use :: FGSL                    , only : fgsl_function, fgsl_integration_workspace
     use :: Numerical_Constants_Math, only : Pi
-    use :: Numerical_Integration   , only : Integrate
+    use :: Numerical_Integration   , only : integrator
     implicit none
-    double precision                            , intent(in   ) :: xHalf
-    double precision                                            :: integralHalf
-    type            (fgsl_function             )                :: integrandFunction
-    type            (fgsl_integration_workspace)                :: integrationWorkspace
-    logical                                                     :: integrationReset
+    double precision            , intent(in   ) :: xHalf
+    double precision                            :: integralHalf
+    type            (integrator)                :: integrator_
 
-    integrationReset=.true.
-    integralHalf=Integrate(0.0d0,xHalf,diskSizeInclntnIntegrandX,integrandFunction,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)
+    integrator_        =integrator           (diskSizeInclntnIntegrandX,toleranceRelative=1.0d-6)
+    integralHalf       =integrator_%integrate(0.0d0                    ,                  xHalf )
     diskSizeInclntnRoot=integralHalf/2.0d0/Pi/cos(diskSizeInclntnAngle)-0.5d0
     return
   end function diskSizeInclntnRoot
 
   double precision function diskSizeInclntnIntegrandX(x)
     !% Integral for half-light radius.
-    use :: FGSL                    , only : fgsl_function, fgsl_integration_workspace
     use :: Numerical_Constants_Math, only : Pi
-    use :: Numerical_Integration   , only : Integrate
+    use :: Numerical_Integration   , only : integrator
     implicit none
-    double precision                            , intent(in   ) :: x
-    type            (fgsl_function             )                :: integrandFunction
-    type            (fgsl_integration_workspace)                :: integrationWorkspace
-    logical                                                     :: integrationReset
+    double precision            , intent(in   ) :: x
+    type            (integrator)                :: integrator_
 
-    integrationReset         =.true.
-    diskSizeInclntnXIntegrate=x
-    diskSizeInclntnIntegrandX=Integrate(0.0d0,2.0d0*Pi,diskSizeInclntnIntegrandPhi,integrandFunction,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)*x
+    diskSizeInclntnXIntegrate=+x
+    integrator_              = integrator           (diskSizeInclntnIntegrandPhi,toleranceRelative=1.0d-6   )
+    diskSizeInclntnIntegrandX=+integrator_%integrate(0.0d0                      ,                  2.0d+0*Pi) &
+         &                    *x
     return
   end function diskSizeInclntnIntegrandX
 
@@ -195,7 +198,7 @@ contains
     double precision                                                                  , dimension(size(propertyValueMinimum)) :: diskSizeInclinationOperateScalar
     double precision                                                                                                          :: ratioLogarithmicMinimum         , ratioLogarithmicMaximum
     integer                                                                                                                   :: i
-    !GCC$ attributes unused :: outputIndex, propertyType, node
+    !$GLC attributes unused :: outputIndex, propertyType, node
 
     do i=1,size(propertyValueMinimum)
        ratioLogarithmicMinimum            =min(0.0d0,propertyValueMinimum(i)-propertyValue)
@@ -217,7 +220,7 @@ contains
     integer         (c_size_t                                         ), intent(in   )                                        :: outputIndex
     type            (treeNode                                         ), intent(inout)                                        :: node
     double precision                                                                  , dimension(size(propertyValueMinimum)) :: diskSizeInclinationOperateDistribution
-    !GCC$ attributes unused :: self, distribution, propertyValueMinimum, propertyValueMaximum, outputIndex, propertyType, node
+    !$GLC attributes unused :: self, distribution, propertyValueMinimum, propertyValueMaximum, outputIndex, propertyType, node
 
     diskSizeInclinationOperateDistribution=0.0d0
     call Galacticus_Error_Report('not implemented'//{introspection:location})

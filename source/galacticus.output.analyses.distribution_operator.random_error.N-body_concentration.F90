@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -50,31 +50,25 @@ contains
     implicit none
     type            (outputAnalysisDistributionOperatorRndmErrNbdyCnc)                              :: self
     type            (inputParameters                                 ), intent(inout)               :: parameters
-    class           (nodePropertyExtractorClass            ), pointer                     :: nodePropertyExtractor_
+    class           (nodePropertyExtractorClass                      ), pointer                     :: nodePropertyExtractor_
     double precision                                                  , allocatable  , dimension(:) :: a
-    double precision                                                                                :: b                               , massParticle
+    double precision                                                                                :: b                     , massParticle
 
     allocate(a(parameters%count('a')))
     !# <inputParameter>
     !#   <name>a</name>
     !#   <source>parameters</source>
     !#   <description>Coefficients of the polynomial in concentration in the concentration error model.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>b</name>
     !#   <source>parameters</source>
     !#   <description>The exponent of particle number in the concentration error model.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massParticle</name>
     !#   <source>parameters</source>
     !#   <description>The mass of the particle in the N-body simulation.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="nodePropertyExtractor" name="nodePropertyExtractor_" source="parameters"/>
     self=outputAnalysisDistributionOperatorRndmErrNbdyCnc(a,b,massParticle,nodePropertyExtractor_)
@@ -90,8 +84,8 @@ contains
     implicit none
     type            (outputAnalysisDistributionOperatorRndmErrNbdyCnc)                              :: self
     double precision                                                  , intent(in   ), dimension(:) :: a
-    double precision                                                  , intent(in   )               :: b                               , massParticle
-    class           (nodePropertyExtractorClass            ), intent(in   ), target       :: nodePropertyExtractor_
+    double precision                                                  , intent(in   )               :: b                     , massParticle
+    class           (nodePropertyExtractorClass                      ), intent(in   ), target       :: nodePropertyExtractor_
     !# <constructorAssign variables="a, b, massParticle, *nodePropertyExtractor_"/>
 
     select type (nodePropertyExtractor_)
@@ -124,7 +118,7 @@ contains
     nbodyMassPropertyType         =+self%nodePropertyExtractor_%type   (    )
     select type (extractor_ => self%nodePropertyExtractor_)
     class is (nodePropertyExtractorScalar)
-       nbodyMassPropertyValue     =                            extractor_%extract(node)
+       nbodyMassPropertyValue     =                  extractor_%extract(node)
     class default
        nbodyMassPropertyValue     =+0.0d0
     end select

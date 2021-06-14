@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,13 +20,24 @@
   use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
 
   !# <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepSimple">
-  !#  <description>A merger tree evolution timestepping class which limits the step to a fraction of the current time or an absolute step, whichever is smaller.</description>
+  !#  <description>
+  !#   A merger tree evolution timestepping class enforces that
+  !#   \begin{eqnarray}
+  !#   \Delta t &amp;\le&amp; t_\mathrm{simple}, \\
+  !#   \Delta t &amp;\le&amp; \epsilon_\mathrm{simple} (a/\dot{a}),
+  !#   \end{eqnarray}
+  !#   where $t_\mathrm{simple}=${\normalfont \ttfamily [timestepSimpleAbsolute]}, $\epsilon_\mathrm{simple}=${\normalfont \ttfamily
+  !#   [timestepSimpleRelative]}, and $a$ is expansion factor. These criteria are intended to prevent any one node evolving over an
+  !#   excessively large time in one step. In general, these criteria are not necessary, as nodes should be free to evolve as far as
+  !#   possible unless prevented by some physical requirement. These criteria are therefore present to provide a simple example of how
+  !#   timestep criteria work.
+  !#  </description>
   !# </mergerTreeEvolveTimestep>
   type, extends(mergerTreeEvolveTimestepClass) :: mergerTreeEvolveTimestepSimple
      !% Implementation of an output times class which reads a simple of output times from a parameter.
      private
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
-     double precision                                   :: timeStepAbsolute   , timeStepRelative
+     double precision                                   :: timeStepAbsolute             , timeStepRelative
    contains
      final     ::                 simpleDestructor
      procedure :: timeEvolveTo => simpleTimeEvolveTo
@@ -51,21 +62,15 @@ contains
 
     !# <inputParameter>
     !#   <name>timeStepRelative</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.1d0</defaultValue>
     !#   <description>The maximum allowed relative change in time for a single step in the evolution of a node.</description>
-    !#   <group>timeStepping</group>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>timeStepAbsolute</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The maximum allowed absolute change in time (in Gyr) for a single step in the evolution of a node.</description>
-    !#   <group>timeStepping</group>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     self=mergerTreeEvolveTimestepSimple(timeStepAbsolute,timeStepRelative,cosmologyFunctions_)
@@ -94,7 +99,7 @@ contains
     return
   end subroutine simpleDestructor
 
-  double precision function simpleTimeEvolveTo(self,node,task,taskSelf,report,lockNode,lockType)
+  double precision function simpleTimeEvolveTo(self,timeEnd,node,task,taskSelf,report,lockNode,lockType)
     !% Determine a suitable timestep for {\normalfont \ttfamily node} using the simple method. This simply selects the smaller of {\normalfont \ttfamily
     !% timeStepAbsolute} and {\normalfont \ttfamily timeStepRelative}$H^{-1}(t)$.
     use :: Evolve_To_Time_Reports, only : Evolve_To_Time_Report
@@ -102,6 +107,7 @@ contains
     use :: ISO_Varying_String    , only : varying_string
     implicit none
     class           (mergerTreeEvolveTimestepSimple), intent(inout), target            :: self
+    double precision                                , intent(in   )                    :: timeEnd
     type            (treeNode                      ), intent(inout), target            :: node
     procedure       (timestepTask                  ), intent(  out), pointer           :: task
     class           (*                             ), intent(  out), pointer           :: taskSelf
@@ -111,6 +117,7 @@ contains
     class           (nodeComponentBasic            )               , pointer           :: basic
     double precision                                                                   :: expansionFactor, timescaleExpansion, &
          &                                                                                time
+    !$GLC attributes unused :: timeEnd
 
     ! Find current expansion timescale.
     basic => node%basic()

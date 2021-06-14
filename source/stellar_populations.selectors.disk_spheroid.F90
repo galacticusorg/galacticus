@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,11 @@
   !% Implements a stellar population selector class which returns a different population for disks and spheroids.
 
   !# <stellarPopulationSelector name="stellarPopulationSelectorDiskSpheroid">
-  !#  <description>A stellar population selector class which returns a different population for disks and spheroids.</description>
+  !#  <description>
+  !#   A stellar population selector class which selects a different population for disks and spheroids, irrespective of other
+  !#   physical conditions. The populationss to use are specified by the {\normalfont \ttfamily [stellarPopulationDisk]} and
+  !#   {\normalfont \ttfamily [stellarPopulationSpheroid]} parameters.
+  !#  </description>
   !# </stellarPopulationSelector>
   type, extends(stellarPopulationSelectorClass) :: stellarPopulationSelectorDiskSpheroid
      !% A stellar population selector class which returns a different population for disks and spheroids.
@@ -88,7 +92,7 @@ contains
     double precision                                       , intent(in   ) :: rateStarFormation
     type            (abundances                           ), intent(in   ) :: abundances_
     class           (nodeComponent                        ), intent(in   ) :: component
-    !GCC$ attributes unused :: rateStarFormation, abundances_
+    !$GLC attributes unused :: rateStarFormation, abundances_
 
     select type (component)
     class is (nodeComponentDisk    )
@@ -105,7 +109,7 @@ contains
     !% Return false indicating that stellar population selection is not dependent on star formation rate.
     implicit none
     class(stellarPopulationSelectorDiskSpheroid), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     diskSpheroidIsStarFormationRateDependent=.false.
     return

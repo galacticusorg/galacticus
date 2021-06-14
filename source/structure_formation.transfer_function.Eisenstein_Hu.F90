@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,7 +27,11 @@
   use :: Dark_Matter_Particles, only : darkMatterParticleClass
 
   !# <transferFunction name="transferFunctionEisensteinHu1999">
-  !#  <description>Provides the \cite{eisenstein_power_1999} fitting function to the transfer function. The effective number of neutrino species and the summed mass (in electron volts) of all neutrino species are specified via the {\normalfont \ttfamily neutrinoNumberEffective} and {\normalfont \ttfamily neutrinoMassSummed} parameters respectively.</description>
+  !#  <description>
+  !#   Provides the \cite{eisenstein_power_1999} fitting function to the transfer function. The effective number of neutrino
+  !#   species and the summed mass (in electron volts) of all neutrino species are specified via the {\normalfont \ttfamily
+  !#   neutrinoNumberEffective} and {\normalfont \ttfamily neutrinoMassSummed} parameters respectively.
+  !#  </description>
   !# </transferFunction>
   type, extends(transferFunctionClass) :: transferFunctionEisensteinHu1999
      !% The ``{\normalfont \ttfamily eisensteinHu1999}'' transfer function class.
@@ -44,20 +48,15 @@
           &                                                 wavenumberEffectivePow        , wavenumberPrevious     , &
           &                                                 time
    contains
-     !@ <objectMethods>
-     !@   <object>transferFunctionEisensteinHu1999</object>
-     !@   <objectMethod>
-     !@     <method>computeFactors</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ wavenumber\argin, \doublezero\ wavenumberEffective\argout, \doublezero\ wavenumberNeutrino\argout, \doublezero\ L\argout, \doublezero\ C\argout</arguments>
-     !@     <description>Compute common factors needed by \cite{eisenstein_power_1999} transfer function calculations.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Compute common factors needed by \cite{eisenstein_power_1999} transfer function calculations." method="computeFactors" />
+     !# </methods>
      final     ::                          eisensteinHu1999Destructor
      procedure :: value                 => eisensteinHu1999Value
      procedure :: logarithmicDerivative => eisensteinHu1999LogarithmicDerivative
      procedure :: computeFactors        => eisensteinHu1999ComputeFactors
      procedure :: halfModeMass          => eisensteinHu1999HalfModeMass
+     procedure :: quarterModeMass       => eisensteinHu1999QuarterModeMass
      procedure :: epochTime             => eisensteinHu1999EpochTime
   end type transferFunctionEisensteinHu1999
 
@@ -88,16 +87,12 @@ contains
     !#   <defaultValue>3.046d0</defaultValue>
     !#   <defaultSource>\citep{mangano_relic_2005}</defaultSource>
     !#   <description>The effective number of neutrino species.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>neutrinoMassSummed</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The summed mass (in electron volts) of all neutrino species.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
@@ -526,7 +521,7 @@ contains
     implicit none
     class  (transferFunctionEisensteinHu1999), intent(inout)           :: self
     integer                                  , intent(  out), optional :: status
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     eisensteinHu1999HalfModeMass=0.0d0
     if (present(status)) then
@@ -536,6 +531,24 @@ contains
     end if
     return
   end function eisensteinHu1999HalfModeMass
+
+  double precision function eisensteinHu1999QuarterModeMass(self,status)
+    !% Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of four relative
+    !% to a \gls{cdm} transfer function. Not supported in this implementation.
+    use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail
+    implicit none
+    class  (transferFunctionEisensteinHu1999), intent(inout)           :: self
+    integer                                  , intent(  out), optional :: status
+    !$GLC attributes unused :: self
+
+    eisensteinHu1999QuarterModeMass=0.0d0
+    if (present(status)) then
+       status=errorStatusFail
+    else
+       call Galacticus_Error_Report('not supported by this implementation'//{introspection:location})
+    end if
+    return
+  end function eisensteinHu1999QuarterModeMass
 
   double precision function eisensteinHu1999EpochTime(self)
     !% Return the cosmic time at the epoch at which this transfer function is defined.

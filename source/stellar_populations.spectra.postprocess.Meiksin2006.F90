@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,10 @@
   !% An implementation of a spectrum postprocessor that applies the \cite{meiksin_colour_2006} calculation of the attenuation of spectra by the intergalactic medium.
 
   !# <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorMeiksin2006">
-  !#  <description>Multiplier the \cite{meiksin_colour_2006} calculation of the attenuation of spectra by the intergalactic medium.</description>
+  !#  <description>
+  !#   A stellar population postprocessor class that postprocesses spectra through absorption by the \gls{igm} using the results
+  !#   of \cite{meiksin_colour_2006}.
+  !#  </description>
   !# </stellarPopulationSpectraPostprocessor>
   type, extends(stellarPopulationSpectraPostprocessorClass) :: stellarPopulationSpectraPostprocessorMeiksin2006
      !% An spectrum postprocessor multipliering the \cite{meiksin_colour_2006} calculation of the attenuation of spectra by the intergalactic medium.
@@ -43,7 +46,7 @@ contains
     implicit none
     type(stellarPopulationSpectraPostprocessorMeiksin2006)                :: self
     type(inputParameters                                 ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=stellarPopulationSpectraPostprocessorMeiksin2006()
     return
@@ -67,7 +70,7 @@ contains
     double precision                                                                  :: nFactorial                             , opticalDepth       , &
          &                                                                               seriesSolutionTermA                    , seriesSolutionTermB, &
          &                                                                               wavelengthObservedLymanContinuum
-    !GCC$ attributes unused :: self, age
+    !$GLC attributes unused :: self, age
 
     ! Check if this is a zero redshift case.
     if (redshift <= 0.0d0) then

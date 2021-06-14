@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -113,7 +113,7 @@ contains
     implicit none
     class           (nodePropertyExtractorICMXRayLuminosity), intent(inout) :: self
     double precision                                        , intent(in   ) :: time
-    !GCC$ attributes unused :: self, time
+    !$GLC attributes unused :: self, time
 
     icmXRayLuminosityElementCount=2
     return
@@ -121,12 +121,11 @@ contains
 
   function icmXRayLuminosityExtract(self,node,time,instance)
     !% Implement an ICM X-ray properties extractor.
-    use :: FGSL                        , only : fgsl_function                          , fgsl_integration_workspace
     use :: Galacticus_Nodes            , only : nodeComponentHotHalo                   , treeNode
     use :: Numerical_Constants_Physical, only : boltzmannsConstant
     use :: Numerical_Constants_Prefixes, only : kilo
     use :: Numerical_Constants_Units   , only : electronVolt
-    use :: Numerical_Integration       , only : Integrate                              , Integrate_Done
+    use :: Numerical_Integration       , only : integrator
     use :: Radiation_Fields            , only : radiationFieldCosmicMicrowaveBackground
     implicit none
     double precision                                         , dimension(:) , allocatable :: icmXRayLuminosityExtract
@@ -135,41 +134,19 @@ contains
     double precision                                         , intent(in   )              :: time
     type            (multiCounter                           ), intent(inout), optional    :: instance
     type            (radiationFieldCosmicMicrowaveBackground), pointer                    :: radiation_
-    type            (fgsl_function                          )                             :: integrandFunction
-    type            (fgsl_integration_workspace             )                             :: integrationWorkspace
-    logical                                                                               :: integrationReset
-    double precision                                                                      :: luminosity          , temperature
-    !GCC$ attributes unused :: self, time, instance
+    type            (integrator                             )                             :: integratorLuminosity    , integratorTemperature
+    double precision                                                                      :: luminosity              , temperature
+    !$GLC attributes unused :: self, time, instance
 
     allocate(icmXRayLuminosityExtract(2))
     ! Initialize radiation field.
     allocate(radiation_)
     !# <referenceConstruct object="radiation_" constructor="radiationFieldCosmicMicrowaveBackground(self%cosmologyFunctions_)"/>
     ! Compute luminosity and temperature.
-    integrationReset=.true.
-    luminosity      =Integrate(                                                                &
-         &                                       0.0d0                                       , &
-         &                                       self%darkMatterHaloScale_%virialRadius(node), &
-         &                                       integrandLuminosityXray                     , &
-         &                                       integrandFunction                           , &
-         &                                       integrationWorkspace                        , &
-         &                     reset            =integrationReset                            , &
-         &                     toleranceAbsolute=0.0d+0                                      , &
-         &                     toleranceRelative=1.0d-3                                        &
-         &                    )
-    call Integrate_Done(integrandFunction,integrationWorkspace)
-    integrationReset=.true.
-    temperature     =Integrate(                                                                &
-         &                                       0.0d0                                       , &
-         &                                       self%darkMatterHaloScale_%virialRadius(node), &
-         &                                       integrandTemperatureXray                    , &
-         &                                       integrandFunction                           , &
-         &                                       integrationWorkspace                        , &
-         &                     reset            =integrationReset                            , &
-         &                     toleranceAbsolute=0.0d+0                                      , &
-         &                     toleranceRelative=1.0d-3                                        &
-         &                    )
-    call Integrate_Done(integrandFunction,integrationWorkspace)
+    integratorLuminosity =integrator                     (integrandLuminosityXray ,toleranceRelative                           =1.0d-3)
+    integratorTemperature=integrator                     (integrandTemperatureXray,toleranceRelative                           =1.0d-3)
+    luminosity           =integratorLuminosity %integrate(0.0d0                   ,self%darkMatterHaloScale_%virialRadius(node)       )
+    temperature          =integratorTemperature%integrate(0.0d0                   ,self%darkMatterHaloScale_%virialRadius(node)       )
     if (luminosity > 0.0d0) then
        temperature=+temperature        &
             &      /luminosity         &
@@ -231,13 +208,13 @@ contains
            &                  /hecto                                  **3 &
            &                  /megaParsec                             **3
       ! Evaluate the integrand.
-      integrandLuminosityXray=+4.0d0                                                                                                                &
-           &                  *Pi                                                                                                                   &
-           &                  *radius**2                                                                                                            &
-           &                  *self%coolingFunction_%coolingFunction(numberDensityHydrogen,temperature,abundancesICM,densityChemicalICM,radiation_) &
-           &                  *(                                                                                                                    &
-           &                    +megaParsec                                                                                                         &
-           &                    /centi                                                                                                              &
+      integrandLuminosityXray=+4.0d0                                                                                                                     &
+           &                  *Pi                                                                                                                        &
+           &                  *radius**2                                                                                                                 &
+           &                  *self%coolingFunction_%coolingFunction(node,numberDensityHydrogen,temperature,abundancesICM,densityChemicalICM,radiation_) &
+           &                  *(                                                                                                                         &
+           &                    +megaParsec                                                                                                              &
+           &                    /centi                                                                                                                   &
            &                   )**3
       return
     end function integrandLuminosityXray
@@ -260,7 +237,7 @@ contains
     type            (varying_string                        ), dimension(:) , allocatable :: icmXRayLuminosityNames
     class           (nodePropertyExtractorICMXRayLuminosity), intent(inout)              :: self
     double precision                                        , intent(in   )              :: time
-    !GCC$ attributes unused :: self, time
+    !$GLC attributes unused :: self, time
 
     allocate(icmXRayLuminosityNames(2))
     icmXRayLuminosityNames=[var_str('icmXrayLuminosity'),var_str('icmXrayTemperature')]
@@ -273,7 +250,7 @@ contains
     type            (varying_string                        ), dimension(:) , allocatable :: icmXRayLuminosityDescriptions
     class           (nodePropertyExtractorICMXRayLuminosity), intent(inout)              :: self
     double precision                                        , intent(in   )              :: time
-    !GCC$ attributes unused :: self, time
+    !$GLC attributes unused :: self, time
 
     allocate(icmXRayLuminosityDescriptions(2))
     icmXRayLuminosityDescriptions=[var_str('X-ray luminosity of the ICM [ergs/s]'),var_str('X-ray luminosity-weighted temperature of the ICM [keV]')]
@@ -288,7 +265,7 @@ contains
     double precision                                        , allocatable  , dimension(:) :: icmXRayLuminosityUnitsInSI
     class           (nodePropertyExtractorICMXRayLuminosity), intent(inout)               :: self
     double precision                                        , intent(in   )               :: time
-    !GCC$ attributes unused :: self, time
+    !$GLC attributes unused :: self, time
 
     allocate(icmXRayLuminosityUnitsInSI(2))
     icmXRayLuminosityUnitsInSI=[ergs,kilo*electronVolt]
@@ -300,7 +277,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorICMXRayLuminosity), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     icmXRayLuminosityType=outputAnalysisPropertyTypeLinear
     return

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +21,7 @@
 
 module Test_ODE_Solver_Functions
   !% Contains ODEs for unit tests.
-  use :: FGSL, only : FGSL_Success
+  use :: Interface_GSL, only : GSL_Success
   implicit none
   private
   public :: ODE_Set_1     , ODE_Set_2       , &
@@ -35,10 +35,10 @@ contains
     double precision              , intent(in   ) :: x
     double precision, dimension(:), intent(in   ) :: y
     double precision, dimension(:), intent(  out) :: dydx
-    !GCC$ attributes unused :: y
+    !$GLC attributes unused :: y
 
     dydx(1)=sin(x)
-    ODE_Set_1=FGSL_Success
+    ODE_Set_1=GSL_Success
     return
   end function ODE_Set_1
 
@@ -47,11 +47,11 @@ contains
     double precision              , intent(in   ) :: x
     double precision, dimension(:), intent(in   ) :: y
     double precision, dimension(:), intent(  out) :: dfdy, dfdx
-    !GCC$ attributes unused :: y
+    !$GLC attributes unused :: y
 
     dfdy(1)=0.0d0
     dfdx(1)=cos(x)
-    Jacobian_Set_1=FGSL_Success
+    Jacobian_Set_1=GSL_Success
     return
   end function Jacobian_Set_1
 
@@ -60,11 +60,11 @@ contains
     double precision              , intent(in   ) :: x
     double precision, dimension(:), intent(in   ) :: y
     double precision, dimension(:), intent(  out) :: dydx
-    !GCC$ attributes unused :: x
+    !$GLC attributes unused :: x
 
     dydx(1)=       y(2)
     dydx(2)=-1.0d0*y(1)
-    ODE_Set_2=FGSL_Success
+    ODE_Set_2=GSL_Success
     return
   end function ODE_Set_2
 
@@ -73,26 +73,25 @@ contains
     double precision              , intent(in   ) :: x
     double precision, dimension(:), intent(in   ) :: y
     double precision, dimension(:), intent(  out) :: dfdy, dfdx
-    !GCC$ attributes unused :: x, y
+    !$GLC attributes unused :: x, y
 
     dfdy(1  )=+0.0d0
     dfdy(2  )=+1.0d0
     dfdy(3  )=-1.0d0
     dfdy(4  )=+0.0d0
     dfdx(1:2)=+0.0d0
-    Jacobian_Set_2=FGSL_Success
+    Jacobian_Set_2=GSL_Success
     return
   end function Jacobian_Set_2
 
-  subroutine Integrands_Set_2(ny,nz,x,y,dydx,z0,e,dzdx)
+  subroutine Integrands_Set_2(x,y,dydx,z0,e,dzdx)
     !% A set of integrands for unit tests.
-    integer         , intent(in   )                        :: ny  , nz
     double precision, intent(in   ), dimension(        : ) :: x
-    double precision, intent(in   ), dimension(ny,size(x)) :: y   , dydx
-    double precision, intent(in   ), dimension(nz        ) :: z0
+    double precision, intent(in   ), dimension(:,:) :: y   , dydx
+    double precision, intent(in   ), dimension(:        ) :: z0
     logical         , intent(inout), dimension(        : ) :: e
-    double precision, intent(  out), dimension(nz,size(x)) :: dzdx
-    !GCC$ attributes unused :: x, dydx, z0
+    double precision, intent(  out), dimension(:,:) :: dzdx
+    !$GLC attributes unused :: x, dydx, z0
 
     if (e(1)) dzdx(1,:)=1.0d0/sqrt(1.0d0+y(1,:)**2)
     if (e(2)) dzdx(2,:)=1.0d0/sqrt(1.0d0+y(2,:)**2)

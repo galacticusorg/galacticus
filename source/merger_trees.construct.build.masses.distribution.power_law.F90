@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,19 @@
   !% Implementation of a merger tree halo mass function sampling class in which the sampling rate is given by a power-law in halo mass.
 
   !# <mergerTreeBuildMassDistribution name="mergerTreeBuildMassDistributionPowerLaw">
-  !#  <description>A merger tree halo mass function sampling class in which the sampling rate is given by a power-law in halo mass.</description>
+  !#  <description>
+  !#   A merger tree build mass distribution class in which the sampling rate is given by a power-law in halo mass. Specifically:
+  !#   \begin{equation}
+  !#   \gamma(M) = \log_{10}(M/M_\mathrm{minimum})^{-\alpha/(1+\alpha)},
+  !#   \end{equation}
+  !#   The resulting distribution of halo masses is such that the mass of the $i^\mathrm{th}$ halo is
+  !#   \begin{equation}
+  !#    M_\mathrm{halo,i} = \exp\left[ \ln(M_\mathrm{halo,min}) + \ln\left({M_\mathrm{halo,max}/M_\mathrm{halo,min}}\right)
+  !#    x_i^{1+\alpha} \right].
+  !#   \end{equation}
+  !#   Here, $x_i$ is a number between 0 and 1 and $\alpha=${\normalfont \ttfamily [exponent]} is an
+  !#   input parameter that controls the relative number of low and high mass tree produced.
+  !#  </description>
   !# </mergerTreeBuildMassDistribution>
   type, extends(mergerTreeBuildMassDistributionClass) :: mergerTreeBuildMassDistributionPowerLaw
      !% Implementation of merger tree halo mass function sampling class in which the sampling rate is given by a power-law in halo mass.
@@ -48,11 +60,9 @@ contains
 
     !# <inputParameter>
     !#   <name>exponent</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>Halo masses will be (pseudo-)uniformly distributed in $[\log(M)]^{1/(1+\alpha)}$ where $\alpha=${\normalfont \ttfamily exponent}.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     self=mergerTreeBuildMassDistributionPowerLaw(exponent)
     !# <inputParametersValidate source="parameters"/>
@@ -73,9 +83,9 @@ contains
     !% Computes the halo mass function sampling rate using a volume-limited sampling.
     implicit none
     class           (mergerTreeBuildMassDistributionPowerLaw), intent(inout) :: self
-    double precision                                            , intent(in   ) :: mass       , massMaximum, &
-         &                                                                         massMinimum, time
-    !GCC$ attributes unused :: time
+    double precision                                         , intent(in   ) :: mass       , massMaximum, &
+         &                                                                      massMinimum, time
+    !$GLC attributes unused :: time
 
     ! Sampling rate is simply a power-law in the logarithm of halo mass.
     if (mass <= massMinimum .or. mass > massMaximum) then

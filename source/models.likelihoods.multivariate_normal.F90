@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,13 +22,31 @@
   use :: Linear_Algebra, only : matrix, vector
 
   !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodMultivariateNormal">
-  !#  <description>A posterior sampling likelihood class which implements a multivariate normal.</description>
+  !#  <description>
+  !#   The likelihood is a simple multivariate Gaussian, intended primarily for testing purposes. The distribution parameters are
+  !#   specified within the {\normalfont \ttfamily likelihood} element using:
+  !#   \begin{verbatim}
+  !#     <mean>0.45 0.50</mean>
+  !#     <covariance>
+  !#       <row>1.0e-4 -0.9e-4</row>
+  !#       <row>-0.9e-4 1.0e-4</row>
+  !#     </covariance>
+  !#   \end{verbatim}
+  !#   where the {\normalfont \ttfamily mean} element gives the mean vector of $N$ elements, and the {\normalfont \ttfamily covariance}
+  !#   element contains $N$ {\normalfont \ttfamily row} elements each containing a vector of $N$ elements giving a single row of the
+  !#   covariance matrix. The likelihood is then:
+  !#   \begin{equation}
+  !#   \log \mathcal{L} = - {1 \over 2} \Delta \mathcal{C}^{-1} \Delta^\mathrm{T},
+  !#   \end{equation}
+  !#   where $\Delta = \theta - \bar{\theta}$, $\theta$ is the state, $\bar{\theta}$ is the mean, and $\mathcal{C}$ is the covariance
+  !#   matrix.
+  !#  </description>
   !# </posteriorSampleLikelihood>
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodMultivariateNormal
      !% Implementation of a posterior sampling likelihood class which implements a multivariate likelihood.
      private
      type(vector) :: means
-     type(matrix) :: covariance, inverseCovariance
+     type(matrix) :: covariance
    contains
      procedure :: evaluate        => multivariateNormalEvaluate
      procedure :: functionChanged => multivariateNormalFunctionChanged
@@ -56,17 +74,13 @@ contains
     allocate(covariance(parameters%count('means'),parameters%count('means')))
     !# <inputParameter>
     !#   <name>means</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The mean of the multivariate normal distribution.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>covariance</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The covariance matrix for the of the multivariate normal distribution.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     self=posteriorSampleLikelihoodMultivariateNormal(means,covariance)
     !# <inputParametersValidate source="parameters"/>
@@ -82,8 +96,6 @@ contains
     double precision                                             , intent(in   ), dimension(:,:) :: covariance
     !# <constructorAssign variables="means, covariance" allocate="no"/>
 
-    ! Find the inverse of the covariance matrix.
-    self%inverseCovariance=self%covariance%invert()
     return
   end function multivariateNormalConstructorInternal
 
@@ -105,7 +117,7 @@ contains
     double precision                                             , allocatable  , dimension(:) :: stateArray
     integer                                                                                    :: i
     type            (vector                                     )                              :: stateVector          , difference
-    !GCC$ attributes unused :: timeEvaluate, temperature, simulationConvergence, logPriorProposed, logPriorCurrent, logLikelihoodCurrent, modelParametersInactive_, forceAcceptance
+    !$GLC attributes unused :: timeEvaluate, temperature, simulationConvergence, logPriorProposed, logPriorCurrent, logLikelihoodCurrent, modelParametersInactive_, forceAcceptance
 
     ! There is no variance in our likelihood estimate.
     if (present(logLikelihoodVariance)) logLikelihoodVariance=0.0d0
@@ -117,7 +129,7 @@ contains
     end do
     stateVector               =stateArray
     difference                =stateVector-self%means
-    multivariateNormalEvaluate=-0.5d0*(difference*(self%inverseCovariance*difference))
+    multivariateNormalEvaluate=-0.5d0*self%covariance%covarianceProduct(difference)
     return
   end function multivariateNormalEvaluate
 
@@ -125,7 +137,7 @@ contains
     !% Respond to possible changes in the likelihood function.
     implicit none
     class(posteriorSampleLikelihoodMultivariateNormal), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     return
   end subroutine multivariateNormalFunctionChanged

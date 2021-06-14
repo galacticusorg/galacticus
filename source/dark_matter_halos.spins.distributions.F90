@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,7 +27,9 @@ module Halo_Spin_Distributions
   !# <functionClass>
   !#  <name>haloSpinDistribution</name>
   !#  <descriptiveName>Dark Matter Halo Spin Parameter Distributions</descriptiveName>
-  !#  <description>Class providing dark matter halo spin parameter distributions.</description>
+  !#  <description>
+  !#   Class providing dark matter halo spin parameter distributions.
+  !#  </description>
   !#  <default>bett2007</default>
   !#  <method name="sample" >
   !#   <description>Samples a spin parameter from the distribution for the given {\normalfont \ttfamily node}.</description>

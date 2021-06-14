@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -89,7 +89,7 @@ function Node_Component_Spheroid_Standard_Acceleration(self,positionCartesian,co
   !% Computes the gravitational acceleration at a given position for a standard spheroid.
   use :: Galactic_Structure_Options      , only : componentTypeAll               , componentTypeSpheroid, weightByMass, weightIndexNull
   use :: Numerical_Constants_Astronomical, only : gigaYear                       , megaParsec
-  use :: Numerical_Constants_Physical    , only : gravitationalConstantGalacticus
+  use :: Numerical_Constants_Astronomical    , only : gravitationalConstantGalacticus
   use :: Numerical_Constants_Prefixes    , only : kilo
   implicit none
   double precision                                              , dimension(3) :: Node_Component_Spheroid_Standard_Acceleration
@@ -120,7 +120,7 @@ function Node_Component_Spheroid_Standard_Tidal_Tensor(self,positionCartesian,co
   use :: Galactic_Structure_Options           , only : componentTypeAll               , componentTypeSpheroid, weightByMass, weightIndexNull, &
        &                                               radiusLarge
   use :: Node_Component_Spheroid_Standard_Data, only : spheroidMassDistribution
-  use :: Numerical_Constants_Physical         , only : gravitationalConstantGalacticus
+  use :: Numerical_Constants_Astronomical         , only : gravitationalConstantGalacticus
   use :: Tensors                              , only : tensorRank2Dimension3Symmetric , tensorNullR2D3Sym    , operator(*)
   implicit none
   type            (tensorRank2Dimension3Symmetric)                              :: Node_Component_Spheroid_Standard_Tidal_Tensor
@@ -145,10 +145,55 @@ function Node_Component_Spheroid_Standard_Tidal_Tensor(self,positionCartesian,co
   return
 end function Node_Component_Spheroid_Standard_Tidal_Tensor
 
+function Node_Component_Spheroid_Standard_Chandrasekhar_Integral(self,positionCartesian,velocityCartesian,componentType,massType)
+  !% Computes the gravitational acceleration at a given position for a standard spheroid.
+  use :: Galactic_Structure_Options, only : componentTypeAll, componentTypeSpheroid, weightByMass, weightIndexNull
+  use :: Numerical_Constants_Math  , only : Pi
+  implicit none
+  double precision                                              , dimension(3) :: Node_Component_Spheroid_Standard_Chandrasekhar_Integral
+  class           (nodeComponentSpheroidStandard), intent(inout)               :: self
+  double precision                               , intent(in   ), dimension(3) :: positionCartesian                                             , velocityCartesian
+  integer                                        , intent(in   )               :: componentType                                                 , massType
+  double precision                                              , dimension(3) :: positionSpherical
+  double precision                               , parameter                   :: XvMaximum                                              =10.0d0
+  double precision                                                             :: radius                                                        , velocity          , &
+       &                                                                          density                                                       , xV                , &
+       &                                                                          velocityRotation                                              , velocityDispersion
+
+  ! Return if the spheroid component is not selected.
+  Node_Component_Spheroid_Standard_Chandrasekhar_Integral=0.0d0
+  if (.not.(componentType == componentTypeAll .or. componentType == componentTypeSpheroid)) return
+  ! Compute the integral.
+  radius                                                  =  sqrt(sum(positionCartesian**2))
+  velocity                                                =  sqrt(sum(velocityCartesian**2))
+  positionSpherical                                       =  [radius,0.0d0,0.0d0]
+  velocityRotation                                        =  Node_Component_Spheroid_Standard_Rotation_Curve(self,radius           ,componentType,massType                             )
+  density                                                 =  Node_Component_Spheroid_Standard_Density       (self,positionSpherical,componentType,massType,weightByMass,weightIndexNull)
+  if (density <= 0.0d0) return
+  velocityDispersion                                      = +velocityRotation   &
+       &                                                    /sqrt(2.0d0)
+  xV                                                      = +velocity           &
+       &                                                    /velocityDispersion &
+       &                                                    /sqrt(2.0d0)
+  Node_Component_Spheroid_Standard_Chandrasekhar_Integral = -density              &
+       &                                                    *velocityCartesian    &
+       &                                                    /velocity         **3
+  if (Xv <= XvMaximum)                                                                                                    &
+       & Node_Component_Spheroid_Standard_Chandrasekhar_Integral=+Node_Component_Spheroid_Standard_Chandrasekhar_Integral &
+       &                                                         *(                                                       &
+       &                                                           +erf ( xV   )                                          &
+       &                                                           -2.0d0                                                 &
+       &                                                           *      xV                                              &
+       &                                                           *exp (-xV**2)                                          &
+       &                                                           /sqrt( Pi   )                                          &
+       &                                                         )
+  return
+end function Node_Component_Spheroid_Standard_Chandrasekhar_Integral
+
 double precision function Node_Component_Spheroid_Standard_Rotation_Curve(self,radius,componentType,massType)
   !% Computes the rotation curve at a given radius for a standard spheroid.
   use :: Galactic_Structure_Options  , only : weightByMass                   , weightIndexNull
-  use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+  use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
   implicit none
   class           (nodeComponentSpheroidStandard), intent(inout) :: self
   integer                                        , intent(in   ) :: componentType, massType
@@ -172,7 +217,7 @@ double precision function Node_Component_Spheroid_Standard_Rotation_Curve_Gradie
   !% Computes the rotation curve gradient for the standard spheroid.
   use :: Galactic_Structure_Options  , only : weightByMass                   , weightIndexNull
   use :: Numerical_Constants_Math    , only : Pi
-  use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+  use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
   implicit none
   class           (nodeComponentSpheroidStandard), intent(inout) :: self
   integer                                        , intent(in   ) :: componentType   , massType
@@ -261,7 +306,7 @@ double precision function Node_Component_Spheroid_Standard_Potential(self,radius
   use :: Coordinates                          , only : assignment(=)                  , coordinateSpherical
   use :: Galactic_Structure_Options           , only : radiusLarge                    , weightByMass       , weightIndexNull
   use :: Node_Component_Spheroid_Standard_Data, only : spheroidMassDistribution
-  use :: Numerical_Constants_Physical         , only : gravitationalConstantGalacticus
+  use :: Numerical_Constants_Astronomical         , only : gravitationalConstantGalacticus
   !% Return the potential due to the standard spheroid.
   class           (nodeComponentSpheroidStandard), intent(inout)           :: self
   integer                                        , intent(in   )           :: componentType, massType
@@ -269,7 +314,7 @@ double precision function Node_Component_Spheroid_Standard_Potential(self,radius
   integer                                        , intent(inout), optional :: status
   double precision                                                         :: componentMass
   type            (coordinateSpherical          )                          :: position
-  !GCC$ attributes unused :: status
+  !$GLC attributes unused :: status
 
   ! Set to zero by default.
   Node_Component_Spheroid_Standard_Potential=0.0d0

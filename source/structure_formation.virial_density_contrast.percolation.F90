@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,11 +21,20 @@
 
   use    :: Cosmology_Functions, only : cosmologyFunctionsClass
   use    :: Kind_Numbers       , only : kind_int8
-  !$ use :: OMP_Lib            , only : OMP_Destroy_Lock       , OMP_Init_Lock, OMP_Set_Lock, OMP_Unset_Lock, omp_lock_kind
+  !$ use :: OMP_Lib            , only : OMP_Destroy_Lock       , OMP_Init_Lock, OMP_Set_Lock, OMP_Unset_Lock, &
+  !$          &                         omp_lock_kind
   use    :: Tables             , only : table2DLogLogLin
 
   !# <virialDensityContrast name="virialDensityContrastPercolation" recursive="yes">
-  !#  <description>Dark matter halo virial density contrasts based on the percolation analysis of \cite{more_overdensity_2011}.</description>
+  !#  <description>
+  !#   A dark matter halo virial density contrast class based on the percolation analysis of \cite{more_overdensity_2011}. The
+  !#   virial density contrast is computed to be consistent with a given friends-of-friends algorithm linking length using the
+  !#   percolation-theory-motivated calibration of \cite{more_overdensity_2011}. Specifically, the friends-of-friends algorithm is
+  !#   assumed to link together particles forming an isodensity surface of density $\rho = \bar{\rho} n_\mathrm{c}/b^3$, where
+  !#   $\bar{\rho}$ is the mean density of the universe, $n_\mathrm{c}=0.652960$ is a critical density for percolation as given by
+  !#   \cite{more_overdensity_2011}, and $b$ is the linking length. Given this bounding density, the virial density contrast is
+  !#   found by requiring that the halo contain the required mass within such a bounding density, given the halo density profile.
+  !#  </description>
   !#  <deepCopy>
   !#   <ignore   variables="recursiveSelf"                                                                       />
   !#   <deepCopy variables="percolationObjects_" function="percolationObjectsDeepCopy_" module="Functions_Global"/>
@@ -40,12 +49,12 @@
      double precision                                            :: linkingLength
      type            (varying_string                  )          :: fileName
      class           (cosmologyFunctionsClass         ), pointer :: cosmologyFunctions_             => null()
+     logical                                                     :: isRecursive                              , parentDeferred
+     class           (virialDensityContrastPercolation), pointer :: recursiveSelf                   => null()
      !# <workaround type="gfortran" PR="90788" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=90788">
      !#  <description>Null initialization of the following class(*) pointer causes an ICE in gfortran 10.0</description>
      !#  <code>class           (*                      ), pointer :: percolationObjects_ => null()</code>
      !# </workaround>
-     logical                                                     :: isRecursive                              , parentDeferred
-     class           (virialDensityContrastPercolation), pointer :: recursiveSelf                   => null()
      class           (*                               ), pointer :: percolationObjects_
      integer         (kind_int8                       )          :: selfID
      ! Tabulation of density contrast vs. time and mass.
@@ -57,33 +66,19 @@
      !$ integer      (omp_lock_kind                   )          :: densityContrastTableLock
      integer                                                     :: densityContrastTableRemakeCount
    contains
-     !@ <objectMethods>
-     !@   <object>virialDensityContrastPercolation</object>
-     !@   <objectMethod>
-     !@     <method>tabulate</method>
-     !@     <description>Tabulate the virial density contrast as a function of mass and time.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ mass\argin, \doublezero\ time\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>restoreTable</method>
-     !@     <type>void</type>
-     !@     <arguments></arguments>
-     !@     <description>Restore a tabulated solution from file.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>storeTable</method>
-     !@     <type>void</type>
-     !@     <arguments></arguments>
-     !@     <description>Store a tabulated solution to file.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Tabulate the virial density contrast as a function of mass and time." method="tabulate"    />
+     !#   <method description="Restore a tabulated solution from file."                              method="restoreTable"/>
+     !#   <method description="Store a tabulated solution to file."                                  method="storeTable"  />
+     !# </methods>
      final     ::                                percolationDestructor
      procedure :: densityContrast             => percolationDensityContrast
      procedure :: densityContrastRateOfChange => percolationDensityContrastRateOfChange
      procedure :: isMassDependent             => percolationIsMassDepdendent
      procedure :: tabulate                    => percolationTabulate
      procedure :: deepCopy                    => percolationDeepCopy
+     procedure :: deepCopyReset               => percolationDeepCopyReset
+     procedure :: deepCopyFinalize            => percolationDeepCopyFinalize
      procedure :: restoreTable                => percolationRestoreTable
      procedure :: storeTable                  => percolationStoreTable
   end type virialDensityContrastPercolation
@@ -129,8 +124,6 @@ contains
     !#  <source>parameters</source>
     !#  <defaultValue>0.2d0</defaultValue>
     !#  <description>The friends-of-friends linking length to use in computing virial density contrasts with the percolation analysis of \cite{more_overdensity_2011}.</description>
-    !#  <type>real</type>
-    !#  <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     ! Build a pointer to a container object which stores all objects needed by the percolation density solver. If this construct
@@ -232,10 +225,10 @@ contains
 
   subroutine percolationTabulate(self,mass,time,mustRetabulate)
     !% Tabulate virial density contrast as a function of mass and time for the {\normalfont \ttfamily percolation} density contrast class.
-    use :: Functions_Global  , only : Virial_Density_Contrast_Percolation_Solver_
-    use :: Galacticus_Display, only : Galacticus_Display_Counter                 , Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Unindent, &
-          &                           verbosityWorking
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: Display         , only : displayCounter                             , displayCounterClear, displayIndent, displayUnindent, &
+          &                         verbosityLevelWorking
+    use :: Functions_Global, only : Virial_Density_Contrast_Percolation_Solver_
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (virialDensityContrastPercolation), intent(inout)           :: self
     double precision                                  , intent(in   )           :: mass          , time
@@ -300,19 +293,19 @@ contains
                &                                self%densityContrastTableTimeCount    &
                &                               )
           ! Tabulate the density contrast.
-          call Galacticus_Display_Indent('Tabulating virial density contrasts for percolation class',verbosity=verbosityWorking)
+          call displayIndent('Tabulating virial density contrasts for percolation class',verbosity=verbosityLevelWorking)
           iCount=0
           do iMass=1,self%densityContrastTableMassCount
              tableMass=self%densityContrastTable%x(iMass)
              do iTime=1,self%densityContrastTableTimeCount
                 tableTime=self%densityContrastTable%y(iTime)
                 iCount=iCount+1
-                call Galacticus_Display_Counter(int(100.0d0*dble(iCount)/dble(self%densityContrastTableMassCount*self%densityContrastTableTimeCount)),isNew=(iCount==1),verbosity=verbosityWorking)
+                call displayCounter(int(100.0d0*dble(iCount)/dble(self%densityContrastTableMassCount*self%densityContrastTableTimeCount)),isNew=(iCount==1),verbosity=verbosityLevelWorking)
                 call self%densityContrastTable%populate(Virial_Density_Contrast_Percolation_Solver_(tableMass,tableTime,self%linkingLength,percolationDensityContrastCurrent,self%percolationObjects_,self),iMass,iTime)
              end do
           end do
-          call Galacticus_Display_Counter_Clear(verbosity=verbosityWorking)
-          call Galacticus_Display_Unindent('done',verbosity=verbosityWorking)
+          call displayCounterClear(verbosity=verbosityLevelWorking)
+          call displayUnindent('done',verbosity=verbosityLevelWorking)
           ! Flag that the table is now initialized.
           self%densityContrastTableInitialized=.true.
           ! Store the table.
@@ -343,15 +336,14 @@ contains
     useTable        =.false.
     ! Determine how to compute density contrast.
     if (self%isRecursive) then
-       call percolationFindParent(self)
-       call percolationCopyTable (self)
        if (percolationSolving) then
           ! Currently solving for solutions - return the current guess.
           if (self%selfID /= self%recursiveSelf%selfID) call Galacticus_Error_Report('recursively-constructed percolation class object ID does not match that of actively solving object'//{introspection:location})
           useSolverCurrent=.true.
        else
-          ! Not solving for solutions - if our table is sufficient, use it, otherwise request that the parent self performs the
-          ! calculation (in which case it will update its table, and we can later copy it).
+          ! Not solving for solutions - if our table is sufficient (ensure it is up to date first), use it, otherwise request that
+          ! the parent self performs the calculation (in which case it will update its table, and we can later copy it).
+          call percolationCopyTable(self)
           !$ call OMP_Set_Lock(self%densityContrastTableLock)
           call self%tabulate(mass,timeActual,mustRetabulate)
           !$ call OMP_Unset_Lock(self%densityContrastTableLock)
@@ -390,7 +382,7 @@ contains
     implicit none
     class           (virialDensityContrastPercolation), intent(inout)            :: self
     double precision                                  , intent(in   )            :: mass
-    double precision                                  , intent(in   ) , optional :: time      , expansionFactor
+    double precision                                  , intent(in   ) , optional :: time          , expansionFactor
     logical                                           , intent(in   ) , optional :: collapsing
     double precision                                                             :: timeActual
     logical                                                                      :: mustRetabulate
@@ -399,7 +391,6 @@ contains
     timeActual=self%cosmologyFunctions_%epochTime(time,expansionFactor,collapsing)
     ! Determine how to compute density contrast.
     if (self%isRecursive) then
-       call percolationFindParent(self)
        call percolationCopyTable (self)
        ! If our table is sufficient, use it, otherwise request that the parent self performs the calculation (in which case it
        ! will update its table, and we can later copy it).
@@ -423,16 +414,48 @@ contains
     !% Specify that the {\normalfont \ttfamily percolation} virial density contrast class is mass-dependent.
     implicit none
     class(virialDensityContrastPercolation), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     percolationIsMassDepdendent=.true.
     return
   end function percolationIsMassDepdendent
 
+  subroutine percolationDeepCopyReset(self)
+    !% Perform a deep copy reset of the object.
+    use :: Functions_Global, only : percolationObjectsDeepCopyReset_
+    implicit none
+    class(virialDensityContrastPercolation), intent(inout) :: self
+
+    self                           %   copiedSelf => null()
+    if (.not.self%isRecursive) self%recursiveSelf => null()
+    if (associated(self%cosmologyfunctions_)) call self%cosmologyfunctions_%deepCopyReset()
+    if (associated(self%percolationObjects_)) call percolationObjectsDeepCopyReset_(self%percolationObjects_)
+    return
+  end subroutine percolationDeepCopyReset
+
+  subroutine percolationDeepCopyFinalize(self)
+    !% Finalize a deep copy reset of the object.
+    use :: Functions_Global, only : percolationObjectsDeepCopyFinalize_
+    implicit none
+    class(virialDensityContrastPercolation), intent(inout) :: self
+
+    if (self%isRecursive) call percolationFindParent(self)
+    if (associated(self%cosmologyfunctions_)) call self%cosmologyfunctions_%deepCopyFinalize()
+    if (associated(self%percolationObjects_)) call percolationObjectsDeepCopyFinalize_(self%percolationObjects_)
+    return
+  end subroutine percolationDeepCopyFinalize
+
   subroutine percolationDeepCopy(self,destination)
     !% Perform a deep copy of the object.
-    use :: Functions_Global, only : percolationObjectsDeepCopy_
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Functions_Global  , only : percolationObjectsDeepCopy_
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+#ifdef OBJECTDEBUG
+    use :: MPI_Utilities     , only : mpiSelf
+    use :: Function_Classes  , only : debugReporting
+    use :: Display           , only : displayMessage             , verbosityLevelSilent
+    use :: ISO_Varying_String, only : operator(//)               , var_str
+    use :: String_Handling   , only : operator(//)
+#endif
     implicit none
     class(virialDensityContrastPercolation), intent(inout) :: self
     class(virialDensityContrastClass      ), intent(inout) :: destination
@@ -471,12 +494,30 @@ contains
           call percolationDeepCopyAssign(self,destination)
           destination%recursiveSelf                     => null()
        end if
-       nullify(destination%cosmologyfunctions_)
-       allocate(destination%cosmologyfunctions_,mold=self%cosmologyfunctions_)
-       !# <deepCopy source="self%cosmologyfunctions_" destination="destination%cosmologyfunctions_"/>
+       if (associated(self%cosmologyFunctions_)) then
+          if (associated(self%cosmologyFunctions_%copiedSelf)) then
+             select type(s => self%cosmologyFunctions_%copiedSelf)
+                class is (cosmologyFunctionsClass)
+                destination%cosmologyFunctions_ => s
+             class default
+                call Galacticus_Error_Report('copiedSelf has incorrect type'//{introspection:location})
+             end select
+             call self%cosmologyFunctions_%copiedSelf%referenceCountIncrement()
+          else
+             allocate(destination%cosmologyFunctions_,mold=self%cosmologyFunctions_)
+             call self%cosmologyFunctions_%deepCopy(destination%cosmologyFunctions_)
+             self%cosmologyFunctions_%copiedSelf => destination%cosmologyFunctions_
+             call destination%cosmologyFunctions_%autoHook()
+          end if
+#ifdef OBJECTDEBUG
+          if (debugReporting.and.mpiSelf%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): cosmologyfunctions_ : [destination] : ')//loc(destination)//' : '//loc(destination%cosmologyFunctions_)//' : '//{introspection:location:compact},verbosityLevelSilent)
+#endif
+       end if
        nullify(destination%percolationobjects_)
-       allocate(destination%percolationobjects_,mold=self%percolationobjects_)
-       if (associated(self%percolationobjects_)) call percolationObjectsDeepCopy_(self%percolationobjects_,destination%percolationobjects_)
+       if (associated(self%percolationobjects_)) then
+          allocate(destination%percolationobjects_,mold=self%percolationobjects_)
+          call percolationObjectsDeepCopy_(self%percolationobjects_,destination%percolationobjects_)
+       end if
        call destination%densitycontrasttable%deepCopyActions()
        !$ call OMP_Init_Lock(destination%densitycontrasttablelock)
     class default
@@ -508,7 +549,7 @@ contains
        if (associated(self%recursiveSelf%recursiveSelf)) then
           self%recursiveSelf => self%recursiveSelf%recursiveSelf
        else
-          call Galacticus_Error_Report("recursive child's parent was not copied"//{introspection:location})
+        call Galacticus_Error_Report("recursive child's parent was not copied"//{introspection:location})
        end if
        self%parentDeferred=.false.
     end if
@@ -542,7 +583,8 @@ contains
 
   subroutine percolationStoreTable(self)
     !% Store the table to file.
-    use :: File_Utilities    , only : Directory_Make, File_Lock     ,  File_Path, File_Unlock, lockDescriptor
+    use :: File_Utilities    , only : Directory_Make, File_Lock     , File_Path, File_Unlock, &
+          &                           lockDescriptor
     use :: IO_HDF5           , only : hdf5Access    , hdf5Object
     use :: ISO_Varying_String, only : char          , varying_string
     implicit none

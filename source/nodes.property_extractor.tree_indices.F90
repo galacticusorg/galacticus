@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -45,7 +45,7 @@ contains
     implicit none
     type(nodePropertyExtractorIndicesTree)                :: indicesTreeConstructorParameters
     type(inputParameters                 ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     indicesTreeConstructorParameters=nodePropertyExtractorIndicesTree()
     return
@@ -59,7 +59,7 @@ contains
     type            (treeNode                        ), intent(inout), target   :: node
     double precision                                  , intent(in   )           :: time
     type            (multiCounter                    ), intent(inout), optional :: instance
-    !GCC$ attributes unused :: self, instance, time
+    !$GLC attributes unused :: self, instance, time
 
     indicesTreeExtract=node%hostTree%index
     return
@@ -70,7 +70,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorIndicesTree), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     indicesTreeType=outputAnalysisPropertyTypeLinear
     return
@@ -81,7 +81,7 @@ contains
     implicit none
     type (varying_string                  )                :: indicesTreeName
     class(nodePropertyExtractorIndicesTree), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     indicesTreeName=var_str('mergerTreeIndex')
     return
@@ -92,7 +92,7 @@ contains
     implicit none
     type (varying_string                  )                :: indicesTreeDescription
     class(nodePropertyExtractorIndicesTree), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     indicesTreeDescription=var_str('Tree index for this node.')
     return

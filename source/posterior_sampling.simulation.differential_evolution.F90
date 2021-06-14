@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,16 +21,30 @@
 
   use :: Model_Parameters                           , only : modelParameterList
   use :: Models_Likelihoods                         , only : posteriorSampleLikelihoodClass
+  use :: Numerical_Random_Numbers                   , only : randomNumberGeneratorClass
   use :: Posterior_Sample_Differential_Proposal_Size, only : posteriorSampleDffrntlEvltnProposalSizeClass
   use :: Posterior_Sample_Differential_Random_Jump  , only : posteriorSampleDffrntlEvltnRandomJumpClass
   use :: Posterior_Sampling_Convergence             , only : posteriorSampleConvergenceClass
   use :: Posterior_Sampling_State                   , only : posteriorSampleStateClass
   use :: Posterior_Sampling_State_Initialize        , only : posteriorSampleStateInitializeClass
   use :: Posterior_Sampling_Stopping_Criteria       , only : posteriorSampleStoppingCriterionClass
-  use :: Numerical_Random_Numbers                   , only : randomNumberGeneratorClass
 
   !# <posteriorSampleSimulation name="posteriorSampleSimulationDifferentialEvolution">
-  !#  <description>A posterior sampling simulation class which implements the differential evolution algorithm.</description>
+  !#  <description>
+  !#   This class uses the differential evolution algorithm of \cite{terr_braak_markov_2006}. Multiple, parallel chains are run and
+  !#   proposals are constructed by selecting two chains at random, taking a fraction, $\gamma$, of the vector connecting the two chain
+  !#   states and adding this to the state of the current chain. The details of the algorithm are controlled by the following parameters:
+  !#   \begin{description}
+  !#   \item[{\normalfont \ttfamily [stepsMaximum]}] The maximum number of steps to take.
+  !#   \item[{\normalfont \ttfamily [acceptanceAverageCount]}] The number of steps over which to average the acceptance rate.
+  !#   \item[{\normalfont \ttfamily [stateSwapCount]}] The number of steps after which to set $\gamma=1$ to allow chains to swap states.
+  !#   \item[{\normalfont \ttfamily [logFileRoot]}] The full path and root name of a file to log results to. The actual file name will
+  !#     have the rank of the \gls{mpi} process appended to it.
+  !#   \item[{\normalfont \ttfamily [sampleOutliers]}] If set to {\normalfont \ttfamily false} then proposals for non-outlier chains
+  !#     post-convergence are constructed only from other non-outlier chains. Otherwise, proposals for non-outleir chains
+  !#     post-convergence are constructed from all other chains.
+  !#   \end{description}
+  !#  </description>
   !# </posteriorSampleSimulation>
   type, extends(posteriorSampleSimulationClass) :: posteriorSampleSimulationDifferentialEvolution
      !% Implementation of a posterior sampling simulation class which implements the differential evolution algorithm.
@@ -54,51 +68,15 @@
      class           (randomNumberGeneratorClass                  ), pointer                   :: randomNumberGenerator_                   => null()
      type            (varying_string                              )                            :: logFileRoot                                       , interactionRoot
    contains
-     !@ <objectMethods>
-     !@   <object>posteriorSampleSimulationDifferentialEvolution</object>
-     !@   <objectMethod>
-     !@     <method>logging</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return true if the simulator is currently logging state.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>posterior</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\textcolor{red}{\textless class(posteriorSampleStateClass)\textgreater} posteriorSampleState_\argin</arguments>
-     !@     <description>Return the log of posterior probability for the given {\normalfont \ttfamily posteriorSampleState}.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>update</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doubleone\ stateVector\argin</arguments>
-     !@     <description>Update the simulator to the new {\normalfont \ttfamily stateVector} after a step.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>temperature</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return the current temperature.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>acceptProposal</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments>\doublezero\ logPosterior\argin, \doublezero\ logPosteriorProposed\argin</arguments>
-     !@     <description>Return true if the proposed state should be accepted.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>stepSize</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return the step size parameter, $\gamma$, for the differential evolution proposal vector.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>chainSelect</method>
-     !@     <type>\intzero</type>
-     !@     <arguments>\intone\ [blockedChains]\argin</arguments>
-     !@     <description>Select a chain.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return true if the simulator is currently logging state." method="logging" />
+     !#   <method description="Return the log of posterior probability for the given {\normalfont \ttfamily posteriorSampleState}." method="posterior" />
+     !#   <method description="Update the simulator to the new {\normalfont \ttfamily stateVector} after a step." method="update" />
+     !#   <method description="Return the current temperature." method="temperature" />
+     !#   <method description="Return true if the proposed state should be accepted." method="acceptProposal" />
+     !#   <method description="Return the step size parameter, $\gamma$, for the differential evolution proposal vector." method="stepSize" />
+     !#   <method description="Select a chain." method="chainSelect" />
+     !# </methods>
      final     ::                   differentialEvolutionDestructor
      procedure :: simulate       => differentialEvolutionSimulate
      procedure :: logging        => differentialEvolutionLogging
@@ -121,12 +99,12 @@ contains
   function differentialEvolutionConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily differentialEvolution} posterior sampling simulation class which builds the object from a
     !% parameter set.
-    use :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityInfo
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: Input_Parameters  , only : inputParameter            , inputParameters
-    use :: MPI_Utilities     , only : mpiSelf
-    use :: Model_Parameters  , only : modelParameterActive      , modelParameterInactive
-    use :: String_Handling   , only : operator(//)
+    use :: Display         , only : displayMessage         , displayVerbosity      , verbosityLevelInfo
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Input_Parameters, only : inputParameter         , inputParameters
+    use :: MPI_Utilities   , only : mpiSelf
+    use :: Model_Parameters, only : modelParameterActive   , modelParameterInactive
+    use :: String_Handling , only : operator(//)
     implicit none
     type   (posteriorSampleSimulationDifferentialEvolution)                              :: self
     type   (inputParameters                               ), intent(inout)               :: parameters
@@ -153,98 +131,74 @@ contains
 
     !# <inputParameter>
     !#   <name>stepsMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>huge(0)</defaultValue>
     !#   <description>The maximum number of steps to take.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>acceptanceAverageCount</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number of steps over which to average the acceptance rate.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>stateSwapCount</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number of steps between state swap steps.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>recomputeCount</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>-1</defaultValue>
     !#   <description>The number of steps between forced recomputations of the likelihood.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>logFlushCount</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number of steps between flushing the log file.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>reportCount</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number of steps between issuing reports.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>sampleOutliers</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>If true, sample from outlier states.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>interactionRoot</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('none')</defaultValue>
     !#   <description>Root file name for interaction files, or `{\normalfont \ttfamily none}' if interaction is not required.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>logFileRoot</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>Root file name for log files.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>appendLogs</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>If true, do not overwrite existing log files, but instead append to them.</description>
     !#   <source>parameters</source>
     !#   <defaultValue>.false.</defaultValue>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>loadBalance</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>If true, attempt to balance the workload across different compute nodes.</description>
     !#   <source>parameters</source>
     !#   <defaultValue>.true.</defaultValue>
-    !#   <type>logical</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>ignoreChainNumberAdvice</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>If true, ignore warnings and errors about not being able to span the full parameter space with the number of chains used.</description>
     !#   <source>parameters</source>
     !#   <defaultValue>.false.</defaultValue>
-    !#   <type>logical</type>
     !# </inputParameter>
     !# <objectBuilder class="posteriorSampleLikelihood"               name="posteriorSampleLikelihood_"               source="parameters"/>
     !# <objectBuilder class="posteriorSampleConvergence"              name="posteriorSampleConvergence_"              source="parameters"/>
@@ -257,7 +211,7 @@ contains
     ! Determine the number of parameters.
     activeParameterCount  =0
     inactiveParameterCount=0
-    do i=1,parameters%copiesCount("modelParameterMethod")
+    do i=1,parameters%copiesCount("modelParameter")
        !# <objectBuilder class="modelParameter" name="modelParameter_" source="parameters" copy="i" />
        select type (modelParameter_)
        class is (modelParameterActive  )
@@ -268,17 +222,17 @@ contains
        !# <objectDestructor name="modelParameter_"/>
     end do
     if (activeParameterCount < 1) call Galacticus_Error_Report('at least one active parameter must be specified in config file'//{introspection:location})
-    if (mpiSelf%isMaster() .and. Galacticus_Verbosity_Level() >= verbosityInfo) then
+    if (mpiSelf%isMaster() .and. displayVerbosity() >= verbosityLevelInfo) then
        message='Found '
        message=message//activeParameterCount//' active parameters (and '//inactiveParameterCount//' inactive parameters)'
-       call Galacticus_Display_Message(message)
+       call displayMessage(message)
     end if
     ! Initialize priors and random perturbers.
     allocate(modelParametersActive_  (  activeParameterCount))
     allocate(modelParametersInactive_(inactiveParameterCount))
     iActive  =0
     iInactive=0
-    do i=1,parameters%copiesCount("modelParameterMethod")
+    do i=1,parameters%copiesCount("modelParameter")
        !# <objectBuilder class="modelParameter" name="modelParameter_" source="parameters" copy="i" />
        select type (modelParameter_)
        class is (modelParameterInactive)
@@ -380,8 +334,9 @@ contains
 
   subroutine differentialEvolutionSimulate(self)
     !% Perform a differential evolution simulation.
+    use :: Display                     , only : displayIndent             , displayMessage , displayUnindent, displayMagenta, &
+         &                                      displayReset
     use :: File_Utilities              , only : File_Exists               , File_Remove
-    use :: Galacticus_Display          , only : Galacticus_Display_Indent , Galacticus_Display_Message, Galacticus_Display_Unindent
     use :: Galacticus_Error            , only : Galacticus_Error_Report   , Galacticus_Warn
     use :: MPI_Utilities               , only : mpiBarrier                , mpiSelf
     use :: Models_Likelihoods_Constants, only : logImpossible
@@ -421,7 +376,7 @@ contains
     ! Write start-up message.
     message="Process "//mpiSelf%rankLabel()//" [PID: "
     message=message//getPID()//"] is running on host '"//mpiSelf%hostAffinity()//"'"
-    call Galacticus_Display_Message(message)
+    call displayMessage(message)
     ! Allocate a simple state object for the proposed state.
     allocate(posteriorSampleStateSimple :: stateProposed)
     select type (stateProposed)
@@ -490,25 +445,25 @@ contains
                    ! Copy the state to the proposed state vector.
                    stateVectorProposed=stateVectorInteractive
                    message="Chain "//mpiSelf%rankLabel()//" is being interactively moved to state:"
-                   call Galacticus_Display_Indent(message)
+                   call displayIndent(message)
                    ! Map parameters of interactively proposed state.
                    do i=1,size(stateVector)
                       write (label,*) stateVectorProposed(i)
                       message="State["
                       message=message//i//"] = "//trim(adjustl(label))
-                      call Galacticus_Display_Message(message)
+                      call displayMessage(message)
                       stateVectorProposed(i)=self%modelParametersActive_(i)%modelParameter_%map(stateVectorProposed(i))
                    end do
-                   call Galacticus_Display_Unindent('end')
+                   call displayUnindent('end')
                    ! Force acceptance of this state.
                    forceAcceptance=.true.
                 else
-                   message="WARNING: state proposed in interaction file '"//interactionFileName//"' cannot be read"
-                   call Galacticus_Display_Message(message)
+                   message=displayMagenta()//"WARNING:"//displayReset()//" state proposed in interaction file '"//interactionFileName//"' cannot be read"
+                   call displayMessage(message)
                 end if
              else
-                message="WARNING: unable to open interaction file '"//interactionFileName//"'"
-                call Galacticus_Display_Message(message)
+                message=displayMagenta()//"WARNING:"//displayReset()//" unable to open interaction file '"//interactionFileName//"'"
+                call displayMessage(message)
              end if
              close(interactionFile)
              ! Remove the interaction file.
@@ -567,7 +522,7 @@ contains
              if (mpiSelf%rank() == 0) then
                 message='Converged after '
                 message=message//convergedAtStep//' steps'
-                call Galacticus_Display_Message(message)
+                call displayMessage(message)
                 logFileName=self%logFileRoot//'_'//mpiSelf%rankLabel()//'.convergence.log'
                 open(newunit=convergenceFileUnit,file=char(logFileName),status='unknown',form='formatted',access='append')
                 write (convergenceFileUnit,'(a,i8)') 'Converged at step: ',convergedAtStep
@@ -631,7 +586,7 @@ contains
     !% Specifies whether or not the current state should be logged to file during differential evolution.
     implicit none
     class(posteriorSampleSimulationDifferentialEvolution), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     differentialEvolutionLogging=.true.
     return
@@ -639,13 +594,13 @@ contains
 
   subroutine differentialEvolutionPosterior(self,posteriorSampleState_,logLikelihoodCurrent,logPriorCurrent,logPosterior,logLikelihood,logLikelihoodVariance,timeEvaluate,timeEvaluatePrevious,forceAcceptance)
     !% Return the log of the posterior for the current state.
-    use            :: Galacticus_Display, only : Galacticus_Display_Indent , Galacticus_Display_Message, Galacticus_Display_Unindent
-    use            :: Galacticus_Error  , only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding     , only : c_size_t
-    use            :: Kind_Numbers      , only : kind_int4
-    use            :: MPI_Utilities     , only : mpiBarrier                , mpiSelf
-    use            :: Model_Parameters  , only : modelParameterListLogPrior
-    use            :: Sort              , only : Sort_Index_Do
+    use            :: Display         , only : displayIndent             , displayMessage, displayUnindent
+    use            :: Galacticus_Error, only : Galacticus_Error_Report
+    use, intrinsic :: ISO_C_Binding   , only : c_size_t
+    use            :: Kind_Numbers    , only : kind_int4
+    use            :: MPI_Utilities   , only : mpiBarrier                , mpiSelf
+    use            :: Model_Parameters, only : modelParameterListLogPrior
+    use            :: Sorting         , only : sortIndex
     implicit none
     class           (posteriorSampleSimulationDifferentialEvolution), intent(inout)               :: self
     class           (posteriorSampleStateClass                     ), intent(inout)               :: posteriorSampleState_
@@ -699,22 +654,22 @@ contains
          & timeEvaluateEffective=0.0d0
     timesEvaluate=mpiSelf%gather(dble(timeEvaluateEffective))
     ! If previous time estimate is negative, don't do load balancing.
-    if (mpiSelf%isMaster() .and. mod(self%posteriorSampleState_%count(),self%reportCount) == 0) call Galacticus_Display_Indent('Load balancing report')
+    if (mpiSelf%isMaster() .and. mod(self%posteriorSampleState_%count(),self%reportCount) == 0) call displayIndent('Load balancing report')
     if (any(timesEvaluate < 0.0d0) .or. .not.self%loadBalance) then
        forall(i=0:mpiSelf%count()-1)
           processToProcess  (i)=i
           processFromProcess(i)=i
        end forall
-       if (self%loadBalance .and. mpiSelf%isMaster() .and. mod(self%posteriorSampleState_%count(),self%reportCount) == 0) call Galacticus_Display_Message('Not performing load balancing - missing work cost data')
+       if (self%loadBalance .and. mpiSelf%isMaster() .and. mod(self%posteriorSampleState_%count(),self%reportCount) == 0) call displayMessage('Not performing load balancing - missing work cost data')
     else
        ! Distribute tasks across nodes.
-       timesEvaluateOrder=Sort_Index_Do(timesEvaluate)-1
+       timesEvaluateOrder=sortIndex(timesEvaluate)-1
        processToProcess=-1
        allocate(nodeWork     (mpiSelf%nodeCount()))
        allocate(nodeWorkOrder(mpiSelf%nodeCount()))
        nodeWork=0.0d0
        do i=mpiSelf%count()-1,0,-1
-          nodeWorkOrder=Sort_Index_Do(nodeWork)
+          nodeWorkOrder=sortIndex(nodeWork)
           do nodeTrial=1,mpiSelf%nodeCount()
              do processTrial=0,mpiSelf%count()-1
                 if (mpiSelf%nodeAffinity(processTrial) == nodeWorkOrder(nodeTrial) .and. .not.any(processToProcess == processTrial)) then
@@ -730,7 +685,7 @@ contains
        end do
        ! Report.
        if (mpiSelf%isMaster() .and. mod(self%posteriorSampleState_%count(),self%reportCount) == 0) then
-          call Galacticus_Display_Indent('Chain redistribution:')
+          call displayIndent('Chain redistribution:')
           do i=0,mpiSelf%count()-1
              write (label,'(i4.4)') i
              message='Chain '//trim(label)//' -> process/node '
@@ -740,21 +695,21 @@ contains
              message=message//trim(label)//' (work = '
              write (label,'(f9.2)') timesEvaluate(i)
              message=message//trim(label)//')'
-             call Galacticus_Display_Message(message)
+             call displayMessage(message)
           end do
-          call Galacticus_Display_Unindent('done')
-          call Galacticus_Display_Indent('Node work loads:')
+          call displayUnindent('done')
+          call displayIndent('Node work loads:')
           do i=1,size(nodeWork)
              write (label,'(i4.4)') i
              message='Node '//trim(label)//': work = '
              write (label,'(f9.2)') nodeWork(i)
              message=message//trim(label)
-             call Galacticus_Display_Message(message)
+             call displayMessage(message)
           end do
-          call Galacticus_Display_Unindent('done')
+          call displayUnindent('done')
        end if
     end if
-    if (mpiSelf%isMaster() .and. mod(self%posteriorSampleState_%count(),self%reportCount) == 0) call Galacticus_Display_Unindent('done')
+    if (mpiSelf%isMaster() .and. mod(self%posteriorSampleState_%count(),self%reportCount) == 0) call displayUnindent('done')
     ! Get state vector, chain index, current likelihood, current prior and proposed prior.
     allocate(stateVectorSelf(self%parameterCount  ))
     allocate(stateVectorWork(self%parameterCount,1))
@@ -800,7 +755,7 @@ contains
     ! Gather actual evaluation times and report.
     timesEvaluateActual=mpiSelf%gather(dble(timeEvaluate))
     if (mpiSelf%isMaster() .and. mod(self%posteriorSampleState_%count(),self%reportCount) == 0) then
-       call Galacticus_Display_Indent('Node work done vs. expected:')
+       call displayIndent('Node work done vs. expected:')
        do i=0,mpiSelf%count()-1
           write (label,'(i4.4)') i
           message='Node '//trim(label)//': work (actual/estimated) = '
@@ -808,9 +763,9 @@ contains
           message=message//trim(label)//" / "
           write (label,'(f9.2)') timesEvaluate      (i)
           message=message//trim(label)
-          call Galacticus_Display_Message(message)
+          call displayMessage(message)
        end do
-       call Galacticus_Display_Unindent('done')
+       call displayUnindent('done')
     end if
     return
   end subroutine differentialEvolutionPosterior
@@ -845,7 +800,7 @@ contains
     double precision                                                , intent(in   ) :: logPosterior         , logPosteriorProposed         , &
          &                                                                             logLikelihoodVariance, logLikelihoodVarianceProposed
     double precision                                                                :: x
-    !GCC$ attributes unused :: self, logLikelihoodVariance, logLikelihoodVarianceProposed
+    !$GLC attributes unused :: self, logLikelihoodVariance, logLikelihoodVarianceProposed
 
     ! Decide whether to take step.
     x=self%randomNumberGenerator_%uniformSample()
@@ -859,7 +814,7 @@ contains
     !% Return the temperature.
     implicit none
     class(posteriorSampleSimulationDifferentialEvolution), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     differentialEvolutionTemperature=1.0d0
     return

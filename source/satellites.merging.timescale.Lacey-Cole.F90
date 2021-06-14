@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +22,11 @@
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !# <satelliteMergingTimescales name="satelliteMergingTimescalesLaceyCole1993">
-  !#  <description>Computes the merging timescale using the method of \cite{lacey_merger_1993}.</description>
+  !#  <description>
+  !#   A satellite merging timescale class which computes merging timescales using the dynamical friction calculation of
+  !#   \cite{lacey_merger_1993}. Timescales are multiplied by the value of the {\normalfont \ttfamily [timescaleMultiplier]} input
+  !#   parameter.
+  !#  </description>
   !# </satelliteMergingTimescales>
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesLaceyCole1993
      !% A class implementing the \cite{lacey_merger_1993} method for satellite merging timescales.
@@ -30,15 +34,9 @@
      class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
      double precision                                    :: timescaleMultiplier
    contains
-     !@ <objectMethods>
-     !@   <object>satelliteMergingTimescalesLaceyCole1993</object>
-     !@   <objectMethod>
-     !@     <method>timeUntilMergingMassDependence</method>
-     !@     <type>double precision</type>
-     !@     <arguments></arguments>
-     !@     <description>Return the mass-dependent part of the time (in Gyr) until the satellite will merge with its host.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return the mass-dependent part of the time (in Gyr) until the satellite will merge with its host." method="timeUntilMergingMassDependence" />
+     !# </methods>
      final     ::                                   laceyCole1993Destructor
      procedure :: timeUntilMerging               => laceyCole1993TimeUntilMerging
      procedure :: timeUntilMergingMassDependence => laceyCole1993TimeUntilMergingMassDependence
@@ -63,11 +61,9 @@ contains
 
     !# <inputParameter>
     !#   <name>timescaleMultiplier</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.75d0</defaultValue>
     !#   <description>A multiplier for the merging timescale in dynamical friction timescale calculations.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     self=satelliteMergingTimescalesLaceyCole1993(timescaleMultiplier,darkMatterHaloScale_)
@@ -106,9 +102,13 @@ contains
     type            (treeNode                               ), pointer       :: nodeHost
     double precision                                                         :: equivalentCircularOrbitRadius, orbitalCircularity, &
          &                                                                      radialScale                  , velocityScale
-
+    
     ! Find the host node.
-    nodeHost => node%parent
+    if (node%isSatellite()) then
+       nodeHost => node%parent
+    else
+       nodeHost => node%parent%firstChild
+    end if
     ! Get velocity scale.
     velocityScale=self%darkMatterHaloScale_%virialVelocity(nodeHost)
     radialScale  =self%darkMatterHaloScale_%virialRadius  (nodeHost)
@@ -134,15 +134,24 @@ contains
     class           (nodeComponentBasic                     ), pointer       :: basicHost                 , basic
     double precision                                         , parameter     :: inverseTwoB1=1.169335453d0            !  1/2/B(1).
     double precision                                                         :: massRatio
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Find the host node.
     nodeHost => node%parent
     ! Compute mass ratio.
-    basic     =>  node     %basic()
-    basicHost =>  nodeHost %basic()
-    massRatio =  +basicHost%mass () &
-         &       /basic    %mass ()
+    basic     => node    %basic()
+    basicHost => nodeHost%basic()
+    if (node%isSatellite()) then
+       ! Node is already a satellite in its host - compute the mass ratio directly.
+       massRatio=+basicHost%mass () &
+            &    /basic    %mass ()
+    else
+       ! Node is not yet a satellite in its host - correct the host mass to what it will be after the node becomes a satellite in the
+       ! host.
+       massRatio=+basicHost%mass () &
+            &    /basic    %mass () &
+            &    +1.0d0
+    end if
     ! Check for a greater than unity mass ratio.
     if (massRatio <= 1.0d0) then
        ! Assume zero merging time as the satellite is as massive as the host.

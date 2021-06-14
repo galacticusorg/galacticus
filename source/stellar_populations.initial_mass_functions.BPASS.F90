@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,15 @@
   !% Implements a stellar initial mass function class used by the \href{http://www.bpass.org.uk/}{BPASS} library.
 
   !# <initialMassFunction name="initialMassFunctionBPASS">
-  !#  <description>A stellar initial mass function class used by the \href{http://www.bpass.org.uk/}{BPASS} library.</description>
+  !#  <description>
+  !#   A stellar initial mass function class used by the \href{http://www.bpass.org.uk/}{BPASS} library:
+  !#   \begin{equation}
+  !#    \phi(M) \propto \left\{ \begin{array}{ll}
+  !#    M^{-1.30} &amp; \hbox{ for } 0.1M_\odot &lt; M &lt; 0.5M_\odot \\
+  !#    M^{-2.35} &amp; \hbox{ for } 1M_\odot &lt; M &lt; 120M_\odot \\
+  !#   0 &amp; \hbox {otherwise.} \end{array} \right.
+  !#   \end{equation}
+  !#  </description>
   !# </initialMassFunction>
   type, extends(initialMassFunctionPiecewisePowerLaw) :: initialMassFunctionBPASS
      !% A stellar initial mass function class used by the \href{http://www.bpass.org.uk/}{BPASS} library.
@@ -43,7 +51,7 @@ contains
     implicit none
     type(initialMassFunctionBPASS)                :: self
     type(inputParameters         ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=initialMassFunctionBPASS()
     return
@@ -66,7 +74,7 @@ contains
     implicit none
     class(initialMassFunctionBPASS), intent(inout) :: self
     type (varying_string          )                :: bpassLabel
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     bpassLabel="BPASS"
     return

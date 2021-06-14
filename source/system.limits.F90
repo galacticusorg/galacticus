@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -55,11 +55,9 @@ contains
 
     !# <inputParameter>
     !#   <name>cpuLimit</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0_c_long</defaultValue>
     !#   <description>The CPU time limit for the run, in seconds.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     if (cpuLimit > 0_c_long) then
        !$ cpuLimit=cpuLimit*OMP_Get_Max_Threads()

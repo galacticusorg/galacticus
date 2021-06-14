@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,7 +27,9 @@ module Hot_Halo_Ram_Pressure_Stripping
   !# <functionClass>
   !#  <name>hotHaloRamPressureStripping</name>
   !#  <descriptiveName>Models of ram pressure stripping due to the hot halo.</descriptiveName>
-  !#  <description>Class providing models of ram pressure force from the hot halo.</description>
+  !#  <description>
+  !#   Class providing models for the radius to which the hot halo is stripped by ram pressure forces.
+  !#  </description>
   !#  <default>font2008</default>
   !#  <method name="radiusStripped" >
   !#   <description>Return the radius to which {\normalfont \ttfamily node} is stripped due to ram pressure from its host halo (in units of Mpc).</description>

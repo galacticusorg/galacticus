@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,19 @@
   !% Implementation of a normal 1D distibution function.
 
   !# <distributionFunction1D name="distributionFunction1DNormal">
-  !#  <description>A normal 1D distribution function class.</description>
+  !#  <description>
+  !#   A normal distribution, optionally with lower and upper limits:
+  !#   \begin{equation}
+  !#    P(x) \propto \left\{ \begin{array}{ll} \exp[-(x-\mu)^2/2S] &amp; \hbox{ if } x_\mathrm{l} \leq x \leq x_\mathrm{u} \\ 0 &amp; \hbox{ otherwise.}  \end{array} \right.
+  !#   \end{equation}
+  !#   Specified using:
+  !#   \begin{description}
+  !#   \item[{\normalfont \ttfamily [mean]}] The mean, $\mu$;
+  !#   \item[{\normalfont \ttfamily [variance]}] The variance, $S$;
+  !#   \item[{\normalfont \ttfamily [minimum]}] The lower limit of the range, $x_\mathrm{l}$;
+  !#   \item[{\normalfont \ttfamily [maximum]}] The upper limit of the range, $x_\mathrm{u}$.
+  !#   \end{description}
+  !#  </description>
   !# </distributionFunction1D>
   type, extends(distributionFunction1DClass) :: distributionFunction1DNormal
      !% Implementation of a normal 1D distibution function.
@@ -58,34 +70,26 @@ contains
 
     !# <inputParameter>
     !#   <name>mean</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The mean of the normal distribution.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>variance</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The variance of the normal distribution.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     if (parameters%isPresent('limitLower')) then
        !# <inputParameter>
        !#   <name>limitLower</name>
-       !#   <cardinality>1</cardinality>
        !#   <description>The lower limit of the normal distribution.</description>
        !#   <source>parameters</source>
-       !#   <type>real</type>
        !# </inputParameter>
     end if
     if (parameters%isPresent('limitUpper')) then
        !# <inputParameter>
        !#   <name>limitUpper</name>
-       !#   <cardinality>1</cardinality>
        !#   <description>The upper limit of the normal distribution.</description>
        !#   <source>parameters</source>
-       !#   <type>real</type>
        !# </inputParameter>
     end if
     !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>

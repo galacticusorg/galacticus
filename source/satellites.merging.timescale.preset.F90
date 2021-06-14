@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,10 @@
   !% Implements a satellite merging timescale class which uses preset values for the timescale.
 
   !# <satelliteMergingTimescales name="satelliteMergingTimescalesPreset">
-  !#  <description>This class assumes that merging times have been preset for every node (or, at least, every node which becomes a satellite). It therefore simply returns the preset merging time.</description>
+  !#  <description>
+  !#   A satellite merging timescale class assumes that merging times have been preset for every node (or, at least, every node
+  !#   which becomes a satellite). It therefore simply returns the preset merging time.
+  !#  </description>
   !# </satelliteMergingTimescales>
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesPreset
      !% A class implementing preset satellite merging timescales.
@@ -43,7 +46,7 @@ contains
     implicit none
     type(satelliteMergingTimescalesPreset)                :: self
     type(inputParameters                 ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=satelliteMergingTimescalesPreset()
     return
@@ -58,7 +61,7 @@ contains
     type (treeNode                        ), intent(inout) :: node
     type (keplerOrbit                     ), intent(inout) :: orbit
     class(nodeComponentSatellite          ), pointer       :: satellite
-    !GCC$ attributes unused :: self, orbit
+    !$GLC attributes unused :: self, orbit
 
     ! Simply return the current time until merging as, by definition, this has been preset if this method is being used.
     satellite              => node     %satellite()

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -64,11 +64,9 @@ contains
 
     !# <inputParameter>
     !#   <name>massFlowStatisticsResetOnOutput</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>Specifies whether or not mass flow statistics should be reset to zero at each output.</description>
     !#   <source>parameters_</source>
-    !#   <type>double</type>
     !# </inputParameter>
     return
   end subroutine Node_Component_Mass_Flow_Statistics_Standard_Initialize
@@ -127,18 +125,17 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Mass_Flow_Statistics_Standard_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Mass_Flow_Statistics_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
+  subroutine Node_Component_Mass_Flow_Statistics_Standard_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
     !% Compute rates of change of properties in the standard implementation of the basic component.
     use :: Galacticus_Nodes, only : defaultMassFlowStatisticsComponent, nodeComponentMassFlowStatistics, nodeComponentMassFlowStatisticsStandard, propertyTypeInactive, &
           &                         treeNode
     implicit none
-    type     (treeNode                       ), pointer, intent(inout) :: node
-    logical                                            , intent(in   ) :: odeConverged
-    logical                                   ,          intent(inout) :: interrupt
-    procedure(                               ), pointer, intent(inout) :: interruptProcedure
+    type     (treeNode                       ), intent(inout)          :: node
+    logical                                   , intent(inout)          :: interrupt
+    procedure(                               ), intent(inout), pointer :: interruptProcedure
     integer                                   , intent(in   )          :: propertyType
-    class    (nodeComponentMassFlowStatistics), pointer                :: massFlowStatistics
-    !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
+    class    (nodeComponentMassFlowStatistics)               , pointer :: massFlowStatistics
+    !$GLC attributes unused :: interrupt, interruptProcedure
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
@@ -196,7 +193,7 @@ contains
     integer         (kind=c_size_t                  ), intent(in   )          :: iOutput
     logical                                          , intent(in   )          :: nodePassesFilter
     class           (nodeComponentMassFlowStatistics),                pointer :: massFlowStatistics
-    !GCC$ attributes unused :: iOutput, nodePassesFilter, treeIndex
+    !$GLC attributes unused :: iOutput, nodePassesFilter, treeIndex
 
     ! Check if we are the default method.
     if (.not.defaultMassFlowStatisticsComponent%standardIsActive()) return

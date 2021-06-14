@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -53,11 +53,9 @@ contains
 
     !# <inputParameter>
     !#   <name>gamma</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The multiplicative factor, $\gamma$, used to compute the cooling coefficient.</description>
     !#   <source>parameters</source>
     !#   <defaultValue>0.67d0</defaultValue>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="atomicRecombinationRateRadiative" name="atomicRecombinationRateRadiative_" source="parameters"/>
     self=atomicRecombinationRateRadiativeCoolingFixed(gamma,atomicRecombinationRateRadiative_)

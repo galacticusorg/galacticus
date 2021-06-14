@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -82,7 +82,7 @@ contains
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
-    !GCC$ attributes unused :: parameters_
+    !$GLC attributes unused :: parameters_
 
     if (defaultBasicComponent%standardIsActive()) &
          call nodePromotionEvent%attach(defaultBasicComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentBasicStandard')
@@ -106,29 +106,28 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Basic_Standard_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Basic_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
+  subroutine Node_Component_Basic_Standard_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
     !% Compute rates of change of properties in the standard implementation of the basic component.
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentBasicStandard, propertyTypeInactive, treeNode
     implicit none
-    type     (treeNode          ), intent(inout), pointer :: node
-    logical                      , intent(in   )          :: odeConverged
+    type     (treeNode          ), intent(inout)          :: node
     logical                      , intent(inout)          :: interrupt
     procedure(                  ), intent(inout), pointer :: interruptProcedure
     integer                      , intent(in   )          :: propertyType
-    class    (nodeComponentBasic)               , pointer :: basicComponent
-    !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
+    class    (nodeComponentBasic)               , pointer :: basic
+    !$GLC attributes unused :: interrupt, interruptProcedure
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
     ! Get the basic component.
-    basicComponent => node%basic()
+    basic => node%basic()
     ! Ensure that it is of the standard class.
-    select type (basicComponent)
+    select type (basic)
     class is (nodeComponentBasicStandard)
        ! Mass rate of change is set to the accretion rate.
-       call basicComponent%massRate(basicComponent%accretionRate())
+       call basic%massRate(basic%accretionRate())
        ! Time rate of change is unity, by definition.
-       call basicComponent%timeRate(1.0d0                         )
+       call basic%timeRate(1.0d0                         )
     end select
     return
   end subroutine Node_Component_Basic_Standard_Rate_Compute
@@ -143,17 +142,17 @@ contains
     type            (treeNode          ), intent(inout), pointer :: node
     double precision                    , parameter              :: timeScale        =1.0d-3
     double precision                    , parameter              :: scaleMassRelative=1.0d-6
-    class           (nodeComponentBasic)               , pointer :: basicComponent
+    class           (nodeComponentBasic)               , pointer :: basic
 
     ! Get the basic component.
-    basicComponent => node%basic()
+    basic => node%basic()
     ! Ensure that it is of the standard class.
-    select type (basicComponent)
+    select type (basic)
     class is (nodeComponentBasicStandard)
        ! Set scale for time.
-       call basicComponent%timeScale(timeScale                              )
+       call basic%timeScale(timeScale                              )
        ! Set scale for mass.
-       call basicComponent%massScale(basicComponent%mass()*scaleMassRelative)
+       call basic%massScale(basic%mass()*scaleMassRelative)
     end select
     return
   end subroutine Node_Component_Basic_Standard_Scale_Set
@@ -167,8 +166,10 @@ contains
     implicit none
     type            (treeNode          ), intent(inout), pointer :: node
     type            (treeNode          )               , pointer :: childNode          , nodeParent
-    class           (nodeComponentBasic)               , pointer :: childBasicComponent, basicParent   , basic
-    double precision                                             :: deltaTime          , massUnresolved, progenitorMassTotal
+    class           (nodeComponentBasic)               , pointer :: childBasicComponent, basicParent     , &
+         &                                                          basic
+    double precision                                             :: deltaTime          , massUnresolved  , &
+         &                                                          progenitorMassTotal, timeLastIsolated
 
     ! Get the basic component.
     basic => node%basic()
@@ -176,12 +177,22 @@ contains
     select type (basic)
     class is (nodeComponentBasicStandard)
        ! Set the last isolated time to the current time at the farthest point along the future of this branch.
-       nodeParent => node
-       do while (associated(nodeParent%parent).and.nodeParent%isPrimaryProgenitor())
-          nodeParent => nodeParent%parent
-       end do
-       basicParent => nodeParent%basic()
-       call basic%timeLastIsolatedSet(basicParent%time())
+       if (.not.associated(node%firstChild)) then
+          nodeParent => node
+          do while (associated(nodeParent%parent).and.nodeParent%isPrimaryProgenitor())
+             nodeParent => nodeParent%parent
+          end do
+          basicParent      => nodeParent %basic()
+          timeLastIsolated =  basicParent%time ()
+          ! Set the last isolated time for all nodes along this branch - this avoids having to re-walk this branch for each node
+          ! along it.
+          nodeParent => node
+          do while (associated(nodeParent%parent).and.nodeParent%isPrimaryProgenitor())
+             basicParent => nodeParent%basic()
+             call basicParent%timeLastIsolatedSet(timeLastIsolated)
+             nodeParent => nodeParent%parent
+          end do
+       end if
        ! Determine node status.
        if (node%isSatellite()) then
           ! Node is a satellite - we assume no accretion.
@@ -245,8 +256,8 @@ contains
     !% Switch off accretion of new mass onto this node once it becomes a satellite.
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentBasicStandard, treeNode
     implicit none
-    type (treeNode          ), intent(inout), pointer :: node
-    class(nodeComponentBasic)               , pointer :: basic
+    type (treeNode          ), intent(inout) :: node
+    class(nodeComponentBasic), pointer       :: basic
 
     ! Get the basic component.
     basic => node%basic()
@@ -275,7 +286,7 @@ contains
     class    (nodeComponentBasic), pointer       :: basicParent, basic
     type     (varying_string    )                :: message
     character(len=12            )                :: label
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     basic       => node      %basic ()
     nodeParent  => node      %parent
@@ -344,8 +355,8 @@ contains
   !# </postStepTask>
   subroutine Node_Component_Basic_Standard_Post_Step(node,status)
     !% Test for failure in the basic mass evolution.
-    use :: FGSL            , only : FGSL_Failure
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentBasicStandard, treeNode
+    use :: Interface_GSL   , only : GSL_Failure
     implicit none
     type   (treeNode          ), intent(inout), pointer :: node
     integer                    , intent(inout)          :: status
@@ -360,7 +371,7 @@ contains
             &   (basic%accretionRate() > 0.0d0 .and. basic%mass() > basic%massTarget()) &
             & ) then
           call basic%massSet(basic%massTarget())
-          status=FGSL_Failure
+          status=GSL_Failure
        end if
     end select
     return

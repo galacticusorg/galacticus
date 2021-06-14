@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Compute halo mass function -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+
+  <task value="NBodyAnalyze"/>
+
+  <nbodyImporter value="merge">
+  </nbodyImporter>
+
+  <nbodyOperator value="sequence">
+    <nbodyOperator value="addAttributes">
+      <names  value="massParticle"/>
+      <values value="1.0e9"/>
+    </nbodyOperator>
+    <nbodyOperator value="massFunction">
+      <description         value=""      />
+      <simulationReference value=""      />
+      <simulationURL       value=""      />
+      <massMinimum         value="1.0e10"/>
+      <massMaximum         value="1.0e15"/>
+      <massCountPerDecade  value="10"    />
+    </nbodyOperator>
+  </nbodyOperator>
+  
+</parameters>

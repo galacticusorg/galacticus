@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -44,7 +44,7 @@ module Output_Analyses
   !#   <argument>type   (mergerTree), intent(inout) :: tree</argument>
   !#   <argument>integer(c_size_t  ), intent(in   ) :: iOutput</argument>
   !#   <code>
-  !#    !GCC$ attributes unused :: self, tree, iOutput
+  !#    !$GLC attributes unused :: self, tree, iOutput
   !#   </code>
   !#  </method>
   !#  <method name="finalize" >
@@ -58,7 +58,7 @@ module Output_Analyses
   !#   <pass>yes</pass>
   !#   <argument>class(outputAnalysisClass), intent(inout) :: reduced</argument>
   !#   <code>
-  !#    !GCC$ attributes unused :: self, reduced
+  !#    !$GLC attributes unused :: self, reduced
   !#   </code>
   !#  </method>
   !#  <method name="logLikelihood" >

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -28,7 +28,24 @@ module IO_XML
   public :: XML_Extrapolation_Element_Decode , XML_Array_Read                , XML_Array_Read_Static       , &
        &    XML_Get_First_Element_By_Tag_Name, XML_Count_Elements_By_Tag_Name, XML_Path_Exists             , &
        &    XML_Extract_Text                 , XML_Parse                     , XML_Get_Elements_By_Tag_Name, &
-       &    xmlNodeList                      , XML_Get_Child_Elements
+       &    xmlNodeList                      , XML_Get_Child_Elements        , getTextContentTS            , &
+       &    extractDataContentTS             , parseStringTS
+
+  !# <generic identifier="Type">
+  !#  <instance label="Logical"      intrinsic="logical"                         />
+  !#  <instance label="Integer"      intrinsic="integer"                         />
+  !#  <instance label="Double"       intrinsic="double precision"                />
+  !#  <instance label="Character"    intrinsic="character(len=*)"                />
+  !#  <instance label="LogicalRank1" intrinsic="logical         , dimension(:)"  />
+  !#  <instance label="IntegerRank1" intrinsic="integer         , dimension(:)"  />
+  !#  <instance label="DoubleRank1"  intrinsic="double precision, dimension(:)"  />
+  !#  <instance label="DoubleRank2"  intrinsic="double precision, dimension(:,:)"/>
+  !# </generic>
+
+  ! Interface to thread-safe extractDataContent function
+  interface extractDataContentTS
+     module procedure extractDataContentTS{Type¦label}
+  end interface extractDataContentTS
 
   ! Interface for array reading functions.
   interface XML_Array_Read
@@ -443,14 +460,14 @@ contains
     return
   end subroutine XML_Extrapolation_Element_Decode
   
-  function XML_Parse(fileName,iostat) result(document)
+  function XML_Parse(fileName,iostat,ex) result(document)
     !% Parse an XML document, automatically resolve XInclude references.
     use :: File_Utilities    , only : File_Exists            , File_Name       , File_Path
     use :: FoX_dom           , only : ELEMENT_NODE           , destroy         , getAttribute    , getChildNodes , &
          &                           getDocumentElement      , getFirstChild   , getNextSibling  , getNodeName   , &
          &                           getNodeType             , getParentNode   , hasAttribute    , hasChildNodes , &
          &                           importNode              , insertBefore    , node            , parseFile     , &
-         &                           removeChild             , replaceChild    , setLiveNodeLists
+         &                           removeChild             , replaceChild    , setLiveNodeLists, DOMException
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: ISO_Varying_String, only : assignment(=)          , operator(//)    , len             , operator(==)  , &
          &                            extract                , char
@@ -461,6 +478,7 @@ contains
          &                                                      nodeInsert         , nodeNext
     character(len=*           ), intent(in   )               :: fileName
     integer                    , intent(inout), optional     :: iostat
+    type     (DOMException    ), intent(  out), optional     :: ex
     type     (xmlNodeList     ), allocatable  , dimension(:) :: nodesCurrent
     type     (xincludeNode    ), allocatable  , dimension(:) :: stack              , stackTmp
     type     (xincludeNodeList), allocatable  , dimension(:) :: stackList          , stackListTmp
@@ -490,7 +508,16 @@ contains
        ! Check that file exists.
        if (.not.File_Exists(char(filePath//stack(stackCount)%fileName))) call Galacticus_Error_Report('file "'//char(filePath//stack(stackCount)%fileName)//'" does not exist'//{introspection:location})
        ! Parse the document.
-       nodeNew      => parseFile(char(filePath//stack(stackCount)%fileName    ),iostat=iostat)
+       !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+       !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
+       !# </workaround>
+#ifdef THREADSAFEIO
+       !$omp critical(gfortranInternalIO)
+#endif
+       nodeNew      => parseFile(char(filePath//stack(stackCount)%fileName    ),iostat=iostat,ex=ex)
+#ifdef THREADSAFEIO
+       !$omp end critical(gfortranInternalIO)
+#endif
        if (present(iostat).and.iostat /= 0) return
        nodeParent   =>                          stack(stackCount)%nodeParent
        nodeXInclude =>                          stack(stackCount)%nodeXInclude
@@ -600,4 +627,76 @@ contains
     return
   end function XML_Parse
 
+  function parseStringTS(string,configuration,ex)
+    !% A thread-safe wrapper around the FoX {\normalfont \ttfamily parseString()} function. This is a workaround for
+    !% race-condition issues with the gfortran implementation of internal file unit handling (see, for example,
+    !% \href{https://gcc.gnu.org/bugzilla/show_bug.cgi?id=92836}{PR92836}).
+    use :: FoX_DOM, only : parseString, DOMException, DOMConfiguration, node
+    implicit none
+    type     (DOMException    ), intent(  out), optional :: ex
+    character(len=*           ), intent(in   )           :: string
+    type     (DOMConfiguration), pointer      , optional :: configuration
+    type     (node            ), pointer                 :: parseStringTS
+
+    !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+    !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
+    !# </workaround>
+#ifdef THREADSAFEIO
+    !$omp critical(gfortranInternalIO)
+#endif
+    parseStringTS => parseString(string,configuration,ex)
+#ifdef THREADSAFEIO
+    !$omp end critical(gfortranInternalIO)
+#endif
+    return    
+  end function parseStringTS
+
+  function getTextContentTS(node_,ex)
+    !% A thread-safe wrapper around the FoX {\normalfont \ttfamily getTextContent()} function. This is a workaround for
+    !% race-condition issues with the gfortran implementation of internal file unit handling (see, for example,
+    !% \href{https://gcc.gnu.org/bugzilla/show_bug.cgi?id=92836}{PR92836}).
+    use :: FoX_DOM           , only : getTextContent, node, DOMException
+    use :: ISO_Varying_String, only : assignment(=)
+    implicit none
+    type(varying_string)                          :: getTextContentTS
+    type(node          ), intent(in   ), pointer  :: node_
+    type(DOMException  ), intent(  out), optional :: ex
+
+    !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+    !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
+    !# </workaround>
+#ifdef THREADSAFEIO
+    !$omp critical(gfortranInternalIO)
+#endif
+    getTextContentTS=getTextContent(node_,ex)
+#ifdef THREADSAFEIO
+    !$omp end critical(gfortranInternalIO)
+#endif
+    return
+  end function getTextContentTS
+
+  subroutine extractDataContentTS{Type¦label}(arg,data,num,iostat,ex)
+    !% A thread-safe wrapper around the FoX {\normalfont \ttfamily getDataContent()} function. This is a workaround for
+    !% race-condition issues with the gfortran implementation of internal file unit handling (see, for example,
+    !% \href{https://gcc.gnu.org/bugzilla/show_bug.cgi?id=92836}{PR92836}).
+    use :: FoX_DOM     , only : extractDataContent, node, DOMException
+    use :: Kind_Numbers, only : kind_int8
+    type            (DOMException), intent(  out), optional :: ex
+    type            (node        ), intent(inout), pointer  :: arg
+    {Type¦intrinsic}              , intent(  out)           :: data
+    integer                       , intent(  out), optional :: num, iostat
+    
+    !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+    !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
+    !# </workaround>
+#ifdef THREADSAFEIO
+    !$omp critical(gfortranInternalIO)
+#endif
+    call extractDataContent(arg=arg,data=data,num=num,iostat=iostat,ex=ex)
+#ifdef THREADSAFEIO
+    !$omp end critical(gfortranInternalIO)
+#endif
+    return
+  end subroutine extractDataContentTS{Type¦label}
+  
 end module IO_XML

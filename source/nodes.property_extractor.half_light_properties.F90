@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,12 @@
 !% Contains a module which implements a half-light radii property extractor class.
 
   !# <nodePropertyExtractor name="nodePropertyExtractorRadiiHalfLightProperties">
-  !#  <description>A half-light radii property extractor class.</description>
+  !#  <description>
+  !#   A node property extractor which extracts half-light radii and the masses enclosed within them. The half-light radius in
+  !#   each specified luminosity band is extracted as {\normalfont \ttfamily [halfLightRadius\{luminosityID\}]} (in Mpc), where
+  !#   {\normalfont \ttfamily\{luminosityID\}} is the usual luminosity identifier suffix, and the total (dark + baryonic) mass
+  !#   within that radius is extracted as {\normalfont \ttfamily [halfLightMass\{luminosityID\}]} (in $M_\odot$).
+  !#  </description>
   !# </nodePropertyExtractor>
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorRadiiHalfLightProperties
      !% A half-light radii property extractor class.
@@ -45,9 +50,9 @@ contains
     !% Constructor for the {\normalfont \ttfamily radiiHalfLightProperties} property extractor class which takes a parameter set as input.
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type (nodePropertyExtractorRadiiHalfLightProperties)                :: self
-    type (inputParameters                              ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    type(nodePropertyExtractorRadiiHalfLightProperties)                :: self
+    type(inputParameters                              ), intent(inout) :: parameters
+    !$GLC attributes unused :: parameters
 
     self=nodePropertyExtractorRadiiHalfLightProperties()
     return
@@ -59,7 +64,7 @@ contains
     implicit none
     class           (nodePropertyExtractorRadiiHalfLightProperties), intent(inout) :: self
     double precision                                               , intent(in   ) :: time
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     radiiHalfLightPropertiesElementCount=2*unitStellarLuminosities%luminosityOutputCount(time)
     return
@@ -78,7 +83,7 @@ contains
     type            (multiCounter                                 ), intent(inout), optional    :: instance
     integer                                                                                     :: i                              , j
     double precision                                                                            :: halfLightRadius                , massEnclosed
-    !GCC$ attributes unused :: self, instance
+    !$GLC attributes unused :: self, instance
 
     allocate(radiiHalfLightPropertiesExtract(2*unitStellarLuminosities%luminosityOutputCount(time)))
     j=-1
@@ -100,15 +105,19 @@ contains
     type            (varying_string                               ), dimension(:) , allocatable :: radiiHalfLightPropertiesNames
     class           (nodePropertyExtractorRadiiHalfLightProperties), intent(inout)              :: self
     double precision                                               , intent(in   )              :: time
-    integer                                                                                     :: i
-    !GCC$ attributes unused :: self
+    integer                                                                                     :: i                            , j
+    !$GLC attributes unused :: self
 
     allocate(radiiHalfLightPropertiesNames(2*unitStellarLuminosities%luminosityOutputCount(time)))
-    do i=0,unitStellarLuminosities%luminosityOutputCount(time)-1
-       radiiHalfLightPropertiesNames(2*i+1:2*i+2)=[                                                             &
-            &                                      var_str('halfLightRadius')//unitStellarLuminosities%name(i), &
-            &                                      var_str('halfLightMass'  )//unitStellarLuminosities%name(i)  &
-            &                                     ]
+    j=-1
+    do i=1,unitStellarLuminosities%luminosityCount()
+       if (unitStellarLuminosities%isOutput(i,time)) then
+          j=j+1
+          radiiHalfLightPropertiesNames(2*j+1:2*j+2)=[                                                             &
+               &                                      var_str('halfLightRadius')//unitStellarLuminosities%name(i), &
+               &                                      var_str('halfLightMass'  )//unitStellarLuminosities%name(i)  &
+               &                                     ]
+       end if
     end do
     return
   end function radiiHalfLightPropertiesNames
@@ -121,7 +130,7 @@ contains
     class           (nodePropertyExtractorRadiiHalfLightProperties), intent(inout)              :: self
     double precision                                               , intent(in   )              :: time
     integer                                                                                     :: i
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     allocate(radiiHalfLightPropertiesDescriptions(2*unitStellarLuminosities%luminosityOutputCount(time)))
     do i=0,unitStellarLuminosities%luminosityOutputCount(time)-1
@@ -142,7 +151,7 @@ contains
     class           (nodePropertyExtractorRadiiHalfLightProperties), intent(inout)               :: self
     double precision                                               , intent(in   )               :: time
     integer                                                                                      :: i
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     allocate(radiiHalfLightPropertiesUnitsInSI(2*unitStellarLuminosities%luminosityOutputCount(time)))
     do i=0,unitStellarLuminosities%luminosityOutputCount(time)-1
@@ -156,7 +165,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorRadiiHalfLightProperties), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     radiiHalfLightPropertiesType=outputAnalysisPropertyTypeLinear
     return

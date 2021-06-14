@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,12 @@
   !% An implementation of the intergalactic medium state class for a simplistic model of instantaneous and full reionization.
 
   !# <intergalacticMediumState name="intergalacticMediumStateSimple">
-  !#  <description>The intergalactic medium is assumed to be instantaneously and fully reionized at a fixed redshift, and heated to a fixed temperature.</description>
+  !#  <description>
+  !#   An intergalactic medium state class which implements a simple model of reionization in which the universe is assumed to be
+  !#   fully neutral prior to the redshift given by {\normalfont \ttfamily [reionizationRedshift]} and fully ionized
+  !#   thereafter. The temperature is given by {\normalfont \ttfamily [preReionizationTemperature]} before reionization, and
+  !#   {\normalfont \ttfamily [reionizationTemperature]} thereafter.
+  !#  </description>
   !# </intergalacticMediumState>
   type, extends(intergalacticMediumStateClass) :: intergalacticMediumStateSimple
      !% An \gls{igm} state class for a simple model in which the \gls{igm} is assumed to be instantaneously and fully reionized at
@@ -64,8 +69,6 @@ contains
     !#   <defaultValue>9.97d0</defaultValue>
     !#   <defaultSource>(\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultSource>
     !#   <description>The redshift of reionization in the simple \gls{igm} state model.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>reionizationTemperature</name>
@@ -73,8 +76,6 @@ contains
     !#   <variable>reionizationTemperature</variable>
     !#   <defaultValue>1.0d4</defaultValue>
     !#   <description>The post-reionization temperature (in units of Kelvin) in the simple \gls{igm} state model.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>preReionizationTemperature</name>
@@ -82,8 +83,6 @@ contains
     !#   <variable>preReionizationTemperature</variable>
     !#   <defaultValue>10.0d0</defaultValue>
     !#   <description>The pre-reionization temperature (in units of Kelvin) in the simple \gls{igm} state model.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
@@ -199,18 +198,18 @@ contains
     return
   end function simpleTemperature
 
-  subroutine simpleDescriptor(self,descriptor,includeMethod)
+  subroutine simpleDescriptor(self,descriptor,includeClass)
     !% Return an input parameter list descriptor which could be used to recreate this object.
     use :: Input_Parameters, only : inputParameters
     implicit none
     class    (intergalacticMediumStateSimple), intent(inout)           :: self
     type     (inputParameters               ), intent(inout)           :: descriptor
-    logical                                  , intent(in   ), optional :: includeMethod
+    logical                                  , intent(in   ), optional :: includeClass
     character(len=18                        )                          :: parameterLabel
     type     (inputParameters               )                          :: parameters
 
-    if (.not.present(includeMethod).or.includeMethod) call descriptor%addParameter('intergalacticMediumStateMethod','simple')
-    parameters=descriptor%subparameters('intergalacticMediumStateMethod')
+    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter('intergalacticMediumState','simple')
+    parameters=descriptor%subparameters('intergalacticMediumState')
     write (parameterLabel,'(e17.10)') self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(self%reionizationTime          ))
     call parameters%addParameter('reionizationRedshift'      ,trim(adjustl(parameterLabel)))
     write (parameterLabel,'(e17.10)')                                                                                               self%reionizationTemperature

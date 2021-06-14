@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -34,52 +34,6 @@ module Star_Formation_Histories
   !#  <descriptiveName>Star Formation Histories</descriptiveName>
   !#  <description>
   !#    Class providing recording and output of star formation histories.
-  !#
-  !#    Conventionally, star formation histories are output as follows:
-  !#    \begin{verbatim}
-  !#    HDF5 "galacticus.hdf5" {
-  !#    GROUP "starFormationHistories" {
-  !#       COMMENT "Star formation history data."
-  !#       GROUP "Output1" {
-  !#          COMMENT "Star formation histories for all trees at each out"
-  !#          GROUP "mergerTree1" {
-  !#             COMMENT "Star formation histories for each tree."
-  !#             DATASET "diskSFH&lt;nodeID&gt;" {
-  !#             COMMENT "Star formation history stellar masses of the disk "
-  !#                DATATYPE  H5T_IEEE_F64LE
-  !#                DATASPACE  SIMPLE { }
-  !#             }
-  !#             DATASET "diskTime&lt;nodeID&gt;" {
-  !#             COMMENT "Star formation history times of the disk component"
-  !#                DATATYPE  H5T_IEEE_F64LE
-  !#                DATASPACE  SIMPLE { }
-  !#             }
-  !#             DATASET "spheroidSFH&lt;nodeID&gt;" {
-  !#             COMMENT "Star formation history stellar masses of the spher"
-  !#                DATATYPE  H5T_IEEE_F64LE
-  !#                DATASPACE  SIMPLE { }
-  !#             }
-  !#             DATASET "spheroidTime&lt;nodeID&gt;" {
-  !#             COMMENT "Star formation history times of the spheroid compo"
-  !#                DATATYPE  H5T_IEEE_F64LE
-  !#                DATASPACE  SIMPLE { }
-  !#             }
-  !#          }
-  !#          GROUP "mergerTree2" {
-  !#          .
-  !#          .
-  !#          .
-  !#          }
-  !#       }
-  !#       GROUP "Output1" {
-  !#       .
-  !#       .
-  !#       .
-  !#       }
-  !#    }
-  !#    }
-  !#    \end{verbatim}
-  !#    where {\normalfont \ttfamily nodeID} is the index of the relevant node. The specifics of each dataset will depend on the selected star formation history method.
   !#  </description>
   !#  <default>null</default>
   !#  <method name="create" >
@@ -111,12 +65,36 @@ module Star_Formation_Histories
   !#   <description>Output the star formation history.</description>
   !#   <type>void</type>
   !#   <pass>yes</pass>
-  !#   <argument>type     (treeNode      ), intent(inout), target :: node</argument>
-  !#   <argument>logical                  , intent(in   )         :: nodePassesFilter</argument>
-  !#   <argument>type     (history       ), intent(inout)         :: historyStarFormation</argument>
-  !#   <argument>integer  (c_size_t      ), intent(in   )         :: indexOutput</argument>
-  !#   <argument>integer  (kind=kind_int8), intent(in   )         :: indexTree</argument>
-  !#   <argument>character(len=*         ), intent(in   )         :: labelComponent</argument>
+  !#   <argument>type   (treeNode      ), intent(inout), target :: node</argument>
+  !#   <argument>logical                , intent(in   )         :: nodePassesFilter</argument>
+  !#   <argument>type   (history       ), intent(inout)         :: historyStarFormation</argument>
+  !#   <argument>integer(c_size_t      ), intent(in   )         :: indexOutput</argument>
+  !#   <argument>integer(kind=kind_int8), intent(in   )         :: indexTree</argument>
+  !#   <argument>integer                , intent(in   )         :: componentType</argument>
+  !#  </method>
+  !#  <method name="outputFlush" >
+  !#   <description>Flush any buffered output.</description>
+  !#   <type>void</type>
+  !#   <pass>yes</pass>
+  !#   <argument>integer, intent(in   ) :: componentType</argument>
+  !#   <code>
+  !#    !$GLC attributes unused :: self, componentType
+  !#    ! Do nothing by default.
+  !#   </code>
+  !#  </method>
+  !#  <method name="metallicityBoundaries" >
+  !#   <description>Return a (zero-indexed) array of metallicity boundaries for this history.</description>
+  !#   <type>double precision, allocatable, dimension(:)</type>
+  !#   <pass>yes</pass>
+  !#  </method>
+  !#  <method name="perOutputTabualtionIsStatic" >
+  !#   <description>Return true if the tabulation (in time and metallicity) is static (independent of node) per output.</description>
+  !#   <type>logical</type>
+  !#   <pass>yes</pass>
+  !#   <code>
+  !#    !$GLC attributes unused :: self
+  !#    starFormationHistoryPerOutputTabualtionIsStatic=.false.
+  !#   </code>
   !#  </method>
   !# </functionClass>
 

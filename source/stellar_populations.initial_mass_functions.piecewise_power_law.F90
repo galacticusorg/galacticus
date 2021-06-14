@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,17 @@
   !% Implements a stellar initial mass function class for piecewise power-law \gls{imf}s.
 
   !# <initialMassFunction name="initialMassFunctionPiecewisePowerLaw">
-  !#  <description>A stellar initial mass function class for piecewise power-law \gls{imf}s.</description>
+  !#  <description>
+  !#   A stellar initial mass function class for piecewise power-law \gls{imf}s. Arbitrary piecewise power-law {\gls{imf}}s can be
+  !#   defined using the {\normalfont \ttfamily PiecewisePowerLaw} method. The \gls{imf} will be constructed such that:
+  !#   \begin{equation}
+  !#    \phi(M) \propto M^{\alpha_i} \hbox{ if } M_i \le M &lt; M_{i+1},
+  !#   \end{equation}
+  !#   where $i=1$\ldots$N$, the $M_i$ are given by {\normalfont \ttfamily [mass]} and the $\alpha_i$ are given by {\normalfont
+  !#   \ttfamily [exponent]}. (Note that {\normalfont \ttfamily [mass]} must contain $N+1$ elements, while {\normalfont \ttfamily
+  !#   [exponent]} contains only $N$ elements.) The normalization of each power-law piece is chosen to ensure a continuous
+  !#   \gls{imf} that is normalized to unit mass overall.
+  !#  </description>
   !# </initialMassFunction>
   type, extends(initialMassFunctionClass) :: initialMassFunctionPiecewisePowerLaw
      !% A stellar initial mass function class for piecewise power-law \gls{imf}s.
@@ -62,16 +72,12 @@ contains
     !#   <defaultValue>[0.1d0,125.0d0]</defaultValue>
     !#   <source>parameters</source>
     !#   <description>The mass points used to define a piecewise power-law initial mass function.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1..*</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>exponent</name>
     !#   <defaultValue>[-2.35d0]</defaultValue>
     !#   <source>parameters</source>
     !#   <description>The exponents used to define a piecewise power-law initial mass function.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1..*</cardinality>
     !# </inputParameter>
     self=initialMassFunctionPiecewisePowerLaw(mass,exponent)
     !# <inputParametersValidate source="parameters"/>
@@ -217,7 +223,7 @@ contains
     implicit none
     class(initialMassFunctionPiecewisePowerLaw), intent(inout) :: self
     type (varying_string                      )                :: piecewisePowerLawLabel
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     piecewisePowerLawLabel="PiecewisePowerLaw"
     return

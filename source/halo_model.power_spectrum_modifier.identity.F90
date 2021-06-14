@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,9 @@
 !% Implements a identity modifier for power spectra in the halo model of clustering.
 
   !# <haloModelPowerSpectrumModifier name="haloModelPowerSpectrumModifierIdentity">
-  !#  <description>A identity modifier for power spectra in the halo model of clustering.</description>
+  !#  <description>
+  !#   A halo model power spectrum modifier class which applies an identity modifier.
+  !#  </description>
   !# </haloModelPowerSpectrumModifier>
   type, extends(haloModelPowerSpectrumModifierClass) :: haloModelPowerSpectrumModifierIdentity
      private
@@ -42,7 +44,7 @@ contains
     implicit none
     type(haloModelPowerSpectrumModifierIdentity)                :: self
     type(inputParameters                       ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=haloModelPowerSpectrumModifierIdentity()
     return
@@ -57,7 +59,7 @@ contains
     double precision                                        , intent(inout), dimension(:  )           :: powerSpectrum
     double precision                                        , intent(inout), dimension(:,:), optional :: powerSpectrumCovariance
     double precision                                        , intent(in   )                , optional :: mass
-    !GCC$ attributes unused :: self, wavenumber, term, powerSpectrum, mass
+    !$GLC attributes unused :: self, wavenumber, term, powerSpectrum, mass
 
     ! Do nothing, except to set covariance to zero.
     if (present(powerSpectrumCovariance)) powerSpectrumCovariance=0.0d0

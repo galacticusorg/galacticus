@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -29,7 +29,9 @@ module Chemical_States
   !# <functionClass>
   !#  <name>chemicalState</name>
   !#  <descriptiveName>Chemical State</descriptiveName>
-  !#  <description>Class providing chemical state.</description>
+  !#  <description>
+  !#   Class providing chemical state of gas.
+  !#  </description>
   !#  <default>atomicCIECloudy</default>
   !#  <method name="electronDensity" >
   !#   <description>Return the electron density at the given temperature and hydrogen density for the specified set of abundances and radiation field. Units of the returned electron density are cm$^-3$.</description>

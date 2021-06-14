@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -28,23 +28,27 @@ module Dark_Matter_Halo_Biases
   !# <functionClass>
   !#  <name>darkMatterHaloBias</name>
   !#  <descriptiveName>Dark matter halo biases.</descriptiveName>
-  !#  <description>Class providing models of the bias of dark matter halos.</description>
+  !#  <description>
+  !#   Class providing models of the bias of dark matter halos.
+  !#  </description>
   !#  <default>tinker2010</default>
   !#  <method name="biasByMass" >
   !#   <description>Returns the bias of a halo specified by a mass (in $M_\odot$) and time (in Gyr).</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ) :: mass, time</argument>
+  !#   <argument>double precision, intent(in   )           :: mass, time</argument>
+  !#   <argument>double precision, intent(in   ), optional :: radius</argument>
   !#  </method>
   !#  <method name="biasByNode" >
   !#   <description>Returns the bias of the halo in the supplied \gls{node}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout) :: node</argument>
+  !#   <argument>type            (treeNode), intent(inout)           :: node</argument>
+  !#   <argument>double precision          , intent(in   ), optional :: radius</argument>
   !#   <code>
   !#    class(nodeComponentBasic), pointer :: basic
-  !#    basic                        => node%basic     (                         )
-  !#    darkMatterHaloBiasBiasByNode =  self%biasByMass(basic%mass(),basic%time())
+  !#    basic                        => node%basic     (                                )
+  !#    darkMatterHaloBiasBiasByNode =  self%biasByMass(basic%mass(),basic%time(),radius)
   !#   </code>
   !#  </method>
   !#  <generic name="bias">

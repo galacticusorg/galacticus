@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -28,6 +28,11 @@ module Dark_Matter_Particles
   !#  <descriptiveName>Dark Matter Particle</descriptiveName>
   !#  <description>Class providing dark matter particle physics.</description>
   !#  <default>CDM</default>
+  !#  <method name="mass" >
+  !#   <description>Return the mass of the dark matter particle in units of keV.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#  </method>
   !# </functionClass>
 
 end module Dark_Matter_Particles

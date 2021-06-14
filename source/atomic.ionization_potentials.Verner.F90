@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,16 +20,16 @@
 !+ Contributions to this file made by: Andrew Benson, Daniel McAndrew.
 
 !% Implements an atomic ionization potential class, which provides potentials for all ionization stages of all atoms from H to Zn
-!% using data taken from Dima Verner's \href{ftp://gradj.pa.uky.edu//dima//col//cfit.f}{code}.
+!% using data taken from Dima Verner's \href{http://www.pa.uky.edu/~verner/dima/col/cfit.f}{code}.
 
   !# <atomicIonizationPotential name="atomicIonizationPotentialVerner">
   !#  <description>
-  !#   Implements an atomic ionization potential class, which provides potentials for all ionization stages of all atoms from H to Zn using data taken from Dima Verner's \href{ftp://gradj.pa.uky.edu//dima//col//cfit.f}{code}.
+  !#   Implements an atomic ionization potential class, which provides potentials for all ionization stages of all atoms from H to Zn using data taken from Dima Verner's \href{http://www.pa.uky.edu/~verner/dima/col/cfit.f}{code}.
   !#  </description>
   !# </atomicIonizationPotential>
   type, extends(atomicIonizationPotentialClass) :: atomicIonizationPotentialVerner
      !% Implements an atomic ionization potential class, which provides potentials for all ionization stages of all atoms from H
-     !% to Zn using data taken from Dima Verner's \href{ftp://gradj.pa.uky.edu//dima//col//cfit.f}{code}.
+     !% to Zn using data taken from Dima Verner's \href{http://www.pa.uky.edu/~verner/dima/col/cfit.f}{code}.
      private
    contains
      procedure :: potential => vernerPotential
@@ -522,7 +522,7 @@ contains
     implicit none
     type(atomicIonizationPotentialVerner)                :: self
     type(inputParameters                ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=atomicIonizationPotentialVerner()
     return
@@ -531,11 +531,11 @@ contains
   double precision function vernerPotential(self,atomicNumber,electronNumber)
     !% Return the ionization potential (in units of electon volts) for the ion with given {\normalfont \ttfamily atomicNumber} and
     !% {\normalfont \ttfamily electronNumber} using data taken from Dima Verner's
-    !% \href{ftp://gradj.pa.uky.edu//dima//col//cfit.f}{code}.
+    !% \href{http://www.pa.uky.edu/~verner/dima/col/cfit.f}{code}.
     implicit none
     class  (atomicIonizationPotentialVerner), intent(inout) :: self
     integer                                 , intent(in   ) :: atomicNumber, electronNumber
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     vernerPotential=vernerPotentialIonization(atomicNumber,electronNumber)
     return

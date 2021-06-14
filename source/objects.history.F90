@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -37,173 +37,42 @@ module Histories
      double precision, allocatable, dimension(:,:) :: data
      integer                                       :: rangeType
    contains
-     !@ <objectMethods>
-     !@   <object>history</object>
-     !@   <objectMethod>
-     !@     <method>add</method>
-     !@     <description>Addition operator.</description>
-     !@     <type>\textcolor{red}{\textless type(history)\textgreater}</type>
-     !@     <arguments>\textcolor{red}{\textless type(history)\textgreater} + \textcolor{red}{\textless type(history)\textgreater}</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>subtract</method>
-     !@     <description>Subtraction operator.</description>
-     !@     <type>\textcolor{red}{\textless type(history)\textgreater}</type>
-     !@     <arguments>\textcolor{red}{\textless type(history)\textgreater} - \textcolor{red}{\textless type(history)\textgreater}</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>divide</method>
-     !@     <description>Division operator.</description>
-     !@     <type>\textcolor{red}{\textless type(history)\textgreater}</type>
-     !@     <arguments>\textcolor{red}{\textless type(history)\textgreater} / \textcolor{red}{\textless type(history)\textgreater}</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>multiply</method>
-     !@     <description>Multiplication operator.</description>
-     !@     <type>\textcolor{red}{\textless type(history)\textgreater}</type>
-     !@     <arguments>\textcolor{red}{\textless type(history)\textgreater} * \textcolor{red}{\textless type(history)\textgreater}</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>isZero</method>
-     !@     <description>Returns true if the history is entirely zero.</description>
-     !@     <type>\logicalzero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>create</method>
-     !@     <description>Creates a history object with a specified range of times.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ historyCount\argin, \intzero\ timesCount\argin, \doublezero\ [timeBegin]\argin, \doublezero\ [timeEnd]\argin, \intzero\ [rangeType]\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>builder</method>
-     !@     <description>Build a history object from an XML definition.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless *type(node)\textgreater} historyDefinition\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>dump</method>
-     !@     <description>Dump a history object.</description>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>dumpRaw</method>
-     !@     <description>Dump a history object in binary.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ fileHandle\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>readRaw</method>
-     !@     <description>Read a history object in binary.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ fileHandle\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>clone</method>
-     !@     <description>Clone a history object.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(history)\textgreater} historyToClone\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>destroy</method>
-     !@     <description>Destroys a history object.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(history)\textgreater} historyToClone\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>trim</method>
-     !@     <description>Removes any times in a history which have become outdated.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ currentTime\argin, \intzero\ [minimumPointsToRemove]\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>trimForward</method>
-     !@     <description>Removes any times in a history \emph{after} the given time. Optionally returns a history object with the removed history.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ currentTime\argin, \textcolor{red}{\textless type(history)\textgreater} [removedHistory]\argout</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>increment</method>
-     !@     <description>Adds two histories, possibly with different time series.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(history)\textgreater} addHistory\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>interpolatedIncrement</method>
-     !@     <description>Adds two histories, possibly with different time series, by interpolating the second onto the times of the first and adding the interpolated values.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(history)\textgreater} addHistory\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>extend</method>
-     !@     <description>Extends the time range of a history to encompass the specified limits.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless double(2)\textgreater}\ [timeRange]\argin, \doubleone\ [times]\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>reset</method>
-     !@     <description>Resets all entries in a history to zero.</description>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>setToUnity</method>
-     !@     <description>Set all entries in a history to unity.</description>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>exists</method>
-     !@     <description>Returns true if the given history has been created.</description>
-     !@     <type>\logicalzero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>timeSteps</method>
-     !@     <description>Returns an array with the timesteps (i.e. the intervals between successive times) in the given history.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doubleone\ timeSteps\argout</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>serializeCount</method>
-     !@     <description>Return a count of the number of properties in a serialized history object.</description>
-     !@     <type>\intzero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>serialize</method>
-     !@     <description>Serialize a history object to an array.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doubleone\ historyArray\argout</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>deserialize</method>
-     !@     <description>Deserialize a history object from an array.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doubleone\ historyArray\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>append</method>
-     !@     <description>Append a history or single instant onto the end of a history.</description>
-     !@     <type>\void</type>
-     !@     <arguments>(\doublezero\ time\argin, \doubleone\ append\argin | \textcolor{red}{\textless type(history)\textgreater} append\argin)</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>nonStaticSizeOf</method>
-     !@     <description>Returns the size of any non-static components of the type.</description>
-     !@     <type>\textcolor{red}{\textless integer(c\_size\_t) \textgreater}</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@ </objectMethods>
-     procedure :: add                   => History_Add
-     procedure :: subtract              => History_Subtract
-     procedure :: divide                => History_Divide
-     procedure :: multiply              => History_Multiply
-     generic   :: operator(+)           => add
-     generic   :: operator(-)           => subtract
-     generic   :: operator(/)           => divide
-     generic   :: operator(*)           => multiply
+     !# <methods>
+     !#   <method description="Addition operator." method="operator(+)" />
+     !#   <method description="Subtraction operator." method="operator(-)" />
+     !#   <method description="Division operator." method="operator(/)" />
+     !#   <method description="Multiplication operator." method="operator(*)" />
+     !#   <method description="Returns true if the history is entirely zero." method="isZero" />
+     !#   <method description="Creates a history object with a specified range of times." method="create" />
+     !#   <method description="Build a history object from an XML definition." method="builder" />
+     !#   <method description="Dump a history object." method="dump" />
+     !#   <method description="Dump a history object in binary." method="dumpRaw" />
+     !#   <method description="Read a history object in binary." method="readRaw" />
+     !#   <method description="Clone a history object." method="clone" />
+     !#   <method description="Destroys a history object." method="destroy" />
+     !#   <method description="Removes any times in a history which have become outdated." method="trim" />
+     !#   <method description="Removes any times in a history \emph{after} the given time. Optionally returns a history object with the removed history." method="trimForward" />
+     !#   <method description="Adds two histories, possibly with different time series." method="increment" />
+     !#   <method description="Adds two histories, possibly with different time series, by interpolating the second onto the times of the first and adding the interpolated values." method="interpolatedIncrement" />
+     !#   <method description="Extends the time range of a history to encompass the specified limits." method="extend" />
+     !#   <method description="Resets all entries in a history to zero." method="reset" />
+     !#   <method description="Set all entries in a history to unity." method="setToUnity" />
+     !#   <method description="Returns true if the given history has been created." method="exists" />
+     !#   <method description="Returns an array with the timesteps (i.e. the intervals between successive times) in the given history." method="timeSteps" />
+     !#   <method description="Return a count of the number of properties in a serialized history object." method="serializeCount" />
+     !#   <method description="Serialize a history object to an array." method="serialize" />
+     !#   <method description="Deserialize a history object from an array." method="deserialize" />
+     !#   <method description="Append a history or single instant onto the end of a history." method="append" />
+     !#   <method description="Returns the size of any non-static components of the type." method="nonStaticSizeOf" />
+     !# </methods>
+     procedure ::                          History_Add
+     procedure ::                          History_Subtract
+     procedure ::                          History_Divide
+     procedure ::                          History_Multiply
+     generic   :: operator(+)           => History_Add
+     generic   :: operator(-)           => History_Subtract
+     generic   :: operator(/)           => History_Divide
+     generic   :: operator(*)           => History_Multiply
      procedure :: nonStaticSizeOf       => History_Non_Static_Size_Of
      procedure :: isZero                => History_Is_Zero
      procedure :: builder               => History_Builder
@@ -237,87 +106,21 @@ module Histories
      integer         (kind=kind_int8), allocatable, dimension(:,:) :: data
      integer                                                       :: rangeType
    contains
-     !@ <objectMethods>
-     !@   <object>longIntegerHistory</object>
-     !@   <objectMethod>
-     !@     <method>create</method>
-     !@     <description>Creates a history object with a specified range of times.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ historyCount\argin, \intzero\ timesCount\argin, \doublezero\ [timeBegin]\argin, \doublezero\ [timeEnd]\argin, \intzero\ [rangeType]\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>builder</method>
-     !@     <description>Build a history object from an XML definition.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless *type(node)\textgreater} historyDefinition\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>dump</method>
-     !@     <description>Dump a history object.</description>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>dumpRaw</method>
-     !@     <description>Dump a history object in binary.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ fileHandle\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>readRaw</method>
-     !@     <description>Read a history object in binary.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ fileHandle\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>clone</method>
-     !@     <description>Clone a history object.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(history)\textgreater} historyToClone\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>destroy</method>
-     !@     <description>Destroys a history object.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(history)\textgreater} historyToClone\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>trim</method>
-     !@     <description>Removes any times in a history which have become outdated.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ currentTime\argin, \intzero\ [minimumPointsToRemove]\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>trimForward</method>
-     !@     <description>Removes any times in a history \emph{after} the given time. Optionally returns a history object with the removed history.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ currentTime\argin, \textcolor{red}{\textless type(longIntegerHistory)\textgreater} [removedHistory]\argout</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>reset</method>
-     !@     <description>Resets all entries in a history to zero.</description>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>exists</method>
-     !@     <description>Returns true if the given history has been created.</description>
-     !@     <type>\logicalzero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>append</method>
-     !@     <description>Append a history or single instant onto the end of a history.</description>
-     !@     <type>\void</type>
-     !@     <arguments>(\doublezero\ time\argin, \textcolor{red}{\textless integer(kind\_int8)(:)\textgreater} append\argin | \textcolor{red}{\textless type(longIntegerHistory)\textgreater} append\argin)</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>nonStaticSizeOf</method>
-     !@     <description>Returns the size of any non-static components of the type.</description>
-     !@     <type>\textcolor{red}{\textless integer(c\_size\_t) \textgreater}</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Creates a history object with a specified range of times." method="create" />
+     !#   <method description="Build a history object from an XML definition." method="builder" />
+     !#   <method description="Dump a history object." method="dump" />
+     !#   <method description="Dump a history object in binary." method="dumpRaw" />
+     !#   <method description="Read a history object in binary." method="readRaw" />
+     !#   <method description="Clone a history object." method="clone" />
+     !#   <method description="Destroys a history object." method="destroy" />
+     !#   <method description="Removes any times in a history which have become outdated." method="trim" />
+     !#   <method description="Removes any times in a history \emph{after} the given time. Optionally returns a history object with the removed history." method="trimForward" />
+     !#   <method description="Resets all entries in a history to zero." method="reset" />
+     !#   <method description="Returns true if the given history has been created." method="exists" />
+     !#   <method description="Append a history or single instant onto the end of a history." method="append" />
+     !#   <method description="Returns the size of any non-static components of the type." method="nonStaticSizeOf" />
+     !# </methods>
      procedure :: builder         => History_Long_Integer_Builder
      procedure :: dump            => History_Long_Integer_Dump
      procedure :: dumpRaw         => History_Long_Integer_Dump_Raw
@@ -346,25 +149,25 @@ module Histories
 
 contains
 
-  subroutine History_Create(thisHistory,historyCount,timesCount,timeBegin,timeEnd,rangeType)
+  subroutine History_Create(history_,historyCount,timesCount,timeBegin,timeEnd,rangeType)
     !% Create a history object.
     use :: Galacticus_Error , only : Galacticus_Error_Report
     use :: Memory_Management, only : Memory_Usage_Record    , memoryTypeNodes
     use :: Numerical_Ranges , only : Make_Range             , rangeTypeLogarithmic, rangeTypeUndefined
     implicit none
-    class           (history), intent(inout)           :: thisHistory
+    class           (history), intent(inout)           :: history_
     integer                  , intent(in   )           :: historyCount   , timesCount
     double precision         , intent(in   ), optional :: timeBegin      , timeEnd
     integer                  , intent(in   ), optional :: rangeType
     integer                                            :: rangeTypeActual
 
-    if (allocated(thisHistory%time)) then
+    if (allocated(history_%time)) then
        call Galacticus_Error_Report('this history appears to have been created already'//{introspection:location})
     else
-       allocate(thisHistory%time  (timesCount             ))
-       allocate(thisHistory%data  (timesCount,historyCount))
+       allocate(history_%time  (timesCount             ))
+       allocate(history_%data  (timesCount,historyCount))
        if (timesCount > 0) then
-          call Memory_Usage_Record(sizeof(thisHistory%time)+sizeof(thisHistory%data),memoryType=memoryTypeNodes,blockCount=3)
+          call Memory_Usage_Record(sizeof(history_%time)+sizeof(history_%data),memoryType=memoryTypeNodes,blockCount=3)
           if (present(timeBegin)) then
              if (.not.present(timeEnd)) call Galacticus_Error_Report('an end time must be given if a begin time is given'//{introspection:location})
              if (present(rangeType)) then
@@ -372,64 +175,64 @@ contains
              else
                 rangeTypeActual=rangeTypeLogarithmic
              end if
-             thisHistory%time     =Make_Range(timeBegin,timeEnd,timesCount,rangeTypeActual)
-             thisHistory%rangeType=rangeTypeActual
+             history_%time     =Make_Range(timeBegin,timeEnd,timesCount,rangeTypeActual)
+             history_%rangeType=rangeTypeActual
           else
-             thisHistory%rangeType=rangeTypeUndefined
-             thisHistory%time=0.0d0
+             history_%rangeType=rangeTypeUndefined
+             history_%time=0.0d0
           end if
-          if (historyCount > 0) thisHistory%data=0.0d0
+          if (historyCount > 0) history_%data=0.0d0
        end if
     end if
     return
   end subroutine History_Create
 
-  subroutine History_Destroy(thisHistory,recordMemory)
+  subroutine History_Destroy(history_,recordMemory)
     !% Destroy a history.
     use :: Memory_Management, only : Memory_Usage_Record, memoryTypeNodes
     implicit none
-    class  (history), intent(inout)           :: thisHistory
+    class  (history), intent(inout)           :: history_
     logical         , intent(in   ), optional :: recordMemory
     logical                                   :: recordMemoryActual
 
-    if (allocated(thisHistory%time)) then
+    if (allocated(history_%time)) then
        if (present(recordMemory)) then
           recordMemoryActual=recordMemory
        else
           recordMemoryActual=.true.
        end if
        if (recordMemoryActual) call Memory_Usage_Record(                             &
-            &                                             sizeof(thisHistory%time  ) &
-            &                                            +sizeof(thisHistory%data  ) &
+            &                                             sizeof(history_%time  ) &
+            &                                            +sizeof(history_%data  ) &
             &                                           ,memoryType=memoryTypeNodes  &
             &                                           ,addRemove =-1               &
             &                                           ,blockCount= 3               &
             &                                          )
-       deallocate(thisHistory%time)
-       if (allocated(thisHistory%data)) deallocate(thisHistory%data)
+       deallocate(history_%time)
+       if (allocated(history_%data)) deallocate(history_%data)
     end if
     return
   end subroutine History_Destroy
 
-  subroutine History_Long_Integer_Create(thisHistory,historyCount,timesCount,timeBegin,timeEnd,rangeType)
+  subroutine History_Long_Integer_Create(history_,historyCount,timesCount,timeBegin,timeEnd,rangeType)
     !% Create a history object.
     use :: Galacticus_Error , only : Galacticus_Error_Report
     use :: Memory_Management, only : Memory_Usage_Record    , memoryTypeNodes
     use :: Numerical_Ranges , only : Make_Range             , rangeTypeLogarithmic, rangeTypeUndefined
     implicit none
-    class           (longIntegerHistory), intent(inout)           :: thisHistory
+    class           (longIntegerHistory), intent(inout)           :: history_
     integer                             , intent(in   )           :: historyCount   , timesCount
     double precision                    , intent(in   ), optional :: timeBegin      , timeEnd
     integer                             , intent(in   ), optional :: rangeType
     integer                                                       :: rangeTypeActual
 
-    if (allocated(thisHistory%time)) then
+    if (allocated(history_%time)) then
        call Galacticus_Error_Report('this history appears to have been created already'//{introspection:location})
     else
-       allocate(thisHistory%time  (timesCount             ))
-       allocate(thisHistory%data  (timesCount,historyCount))
+       allocate(history_%time  (timesCount             ))
+       allocate(history_%data  (timesCount,historyCount))
        if (timesCount > 0) then
-          call Memory_Usage_Record(sizeof(thisHistory%time)+sizeof(thisHistory%data),memoryType=memoryTypeNodes,blockCount=3)
+          call Memory_Usage_Record(sizeof(history_%time)+sizeof(history_%data),memoryType=memoryTypeNodes,blockCount=3)
           if (present(timeBegin)) then
              if (.not.present(timeEnd)) call Galacticus_Error_Report('an end time must be given if a begin time is given'//{introspection:location})
              if (present(rangeType)) then
@@ -437,41 +240,41 @@ contains
              else
                 rangeTypeActual=rangeTypeLogarithmic
              end if
-             thisHistory%time     =Make_Range(timeBegin,timeEnd,timesCount,rangeTypeActual)
-             thisHistory%rangeType=rangeTypeActual
+             history_%time     =Make_Range(timeBegin,timeEnd,timesCount,rangeTypeActual)
+             history_%rangeType=rangeTypeActual
           else
-             thisHistory%rangeType=rangeTypeUndefined
-             thisHistory%time=0.0d0
+             history_%rangeType=rangeTypeUndefined
+             history_%time=0.0d0
           end if
-          if (historyCount > 0) thisHistory%data=0_kind_int8
+          if (historyCount > 0) history_%data=0_kind_int8
        end if
     end if
     return
   end subroutine History_Long_Integer_Create
 
-  subroutine History_Long_Integer_Destroy(thisHistory,recordMemory)
+  subroutine History_Long_Integer_Destroy(history_,recordMemory)
     !% Destroy a history.
     use :: Memory_Management, only : Memory_Usage_Record, memoryTypeNodes
     implicit none
-    class  (longIntegerHistory), intent(inout)           :: thisHistory
+    class  (longIntegerHistory), intent(inout)           :: history_
     logical                    , intent(in   ), optional :: recordMemory
     logical                                              :: recordMemoryActual
 
-    if (allocated(thisHistory%time)) then
+    if (allocated(history_%time)) then
        if (present(recordMemory)) then
           recordMemoryActual=recordMemory
        else
           recordMemoryActual=.true.
        end if
        if (recordMemoryActual) call Memory_Usage_Record(                             &
-            &                                             sizeof(thisHistory%time  ) &
-            &                                            +sizeof(thisHistory%data  ) &
+            &                                             sizeof(history_%time  ) &
+            &                                            +sizeof(history_%data  ) &
             &                                           ,memoryType=memoryTypeNodes  &
             &                                           ,addRemove =-1               &
             &                                           ,blockCount= 3               &
             &                                          )
-       deallocate(thisHistory%time)
-       if (allocated(thisHistory%data)) deallocate(thisHistory%data)
+       deallocate(history_%time)
+       if (allocated(history_%data)) deallocate(history_%data)
     end if
     return
   end subroutine History_Long_Integer_Destroy
@@ -483,7 +286,7 @@ contains
     implicit none
     class(history), intent(inout) :: self
     type (node   ), pointer       :: historyDefinition
-    !GCC$ attributes unused :: self, historyDefinition
+    !$GLC attributes unused :: self, historyDefinition
 
     call Galacticus_Error_Report('building of history objects is not yet supported'//{introspection:location})
     return
@@ -496,7 +299,7 @@ contains
     implicit none
     class(longIntegerHistory), intent(inout) :: self
     type (node              ), pointer       :: historyDefinition
-    !GCC$ attributes unused :: self, historyDefinition
+    !$GLC attributes unused :: self, historyDefinition
 
     call Galacticus_Error_Report('building of history objects is not yet supported'//{introspection:location})
     return
@@ -504,8 +307,8 @@ contains
 
   subroutine History_Dump(self)
     !% Dumps a history object.
-    use :: Galacticus_Display, only : Galacticus_Display_Message
-    use :: ISO_Varying_String, only : assignment(=)             , operator(//), varying_string
+    use :: Display           , only : displayMessage
+    use :: ISO_Varying_String, only : assignment(=) , operator(//), varying_string
     implicit none
     class    (history       ), intent(in   ) :: self
     integer                                  :: i      , j
@@ -522,7 +325,7 @@ contains
              write (label,'(e22.16)') self%data(i,j)
              message=message//" "//label
           end do
-          call Galacticus_Display_Message(message)
+          call displayMessage(message)
        end do
     end if
     return
@@ -565,19 +368,19 @@ contains
     return
   end subroutine History_Read_Raw
 
-  subroutine History_Reset(thisHistory)
+  subroutine History_Reset(history_)
     !% Reset a history by zeroing all elements, but leaving the structure (and times) intact.
     implicit none
-    class(history), intent(inout) :: thisHistory
+    class(history), intent(inout) :: history_
 
-    if (allocated(thisHistory%time)) thisHistory%data=0.0d0
+    if (allocated(history_%time)) history_%data=0.0d0
     return
   end subroutine History_Reset
 
   subroutine History_Long_Integer_Dump(self)
     !% Dumps a history object.
-    use :: Galacticus_Display, only : Galacticus_Display_Message
-    use :: ISO_Varying_String, only : assignment(=)             , operator(//), varying_string
+    use :: Display           , only : displayMessage
+    use :: ISO_Varying_String, only : assignment(=) , operator(//), varying_string
     implicit none
     class    (longIntegerHistory), intent(in   ) :: self
     integer                                      :: i      , j
@@ -594,7 +397,7 @@ contains
              write (label,'(i16)') self%data(i,j)
              message=message//" "//label
           end do
-          call Galacticus_Display_Message(message)
+          call displayMessage(message)
        end do
     end if
     return
@@ -637,30 +440,30 @@ contains
     return
   end subroutine History_Long_Integer_Read_Raw
 
-  subroutine History_Long_Integer_Reset(thisHistory)
+  subroutine History_Long_Integer_Reset(history_)
     !% Reset a history by zeroing all elements, but leaving the structure (and times) intact.
     implicit none
-    class(longIntegerHistory), intent(inout) :: thisHistory
+    class(longIntegerHistory), intent(inout) :: history_
 
-    if (allocated(thisHistory%time)) thisHistory%data=0_kind_int8
+    if (allocated(history_%time)) history_%data=0_kind_int8
     return
   end subroutine History_Long_Integer_Reset
 
-  subroutine History_Set_To_Unity(thisHistory)
+  subroutine History_Set_To_Unity(history_)
     !% Reset a history by zeroing all elements, but leaving the structure (and times) intact.
     implicit none
-    class(history), intent(inout) :: thisHistory
+    class(history), intent(inout) :: history_
 
-    if (allocated(thisHistory%time)) thisHistory%data=1.0d0
+    if (allocated(history_%time)) history_%data=1.0d0
     return
   end subroutine History_Set_To_Unity
 
-  logical function History_Exists(thisHistory)
+  logical function History_Exists(history_)
     !% Returns true if the history has been created.
     implicit none
-    class(history), intent(in   ) :: thisHistory
+    class(history), intent(in   ) :: history_
 
-    History_Exists=allocated(thisHistory%time)
+    History_Exists=allocated(history_%time)
     return
   end function History_Exists
 
@@ -685,12 +488,12 @@ contains
     return
   end subroutine History_Clone
 
-  logical function History_Long_Integer_Exists(thisHistory)
+  logical function History_Long_Integer_Exists(history_)
     !% Returns true if the history has been created.
     implicit none
-    class(longIntegerHistory), intent(in   ) :: thisHistory
+    class(longIntegerHistory), intent(in   ) :: history_
 
-    History_Long_Integer_Exists=allocated(thisHistory%time)
+    History_Long_Integer_Exists=allocated(history_%time)
     return
   end function History_Long_Integer_Exists
 
@@ -817,16 +620,16 @@ contains
     return
   end subroutine History_Serialize
 
-  subroutine History_Trim(thisHistory,currentTime,minimumPointsToRemove)
+  subroutine History_Trim(history_,currentTime,minimumPointsToRemove)
     !% Removes outdated information from ``future histories'' (i.e. histories that store data for future reference). Removes all
     !% but one entry prior to the given {\normalfont \ttfamily currentTime} (this allows for interpolation of the history to the current
     !% time). Optionally, the remove is done only if it will remove more than {\normalfont \ttfamily minimumPointsToRemove} entries (since the
     !% removal can be slow this allows for some optimization).
     use            :: Galacticus_Error , only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding, only : c_size_t
+    use, intrinsic :: ISO_C_Binding    , only : c_size_t
     use            :: Memory_Management, only : Memory_Usage_Record    , memoryTypeNodes
     implicit none
-    class           (history), intent(inout)           :: thisHistory
+    class           (history), intent(inout)           :: history_
     double precision         , intent(in   )           :: currentTime
     integer                  , intent(in   ), optional :: minimumPointsToRemove
     type            (history)                          :: temporaryHistory
@@ -835,10 +638,10 @@ contains
          &                                                newPointCount
 
     ! Return if no history exists.
-    if (.not.allocated(thisHistory%time)) return
+    if (.not.allocated(history_%time)) return
 
     ! Find points to remove.
-    currentPointCount=size(thisHistory%time)
+    currentPointCount=size(history_%time)
 
     ! Return is nothing to trim.
     if (currentPointCount == 0) return
@@ -855,7 +658,7 @@ contains
     ! future history. Having found a point which exceeds the current time, pull back two points, so that we leave one point prior
     ! to the current time.
     iTrim=1
-    do while (thisHistory%time(iTrim) < currentTime .and. iTrim <= currentPointCount-2)
+    do while (history_%time(iTrim) < currentTime .and. iTrim <= currentPointCount-2)
        iTrim=iTrim+1
     end do
     iTrim=iTrim-2
@@ -863,21 +666,21 @@ contains
     ! Check if there are enough removable points to warrant actually doing the removal.
     if (iTrim >= minimumPointsToRemoveActual) then
        ! Move current history to temporary storage.
-       call Move_Alloc(thisHistory%time  ,temporaryHistory%time  )
-       call Move_Alloc(thisHistory%data  ,temporaryHistory%data  )
+       call Move_Alloc(history_%time  ,temporaryHistory%time  )
+       call Move_Alloc(history_%data  ,temporaryHistory%data  )
        ! Reallocate the history arrays.
        newPointCount=currentPointCount-iTrim
        historyCount =size(temporaryHistory%data,dim=2)
-       allocate(thisHistory%time(newPointCount             ))
-       allocate(thisHistory%data(newPointCount,historyCount))
+       allocate(history_%time(newPointCount             ))
+       allocate(history_%data(newPointCount,historyCount))
        ! Copy the data back into the new arrays.
-       thisHistory%time(:  )=temporaryHistory%time(iTrim+1:currentPointCount  )
-       thisHistory%data(:,:)=temporaryHistory%data(iTrim+1:currentPointCount,:)
+       history_%time(:  )=temporaryHistory%time(iTrim+1:currentPointCount  )
+       history_%data(:,:)=temporaryHistory%data(iTrim+1:currentPointCount,:)
        ! Deallocate the temporary arrays.
        deallocate(temporaryHistory%time  )
        deallocate(temporaryHistory%data  )
        ! Account for change in memory usage.
-       call Memory_Usage_Record(int(iTrim*(1+historyCount),C_SIZE_T)*sizeof(thisHistory%time(1)),memoryType=memoryTypeNodes,addRemove=-1,blockCount=0)
+       call Memory_Usage_Record(int(iTrim*(1+historyCount),C_SIZE_T)*sizeof(history_%time(1)),memoryType=memoryTypeNodes,addRemove=-1,blockCount=0)
     end if
     return
   end subroutine History_Trim
@@ -885,7 +688,7 @@ contains
   subroutine History_Trim_Forward(self,time,removedHistory)
     !% Removes all points in a history after the given {\normalfont \ttfamily time}. Optionally, the removed history can be
     !% returned as {\normalfont \ttfamily removedHistory}.
-    use            :: Arrays_Search    , only : Search_Array
+    use            :: Arrays_Search    , only : searchArray
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
     use            :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
@@ -903,7 +706,7 @@ contains
     ! Return if no history exists or if the final time is prior to the trim time.
     if (.not.allocated(self%time).or.self%time(size(self%time)) <= time) return
     ! Find where to trim and number of trimmed points.
-    trimAt   =Search_Array(self%time,time)+1
+    trimAt   =searchArray(self%time,time)+1
     trimCount=size(self%time)-trimAt+1
     ! Transfer data to a temporary history.
     call Move_Alloc(self%time,temporaryHistory%time)
@@ -928,7 +731,7 @@ contains
     return
   end subroutine History_Trim_Forward
 
-  subroutine History_Long_Integer_Trim(thisHistory,currentTime,minimumPointsToRemove)
+  subroutine History_Long_Integer_Trim(history_,currentTime,minimumPointsToRemove)
     !% Removes outdated information from ``future histories'' (i.e. histories that store data for future reference). Removes all
     !% but one entry prior to the given {\normalfont \ttfamily currentTime} (this allows for interpolation of the history to the current
     !% time). Optionally, the remove is done only if it will remove more than {\normalfont \ttfamily minimumPointsToRemove} entries (since the
@@ -937,7 +740,7 @@ contains
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
     use            :: Memory_Management, only : Memory_Usage_Record    , memoryTypeNodes
     implicit none
-    class           (longIntegerHistory), intent(inout)           :: thisHistory
+    class           (longIntegerHistory), intent(inout)           :: history_
     double precision                    , intent(in   )           :: currentTime
     integer                             , intent(in   ), optional :: minimumPointsToRemove
     type            (longIntegerHistory)                          :: temporaryHistory
@@ -946,10 +749,10 @@ contains
          &                                                           newPointCount
 
     ! Return if no history exists.
-    if (.not.allocated(thisHistory%time)) return
+    if (.not.allocated(history_%time)) return
 
     ! Find points to remove.
-    currentPointCount=size(thisHistory%time)
+    currentPointCount=size(history_%time)
 
     ! Return is nothing to trim.
     if (currentPointCount == 0) return
@@ -966,7 +769,7 @@ contains
     ! future history. Having found a point which exceeds the current time, pull back two points, so that we leave one point prior
     ! to the current time.
     iTrim=1
-    do while (thisHistory%time(iTrim) < currentTime .and. iTrim <= currentPointCount-2)
+    do while (history_%time(iTrim) < currentTime .and. iTrim <= currentPointCount-2)
        iTrim=iTrim+1
     end do
     iTrim=iTrim-2
@@ -974,21 +777,21 @@ contains
     ! Check if there are enough removable points to warrant actually doing the removal.
     if (iTrim >= minimumPointsToRemoveActual) then
        ! Move current history to temporary storage.
-       call Move_Alloc(thisHistory%time  ,temporaryHistory%time  )
-       call Move_Alloc(thisHistory%data  ,temporaryHistory%data  )
+       call Move_Alloc(history_%time  ,temporaryHistory%time  )
+       call Move_Alloc(history_%data  ,temporaryHistory%data  )
        ! Reallocate the history arrays.
        newPointCount=currentPointCount-iTrim
        historyCount =size(temporaryHistory%data,dim=2)
-       allocate(thisHistory%time(newPointCount             ))
-       allocate(thisHistory%data(newPointCount,historyCount))
+       allocate(history_%time(newPointCount             ))
+       allocate(history_%data(newPointCount,historyCount))
        ! Copy the data back into the new arrays.
-       thisHistory%time(:  )=temporaryHistory%time(iTrim+1:currentPointCount  )
-       thisHistory%data(:,:)=temporaryHistory%data(iTrim+1:currentPointCount,:)
+       history_%time(:  )=temporaryHistory%time(iTrim+1:currentPointCount  )
+       history_%data(:,:)=temporaryHistory%data(iTrim+1:currentPointCount,:)
        ! Deallocate the temporary arrays.
        deallocate(temporaryHistory%time  )
        deallocate(temporaryHistory%data  )
        ! Account for change in memory usage.
-       call Memory_Usage_Record(int(iTrim*(1+historyCount),C_SIZE_T)*sizeof(thisHistory%time(1)),memoryType=memoryTypeNodes,addRemove=-1,blockCount=0)
+       call Memory_Usage_Record(int(iTrim*(1+historyCount),C_SIZE_T)*sizeof(history_%time(1)),memoryType=memoryTypeNodes,addRemove=-1,blockCount=0)
     end if
     return
   end subroutine History_Long_Integer_Trim
@@ -996,7 +799,7 @@ contains
   subroutine History_Long_Integer_Trim_Forward(self,time,removedHistory)
     !% Removes all points in a history after the given {\normalfont \ttfamily time}. Optionally, the removed history can be
     !% returned as {\normalfont \ttfamily removedHistory}.
-    use            :: Arrays_Search    , only : Search_Array
+    use            :: Arrays_Search    , only : searchArray
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
     use            :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
@@ -1014,7 +817,7 @@ contains
     ! Return if no history exists or if the final time is prior to the trim time.
     if (.not.allocated(self%time).or.self%time(size(self%time)) <= time) return
     ! Find where to trim and number of trimmed points.
-    trimAt   =Search_Array(self%time,time)+1
+    trimAt   =searchArray(self%time,time)+1
     trimCount=size(self%time)-trimAt+1
     ! Transfer data to a temporary history.
     call Move_Alloc(self%time,temporaryHistory%time)
@@ -1177,21 +980,22 @@ contains
     return
   end subroutine History_Append_Epoch
 
-   subroutine History_Interpolated_Increment(thisHistory,addHistory)
-     !% Adds the data in {\normalfont \ttfamily addHistory} to that in {\normalfont \ttfamily thisHistory}. This function is
+   subroutine History_Interpolated_Increment(history_,addHistory)
+     !% Adds the data in {\normalfont \ttfamily addHistory} to that in {\normalfont \ttfamily history\_}. This function is
      !% designed for histories that track instantaneous rates. The rates in {\normalfont \ttfamily addHistory} are interpolated to
-     !% the times in {\normalfont \ttfamily thisHistory} and added to the rates in {\normalfont \ttfamily thisHistory}.
+     !% the times in {\normalfont \ttfamily history\_} and added to the rates in {\normalfont \ttfamily history\_}.
      use            :: Galacticus_Error       , only : Galacticus_Error_Report
      use, intrinsic :: ISO_C_Binding          , only : c_size_t
-     use            :: Numerical_Interpolation, only : Interpolate_Linear_Generate_Factors
+     use            :: Numerical_Interpolation, only : interpolator
      implicit none
-     class           (history ), intent(inout) :: thisHistory
-     type            (history ), intent(in   ) :: addHistory
-     integer                                   :: iPoint                     , iHistory
-     integer         (c_size_t)                :: interpolationPoint         , addHistoryPointCount
-     double precision                          :: interpolationFactors    (2)
+     class           (history     ), intent(inout) :: history_
+     type            (history     ), intent(in   ) :: addHistory
+     double precision              , dimension(2)  :: interpolationFactors
+     integer                                       :: iPoint              , iHistory
+     integer         (c_size_t    )                :: interpolationPoint  , addHistoryPointCount
+     type            (interpolator)                :: interpolator_
 
-     select type (thisHistory)
+     select type (history_)
      type is (history)
         ! Return if addHistory does not exist.
         if (.not.allocated(addHistory%time)) return
@@ -1199,35 +1003,36 @@ contains
         addHistoryPointCount=size(addHistory%time)
         ! Return if addHistory has zero size.
         if (addHistoryPointCount == 0) return
-        ! If thisHistory does not exist, just replace it with addHistory.
-        if (.not.allocated(thisHistory%time)) then
-           call thisHistory%destroy()
-           thisHistory=addHistory
+        ! If history_ does not exist, just replace it with addHistory.
+        if (.not.allocated(history_%time)) then
+           call history_%destroy()
+           history_=addHistory
            return
         end if
-        ! If thisHistory has zero size, just replace it with addHistory.
-        if (size(thisHistory%time) == 0) then
-           call thisHistory%destroy()
-           thisHistory=addHistory
+        ! If history_ has zero size, just replace it with addHistory.
+        if (size(history_%time) == 0) then
+           call history_%destroy()
+           history_=addHistory
            return
         end if
         ! addHistory must have at least two points to permit interpolation.
         if (addHistoryPointCount  < 2) call Galacticus_Error_Report('history to add must have at least two points'//{introspection:location})
         ! The two objects must contain the same number of histories.
-        if (size(thisHistory%data,dim=2) /= size(addHistory%data,dim=2)) call Galacticus_Error_Report('two objects contain differing numbers of histories'//{introspection:location})
-        ! Loop over each entry in thisHistory.
+        if (size(history_%data,dim=2) /= size(addHistory%data,dim=2)) call Galacticus_Error_Report('two objects contain differing numbers of histories'//{introspection:location})
+        ! Loop over each entry in history_.
         interpolationPoint=1
-        do iPoint=1,size(thisHistory%time)
+        interpolator_     =interpolator(addHistory%time)
+        do iPoint=1,size(history_%time)
            ! If within range of history spanned by addHistory then....
-           if (thisHistory%time(iPoint) >= addHistory%time(1) .and. thisHistory%time(iPoint) <= addHistory%time(addHistoryPointCount)) then
-              ! Interpolate addHistory to point in thisHistory.
-              do while (thisHistory%time(iPoint) > addHistory%time(interpolationPoint) .and. interpolationPoint < addHistoryPointCount-1)
+           if (history_%time(iPoint) >= addHistory%time(1) .and. history_%time(iPoint) <= addHistory%time(addHistoryPointCount)) then
+              ! Interpolate addHistory to point in history_.
+              do while (history_%time(iPoint) > addHistory%time(interpolationPoint) .and. interpolationPoint < addHistoryPointCount-1)
                  interpolationPoint=interpolationPoint+1
               end do
-              interpolationFactors=Interpolate_Linear_Generate_Factors(addHistory%time,interpolationPoint,thisHistory%time(iPoint))
+              call interpolator_%linearWeights(history_%time(iPoint),interpolationPoint,interpolationFactors)
               ! Add them.
-              forall(iHistory=1:size(thisHistory%data,dim=2))
-                 thisHistory%data (iPoint,iHistory)=thisHistory%data (iPoint,iHistory)+addHistory%data(interpolationPoint,iHistory)&
+              forall(iHistory=1:size(history_%data,dim=2))
+                 history_%data (iPoint,iHistory)=history_%data (iPoint,iHistory)+addHistory%data(interpolationPoint,iHistory)&
                       &*interpolationFactors(1)+addHistory%data(interpolationPoint+1,iHistory)*interpolationFactors(2)
               end forall
            end if
@@ -1239,28 +1044,29 @@ contains
      return
    end subroutine History_Interpolated_Increment
 
-   subroutine History_Increment(thisHistory,addHistory,autoExtend)
-     !% Combines the data in {\normalfont \ttfamily addHistory} with that in {\normalfont \ttfamily thisHistory}. This function is designed for histories that
-     !% track integrated quantities (such as total mass of stars formed in a time interval for example). {\normalfont \ttfamily thisHistory} will be
+   subroutine History_Increment(history_,addHistory,autoExtend)
+     !% Combines the data in {\normalfont \ttfamily addHistory} with that in {\normalfont \ttfamily history\_}. This function is designed for histories that
+     !% track integrated quantities (such as total mass of stars formed in a time interval for example). {\normalfont \ttfamily history\_} will be
      !% extended if necessary to span the range of {\normalfont \ttfamily addHistory}. Then, the data from {\normalfont \ttfamily addHistory} will be added to
-     !% that in {\normalfont \ttfamily thisHistory} by finding the fraction of each timestep in {\normalfont \ttfamily addHistory} that overlaps with each timestep
-     !% in {\normalfont \ttfamily thisHistory} and assuming that the corresponding fraction of the data value should be added to {\normalfont \ttfamily thisHistory}.
-     use            :: Arrays_Search   , only : Search_Array
+     !% that in {\normalfont \ttfamily history\_} by finding the fraction of each timestep in {\normalfont \ttfamily addHistory} that overlaps with each timestep
+     !% in {\normalfont \ttfamily history\_} and assuming that the corresponding fraction of the data value should be added to {\normalfont \ttfamily history\_}.
+     use            :: Arrays_Search   , only : searchArray
      use            :: Galacticus_Error, only : Galacticus_Error_Report
      use, intrinsic :: ISO_C_Binding   , only : c_size_t
      use            :: Numerical_Ranges, only : rangeTypeUndefined
      implicit none
-     class           (history ), intent(inout)           :: thisHistory
+     class           (history ), intent(inout)           :: history_
      type            (history ), intent(in   )           :: addHistory
      logical                   , intent(in   ), optional :: autoExtend
      integer                                             :: addCount           , addHistoryPointCount
-     integer         (c_size_t)                          :: timeBeginIndex     , timeEndIndex            , &
+     integer         (c_size_t)                          :: timeBeginIndex     , timeEndIndex        , &
           &                                                 iPoint             , jPoint
-     double precision                                    :: fractionContributed, timeBegin               , &
-          &                                                 timeEnd
+     double precision                                    :: fractionContributed, timeBegin           , &
+          &                                                 timeEnd            , timeBeginAdd        , &
+          &                                                 timeEndAdd
      !# <optionalArgument name="autoExtend" defaultsTo=".false." />
 
-     select type (thisHistory)
+     select type (history_)
      type is (history)
 
         ! Return if addHistory does not exist.
@@ -1272,56 +1078,61 @@ contains
         ! Return if addHistory has zero size.
         if (addHistoryPointCount == 0) return
 
-        ! If thisHistory does not exist, simply replace it with addHistory.
-        if (.not.allocated(thisHistory%time)) then
-           call thisHistory%destroy()
-           thisHistory=addHistory
+        ! If history_ does not exist, simply replace it with addHistory.
+        if (.not.allocated(history_%time)) then
+           call history_%destroy()
+           history_=addHistory
            return
         end if
 
-        ! If thisHistory has zero size, simply replace it with addHistory.
-        if (size(thisHistory%time) == 0) then
-           call thisHistory%destroy()
-           thisHistory=addHistory
+        ! If history_ has zero size, simply replace it with addHistory.
+        if (size(history_%time) == 0) then
+           call history_%destroy()
+           history_=addHistory
            return
         end if
 
         ! The two objects must contain the same number of histories.
-        if (size(thisHistory%data,dim=2) /= size(addHistory%data,dim=2)) call Galacticus_Error_Report('two objects contain differing numbers of histories'//{introspection:location})
+        if (size(history_%data,dim=2) /= size(addHistory%data,dim=2)) call Galacticus_Error_Report('two objects contain differing numbers of histories'//{introspection:location})
 
-        ! Determine if we need to extend the time range in thisHistory.
+        ! Determine if we need to extend the time range in history_.
         addCount=size(addHistory%time)
-        if (addHistory%time(1) < thisHistory%time(1) .or. addHistory%time(addCount) > thisHistory%time(size(thisHistory%time))) then
+        if (addHistory%time(1) < history_%time(1) .or. addHistory%time(addCount) > history_%time(size(history_%time))) then
            if (.not.autoExtend_) call Galacticus_Error_Report("history needs to be extended, but is not permitted"//{introspection:location})
-           if (thisHistory%rangeType == rangeTypeUndefined) then
+           if (history_%rangeType == rangeTypeUndefined) then
               ! The history has no defined range type, so pass the time array of the history being addd to use as a template for new times.
-              call thisHistory%extend(times=addHistory%time)
+              call history_%extend(times=addHistory%time)
            else
               ! The history has a defined range type, so simply pass the required extent of the range.
-              call thisHistory%extend([addHistory%time(1),addHistory%time(addCount)])
+              call history_%extend([addHistory%time(1),addHistory%time(addCount)])
            end if
         end if
-
-        ! Transfer each entry from addHistory to thisHistory.
-        do iPoint=2,addCount
-           ! Find indices in thisHistory spanned by addHistory point.
-           if (iPoint > 2) then
+        ! Transfer each entry from addHistory to history_.
+        do iPoint=1,addCount
+           if (iPoint == 1) then
+              timeBeginAdd=0.0d0
+           else
+              timeBeginAdd=addHistory%time(iPoint-1)
+           end if
+           timeEndAdd     =addHistory%time(iPoint  )
+           ! Find indices in history_ spanned by addHistory point.
+           if (iPoint > 1) then
               ! Reuse the end index from the previous loop iteration if available.
               timeBeginIndex=timeEndIndex
            else
-              timeBeginIndex=Search_Array(thisHistory%time,addHistory%time(iPoint-1))
+              timeBeginIndex=1
            end if
-           timeEndIndex=min(Search_Array(thisHistory%time,addHistory%time(iPoint))+1,size(thisHistory%time))
-           ! Loop over all points in thisHistory to which we need to add this contribution.
+           timeEndIndex=min(searchArray(history_%time,addHistory%time(iPoint))+1,size(history_%time))
+           ! Loop over all points in history_ to which we need to add this contribution.
            do jPoint=timeBeginIndex,timeEndIndex
               if (jPoint == 1) then
-                 timeBegin=                               addHistory%time(iPoint-1)
+                 timeBegin=                            timeBeginAdd
               else
-                 timeBegin=max(thisHistory%time(jPoint-1),addHistory%time(iPoint-1))
+                 timeBegin=max(history_%time(jPoint-1),timeBeginAdd)
               end if
-              timeEnd     =min(thisHistory%time(jPoint  ),addHistory%time(iPoint  ))
-              fractionContributed=max(0.0d0,(timeEnd-timeBegin)/(addHistory%time(iPoint)-addHistory%time(iPoint-1)))
-              thisHistory%data(jPoint,:)=thisHistory%data(jPoint,:)+addHistory%data(iPoint,:)*fractionContributed
+              timeEnd     =min(history_%time(jPoint  ),timeEndAdd  )
+              fractionContributed=max(0.0d0,(timeEnd-timeBegin)/(timeEndAdd-timeBeginAdd))
+              history_%data(jPoint,:)=history_%data(jPoint,:)+addHistory%data(iPoint,:)*fractionContributed
            end do
         end do
      end select
@@ -1369,14 +1180,14 @@ contains
     return
   end function History_Multiply_Switched
 
-   subroutine History_Extend(thisHistory,timeRange,times)
+   subroutine History_Extend(history_,timeRange,times)
      !% Extends a history to encompass the given time range.
      use :: Galacticus_Error  , only : Galacticus_Error_Report
      use :: ISO_Varying_String, only : assignment(=)          , operator(//)        , varying_string
      use :: Numerical_Ranges  , only : rangeTypeLinear        , rangeTypeLogarithmic, rangeTypeUndefined
      use :: String_Handling   , only : operator(//)
      implicit none
-     class           (history       )                             , intent(inout)           :: thisHistory
+     class           (history       )                             , intent(inout)           :: history_
      double precision                             , dimension(2  ), intent(in   ), optional :: timeRange
      double precision                             , dimension(:  ), intent(in   ), optional :: times
      double precision                , allocatable, dimension(:  )                          :: newTimes
@@ -1402,31 +1213,31 @@ contains
         end if
      end if
 
-     ! Determine if we need to extend the time range in thisHistory.
-     timeCount     =size(thisHistory%time           )
-     timeBegin     =     thisHistory%time(1        )
-     timeEnd       =     thisHistory%time(timeCount)
+     ! Determine if we need to extend the time range in history_.
+     timeCount     =size(history_%time           )
+     timeBegin     =     history_%time(1        )
+     timeEnd       =     history_%time(timeCount)
      timeBeginIndex=1
      timeEndIndex  =timeCount
      if (.not.present(times)) then
-        select case (thisHistory%rangeType)
+        select case (history_%rangeType)
         case (rangeTypeLinear     )
            timeDelta=(timeEnd-timeBegin)/dble(timeCount-1)
         case (rangeTypeLogarithmic)
            timeDelta=log(timeEnd/timeBegin)/dble(timeCount-1)
         case default
            timeDelta=0.0d0
-           if (thisHistory%rangeType == rangeTypeUndefined) then
+           if (history_%rangeType == rangeTypeUndefined) then
               message='undefined range type: '//char(10)
            else
               message='unrecognized range type: '
-              message=message//thisHistory%rangeType//char(10)
+              message=message//history_%rangeType//char(10)
            end if
            message=message//' -> known types are: '//char(10)//' --> linear      : '//rangeTypeLinear//char(10)//' --> logarithmic : '//rangeTypeLogarithmic
            call Galacticus_Error_Report(message//{introspection:location})
         end select
         if (timeRangeActual(1) < timeBegin) then
-           select case (thisHistory%rangeType)
+           select case (history_%rangeType)
            case (rangeTypeLinear)
               addCountStart =int(    (timeBegin-timeRangeActual(1))/timeDelta)+1
               timeBegin=timeBegin      -dble(addCountStart)*timeDelta
@@ -1443,7 +1254,7 @@ contains
            addCountStart=0
         end if
         if (timeRangeActual(2) > timeEnd  ) then
-           select case (thisHistory%rangeType)
+           select case (history_%rangeType)
            case (rangeTypeLinear)
               addCountEnd =int(    (timeRangeActual(2)-timeEnd)/timeDelta)+1
               timeEnd  =timeEnd        +dble(addCountEnd)*timeDelta
@@ -1461,65 +1272,65 @@ contains
         allocate(newTimes(0))
         useRange=.true.
      else
-        newTimesAtStart=count(times < thisHistory%time(1                     ))
-        newTimesAtEnd  =count(times > thisHistory%time(size(thisHistory%time)))
+        newTimesAtStart=count(times < history_%time(1                     ))
+        newTimesAtEnd  =count(times > history_%time(size(history_%time)))
         timeBeginIndex=timeBeginIndex+newTimesAtStart
         timeEndIndex  =timeEndIndex  +newTimesAtStart
         addCount=newTimesAtStart+newTimesAtEnd
-        allocate(newTimes(size(thisHistory%time)+addCount))
+        allocate(newTimes(size(history_%time)+addCount))
         if (newTimesAtStart > 0) newTimes(1             :             newTimesAtStart)=times(1                          :newTimesAtStart)
         if (newTimesAtEnd   > 0) newTimes(timeEndIndex+1:timeEndIndex+newTimesAtEnd  )=times(size(times)-newTimesAtEnd+1:size(times)    )
-        newTimes(timeBeginIndex:timeEndIndex)=thisHistory%time
+        newTimes(timeBeginIndex:timeEndIndex)=history_%time
         useRange=.false.
      end if
 
      ! Create new arrays.
      if (addCount > 0) then
         ! Create copies of current histories.
-        call Move_Alloc(thisHistory%data,historyDataTemporary)
+        call Move_Alloc(history_%data,historyDataTemporary)
         ! Store range type and number of histories.
-        rangeType   =thisHistory%rangeType
+        rangeType   =history_%rangeType
         historyCount=size(historyDataTemporary,dim=2)
         ! Destroy the history and make a new one.
-        call thisHistory%destroy()
+        call history_%destroy()
         select case (useRange)
         case (.true. )
-           call thisHistory%create(historyCount,timeCount+addCount,timeBegin,timeEnd,rangeType)
+           call history_%create(historyCount,timeCount+addCount,timeBegin,timeEnd,rangeType)
         case (.false.)
-           call thisHistory%create(historyCount,timeCount+addCount)
-           thisHistory%time=newTimes
+           call history_%create(historyCount,timeCount+addCount)
+           history_%time=newTimes
            deallocate(newTimes)
         end select
         ! Copy data back to relevant location.
-        thisHistory%data(timeBeginIndex:timeEndIndex,:)=historyDataTemporary
+        history_%data(timeBeginIndex:timeEndIndex,:)=historyDataTemporary
         deallocate(historyDataTemporary)
      end if
      return
    end subroutine History_Extend
 
-  subroutine History_Timesteps(thisHistory,timeSteps)
-    !% Return an array of time intervals in {\normalfont \ttfamily thisHistory}.
+  subroutine History_Timesteps(history_,timeSteps)
+    !% Return an array of time intervals in {\normalfont \ttfamily history\_}.
     use :: Memory_Management, only : allocateArray  , memoryTypeNodes
     use :: Numerical_Ranges , only : rangeTypeLinear, rangeTypeLogarithmic
     implicit none
-    class           (history)                           , intent(in   ) :: thisHistory
+    class           (history)                           , intent(in   ) :: history_
     double precision         , allocatable, dimension(:), intent(inout) :: timeSteps
     integer                                                             :: iTime
     double precision                                                    :: ratio
 
-    call allocateArray(timeSteps,shape(thisHistory%time),memoryType=memoryTypeNodes)
-    select case (thisHistory%rangeType)
+    call allocateArray(timeSteps,shape(history_%time),memoryType=memoryTypeNodes)
+    select case (history_%rangeType)
     case (rangeTypeLogarithmic)
-       ratio=thisHistory%time(2)/thisHistory%time(1)
-       forall(iTime=1:size(thisHistory%time))
-          timeSteps(iTime)=thisHistory%time(1)*(ratio**(dble(iTime)-0.5d0)-ratio**(dble(iTime)-1.5d0))
+       ratio=history_%time(2)/history_%time(1)
+       forall(iTime=1:size(history_%time))
+          timeSteps(iTime)=history_%time(1)*(ratio**(dble(iTime)-0.5d0)-ratio**(dble(iTime)-1.5d0))
        end forall
     case (rangeTypeLinear     )
-       timeSteps=thisHistory%time(2)-thisHistory%time(1)
+       timeSteps=history_%time(2)-history_%time(1)
     case default
-       timeSteps(1)=thisHistory%time(1)
-       forall(iTime=2:size(thisHistory%time))
-          timeSteps(iTime)=thisHistory%time(iTime)-thisHistory%time(iTime-1)
+       timeSteps(1)=history_%time(1)
+       forall(iTime=2:size(history_%time))
+          timeSteps(iTime)=history_%time(iTime)-history_%time(iTime-1)
        end forall
     end select
     return

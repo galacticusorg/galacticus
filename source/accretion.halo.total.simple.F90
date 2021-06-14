@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,9 @@
   !% An implementation of the intergalactic medium state class for a simplistic model of instantaneous and full reionization.
 
   !# <accretionHaloTotal name="accretionHaloTotalSimple">
-  !#  <description>A halo total accretion class which assumes the accretion corresponds to the basic mass.</description>
+  !#  <description>
+  !#   A halo total accretion class which assumes that the accretion rate equals the growth rate of the basic mass.
+  !#  </description>
   !# </accretionHaloTotal>
   type, extends(accretionHaloTotalClass) :: accretionHaloTotalSimple
      !% A halo total accretion class which assumes the accretion corresponds to the basic mass.
@@ -43,7 +45,7 @@ contains
     implicit none
     type(accretionHaloTotalSimple)                :: self
     type(inputParameters         ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=accretionHaloTotalSimple()
     return
@@ -56,7 +58,7 @@ contains
     class(accretionHaloTotalSimple), intent(inout) :: self
     type (treeNode                ), intent(inout) :: node
     class(nodeComponentBasic      ), pointer       :: basic
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     basic               => node %basic        ()
     simpleAccretionRate =  basic%accretionRate()
@@ -70,7 +72,7 @@ contains
     class(accretionHaloTotalSimple), intent(inout) :: self
     type (treeNode                ), intent(inout) :: node
     class(nodeComponentBasic      ), pointer       :: basic
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     basic              => node %basic()
     simpleAccretedMass =  basic%mass ()

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -43,7 +43,7 @@ contains
     implicit none
     type(stellarSpectraDustAttenuationCalzetti2000)                :: self
     type(inputParameters                          ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=stellarSpectraDustAttenuationCalzetti2000()
     return
@@ -58,7 +58,7 @@ contains
          &                                                                        vBandAttenuation
     double precision                                           , parameter     :: Rv=4.05d0                          ! Eqn. (5) of Calzetti et al.
     double precision                                                           :: wavelengthMicrons, kappa
-    !GCC$ attributes unused :: self, age
+    !$GLC attributes unused :: self, age
 
     ! Eqn. (4) of Calzetti et al.
     wavelengthMicrons=wavelength/angstromsPerMicron

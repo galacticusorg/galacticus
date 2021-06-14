@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -51,8 +51,6 @@ contains
     !#   <source>parameters</source>
     !#   <variable>massParticle</variable>
     !#   <description>The mass of the particle in the N-body simulation in which friends-of-friends groups were found.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     nbodyHaloMassErrorFriendsOfFriendsParameters=nbodyHaloMassErrorFriendsOfFriends(massParticle)
     !# <inputParametersValidate source="parameters"/>

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,14 @@
   !% Implements a stellar initial mass function class for the top-heavy stellar initial mass function from \cite{baugh_can_2005}.
 
   !# <initialMassFunction name="initialMassFunctionBaugh2005TopHeavy">
-  !#  <description>A stellar initial mass function class for the top-heavy stellar initial mass function from \cite{baugh_can_2005}.</description>
+  !#  <description>
+  !#   A stellar initial mass function class for the top-heavy stellar initial mass function from \cite{baugh_can_2005}:
+  !#   The {\normalfont \ttfamily Baugh2005TopHeavy} \gls{imf} is defined by \citep{baugh_can_2005}:
+  !#   \begin{equation}
+  !#    \phi(M) \propto 
+  !#    M^{-1} \hbox{ for } 0.15M_\odot &lt; M &lt; 125M_\odot
+  !#   \end{equation}
+  !#  </description>
   !# </initialMassFunction>
   type, extends(initialMassFunctionPiecewisePowerLaw) :: initialMassFunctionBaugh2005TopHeavy
      !% A stellar initial mass function class for the top-heavy stellar initial mass function from \cite{baugh_can_2005}.
@@ -43,7 +50,7 @@ contains
     implicit none
     type(initialMassFunctionBaugh2005TopHeavy)                :: self
     type(inputParameters                     ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=initialMassFunctionBaugh2005TopHeavy()
     return
@@ -66,7 +73,7 @@ contains
     implicit none
     class(initialMassFunctionBaugh2005TopHeavy), intent(inout) :: self
     type (varying_string                      )                :: baugh2005TopHeavyLabel
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     baugh2005TopHeavyLabel="Baugh2005TopHeavy"
     return

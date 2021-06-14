@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,12 +22,14 @@
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
 
   !# <excursionSetBarrier name="excursionSetBarrierCriticalOverdensity">
-  !#  <description>A critical overdensity excursion set barrier class.</description>
+  !#  <description>
+  !#   A excursion set barrier class that adopts a barrier equal to the critical linear theory overdensity for halo collpase.
+  !#  </description>
   !# </excursionSetBarrier>
   type, extends(excursionSetBarrierClass) :: excursionSetBarrierCriticalOverdensity
      !% A critical overdensity excursion set barrier class.
      private
-     class(criticalOverdensityClass     ), pointer :: criticalOverdensity_ => null()
+     class(criticalOverdensityClass     ), pointer :: criticalOverdensity_      => null()
      class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
    contains
      final     ::                    criticalOverdensityDestructor
@@ -91,7 +93,7 @@ contains
     type            (treeNode                              ), intent(inout) :: node
     logical                                                 , intent(in   ) :: rateCompute
     double precision                                                        :: mass
-    !GCC$ attributes unused :: rateCompute
+    !$GLC attributes unused :: rateCompute
 
     if (variance <= 0.0d0) then
        ! Return the critical overdensity at this time for infinite mass.
@@ -113,7 +115,7 @@ contains
     type            (treeNode                              ), intent(inout) :: node
     logical                                                 , intent(in   ) :: rateCompute
     double precision                                                        :: alpha      , mass
-    !GCC$ attributes unused :: rateCompute
+    !$GLC attributes unused :: rateCompute
 
     if (variance <= 0.0d0) then
        ! Return zero critical overdensity gradient at this time for infinite mass.

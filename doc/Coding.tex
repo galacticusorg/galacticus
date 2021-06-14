@@ -154,7 +154,7 @@ As an example, the following constructor requires an instance of the {\normalfon
 
 The {\normalfont \ttfamily objectBuilder} directive will assign a member of the class specified by the {\normalfont \ttfamily class} attribute to the variable specified by the {\normalfont \ttfamily name} attribute. If the parameter set specified by the {\normalfont \ttfamily parameters} attribute contains an explicit definition of the relevant class, that definition will be used to construct the instance. Otherwise, the parent parameter set will be checked for a definition of the relevant class, and so on. If no definition is found when the root parameter set is found the default instance will be used. Note that objects created by an {\normalfont \ttfamily objectBuilder} directive are directly associated with the element in the input parameters XML document from which they were created. Therefore, if a later {\normalfont \ttfamily objectBuilder} requires the object from that same XML element, it will reuse the one previously created.
 
-The {\normalfont \ttfamily objectBuilder} directive by default searches for a parameter named {\normalfont \ttfamily \{class\}Method} where {\normalfont \ttfamily \{class\}} is the value of the {\normalfont \ttfamily class} attribute in the directive. An alternative name may be specified via the addition of a {\normalfont \ttfamily parameterName} attribute.
+The {\normalfont \ttfamily objectBuilder} directive by default searches for a parameter named {\normalfont \ttfamily \{class\}} where {\normalfont \ttfamily \{class\}} is the value of the {\normalfont \ttfamily class} attribute in the directive. An alternative name may be specified via the addition of a {\normalfont \ttfamily parameterName} attribute.
 
 In cases where an explicit {\normalfont \ttfamily parameterName} attribute is given, it is possible to specify an explicit default for the object if no such named parameter is found. (Where no explicit {\normalfont \ttfamily parameterName} attribute is given the global default of the class is used.) A default is specified by adding a {\normalfont \ttfamily default} element to the directive, which should contain default specification for the object (and any subobjects) in the usual format. For example:
 \begin{verbatim}
@@ -197,7 +197,7 @@ will cause the value of the {\normalfont \ttfamily massThreshold} argument to {\
 
 \subsection{State Storing}
 
-\glc\ supports storing its internal state to file to allow restarts (see \S\ref{sec:Restarting}). Code to store and restore the internal state of objects of a given class can be generated automatically through use of the {\normalfont \ttfamily stateStorable} directive. An example is:
+\glc\ supports storing its internal state to file to allow \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Usage.pdf\#sec.Restarting}{restarts}. Code to store and restore the internal state of objects of a given class can be generated automatically through use of the {\normalfont \ttfamily stateStorable} directive. An example is:
 \begin{verbatim}
  !# <stateStorable class="table">
  !#  <table1DGeneric>
@@ -464,7 +464,7 @@ In the above example, we define a ``simple'' implementation of the {\normalfont 
 \item[Procedures:] All required procedures (including constructors and destructors) should be given after a line containing the {\normalfont \ttfamily contains} keyword. \glc\ coding policy is that all procedures associated with an implementation should be prefixed with the implementation name, {\normalfont \ttfamily simple} in this case.
 \end{description}
 
-Functionality to store and restore the state (see \S\ref{sec:Restarting}) of classes built via a {\normalfont \ttfamily functionClass} directive are automatically built. If variables of a given implementation should be restored to a specific state, this can be specified by adding a {\normalfont \ttfamily restoreTo} element to the directive declaring the implementation. The {\normalfont \ttfamily restoreTo} element should specify a comma-separated list of one or more variables to set in its {\normalfont \ttfamily variables} attribute, and the state to which they should be restored in its {\normalfont \ttfamily state} attribute. Any variables which should be excluded from state store/restore (e.g. if their values are known to be determined statically at construction) can be specified via a {\normalfont \ttfamily exclude} element---a list of variables to exclude should be given as a comma-separated list in its {\normalfont \ttfamily variables} attribute.
+Functionality to store and restore the state (see \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Usage.pdf\#sec.Restarting}{here}) of classes built via a {\normalfont \ttfamily functionClass} directive are automatically built. If variables of a given implementation should be restored to a specific state, this can be specified by adding a {\normalfont \ttfamily restoreTo} element to the directive declaring the implementation. The {\normalfont \ttfamily restoreTo} element should specify a comma-separated list of one or more variables to set in its {\normalfont \ttfamily variables} attribute, and the state to which they should be restored in its {\normalfont \ttfamily state} attribute. Any variables which should be excluded from state store/restore (e.g. if their values are known to be determined statically at construction) can be specified via a {\normalfont \ttfamily exclude} element---a list of variables to exclude should be given as a comma-separated list in its {\normalfont \ttfamily variables} attribute.
 
 \subsection{Generic Programming}
 
@@ -539,7 +539,7 @@ if (.not.finder%isInitialized()) then
   call finder%rootFunction   (myRootFunction                     )
   ! Specify the type of root-finding algorithm - this is optional (Brent's
   ! method will be used by default).
-  call finder%type           (FGSL_Root_fSolver_Brent            )
+  call finder%type           (GSL_Root_fSolver_Brent             )
   ! Specify the tolerances to use in finding the root. Both arguments are
   !optional - values of 1.0d-10 will be used for both absolute and relative
   ! tolerance by default.
@@ -578,7 +578,7 @@ The function evaluating $f(x)$ must have a form compatible with that shown for {
 
 \section{Computation Dependencies and Data Files}\label{sec:codeUniqueLabels}\index{dependencies, computation}\index{labels, unique}\index{unique labels}
 
-In many situations, some module in \glc\ might want to perform a calculation and then store the results to a file so that they can be reused later. A good example is the {\normalfont \ttfamily CAMB} transfer function method (see \S\ref{sec:TransferFunction:CAMB}), which computes a transfer function using {\normalfont \scshape CAMB} and stores this function in a file so that it can be re-read next time, avoiding the need to recompute the transfer function. A problem arises in such cases as the calculation may depend on the values of parameters (in our example, the transfer function will depend on cosmological parameters for example). We would like to record which parameter values this calculation refers to, perhaps encoding these into the file name, so that we can reuse these data in a future run only if the parameter values are unchanged. Given the modular nature of \glc\ it is impossible to know in advance which parameters will be relevant (e.g. does the cosmological parameter implementation have a parameter that describes a time varying equation of state for dark energy?). 
+In many situations, some module in \glc\ might want to perform a calculation and then store the results to a file so that they can be reused later. A good example is the \refPhysics{transferFunctionCAMB} transfer function model, which computes a transfer function using {\normalfont \scshape CAMB} and stores this function in a file so that it can be re-read next time, avoiding the need to recompute the transfer function. A problem arises in such cases as the calculation may depend on the values of parameters (in our example, the transfer function will depend on cosmological parameters for example). We would like to record which parameter values this calculation refers to, perhaps encoding these into the file name, so that we can reuse these data in a future run only if the parameter values are unchanged. Given the modular nature of \glc\ it is impossible to know in advance which parameters will be relevant (e.g. does the cosmological parameter implementation have a parameter that describes a time varying equation of state for dark energy?). 
 
 To addres this problem, \glc\ provides a mechanism to generate a unique descriptor for a given object. This descriptor encodes the parameter used to construct the object, and recursively includes the parameters used to construct any other object which is composited. A long-form (human readable) descriptor is returned by the {\normalfont \ttfamily descriptor} method associated with all {\normalfont \ttfamily functionClass} objects. Additionally, the {\normalfont \ttfamily hashedDescriptor} method will return an MD5 hash of the descriptor, which will be unique (up to collisions) and can be used to idetify the object both internally and, for example, when used as a suffix to file names. If the optional {\normalfont \ttfamily includeSourceDigest} argument is set to true in the {\normalfont \ttfamily hashedDescriptor} method then the hashed descriptor will include a hash of the source code of the object (and all composited objects) such that the descriptor will change should the source code be changed.
 
@@ -590,7 +590,7 @@ In designing \glc, we opted for simplicity and clarity over speed. However, ther
 
 Frequently, a given property of a node may be required in many different aspects of the calculation. For example, the dark matter halo virial radius is used extensively in several distinct calculations within \glc. Frequently such calculations are performed for the same node, with the same properties several times\footnote{For example, \glc's ODE solver will fix the properties of a node and then request that derivatives of all properties be computed. Some functions will then be called multiple times for the same node with unchanged properties.}. Obviously this is inefficient. It can be advantageous in such cases to store the result of a calculation and, if the function is called again with the same unchanged node to simply return the stored value. \glc\ facilitates this by two features.
 
-The first feature is the ``unique ID''---an integer number assigned to each node in \glc\ and which uniquely identifies a node (i.e. no two nodes processed in a \glc\ run will have the same unique ID). This number, which can be retrieved using the \href{method:uniqueID}{{\normalfont \ttfamily uniqueID}} property of a tree node, can be recorded each time a function is called. If called again for a node with the same unique ID as the previous call, the function can simply return the same answer as on the previous call.
+The first feature is the ``unique ID''---an integer number assigned to each node in \glc\ and which uniquely identifies a node (i.e. no two nodes processed in a \glc\ run will have the same unique ID). This number, which can be retrieved using the {\normalfont \ttfamily uniqueID} property of a tree node, can be recorded each time a function is called. If called again for a node with the same unique ID as the previous call, the function can simply return the same answer as on the previous call.
 
 The second feature accounts for the fact that the properties of a node will change, so even if a function is called on a node with the same unique ID it may occasionally need to recompute its result. \glc\ provides a calculation reset task\index{calculation reset task}\index{task, calculation reset} (see \S\ref{sec:CalculationResetTask}). All such tasks are performed just prior to the computation of derivatives for a node being evolved. A function can register a calculation reset task and use it to flag that it must update its calculations even if called again with the same node.
 
@@ -620,19 +620,81 @@ Here, {\normalfont \ttfamily myFunction} is the name of the function to make glo
 \end{verbatim}
 This script will analyze the \gls{openmp} {\normalfont \ttfamily critical} section wait time metadata in the named file, reporting the total time spent waiting at critical sections followed by a rank ordered list of the top ten sections by wait time. This can be useful for assessing whether optimization might help to reduce \gls{openmp} {\normalfont \ttfamily critical} section wait times.
 
-\section{Objects}
-
-\subsection{Enumerations}
+\section{Enumerations}
 
 Enumerations are used to communicate options to many functions in \glc. All available enumerations, along with their members, are described below.
 
 \input{autoEnumerationDefinitions}
 
-\input{dataEnumerations}
+\section{Classes}
+ 
+The return type of each method, and the interfaces (i.e. the types and names of its arguments) are specified for each method of each object. A ``{\normalfont \ttfamily void}'' return type indicates a subroutine.
 
-\subsection{Object Methods}
+\subsection{Methods available to all {\normalfont \ttfamily functionClass}es}\label{sec:functionClassAll}
 
-The type of each method, and the type and names of its arguments are specified for each method of each object. Types are shown in red, enclosed by angle brackets, with a ``{\normalfont \ttfamily *}'' indicating a pointer. A {\normalfont \ttfamily \textless void\textgreater} type indicates a subroutine. Blue arrows after each argument show the argument intent: \textcolor{blue}{$\leftarrow$} implies {\normalfont \ttfamily intent(in)},  \textcolor{blue}{$\rightarrow$} implies {\normalfont \ttfamily intent(out)}, and \textcolor{blue}{$\leftrightarrow$} implies {\normalfont \ttfamily intent(inout)}.
+Although not methods directly bound to the {\normalfont \ttfamily functionClass} class, the following methods will be automatically created for all child classes of {\normalfont \ttfamily functionClass} when they are built by \glc.
 
+
+\begin{description}
+  
+\item[]{\normalfont \ttfamily autoHook} Insert any event hooks required by this object. 
+\begin{itemize}
+\item Return type: {\normalfont \ttfamily void}
+\item Interface: {\normalfont \ttfamily ()}\\
+\end{itemize}
+
+\item[]{\normalfont \ttfamily deepCopy}  Perform a deep copy of the object. Here, {\normalfont \ttfamily \textless functionClassBase \textgreater} refers to the base class of the created {\normalfont \ttfamily functionClass} child.
+\begin{itemize}
+\item Return type: {\normalfont \ttfamily void}
+\item Interface: {\normalfont \ttfamily (destination)}\\
+  {\normalfont \ttfamily class(\textless functionClassBase\textgreater), intent(inout) :: destination}\\
+\end{itemize}
+
+\item[]{\normalfont \ttfamily deepCopyReset} Reset deep copy pointers in this object and any objects that it uses.
+\begin{itemize}
+\item Return type: {\normalfont \ttfamily void}
+\item Interface: {\normalfont \ttfamily ()}\\
+\end{itemize}
+
+\item[]{\normalfont \ttfamily descriptor} Return an input parameter list descriptor which could be used to recreate this object.
+\begin{itemize}
+\item Return type: {\normalfont \ttfamily void}
+\item Interface: {\normalfont \ttfamily (descriptor, includeClass)}\\
+  {\normalfont \ttfamily type(inputParameters), intent(inout) :: descriptor}\\
+  {\normalfont \ttfamily logical, intent(in   ), optional :: includeClass}\\
+\end{itemize}
+
+\item[]{\normalfont \ttfamily hashedDescriptor} Return a hash of the descriptor for this object, optionally include the source code digest in the hash.
+\begin{itemize}
+\item Return type: {\normalfont \ttfamily type(varying\_string)}
+\item Interface: {\normalfont \ttfamily (descriptor, includeClass)}\\
+  {\normalfont \ttfamily logical, intent(in   ), optional :: includeSourceDigest}\\
+\end{itemize}
+
+\item[]{\normalfont \ttfamily objectType} Return the type of the object. 
+\begin{itemize}
+\item Return type: {\normalfont \ttfamily type(varying\_string)}
+\item Interface: {\normalfont \ttfamily ()}\\
+\end{itemize}
+
+\item[]{\normalfont \ttfamily stateRestore} Restore the state of this object from file.
+\begin{itemize}
+\item Return type: {\normalfont \ttfamily void}
+\item Interface: {\normalfont \ttfamily (stateFile, gslFile, stateOperationID)}\\
+  {\normalfont \ttfamily integer, intent(in   ) :: stateFile}\\
+  {\normalfont \ttfamily type(c\_ptr), intent(in   ) :: gslStateFile}\\
+  {\normalfont \ttfamily integer(c\_size\_t), intent(in   ) :: stateOperationID}\\
+\end{itemize}
+
+\item[]{\normalfont \ttfamily stateStore} Store the state of this object to file.
+\begin{itemize}
+\item Return type: {\normalfont \ttfamily void}
+\item Interface: {\normalfont \ttfamily (stateFile, gslFile, stateOperationID)}\\
+  {\normalfont \ttfamily integer, intent(in   ) :: stateFile}\\
+  {\normalfont \ttfamily type(c\_ptr), intent(in   ) :: gslStateFile}\\
+  {\normalfont \ttfamily integer(c\_size\_t), intent(in   ) :: stateOperationID}\\
+\end{itemize}
+
+\end{description}
+ 
 \input{dataMethods}
-

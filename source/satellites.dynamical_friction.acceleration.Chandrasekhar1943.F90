@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -25,7 +25,19 @@
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
 
   !# <satelliteDynamicalFriction name="satelliteDynamicalFrictionChandrasekhar1943">
-  !#  <description>A satellite dynamical friction class which uses the model of \cite{chandrasekhar_dynamical_1943}.</description>
+  !#  <description>
+  !#   A satellite dynamical friction class which uses the \cite{chandrasekhar_dynamical_1943} formula to compute the acceleration
+  !#   of a satellite at radius $r$ from the center of the host due to dynamical friction:
+  !#   \begin{equation}
+  !#   \mathbf{a}_{DF} = -\frac{4\pi \mathrm{G}^2M_\mathrm{sat}\rho_\mathrm{host}(r)}{v_\mathrm{sat}^3}\ln
+  !#   \Lambda\left[\mathrm{erf}(x)-\frac{2x}{\sqrt{\pi}}\exp(-x^2)\right]\mathbf{v}_\mathrm{sat},
+  !#   \end{equation}
+  !#   where $M_\mathrm{sat}$ and $\mathbf{v}_\mathrm{sat}$ are the satellite's mass and velocity, respectively,
+  !#   $v_\mathrm{sat}=|\mathbf{v}_\mathrm{sat}|$, $\rho_\mathrm{host}(r)$ is the host's density profile,
+  !#   $\ln\Lambda=${\normalfont \ttfamily [logarithmCoulomb]} is the Coulomb logarithm, and $x\equiv
+  !#   v_\mathrm{sat}/\sqrt{2}\sigma(r)$, where $\sigma(r)$ is the velocity dispersion of the host halo at radius $r$,
+  !#   approximated to be equal to the host virial velocity, $v_\mathrm{vir}$.
+  !#  </description>
   !# </satelliteDynamicalFriction>
   type, extends(satelliteDynamicalFrictionClass) :: satelliteDynamicalFrictionChandrasekhar1943
      !% Implementation of a satellite dynamical friction class which uses the model of \cite{chandrasekhar_dynamical_1943}.
@@ -34,8 +46,12 @@
      class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
      double precision                                     :: logarithmCoulomb
    contains
-     final     ::                 chandrasekhar1943Destructor
-     procedure :: acceleration => chandrasekhar1943Acceleration
+     !# <methods>
+     !#   <method description="Compute the Coulomb logarithm, $\log \Lambda$, appearing in the \cite{chandrasekhar_dynamical_1943} dynamical friction equation." method="coulombLogarithm" />
+     !# </methods>
+     final     ::                     chandrasekhar1943Destructor
+     procedure :: acceleration     => chandrasekhar1943Acceleration
+     procedure :: coulombLogarithm => chandrasekhar1943CoulombLogarithm
   end type satelliteDynamicalFrictionChandrasekhar1943
 
   interface satelliteDynamicalFrictionChandrasekhar1943
@@ -58,11 +74,9 @@ contains
 
     !# <inputParameter>
     !#   <name>logarithmCoulomb</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>2.0d0</defaultValue>
     !#   <description>The Coulomb logarithm, $\ln \Lambda$, appearing in the \cite{chandrasekhar_dynamical_1943} formulation of the acceleration due to dynamical friction.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
@@ -97,26 +111,27 @@ contains
 
   function chandrasekhar1943Acceleration(self,node)
     !% Return an acceleration for satellites due to dynamical friction using the formulation of \cite{chandrasekhar_dynamical_1943}.
-    use :: Error_Functions                 , only : Error_Function
-    use :: Galactic_Structure_Densities    , only : Galactic_Structure_Density
-    use :: Galactic_Structure_Options      , only : coordinateSystemCartesian
-    use :: Galacticus_Nodes                , only : nodeComponentSatellite         , treeNode
-    use :: Numerical_Constants_Astronomical, only : gigaYear                       , megaParsec
-    use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Constants_Physical    , only : gravitationalConstantGalacticus
-    use :: Numerical_Constants_Prefixes    , only : kilo
-    use :: Vectors                         , only : Vector_Magnitude
+    use :: Error_Functions                           , only : Error_Function
+    use :: Galactic_Structure_Densities              , only : Galactic_Structure_Density
+    use :: Galactic_Structure_Options                , only : coordinateSystemCartesian
+    use :: Galactic_Structure_Chandrasekhar_Integrals, only : Galactic_Structure_Chandrasekhar_Integral
+    use :: Galacticus_Nodes                          , only : nodeComponentSatellite                   , treeNode
+    use :: Numerical_Constants_Astronomical          , only : gigaYear                                 , megaParsec
+    use :: Numerical_Constants_Math                  , only : Pi
+    use :: Numerical_Constants_Astronomical          , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Prefixes              , only : kilo
+    use :: Vectors                                   , only : Vector_Magnitude
     implicit none
     double precision                                             , dimension(3)  :: chandrasekhar1943Acceleration
     class           (satelliteDynamicalFrictionChandrasekhar1943), intent(inout) :: self
     type            (treeNode                                   ), intent(inout) :: node
     class           (nodeComponentSatellite                     ), pointer       :: satellite
     type            (treeNode                                   ), pointer       :: nodeHost
-    double precision                                             , dimension(3)  :: position                     , velocity
-    double precision                                                             :: massSatellite                , densityHost       , &
-         &                                                                          velocityMagnitude            , velocityDispersion, &
-         &                                                                          Xv                           , radius
-    double precision                                             , parameter     :: XvMaximum=10.0d0
+    double precision                                             , dimension(3)  :: position                            , velocity
+    double precision                                                             :: massSatellite                       , densityHost       , &
+         &                                                                          velocityMagnitude                   , velocityDispersion, &
+         &                                                                          Xv                                  , radius
+    double precision                                             , parameter     :: XvMaximum                    =10.0d0
 
     nodeHost                     =>  node     %mergesWith                                    (               )
     satellite                    =>  node     %satellite                                     (               )
@@ -127,13 +142,17 @@ contains
     velocityDispersion           =   self     %darkMatterProfileDMO_%radialVelocityDispersion(nodeHost,radius)
     velocityMagnitude            =   Vector_Magnitude          (         velocity                            )
     densityHost                  =   Galactic_Structure_Density(nodeHost,position,coordinateSystemCartesian  )
-    Xv                           =  +velocityMagnitude                     &
-         &                          /velocityDispersion                    &
-         &                          /sqrt(2.0d0)
+    if (velocityDispersion > 0.0d0) then
+       Xv                        =  +velocityMagnitude                     &
+            &                       /velocityDispersion                    &
+            &                       /sqrt(2.0d0)
+    else
+       Xv                        =  +huge(0.0d0)
+    end if
     if (Xv <= XvMaximum) then
        chandrasekhar1943Acceleration=  -4.0d0                              &
             &                          *Pi                                 &
-            &                          *self%logarithmCoulomb              &
+            &                          *self%coulombLogarithm(node)        &
             &                          *gravitationalConstantGalacticus**2 &
             &                          *massSatellite                      &
             &                          *densityHost                        &
@@ -152,7 +171,7 @@ contains
     else
        chandrasekhar1943Acceleration=  -4.0d0                              &
             &                          *Pi                                 &
-            &                          *self%logarithmCoulomb              &
+            &                          *self%coulombLogarithm(node)        &
             &                          *gravitationalConstantGalacticus**2 &
             &                          *massSatellite                      &
             &                          *densityHost                        &
@@ -165,3 +184,12 @@ contains
     return
   end function chandrasekhar1943Acceleration
 
+  double precision function chandrasekhar1943CoulombLogarithm(self,node) result(coulombLogarithm)
+    !% Evaluate the Coulomb logarithm for the \cite{chandrasekhar_dynamical_1943} dynamical friction model.
+    implicit none
+    class(satelliteDynamicalFrictionChandrasekhar1943), intent(inout) :: self
+    type (treeNode                                   ), intent(inout) :: node
+
+    coulombLogarithm=self%logarithmCoulomb
+    return
+  end function chandrasekhar1943CoulombLogarithm

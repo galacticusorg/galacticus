@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -44,7 +44,7 @@ contains
     implicit none
     type(galacticFilterHaloAlwaysIsolated)                :: self
     type(inputParameters                 ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     if (.not.defaultMergingStatisticsComponent%nodeHierarchyLevelMaximumIsGettable())                                                           &
          & call Galacticus_Error_Report                                                                                                         &
@@ -64,10 +64,10 @@ contains
     !% Implement a galactic filter which passes only isolated halos.
     use :: Galacticus_Nodes, only : nodeComponentMergingStatistics
     implicit none
-    class(galacticFilterHaloAlwaysIsolated), intent(inout) :: self
-    type (treeNode                        ), intent(inout) :: node
-    class(nodeComponentMergingStatistics  ), pointer       :: mergingStatistics
-    !GCC$ attributes unused :: self
+    class(galacticFilterHaloAlwaysIsolated), intent(inout)         :: self
+    type (treeNode                        ), intent(inout), target :: node
+    class(nodeComponentMergingStatistics  ), pointer               :: mergingStatistics
+    !$GLC attributes unused :: self
 
     mergingStatistics        => node             %mergingStatistics        (autoCreate=.true.)
     haloAlwaysIsolatedPasses =  mergingStatistics%nodeHierarchyLevelMaximum(                 ) == 0

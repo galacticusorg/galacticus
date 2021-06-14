@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -57,11 +57,9 @@ contains
 
     !# <inputParameter>
     !#   <name>sample</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('SMCbar')</defaultValue>
     !#   <description>The name of the sample from \cite{gordon_quantitative_2003} to use in dust attenuation calculations.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     self=stellarSpectraDustAttenuationGordon2003(enumerationGordon2003SampleEncode(char(sample),includesPrefix=.false.))
     !# <inputParametersValidate source="parameters"/>

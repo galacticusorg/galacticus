@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -68,7 +68,7 @@ contains
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
-    !GCC$ attributes unused :: parameters_
+    !$GLC attributes unused :: parameters_
 
     if (defaultBasicComponent%nonEvolvingIsActive()) &
          call nodePromotionEvent%attach(defaultBasicComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentBasicNonEvolving')
@@ -92,18 +92,17 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Basic_Non_Evolving_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Basic_Non_Evolving_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
+  subroutine Node_Component_Basic_Non_Evolving_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
     !% Compute rates of change of properties in the standard implementation of the basic component.
     use :: Galacticus_Nodes, only : defaultBasicComponent, nodeComponentBasic, nodeComponentBasicNonEvolving, propertyTypeInactive, &
           &                         treeNode
     implicit none
-    type     (treeNode          ), intent(inout), pointer :: node
-    logical                      , intent(in   )          :: odeConverged
+    type     (treeNode          ), intent(inout)          :: node
     logical                      , intent(inout)          :: interrupt
     procedure(                  ), intent(inout), pointer :: interruptProcedure
     integer                      , intent(in   )          :: propertyType
-    class    (nodeComponentBasic)               , pointer :: basicComponent
-    !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
+    class    (nodeComponentBasic)               , pointer :: basic
+    !$GLC attributes unused :: interrupt, interruptProcedure
 
 
     ! Return immediately if inactive variables are requested.
@@ -111,12 +110,12 @@ contains
     ! Return immediately if this class is not in use.
     if (.not.defaultBasicComponent%nonEvolvingIsActive()) return
     ! Get the basic component.
-    basicComponent => node%basic()
+    basic => node%basic()
     ! Ensure that it is of the non-evolving class.
-    select type (basicComponent)
+    select type (basic)
     class is (nodeComponentBasicNonEvolving)
        ! Time rate of change is unity, by definition.
-       call basicComponent%timeRate(1.0d0)
+       call basic%timeRate(1.0d0)
     end select
     return
   end subroutine Node_Component_Basic_Non_Evolving_Rate_Compute
@@ -129,16 +128,16 @@ contains
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentBasicNonEvolving, treeNode
     implicit none
     type            (treeNode          ), intent(inout), pointer :: node
-    double precision                    , parameter              :: timeScale     =1.0d-3
-    class           (nodeComponentBasic)               , pointer :: basicComponent
+    double precision                    , parameter              :: timeScale=1.0d-3
+    class           (nodeComponentBasic)               , pointer :: basic
 
     ! Get the basic component.
-    basicComponent => node%basic()
+    basic => node%basic()
     ! Ensure that it is of the standard class.
-    select type (basicComponent)
+    select type (basic)
     class is (nodeComponentBasicNonEvolving)
        ! Set scale for time.
-       call basicComponent%timeScale(timeScale)
+       call basic%timeScale(timeScale)
     end select
     return
   end subroutine Node_Component_Basic_Non_Evolving_Scale_Set
@@ -153,7 +152,7 @@ contains
     type (treeNode          ), intent(inout), target  :: node
     type (treeNode          )               , pointer :: nodeParent
     class(nodeComponentBasic)               , pointer :: basicParent, basic
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     basic       => node      %basic ()
     nodeParent  => node      %parent

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,15 @@
 !% Contains a module which implements a quadratic excursion set barrier class.
 
   !# <excursionSetBarrier name="excursionSetBarrierQuadratic">
-  !#  <description>A quadratic excursion set barrier class.</description>
+  !#  <description>
+
+  !#   A quadratic excursion set barrier class. The barrier is given by:
+  !#   \begin{equation}
+  !#   B(S) = B_0 + B_1 S + B_2 S^2,
+  !#   \end{equation}
+  !#   where $B_0=${\normalfont \ttfamily [coefficientConstant]}, $B_0=${\normalfont \ttfamily
+  !#   [coefficientLinear]}, and $B_2=${\normalfont \ttfamily [coefficientQuadratic]}.
+  !#  </description>
   !# </excursionSetBarrier>
   type, extends(excursionSetBarrierClass) :: excursionSetBarrierQuadratic
      !% A quadratic excursion set barrier class.
@@ -56,8 +64,6 @@ contains
     !#   <variable>coefficientConstant</variable>
     !#   <defaultValue>1.67d0</defaultValue>
     !#   <description>The constant coefficient in the quadratic excursion set barrier.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>coefficientLinear</name>
@@ -65,8 +71,6 @@ contains
     !#   <variable>coefficientLinear</variable>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The linear coefficient in the quadratic excursion set barrier.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>coefficientQuadratic</name>
@@ -74,8 +78,6 @@ contains
     !#   <variable>coefficientQuadratic</variable>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The quadratic coefficient in the quadratic excursion set barrier.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=excursionSetBarrierQuadratic(coefficientConstant,coefficientLinear,coefficientQuadratic)
     !# <inputParametersValidate source="parameters"/>
@@ -100,7 +102,7 @@ contains
     double precision                              , intent(in   ) :: variance   , time
     type            (treeNode                    ), intent(inout) :: node
     logical                                       , intent(in   ) :: rateCompute
-    !GCC$ attributes unused :: time, rateCompute, node
+    !$GLC attributes unused :: time, rateCompute, node
 
     quadraticBarrier=+self%coefficientConstant              &
          &           +self%coefficientLinear   *variance    &
@@ -115,7 +117,7 @@ contains
     double precision                              , intent(in   ) :: variance   , time
     type            (treeNode                    ), intent(inout) :: node
     logical                                       , intent(in   ) :: rateCompute
-    !GCC$ attributes unused :: variance, time, rateCompute, node
+    !$GLC attributes unused :: variance, time, rateCompute, node
 
     quadraticBarrierGradient=+      self%coefficientLinear             &
          &                   +2.0d0*self%coefficientQuadratic*variance

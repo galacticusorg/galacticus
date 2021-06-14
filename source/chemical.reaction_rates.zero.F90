@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,9 @@
   !% An implementation of calculations of chemical reaction rates which assumes zero rates.
 
   !# <chemicalReactionRate name="chemicalReactionRateZero">
-  !#  <description>A chemical reaction rate class in which all rates are zero.</description>
+  !#  <description>
+  !#   A chemical reaction rate class in which all rates are zero.
+  !#  </description>
   !# </chemicalReactionRate>
   type, extends(chemicalReactionRateClass) :: chemicalReactionRateZero
      !% A chemical reaction rate class in which all rates are zero.
@@ -43,7 +45,7 @@ contains
     implicit none
     type(chemicalReactionRateZero)                :: self
     type(inputParameters         ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=chemicalReactionRateZero()
     return
@@ -58,7 +60,7 @@ contains
     class           (radiationFieldClass     ), intent(inout) :: radiation
     type            (chemicalAbundances      ), intent(inout) :: chemicalRates
     type            (treeNode                ), intent(inout) :: node
-    !GCC$ attributes unused :: self, chemicalDensity, temperature, radiation, node
+    !$GLC attributes unused :: self, chemicalDensity, temperature, radiation, node
 
     call chemicalRates%reset()
     return

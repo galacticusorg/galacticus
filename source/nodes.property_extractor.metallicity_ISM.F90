@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -46,6 +46,7 @@ contains
     !% Constructor for the ``metallicityISM'' output analysis property extractor class which takes a parameter set as input.
     use :: Abundances_Structure, only : Abundances_Index_From_Name
     use :: Input_Parameters    , only : inputParameter            , inputParameters
+    use :: Galacticus_Error    , only : Galacticus_Error_Report
     implicit none
     type     (nodePropertyExtractorMetallicityISM)                :: self
     type     (inputParameters                    ), intent(inout) :: parameters
@@ -56,10 +57,9 @@ contains
     !#   <name>element</name>
     !#   <source>parameters</source>
     !#   <description>The atomic symbol for the element to use to define metallicity.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     indexElement=Abundances_Index_From_Name(element)
+    if (indexElement < 0) call Galacticus_Error_Report('element "'//trim(element)//'" is not being tracked'//{introspection:location})
     self=nodePropertyExtractorMetallicityISM(indexElement)
     !# <inputParametersValidate source="parameters"/>
     return
@@ -81,14 +81,14 @@ contains
     use :: Galacticus_Nodes    , only : nodeComponentDisk, nodeComponentSpheroid, treeNode
     implicit none
     class           (nodePropertyExtractorMetallicityISM), intent(inout)               :: self
-    type            (treeNode                           ), intent(inout), target   :: node
+    type            (treeNode                           ), intent(inout), target       :: node
     type            (multiCounter                       ), intent(inout), optional     :: instance
     class           (nodeComponentDisk                  ), pointer                     :: disk
     class           (nodeComponentSpheroid              ), pointer                     :: spheroid
     double precision                                     , allocatable  , dimension(:) :: massElementsDisk, massElementsSpheroid
     type            (abundances                         )                              :: abundancesDisk  , abundancesSpheroid
     integer                                                                            :: countElements
-    !GCC$ attributes unused :: self, instance
+    !$GLC attributes unused :: self, instance
 
     disk               => node    %disk         ()
     spheroid           => node    %spheroid     ()
@@ -119,7 +119,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorMetallicityISM), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     metallicityISMType=outputAnalysisPropertyTypeLinear
     return
@@ -131,7 +131,7 @@ contains
     implicit none
     type (varying_string                     )                :: metallicityISMName
     class(nodePropertyExtractorMetallicityISM), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     metallicityISMName=var_str('metallicityISM')//Abundances_Names(self%indexElement)
     return
@@ -143,7 +143,7 @@ contains
     implicit none
     type (varying_string                     )                :: metallicityISMDescription
     class(nodePropertyExtractorMetallicityISM), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     metallicityISMDescription=var_str('The metallicity ')//Abundances_Names(self%indexElement)//'/H (by mass) of the interstellar medium.'
     return
@@ -153,7 +153,7 @@ contains
     !% Return the units of the metallicityISM property in the SI system.
     implicit none
     class(nodePropertyExtractorMetallicityISM), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     metallicityISMUnitsInSI=0.0d0
     return

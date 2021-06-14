@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,11 +20,8 @@
   !% An implementation of the cosmological functions class for cosmologies consisting of collisionless
   !% matter plus a cosmological constant.
 
-  use    :: Cosmology_Parameters, only : cosmologyParameters, cosmologyParametersClass
-  use    :: FGSL                , only : FGSL_Success       , fgsl_function           , fgsl_integration_workspace, fgsl_interp    , &
-          &                              fgsl_interp_accel  , fgsl_odeiv_control      , fgsl_odeiv_evolve         , fgsl_odeiv_step, &
-          &                              fgsl_odeiv_system
-  !$ use :: OMP_Lib             , only : omp_lock_kind
+  use :: Cosmology_Parameters   , only : cosmologyParameters, cosmologyParametersClass
+  use :: Numerical_Interpolation, only : interpolator
 
   integer         , parameter :: matterLambdaAgeTableNPointsPerDecade     =300
   double precision, parameter :: matterLambdaAgeTableNPointsPerOctave     =dble(matterLambdaAgeTableNPointsPerDecade)*log(2.0d0)/log(10.0d0)
@@ -35,10 +32,10 @@
   double precision, parameter :: matterLambdaDominateFactor               =100.0d0
 
   !# <cosmologyFunctions name="cosmologyFunctionsMatterLambda">
-  !#  <description>Cosmological relations are computed assuming a universe that contains only matter and a cosmological constant.</description>
-  !#  <stateStorable>
-  !#   <restoreTo variables="resetInterpolation, resetInterpolationDistance, resetInterpolationDistanceInverse, resetInterpolationLuminosityDistance, resetInterpolationLuminosityDistanceKCorrected" state=".true."/>
-  !#  </stateStorable>
+  !#  <description>
+  !#   Cosmological relations are computed assuming a universe that contains only collisionless matter and a cosmological
+  !#   constant.
+  !#  </description>
   !# </cosmologyFunctions>
   type, extends(cosmologyFunctionsClass) :: cosmologyFunctionsMatterLambda
      !% A cosmological functions class for cosmologies consisting of matter plus a cosmological constant.
@@ -49,71 +46,55 @@
      double precision                                                      :: expansionFactorMaximum                                   , expansionFactorPrevious                             =-1.0d0, &
           &                                                                   timeMaximum                                              , timePrevious                                        =-1.0d0, &
           &                                                                   timeTurnaround
+     double precision                                       , dimension(2) :: expansionRatePrevious                                    , expansionRateExpansionFactorPrevious
      logical                                                               :: ageTableInitialized                             =.false.
      integer                                                               :: ageTableNumberPoints
      double precision                                                      :: ageTableTimeMaximum                             =20.0d0  , ageTableTimeMinimum                                 =1.0d-4
      double precision                                                      :: ageTableTimeLogarithmicMinimum                           , ageTableInverseDeltaLogTime
      double precision                          , allocatable, dimension(:) :: ageTableExpansionFactor                                  , ageTableTime
-     type            (fgsl_interp             )                            :: interpolationObject
-     type            (fgsl_interp_accel       )                            :: interpolationAccelerator
-     logical                                                               :: resetInterpolation                              =.true.
+     type            (interpolator            ), allocatable               :: interpolatorTime                                         , interpolatorDistance                                       , &
+          &                                                                   interpolatorDistanceInverse                              , interpolatorLuminosityDistance                             , &
+          &                                                                   interpolatorLuminosityDistanceKCorrected
      logical                                                               :: distanceTableInitialized                        =.false.
      integer                                                               :: distanceTableNumberPoints
-     double precision                                                      :: distanceTableTimeMaximum                                 , distanceTableTimeMinimum                            =1.0d-4
+     double precision                                                      :: distanceTableTimeMaximum                                 , distanceTableTimeMinimum                            =1.0d+0
      double precision                          , allocatable, dimension(:) :: distanceTableComovingDistance                            , distanceTableComovingDistanceNegated                       , &
           &                                                                   distanceTableLuminosityDistanceNegated                   , distanceTableTime                                          , &
           &                                                                   distanceTableLuminosityDistanceKCorrectedNegated
-     type            (fgsl_interp             )                            :: interpolationObjectDistance                              , interpolationObjectDistanceInverse                         , &
-          &                                                                   interpolationObjectLuminosityDistance                    , interpolationObjectLuminosityDistanceKCorrected
-     type            (fgsl_interp_accel       )                            :: interpolationAcceleratorDistance                         , interpolationAcceleratorDistanceInverse                    , &
-          &                                                                   interpolationAcceleratorLuminosityDistance               , interpolationAcceleratorLuminosityDistanceKCorrected
-     logical                                                               :: resetInterpolationDistance                      =.true.  , resetInterpolationDistanceInverse                   =.true., &
-          &                                                                   resetInterpolationLuminosityDistance            =.true.  , resetInterpolationLuminosityDistanceKCorrected      =.true.
-     !$ integer      (omp_lock_kind           )                            :: expansionFactorTableLock                                 , distanceTableLock
      logical                                                               :: enableRangeChecks
    contains
-     !@ <objectMethods>
-     !@   <object>cosmologyFunctionsMatterLambda</object>
-     !@   <objectMethod>
-     !@     <method>distanceTabulate</method>
-     !@     <type>void</type>
-     !@     <arguments>\doublezero\ time\argin</arguments>
-     !@     <description>Tabulate comoving distance as a function of cosmic time.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>expansionFactorTabulate</method>
-     !@     <type>void</type>
-     !@     <arguments>\doublezero\ time\argin</arguments>
-     !@     <description>Tabulate expansion factor as a function of cosmic time.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
-     final     ::                                  matterLambdaDestructor
-     procedure :: epochValidate                 => matterLambdaEpochValidate
-     procedure :: cosmicTime                    => matterLambdaCosmicTime
-     procedure :: timeBigCrunch                 => matterLambdaTimeBigCrunch
-     procedure :: expansionFactor               => matterLambdaExpansionFactor
-     procedure :: expansionRate                 => matterLambdaExpansionRate
-     procedure :: hubbleParameterEpochal        => matterLambdaHubbleParameterEpochal
-     procedure :: hubbleParameterRateOfChange   => matterLambdaHubbleParameterRateOfChange
-     procedure :: densityScalingEarlyTime       => matterLambdaDensityScalingEarlyTime
-     procedure :: omegaMatterEpochal            => matterLambdaOmegaMatterEpochal
-     procedure :: omegaMatterRateOfChange       => matterLambdaOmegaMatterRateOfChange
-     procedure :: omegaDarkEnergyEpochal        => matterLambdaOmegaDarkEnergyEpochal
-     procedure :: equationOfStateDarkEnergy     => matterLambdaEquationOfStateDarkEnergy
-     procedure :: exponentDarkEnergy            => matterLambdaExponentDarkEnergy
-     procedure :: equalityEpochMatterDarkEnergy => matterLambdaEqualityEpochMatterDarkEnergy
-     procedure :: equalityEpochMatterCurvature  => matterLambdaEqualityEpochMatterCurvature
-     procedure :: equalityEpochMatterRadiation  => matterLambdaEqualityEpochMatterRadiation
-     procedure :: dominationEpochMatter         => matterLambdaDominationEpochMatter
-     procedure :: temperatureCMBEpochal         => matterLambdaTemperatureCMBEpochal
-     procedure :: distanceComoving              => matterLambdaDistanceComoving
-     procedure :: distanceLuminosity            => matterLambdaDistanceLuminosity
-     procedure :: distanceAngular               => matterLambdaDistanceAngular
-     procedure :: timeAtDistanceComoving        => matterLambdaTimeAtDistanceComoving
-     procedure :: distanceComovingConvert       => matterLambdaDistanceComovingConvert
-     procedure :: expansionFactorTabulate       => matterLambdaMakeExpansionFactorTable
-     procedure :: distanceTabulate              => matterLambdaMakeDistanceTable
-     procedure :: matterDensityEpochal          => matterLambdaMatterDensityEpochal
+     !# <methods>
+     !#   <method description="Tabulate comoving distance as a function of cosmic time." method="distanceTabulate" />
+     !#   <method description="Tabulate expansion factor as a function of cosmic time." method="expansionFactorTabulate" />
+     !# </methods>
+     final     ::                                    matterLambdaDestructor
+     procedure :: epochValidate                   => matterLambdaEpochValidate
+     procedure :: cosmicTime                      => matterLambdaCosmicTime
+     procedure :: timeBigCrunch                   => matterLambdaTimeBigCrunch
+     procedure :: expansionFactor                 => matterLambdaExpansionFactor
+     procedure :: expansionRate                   => matterLambdaExpansionRate
+     procedure :: hubbleParameterEpochal          => matterLambdaHubbleParameterEpochal
+     procedure :: hubbleParameterRateOfChange     => matterLambdaHubbleParameterRateOfChange
+     procedure :: densityScalingEarlyTime         => matterLambdaDensityScalingEarlyTime
+     procedure :: omegaMatterEpochal              => matterLambdaOmegaMatterEpochal
+     procedure :: omegaMatterRateOfChange         => matterLambdaOmegaMatterRateOfChange
+     procedure :: omegaDarkEnergyEpochal          => matterLambdaOmegaDarkEnergyEpochal
+     procedure :: equationOfStateDarkEnergy       => matterLambdaEquationOfStateDarkEnergy
+     procedure :: exponentDarkEnergy              => matterLambdaExponentDarkEnergy
+     procedure :: equalityEpochMatterDarkEnergy   => matterLambdaEqualityEpochMatterDarkEnergy
+     procedure :: equalityEpochMatterCurvature    => matterLambdaEqualityEpochMatterCurvature
+     procedure :: equalityEpochMatterRadiation    => matterLambdaEqualityEpochMatterRadiation
+     procedure :: dominationEpochMatter           => matterLambdaDominationEpochMatter
+     procedure :: temperatureCMBEpochal           => matterLambdaTemperatureCMBEpochal
+     procedure :: distanceComoving                => matterLambdaDistanceComoving
+     procedure :: distanceLuminosity              => matterLambdaDistanceLuminosity
+     procedure :: distanceAngular                 => matterLambdaDistanceAngular
+     procedure :: timeAtDistanceComoving          => matterLambdaTimeAtDistanceComoving
+     procedure :: distanceComovingConvert         => matterLambdaDistanceComovingConvert
+     procedure :: expansionFactorTabulate         => matterLambdaMakeExpansionFactorTable
+     procedure :: distanceTabulate                => matterLambdaMakeDistanceTable
+     procedure :: matterDensityEpochal            => matterLambdaMatterDensityEpochal
+     procedure :: distanceParticleHorizonComoving => matterLambdaDistanceParticleHorizonComoving
   end type cosmologyFunctionsMatterLambda
 
   ! Module scope pointer to the current object.
@@ -146,36 +127,34 @@ contains
 
   function matterLambdaConstructorInternal(cosmologyParameters_) result(self)
     !% Constructor for the matter plus cosmological constant cosmological functions class.
-    use :: Cosmology_Parameters, only : hubbleUnitsTime
-    use :: Numerical_Comparison, only : Values_Agree
-    use :: ODE_Solver          , only : ODE_Solve      , ODE_Solver_Free
+    use :: Cosmology_Parameters , only : hubbleUnitsTime
+    use :: Numerical_Comparison , only : Values_Agree
+    use :: Numerical_ODE_Solvers, only : odeSolver
     implicit none
     type            (cosmologyFunctionsMatterLambda)               , target :: self
     class           (cosmologyParametersClass      ), intent(in   ), target :: cosmologyParameters_
-    double precision                                , parameter             :: odeToleranceAbsolute           =1.0d-09, odeToleranceRelative   =1.0d-09
-    double precision                                , parameter             :: omegaTolerance                 =1.0d-09
+    double precision                                , parameter             :: odeToleranceAbsolute  =1.0d-09, odeToleranceRelative   =1.0d-09
+    double precision                                , parameter             :: omegaTolerance        =1.0d-09
     double complex                                  , dimension(3)          :: expansionFactorMaximum
     double precision                                , dimension(1)          :: timeMaximum
-    double precision                                , parameter             :: toleranceRelative              =1.0d-10
-    double precision                                                        :: OmegaDominant                          , expansionFactorDominant        , &
+    double precision                                , parameter             :: toleranceRelative     =1.0d-10
+    double precision                                                        :: OmegaDominant                 , expansionFactorDominant        , &
          &                                                                     densityPower
-    type            (fgsl_odeiv_step               )                        :: odeStepper
-    type            (fgsl_odeiv_control            )                        :: odeController
-    type            (fgsl_odeiv_evolve             )                        :: odeEvolver
-    type            (fgsl_odeiv_system             )                        :: odeSystem
-    logical                                                                 :: odeReset                       =.true.
+    type            (odeSolver                     )                        :: solver
     integer                                                                 :: i
-    double complex                                                          :: omegaMatter                            , omegaDarkEnergy                , &
-         &                                                                     omegaCurvature                         , rootTerm
+    double complex                                                          :: omegaMatter                   , omegaDarkEnergy                , &
+         &                                                                     omegaCurvature                , rootTerm
     !# <constructorAssign variables="*cosmologyParameters_"/>
 
     ! Determine if this universe will collapse. We take the Friedmann equation, which gives H²(a) as a function of expansion
     ! factor, a, and solve for where H²(a)=0. If this has a real solution, then we have a collapsing universe.
-    self%collapsingUniverse    =.false.
-    self%enableRangeChecks     =.true.
-    self%expansionFactorMaximum=0.0d0
-    self%timeTurnaround        =0.0d0
-    self%timeMaximum           =0.0d0
+    self%collapsingUniverse                  =.false.
+    self%enableRangeChecks                   =.true.
+    self%expansionFactorMaximum              =0.0d0
+    self%timeTurnaround                      =0.0d0
+    self%timeMaximum                         =0.0d0
+    self%expansionRatePrevious               =-1.0d0
+    self%expansionRateExpansionFactorPrevious=-1.0d0
     if    (Values_Agree(self%cosmologyParameters_%OmegaCurvature (),0.0d0,absTol=omegaTolerance)) then
        if (Values_Agree(self%cosmologyParameters_%OmegaDarkEnergy(),0.0d0,absTol=omegaTolerance)) then
           ! Einstein-de Sitter case. Always expands to infinity.
@@ -304,52 +283,21 @@ contains
        timeMaximum(1)=1.0d0/abs(self%cosmologyParameters_%HubbleConstant(hubbleUnitsTime))/sqrt(OmegaDominant)/expansionFactorDominant**(0.5d0*densityPower)
        ! Solve Friedmann equation to get time at turnaround.
        matterLambdaSelfGlobal => self
-       odeReset=.true.
-       call ODE_Solve(                                            &
-            &         odeStepper                                , &
-            &         odeController                             , &
-            &         odeEvolver                                , &
-            &         odeSystem                                 , &
-            &         expansionFactorDominant                   , &
-            &         self%expansionFactorMaximum*(1.0d0-1.0d-4), &
-            &         1                                         , &
-            &         timeMaximum                               , &
-            &         matterLambdaCollapseODEs                  , &
-            &         odeToleranceAbsolute                      , &
-            &         odeToleranceRelative                      , &
-            &         reset=odeReset                              &
-            &        )
-       call ODE_Solver_Free(odeStepper,odeController,odeEvolver,odeSystem)
-       odeReset=.true.
+       solver                 =  odeSolver(1_c_size_t,matterLambdaCollapseODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative)    
+       call solver%solve(expansionFactorDominant,self%expansionFactorMaximum*(1.0d0-1.0d-4),timeMaximum)
        ! Extract turnaround time from ODE variables and set maximum time to twice turnaround time.
        self%timeTurnaround=timeMaximum(1)
        self%timeMaximum   =2.0d0*self%timeTurnaround
     end if
-    ! Initialize locks.
-    !$ call OMP_Init_Lock(self%expansionFactorTableLock)
-    !$ call OMP_Init_Lock(self%distanceTableLock       )
     return
   end function matterLambdaConstructorInternal
 
   subroutine matterLambdaDestructor(self)
     !% Default constructor for the matter plus cosmological constant cosmological functions class.
-    use :: Numerical_Interpolation, only : Interpolate_Done
     implicit none
     type(cosmologyFunctionsMatterLambda), intent(inout) :: self
 
     !# <objectDestructor name="self%cosmologyParameters_"/>
-    if     ( allocated (self%ageTableExpansionFactor                         )) deallocate(self%ageTableExpansionFactor                         )
-    if     ( allocated (self%ageTableTime                                    )) deallocate(self%ageTableTime                                    )
-    if     ( allocated (self%distanceTableComovingDistance                   )) deallocate(self%distanceTableComovingDistance                   )
-    if     ( allocated (self%distanceTableComovingDistanceNegated            )) deallocate(self%distanceTableComovingDistanceNegated            )
-    if     ( allocated (self%distanceTableLuminosityDistanceNegated          )) deallocate(self%distanceTableLuminosityDistanceNegated          )
-    if     ( allocated (self%distanceTableLuminosityDistanceKCorrectedNegated)) deallocate(self%distanceTableLuminosityDistanceKCorrectedNegated)
-    if     ( allocated (self%distanceTableTime                               )) deallocate(self%distanceTableTime                               )
-    call Interpolate_Done(self%interpolationObject                            ,self%interpolationAccelerator                            ,self%resetInterpolation                            )
-    call Interpolate_Done(self%interpolationObjectDistance                    ,self%interpolationAcceleratorDistance                    ,self%resetInterpolationDistance                    )
-    call Interpolate_Done(self%interpolationObjectDistanceInverse             ,self%interpolationAcceleratorDistanceInverse             ,self%resetInterpolationDistanceInverse             )
-    call Interpolate_Done(self%interpolationObjectLuminosityDistance          ,self%interpolationAcceleratorLuminosityDistance          ,self%resetInterpolationLuminosityDistance          )
-    call Interpolate_Done(self%interpolationObjectLuminosityDistanceKCorrected,self%interpolationAcceleratorLuminosityDistanceKCorrected,self%resetInterpolationLuminosityDistanceKCorrected)
     return
   end subroutine matterLambdaDestructor
 
@@ -414,7 +362,6 @@ contains
   double precision function matterLambdaCosmicTime(self,expansionFactor,collapsingPhase)
     !% Return the cosmological matter density in units of the critical density at the present day.
     use :: Galacticus_Error       , only : Galacticus_Error_Report
-    use :: Numerical_Interpolation, only : Interpolate
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
     double precision                                , intent(in   )           :: expansionFactor
@@ -427,8 +374,6 @@ contains
          &                  collapsingIn     =collapsingPhase      , &
          &                  collapsingOut    =collapsingPhaseActual  &
          &                 )
-    ! Get lock on interpolation tables.
-    !$ call OMP_Set_Lock(self%expansionFactorTableLock)
     ! Ensure tabulation is initialized.
     if (.not.self%ageTableInitialized) call self%expansionFactorTabulate(self%ageTableTimeMinimum)
     ! Ensure that the tabulation spans a sufficient range of expansion factors.
@@ -450,17 +395,7 @@ contains
        end do
     end if
     ! Interpolate to get cosmic time.
-    matterLambdaCosmicTime                             &
-         & =Interpolate(                               &
-         &              self%ageTableExpansionFactor , &
-         &              self%ageTableTime            , &
-         &              self%interpolationObject     , &
-         &              self%interpolationAccelerator, &
-         &              expansionFactor              , &
-         &              reset=self%resetInterpolation  &
-         &             )
-    ! Release lock on interpolation tables.
-    !$ call OMP_Unset_Lock(self%expansionFactorTableLock)
+    matterLambdaCosmicTime=self%interpolatorTime%interpolate(expansionFactor)
     ! Adjust for collapsing phase.
     if (collapsingPhaseActual) matterLambdaCosmicTime=self%timeMaximum-matterLambdaCosmicTime
     return
@@ -481,17 +416,18 @@ contains
 
   integer function matterLambdaCollapseODEs(a,t,dtda)
     !% System of differential equations to solve for age vs. expansion factor.
+    use :: Interface_GSL, only : GSL_Success
     implicit none
     double precision              , intent(in   ) :: a
     double precision, dimension(:), intent(in   ) :: t
     double precision, dimension(:), intent(  out) :: dtda
-    !GCC$ attributes unused :: t
+    !$GLC attributes unused :: t
 
     ! Compare the rate of change of time with expansion factor. For this ODE system we are always interested in the expanding
     ! phase of the Universe, so we use the absolute value of the expansion rate in case the universe is defined during a
     ! collapsing phase.
     dtda(1)=1.0d0/a/abs(matterLambdaSelfGlobal%expansionRate(a))
-    matterLambdaCollapseODEs=FGSL_Success
+    matterLambdaCollapseODEs=GSL_Success
     return
   end function matterLambdaCollapseODEs
 
@@ -509,8 +445,6 @@ contains
     !$omp threadprivate(message)
     character       (len=13                        )                :: label
 
-    ! Get lock on interpolation tables.
-    !$ call OMP_Set_Lock(self%expansionFactorTableLock)
     ! Check if the time differs from the previous time.
     if (time /= self%timePrevious) then
        ! Quit on invalid input.
@@ -564,8 +498,6 @@ contains
     end if
     ! Return the stored expansion factor.
     matterLambdaExpansionFactor=self%expansionFactorPrevious
-    ! Release lock on interpolation tables.
-    !$ call OMP_Unset_Lock(self%expansionFactorTableLock)
     return
   end function matterLambdaExpansionFactor
 
@@ -576,11 +508,20 @@ contains
     class           (cosmologyFunctionsMatterLambda), intent(inout) :: self
     double precision                                , intent(in   ) :: expansionFactor
 
-    ! Required value is simply the Hubble parameter but expressed in units of inverse Gyr.
-    matterLambdaExpansionRate                                                                      &
-         & = self                     %hubbleParameterEpochal(expansionFactor    =expansionFactor) &
-         &  *self%cosmologyParameters_%HubbleConstant        (hubbleUnitsTime                    ) &
-         &  /self%cosmologyParameters_%HubbleConstant        (hubbleUnitsStandard                )
+    if      (expansionFactor == self%expansionRateExpansionFactorPrevious(1)) then
+       matterLambdaExpansionRate=self%expansionRatePrevious(1)
+    else if (expansionFactor == self%expansionRateExpansionFactorPrevious(2)) then
+       matterLambdaExpansionRate=self%expansionRatePrevious(2)
+    else
+       ! Required value is simply the Hubble parameter but expressed in units of inverse Gyr.
+       self%expansionRateExpansionFactorPrevious(1)=self%expansionRateExpansionFactorPrevious(2)
+       self%expansionRatePrevious               (1)=self%expansionRatePrevious               (2)
+       self%expansionRateExpansionFactorPrevious(2)=+                                                                     expansionFactor
+       self%expansionRatePrevious               (2)=+self                     %hubbleParameterEpochal(expansionFactor    =expansionFactor) &
+            &                                       *self%cosmologyParameters_%HubbleConstant        (hubbleUnitsTime                    ) &
+            &                                       /self%cosmologyParameters_%HubbleConstant        (hubbleUnitsStandard                )
+       matterLambdaExpansionRate                  =+self%expansionRatePrevious(2)
+    end if
     return
   end function matterLambdaExpansionRate
 
@@ -700,7 +641,7 @@ contains
     double precision                                , intent(in   ), optional :: expansionFactor      , time
     logical                                         , intent(in   ), optional :: collapsingPhase
     double precision                                                          :: expansionFactorActual
-    !GCC$ attributes unused :: collapsingPhase
+    !$GLC attributes unused :: collapsingPhase
 
     ! Determine the actual expansion factor to use.
     if (present(time)) then
@@ -907,25 +848,21 @@ contains
 
   subroutine matterLambdaMakeExpansionFactorTable(self,time)
     !% Builds a table of expansion factor vs. time.
-    use :: Cosmology_Parameters   , only : hubbleUnitsTime
-    use :: Memory_Management      , only : allocateArray   , deallocateArray
-    use :: Numerical_Interpolation, only : Interpolate_Done
-    use :: Numerical_Ranges       , only : Make_Range      , rangeTypeLogarithmic
-    use :: ODE_Solver             , only : ODE_Solve       , ODE_Solver_Free
+    use :: Cosmology_Parameters , only : hubbleUnitsTime
+    use :: Memory_Management    , only : allocateArray  , deallocateArray
+    use :: Numerical_Ranges     , only : Make_Range     , rangeTypeLogarithmic
+    use :: Numerical_ODE_Solvers, only : odeSolver
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout), target       :: self
     double precision                                , intent(in   ), optional     :: time
-    double precision                                , parameter                   :: odeToleranceAbsolute               =1.0d-9, odeToleranceRelative   =1.0d-9
-    double precision                                , allocatable  , dimension(:) :: ageTableExpansionFactorTemporary          , ageTableTimeTemporary
-    integer                                                                       :: iTime                                     , prefixPointCount
-    double precision                                                              :: OmegaDominant                             , densityPower                  , &
-         &                                                                           expansionFactor                 (1)       , expansionFactorDominant       , &
-         &                                                                           tDominant                                 , timeActual
-    type            (fgsl_odeiv_step               )                              :: odeStepper
-    type            (fgsl_odeiv_control            )                              :: odeController
-    type            (fgsl_odeiv_evolve             )                              :: odeEvolver
-    type            (fgsl_odeiv_system             )                              :: odeSystem
-    logical                                                                       :: odeReset
+    double precision                                , parameter                   :: odeToleranceAbsolute            =1.0d-9, odeToleranceRelative =1.0d-9
+    double precision                                , allocatable  , dimension(:) :: ageTableExpansionFactorTemporary       , ageTableTimeTemporary
+    double precision                                               , dimension(1) :: expansionFactor
+    integer                                                                       :: iTime                                  , prefixPointCount
+    double precision                                                              :: OmegaDominant                          , densityPower                , &
+         &                                                                           tDominant                              , timeActual                  , &
+         &                                                                           expansionFactorDominant
+    type            (odeSolver                     )                              :: solver
 
     ! Find expansion factor early enough that a single component dominates the evolution of the Universe.
     call self%densityScalingEarlyTime(matterLambdaDominateFactor,densityPower,expansionFactorDominant,OmegaDominant)
@@ -1004,8 +941,8 @@ contains
     ! Solve ODE to get corresponding expansion factors.
     self%iTableTurnaround  =  self%ageTableNumberPoints
     matterLambdaSelfGlobal => self
-     odeReset               =  .true.
-   do iTime=2,self%ageTableNumberPoints
+    solver                 =  odeSolver(1_c_size_t,matterLambdaAgeTableODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative)    
+    do iTime=2,self%ageTableNumberPoints
        ! Find the position in the table corresponding to turn around if we have a collapsing Universe.
        if     (                                                   &
             &   self%collapsingUniverse                           &
@@ -1018,26 +955,14 @@ contains
        if (self%ageTableExpansionFactor(iTime) < 0.0d0) then
           timeActual        =self%ageTableTime           (iTime-1)
           expansionFactor(1)=self%ageTableExpansionFactor(iTime-1)
-          call ODE_Solve(                          &
-               &         odeStepper              , &
-               &         odeController           , &
-               &         odeEvolver              , &
-               &         odeSystem               , &
-               &         timeActual              , &
-               &         self%ageTableTime(iTime), &
-               &         1                       , &
-               &         expansionFactor         , &
-               &         matterLambdaAgeTableODEs, &
-               &         odeToleranceAbsolute    , &
-               &         odeToleranceRelative    , &
-               &         reset=odeReset            &
-               &        )
+          call solver%solve(timeActual,self%ageTableTime(iTime),expansionFactor)
           self%ageTableExpansionFactor(iTime)=expansionFactor(1)
        end if
     end do
-    if (.not.odeReset) call ODE_Solver_Free(odeStepper,odeController,odeEvolver,odeSystem)
-    call Interpolate_Done(self%interpolationObject,self%interpolationAccelerator,self%resetInterpolation)
-    self%resetInterpolation=.true.
+    ! Build the interpolator.
+    if (allocated(self%interpolatorTime)) deallocate(self%interpolatorTime)
+    allocate(self%interpolatorTime)
+    self%interpolatorTime=interpolator(self%ageTableExpansionFactor,self%ageTableTime)
     ! Flag that the table is now initialized.
     self%ageTableInitialized=.true.
     return
@@ -1045,21 +970,22 @@ contains
 
   integer function matterLambdaAgeTableODEs(t,a,dadt)
     !% System of differential equations to solve for expansion factor vs. age.
+    use :: Interface_GSL, only : GSL_Success
+    implicit none
     double precision              , intent(in   ) :: t
     double precision, dimension(:), intent(in   ) :: a
     double precision, dimension(:), intent(  out) :: dadt
-    !GCC$ attributes unused :: t
+    !$GLC attributes unused :: t
 
     ! For this ODE system we are always interested in the expanding phase of the Universe, so we use the absolute value of the
     ! expansion rate in case the universe is defined during a collapsing phase.
     dadt(1)=a(1)*abs(matterLambdaSelfGlobal%expansionRate(a(1)))
-    matterLambdaAgeTableODEs=FGSL_Success
+    matterLambdaAgeTableODEs=GSL_Success
   end function matterLambdaAgeTableODEs
 
   double precision function matterLambdaTimeAtDistanceComoving(self,comovingDistance)
     !% Returns the cosmological time corresponding to given {\normalfont \ttfamily comovingDistance}.
-    use :: Galacticus_Error       , only : Galacticus_Error_Report
-    use :: Numerical_Interpolation, only : Interpolate
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout) :: self
     double precision                                , intent(in   ) :: comovingDistance
@@ -1068,8 +994,6 @@ contains
 
     ! Quit on invalid input.
     if (comovingDistance < 0.0d0) call Galacticus_Error_Report('comoving distance must be positive'//{introspection:location})
-    ! Get lock on interpolation tables.
-    !$ call OMP_Set_Lock(self%distanceTableLock)
     ! Check if we need to recompute our table.
     remakeTable=.true.
     do while (remakeTable)
@@ -1084,24 +1008,13 @@ contains
        if (remakeTable) call self%distanceTabulate(time)
     end do
     ! Interpolate to get the comoving distance.
-    matterLambdaTimeAtDistanceComoving                                &
-         & =Interpolate(                                              &
-         &              self%distanceTableComovingDistanceNegated   , &
-         &              self%distanceTableTime                      , &
-         &              self%interpolationObjectDistanceInverse     , &
-         &              self%interpolationAcceleratorDistanceInverse, &
-         &              -comovingDistance                           , &
-         &              reset=self%resetInterpolationDistanceInverse  &
-         &             )
-    ! Release lock on interpolation tables.
-    !$ call OMP_Unset_Lock(self%distanceTableLock)
+    matterLambdaTimeAtDistanceComoving=self%interpolatorDistanceInverse%interpolate(-comovingDistance)
     return
   end function matterLambdaTimeAtDistanceComoving
 
   double precision function matterLambdaDistanceComoving(self,time)
     !% Returns the comoving distance to cosmological time {\normalfont \ttfamily time}.
-    use :: Galacticus_Error       , only : Galacticus_Error_Report
-    use :: Numerical_Interpolation, only : Interpolate
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout) :: self
     double precision                                , intent(in   ) :: time
@@ -1116,8 +1029,6 @@ contains
        write (timeNowLabel,'(e12.6)') self%cosmicTime(1.0d0)
        call Galacticus_Error_Report('cosmological time ['//trim(timeLabel)//'] must be in the past [≤'//trim(timeNowLabel)//']'//{introspection:location})
     end if
-    ! Get lock on interpolation tables.
-    !$ call OMP_Set_Lock(self%distanceTableLock)
     ! Check if we need to recompute our table.
     if (self%distanceTableInitialized) then
        remakeTable=(time < self%distanceTableTime(1).or.time > self%distanceTableTime(self%distanceTableNumberPoints))
@@ -1129,17 +1040,7 @@ contains
     if (self%collapsingUniverse.and.time>self%timeMaximum) &
          & call Galacticus_Error_Report('cosmological time exceeds that at the Big Crunch'//{introspection:location})
     ! Interpolate to get the comoving distance.
-    matterLambdaDistanceComoving                               &
-         & =Interpolate(                                       &
-         &              self%distanceTableTime               , &
-         &              self%distanceTableComovingDistance   , &
-         &              self%interpolationObjectDistance     , &
-         &              self%interpolationAcceleratorDistance, &
-         &              time                                 , &
-         &              reset=self%resetInterpolationDistance  &
-         &             )
-    ! Release lock on interpolation tables.
-    !$ call OMP_Unset_Lock(self%distanceTableLock)
+    matterLambdaDistanceComoving=self%interpolatorDistance%interpolate(time)
     return
   end function matterLambdaDistanceComoving
 
@@ -1171,7 +1072,6 @@ contains
     !% Convert between different measures of distance.
     use :: Cosmology_Functions_Options, only : distanceTypeComoving
     use :: Galacticus_Error           , only : Galacticus_Error_Report
-    use :: Numerical_Interpolation    , only : Interpolate
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
     integer                                         , intent(in   )           :: output
@@ -1180,8 +1080,6 @@ contains
     logical                                                                   :: gotComovingDistance
     double precision                                                          :: comovingDistance   , luminosityDistance
 
-    ! Get lock on interpolation tables.
-    !$ call OMP_Set_Lock(self%distanceTableLock)
     ! Check if we need to recompute our table.
     if (.not.self%distanceTableInitialized) call self%distanceTabulate(self%cosmicTime(1.0d0))
     ! Convert to comoving distance from whatever was supplied.
@@ -1196,34 +1094,16 @@ contains
        do while (luminosityDistance > -self%distanceTableLuminosityDistanceNegated(1))
           call self%distanceTabulate(0.5d0*self%distanceTableTimeMinimum)
        end do
-       comovingDistance                                                                &
-            & =-Interpolate(                                                           &
-            &               self%distanceTableLuminosityDistanceNegated              , &
-            &               self%distanceTableComovingDistanceNegated                , &
-            &               self%interpolationObjectLuminosityDistance               , &
-            &               self%interpolationAcceleratorLuminosityDistance          , &
-            &               -luminosityDistance                                      , &
-            &               reset=self%resetInterpolationLuminosityDistance            &
-            &              )
+       comovingDistance   =-self%interpolatorLuminosityDistance%interpolate(-luminosityDistance)
        gotComovingDistance=.true.
     else if (present(distanceModulusKCorrected)) then
        luminosityDistance=10.0d0**((distanceModulusKCorrected-25.0d0)/5.0d0)
        do while (luminosityDistance > -self%distanceTableLuminosityDistanceKCorrectedNegated(1))
           call self%distanceTabulate(0.5d0*self%distanceTableTimeMinimum)
        end do
-       comovingDistance                                                                &
-            & =-Interpolate(                                                           &
-            &               self%distanceTableLuminosityDistanceKCorrectedNegated    , &
-            &               self%distanceTableComovingDistanceNegated                , &
-            &               self%interpolationObjectLuminosityDistanceKCorrected     , &
-            &               self%interpolationAcceleratorLuminosityDistanceKCorrected, &
-            &               -luminosityDistance                                      , &
-            &               reset=self%resetInterpolationLuminosityDistanceKCorrected  &
-            &              )
+       comovingDistance   =-self%interpolatorLuminosityDistanceKCorrected%interpolate(-luminosityDistance)
        gotComovingDistance=.true.
     end if
-    ! Release lock on interpolation tables.
-    !$ call OMP_Unset_Lock(self%distanceTableLock)
     if (present(redshift)) then
        comovingDistance   =self%distanceComoving(self%cosmicTime(self%expansionFactorFromRedshift(redshift)))
        gotComovingDistance=.true.
@@ -1241,20 +1121,53 @@ contains
     return
   end function matterLambdaDistanceComovingConvert
 
+  double precision function matterLambdaDistanceParticleHorizonComoving(self,time)
+    !% Returns the comoving distance to the particle horizon at cosmological time {\normalfont \ttfamily time}.
+    use :: Numerical_Integration, only : integrator
+    implicit none
+    class           (cosmologyFunctionsMatterLambda), intent(inout) :: self
+    double precision                                , intent(in   ) :: time
+    type            (integrator                    ), allocatable   :: integrator_
+
+    integrator_                                =integrator           (integrandParticleHorizon,toleranceRelative=1.0d-6)
+    matterLambdaDistanceParticleHorizonComoving=integrator_%integrate(0.0d0                   ,                  time  )
+    return
+
+  contains
+
+    double precision function integrandParticleHorizon(time)
+      !% Integrand used to compute the distance to the comoving particle horizon.
+      use :: Numerical_Constants_Physical    , only : speedLight
+      use :: Numerical_Constants_Astronomical, only : megaParsec, gigaYear
+      implicit none
+      double precision, intent(in   ) :: time
+
+      if (time > 0.0d0) then
+         integrandParticleHorizon=+     speedLight            &
+              &                   *     gigaYear              &
+              &                   /     megaParsec            &
+              &                   /self%expansionFactor(time)
+      else
+         integrandParticleHorizon=0.0d0
+      end if
+      return
+    end function integrandParticleHorizon
+    
+  end function matterLambdaDistanceParticleHorizonComoving
+  
   subroutine matterLambdaMakeDistanceTable(self,time)
     !% Builds a table of distance vs. time.
-    use :: Memory_Management      , only : allocateArray   , deallocateArray
-    use :: Numerical_Integration  , only : Integrate       , Integrate_Done
-    use :: Numerical_Interpolation, only : Interpolate_Done
-    use :: Numerical_Ranges       , only : Make_Range      , rangeTypeLogarithmic
+    use :: Memory_Management    , only : allocateArray, deallocateArray
+    use :: Numerical_Integration, only : integrator
+    use :: Numerical_Ranges     , only : Make_Range   , rangeTypeLogarithmic
+    use :: Numerical_Constants_Astronomical, only : gigaYear  , megaParsec
+    use :: Numerical_Constants_Physical    , only : speedLight
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout), target :: self
     double precision                                , intent(in   )         :: time
-    double precision                                , parameter             :: toleranceAbsolute   =1.0d-5, toleranceRelative=1.0d-5
+    double precision                                , parameter             :: toleranceAbsolute=1.0d-5, toleranceRelative=1.0d-5
     integer                                                                 :: iTime
-    logical                                                                 :: resetIntegration
-    type            (fgsl_function                 )                        :: integrandFunction
-    type            (fgsl_integration_workspace    )                        :: integrationWorkspace
+    type            (integrator                    )                        :: integrator_
 
     ! Find minimum and maximum times to tabulate.
     self%distanceTableTimeMinimum=min(self%distanceTableTimeMinimum,0.5d0*time)
@@ -1276,20 +1189,20 @@ contains
     ! Create the range of times.
     self% distanceTableTime=Make_Range(self%distanceTableTimeMinimum,self%distanceTableTimeMaximum,self%distanceTableNumberPoints,rangeTypeLogarithmic)
     ! Integrate to get the comoving distance.
-    resetIntegration       =  .true.
+    integrator_            =  integrator(                                                         &
+         &                                                 matterLambdaComovingDistanceIntegrand, &
+         &                               toleranceAbsolute=toleranceAbsolute                    , &
+         &                               toleranceRelative=toleranceRelative                      &
+         &                              )
     matterLambdaSelfGlobal => self
     do iTime=1,self%distanceTableNumberPoints
-       self%distanceTableComovingDistance(iTime)                                                       &
-            & =Integrate(                                                                              &
-            &            self%expansionFactor(self%distanceTableTime(iTime                         )), &
-            &            self%expansionFactor(self%distanceTableTime(self%distanceTableNumberPoints)), &
-            &            matterLambdaComovingDistanceIntegrand                                       , &
-            &            integrandFunction                                                           , &
-            &            integrationWorkspace                                                        , &
-            &            toleranceAbsolute=toleranceAbsolute                                         , &
-            &            toleranceRelative=toleranceRelative                                         , &
-            &            reset=resetIntegration                                                        &
-            &           )
+       self%distanceTableComovingDistance(iTime)=+integrator_%integrate(                                                                              &
+            &                                                           self%expansionFactor(self%distanceTableTime(iTime                         )), &
+            &                                                           self%expansionFactor(self%distanceTableTime(self%distanceTableNumberPoints))  &
+            &                                                          )                                                                              &
+            &                                    *speedLight                                                                                          &
+            &                                    *gigaYear                                                                                            &
+            &                                    /megaParsec       
        self              %distanceTableLuminosityDistanceNegated              (iTime)   &
             & =      self%distanceTableComovingDistance                       (iTime)   &
             &       /self%expansionFactor              (self%distanceTableTime(iTime))
@@ -1297,33 +1210,34 @@ contains
             & =      self%distanceTableComovingDistance                       (iTime)   &
             &  /sqrt(self%expansionFactor              (self%distanceTableTime(iTime)))
     end do
-    call Integrate_Done(integrandFunction,integrationWorkspace)
     ! Make a negated copy of the distances so that we have an increasing array for use in interpolation routines.
     self%distanceTableComovingDistanceNegated            =-self%distanceTableComovingDistance
     self%distanceTableLuminosityDistanceNegated          =-self%distanceTableLuminosityDistanceNegated
     self%distanceTableLuminosityDistanceKCorrectedNegated=-self%distanceTableLuminosityDistanceKCorrectedNegated
-    ! Reset interpolators.
-    call Interpolate_Done(self%interpolationObjectDistance                    ,self%interpolationAcceleratorDistance                    ,self%resetInterpolationDistance                    )
-    call Interpolate_Done(self%interpolationObjectDistanceInverse             ,self%interpolationAcceleratorDistanceInverse             ,self%resetInterpolationDistanceInverse             )
-    call Interpolate_Done(self%interpolationObjectLuminosityDistance          ,self%interpolationAcceleratorLuminosityDistance          ,self%resetInterpolationLuminosityDistance          )
-    call Interpolate_Done(self%interpolationObjectLuminosityDistanceKCorrected,self%interpolationAcceleratorLuminosityDistanceKCorrected,self%resetInterpolationLuminosityDistanceKCorrected)
-    self%resetInterpolationDistance                    =.true.
-    self%resetInterpolationDistanceInverse             =.true.
-    self%resetInterpolationLuminosityDistance          =.true.
-    self%resetInterpolationLuminosityDistanceKCorrected=.true.
+    ! Build interpolators.
+    if (allocated(self%interpolatorDistance                    )) deallocate(self%interpolatorDistance                    )
+    if (allocated(self%interpolatorDistanceInverse             )) deallocate(self%interpolatorDistanceInverse             )
+    if (allocated(self%interpolatorLuminosityDistance          )) deallocate(self%interpolatorLuminosityDistance          )
+    if (allocated(self%interpolatorLuminosityDistanceKCorrected)) deallocate(self%interpolatorLuminosityDistanceKCorrected)
+    allocate(self%interpolatorDistance                    )
+    allocate(self%interpolatorDistanceInverse             )
+    allocate(self%interpolatorLuminosityDistance          )
+    allocate(self%interpolatorLuminosityDistanceKCorrected)
+    self%interpolatorDistance                    =interpolator(self%distanceTableTime                               ,self%distanceTableComovingDistance       )
+    self%interpolatorDistanceInverse             =interpolator(self%distanceTableComovingDistanceNegated            ,self%distanceTableTime                   )
+    self%interpolatorLuminosityDistance          =interpolator(self%distanceTableLuminosityDistanceNegated          ,self%distanceTableComovingDistanceNegated)
+    self%interpolatorLuminosityDistanceKCorrected=interpolator(self%distanceTableLuminosityDistanceKCorrectedNegated,self%distanceTableComovingDistanceNegated)
     ! Flag that the table is now initialized.
-    self%distanceTableInitialized                      =.true.
+    self%distanceTableInitialized=.true.
     return
   end subroutine matterLambdaMakeDistanceTable
 
   double precision function matterLambdaComovingDistanceIntegrand(expansionFactor)
     !% Integrand function used in computing the comoving distance.
-    use :: Numerical_Constants_Astronomical, only : gigaYear  , megaParsec
-    use :: Numerical_Constants_Physical    , only : speedLight
     implicit none
     double precision, intent(in   ) :: expansionFactor
 
-    matterLambdaComovingDistanceIntegrand=speedLight*gigaYear/megaParsec/expansionFactor**2/matterLambdaSelfGlobal%expansionRate(expansionFactor)
+    matterLambdaComovingDistanceIntegrand=1.0d0/expansionFactor**2/matterLambdaSelfGlobal%expansionRate(expansionFactor)
     return
   end function matterLambdaComovingDistanceIntegrand
 
@@ -1332,7 +1246,7 @@ contains
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
     double precision                                , intent(in   ), optional :: expansionFactor, time
-    !GCC$ attributes unused :: self, time, expansionFactor
+    !$GLC attributes unused :: self, time, expansionFactor
 
     matterLambdaEquationOfStateDarkEnergy=-1.0d0
     return
@@ -1343,7 +1257,7 @@ contains
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
     double precision                                , intent(in   ), optional :: expansionFactor, time
-    !GCC$ attributes unused :: self, time, expansionFactor
+    !$GLC attributes unused :: self, time, expansionFactor
 
     matterLambdaExponentDarkEnergy=0.0d0
     return

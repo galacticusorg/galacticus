@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +22,10 @@
   use :: ISO_Varying_String, only : varying_string
 
   !# <posteriorSampleStateInitialize name="posteriorSampleStateInitializeResume">
-  !#  <description>A posterior sampling state initialization class which sets initial state to that at the end of a previous simulation.</description>
+  !#  <description>
+  !#   This class resumes from a previous simulation by setting the chain states to the states at the end of that simulation. The
+  !#   {\normalfont \ttfamily [logFileRoot]} parameter is used to specify the log-file root name used in the previous simulation.
+  !# </description>
   !# </posteriorSampleStateInitialize>
   type, extends(posteriorSampleStateInitializeClass) :: posteriorSampleStateInitializeResume
      !% Implementation of a posterior sampling state initialization class which sets initial state to that at the end of a previous simulation.
@@ -52,17 +55,13 @@ contains
 
     !# <inputParameter>
     !#   <name>logFileRoot</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The root file name of the stae files from which to resume.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>restoreState</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>If true, restore the state of the simulation.</description>
     !#   <source>parameters</source>
-    !#   <type>logical</type>
     !# </inputParameter>
     self=posteriorSampleStateInitializeResume(logFileRoot,restoreState)
     !# <inputParametersValidate source="parameters"/>
@@ -82,7 +81,7 @@ contains
 
   subroutine resumeInitialize(self,simulationState,modelParameters_,modelLikelihood,timeEvaluatePrevious,logLikelihood,logPosterior)
     !% Initialize simulation state by drawing at random from the parameter priors.
-    use :: Galacticus_Display          , only : Galacticus_Display_Message
+    use :: Display                     , only : displayMessage
     use :: Galacticus_Error            , only : Galacticus_Error_Report
     use :: MPI_Utilities               , only : mpiSelf
     use :: Models_Likelihoods_Constants, only : logImpossible
@@ -160,7 +159,7 @@ contains
                &  ' -> value   = '       //trim(labelValue  )                             //char(10)// &
                &  ' -> minimum = '       //trim(labelMinimum)                             //char(10)// &
                &  ' -> maximum = '       //trim(labelMaximum)
-          call Galacticus_Display_Message(message)
+          call displayMessage(message)
        end if
     end do
     ! Deallocate the state vector.

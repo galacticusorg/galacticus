@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -89,52 +89,38 @@ contains
 
     !# <inputParameter>
     !#   <name>fileName</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The name of the file containing the target spin distribution.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>distributionType</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The name of the spin distribution to use.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>redshift</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The redshift at which to compute the spin distribution.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massParticle</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The mass of a particle in the N-body simulation.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massHaloMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The minimum halo mass over which to integrate.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>particleCountMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The minimum particle count used in N-body halos.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>energyEstimateParticleCountMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The maximum number of N-body particles used in estimating halo energies.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>logNormalRange</name>
@@ -142,8 +128,6 @@ contains
     !#   <defaultValue>100.0d0</defaultValue>
     !#   <defaultSource>A large range which will include (almost) the entirety of the distribution.</defaultSource>
     !#   <description>The multiplicative range of the log-normal distribution used to model the distribution of the mass and energy terms in the spin parameter. Specifically, the lognormal distribution is truncated outside the range $(\lambda_\mathrm{m}/R,\lambda_\mathrm{m} R$, where $\lambda_\mathrm{m}$ is the measured spin, and $R=${\normalfont \ttfamily [logNormalRange]}</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
      !# <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
     !# <objectBuilder class="haloMassFunction"             name="haloMassFunction_"             source="parameters"/>
@@ -234,12 +218,11 @@ contains
 
   double precision function spinDistributionEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
     !% Return the log-likelihood for the halo spin distribution likelihood function.
-    use :: FGSL                          , only : fgsl_function                  , fgsl_integration_workspace
     use :: Galacticus_Error              , only : Galacticus_Error_Report
     use :: Galacticus_Nodes              , only : nodeComponentBasic             , nodeComponentSpin            , treeNode
     use :: Halo_Spin_Distributions       , only : haloSpinDistributionBett2007   , haloSpinDistributionLogNormal, haloSpinDistributionNbodyErrors
     use :: Models_Likelihoods_Constants  , only : logImpossible
-    use :: Numerical_Integration         , only : Integrate                      , Integrate_Done
+    use :: Numerical_Integration         , only : integrator
     use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
     use :: Posterior_Sampling_State      , only : posteriorSampleStateClass
     implicit none
@@ -259,10 +242,9 @@ contains
     class           (haloSpinDistributionLogNormal            ), pointer                     :: distributionLogNormal
     class           (haloSpinDistributionBett2007             ), pointer                     :: distributionBett2007
     type            (haloSpinDistributionNbodyErrors          )                              :: distributionNbody
-    type            (fgsl_function                            )                              :: integrandFunction
-    type            (fgsl_integration_workspace               )                              :: integrationWorkspace
+    type            (integrator                               )                              :: integrator_
     integer                                                                                  :: i
-    !GCC$ attributes unused :: simulationConvergence, temperature, timeEvaluate, logLikelihoodCurrent, logPriorCurrent, modelParametersInactive_, forceAcceptance
+    !$GLC attributes unused :: simulationConvergence, temperature, timeEvaluate, logLikelihoodCurrent, logPriorCurrent, modelParametersInactive_, forceAcceptance
 
     ! There is no variance in our likelihood estimate.
     if (present(logLikelihoodVariance)) logLikelihoodVariance=0.0d0
@@ -342,21 +324,10 @@ contains
     call nodeBasic%timeSet(self%time)
     ! Compute the spin distribution. The spin distribution is averaged over the width of each bin.
     allocate(distribution(size(self%spin)))
+    integrator_=integrator(spinDistributionIntegrate,toleranceRelative=1.0d-6)
     do i=1,size(self%spin)
-       distribution(i)=+Integrate(                                  &
-            &                     self%spinMinimum(i)             , &
-            &                     self%spinMaximum(i)             , &
-            &                     spinDistributionIntegrate       , &
-            &                     integrandFunction               , &
-            &                     integrationWorkspace            , &
-            &                     toleranceAbsolute        =0.0d+0, &
-            &                     toleranceRelative        =1.0d-6  &
-            &                    )                                  &
-            &          /log10(                                      &
-            &                 +self%spinMaximum(i)                  &
-            &                 /self%spinMinimum(i)                  &
-            &                )
-       call Integrate_Done(integrandFunction,integrationWorkspace)
+       distribution(i)=+integrator_%integrate( self%spinMinimum(i),self%spinMaximum(i)) &
+            &          /log10                (+self%spinMaximum(i)/self%spinMinimum(i))
     end do
     ! Evaluate the log-likelihood.
     spinDistributionEvaluate=-0.5d0*sum(((distribution-self%distribution)/self%distributionError)**2,mask=self%distributionError > 0.0d0)
@@ -385,7 +356,7 @@ contains
     !% Respond to possible changes in the likelihood function.
     implicit none
     class(posteriorSampleLikelihoodSpinDistribution), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     return
   end subroutine spinDistributionFunctionChanged

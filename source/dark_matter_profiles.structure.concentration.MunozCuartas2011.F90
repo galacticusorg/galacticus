@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -25,7 +25,19 @@
   use :: Virial_Density_Contrast , only : virialDensityContrastBryanNorman1998
 
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationMunozCuartas2011">
-  !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{munoz-cuartas_redshift_2011}.</description>
+  !#  <description>
+  !#   A dark matter profile concentration class in which the concentration is computed using a fitting function from
+  !#   \cite{munoz-cuartas_redshift_2011}:
+  !#   \begin{equation}
+  !#   \log_{10} c = a \log_{10} \left( {M_\mathrm{halo} \over h^{-1}M_\odot} \right) + b.
+  !#   \end{equation}
+  !#   The parameters are a functon of redshift, $z$, given by
+  !#   \begin{eqnarray}
+  !#   a &amp;=&amp; wz-m, \\
+  !#   b &amp;=&amp; {\alpha \over (z+\gamma)} + {\beta \over (z+\gamma)^2},
+  !#   \end{eqnarray}
+  !#   where $w=0.029$, $m=0.097$, $\alpha=-110.001$, $\beta=2469.720$, $\gamma=16.885$.
+  !#  </description>
   !#  <deepCopy>
   !#   <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
   !#  </deepCopy>
@@ -86,10 +98,32 @@ contains
     allocate(self%virialDensityContrastDefinition_)
     allocate(self%darkMatterProfileDMODefinition_ )
     allocate(     darkMatterHaloScaleDefinition_  )
-    !# <referenceConstruct owner="self" object="virialDensityContrastDefinition_" constructor="virialDensityContrastBryanNorman1998              (self%cosmologyParameters_,self%cosmologyFunctions_                                      )"/>
-    !# <referenceConstruct              object="darkMatterHaloScaleDefinition_"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,self%virialDensityContrastDefinition_)"/>
-    !# <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_"  constructor="darkMatterProfileDMONFW                           (darkMatterHaloScaleDefinition_                                                          )"/>
-    !# <objectDestructor                name  ="darkMatterHaloScaleDefinition_"                                                                                                                                                             />
+    !# <referenceConstruct owner="self" object="virialDensityContrastDefinition_">
+    !#  <constructor>
+    !#   virialDensityContrastBryanNorman1998              (                                                                            &amp;
+    !#    &amp;                                             cosmologyParameters_                =self%cosmologyParameters_            , &amp;
+    !#    &amp;                                             cosmologyFunctions_                 =self%cosmologyFunctions_               &amp;
+    !#    &amp;                                            )
+    !#  </constructor>
+    !# </referenceConstruct>
+    !# <referenceConstruct              object="darkMatterHaloScaleDefinition_"  >
+    !#  <constructor>
+    !#   darkMatterHaloScaleVirialDensityContrastDefinition(                                                                            &amp;
+    !#    &amp;                                             cosmologyParameters_                =self%cosmologyParameters_            , &amp;
+    !#    &amp;                                             cosmologyFunctions_                 =self%cosmologyFunctions_             , &amp;
+    !#    &amp;                                             virialDensityContrast_              =self%virialDensityContrastDefinition_  &amp;
+    !#    &amp;                                            )
+    !#  </constructor>
+    !# </referenceConstruct>
+    !# <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_" >
+    !#  <constructor>
+    !#   darkMatterProfileDMONFW                           (                                                                            &amp;
+    !#    &amp;                                             velocityDispersionUseSeriesExpansion=.true.                               , &amp;
+    !#    &amp;                                             darkMatterHaloScale_                =darkMatterHaloScaleDefinition_         &amp;
+    !#    &amp;                                            )
+    !#  </constructor>
+    !# </referenceConstruct>
+    !# <objectDestructor                name  ="darkMatterHaloScaleDefinition_" />
     return
   end function munozCuartas2011ConstructorInternal
 
@@ -120,7 +154,7 @@ contains
     double precision                                                                         :: a                                  , b                             , &
          &                                                                                      concentrationLogarithmic           , haloMassLogarithmic           , &
          &                                                                                      redshift
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Get required objects.
     basic => node%basic()

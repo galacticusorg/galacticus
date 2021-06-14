@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,9 +27,10 @@ module Hot_Halo_Outflows_Reincorporations
   !# <functionClass>
   !#  <name>hotHaloOutflowReincorporation</name>
   !#  <descriptiveName>Hot Halo Outflow Reincorporation</descriptiveName>
-  !#  <description>Class implementing reincorportation of outflowed mass into the hot halo.</description>
+  !#  <description>
+  !#   Class providing models of reincorportation of outflowed mass into the hot halo.
+  !#  </description>
   !#  <default>haloDynamicalTime</default>
-  !#  <calculationReset>yes</calculationReset>
   !#  <method name="rate" >
   !#   <description>Return the rate at which outflowed mass is being reincorporated into the hot halo.</description>
   !#   <type>double precision</type>

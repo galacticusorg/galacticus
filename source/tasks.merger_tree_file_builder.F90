@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -36,7 +36,150 @@
   end type propertyColumn
 
   !# <task name="taskMergerTreeFileBuilder">
-  !#  <description>A task which computes and outputs the halo mass function and related quantities.</description>
+  !#  <description>
+  !#   This task will build a merger tree file in the format described
+  !#   \href{https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format}{here} from merger tree descriptions in other
+  !#   formats, such as ASCII output from an SQL database. An example of how the builder can be used can be found in this
+  !#   \href{https://github.com/galacticusorg/galacticus/wiki/Tutorial:-Building-merger-trees-from-ASCII-files}{tutorial}.
+  !#   
+  !#   The builder is flexible, and therefore requires many parameters to control how it processes input files, all of which are
+  !#   described below.
+  !#   
+  !#   The builder reads from an ASCII file containing one halo per line. The {\normalfont \ttfamily [property]} sub-parameters allow
+  !#   specification of which properties are present in the file, and in which column. The builder can optionally also read a file of
+  !#   associated particle data---this can be used to assign positions to orphan halos if desired.
+  !#   
+  !#   The merger tree file builder can currently export in one of two formats:
+  !#   \begin{description}
+  !#   \item [{\normalfont \ttfamily galacticus}] merger trees are exported in \glc's native format described in detail
+  !#     \href{https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format}{here};
+  !#   \item [{\normalfont \ttfamily irate}] merger trees are exported in the \href{https://irate-format.readthedocs.io/en/stable/formatspec.html}{\normalfont
+  !#       \ttfamily IRATE} format.
+  !#   \end{description}
+  !#   
+  !#   Properties to read from the file are specified through multiple {\normalfont \ttfamily property} sub-parameter sections, which take the form:
+  !#   \begin{verbatim}
+  !#    <property>
+  !#     <name             value="propertyName"/>
+  !#     <column           value="columnNumber"/>
+  !#     <conversionFactor value="1.0e0"       />
+  !#    </property>
+  !#   \end{verbatim}
+  !#   where {\normalfont \ttfamily [name]} is the property name (see below), {\normalfont \ttfamily [column]} is the column number
+  !#   (starting from 1) from which to read the property, and the optional {\normalfont \ttfamily [conversionFactor]} specifies an
+  !#   additional factor by which the property should be multiplied to place it into the correct internal units for \glc\footnote{The
+  !#     units for masses, lengths, and velocities in the input file are specified in their own parameter sub-sections. Conversion from
+  !#     these units to \glc's internal units is performed automatically. However, sometimes the input data may have inconsistent units
+  !#     between columns (e.g. positions in units of Mpc, but scale radii in units of kpc). In such cases this additional conversion
+  !#     factor can be applied to bring all quantities into a consistent unit system.}.
+  !#   
+  !#   Recognized property names are
+  !#   \begin{description}
+  !#   \item [{\normalfont \ttfamily treeIndex}] A unique ID number for the tree to which this node belongs;
+  !#   \item [{\normalfont \ttfamily nodeIndex}] An ID (unique within the tree) for this node;
+  !#   \item [{\normalfont \ttfamily descendentIndex}] The ID of the node's descendent node;
+  !#   \item [{\normalfont \ttfamily hostIndex}] The ID of the larger halo in which this node is hosted (equal to the node's own ID if
+  !#   the node is self-hosting);
+  !#   \item [{\normalfont \ttfamily redshift}] The redshift of the node;
+  !#   \item [{\normalfont \ttfamily nodeMass}] The mass of the node;
+  !#   \item [{\normalfont \ttfamily particleCount}] The number of particles in the node;
+  !#   \item [{\normalfont \ttfamily positionX}] The $x$-position of the node (if present, both $y$ and $z$ components must also be
+  !#   present);
+  !#   \item [{\normalfont \ttfamily positionY}] The $y$-position of the node (if present, both $x$ and $z$ components must also be
+  !#   present);
+  !#   \item [{\normalfont \ttfamily positionZ}] The $z$-position of the node (if present, both $x$ and $y$ components must also be
+  !#   present);
+  !#   \item [{\normalfont \ttfamily velocityX}] The $x$-velocity of the node (if present, both $y$ and $z$ components must also be
+  !#   present);
+  !#   \item [{\normalfont \ttfamily velocityY}] The $y$-velocity of the node (if present, both $x$ and $z$ components must also be
+  !#   present);
+  !#   \item [{\normalfont \ttfamily velocityZ}] The $z$-velocity of the node (if present, both $x$ and $y$ components must also be
+  !#   present);
+  !#   \item [{\normalfont \ttfamily spinX}] The $x$ component of the node's spin parameter (if present, both $y$ and $z$ components must
+  !#   also be present; cannot be present if spin magnitude is given);
+  !#    \item [{\normalfont \ttfamily spinY}] The $y$ component of the node's spin parameter (if present, both $x$ and $z$ components
+  !#   must also be present; cannot be present if spin magnitude is given);
+  !#    \item [{\normalfont \ttfamily spinZ}] The $z$ component of the node's spin parameter (if present, both $x$ and $y$ components
+  !#   must also be present; cannot be present if spin magnitude is given);
+  !#    \item [{\normalfont \ttfamily spin}] The magnitude of the node's spin parameter (cannot be present if spin vector components are
+  !#   given);
+  !#    \item [{\normalfont \ttfamily angularMomentumX}] The $x$-component of the node's angular momentum (if present, both $y$ and $z$
+  !#   components must also be present; cannot be present if angular momentum magnitude is given);
+  !#    \item [{\normalfont \ttfamily angularMomentumY}] The $y$-component of the node's angular momentum (if present, both $x$ and $z$
+  !#   components must also be present; cannot be present if angular momentum magnitude is given);
+  !#    \item [{\normalfont \ttfamily angularMomentumZ}] The $z$-component of the node's angular momentum (if present, both $x$ and $y$
+  !#   components must also be present; cannot be present if angular momentum magnitude is given);
+  !#    \item [{\normalfont \ttfamily angularMomentum}] The magnitude of the node's angular momentum (cannot be present if angular
+  !#   momentum vector components are given);
+  !#    \item [{\normalfont \ttfamily halfMassRadius}] The half-mass radius of the node;
+  !#    \item [{\normalfont \ttfamily mostBoundParticleIndex}] The index of the most bound particle in this node.
+  !#   \end{description}
+  !#   Not all properties must be specified---any required properties that are not specified will result in an error. Likewise, some
+  !#   properties, if present, require that other properties also be present. For example, if any of the position properties is given
+  !#   then all three positions are required.
+  !#   
+  !#   Properties of particles to read from the (optional) particle data file are specified through multiple {\normalfont \ttfamily
+  !#     particleProperty} sub-parameter sections, which take the form:
+  !#   \begin{verbatim}
+  !#    <particleProperty>
+  !#     <name   value="propertyName"/>
+  !#     <column value="columnNumber"/>
+  !#    </particleProperty>
+  !#   \end{verbatim}
+  !#   where {\normalfont \ttfamily [name]} is the particle property name (see below), {\normalfont \ttfamily [column]} is the column
+  !#   number (starting from 1) from which to read the particle property.
+  !#   
+  !#   Recognized particle property names are
+  !#   \begin{description}
+  !#    \item [{\normalfont \ttfamily particleIndex}] A unique ID for the particle;
+  !#    \item [{\normalfont \ttfamily redshift}] The redshift of the particle;
+  !#    \item [{\normalfont \ttfamily nodeMass}] The mass of the particle;
+  !#    \item [{\normalfont \ttfamily particleCount}] The number of particles in the particle;
+  !#    \item [{\normalfont \ttfamily positionX}] The $x$-position of the particle (if present, both $y$ and $z$ components must also be present);
+  !#    \item [{\normalfont \ttfamily positionY}] The $y$-position of the particle (if present, both $x$ and $z$ components must also be present);
+  !#    \item [{\normalfont \ttfamily positionZ}] The $z$-position of the particle (if present, both $x$ and $y$ components must also be present);
+  !#    \item [{\normalfont \ttfamily velocityX}] The $x$-velocity of the particle (if present, both $y$ and $z$ components must also be present);
+  !#    \item [{\normalfont \ttfamily velocityY}] The $y$-velocity of the particle (if present, both $x$ and $z$ components must also be present);
+  !#    \item [{\normalfont \ttfamily velocityZ}] The $z$-velocity of the particle (if present, both $x$ and $y$ components must also be present).
+  !#   \end{description}
+  !#   
+  !#   The units used in the files are specified via the {\normalfont \ttfamily unitsMass}, {\normalfont \ttfamily unitsLength}, and
+  !#   {\normalfont \ttfamily unitsVelocity} sub-parameter sections. These have the following form:
+  !#   \begin{verbatim}
+  !#    <unitsMass>
+  !#     <name                value="Solar masses/h"/>
+  !#     <unitsInSI           value="1.99e30"       />
+  !#     <hubbleExponent      value="-1"            />
+  !#     <scaleFactorExponent value=" 0"            />
+  !#    </unitsMass>
+  !#   \end{verbatim}
+  !#   where {\normalfont \ttfamily [name]} is a human-readable name for the units, {\normalfont \ttfamily [unitsInSI]} gives the units
+  !#   in the SI system, {\normalfont \ttfamily [hubbleExponent]} specifies the power to which $h$ appears in the units and {\normalfont
+  !#     \ttfamily [scaleFactorExponent]} specifies the number of powers of the expansion factor by which the quantity should be
+  !#   multiplied to place it into physical units.
+  !#   
+  !#   Finally, arbitrary metadata can be added to the file (which can be useful to record, for example, the origin of the data, or
+  !#   details of the simulation, or halo finder used). Metadata is specified via {\normalfont \ttfamily metaData} sub-parameter
+  !#   sections. These have the following form:
+  !#   \begin{verbatim}
+  !#    <metaData>
+  !#     <name    value="simulationCode"/>
+  !#     <content value="Gadget2"       />
+  !#     <type    value="simulation"    />
+  !#    </metaData>
+  !#   \end{verbatim}
+  !#   where {\normalfont \ttfamily [name]} is a name for this metadatum, {\normalfont \ttfamily [content]} is the value for the
+  !#   metadatum (integer, floating point, and text content is allowed), and {\normalfont \ttfamily [type]} specifies the type of
+  !#   metadatum, and must be one of:
+  !#   \begin{description}
+  !#    \item [{\normalfont \ttfamily generic}] Add to the generic {\normalfont \ttfamily metaData} group;
+  !#    \item [{\normalfont \ttfamily cosmology}] Add to the {\normalfont \ttfamily cosmology} group;
+  !#    \item [{\normalfont \ttfamily simulation}] Add to the {\normalfont \ttfamily simulation} group;
+  !#    \item [{\normalfont \ttfamily groupFinder}] Add to the {\normalfont \ttfamily groupFinder} group;
+  !#    \item [{\normalfont \ttfamily treeBuilder}] Add to the {\normalfont \ttfamily treeBuilder} group;
+  !#    \item [{\normalfont \ttfamily provenance}] Add to the {\normalfont \ttfamily provenance} group.
+  !#   \end{description}
+  !#  </description>
   !# </task>
   type, extends(taskClass) :: taskMergerTreeFileBuilder
      !% Implementation of a task which computes and outputs the halo mass function and related quantities.
@@ -116,104 +259,82 @@ contains
 
     !# <inputParameter>
     !#   <name>inputFileName</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The name of the file from which to read merger tree data.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     if (parameters%isPresent('particlesFileName')) then
        !# <inputParameter>
        !#   <name>particlesFileName</name>
-       !#   <cardinality>1</cardinality>
        !#   <description>The name of the file from which to read particle data.</description>
        !#   <source>parameters</source>
-       !#   <type>string</type>
        !# </inputParameter>
     else
        particlesFileName=''
     end if
     !# <inputParameter>
     !#   <name>outputFileName</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The name of the file to which to write merger tree data.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>outputFormat</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The format to use for merger tree output.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>columnHeaders</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>If true, the file is assumed to contain a single line of column headers, which will be skipped.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>columnSeparator</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str(',')</defaultValue>
     !#   <description>The separator for columns.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     if (columnSeparator == "space") columnSeparator=" "
     massParticle%isSet=parameters%isPresent('massParticle')
     if (massParticle%isSet) then
        !# <inputParameter>
        !#   <name>massParticle</name>
-       !#   <cardinality>1</cardinality>
        !#   <description>The mass of the simulation particle.</description>
        !#   <source>parameters</source>
        !#   <variable>massParticle%value</variable>
-       !#   <type>real</type>
        !# </inputParameter>
     end if
     dummyHostId%isSet=parameters%isPresent('dummyHostId')
     if (dummyHostId%isSet) then
        !# <inputParameter>
        !#   <name>dummyHostId</name>
-       !#   <cardinality>1</cardinality>
        !#   <description>If present, specifies the dummy host ID for self-hosting halos. Otherwise, self-hosting halos have {\normalfont \ttfamily hostIndex == nodeIndex}.</description>
        !#   <source>parameters</source>
        !#   <variable>dummyHostId%value</variable>
-       !#   <type>real</type>
        !# </inputParameter>
     end if
     haloMassesIncludeSubhalos%isSet=parameters%isPresent('haloMassesIncludeSubhalos')
     if (haloMassesIncludeSubhalos%isSet) then
        !# <inputParameter>
        !#   <name>haloMassesIncludeSubhalos</name>
-       !#   <cardinality>1</cardinality>
        !#   <description>Specifies whether or not halo masses include the masses of their subhalos.</description>
        !#   <source>parameters</source>
        !#   <variable>haloMassesIncludeSubhalos%value</variable>
-       !#   <type>boolean</type>
        !# </inputParameter>
     end if
     if (includesHubbleFlow%isSet) then
        !# <inputParameter>
        !#   <name>includesHubbleFlow</name>
-       !#   <cardinality>1</cardinality>
        !#   <description>Specifies whether or not Hubble flow is included in velocities.</description>
        !#   <source>parameters</source>
        !#   <variable>includesHubbleFlow%value</variable>
-       !#   <type>boolean</type>
        !# </inputParameter>
     end if
     if (positionsArePeriodic%isSet) then
        !# <inputParameter>
        !#   <name>positionsArePeriodic</name>
-       !#   <cardinality>1</cardinality>
        !#   <description>Specifies whether or not positions are periodic.</description>
        !#   <source>parameters</source>
        !#   <variable>positionsArePeriodic%value</variable>
-       !#   <type>boolean</type>
        !# </inputParameter>
     end if
     !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
@@ -227,17 +348,13 @@ contains
        subParameters=parameters%subParameters('property',requireValue=.false.,copyInstance=i)
        !# <inputParameter>
        !#   <name>name</name>
-       !#   <cardinality>1</cardinality>
        !#   <description>The name of the property to read.</description>
        !#   <source>subParameters</source>
-       !#   <type>string</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>column</name>
-       !#   <cardinality>1</cardinality>
        !#   <description>The column from which to read the property.</description>
        !#   <source>subParameters</source>
-       !#   <type>integer</type>
        !# </inputParameter>
        properties(i)%property              =enumerationPropertyTypeEncode(char(name),includesPrefix=.false.)
        properties(i)%column                =column
@@ -246,10 +363,10 @@ contains
           !# <inputParameter>
           !#   <name>conversionFactor</name>
           !#   <variable>properties(i)%conversionFactor%value</variable>
-          !#   <cardinality>1</cardinality>
           !#   <description>An additional conversion factor to apply to the property to get it into the correct units.</description>
-          !#   <source>subParameters</source>
-          !#   <type>float</type>
+	  !#   <source>subParameters</source>
+	  !#   <type>real</type>
+	  !#   <cardinality>1</cardinality>
           !# </inputParameter>
        end if
        deallocate(subParameters)
@@ -261,17 +378,13 @@ contains
        subParameters=parameters%subParameters('particleProperty',requireValue=.false.,copyInstance=i)
        !# <inputParameter>
        !#   <name>name</name>
-       !#   <cardinality>1</cardinality>
        !#   <description>The name of the particle property to read.</description>
        !#   <source>subParameters</source>
-       !#   <type>string</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>column</name>
-       !#   <cardinality>1</cardinality>
        !#   <description>The column from which to read the particle property.</description>
        !#   <source>subParameters</source>
-       !#   <type>integer</type>
        !# </inputParameter>
        deallocate(subParameters)
        particleProperties(i)%property=enumerationPropertyTypeEncode(char(name),includesPrefix=.false.)
@@ -284,26 +397,20 @@ contains
        subParameters=parameters%subParameters('metaData',requireValue=.false.,copyInstance=i)
        !# <inputParameter>
        !#   <name>name</name>
-       !#   <cardinality>1</cardinality>
        !#   <description>The name of the metadata.</description>
        !#   <source>subParameters</source>
-       !#   <type>string</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>content</name>
        !#   <variable>metaDataContent</variable>
-       !#   <cardinality>1</cardinality>
        !#   <description>The value of the metadata.</description>
        !#   <source>subParameters</source>
-       !#   <type>string</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>type</name>
        !#   <variable>metaDataType</variable>
-       !#   <cardinality>1</cardinality>
        !#   <description>The metadata type.</description>
        !#   <source>subParameters</source>
-       !#   <type>string</type>
        !# </inputParameter>
        deallocate(subParameters)
        metaData(i)%name   =name
@@ -320,34 +427,26 @@ contains
        !# <inputParameter>
        !#   <name>unitsInSI</name>
        !#   <variable>unitsMassInSI</variable>
-       !#   <cardinality>1</cardinality>
        !#   <description>The mass unit in the SI system.</description>
        !#   <source>subParameters</source>
-       !#   <type>float</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>hubbleExponent</name>
        !#   <variable>unitsMassHubbleExponent</variable>
-       !#   <cardinality>1</cardinality>
        !#   <description>The exponent of the ``little-$h$'' Hubble parameter needed to convert the masses to little-$h$-free units.</description>
        !#   <source>subParameters</source>
-       !#   <type>integer</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>scaleFactorExponent</name>
        !#   <variable>unitsMassScaleFactorExponent</variable>
-       !#   <cardinality>1</cardinality>
        !#   <description>The exponent of the cosmological scale factor needed to convert the masses to physical units.</description>
        !#   <source>subParameters</source>
-       !#   <type>integer</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>name</name>
        !#   <variable>unitsMassName</variable>
-       !#   <cardinality>1</cardinality>
        !#   <description>A human-readable name for the units of mass.</description>
        !#   <source>subParameters</source>
-       !#   <type>string</type>
        !# </inputParameter>
        deallocate(subParameters)
     end if
@@ -361,34 +460,26 @@ contains
        !# <inputParameter>
        !#   <name>unitsInSI</name>
        !#   <variable>unitsLengthInSI</variable>
-       !#   <cardinality>1</cardinality>
        !#   <description>The length unit in the SI system.</description>
        !#   <source>subParameters</source>
-       !#   <type>float</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>hubbleExponent</name>
        !#   <variable>unitsLengthHubbleExponent</variable>
-       !#   <cardinality>1</cardinality>
        !#   <description>The exponent of the ``little-$h$'' Hubble parameter needed to convert the lengthes to little-$h$-free units.</description>
        !#   <source>subParameters</source>
-       !#   <type>integer</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>scaleFactorExponent</name>
        !#   <variable>unitsLengthScaleFactorExponent</variable>
-       !#   <cardinality>1</cardinality>
        !#   <description>The exponent of the cosmological scale factor needed to convert the lengthes to physical units.</description>
        !#   <source>subParameters</source>
-       !#   <type>integer</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>name</name>
        !#   <variable>unitsLengthName</variable>
-       !#   <cardinality>1</cardinality>
        !#   <description>A human-readable name for the units of length.</description>
        !#   <source>subParameters</source>
-       !#   <type>string</type>
        !# </inputParameter>
        deallocate(subParameters)
     end if
@@ -402,34 +493,26 @@ contains
        !# <inputParameter>
        !#   <name>unitsInSI</name>
        !#   <variable>unitsVelocityInSI</variable>
-       !#   <cardinality>1</cardinality>
        !#   <description>The velocity unit in the SI system.</description>
        !#   <source>subParameters</source>
-       !#   <type>float</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>hubbleExponent</name>
        !#   <variable>unitsVelocityHubbleExponent</variable>
-       !#   <cardinality>1</cardinality>
        !#   <description>The exponent of the ``little-$h$'' Hubble parameter needed to convert the velocities to little-$h$-free units.</description>
        !#   <source>subParameters</source>
-       !#   <type>integer</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>scaleFactorExponent</name>
        !#   <variable>unitsVelocityScaleFactorExponent</variable>
-       !#   <cardinality>1</cardinality>
        !#   <description>The exponent of the cosmological scale factor needed to convert the velocities to physical units.</description>
        !#   <source>subParameters</source>
-       !#   <type>integer</type>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>name</name>
        !#   <variable>unitsVelocityName</variable>
-       !#   <cardinality>1</cardinality>
        !#   <description>A human-readable name for the units of velocity.</description>
        !#   <source>subParameters</source>
-       !#   <type>string</type>
        !# </inputParameter>
        deallocate(subParameters)
     end if
@@ -490,12 +573,12 @@ contains
     !% Compute and output the halo mass function.
     use :: Cosmology_Parameters      , only : hubbleUnitsLittleH
     use :: Dates_and_Times           , only : Formatted_Date_and_Time
-    use :: Galacticus_Display        , only : Galacticus_Display_Indent, Galacticus_Display_Unindent
+    use :: Display                   , only : displayIndent          , displayUnindent
     use :: Galacticus_Error          , only : errorStatusSuccess
     use :: HDF5                      , only : hsize_t
     use :: Input_Parameters          , only : inputParameters
-    use :: Merger_Tree_Data_Structure, only : mergerTreeData           , metaDataTypeCosmology      , metaDataTypeProvenance, metaDataTypeSimulation, &
-          &                                   unitsLength              , unitsMass                  , unitsVelocity
+    use :: Merger_Tree_Data_Structure, only : mergerTreeData         , metaDataTypeCosmology, metaDataTypeProvenance, metaDataTypeSimulation, &
+          &                                   unitsLength            , unitsMass            , unitsVelocity
     implicit none
     class           (taskMergerTreeFileBuilder), intent(inout), target   :: self
     integer                                    , intent(  out), optional :: status
@@ -507,7 +590,9 @@ contains
     double precision                                                     :: metaDataValueFloat
     character       (len=1024                 )                          :: metaDataText
 
-    call Galacticus_Display_Indent('Begin task: merger tree file builder')
+    call displayIndent('Begin task: merger tree file builder')
+    ! Initialize the data structure.
+    call mergerTrees%reset()
     ! Set columns to read.
     do i=1,size(self%properties)
        call mergerTrees%setPropertyColumn(self%properties(i)%property,self%properties(i)%column)
@@ -541,8 +626,8 @@ contains
     ! Get descriptors.
     descriptorPowerSpectrum   =inputParameters()
     descriptorTransferFunction=inputParameters()
-    call self%powerSpectrumPrimordial_%descriptor(descriptorPowerSpectrum   ,includeMethod=.true.)
-    call self%transferFunction_       %descriptor(descriptorTransferFunction,includeMethod=.true.)
+    call self%powerSpectrumPrimordial_%descriptor(descriptorPowerSpectrum   ,includeClass=.true.)
+    call self%transferFunction_       %descriptor(descriptorTransferFunction,includeClass=.true.)
     ! Set metadata.
     call mergerTrees%addMetadata(metaDataTypeCosmology ,'OmegaMatter'       ,     self%cosmologyParameters_      %OmegaMatter      (                  ) )
     call mergerTrees%addMetadata(metaDataTypeCosmology ,'OmegaBaryon'       ,     self%cosmologyParameters_      %OmegaBaryon      (                  ) )
@@ -582,7 +667,7 @@ contains
     call mergerTrees%export(char(self%outputFileName),self%outputFormat,int(hdfChunkSize,kind=hsize_t),hdfCompressionLevel)
     ! Done.
     if (present(status)) status=errorStatusSuccess
-    call Galacticus_Display_Unindent('Done task: merger tree file builder' )
+    call displayUnindent('Done task: merger tree file builder' )
     return
   end subroutine mergerTreeFileBuilderPerform
 
@@ -590,7 +675,7 @@ contains
     !% Specifies that this task does not require the main output file.
     implicit none
     class(taskMergerTreeFileBuilder), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     mergerTreeFileBuilderRequiresOutputFile=.false.
     return

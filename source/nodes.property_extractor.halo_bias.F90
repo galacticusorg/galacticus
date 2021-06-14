@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +22,10 @@
   use :: Dark_Matter_Halo_Biases, only : darkMatterHaloBias, darkMatterHaloBiasClass
 
   !# <nodePropertyExtractor name="nodePropertyExtractorHaloBias">
-  !#  <description>A node property extractor class for halo bias.</description>
+  !#  <description>
+  !#   A node property extractor which extracts the large scale, lineary theory bias for each node. For satellite nodes, this
+  !#   corresponds to the bias of their host halo.
+  !#  </description>
   !# </nodePropertyExtractor>
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorHaloBias
      !% A node property extractor for halo bias.
@@ -86,7 +89,7 @@ contains
     type            (treeNode                     ), intent(inout), target   :: node
     type            (multiCounter                 ), intent(inout), optional :: instance
     type            (treeNode                     )               , pointer  :: nodeIsolated
-    !GCC$ attributes unused :: instance
+    !$GLC attributes unused :: instance
 
     nodeIsolated => node
     do while (nodeIsolated%isSatellite())
@@ -101,7 +104,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorHaloBias), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     haloBiasType=outputAnalysisPropertyTypeLinear
     return
@@ -112,7 +115,7 @@ contains
     implicit none
     type (varying_string               )                :: haloBiasName
     class(nodePropertyExtractorHaloBias), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     haloBiasName=var_str('nodeBias')
     return
@@ -123,7 +126,7 @@ contains
     implicit none
     type (varying_string               )                :: haloBiasDescription
     class(nodePropertyExtractorHaloBias), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     haloBiasDescription=var_str('The linear bias for this node.')
     return
@@ -133,7 +136,7 @@ contains
     !% Return the units of the {\normalfont \ttfamily haloBias} property in the SI system.
     implicit none
     class(nodePropertyExtractorHaloBias), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     haloBiasUnitsInSI=0.0d0
     return

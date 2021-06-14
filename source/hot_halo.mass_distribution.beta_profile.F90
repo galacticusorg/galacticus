@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,7 +23,17 @@
   use :: Mass_Distributions                    , only : massDistributionBetaProfile
 
   !# <hotHaloMassDistribution name="hotHaloMassDistributionBetaProfile">
-  !#  <description>Provides a $\beta$-profile implementation of the hot halo mass distribution class.</description>
+  !#  <description>
+  !#   A hot halo mass distribution class which adopts a spherically symmetric $\beta$-profile density profile for the hot
+  !#   halo. Specifically,
+  !#   \begin{equation}
+  !#    \rho_\mathrm{hot halo}(r) \propto \left[ r^2 + r_\mathrm{core}^2 \right]^{3\beta/2},
+  !#   \end{equation}
+  !#   where the core radius, $r_\mathrm{core}$, is set using the selected cored profile core radius method (see
+  !#   \refPhysics{hotHaloMassDistributionCoreRadius}). The value of $\beta$ is specified by the {\normalfont
+  !#   \ttfamily [beta]} parameter. The profile is normalized such that the current mass in the hot gas profile is contained
+  !#   within the outer radius of the hot halo, $r_\mathrm{hot, outer}$.
+  !#  </description>
   !# </hotHaloMassDistribution>
   type, extends(hotHaloMassDistributionClass) :: hotHaloMassDistributionBetaProfile
      !% A $\beta$-profile implementation of the hot halo mass distribution class.
@@ -32,15 +42,9 @@
      type            (massDistributionBetaProfile           )          :: distribution
      class           (hotHaloMassDistributionCoreRadiusClass), pointer :: hotHaloMassDistributionCoreRadius_ => null()
    contains
-     !@ <objectMethods>
-     !@   <object>hotHaloMassDistributionBetaProfile</object>
-     !@   <objectMethod>
-     !@     <method>initialize</method>
-     !@     <type>void</type>
-     !@     <arguments>\textcolor{red}{\textless *type(treeNode)\textgreater} node\argin</arguments>
-     !@     <description>Initialize the $\beta$-profile density hot halo mass distribution for the given {\normalfont \ttfamily node}.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Initialize the $\beta$-profile density hot halo mass distribution for the given {\normalfont \ttfamily node}." method="initialize" />
+     !# </methods>
      final     ::                          betaProfileDestructor
      procedure :: initialize            => betaProfileInitialize
      procedure :: density               => betaProfileDensity
@@ -100,11 +104,9 @@ contains
 
     !# <inputParameter>
     !#   <name>beta</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>2.0d0/3.0d0</defaultValue>
     !#   <description>The value of $\beta$ in $\beta$-profile hot halo mass distributions.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="hotHaloMassDistributionCoreRadius" name="hotHaloMassDistributionCoreRadius_" source="parameters"/>
     self=hotHaloMassDistributionBetaProfile(beta,hotHaloMassDistributionCoreRadius_)

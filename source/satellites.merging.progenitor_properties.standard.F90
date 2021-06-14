@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +22,30 @@
   use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
 
   !# <mergerProgenitorProperties name="mergerProgenitorPropertiesStandard">
-  !#  <description>A merger progenitor properties class which uses a standard calculation.</description>
+  !#  <description>
+  !#   A merger progenitor properties class which implements a standard method to compute progenitor properties. Masses of
+  !#   progenitors are set to
+  !#   \begin{equation}
+  !#    M_\mathrm{host|satellite} = \sum_{i=\mathrm{disk|spheroid}} \sum_{j=\mathrm{stars|gas}} M_{i,j},
+  !#   \end{equation}
+  !#   where $M_{i,j}$ is the mass of mass type $j$ in \gls{component} $i$. Masses of progenitors that will end up in the remnant
+  !#   spheroid are set to
+  !#   \begin{equation}
+  !#    M_\mathrm{spheroid\,\,host|satellite} = \sum_{i=\mathrm{disk|spheroid}} \sum_{j=\mathrm{stars|gas}} M_{i,j} \delta_{i,j},
+  !#   \end{equation}
+  !#   where $\delta_{i,j}=0$ of mass type $j$ in \gls{component} $i$ will end up in the remnant spheroid and $0$ otherwise. Radii
+  !#   of material that will end up in the spheroid are set to
+  !#   \begin{equation}
+  !#    r_\mathrm{host|satellite} = {1 \over M_\mathrm{spheroid\,\,host|satellite}} \sum_{i=\mathrm{disk|spheroid}}
+  !#    \sum_{j=\mathrm{stars|gas}} M_{i,j} r_{1/2\,\,i,j} \delta_{i,j}.
+  !#   \end{equation}
+  !#   Finally, the angular momentum factor is set to
+  !#   \begin{equation}
+  !#    f_\mathrm{AM\,\,host|satellite} = {1 \over M_\mathrm{spheroid\,\,host|satellite}} \sum_{i=\mathrm{disk|spheroid}}
+  !#    \sum_{j=\mathrm{stars|gas}} M_{i,j} {J_{i,j} \over \mathrm{G} M^{3/2}_{i,j} r_{1/2\,\,i,j}} \delta_{i,j},
+  !#   \end{equation}
+  !#   where $J_{i,j}$ is the angular momentum or pseudo-angular momentum of mass type $j$ in \gls{component} $i$.
+  !#  </description>
   !# </mergerProgenitorProperties>
   type, extends(mergerProgenitorPropertiesClass) :: mergerProgenitorPropertiesStandard
      !% A merger progenitor properties class which uses a standard calculation.
@@ -124,7 +147,7 @@ contains
     use :: Galactic_Structure_Options        , only : massTypeGalactic
     use :: Galacticus_Error                  , only : Galacticus_Error_Report
     use :: Galacticus_Nodes                  , only : nodeComponentDisk               , nodeComponentSpheroid    , treeNode
-    use :: Numerical_Constants_Physical      , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical  , only : gravitationalConstantGalacticus
     use :: Satellite_Merging_Mass_Movements  , only : destinationMergerDisk           , destinationMergerSpheroid, destinationMergerUnmoved
     implicit none
     class           (mergerProgenitorPropertiesStandard), intent(inout)         :: self
@@ -136,6 +159,7 @@ contains
          &                                                                         radiusSatellite                , massSpheroidSatellite
     class           (nodeComponentDisk                 ), pointer               :: diskHost                       , diskSatellite
     class           (nodeComponentSpheroid             ), pointer               :: spheroidHost                   , spheroidSatellite
+    double precision                                    , parameter             :: massComponentMinimum=1.0d-30
     double precision                                                            :: massComponent                  , factorDarkMatterDiskHost         , &
          &                                                                         radiusHalfMassDiskHost         , factorDarkMatterSpheroidHost     , &
          &                                                                         hostSpheroidHalfMassRadius     , factorDarkMatterDiskSatellite    , &
@@ -161,7 +185,7 @@ contains
     massComponent                  =+spheroidHost     %massStellar   () &
          &                          +spheroidHost     %massGas       ()
     hostSpheroidHalfMassRadius     =+spheroidHost     %halfMassRadius()
-    if (hostSpheroidHalfMassRadius > 0.0d0 .and. massComponent > 0.0d0) then
+    if (hostSpheroidHalfMassRadius > 0.0d0 .and. massComponent > massComponentMinimum) then
        factorDarkMatterSpheroidHost     =+spheroidHost%angularMomentum()                                        &
             &                            /massComponent**1.5d0                                                  &
             &                            /sqrt(gravitationalConstantGalacticus*hostSpheroidHalfMassRadius     )
@@ -171,7 +195,7 @@ contains
     massComponent                  =+    diskHost     %massStellar   () &
         &                           +    diskHost     %massGas       ()
     radiusHalfMassDiskHost         =+    diskHost     %halfMassRadius()
-    if (radiusHalfMassDiskHost > 0.0d0 .and. massComponent > 0.0d0) then
+    if (radiusHalfMassDiskHost > 0.0d0 .and. massComponent > massComponentMinimum) then
        factorDarkMatterDiskHost         =+    diskHost%angularMomentum()                                        &
             &                            /massComponent**1.5d0                                                  &
             &                            /sqrt(gravitationalConstantGalacticus*radiusHalfMassDiskHost         )
@@ -181,7 +205,7 @@ contains
     massComponent                  =+spheroidSatellite%massStellar   () &
          &                          +spheroidSatellite%massGas       ()
     radiusHalfMassSpheroidSatellite=+spheroidSatellite%halfMassRadius()
-    if (radiusHalfMassSpheroidSatellite > 0.0d0 .and. massComponent > 0.0d0) then
+    if (radiusHalfMassSpheroidSatellite > 0.0d0 .and. massComponent > massComponentMinimum) then
        factorDarkMatterSpheroidSatellite=+spheroidSatellite%angularMomentum()                                   &
             &                            /massComponent**1.5d0                                                  &
             &                            /sqrt(gravitationalConstantGalacticus*radiusHalfMassSpheroidSatellite)
@@ -191,7 +215,7 @@ contains
     massComponent                  =+    diskSatellite%massStellar   () &
          &                          +    diskSatellite%massGas       ()
     radiusHalfMassDiskSatellite    =+    diskSatellite%halfMassRadius()
-    if (radiusHalfMassDiskSatellite > 0.0d0 .and. massComponent > 0.0d0) then
+    if (radiusHalfMassDiskSatellite > 0.0d0 .and. massComponent > massComponentMinimum) then
        factorDarkMatterDiskSatellite    =+    diskSatellite%angularMomentum()                                   &
             &                            /massComponent**1.5d0                                                  &
             &                            /sqrt(gravitationalConstantGalacticus*radiusHalfMassDiskSatellite    )
@@ -278,7 +302,7 @@ contains
        call Galacticus_Error_Report('unrecognized moveTo descriptor'//{introspection:location})
     end select
     ! Compute the angular momentum factor.
-    if (massSpheroidSatellite+massSpheroidHost > 0.0d0) then
+    if (massSpheroidSatellite+massSpheroidHost > massComponentMinimum) then
        factorAngularMomentum=factorAngularMomentum/(massSpheroidSatellite+massSpheroidHost)
     else
        factorAngularMomentum=1.0d0

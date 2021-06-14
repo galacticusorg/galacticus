@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -33,21 +33,10 @@
      logical                                    :: surfaceDensityInitialized, massEnclosedInitialized
      type            (table1DLogarithmicLinear) :: surfaceDensityTable      , massEnclosedTable
    contains
-     !@ <objectMethods>
-     !@   <object>massDistributionMiyamotoNagai</object>
-     !@   <objectMethod>
-     !@     <method>surfaceDensityTabulate</method>
-     !@     <description>Initialize the surface density tabulation.</description>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>massEnclosedTabulate</method>
-     !@     <description>Initialize the enclosed mass tabulation.</description>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Initialize the surface density tabulation." method="surfaceDensityTabulate" />
+     !#   <method description="Initialize the enclosed mass tabulation." method="massEnclosedTabulate" />
+     !# </methods>
      procedure :: density                    => miyamotoNagaiDensity
      procedure :: surfaceDensity             => miyamotoNagaiSurfaceDensity
      procedure :: surfaceDensityTabulate     => miyamotoNagaiSurfaceDensityTabulate
@@ -81,35 +70,27 @@ contains
 
     !# <inputParameter>
     !#   <name>a</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The $a$ parameter of the MiyamotoNagai profile.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>b</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The $b$ parameter of the MiyamotoNagai profile.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>mass</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The mass of the MiyamotoNagai profile.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>dimensionless</name>
     !#   <defaultValue>.true.</defaultValue>
-    !#   <cardinality>1</cardinality>
     !#   <description>If true the MiyamotoNagai profile is considered to be dimensionless.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <conditionalCall>
     !#  <call>self=massDistributionMiyamotoNagai({conditions})</call>
@@ -255,17 +236,15 @@ contains
 
   subroutine miyamotoNagaiMassEnclosedTabulate(self)
     !% Construct a tabulation of the mass enclosed by a sphere in a Miyamoto-Nagai mass distribution.
-    use :: FGSL                    , only : fgsl_function               , fgsl_integration_workspace
     use :: Numerical_Constants_Math, only : Pi
-    use :: Numerical_Integration   , only : Integrate                   , Integrate_Done
+    use :: Numerical_Integration   , only : integrator
     use :: Table_Labels            , only : extrapolationTypeExtrapolate
     implicit none
     class           (massDistributionMiyamotoNagai), intent(inout) :: self
     double precision                               , parameter     :: radiusMinimum       =1.0d-6, radiusMaximum =1.0d3
     double precision                               , parameter     :: heightStart         =0.0d+0, heightInfinity=1.0d3
     integer                                        , parameter     :: radiusCount         =300
-    type            (fgsl_function                )                :: integrandFunction
-    type            (fgsl_integration_workspace   )                :: integrationWorkspace
+    type            (integrator                   )                :: integrator_
     integer                                                        :: i
     double precision                                               :: radius
 
@@ -273,25 +252,20 @@ contains
     if (.not.self%massEnclosedInitialized) then
        ! Initialize a table of radii.
        call self%massEnclosedTable%create(radiusMinimum*self%a,radiusMaximum*self%a,radiusCount,1,extrapolationType=spread(extrapolationTypeExtrapolate,1,2))
-       ! Compute surface density at each radius.
+       ! Compute enclosed mass at each radius.
+       integrator_=integrator(integrandR,toleranceRelative=1.0d-3)
        do i=1,radiusCount
-          call self                                                      &
-               & %massEnclosedTable                                      &
-               &  %populate(                                             &
-               &            +4.0d0                                       &
-               &            *Pi                                          &
-               &            *Integrate(                                  &
-               &                       0.0d0                           , &
-               &                       self%massEnclosedTable%x(i)     , &
-               &                       integrandR                      , &
-               &                       integrandFunction               , &
-               &                       integrationWorkspace            , &
-               &                       toleranceAbsolute        =0.0d+0, &
-               &                       toleranceRelative        =1.0d-3  &
-               &                )                                      , &
-               &            i                                            &
+          call self                                                             &
+               & %massEnclosedTable                                             &
+               &  %populate(                                                    &
+               &            +4.0d0                                              &
+               &            *Pi                                                 &
+               &            *integrator_%integrate(                             &
+               &                                   0.0d0                      , &
+               &                                   self%massEnclosedTable%x(i)  &
+               &                                  )                           , &
+               &                                                            i   &
                &           )
-          call Integrate_Done(integrandFunction,integrationWorkspace)
        end do
        ! Find the half-mass radius.
        do i=2,radiusCount
@@ -324,25 +298,19 @@ contains
     double precision function integrandR(r)
       !% Integrand function used for finding the mass enclosed by a sphere in Miyamoto-Nagai disks.
       implicit none
-      double precision                            , intent(in   ) :: r
-      type            (fgsl_function             )                :: integrandFunction1
-      type            (fgsl_integration_workspace)                :: integrationWorkspace1
+      double precision            , intent(in   ) :: r
+      type            (integrator)                :: integrator1_
 
       radius    =+r
-      integrandR=+radius                                                 &
-           &     *Integrate(                                             &
-           &                0.0d0                                      , &
-           &                sqrt(                                        &
-           &                     +self%massEnclosedTable%x(i)**2         &
-           &                     -radius                     **2         &
-           &                    )                                      , &
-           &                integrandZ                                 , &
-           &                integrandFunction1                         , &
-           &                integrationWorkspace1                      , &
-           &                toleranceAbsolute                   =0.0d+0, &
-           &                toleranceRelative                   =1.0d-3  &
-           &               )
-      call Integrate_Done(integrandFunction1,integrationWorkspace1)
+      integrator1_=integrator(integrandZ,toleranceRelative=1.0d-3)
+      integrandR=+                             radius                          &
+           &     *integrator1_%integrate(                                      &
+           &                             0.0d0                               , &
+           &                             sqrt(                                 &
+           &                                  +self%massEnclosedTable%x(i)**2  &
+           &                                  -radius                     **2  &
+           &                                 )                                 &
+           &                            )
       return
     end function integrandR
 
@@ -362,16 +330,14 @@ contains
 
   subroutine miyamotoNagaiSurfaceDensityTabulate(self)
     !% Construct a tabulation of the surface density profile in a Miyamoto-Nagai mass distribution.
-    use :: FGSL                 , only : fgsl_function               , fgsl_integration_workspace
-    use :: Numerical_Integration, only : Integrate                   , Integrate_Done
+    use :: Numerical_Integration, only : integrator
     use :: Table_Labels         , only : extrapolationTypeExtrapolate
     implicit none
     class           (massDistributionMiyamotoNagai), intent(inout) :: self
-    double precision                               , parameter     :: radiusMinimum       =1.0d-6, radiusMaximum =1.0d3
-    double precision                               , parameter     :: heightStart         =0.0d+0, heightInfinity=1.0d3
-    integer                                        , parameter     :: radiusCount         =300
-    type            (fgsl_function                )                :: integrandFunction
-    type            (fgsl_integration_workspace   )                :: integrationWorkspace
+    double precision                               , parameter     :: radiusMinimum=1.0d-6, radiusMaximum =1.0d3
+    double precision                               , parameter     :: heightStart  =0.0d+0, heightInfinity=1.0d3
+    integer                                        , parameter     :: radiusCount  =300
+    type            (integrator                   )                :: integrator_
     integer                                                        :: i
 
     ! Surface density is not analytically tractable. Tabulate the results of numerical integration.
@@ -379,23 +345,18 @@ contains
        ! Initialize a table of radii.
        call self%surfaceDensityTable%create(radiusMinimum*self%a,radiusMaximum*self%a,radiusCount,1,extrapolationType=spread(extrapolationTypeExtrapolate,1,2))
        ! Compute surface density at each radius.
+       integrator_=integrator(integrandSurfaceDensity,toleranceRelative=1.0d-3)
        do i=1,radiusCount
-          call self                                                    &
-               & %surfaceDensityTable                                  &
-               &  %populate(                                           &
-               &            +2.0d0                                     &
-               &            *Integrate(                                &
-               &                       self%b*heightStart            , &
-               &                       self%b*heightInfinity         , &
-               &                       integrandSurfaceDensity       , &
-               &                       integrandFunction             , &
-               &                       integrationWorkspace          , &
-               &                       toleranceAbsolute      =0.0d+0, &
-               &                       toleranceRelative      =1.0d-3  &
-               &                )                                    , &
-               &            i                                          &
+          call self                                                       &
+               & %surfaceDensityTable                                     &
+               &  %populate(                                              &
+               &            +2.0d0                                        &
+               &            *integrator_%integrate(                       &
+               &                                   self%b*heightStart   , &
+               &                                   self%b*heightInfinity  &
+               &                                  )                     , &
+               &            i                                             &
                &           )
-          call Integrate_Done(integrandFunction,integrationWorkspace)
        end do
        ! Record that surface density is now initialized.
        self%surfaceDensityInitialized=.true.
@@ -510,7 +471,7 @@ contains
 
   double precision function miyamotoNagaiRotationCurve(self,radius)
     !% Return the mid-plane rotation curve for a Miyamoto-Nagai mass distribution.
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (massDistributionMiyamotoNagai), intent(inout) :: self
     double precision                               , intent(in   ) :: radius
@@ -540,7 +501,7 @@ contains
 
   double precision function miyamotoNagaiRotationCurveGradient(self,radius)
     !% Return the mid-plane rotation curve gradient for an exponential disk.
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (massDistributionMiyamotoNagai), intent(inout) :: self
     double precision                               , intent(in   ) :: radius
@@ -581,7 +542,7 @@ contains
   double precision function miyamotoNagaiPotential(self,coordinates)
     !% Return the gravitational potential for an exponential disk.
     use :: Coordinates                 , only : assignment(=)                  , coordinateCylindrical
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (massDistributionMiyamotoNagai), intent(inout) :: self
     class           (coordinate                   ), intent(in   ) :: coordinates

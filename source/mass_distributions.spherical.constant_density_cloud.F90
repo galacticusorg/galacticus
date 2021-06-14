@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -53,17 +53,13 @@ contains
 
     !# <inputParameter>
     !#   <name>mass</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The mass of the cloud.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>radius</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The radius of the cloud.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     self=massDistributionConstantDensityCloud(mass,radius)
     !# <inputParametersValidate source="parameters"/>
@@ -107,7 +103,7 @@ contains
     class  (massDistributionConstantDensityCloud), intent(inout)           :: self
     class  (coordinate                          ), intent(in   )           :: coordinates
     logical                                      , intent(in   ), optional :: logarithmic
-    !GCC$ attributes unused :: self, coordinates, logarithmic
+    !$GLC attributes unused :: self, coordinates, logarithmic
     
     constantDensityCloudDensityGradientRadial=0.0d0
     return
@@ -135,7 +131,7 @@ contains
     !% Return the potential at the specified {\normalfont \ttfamily coordinates} in a $\beta$-profile mass distribution. Calculated using
     !% \href{http://www.wolframalpha.com/input/?i=integrate+4\%2F3+\%CF\%80+r+\%CF\%81+2F1\%283\%2F2\%2C+\%283+\%CE\%B2\%29\%2F2\%2C+5\%2F2\%2C+-r^2\%29}{Wolfram
     !% Alpha}.
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (massDistributionConstantDensityCloud), intent(inout) :: self
     class           (coordinate                          ), intent(in   ) :: coordinates

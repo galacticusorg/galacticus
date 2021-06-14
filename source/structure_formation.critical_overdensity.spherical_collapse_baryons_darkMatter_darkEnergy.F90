@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -48,15 +48,9 @@
      class           (intergalacticMediumFilteringMassClass             ), pointer     :: intergalacticMediumFilteringMass_ => null()
      type            (sphericalCollapseSolverBaryonsDarkMatterDarkEnergy), pointer     :: sphericalCollapseSolverClustered_ => null(), sphericalCollapseSolverUnclustered_ => null()
    contains
-     !@ <objectMethods>
-     !@   <object>criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy</object>
-     !@   <objectMethod>
-     !@     <method>retabulate</method>
-     !@     <type>void</type>
-     !@     <arguments>\doublezero\ time\argin</arguments>
-     !@     <description>Tabulate spherical collapse critical overdensity.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Tabulate spherical collapse critical overdensity." method="retabulate" />
+     !# </methods>
      final     ::                    sphericalCollapseBrynsDrkMttrDrkEnrgyDestructor
      procedure :: value           => sphericalCollapseBrynsDrkMttrDrkEnrgyValue
      procedure :: gradientTime    => sphericalCollapseBrynsDrkMttrDrkEnrgyGradientTime
@@ -94,16 +88,12 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>A normalizing factor to be applied to the critical overdensity.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>tableStore</name>
     !#   <source>parameters</source>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>If true, store/restore the tabulated solution to/from file when possible.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"               name="cosmologyFunctions_"               source="parameters"/>
     !# <objectBuilder class="cosmologyParameters"              name="cosmologyParameters_"              source="parameters"/>
@@ -207,7 +197,7 @@ contains
     logical                                                                   , intent(in   ), optional :: collapsing
     type            (treeNode                                                ), intent(inout), optional :: node
     double precision                                                                                    :: time_     , interpolator
-    !GCC$ attributes unused :: node
+    !$GLC attributes unused :: node
 
     ! Determine cosmological time.
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
@@ -237,7 +227,7 @@ contains
     type            (treeNode                                                ), intent(inout), optional :: node
     double precision                                                                                    :: time_                   , interpolator   , &
          &                                                                                                 interpolatorRateOfChange
-    !GCC$ attributes unused :: node
+    !$GLC attributes unused :: node
 
     ! Determine cosmological time.
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
@@ -270,7 +260,7 @@ contains
     double precision                                                          , intent(in   ), optional :: mass
     type            (treeNode                                                ), intent(inout), optional :: node
     double precision                                                                                    :: time_
-    !GCC$ attributes unused :: node
+    !$GLC attributes unused :: node
 
     ! Determine cosmological time.
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
@@ -287,7 +277,7 @@ contains
     !% Return whether the critical overdensity is mass dependent.
     implicit none
     class(criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     sphericalCollapseBrynsDrkMttrDrkEnrgyIsMassDependent=.true.
     return
@@ -297,7 +287,7 @@ contains
     !% Return whether the critical overdensity is node dependent.
     implicit none
     class(criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     sphericalCollapseBrynsDrkMttrDrkEnrgyIsNodeDependent=.false.
     return

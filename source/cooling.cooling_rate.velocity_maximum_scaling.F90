@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -24,7 +24,26 @@
   use :: Math_Exponentiation     , only : fastExponentiator
 
   !# <coolingRate name="coolingRateVelocityMaximumScaling">
-  !#  <description>A cooling rate class in which the cooling rate scales with the peak circular velocity in the halo.</description>
+  !#  <description>
+  !#   A cooling rate class in which the cooling rate scales with the peak circular velocity in the halo. Specifically, the
+  !#   cooling rate is given by
+  !#   \begin{equation}
+  !#   \dot{M}_\mathrm{cool} = M_\mathrm{hot}/\tau_\mathrm{cool}(V_\mathrm{max,halo},z) ,
+  !#   \end{equation}
+  !#   where 
+  !#   \begin{equation}
+  !#   \tau_\mathrm{cool}=\hbox{max}\left[ \tau_\mathrm{infall} \left({V_\mathrm{max} \over 200
+  !#   \hbox{km/s}}\right)^{-\gamma_\mathrm{infall}} (1+z)^{\alpha_\mathrm{infall}} \left( 1 + \exp\left[
+  !#   {\log_{10}(V_\mathrm{max}/(1+z)^{\delta_\mathrm{infall}}\mathcal{V}_\mathrm{infall})] \over \Delta \log_{10}
+  !#   \mathcal{V}_\mathrm{infall}}\right]\right)^{\beta_\mathrm{infall}}, \tau_\mathrm{infall,min} \right],
+  !#   \end{equation}
+  !#   with $\tau_\mathrm{infall}=${\normalfont \ttfamily [timescale]}, $\tau_\mathrm{infall,min}=${\normalfont \ttfamily
+  !#   [timescaleMinimum]}, $\alpha_\mathrm{infall}=${\normalfont \ttfamily [exponentRedshift]},
+  !#   $\beta_\mathrm{infall}=${\normalfont \ttfamily [exponentCutOff]}, $\gamma_\mathrm{infall}=${\normalfont \ttfamily
+  !#   [exponentVelocity]}, $\delta_\mathrm{infall}=${\normalfont \ttfamily [velocityCutOffExponentRedshift},
+  !#   $\mathcal{V}_\mathrm{infall}=${\normalfont \ttfamily [velocityCutOff]}, and $\Delta \log_{10}
+  !#   \mathcal{V}_\mathrm{infall}=${\normalfont \ttfamily [widthCutOff]}.
+  !#  </description>
   !# </coolingRate>
   type, extends(coolingRateClass) :: coolingRateVelocityMaximumScaling
      !% Implementation of cooling rate class in which the cooling rate scales with the peak circular velocity in the halo.
@@ -74,64 +93,48 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The timescale (in Gyr) for cooling in low mass halos at $z=0$ in the velocity maximum scaling scaling cooling rate model.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>timescaleMinimum</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0.001d0</defaultValue>
     !#   <description>The minimum timescale (in Gyr) for cooling the velocity maximum scaling scaling cooling rate model.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>exponentRedshift</name>
     !#   <source>parameters</source>
     !#   <defaultValue>-1.5d0</defaultValue>
     !#   <description>The exponent of $(1+z)$ in the cooling timescale for low mass halos in the velocity maximum scaling scaling cooling rate model.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>exponentVelocity</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The exponent of velocity in the cooling timescale for low mass halos in the velocity maximum scaling scaling cooling rate model.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>velocityCutOff</name>
     !#   <source>parameters</source>
     !#   <defaultValue>200.0d0</defaultValue>
     !#   <description>The halo maximum velocity scale appearing in the exponential term for cooling timescale in the velocity maximum scaling cooling rate model.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>velocityCutOffExponentRedshift</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The exponent of $(1+z)$ in the velocity scale appearing in the exponential term for cooling timescale in the velocity maximum scaling cooling rate model.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>widthCutOff</name>
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The width appearing in the exponential term for cooling timescale in the velocity maximum scaling scaling cooling rate model.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>exponentCutOff</name>
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The exponent appearing in the exponential term for cooling timescale in the velocity maximum scaling scaling cooling rate model.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
     !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>

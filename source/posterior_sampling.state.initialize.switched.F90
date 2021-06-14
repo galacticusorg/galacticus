@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -55,15 +55,11 @@ contains
     !#   <name>modelParameterName1</name>
     !#   <source>parameters</source>
     !#   <description>Names of parameters to be initialized by initializer number 1.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>modelParameterName2</name>
     !#   <source>parameters</source>
     !#   <description>Names of parameters to be initialized by initializer number 2.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="posteriorSampleStateInitialize" name="stateInitializeMethod1" parameterName="posteriorSampleStateInitializeMethod1" source="parameters"/>
     !# <objectBuilder class="posteriorSampleStateInitialize" name="stateInitializeMethod2" parameterName="posteriorSampleStateInitializeMethod2" source="parameters"/>
@@ -169,7 +165,9 @@ contains
           end do
           if (.not.matched) call Galacticus_Error_Report('named parameter "'//modelParameterNames(i)//'" does not appear in active parameters'//{introspection:location})
           allocate(modelParameters__(i)%modelParameter_,mold=modelParameters_(j)%modelParameter_)
+          !# <deepCopyReset variables="modelParameters_(j)%modelParameter_"/>
           !# <deepCopy source="modelParameters_(j)%modelParameter_" destination="modelParameters__(i)%modelParameter_"/>
+          !# <deepCopyFinalize variables="modelParameters__(i)%modelParameter_"/>
        end do
        ! Apply the initializor
        call stateInitializor_%initialize(simulationState__,modelParameters__,modelLikelihood,timeEvaluatePrevious,logLikelihood,logPosterior)

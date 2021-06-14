@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -29,7 +29,6 @@ module Dark_Matter_Halo_Scales
   !#  <descriptiveName>Dark Matter Halo Scales</descriptiveName>
   !#  <description>Class providing dark matter halo scales.</description>
   !#  <default>virialDensityContrastDefinition</default>
-  !#  <calculationReset>yes</calculationReset>
   !#  <method name="dynamicalTimescale" >
   !#   <description>The characteristic dynamical timescale of a dark matter halo.</description>
   !#   <type>double precision</type>

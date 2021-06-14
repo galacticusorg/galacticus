@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -38,15 +38,9 @@
      class           (darkMatterParticleClass                         ), pointer     :: darkMatterParticle_      => null()
      class           (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt), pointer     :: sphericalCollapseSolver_ => null()
    contains
-     !@ <objectMethods>
-     !@   <object>criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt</object>
-     !@   <objectMethod>
-     !@     <method>retabulate</method>
-     !@     <type>void</type>
-     !@     <arguments>\doublezero\ time\argin</arguments>
-     !@     <description>Tabulate spherical collapse critical overdensity.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Tabulate spherical collapse critical overdensity." method="retabulate" />
+     !# </methods>
      final     ::                    sphericalCollapseClsnlssMttrCsmlgclCnstntDestructor
      procedure :: value           => sphericalCollapseClsnlssMttrCsmlgclCnstntValue
      procedure :: gradientTime    => sphericalCollapseClsnlssMttrCsmlgclCnstntGradientTime
@@ -83,16 +77,12 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>A normalizing factor to be applied to the critical overdensity.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>tableStore</name>
     !#   <source>parameters</source>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>If true, store/restore the tabulated solution to/from file when possible.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
@@ -188,7 +178,7 @@ contains
     logical                                                                        , intent(in   ), optional :: collapsing
     type            (treeNode                                                     ), intent(inout), optional :: node
     double precision                                                                                         :: time_
-    !GCC$ attributes unused :: mass, node
+    !$GLC attributes unused :: mass, node
 
     ! Determine cosmological time.
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
@@ -210,7 +200,7 @@ contains
     logical                                                                        , intent(in   ), optional :: collapsing
     type            (treeNode                                                     ), intent(inout), optional :: node
     double precision                                                                                         :: time_
-    !GCC$ attributes unused :: mass, node
+    !$GLC attributes unused :: mass, node
 
     ! Determine cosmological time.
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
@@ -230,7 +220,7 @@ contains
     logical                                                                        , intent(in   ), optional :: collapsing
     double precision                                                               , intent(in   ), optional :: mass
     type            (treeNode                                                     ), intent(inout), optional :: node
-    !GCC$ attributes unused :: self, time, expansionFactor, collapsing, mass, node
+    !$GLC attributes unused :: self, time, expansionFactor, collapsing, mass, node
 
     sphericalCollapseClsnlssMttrCsmlgclCnstntGradientMass=0.0d0
     return
@@ -240,7 +230,7 @@ contains
     !% Return whether the critical overdensity is mass dependent.
     implicit none
     class(criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     sphericalCollapseClsnlssMttrCsmlgclCnstntIsMassDependent=.false.
     return
@@ -250,7 +240,7 @@ contains
     !% Return whether the critical overdensity is node dependent.
     implicit none
     class(criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     sphericalCollapseClsnlssMttrCsmlgclCnstntIsNodeDependent=.false.
     return

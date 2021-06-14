@@ -82,11 +82,6 @@ while ( my $fileName = readdir($sourceDirectory) ) {
 	push(@{$digestsPerFile->{$fileIdentifier}->{'files'}},$fileToProcess);
 	# Find the dependency file.
 	(my $dependencyFileName = $fileToProcess) =~ s/^.*\/([^\/]+)\.F90$/$ENV{'BUILDPATH'}\/$1\.d/;
-
-
-	print "WTF ".$dependencyFileName."\n"
-	    unless ( -e $dependencyFileName );
-
 	open(my $dependencyFile,$dependencyFileName);
 	while ( my $dependentFileName = <$dependencyFile> ) {
 	    chomp($dependentFileName);

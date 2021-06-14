@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,36 +21,39 @@
 
 program Test_Mass_Distributions
   !% Tests mass distributions.
-  use :: Coordinates             , only : assignment(=)                 , coordinateSpherical
+  use :: Coordinates             , only : assignment(=)              , coordinateSpherical
+  use :: Display                 , only : displayVerbositySet        , verbosityLevelStandard
   use :: Error_Functions         , only : Error_Function
-  use :: Galacticus_Display      , only : Galacticus_Verbosity_Level_Set, verbosityStandard
   use :: Galacticus_Error        , only : Galacticus_Error_Report
-  use :: Mass_Distributions      , only : massDistributionBetaProfile   , massDistributionClass          , massDistributionHernquist        , massDistributionSersic, &
-          &                               massDistributionSpherical     , massDistributionExponentialDisk, massDistributionGaussianEllipsoid
+  use :: Linear_Algebra          , only : assignment(=)              , vector
+  use :: Mass_Distributions      , only : massDistributionBetaProfile, massDistributionClass , massDistributionExponentialDisk, massDistributionGaussianEllipsoid, &
+          &                               massDistributionHernquist  , massDistributionSersic, massDistributionSpherical
   use :: Numerical_Constants_Math, only : Pi
   use :: Tensors                 , only : assignment(=)
-  use :: Unit_Tests              , only : Assert                        , Unit_Tests_Begin_Group         , Unit_Tests_End_Group             , Unit_Tests_Finish
+  use :: Unit_Tests              , only : Assert                     , Unit_Tests_Begin_Group, Unit_Tests_End_Group           , Unit_Tests_Finish
   implicit none
-  class           (massDistributionClass         ), allocatable                 :: massDistribution_
-  integer                                         , parameter                   :: sersicTableCount          =8
-  double precision                                , dimension(sersicTableCount) :: sersicTableRadius         =[1.0000d-06,1.0000d-5,1.0000d-4,1.0000d-3,1.0000d-2,1.0000d-1,1.0000d+0,1.0000d+1]
+  class           (massDistributionClass)                             , allocatable :: massDistribution_                                                                                            , massDistributionRotated
+  integer                                , parameter                                :: sersicTableCount          =8
+  double precision                       , dimension(sersicTableCount)              :: sersicTableRadius         =[1.0000d-06,1.0000d-5,1.0000d-4,1.0000d-3,1.0000d-2,1.0000d-1,1.0000d+0,1.0000d+1]
   ! Mass targets for Sersic profile from Mazure & Capelato (2001).
-  double precision                                , dimension(sersicTableCount) :: sersicTableMassTarget     =[1.4730d-11,2.1130d-9,2.5959d-7,2.4545d-5,1.4961d-3,4.4102d-2,4.1536d-1,9.4308d-1]
+  double precision                       , dimension(sersicTableCount)              :: sersicTableMassTarget     =[1.4730d-11,2.1130d-9,2.5959d-7,2.4545d-5,1.4961d-3,4.4102d-2,4.1536d-1,9.4308d-1]
   ! Density targets for Sersic profile from Mazure & Capelato (2001).
-  double precision                                , dimension(sersicTableCount) :: sersicTableDensityTarget  =[2.5553d+06,3.5797d+5,4.2189d+4,3.7044d+3,1.9679d+2,4.4047d+0,2.1943d-2,7.8166d-6]
+  double precision                       , dimension(sersicTableCount)              :: sersicTableDensityTarget  =[2.5553d+06,3.5797d+5,4.2189d+4,3.7044d+3,1.9679d+2,4.4047d+0,2.1943d-2,7.8166d-6]
   ! Potential targets for Sersic profile from Young (1976).
-  double precision                                , dimension(sersicTableCount) :: sersicTablePotentialTarget=[1.0000d+00,9.9993d-1,9.9908d-1,9.9027d-1,9.2671d-1,6.7129d-1,2.4945d-1,3.7383d-2]
-  double precision                                , dimension(sersicTableCount) :: sersicTableDensity                                                                                           , sersicTableMass, &
-       &                                                                           sersicTablePotential
-  type            (coordinateSpherical           )                              :: position                                                                                                     , positionZero
-  integer                                                                       :: i
-  double precision                                                              :: radiusInProjection                                                                                           , radius         , &
-       &                                                                           massFraction
-  character       (len=4                         )                              :: label
-  double precision                                , dimension(3,3)              :: tidalTensorComponents                                                                                        , tidalTensorSphericalComponents
-
+  double precision                       , dimension(sersicTableCount)              :: sersicTablePotentialTarget=[1.0000d+00,9.9993d-1,9.9908d-1,9.9027d-1,9.2671d-1,6.7129d-1,2.4945d-1,3.7383d-2]
+  double precision                       , dimension(sersicTableCount)              :: sersicTableDensity                                                                                           , sersicTableMass               , &
+       &                                                                               sersicTablePotential
+  type            (coordinateSpherical  )                                           :: position                                                                                                     , positionZero
+  integer                                                                           :: i
+  double precision                                                                  :: radiusInProjection                                                                                           , radius                        , &
+       &                                                                               massFraction
+  character       (len=4                )                                           :: label
+  double precision                       , dimension(3,3)                           :: tidalTensorComponents                                                                                        , tidalTensorSphericalComponents
+  double precision                       , dimension(3  )                           :: acceleration
+  type            (vector               ), dimension(:  )             , allocatable :: axes
+  
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Mass distributions")
 
@@ -224,42 +227,75 @@ program Test_Mass_Distributions
 
   ! Gaussian ellipsoid profile.
   call Unit_Tests_Begin_Group("Gaussian ellipsoid profile")
-  allocate(massDistributionGaussianEllipsoid :: massDistribution_)
+  allocate(massDistributionGaussianEllipsoid :: massDistribution_      )
+  allocate(massDistributionGaussianEllipsoid :: massDistributionRotated)
   select type (massDistribution_)
   type is (massDistributionGaussianEllipsoid)
-     massDistribution_=massDistributionGaussianEllipsoid(scaleLength=[1.0d0,0.5d0,1.0d0],dimensionless=.true.)
-     ! Test that gravitational acceleration matches expectations for a point mass distribution at large radii.
-     call Unit_Tests_Begin_Group("Acceleration approaches point mass solution at large radii")
-     do i=1,2
-        select case (i)
-        case (1)
-           radius  =45.0d0
-        case (2)
-           radius  =55.0d0
-        end select
-        write (label,'(f4.1)') radius
-        ! Along the +z axis.
-        position=[radius,0.0d0,0.0d0]
-        call Assert("[r,θ,φ] = ["//trim(label)//",0  , 0  ]",massDistribution_%acceleration(position),[0.0d0,0.0d0,-1.0d0/radius**2],absTol=1.0d-6,relTol=3.0d-2)
-        ! Along the -z axis.
-        position=[radius,Pi   ,0.0d0]
-        call Assert("[r,θ,φ] = ["//trim(label)//",π  , 0  ]",massDistribution_%acceleration(position),[0.0d0,0.0d0,+1.0d0/radius**2],absTol=1.0d-6,relTol=3.0d-2)
-        ! x-y plane, along +x-axis.
-        position                      =[radius,Pi/2.0d0,0.0d0]
-        call Assert("[r,θ,φ] = ["//trim(label)//",π/2, 0  ]",massDistribution_%acceleration(position),[-1.0d0/radius**2,0.0d0,0.0d0],absTol=1.0d-6,relTol=3.0d-2)
-        ! x-y plane, along -y-axis.
-        position                      =[radius,Pi/2.0d0,-Pi/2.0d0]
-        call Assert("[r,θ,φ] = ["//trim(label)//",π/2,-π/2]",massDistribution_%acceleration(position),[0.0d0,+1.0d0/radius**2,0.0d0],absTol=1.0d-6,relTol=3.0d-2)
-     end do
-     call Unit_Tests_End_Group()
-  class default
+     select type (massDistributionRotated)
+     type is (massDistributionGaussianEllipsoid)
+        ! Mass distribution aligned with the principle Cartesian axes.
+        allocate(axes(3))
+        axes(1)=vector([+1.0d0,+0.0d0,+0.0d0])
+        axes(2)=vector([+0.0d0,+1.0d0,+0.0d0])
+        axes(3)=vector([+0.0d0,+0.0d0,+1.0d0])
+        massDistribution_      =massDistributionGaussianEllipsoid(scaleLength=[1.0d0,0.5d0,1.0d0],axes=axes,dimensionless=.true.)
+        deallocate(axes)
+        ! An identical mass distribution rotated by +π/2 around the z-axis.
+        allocate(axes(3))
+        axes(1)=vector([+0.0d0,-1.0d0,+0.0d0])
+        axes(2)=vector([+1.0d0,+0.0d0,+0.0d0])
+        axes(3)=vector([+0.0d0,+0.0d0,+1.0d0])
+        massDistributionRotated=massDistributionGaussianEllipsoid(scaleLength=[1.0d0,0.5d0,1.0d0],axes=axes,dimensionless=.true.)
+        deallocate(axes)
+        ! Test that gravitational acceleration matches expectations for a point mass distribution at large radii.
+        call Unit_Tests_Begin_Group("Acceleration approaches point mass solution at large radii")
+        do i=1,2
+           select case (i)
+           case (1)
+              radius  =45.0d0
+           case (2)
+              radius  =55.0d0
+           end select
+           write (label,'(f4.1)') radius
+           ! Along the +z axis.
+           position=[radius,0.0d0,0.0d0]
+           call Assert("[r,θ,φ] = ["//trim(label)//",0  , 0  ]",massDistribution_%acceleration(position),[0.0d0,0.0d0,-1.0d0/radius**2],absTol=1.0d-6,relTol=3.0d-2)
+           ! Along the -z axis.
+           position=[radius,Pi   ,0.0d0]
+           call Assert("[r,θ,φ] = ["//trim(label)//",π  , 0  ]",massDistribution_%acceleration(position),[0.0d0,0.0d0,+1.0d0/radius**2],absTol=1.0d-6,relTol=3.0d-2)
+           ! x-y plane, along +x-axis.
+           position                      =[radius,Pi/2.0d0,0.0d0]
+           call Assert("[r,θ,φ] = ["//trim(label)//",π/2, 0  ]",massDistribution_%acceleration(position),[-1.0d0/radius**2,0.0d0,0.0d0],absTol=1.0d-6,relTol=3.0d-2)
+           ! x-y plane, along -y-axis.
+           position                      =[radius,Pi/2.0d0,-Pi/2.0d0]
+           call Assert("[r,θ,φ] = ["//trim(label)//",π/2,-π/2]",massDistribution_%acceleration(position),[0.0d0,+1.0d0/radius**2,0.0d0],absTol=1.0d-6,relTol=3.0d-2)
+        end do
+        call Unit_Tests_End_Group()
+        ! Test that acceleration due to rotated ellipsoid matches the rotated acceleration of an unrotated ellipsoid.
+        call Unit_Tests_Begin_Group("Acceleration of rotated ellipsoid")
+        position    =[1.0d0,Pi/2.0d0,3.0d0*Pi/4.0d0]
+        acceleration=massDistributionRotated%acceleration(position)     ! Evaluate the acceleration in the rotated distribution at the rotated position.
+        acceleration=[acceleration(2),-acceleration(1),acceleration(3)] ! De-rotate the acceleration due to the rotated distribution.
+        position   =[1.0d0,Pi/2.0d0,Pi/4.0d0]                           ! Evaluate the acceleration in the un-rotated distribution at the un-rotated position.
+        call Assert("[r,θ,φ] = [1,π/2,π/4]",massDistribution_%acceleration(position),acceleration,absTol=1.0d-6,relTol=1.0d-6)
+        call Unit_Tests_End_Group()
+        class default
+        call Galacticus_Error_Report('unknown mass distribution'//{introspection:location})
+     end select
+     class default
      call Galacticus_Error_Report('unknown mass distribution'//{introspection:location})
   end select
-  deallocate(massDistribution_)
+  deallocate(massDistribution_      )
+  deallocate(massDistributionRotated)
   allocate(massDistributionGaussianEllipsoid :: massDistribution_)
   select type (massDistribution_)
   type is (massDistributionGaussianEllipsoid)
-     massDistribution_=massDistributionGaussianEllipsoid(scaleLength=[1.0d0,1.0d0,1.0d0],dimensionless=.true.)
+     allocate(axes(3))
+     axes(1)=vector([1.0d0,0.0d0,0.0d0])
+     axes(2)=vector([0.0d0,1.0d0,0.0d0])
+     axes(3)=vector([0.0d0,0.0d0,1.0d0])
+     massDistribution_=massDistributionGaussianEllipsoid(scaleLength=[1.0d0,1.0d0,1.0d0],axes=axes,dimensionless=.true.)
+     deallocate(axes)
      ! Test that gravitational acceleration matches expectations for a Gaussian spheroid.
      call Unit_Tests_Begin_Group("Acceleration matches expectation for Gaussian spheroid")
      do i=1,2

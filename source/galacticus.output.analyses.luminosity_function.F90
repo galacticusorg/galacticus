@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -74,56 +74,42 @@ contains
     !#   <source>parameters</source>
     !#   <variable>label</variable>
     !#   <description>A label for the luminosity function.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>comment</name>
     !#   <source>parameters</source>
     !#   <variable>comment</variable>
     !#   <description>A descriptive comment for the luminosity function.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>magnitudesAbsolute</name>
     !#   <source>parameters</source>
-    !#   <variable>masses</variable>
+    !#   <variable>magnitudesAbsolute</variable>
     !#   <description>The absolute magnitudes corresponding to bin centers.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>covarianceBinomialBinsPerDecade</name>
     !#   <source>parameters</source>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number of bins per decade of halo mass to use when constructing luminosity function covariance matrices for main branch galaxies.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>covarianceBinomialMassHaloMinimum</name>
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d8</defaultValue>
     !#   <description>The minimum halo mass to consider when constructing luminosity function covariance matrices for main branch galaxies.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>covarianceBinomialMassHaloMaximum</name>
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d16</defaultValue>
     !#   <description>The maximum halo mass to consider when constructing luminosity function covariance matrices for main branch galaxies.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     if (parameters%isPresent('targetLabel')) then
        !# <inputParameter>
        !#   <name>targetLabel</name>
        !#   <source>parameters</source>
        !#   <description>Label for the target dataset.</description>
-       !#   <type>real</type>
-       !#   <cardinality>0..1</cardinality>
        !# </inputParameter>
     end if
     if (parameters%isPresent('functionValueTarget')) then
@@ -132,16 +118,12 @@ contains
           !#   <name>functionValueTarget</name>
           !#   <source>parameters</source>
           !#   <description>The target function for likelihood calculations.</description>
-          !#   <type>real</type>
-          !#   <cardinality>0..1</cardinality>
           !# </inputParameter>
           !# <inputParameter>
           !#   <name>functionCovarianceTarget</name>
           !#   <source>parameters</source>
           !#   <variable>functionCovarianceTarget1D</variable>
           !#   <description>The target function covariance for likelihood calculations.</description>
-          !#   <type>real</type>
-          !#   <cardinality>0..1</cardinality>
           !# </inputParameter>
           if (size(functionCovarianceTarget1D) == size(functionValueTarget)**2) then
              allocate(functionCovarianceTarget(size(functionValueTarget),size(functionValueTarget)))
@@ -188,7 +170,7 @@ contains
     character       (len=*                                  ), intent(in   )               :: fileName
     class           (galacticFilterClass                    ), intent(in   ) , target      :: galacticFilter_
     class           (surveyGeometryClass                    ), intent(in   ) , target      :: surveyGeometry_
-    class           (outputTimesClass                       ), intent(in   ) , target      :: outputTimes_
+    class           (outputTimesClass                       ), intent(inout) , target      :: outputTimes_
     class           (cosmologyFunctionsClass                ), intent(in   ) , target      :: cosmologyFunctions_                , cosmologyFunctionsData
     class           (outputAnalysisPropertyOperatorClass    ), intent(inout) , target      :: outputAnalysisPropertyOperator_
     class           (outputAnalysisDistributionOperatorClass), intent(in   ) , target      :: outputAnalysisDistributionOperator_
@@ -255,7 +237,7 @@ contains
     double precision                                                  , intent(in   )          , dimension(:  ) :: magnitudesAbsolute
     class           (galacticFilterClass                             ), intent(in   ), target                   :: galacticFilter_
     class           (surveyGeometryClass                             ), intent(in   ), target                   :: surveyGeometry_
-    class           (outputTimesClass                                ), intent(in   ), target                   :: outputTimes_
+    class           (outputTimesClass                                ), intent(inout), target                   :: outputTimes_
     class           (cosmologyFunctionsClass                         ), intent(in   ), target                   :: cosmologyFunctions_                                   , cosmologyFunctionsData
     class           (outputAnalysisPropertyOperatorClass             ), intent(inout), target                   :: outputAnalysisPropertyOperator_
     class           (outputAnalysisDistributionOperatorClass         ), intent(in   ), target                   :: outputAnalysisDistributionOperator_
@@ -266,7 +248,7 @@ contains
     type            (varying_string                                  ), intent(in   ), optional                 :: targetLabel
     double precision                                                  , intent(in   ), optional, dimension(:  ) :: functionValueTarget
     double precision                                                  , intent(in   ), optional, dimension(:,:) :: functionCovarianceTarget
-    type            (nodePropertyExtractorLmnstyStllrCF2000)               , pointer                  :: nodePropertyExtractor_
+    type            (nodePropertyExtractorLmnstyStllrCF2000          )               , pointer                  :: nodePropertyExtractor_
     type            (outputAnalysisPropertyOperatorMagnitude         )               , pointer                  :: outputAnalysisPropertyOperatorMagnitude_
     type            (outputAnalysisPropertyOperatorIdentity          )               , pointer                  :: outputAnalysisPropertyOperatorIdentity_
     type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc )               , pointer                  :: outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_
@@ -278,17 +260,17 @@ contains
     double precision                                                  , parameter                               :: bufferWidth                                     =7.5d0
     integer         (c_size_t                                        ), parameter                               :: bufferCountMinimum                              =5
     integer         (c_size_t                                        )                                          :: iBin                                                  , bufferCount
-    !# <constructorAssign variables="*surveyGeometry_, *cosmologyFunctions_, *cosmologyFunctionsData, *outputTimes_"/>
+    !# <constructorAssign variables="*surveyGeometry_, *cosmologyFunctions_, *cosmologyFunctionsData"/>
 
     ! Compute weights that apply to each output redshift.
     self%binCount=size(magnitudesAbsolute,kind=c_size_t)
-    call allocateArray(outputWeight,[self%binCount,self%outputTimes_%count()])
+    call allocateArray(outputWeight,[self%binCount,outputTimes_%count()])
     do iBin=1,self%binCount
-       outputWeight(iBin,:)=Output_Analysis_Output_Weight_Survey_Volume(self%surveyGeometry_,self%cosmologyFunctions_,self%outputTimes_,magnitudeAbsoluteLimit=magnitudesAbsolute(iBin))
+       outputWeight(iBin,:)=Output_Analysis_Output_Weight_Survey_Volume(self%surveyGeometry_,self%cosmologyFunctions_,outputTimes_,magnitudeAbsoluteLimit=magnitudesAbsolute(iBin))
     end do
     ! Create a luminosity property extractor.
     allocate(nodePropertyExtractor_)
-    !# <referenceConstruct object="nodePropertyExtractor_"                 constructor="nodePropertyExtractorLmnstyStllrCF2000(filterName         ,filterType  ,depthOpticalISMCoefficient=1.0d0,depthOpticalCloudsCoefficient=1.0d0,wavelengthExponent          =0.7d0,outputTimes_=outputTimes_,redshiftBand=redshiftBand,outputMask=sum(outputWeight,dim=1) > 0.0d0)"/>
+    !# <referenceConstruct object="nodePropertyExtractor_"                           constructor="nodePropertyExtractorLmnstyStllrCF2000(filterName         ,filterType  ,depthOpticalISMCoefficient=1.0d0,depthOpticalCloudsCoefficient=1.0d0,wavelengthExponent          =0.7d0,outputTimes_=outputTimes_,redshiftBand=redshiftBand,outputMask=sum(outputWeight,dim=1) > 0.0d0)"/>
     ! Prepend magnitude and cosmological luminosity distance property operators.
     allocate(outputAnalysisPropertyOperatorMagnitude_        )
     !# <referenceConstruct object="outputAnalysisPropertyOperatorMagnitude_"         constructor="outputAnalysisPropertyOperatorMagnitude         (                                                                                                  )"/>
@@ -360,7 +342,7 @@ contains
          &                                functionCovarianceTarget                                  &
          &                               )
     ! Clean up.
-    !# <objectDestructor name="nodePropertyExtractor_"                />
+    !# <objectDestructor name="nodePropertyExtractor_"                          />
     !# <objectDestructor name="outputAnalysisPropertyOperatorMagnitude_"        />
     !# <objectDestructor name="outputAnalysisPropertyOperatorIdentity_"         />
     !# <objectDestructor name="outputAnalysisPropertyOperatorSequence_"         />

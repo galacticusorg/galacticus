@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,18 +18,18 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implementation of an atomic photoionization cross section class based on
-  !% (\href{ftp://gradj.pa.uky.edu//dima//photo//phfit2.f}{\normalfont \ttfamily phfit2.f}) written by
+  !% (\href{http://www.pa.uky.edu/~verner/dima/rec//rrfit.f}{\normalfont \ttfamily phfit2.f}) written by
   !% \href{mailto:verner@pa.uky.edu}{D. A. Verner} (Version 2. March 25, 1996).
 
   !# <atomicCrossSectionIonizationPhoto name="atomicCrossSectionIonizationPhotoVerner">
   !#  <description>
-  !#   An atomic photoionization cross section class based on (\href{ftp://gradj.pa.uky.edu//dima//photo//phfit2.f}{\normalfont
+  !#   An atomic photoionization cross section class based on (\href{http://www.pa.uky.edu/~verner/dima/rec//rrfit.f}{\normalfont
   !#   \ttfamily phfit2.f}) written by \href{mailto:verner@pa.uky.edu}{D. A. Verner} (Version 2. March 25, 1996.
   !#  </description>
   !# </atomicCrossSectionIonizationPhoto>
   type, extends(atomicCrossSectionIonizationPhotoClass) :: atomicCrossSectionIonizationPhotoVerner
      !% Implementation of an atomic photoionization cross section class based on
-     !% (\href{ftp://gradj.pa.uky.edu//dima//photo//phfit2.f}{\normalfont \ttfamily phfit2.f}) written by
+     !% (\href{http://www.pa.uky.edu/~verner/dima/rec//rrfit.f}{\normalfont \ttfamily phfit2.f}) written by
      !% \href{mailto:verner@pa.uky.edu}{D. A. Verner} (Version 2. March 25, 1996).
      private
    contains
@@ -1943,7 +1943,7 @@ contains
     implicit none
     type(atomicCrossSectionIonizationPhotoVerner)                :: self
     type(inputParameters                        ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=atomicCrossSectionIonizationPhotoVerner()
     return
@@ -1957,7 +1957,7 @@ contains
     !% \item Outer shells of the Opacity Project (OP) elements: \cite{verner_atomic_1996_1}
     !% \item Inner shells of all elements, and outer shells of the non-OP elements: \cite{verner_analytic_1995}
     !% \end{itemize}
-    !% Original version (\href{ftp://gradj.pa.uky.edu//dima//photo//phfit2.f}{\normalfont \ttfamily phfit2.f}) written by
+    !% Original version (\href{http://www.pa.uky.edu/~verner/dima/rec//rrfit.f}{\normalfont \ttfamily phfit2.f}) written by
     !% \href{mailto:verner@pa.uky.edu}{D. A. Verner} (Version 2. March 25, 1996).
     !% Inner-shell ionization energies of some low-ionized species are slightly
     !% improved to fit smoothly the experimental inner-shell ionization energies
@@ -1972,7 +1972,7 @@ contains
     integer                                                                  :: electronNumber, innerShellNumber, outerShellNumber
     double precision                                                         :: coefficient   , energy          , energyFactor    , energyModified   , &
          &                                                                      energyScaled  , exponent1       , exponent2       , innerShellEnergy
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Set a default cross section of zero.
     vernerCrossSection=0.0d0

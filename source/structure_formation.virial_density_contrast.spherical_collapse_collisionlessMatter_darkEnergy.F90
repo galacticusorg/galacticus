@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,10 +20,10 @@
   !% An implementation of dark matter halo virial density contrasts based on spherical collapse in a matter plus dark energy universe.
 
   !# <virialDensityContrast name="virialDensityContrastSphericalCollapseClsnlssMttrDrkEnrgy">
-  !#  <description>Dark matter halo virial density contrasts based on the spherical collapse in a matter plus dark eneryg universe.</description>
+  !#  <description>Dark matter halo virial density contrasts based on the spherical collapse in a matter plus dark energy universe.</description>
   !# </virialDensityContrast>
   type, extends(virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt) :: virialDensityContrastSphericalCollapseClsnlssMttrDrkEnrgy
-     !% A dark matter halo virial density contrast class based on spherical collapse in a matter plus dark eneryg universe.
+     !% A dark matter halo virial density contrast class based on spherical collapse in a matter plus dark energy universe.
      private
      integer :: energyFixedAt
    contains
@@ -53,18 +53,14 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>If true, store/restore the tabulated solution to/from file when possible.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>energyFixedAt</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('turnaround')</defaultValue>
     !#   <description>Selects the epoch at which the energy of a spherical top hat perturbation in a dark energy cosmology should be
     !#     ``fixed'' for the purposes of computing virial density contrasts. (See the discussion in
     !#     \citealt{percival_cosmological_2005}; \S8.)</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_" source="parameters"/>
     self=virialDensityContrastSphericalCollapseClsnlssMttrDrkEnrgy(tableStore,enumerationCllsnlssMttrDarkEnergyFixedAtEncode(char(energyFixedAt),includesPrefix=.false.),cosmologyFunctions_)

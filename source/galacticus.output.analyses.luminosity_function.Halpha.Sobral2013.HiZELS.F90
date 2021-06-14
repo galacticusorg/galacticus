@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -38,14 +38,18 @@ contains
 
   function luminosityFunctionSobral2013HiZELSConstructorParameters(parameters) result (self)
     !% Constructor for the ``luminosityFunctionSobral2013HiZELS'' output analysis class which takes a parameter set as input.
-    use :: Gravitational_Lensing, only : gravitationalLensing, gravitationalLensingClass
-    use :: Input_Parameters     , only : inputParameter      , inputParameters
+    use :: Gravitational_Lensing         , only : gravitationalLensing           , gravitationalLensingClass
+    use :: Input_Parameters              , only : inputParameter                 , inputParameters
+    use :: Star_Formation_Rates_Disks    , only : starFormationRateDisksClass
+    use :: Star_Formation_Rates_Spheroids, only : starFormationRateSpheroidsClass
     implicit none
     type            (outputAnalysisLuminosityFunctionSobral2013HiZELS)                              :: self
     type            (inputParameters                                 ), intent(inout)               :: parameters
     class           (cosmologyFunctionsClass                         ), pointer                     :: cosmologyFunctions_
     class           (outputTimesClass                                ), pointer                     :: outputTimes_
     class           (gravitationalLensingClass                       ), pointer                     :: gravitationalLensing_
+    class           (starFormationRateDisksClass                     ), pointer                     :: starFormationRateDisks_
+    class           (starFormationRateSpheroidsClass                 ), pointer                     :: starFormationRateSpheroids_
     class           (stellarSpectraDustAttenuationClass              ), pointer                     :: stellarSpectraDustAttenuation_
     double precision                                                  , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient , systematicErrorPolynomialCoefficient
     integer                                                                                         :: covarianceBinomialBinsPerDecade  , redshiftInterval
@@ -69,8 +73,6 @@ contains
     !#   <source>parameters</source>
     !#   <variable>redshiftInterval</variable>
     !#   <description>The redshift interval (1, 2, 3, or 4) to use.</description>
-    !#   <type>integer</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>randomErrorMinimum</name>
@@ -78,8 +80,6 @@ contains
     !#   <variable>randomErrorMinimum</variable>
     !#   <defaultValue>0.1d0</defaultValue>
     !#   <description>The minimum random error for SDSS H$\alpha$ luminosities.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>randomErrorMaximum</name>
@@ -87,8 +87,6 @@ contains
     !#   <variable>randomErrorMaximum</variable>
     !#   <defaultValue>0.1d0</defaultValue>
     !#   <description>The minimum random error for SDSS H$\alpha$ luminosities.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>randomErrorPolynomialCoefficient</name>
@@ -96,8 +94,6 @@ contains
     !#   <variable>randomErrorPolynomialCoefficient</variable>
     !#   <defaultValue>[0.1d0]</defaultValue>
     !#   <description>The coefficients of the random error polynomial for SDSS H$\alpha$ luminosities.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>systematicErrorPolynomialCoefficient</name>
@@ -105,8 +101,6 @@ contains
     !#   <variable>systematicErrorPolynomialCoefficient</variable>
     !#   <defaultValue>[0.0d0]</defaultValue>
     !#   <description>The coefficients of the systematic error polynomial for SDSS H$\alpha$ luminosities.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>sizeSourceLensing</name>
@@ -114,8 +108,6 @@ contains
     !#   <variable>sizeSourceLensing</variable>
     !#   <defaultValue>2.0d-3</defaultValue>
     !#   <description>The characteristic source size for gravitational lensing calculations.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>covarianceBinomialBinsPerDecade</name>
@@ -123,8 +115,6 @@ contains
     !#   <variable>covarianceBinomialBinsPerDecade</variable>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number of bins per decade of halo mass to use when constructing SDSS H$\alpha$ luminosity function covariance matrices for main branch galaxies.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>covarianceBinomialMassHaloMinimum</name>
@@ -132,8 +122,6 @@ contains
     !#   <variable>covarianceBinomialMassHaloMinimum</variable>
     !#   <defaultValue>1.0d8</defaultValue>
     !#   <description>The minimum halo mass to consider when constructing SDSS H$\alpha$ luminosity function covariance matrices for main branch galaxies.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>covarianceBinomialMassHaloMaximum</name>
@@ -141,32 +129,32 @@ contains
     !#   <variable>covarianceBinomialMassHaloMaximum</variable>
     !#   <defaultValue>1.0d16</defaultValue>
     !#   <description>The maximum halo mass to consider when constructing SDSS H$\alpha$ luminosity function covariance matrices for main branch galaxies.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>depthOpticalISMCoefficient</name>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Multiplicative coefficient for optical depth in the ISM.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"            name="cosmologyFunctions_"            source="parameters"/>
-    !# <objectBuilder class="outputTimes"            name="outputTimes_"            source="parameters"/>
+    !# <objectBuilder class="outputTimes"                   name="outputTimes_"                   source="parameters"/>
     !# <objectBuilder class="gravitationalLensing"          name="gravitationalLensing_"          source="parameters"/>
+    !# <objectBuilder class="starFormationRateDisks"        name="starFormationRateDisks_"        source="parameters"/>
+    !# <objectBuilder class="starFormationRateSpheroids"    name="starFormationRateSpheroids_"    source="parameters"/>
     !# <objectBuilder class="stellarSpectraDustAttenuation" name="stellarSpectraDustAttenuation_" source="parameters"/>
     ! Build the object.
-    self=outputAnalysisLuminosityFunctionSobral2013HiZELS(cosmologyFunctions_,gravitationalLensing_,stellarSpectraDustAttenuation_,outputTimes_,redshiftInterval,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,depthOpticalISMCoefficient)
+    self=outputAnalysisLuminosityFunctionSobral2013HiZELS(cosmologyFunctions_,gravitationalLensing_,stellarSpectraDustAttenuation_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,redshiftInterval,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,depthOpticalISMCoefficient)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyFunctions_"           />
     !# <objectDestructor name="outputTimes_"                  />
     !# <objectDestructor name="gravitationalLensing_"         />
+    !# <objectDestructor name="starFormationRateDisks_"       />
+    !# <objectDestructor name="starFormationRateSpheroids_"   />
     !# <objectDestructor name="stellarSpectraDustAttenuation_"/>
     return
   end function luminosityFunctionSobral2013HiZELSConstructorParameters
 
-  function luminosityFunctionSobral2013HiZELSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,stellarSpectraDustAttenuation_,outputTimes_,redshiftInterval,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,depthOpticalISMCoefficient) result (self)
+  function luminosityFunctionSobral2013HiZELSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,stellarSpectraDustAttenuation_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,redshiftInterval,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,depthOpticalISMCoefficient) result (self)
     !% Constructor for the ``luminosityFunctionSobral2013HiZELS'' output analysis class for internal use.
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                        , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
@@ -177,13 +165,17 @@ contains
     use :: Gravitational_Lensing                 , only : gravitationalLensingClass
     use :: Output_Analysis_Distribution_Operators, only : distributionOperatorList                       , outputAnalysisDistributionOperatorGrvtnlLnsng, outputAnalysisDistributionOperatorRandomErrorPlynml, outputAnalysisDistributionOperatorSequence
     use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorSystmtcPolynomial
+    use :: Star_Formation_Rates_Disks            , only : starFormationRateDisksClass
+    use :: Star_Formation_Rates_Spheroids        , only : starFormationRateSpheroidsClass
     use :: String_Handling                       , only : operator(//)
     implicit none
     type            (outputAnalysisLuminosityFunctionSobral2013HiZELS   )                              :: self
     class           (cosmologyFunctionsClass                            ), intent(in   ), target       :: cosmologyFunctions_
-    class           (outputTimesClass                                   ), intent(in   ), target       :: outputTimes_
+    class           (outputTimesClass                                   ), intent(inout), target       :: outputTimes_
     class           (gravitationalLensingClass                          ), intent(in   ), target       :: gravitationalLensing_
     class           (stellarSpectraDustAttenuationClass                 ), intent(in   ), target       :: stellarSpectraDustAttenuation_
+    class           (starFormationRateDisksClass                        ), intent(in   ), target       :: starFormationRateDisks_
+    class           (starFormationRateSpheroidsClass                    ), intent(in   ), target       :: starFormationRateSpheroids_
     integer                                                              , intent(in   )               :: redshiftInterval
     double precision                                                     , intent(in   )               :: randomErrorMinimum                                  , randomErrorMaximum                  , &
          &                                                                                                sizeSourceLensing                                   , depthOpticalISMCoefficient
@@ -199,7 +191,7 @@ contains
     type            (cosmologyParametersSimple                          )               , pointer      :: cosmologyParametersData
     type            (cosmologyFunctionsMatterLambda                     )               , pointer      :: cosmologyFunctionsData
     type            (distributionOperatorList                           )               , pointer      :: distributionOperatorSequence
-    double precision                                                                                   :: errorPolynomialZeroPoint
+    double precision                                                                    , parameter    :: errorPolynomialZeroPoint                            =40.0d0
     type            (varying_string                                     )                              :: fileName
 
     ! Build a filter which select galaxies with stellar mass 10³M☉ or greater.
@@ -300,6 +292,8 @@ contains
          &                                        outputAnalysisPropertyOperator_                                                                                             , &
          &                                        outputAnalysisDistributionOperator_                                                                                         , &
          &                                        outputTimes_                                                                                                                , &
+         &                                        starFormationRateDisks_                                                                                                     , &
+         &                                        starFormationRateSpheroids_                                                                                                 , &
          &                                        covarianceBinomialBinsPerDecade                                                                                             , &
          &                                        covarianceBinomialMassHaloMinimum                                                                                           , &
          &                                        covarianceBinomialMassHaloMaximum                                                                                             &
@@ -309,6 +303,7 @@ contains
     !# <objectDestructor name="galacticFilter_"                                     />
     !# <objectDestructor name="cosmologyParametersData"                             />
     !# <objectDestructor name="cosmologyFunctionsData"                              />
+    !# <objectDestructor name="outputAnalysisPropertyOperator_"                     />
     !# <objectDestructor name="outputAnalysisDistributionOperator_"                 />
     !# <objectDestructor name="outputAnalysisDistributionOperatorGrvtnlLnsng_"      />
     !# <objectDestructor name="outputAnalysisDistributionOperatorRandomErrorPlynml_"/>

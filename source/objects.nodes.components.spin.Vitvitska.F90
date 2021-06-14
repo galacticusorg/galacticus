@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -105,16 +105,12 @@ contains
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <source>parameters_</source>
     !#   <description>The exponent of mass ratio appearing in the orbital angular momentum term in the Vitvitska spin model.</description>
-    !#   <type>double</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>spinVitvitskaEvolveDifferentially</name>
     !#   <defaultValue>.false.</defaultValue>
     !#   <source>parameters_</source>
-    !#   <description>If true, the spin vector of the halo evolves under differential evolution due to the accretion of subresolution mass. If false, the spin vector is held fixed during differential evolution and only updates during node mergers. While the former should be more realistic, the latter is currently preferred as thestandard hot halo component treatment of angular momentum relies on this assumption.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>1</cardinality>
+    !#   <description>If true, the spin vector of the halo evolves under differential evolution due to the accretion of subresolution mass. If false, the spin vector is held fixed during differential evolution and only updates during node mergers. While the former should be more realistic, the latter is currently preferred as the standard hot halo component treatment of angular momentum relies on this assumption.</description>
     !# </inputParameter>
     ! Bind deferred functions.
     call spin%spinFunction          (Node_Component_Spin_Vitvitska_Spin            )
@@ -399,7 +395,7 @@ contains
     type (treeNode          )               , pointer :: nodeParent
     class(nodeComponentSpin )               , pointer :: spinParent , spin
     class(nodeComponentBasic)               , pointer :: basicParent, basic
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     spin        => node      %spin  ()
     nodeParent  => node      %parent
@@ -418,21 +414,20 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Spin_Vitvitska_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Spin_Vitvitska_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
+  subroutine Node_Component_Spin_Vitvitska_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
     !% Compute rates of change of properties in the Vitvitska implementation of the spin component.
     use :: Dark_Matter_Halo_Spins, only : Dark_Matter_Halo_Angular_Momentum
     use :: Galacticus_Nodes      , only : defaultSpinComponent             , nodeComponentSpin, nodeComponentSpinVitvitska, propertyTypeInactive, &
           &                               treeNode
     implicit none
-    type            (treeNode         ), intent(inout), pointer :: node
-    logical                            , intent(in   )          :: odeConverged
+    type            (treeNode         ), intent(inout)          :: node
     logical                            , intent(inout)          :: interrupt
     procedure       (                 ), intent(inout), pointer :: interruptProcedure
     integer                            , intent(in   )          :: propertyType
     class           (nodeComponentSpin)               , pointer :: spin
     double precision                                            :: spinMagnitude     , spinGrowthRate
     double precision                   , dimension(3)           :: spinVector
-    !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
+    !$GLC attributes unused :: interrupt, interruptProcedure
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return

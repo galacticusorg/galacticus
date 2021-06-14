@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +22,7 @@
 
 
   !# <outputAnalysis name="outputAnalysisConcentrationVsHaloMassCDMLudlow2016">
-  !#  <description>A concentration vs. halo mass analysis class matched to the \cite{ludlow_mass-concentration-redshift_2016} CDM sample..</description>
+  !#  <description>A concentration vs. halo mass analysis class matched to the \cite{ludlow_mass-concentration-redshift_2016} CDM sample.</description>
   !# </outputAnalysis>
   type, extends(outputAnalysisMeanFunction1D) :: outputAnalysisConcentrationVsHaloMassCDMLudlow2016
      !% A concentration vs. halo mass analysis class matched to the \cite{ludlow_mass-concentration-redshift_2016} CDM sample.

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Parameters for tutorial on computing the power spectrum - https://github.com/galacticusorg/galacticus/wiki/Tutorial%3A-Power-spectra -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+
+  <!-- Specify tasks to perform -->
+  <task value="powerSpectra"/>
+
+  <!-- Cosmological parameters -->
+  <cosmologyFunctions value="matterLambda"/>
+  <cosmologyParameters value="simple">
+    <HubbleConstant value="70.20000"/>
+    <OmegaMatter value=" 0.27250"/>
+    <OmegaDarkEnergy value=" 0.72750"/>
+    <OmegaBaryon value=" 0.04550"/>
+    <temperatureCMB value=" 2.72548"/>
+  </cosmologyParameters>
+
+  <!-- Power spectrum options -->
+  <transferFunction value="eisensteinHu1999">
+    <neutrinoNumberEffective value="3.046"/>
+    <neutrinoMassSummed value="0.000"/>
+  </transferFunction>
+  <powerSpectrumPrimordial value="powerLaw">
+    <index value="0.961"/>
+    <wavenumberReference value="1.000"/>
+    <running value="0.000"/>
+  </powerSpectrumPrimordial>
+  <powerSpectrumPrimordialTransferred value="simple"/>
+  <cosmologicalMassVariance value="filteredPower">
+    <sigma_8 value="0.807"/>
+    <tolerance value="1.0e-3"/>
+  </cosmologicalMassVariance>
+
+  <!-- Structure formation options -->
+  <linearGrowth value="collisionlessMatter"/>
+
+  <!-- Output options -->
+  <galacticusOutputFileName value="powerSpectrum.hdf5"/>
+  <outputTimes value="list">
+    <redshifts value="0.0 1.0"/>
+  </outputTimes>
+
+</parameters>

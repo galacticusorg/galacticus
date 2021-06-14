@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -44,7 +44,7 @@ contains
     implicit none
     type(satelliteTidalHeatingRateZero)                :: self
     type(inputParameters              ), intent(inout) :: parameters
-    !GCC$ attributes unused :: self, parameters
+    !$GLC attributes unused :: self, parameters
 
     self=satelliteTidalHeatingRateZero()
     return
@@ -55,7 +55,7 @@ contains
     implicit none
     class(satelliteTidalHeatingRateZero), intent(inout) :: self
     type (treeNode                     ), intent(inout) :: node
-    !GCC$ attributes unused :: self, node
+    !$GLC attributes unused :: self, node
 
     zeroHeatingRate=0.0d0
     return

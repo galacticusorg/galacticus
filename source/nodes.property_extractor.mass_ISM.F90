@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -47,7 +47,7 @@ contains
     implicit none
     type(nodePropertyExtractorMassISM)                :: massISMConstructorParameters
     type(inputParameters             ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     massISMConstructorParameters=nodePropertyExtractorMassISM()
     return
@@ -61,7 +61,7 @@ contains
     class(nodePropertyExtractorMassISM), intent(inout)           :: self
     type (treeNode                    ), intent(inout), target   :: node
     type (multiCounter                ), intent(inout), optional :: instance
-    !GCC$ attributes unused :: self, instance
+    !$GLC attributes unused :: self, instance
 
     massISMExtract=+Galactic_Structure_Enclosed_Mass(node,radiusLarge,massType=massTypeGaseous,componentType=componentTypeDisk    ) &
          &         +Galactic_Structure_Enclosed_Mass(node,radiusLarge,massType=massTypeGaseous,componentType=componentTypeSpheroid)
@@ -73,7 +73,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorMassISM), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     massISMType=outputAnalysisPropertyTypeLinear
     return
@@ -84,7 +84,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityMass
     implicit none
     class(nodePropertyExtractorMassISM), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     massISMQuantity=outputAnalysisPropertyQuantityMass
     return
@@ -95,7 +95,7 @@ contains
     implicit none
     type (varying_string              )                :: massISMName
     class(nodePropertyExtractorMassISM), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     massISMName=var_str('massISM')
     return
@@ -106,7 +106,7 @@ contains
     implicit none
     type (varying_string              )                :: massISMDescription
     class(nodePropertyExtractorMassISM), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     massISMDescription=var_str('The mass of the interstellar medium in each galaxy.')
     return
@@ -117,7 +117,7 @@ contains
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
     class(nodePropertyExtractorMassISM), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     massISMUnitsInSI=massSolar
     return

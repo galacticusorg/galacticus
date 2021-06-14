@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -52,8 +52,6 @@ contains
     !#   <source>parameters</source>
     !#   <variable>filterThreshold</variable>
     !#   <description>Threshold for the high-pass filter distribution operator.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=outputAnalysisWeightOperatorFilterHighPass(filterThreshold)
     !# <inputParametersValidate source="parameters"/>
@@ -80,7 +78,7 @@ contains
          &                                                                         weightValue
     integer                                                     , intent(in   ) :: propertyType , propertyQuantity
     integer         (c_size_t                                  ), intent(in   ) :: outputIndex
-    !GCC$ attributes unused :: node, propertyValueIntrinsic, propertyType, outputIndex, propertyQuantity
+    !$GLC attributes unused :: node, propertyValueIntrinsic, propertyType, outputIndex, propertyQuantity
 
     if (propertyValue > self%filterThreshold) then
        filterHighPassOperate=weightValue

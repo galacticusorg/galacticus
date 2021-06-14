@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,26 @@
   !% Implementation of a merger tree masses class which reads masses from an HDF5 file.
 
   !# <mergerTreeBuildMasses name="mergerTreeBuildMassesReadHDF5">
-  !#  <description>A merger tree masses class which reads masses from an HDF5 file.</description>
+  !#  <description>
+  !#   A merger tree build masses class which reads masses from an HDF5 file. The HDF5 file should have the following structure:
+  !#   \begin{verbatim}
+  !#   HDF5 {
+  !#   GROUP '/' {
+  !#      DATASET 'treeRootMass' {
+  !#         DATATYPE  H5T_IEEE_F64BE
+  !#         DATASPACE  SIMPLE { ( * ) / ( * ) }
+  !#      }
+  !#      DATASET 'treeWeight' {
+  !#         DATATYPE  H5T_IEEE_F64BE
+  !#         DATASPACE  SIMPLE { ( * ) / ( * ) }
+  !#      }
+  !#   }
+  !#   }
+  !#   \end{verbatim}
+  !#   where the {\normalfont \ttfamily treeRootMass} dataset contains the mass (in Solar masses) of the root halo of a tree to
+  !#   generate, and the (optional) {\normalfont \ttfamily treeWeight} dataset contains the weight (in units of Mpc$^{-3}$) to
+  !#   assign to each tree.
+  !#  </description>
   !# </mergerTreeBuildMasses>
   type, extends(mergerTreeBuildMassesRead) :: mergerTreeBuildMassesReadHDF5
      !% Implementation of a merger tree masses class which reads masses from an HDF5 file.
@@ -44,25 +63,21 @@ contains
     type            (mergerTreeBuildMassesReadHDF5)                :: self
     type            (inputParameters              ), intent(inout) :: parameters
     type            (varying_string               )                :: fileName
-    double precision                                              :: massIntervalFractional
+    double precision                                               :: massIntervalFractional
 
     !# <inputParameter>
     !#   <name>fileName</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The name of the file from which to read merger tree masses.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massIntervalFractional</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.1d0</defaultValue>
     !#   <description>The fractional mass interval occupied by the trees. Where the intervals of trees of different mass would overlap this interval will be truncated.</description>
     !#   <source>parameters</source>
-    !#   <type>float</type>
     !# </inputParameter>
     self=mergerTreeBuildMassesReadHDF5(fileName,massIntervalFractional)
-    !# <inputParametersValidate target="self" source="parameters"/>
+    !# <inputParametersValidate source="parameters"/>
     return
   end function readHDF5ConstructorParameters
 
@@ -81,18 +96,19 @@ contains
     !% Read merger tree masses from file.
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: IO_HDF5         , only : hdf5Access             , hdf5Object
+    use :: File_Utilities  , only : File_Name_Expand
     implicit none
     class           (mergerTreeBuildMassesReadHDF5), intent(inout)                            :: self
     double precision                               , intent(  out), allocatable, dimension(:) :: mass    , weight
     type            (hdf5Object                   )                                           :: treeFile
 
-    call        hdf5Access%set        (                                                     )
-    call        treeFile  %openFile   (char(self%fileName),overWrite=.false.,readOnly=.true.)
-    call        treeFile  %readDataset('treeRootMass'     ,          mass                   )
-    if (treeFile%hasDataset('treeWeight'))                                                    &
-         & call treeFile  %readDataset('treeWeight'       ,          weight                 )
-    call        treeFile  %close      (                                                     )
-    call        hdf5Access%unset      (                                                     )
+    call        hdf5Access%set        (                                                                             )
+    call        treeFile  %openFile   (char(File_Name_Expand(char(self%fileName))),overWrite=.false.,readOnly=.true.)
+    call        treeFile  %readDataset('treeRootMass'     ,          mass                                           )
+    if (treeFile%hasDataset('treeWeight'))                                                                            &
+         & call treeFile  %readDataset('treeWeight'       ,          weight                                         )
+    call        treeFile  %close      (                                                                             )
+    call        hdf5Access%unset      (                                                                             )
     return
   end subroutine readHDF5Read
 

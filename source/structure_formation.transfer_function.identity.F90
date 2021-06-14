@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,7 @@
 !% Contains a module which implements an identity transfer function class.
 
   !# <transferFunction name="transferFunctionIdentity">
-  !#  <description>Provides an identity transfer function.</description>
+  !#  <description>Provides an identity transfer function, i.e. $T(k)=1$ for all $k$.</description>
   !# </transferFunction>
   type, extends(transferFunctionClass) :: transferFunctionIdentity
      !% A identity transfer function class.
@@ -58,8 +58,6 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The redshift at which the transfer function is defined.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     self=transferFunctionIdentity(cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)))
@@ -82,7 +80,7 @@ contains
     !% Destructor for the identity transfer function class.
     implicit none
     type(transferFunctionIdentity), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Nothing to do.
     return
@@ -93,7 +91,7 @@ contains
     implicit none
     class           (transferFunctionIdentity), intent(inout) :: self
     double precision                          , intent(in   ) :: wavenumber
-    !GCC$ attributes unused :: self, wavenumber
+    !$GLC attributes unused :: self, wavenumber
 
     identityValue=1.0d0
     return
@@ -104,7 +102,7 @@ contains
     implicit none
     class           (transferFunctionIdentity), intent(inout) :: self
     double precision                          , intent(in   ) :: wavenumber
-    !GCC$ attributes unused :: self, wavenumber
+    !$GLC attributes unused :: self, wavenumber
 
     identityLogarithmicDerivative=0.0d0
     return
@@ -117,7 +115,7 @@ contains
     implicit none
     class  (transferFunctionIdentity), intent(inout)           :: self
     integer                          , intent(  out), optional :: status
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     identityHalfModeMass=0.0d0
     if (present(status)) then
@@ -137,15 +135,15 @@ contains
     return
   end function identityEpochTime
 
-  subroutine identityDescriptor(self,descriptor,includeMethod)
+  subroutine identityDescriptor(self,descriptor,includeClass)
     !% Return an input parameter list descriptor which could be used to recreate this object.
     use :: Input_Parameters, only : inputParameters
     implicit none
     class  (transferFunctionIdentity), intent(inout)           :: self
     type   (inputParameters         ), intent(inout)           :: descriptor
-    logical                          , intent(in   ), optional :: includeMethod
-    !GCC$ attributes unused :: self
+    logical                          , intent(in   ), optional :: includeClass
+    !$GLC attributes unused :: self
 
-    if (.not.present(includeMethod).or.includeMethod) call descriptor%addParameter('transferFunctionMethod','identity')
+    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter('transferFunction','identity')
     return
   end subroutine identityDescriptor

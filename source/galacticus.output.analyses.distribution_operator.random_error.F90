@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,21 +19,19 @@
 
 !% Contains a module which implements a random error output analysis distribution operator class.
   !# <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorRandomError" abstract="yes">
-  !#  <description>A random error output analysis distribution operator class.</description>
+  !#  <description>
+  !#   A random error output analysis distribution operator class. The weight of each galaxy is integrated over every bin of the
+  !#   histogram using a Gaussian kernel. This is an abstract class---the width of the Gaussian kernel must be provided by a
+  !#   concrete class.
+  !#  </description>
   !# </outputAnalysisDistributionOperator>
   type, abstract, extends(outputAnalysisDistributionOperatorClass) :: outputAnalysisDistributionOperatorRandomError
      !% A random error output distribution operator class.
      private
    contains
-     !@ <objectMethods>
-     !@   <object>outputAnalysisDistributionOperatorRandomError</object>
-     !@   <objectMethod>
-     !@     <method>rootVariance</method>
-     !@     <arguments>\doublezero\ propertyValue\argin,\textcolor{red}{\textless type(treeNode)\textgreater} node\arginout</arguments>
-     !@     <type>\doublezero</type>
-     !@     <description>Return the root-variance to apply to the distribution.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return the root-variance to apply to the distribution." method="rootVariance" />
+     !# </methods>
      procedure                                           :: operateScalar       => randomErrorOperateScalar
      procedure                                           :: operateDistribution => randomErrorOperateDistribution
      procedure(randomErrorOperateRootVariance), deferred :: rootVariance
@@ -62,7 +60,7 @@ contains
     type            (treeNode                                     ), intent(inout)                                        :: node
     double precision                                                              , dimension(size(propertyValueMinimum)) :: randomErrorOperateScalar
     double precision                                                                                                      :: rootVariance
-    !GCC$ attributes unused :: outputIndex, propertyType
+    !$GLC attributes unused :: outputIndex, propertyType
 
     rootVariance=self%rootVariance(propertyValue,node)
     if     (                               &
@@ -92,7 +90,7 @@ contains
     integer         (c_size_t                                     ), intent(in   )                                        :: outputIndex
     type            (treeNode                                     ), intent(inout)                                        :: node
     double precision                                                              , dimension(size(propertyValueMinimum)) :: randomErrorOperateDistribution
-    !GCC$ attributes unused :: self, distribution, propertyValueMinimum, propertyValueMaximum, outputIndex, propertyType, node
+    !$GLC attributes unused :: self, distribution, propertyValueMinimum, propertyValueMaximum, outputIndex, propertyType, node
 
     randomErrorOperateDistribution=0.0d0
     call Galacticus_Error_Report('not implemented'//{introspection:location})

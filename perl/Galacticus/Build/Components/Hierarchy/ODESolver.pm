@@ -60,7 +60,7 @@ sub Component_ODE_Name_From_Index {
     };
     # This generic (parent) node component class has no properties, so return an unknown name.
     $function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
-!GCC$ attributes unused :: self, count, propertyType
+!$GLC attributes unused :: self, count, propertyType
 name='?'
 CODE
     # Insert a type-binding for this function into the treeNode type.

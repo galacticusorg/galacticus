@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -128,20 +128,15 @@
      type            (table1DGeneric          )          :: transfer
      double precision                                    :: time                          , redshift
    contains
-     !@ <objectMethods>
-     !@   <object>transferFunctionFile</object>
-     !@   <objectMethod>
-     !@     <method>readFile</method>
-     !@     <type>void</type>
-     !@     <arguments>\textcolor{red}{\textless char(len=*)\textgreater} fileName\argin</arguments>
-     !@     <description>Read the named transfer function file.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Read the named transfer function file." method="readFile" />
+     !# </methods>
      final     ::                          fileDestructor
      procedure :: readFile              => fileReadFile
      procedure :: value                 => fileValue
      procedure :: logarithmicDerivative => fileLogarithmicDerivative
      procedure :: halfModeMass          => fileHalfModeMass
+     procedure :: quarterModeMass       => fileQuarterModeMass
      procedure :: epochTime             => fileEpochTime
   end type transferFunctionFile
 
@@ -172,16 +167,12 @@ contains
     !#   <name>fileName</name>
     !#   <source>parameters</source>
     !#   <description>The name of the file from which to read a tabulated transfer function.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>redshift</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The redshift of the transfer function to read.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
@@ -209,14 +200,14 @@ contains
 
   subroutine fileReadFile(self,fileName)
     !% Internal constructor for the file transfer function class.
-    use :: Cosmology_Parameters, only : cosmologyParametersSimple
-    use :: FGSL                , only : FGSL_Interp_cSpline
-    use :: File_Utilities      , only : File_Name_Expand
-    use :: Galacticus_Display  , only : Galacticus_Display_Message
-    use :: Galacticus_Error    , only : Galacticus_Error_Report
-    use :: IO_HDF5             , only : hdf5Access                        , hdf5Object
-    use :: Numerical_Comparison, only : Values_Differ
-    use :: Table_Labels        , only : enumerationExtrapolationTypeEncode
+    use :: Cosmology_Parameters   , only : cosmologyParametersSimple
+    use :: Display                , only : displayMessage
+    use :: File_Utilities         , only : File_Name_Expand
+    use :: Galacticus_Error       , only : Galacticus_Error_Report
+    use :: IO_HDF5                , only : hdf5Access                        , hdf5Object
+    use :: Numerical_Comparison   , only : Values_Differ
+    use :: Numerical_Interpolation, only : GSL_Interp_cSpline
+    use :: Table_Labels           , only : enumerationExtrapolationTypeEncode
     implicit none
     class           (transferFunctionFile    ), intent(inout)             :: self
     character       (len=*                   ), intent(in   )             :: fileName
@@ -253,15 +244,15 @@ contains
        call parametersObject%readAttribute('temperatureCMB' ,temperatureCMB )
        cosmologyParametersFile=cosmologyParametersSimple(OmegaMatter,OmegaBaryon,OmegaDarkEnergy,temperatureCMB,HubbleConstant)
        if (Values_Differ(cosmologyParametersFile%OmegaBaryon    (),self%cosmologyParameters_%OmegaBaryon    (),absTol=1.0d-3)) &
-            & call Galacticus_Display_Message('OmegaBaryon from transfer function file does not match internal value'    )
+            & call displayMessage('OmegaBaryon from transfer function file does not match internal value'    )
        if (Values_Differ(cosmologyParametersFile%OmegaMatter    (),self%cosmologyParameters_%OmegaMatter    (),absTol=1.0d-3)) &
-            & call Galacticus_Display_Message('OmegaMatter from transfer function file does not match internal value'    )
+            & call displayMessage('OmegaMatter from transfer function file does not match internal value'    )
        if (Values_Differ(cosmologyParametersFile%OmegaDarkEnergy(),self%cosmologyParameters_%OmegaDarkEnergy(),absTol=1.0d-3)) &
-            & call Galacticus_Display_Message('OmegaDarkEnergy from transfer function file does not match internal value')
+            & call displayMessage('OmegaDarkEnergy from transfer function file does not match internal value')
        if (Values_Differ(cosmologyParametersFile%HubbleConstant (),self%cosmologyParameters_%HubbleConstant (),relTol=1.0d-3)) &
-            & call Galacticus_Display_Message('HubbleConstant from transfer function file does not match internal value' )
+            & call displayMessage('HubbleConstant from transfer function file does not match internal value' )
        if (Values_Differ(cosmologyParametersFile%temperatureCMB (),self%cosmologyParameters_%temperatureCMB (),relTol=1.0d-3)) &
-            & call Galacticus_Display_Message('temperatureCMB from transfer function file does not match internal value' )
+            & call displayMessage('temperatureCMB from transfer function file does not match internal value' )
     end select
     deallocate(cosmologyParametersFile)
     call parametersObject%close()
@@ -294,7 +285,7 @@ contains
          &                                         extrapolateWavenumberLow       , &
          &                                         extrapolateWavenumberHigh        &
          &                                        ]                               , &
-         &                      interpolationType= FGSL_Interp_cSpline              &
+         &                      interpolationType= GSL_Interp_cSpline               &
          &                     )
     call self%transfer%populate(                                                    &
          &                      transferLogarithmic                                 &
@@ -341,7 +332,7 @@ contains
     implicit none
     class  (transferFunctionFile), intent(inout)           :: self
     integer                      , intent(  out), optional :: status
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     fileHalfModeMass=0.0d0
     if (present(status)) then
@@ -351,6 +342,25 @@ contains
     end if
     return
   end function fileHalfModeMass
+
+  double precision function fileQuarterModeMass(self,status)
+    !% Compute the mass corresponding to the wavenumber at which the transfer function is
+    !% suppressed by a factor of two relative to a \gls{cdm} transfer function. Not supported in
+    !% this implementation.
+    use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail
+    implicit none
+    class  (transferFunctionFile), intent(inout)           :: self
+    integer                      , intent(  out), optional :: status
+    !$GLC attributes unused :: self
+
+    fileQuarterModeMass=0.0d0
+    if (present(status)) then
+       status=errorStatusFail
+    else
+       call Galacticus_Error_Report('not supported by this implementation'//{introspection:location})
+    end if
+    return
+  end function fileQuarterModeMass
 
   double precision function fileEpochTime(self)
     !% Return the cosmic time at the epoch at which this transfer function is defined.

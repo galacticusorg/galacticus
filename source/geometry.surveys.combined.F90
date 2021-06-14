@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,6 +26,9 @@
 
   !# <surveyGeometry name="surveyGeometryCombined">
   !#  <description>Implements a survey geometry which combines multiple other surveys.</description>
+  !#  <deepCopy>
+  !#   <linkedList type="surveyGeometryList" variable="surveyGeometries" next="next" object="surveyGeometry_" objectType="surveyGeometryClass"/>
+  !#  </deepCopy>
   !# </surveyGeometry>
   type, extends(surveyGeometryClass) :: surveyGeometryCombined
      private
@@ -38,7 +41,6 @@
      procedure  :: windowFunctions         => combinedWindowFunctions
      procedure  :: angularPower            => combinedAngularPower
      procedure  :: pointIncluded           => combinedPointIncluded
-     procedure  :: deepCopy                => combinedDeepCopy
   end type surveyGeometryCombined
 
   interface surveyGeometryCombined
@@ -59,7 +61,7 @@ contains
 
     self           %surveyGeometries => null()
     surveyGeometry_                  => null()
-    do i=1,parameters%copiesCount('surveyGeometryMethod',zeroIfNotPresent=.true.)
+    do i=1,parameters%copiesCount('surveyGeometry',zeroIfNotPresent=.true.)
        if (associated(surveyGeometry_)) then
           allocate(surveyGeometry_%next)
           surveyGeometry_ => surveyGeometry_%next
@@ -110,7 +112,7 @@ contains
     !% Return false to indicate that survey window function is not available.
     implicit none
     class(surveyGeometryCombined), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     combinedWindowFunctionAvailable=.false.
     return
@@ -120,7 +122,7 @@ contains
     !% Return false to indicate that survey angular power is not available.
     implicit none
     class(surveyGeometryCombined), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     combinedAngularPowerAvailable=.false.
     return
@@ -132,7 +134,7 @@ contains
     implicit none
     class  (surveyGeometryCombined), intent(inout)               :: self
     integer                        , intent(in   ), optional     :: field
-    !GCC$ attributes unused :: self, field
+    !$GLC attributes unused :: self, field
 
     combinedSolidAngle=0.0d0
     call Galacticus_Error_Report('solid angle is not supported'//{introspection:location})
@@ -149,7 +151,7 @@ contains
     integer                                 , intent(in   )                                           :: gridCount
     double precision                        , intent(  out)                                           :: boxLength
     complex         (c_double_complex      ), intent(  out), dimension(gridCount,gridCount,gridCount) :: windowFunction1,windowFunction2
-    !GCC$ attributes unused :: self, mass1, mass2, gridCount, boxLength, windowFunction1, windowFunction2
+    !$GLC attributes unused :: self, mass1, mass2, gridCount, boxLength, windowFunction1, windowFunction2
 
     call Galacticus_Error_Report('window function construction is not supported'//{introspection:location})
     return
@@ -162,7 +164,7 @@ contains
     class           (surveyGeometryCombined), intent(inout):: self
     integer                                 , intent(in   ):: i          , j, &
          &                                                    l
-    !GCC$ attributes unused ::self, i, j, l
+    !$GLC attributes unused ::self, i, j, l
 
     combinedAngularPower=0.0d0
     call Galacticus_Error_Report('angular power is not supported'//{introspection:location})
@@ -187,37 +189,3 @@ contains
     end do
     return
   end function combinedPointIncluded
-
-  subroutine combinedDeepCopy(self,destination)
-    !% Perform a deep copy for the {\normalfont \ttfamily combined} surveyGeometry class.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    implicit none
-    class(surveyGeometryCombined), intent(inout) :: self
-    class(surveyGeometryClass   ), intent(inout) :: destination
-    type (surveyGeometryList    ), pointer       :: surveyGeometry_   , surveyGeometryDestination_, &
-         &                                          surveyGeometryNew_
-
-    call self%surveyGeometryClass%deepCopy(destination)
-    select type (destination)
-    type is (surveyGeometryCombined)
-       destination%surveyGeometries => null()
-       surveyGeometryDestination_   => null()
-       surveyGeometry_              => self%surveyGeometries
-       do while (associated(surveyGeometry_))
-          allocate(surveyGeometryNew_)
-          if (associated(surveyGeometryDestination_)) then
-             surveyGeometryDestination_%next             => surveyGeometryNew_
-             surveyGeometryDestination_                  => surveyGeometryNew_
-          else
-             destination               %surveyGeometries => surveyGeometryNew_
-             surveyGeometryDestination_                  => surveyGeometryNew_
-          end if
-          allocate(surveyGeometryNew_%surveyGeometry_,mold=surveyGeometry_%surveyGeometry_)
-          !# <deepCopy source="surveyGeometry_%surveyGeometry_" destination="surveyGeometryNew_%surveyGeometry_"/>
-          surveyGeometry_ => surveyGeometry_%next
-       end do
-    class default
-       call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})
-    end select
-    return
-  end subroutine combinedDeepCopy

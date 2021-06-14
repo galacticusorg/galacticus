@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,9 @@
   !% Implementation of a posterior sampling convergence class which priorRandom converges.
 
   !# <posteriorSampleStateInitialize name="posteriorSampleStateInitializePriorRandom">
-  !#  <description>A posterior sampling state initialization class which samples the inital state at random from the priors.</description>
+  !#  <description>
+  !#   A posterior sampling state initialization class which samples the inital state at random from the prior distribution(s).
+  !#  </description>
   !# </posteriorSampleStateInitialize>
   type, extends(posteriorSampleStateInitializeClass) :: posteriorSampleStateInitializePriorRandom
      !% Implementation of a posterior sampling state initialization class which samples the inital state at random from the priors.
@@ -42,7 +44,7 @@ contains
     implicit none
     type(posteriorSampleStateInitializePriorRandom)                :: self
     type(inputParameters                          ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=posteriorSampleStateInitializePriorRandom()
     return
@@ -60,7 +62,7 @@ contains
          &                                                                                                           logPosterior
     double precision                                                          , dimension(size(modelParameters_)) :: state
     integer                                                                                                       :: j
-    !GCC$ attributes unused ::  self, modelLikelihood
+    !$GLC attributes unused ::  self, modelLikelihood
 
     ! No knowledge of evaluation time.
     timeEvaluatePrevious=-1.0d0

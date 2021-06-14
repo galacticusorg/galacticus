@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -79,11 +79,9 @@ contains
       ! Read parameters controlling the physical implementation.
        !# <inputParameter>
        !#   <name>positionsPresetSatelliteToHost</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>If true, the position of satellite halos will be adjusted to match that of their host halo.</description>
        !#   <source>parameters_</source>
-       !#   <type>bool</type>
        !# </inputParameter>
     end if
     return
@@ -99,7 +97,7 @@ contains
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
-    !GCC$ attributes unused :: parameters_
+    !$GLC attributes unused :: parameters_
 
     if (defaultPositionComponent%presetIsActive()) &
          call nodePromotionEvent%attach(defaultPositionComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentPositionPreset')
@@ -120,33 +118,33 @@ contains
     return
   end subroutine Node_Component_Position_Preset_Thread_Uninitialize
 
-  subroutine nodePromotion(self,thisNode)
-    !% Ensure that {\normalfont \ttfamily thisNode} is ready for promotion to its parent. In this case, update the position of {\normalfont \ttfamily
-    !% thisNode} to that of the parent.
+  subroutine nodePromotion(self,node)
+    !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, update the position of {\normalfont \ttfamily
+    !% node} to that of the parent.
     use :: Galacticus_Nodes, only : nodeComponentPosition, nodeComponentPositionPreset, treeNode
     implicit none
     class(*                    ), intent(inout)          :: self
-    type (treeNode             ), intent(inout), target  :: thisNode
-    class(nodeComponentPosition)               , pointer :: parentPositionComponent, thisPositionComponent, &
-         &                                                  satellitePosition
-    type (treeNode             )               , pointer :: satelliteNode
-    !GCC$ attributes unused :: self
+    type (treeNode             ), intent(inout), target  :: node
+    class(nodeComponentPosition)               , pointer :: positionParent   , position, &
+         &                                                  positionSatellite
+    type (treeNode             )               , pointer :: nodeSatellite
+    !$GLC attributes unused :: self
     
-    thisPositionComponent   => thisNode       %position()
-    parentPositionComponent => thisNode%parent%position()
-    select type (parentPositionComponent)
+    position       => node       %position()
+    positionParent => node%parent%position()
+    select type (positionParent)
     class is (nodeComponentPositionPreset)
-       call thisPositionComponent%       positionSet(parentPositionComponent%position       ())
-       call thisPositionComponent%       velocitySet(parentPositionComponent%velocity       ())
-       call thisPositionComponent%positionHistorySet(parentPositionComponent%positionHistory())
+       call position%       positionSet(positionParent%position       ())
+       call position%       velocitySet(positionParent%velocity       ())
+       call position%positionHistorySet(positionParent%positionHistory())
     end select
     if (positionsPresetSatelliteToHost) then
-       satelliteNode => thisNode%firstSatellite
-       do while (associated(satelliteNode))
-          satellitePosition => satelliteNode%position()
-          call satellitePosition%positionSet(parentPositionComponent%position())
-          call satellitePosition%velocitySet(parentPositionComponent%velocity())
-          satelliteNode => satelliteNode%sibling
+       nodeSatellite => node%firstSatellite
+       do while (associated(nodeSatellite))
+          positionSatellite => nodeSatellite%position()
+          call positionSatellite%positionSet(positionParent%position())
+          call positionSatellite%velocitySet(positionParent%velocity())
+          nodeSatellite => nodeSatellite%sibling
        end do
     end if
     return
@@ -162,9 +160,9 @@ contains
     !% Optionally move a satellite to coincide with the postion of its host.
     use :: Galacticus_Nodes, only : defaultPositionComponent, nodeComponentPosition, treeNode
     implicit none
-    type (treeNode             ), intent(inout), pointer :: node
-    type (treeNode             )               , pointer :: nodeHost
-    class(nodeComponentPosition)               , pointer :: position, positionHost
+    type (treeNode             ), intent(inout) :: node
+    type (treeNode             ), pointer       :: nodeHost
+    class(nodeComponentPosition), pointer       :: position, positionHost
 
     ! Return immediately if this method is not active or if positions are not to be reset.
     if (.not.defaultPositionComponent%presetIsActive() .or. .not.positionsPresetSatelliteToHost) return

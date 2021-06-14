@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,14 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of atomic collisional ionization rates based on the \href{ftp://gradj.pa.uky.edu//dima//rec//cfit.f}{code}
+  !% An implementation of atomic collisional ionization rates based on the \href{http://www.pa.uky.edu/~verner/dima/col/cfit.f}{code}
   !% originally written by Dima Verner.
 
   !# <atomicIonizationRateCollisional name="atomicIonizationRateCollisionalVerner1996">
-  !#  <description>Atomic collisional ionization rates are computed based on the \href{ftp://gradj.pa.uky.edu//dima//rec//cfit.f}{code} originally written by Dima Verner.</description>
+  !#  <description>Atomic collisional ionization rates are computed based on the \href{http://www.pa.uky.edu/~verner/dima/col/cfit.f}{code} originally written by Dima Verner.</description>
   !# </atomicIonizationRateCollisional>
   type, extends(atomicIonizationRateCollisionalClass) :: atomicIonizationRateCollisionalVerner1996
-     !% A collisional ionization rate class based on the \href{ftp://gradj.pa.uky.edu//dima//rec//cfit.f}{code} originally written by Dima Verner.
+     !% A collisional ionization rate class based on the \href{http://www.pa.uky.edu/~verner/dima/col/cfit.f}{code} originally written by Dima Verner.
      private
    contains
      procedure :: rate => verner1996Rate
@@ -456,7 +456,7 @@ contains
     implicit none
     type(atomicIonizationRateCollisionalVerner1996)                :: self
     type(inputParameters                          ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=atomicIonizationRateCollisionalVerner1996()
     return
@@ -466,7 +466,7 @@ contains
     !% Computes the rate coefficient of direct collisional ionization (in units of cm$^3$ s$^{-1}$) at the specified {\normalfont \ttfamily
     !% temperature} for all ions of atoms with $Z<28$ by use of the fits from
     !% \citeauthor{voronov_practical_1997}~(\citeyear{voronov_practical_1997}; Version 2, March 24, 1997). Based on the
-    !% \href{ftp://gradj.pa.uky.edu//dima//col//cfit.f}{code} originally written by Dima Verner. The ionization state passed to
+    !% \href{http://www.pa.uky.edu/~verner/dima/col/cfit.f}{code} originally written by Dima Verner. The ionization state passed to
     !% this function should be that of the atom/ion prior to ionization.
     use :: Numerical_Constants_Physical, only : boltzmannsConstant
     use :: Numerical_Constants_Units   , only : electronVolt
@@ -476,7 +476,7 @@ contains
     double precision                                           , intent(in   ) :: temperature
     integer                                                                    :: electronNumber
     double precision                                                           :: energyScaled  , temperatureScaled
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Set a default rate coefficient of zero.
     verner1996Rate=0.0d0

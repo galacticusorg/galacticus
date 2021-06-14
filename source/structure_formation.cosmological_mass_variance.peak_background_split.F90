@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -40,15 +40,9 @@
      class           (haloEnvironmentClass         ), pointer :: haloEnvironment_          => null()
      double precision                                         :: massBackground
    contains
-     !@ <objectMethods>
-     !@   <object>cosmologicalMassVariancePeakBackgroundSplit</object>
-     !@   <objectMethod>
-     !@     <method>varianceBackground</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ time\argin</arguments>
-     !@     <description>Compute the variance of the background at this time.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Compute the variance of the background at this time." method="varianceBackground" />
+     !# </methods>
      final     ::                                       variancePeakBackgroundSplitDestructor
      procedure :: sigma8                             => variancePeakBackgroundSplitSigma8
      procedure :: powerNormalization                 => variancePeakBackgroundSplitPowerNormalization
@@ -123,7 +117,7 @@ contains
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(cosmologicalMassVariancePeakBackgroundSplit), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     variancePeakBackgroundSplitPowerNormalization=0.0d0
     call Galacticus_Error_Report('power spectrum normalization is not well-defined in peak-background split model'//{introspection:location})

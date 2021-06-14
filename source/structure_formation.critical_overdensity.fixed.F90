@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,10 @@
 !% Contains a module which implements an fixed critical overdensity class.
 
   !# <criticalOverdensity name="criticalOverdensityFixed">
-  !#  <description>The critical overdensity is set to a fixed number divided by the linear growth factor.</description>
+  !#  <description>
+  !#   A critical overdensity class in which the critical overdensity is set to a fixed number given by {\normalfont \ttfamily
+  !#   [criticalOverdensity]}.
+  !#  </description>
   !# </criticalOverdensity>
   type, extends(criticalOverdensityClass) :: criticalOverdensityFixed
      !% A fixed critical overdensity class.
@@ -62,8 +65,6 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>(3.0d0/20.0d0)*(12.0d0*Pi)**(2.0d0/3.0d0)</defaultValue>
     !#   <description>The value to use for the critical overdensity for collapse of dark matter halos when using a fixed value.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
@@ -108,7 +109,7 @@ contains
     logical                                   , intent(in   ), optional :: collapsing
     double precision                          , intent(in   ), optional :: mass
     type            (treeNode                ), intent(inout), optional :: node
-    !GCC$ attributes unused :: mass, node, time, expansionFactor, collapsing
+    !$GLC attributes unused :: mass, node, time, expansionFactor, collapsing
 
     fixedValue=+self%criticalOverdensity_
     return
@@ -122,7 +123,7 @@ contains
     logical                                   , intent(in   ), optional :: collapsing
     double precision                          , intent(in   ), optional :: mass
     type            (treeNode                ), intent(inout), optional :: node
-    !GCC$ attributes unused :: self, mass, node, time, expansionFactor, collapsing
+    !$GLC attributes unused :: self, mass, node, time, expansionFactor, collapsing
 
     fixedGradientTime=0.0d0
     return
@@ -136,7 +137,7 @@ contains
     logical                                   , intent(in   ), optional :: collapsing
     double precision                          , intent(in   ), optional :: mass
     type            (treeNode                ), intent(inout), optional :: node
-    !GCC$ attributes unused :: self, time, expansionFactor, collapsing, mass, node
+    !$GLC attributes unused :: self, time, expansionFactor, collapsing, mass, node
 
     fixedGradientMass=0.0d0
     return
@@ -146,7 +147,7 @@ contains
     !% Return whether the critical overdensity is mass dependent.
     implicit none
     class(criticalOverdensityFixed), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     fixedIsMassDependent=.false.
     return
@@ -156,7 +157,7 @@ contains
     !% Return whether the critical overdensity is node dependent.
     implicit none
     class(criticalOverdensityFixed), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     fixedIsNodeDependent=.false.
     return

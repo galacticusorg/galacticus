@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -38,15 +38,9 @@
      double precision                                                              :: negativeBinomialScatterFractional          , countFailures
      logical                                                                       :: finalized
    contains
-     !@ <objectMethods>
-     !@   <object>outputAnalysisLocalGroupMassFunction</object>
-     !@   <objectMethod>
-     !@     <method>finalizeAnalysis</method>
-     !@     <arguments></arguments>
-     !@     <type>\void</type>
-     !@     <description>Finalize analysis.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Finalize analysis." method="finalizeAnalysis" />
+     !# </methods>
      final     ::                     localGroupMassFunctionDestructor
      procedure :: analyze          => localGroupMassFunctionAnalyze
      procedure :: finalize         => localGroupMassFunctionFinalize
@@ -94,8 +88,6 @@ contains
     !#   <defaultValue>0.18d0</defaultValue>
     !#   <defaultSource>\citep{boylan-kolchin_theres_2010}</defaultSource>
     !#   <description>The fractional scatter (relative to the Poisson scatter) in the negative binomial distribution used in likelihood calculations.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>randomErrorMinimum</name>
@@ -103,8 +95,6 @@ contains
     !#   <variable>randomErrorMinimum</variable>
     !#   <defaultValue>0.1d0</defaultValue>
     !#   <description>The minimum random error for stellar masses.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>randomErrorMaximum</name>
@@ -112,8 +102,6 @@ contains
     !#   <variable>randomErrorMaximum</variable>
     !#   <defaultValue>0.1d0</defaultValue>
     !#   <description>The minimum random error for stellar masses.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>randomErrorPolynomialCoefficient</name>
@@ -121,8 +109,6 @@ contains
     !#   <variable>randomErrorPolynomialCoefficient</variable>
     !#   <defaultValue>[0.07d0]</defaultValue>
     !#   <description>The coefficients of the random error polynomial for stellar masses.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>systematicErrorPolynomialCoefficient</name>
@@ -130,8 +116,6 @@ contains
     !#   <variable>systematicErrorPolynomialCoefficient</variable>
     !#   <defaultValue>[0.0d0]</defaultValue>
     !#   <description>The coefficients of the systematic error polynomial for stellar masses.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>covarianceBinomialBinsPerDecade</name>
@@ -139,8 +123,6 @@ contains
     !#   <variable>covarianceBinomialBinsPerDecade</variable>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number of bins per decade of halo mass to use when constructing Local Group stellar mass function covariance matrices for main branch galaxies.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>covarianceBinomialMassHaloMinimum</name>
@@ -148,8 +130,6 @@ contains
     !#   <variable>covarianceBinomialMassHaloMinimum</variable>
     !#   <defaultValue>1.0d8</defaultValue>
     !#   <description>The minimum halo mass to consider when constructing Local Group stellar mass function covariance matrices for main branch galaxies.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>covarianceBinomialMassHaloMaximum</name>
@@ -157,8 +137,6 @@ contains
     !#   <variable>covarianceBinomialMassHaloMaximum</variable>
     !#   <defaultValue>1.0d16</defaultValue>
     !#   <description>The maximum halo mass to consider when constructing Local Group stellar mass function covariance matrices for main branch galaxies.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
     self=outputAnalysisLocalGroupMassFunction(outputTimes_,negativeBinomialScatterFractional,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum)
@@ -375,7 +353,7 @@ contains
     !#    &amp;                         massesSatellites                                       , &amp;
     !#    &amp;                         bufferCountSatellites                                  , &amp;
     !#    &amp;                         outputWeightSatellites                                 , &amp;
-    !#    &amp;                         nodePropertyExtractor_                       , &amp;
+    !#    &amp;                         nodePropertyExtractor_                                 , &amp;
     !#    &amp;                         outputAnalysisPropertyOperator_                        , &amp;
     !#    &amp;                         outputAnalysisPropertyUnoperator_                      , &amp;
     !#    &amp;                         outputAnalysisWeightOperator_                          , &amp;

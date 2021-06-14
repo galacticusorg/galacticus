@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -33,44 +33,22 @@ module IO_IRATE
      class(cosmologyFunctionsClass ), pointer :: cosmologyFunctions_
      class(cosmologyParametersClass), pointer :: cosmologyParameters_
    contains
-     !@ <objectMethods>
-     !@   <object>irate</object>
-     !@   <objectMethod>
-     !@     <method>readHalos</method>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ snapshot\argin, \doublezero\ [redshift]\argout, \doubletwo\ [center]\argout, \doubletwo\ [velocity]\argout, \doubleone\ [mass]\argout</arguments>
-     !@     <description>Read a snapshot from the \gls{irate} format file.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>readSimulation</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ [boxSize]\argout</arguments>
-     !@     <description>Read the request properties of the simulation from an \gls{irate} format file.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>copySimulation</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(irate)\textgreater} targetFile\arginout</arguments>
-     !@     <description>Copy ``{\normalfont \ttfamily SimulationProperties}'' group from one \gls{irate} file to another.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>copyCosmology</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(irate)\textgreater} targetFile\arginout</arguments>
-     !@     <description>Copy ``{\normalfont \ttfamily Cosmology}'' group from one \gls{irate} file to another.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>writeHalos</method>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ snapshot\argin, \doublezero\ redshift\argin, \doubletwo\ [center]\argin, \doubletwo\ [velocity]\argin, \doubleone\ [mass]\argin</arguments>
-     !@     <description></description>
-     !@   </objectMethod>
-     !@ </objectMethods>
-     procedure :: readHalos      => irateReadHalos
-     procedure :: readSimulation => irateReadSimulation
-     procedure :: copySimulation => irateCopySimulation
-     procedure :: copyCosmology  => irateCopyCosmology
-     procedure :: writeHalos     => irateWriteHalos
+     !# <methods>
+     !#   <method description="Read a snapshot from the \gls{irate} format file." method="readHalos" />
+     !#   <method description="Read the requested properties of the simulation from an \gls{irate} format file." method="readSimulation" />
+     !#   <method description="Write the requested properties of the simulation from an \gls{irate} format file." method="writeSimulation" />
+     !#   <method description="Copy ``{\normalfont \ttfamily SimulationProperties}'' group from one \gls{irate} file to another." method="copySimulation" />
+     !#   <method description="Copy ``{\normalfont \ttfamily Cosmology}'' group from one \gls{irate} file to another." method="copyCosmology" />
+     !#   <method method="writeHalos">
+     !#     <description></description>
+     !#   </method>
+     !# </methods>
+     procedure :: readHalos       => irateReadHalos
+     procedure :: readSimulation  => irateReadSimulation
+     procedure :: writeSimulation => irateWriteSimulation
+     procedure :: copySimulation  => irateCopySimulation
+     procedure :: copyCosmology   => irateCopyCosmology
+     procedure :: writeHalos      => irateWriteHalos
   end type irate
 
   interface irate
@@ -94,22 +72,24 @@ contains
     return
   end function irateConstructor
 
-  subroutine irateReadHalos(self,snapshot,redshift,center,velocity,mass)
+  subroutine irateReadHalos(self,snapshot,redshift,center,velocity,mass,IDs)
     !% Read requested properties of halos from an \gls{irate} file.
-    use :: Cosmology_Parameters            , only : hubbleUnitsLittleH
-    use :: IO_HDF5                         , only : hdf5Object
-    use :: ISO_Varying_String              , only : char              , trim
-    use :: Numerical_Constants_Astronomical, only : massSolar         , megaParsec
-    use :: Numerical_Constants_Prefixes    , only : hecto             , kilo
+    use, intrinsic :: ISO_C_Binding                   , only : c_size_t
+    use            :: Cosmology_Parameters            , only : hubbleUnitsLittleH
+    use            :: IO_HDF5                         , only : hdf5Object
+    use            :: ISO_Varying_String              , only : char              , trim
+    use            :: Numerical_Constants_Astronomical, only : massSolar         , megaParsec
+    use            :: Numerical_Constants_Prefixes    , only : hecto             , kilo
     implicit none
     class           (irate     ), intent(inout)                                        :: self
     integer                     , intent(in   )                                        :: snapshot
     double precision            , intent(  out)                             , optional :: redshift
-    double precision            , intent(  out), allocatable, dimension(:,:), optional :: center          , velocity
-    double precision            , intent(  out), allocatable, dimension(  :), optional :: mass
+    double precision            , intent(  out), pointer    , dimension(:,:), optional :: center          , velocity
+    double precision            , intent(  out), pointer    , dimension(  :), optional :: mass
+    integer         (c_size_t  ), intent(  out), pointer    , dimension(  :), optional :: IDs
     double precision                           , allocatable, dimension(  :)           :: unitsInCGS
     type            (hdf5Object)                                                       :: irateFile       , snapshotGroup, &
-         &                                                                                halosGroup      , thisDataset
+         &                                                                                halosGroup      , dataset
     character       (len=13    )                                                       :: snapshotLabel
     double precision                                                                   :: redshiftInternal, expansionFactor
 
@@ -121,25 +101,34 @@ contains
     call snapshotGroup%readAttribute("Redshift",redshiftInternal,allowPseudoScalar=.true.)
     expansionFactor=self%cosmologyFunctions_%expansionFactorFromRedshift(redshiftInternal)
     if (present(redshift)) redshift=redshiftInternal
+    if (present(IDs     )) then
+       dataset=halosGroup%openDataset("HaloID"  )
+       allocate(IDs(dataset%size(1)))
+       call dataset%readDatasetStatic(datasetValue=IDs    )
+       call dataset%close()
+    end if
     if (present(mass    )) then
-       thisDataset=halosGroup%openDataset("Mass"    )
-       call thisDataset%readDataset(datasetValue=mass   )
-       call thisDataset%readAttribute('unitscgs',unitsInCGS)
-       call thisDataset%close()
+       dataset=halosGroup%openDataset("Mass"    )
+       allocate(mass(dataset%size(1)))
+       call dataset%readDatasetStatic(datasetValue=mass   )
+       call dataset%readAttribute('unitscgs',unitsInCGS)
+       call dataset%close()
        mass    =mass    *(unitsInCGS(1)/kilo /massSolar )*self%cosmologyParameters_%hubbleConstant(hubbleUnitsLittleH)**unitsInCGS(2)
     end if
     if (present(center )) then
-       thisDataset=halosGroup%openDataset("Center"  )
-       call thisDataset%readDataset(datasetValue=center  )
-       call thisDataset%readAttribute('unitscgs',unitsInCGS)
-       call thisDataset%close()
+       dataset=halosGroup%openDataset("Center"  )
+       allocate(center(dataset%size(1),dataset%size(2)))
+       call dataset%readDatasetStatic(datasetValue=center  )
+       call dataset%readAttribute('unitscgs',unitsInCGS)
+       call dataset%close()
        center  =center  *(unitsInCGS(1)/hecto/megaParsec)*self%cosmologyParameters_%hubbleConstant(hubbleUnitsLittleH)**unitsInCGS(2)
     end if
     if (present(velocity)) then
-       thisDataset=halosGroup%openDataset("Velocity")
-       call thisDataset%readDataset(datasetValue=velocity)
-       call thisDataset%readAttribute('unitscgs',unitsInCGS)
-       call thisDataset%close()
+       dataset=halosGroup%openDataset("Velocity")
+       allocate(velocity(dataset%size(1),dataset%size(2)))
+       call dataset%readDatasetStatic(datasetValue=velocity)
+       call dataset%readAttribute('unitscgs',unitsInCGS)
+       call dataset%close()
        velocity=velocity*(unitsInCGS(1)/hecto/kilo      )*self%cosmologyParameters_%hubbleConstant(hubbleUnitsLittleH)**unitsInCGS(2)
     end if
     call halosGroup   %close()
@@ -164,6 +153,23 @@ contains
     call irateFile      %close()
     return
   end subroutine irateReadSimulation
+
+  subroutine irateWriteSimulation(self,boxSize)
+    !% Write requested properties of the simulation from an \gls{irate} file.
+    use :: IO_HDF5           , only : hdf5Object
+    use :: ISO_Varying_String, only : char
+    implicit none
+    class           (irate     ), intent(inout)           :: self
+    double precision            , intent(in   ), optional :: boxSize
+    type            (hdf5Object)                          :: irateFile, simulationGroup
+
+    call irateFile%openFile(char(self%fileName),readOnly=.false.)
+    simulationGroup=irateFile%openGroup('SimulationProperties')
+    if (present(boxSize)) call simulationGroup%writeAttribute(boxSize,'boxSize')
+    call simulationGroup%close()
+    call irateFile      %close()
+    return
+  end subroutine irateWriteSimulation
 
   subroutine irateCopySimulation(self,targetFile)
     !% Copy ``{\normalfont \ttfamily SimulationProperties}'' group from one \gls{irate} file to another.
@@ -199,45 +205,61 @@ contains
     return
   end subroutine irateCopyCosmology
 
-  subroutine irateWriteHalos(self,snapshot,redshift,center,velocity,mass)
-    !% Read requested properties of halos from an \gls{irate} file.
-    use :: IO_HDF5                         , only : hdf5Object
-    use :: ISO_Varying_String              , only : char
-    use :: Numerical_Constants_Astronomical, only : massSolar , megaParsec
-    use :: Numerical_Constants_Prefixes    , only : hecto     , kilo
+  subroutine irateWriteHalos(self,snapshot,redshift,center,velocity,mass,IDs,overwrite,objectsOverwritable)
+    !% Read requested properties of halos to an \gls{irate} file.
+    use, intrinsic :: ISO_C_Binding                   , only : c_size_t
+    use            :: IO_HDF5                         , only : hdf5Object
+    use            :: ISO_Varying_String              , only : char
+    use            :: Numerical_Constants_Astronomical, only : massSolar , megaParsec
+    use            :: Numerical_Constants_Prefixes    , only : hecto     , kilo
     implicit none
     class           (irate     ), intent(inout)                           :: self
     integer                     , intent(in   )                           :: snapshot
     double precision            , intent(in   )                           :: redshift
     double precision            , intent(in   ), dimension(:,:), optional :: center       , velocity
     double precision            , intent(in   ), dimension(  :), optional :: mass
-    type            (hdf5Object)                                          :: irateFile    , snapshotGroup, &
-         &                                                                   halosGroup   , thisDataset
+    integer         (c_size_t  ), intent(in   ), dimension(  :), optional :: IDs
+    logical                     , intent(in   )                , optional :: overwrite    , objectsOverwritable
+    type            (hdf5Object)                                          :: irateFile    , snapshotGroup      , &
+         &                                                                   halosGroup   , dataset
     character       (len=13    )                                          :: snapshotLabel
-
+    !# <optionalArgument name="overwrite"           defaultsTo=".false."/>
+    !# <optionalArgument name="objectsOverwritable" defaultsTo=".false."/>
+    
     ! Write data to file.
     write (snapshotLabel,'(a,i5.5)') 'Snapshot',snapshot
-    call irateFile%openFile(char(self%fileName),readOnly=.false.)
+    call irateFile%openFile(char(self%fileName),readOnly=.false.,overWrite=overWrite_,objectsOverwritable=objectsOverwritable_)
     snapshotGroup=irateFile    %openGroup(snapshotLabel)
     halosGroup   =snapshotGroup%openGroup('HaloCatalog')
     call snapshotGroup%writeAttribute(redshift,"Redshift")
+    if (present(IDs     )) then
+       if (size(IDs     ) > 0) then
+          call halosGroup%writeDataset  (IDs                             ,'HaloID'  ,'Halo IDs'                                     )
+       end if
+    end if
     if (present(mass    )) then
-       call halosGroup%writeDataset   (mass                                  ,'Mass'    ,'Halo masses'           ,datasetReturned=thisDataset)
-       call thisDataset%writeAttribute('Msolar'                              ,'unitname'                                                     )
-       call thisDataset%writeAttribute([kilo*massSolar        , 0.0d0, 0.0d0],'unitscgs'                                                     )
-       call thisDataset%close()
+       if (size(mass    ) > 0) then
+          call halosGroup%writeDataset  (mass                            ,'Mass'    ,'Halo masses'          ,datasetReturned=dataset)
+          call dataset   %writeAttribute('Msolar'                        ,'unitname'                                                )
+          call dataset   %writeAttribute([kilo*massSolar  , 0.0d0, 0.0d0],'unitscgs'                                                )
+          call dataset   %close         (                                                                                           )
+       end if
     end if
     if (present(center  )) then
-       call halosGroup%writeDataset   (center                                ,'Center'  ,'Halo center positions' ,datasetReturned=thisDataset)
-       call thisDataset%writeAttribute('Mpc'                                 ,'unitname'                                                     )
-       call thisDataset%writeAttribute([hecto*megaparsec      , 0.0d0,-1.0d0],'unitscgs'                                                     )
-       call thisDataset%close()
+       if (size(center  ) > 0) then
+          call halosGroup%writeDataset   (center                         ,'Center'  ,'Halo center positions',datasetReturned=dataset)
+          call dataset   %writeAttribute('Mpc'                           ,'unitname'                                                )
+          call dataset   %writeAttribute([hecto*megaparsec, 0.0d0,-1.0d0],'unitscgs'                                                )
+          call dataset   %close         (                                                                                           )
+       end if
     end if
     if (present(velocity)) then
-       call halosGroup%writeDataset   (velocity                              ,'Velocity','Halo center velocities',datasetReturned=thisDataset)
-       call thisDataset%writeAttribute('Mpc'                                ,'unitname'                                                     )
-       call thisDataset%writeAttribute([kilo*hecto           , 0.0d0, 0.0d0],'unitscgs'                                                     )
-       call thisDataset%close()
+       if (size(velocity) > 0) then
+          call halosGroup%writeDataset  (velocity                       ,'Velocity','Halo center velocities',datasetReturned=dataset)
+          call dataset   %writeAttribute('Mpc'                          ,'unitname'                                                 )
+          call dataset   %writeAttribute([kilo*hecto      ,0.0d0, 0.0d0],'unitscgs'                                                 )
+          call dataset   %close         (                                                                                           )
+       end if
     end if
     call halosGroup   %close()
     call snapshotGroup%close()

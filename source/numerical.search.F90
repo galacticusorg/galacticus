@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,68 +19,94 @@
 
 !% Contains a module which implements searching of ordered arrays.
 
+! Add dependency on GSL library.
+!; gsl
+
 module Arrays_Search
   !% Implements searching of ordered arrays.
+  use, intrinsic :: ISO_C_Binding, only : c_size_t, c_double
   implicit none
   private
-  public :: Search_Array, Search_Array_For_Closest, Search_Indexed
+  public :: searchArray, searchArrayClosest, searchIndexed
 
-  interface Search_Array
+  !# <generic identifier="Type">
+  !#  <instance label="integer8" intrinsic="integer(kind_int8)"  />
+  !#  <instance label="varstr"   intrinsic="type(varying_string)"/>
+  !# </generic>
+
+  interface searchArray
      !% Generic interface for array searching routines.
-     module procedure Search_Array_Double
-     module procedure Search_Array_VarString
-     module procedure Search_Array_Integer8
-  end interface Search_Array
+     module procedure searchArrayDouble
+     module procedure searchArray{Type¦label}
+  end interface searchArray
 
-  interface Search_Indexed
+  interface searchIndexed
      !% Generic interface for array searching routines using indexing.
-     module procedure Search_Indexed_Integer8
-  end interface Search_Indexed
+     module procedure searchIndexedInteger8
+  end interface searchIndexed
 
+  interface
+     function gsl_interp_bsearch(x_array,x,index_lo,index_hi) bind(c,name='gsl_interp_bsearch')
+       !% Template for the GSL binary search function.
+       import
+       integer(c_size_t)                              :: gsl_interp_bsearch
+       real   (c_double), dimension(*), intent(in   ) :: x_array
+       real   (c_double), value                       :: x
+       integer(c_size_t), value                       :: index_lo          , index_hi
+     end function gsl_interp_bsearch
+  end interface
+  
 contains
 
-  function Search_Array_Double(arrayToSearch,valueToFind)
-    !% Searches an array, $x=(${\normalfont \ttfamily arrayToSearch}$)$, for value, $v(=${\normalfont \ttfamily valueToFind}$)$, to find the index $i$ such that $x(i) \le v < x(i+1)$.
-    use            :: FGSL         , only : FGSL_Interp_BSearch, fgsl_size_t
-    use, intrinsic :: ISO_C_Binding, only : c_size_t
+  function searchArrayDouble(arrayToSearch,valueToFind)
+    !% Searches an array, $x=(${\normalfont \ttfamily arrayToSearch}$)$, for value, $v(=${\normalfont \ttfamily valueToFind}$)$,
+    !% to find the index $i$ such that $x(i) \le v < x(i+1)$.
     implicit none
-    integer         (c_size_t)                              :: Search_Array_Double
+    integer         (c_size_t)                              :: searchArrayDouble
     double precision          , dimension(:), intent(in   ) :: arrayToSearch
     double precision                        , intent(in   ) :: valueToFind
-
-    ! Call the FGSL routine to do the search.
-    Search_Array_Double=FGSL_Interp_BSearch(arrayToSearch,valueToFind,int(lbound(arrayToSearch,dim=1),kind=fgsl_size_t)-1,int(ubound(arrayToSearch,dim=1),kind=fgsl_size_t)-1)
+    
+    ! Account for the 0/1 array indexing difference between Fortran and C here.
+    searchArrayDouble=+GSL_Interp_BSearch(                                                           &
+         &                                arrayToSearch                                            , &
+         &                                valueToFind                                              , &
+         &                                int(lbound(arrayToSearch,dim=1),kind=c_size_t)-1_c_size_t, &
+         &                                int(ubound(arrayToSearch,dim=1),kind=c_size_t)-1_c_size_t  &
+         &                               )                                                           &
+         &              +1_c_size_t
     return
-  end function Search_Array_Double
+  end function searchArrayDouble
 
-  function Search_Array_Integer8(arrayToSearch,valueToFind)
-    !% Searches a long integer array, $x=(${\normalfont \ttfamily arrayToSearch}$)$, for value, $v(=${\normalfont \ttfamily valueToFind}$)$, to find the index $i$ such that $x(i) \le v < x(i+1)$.
-    use, intrinsic :: ISO_C_Binding, only : c_size_t
-    use            :: Kind_Numbers , only : kind_int8
+  function searchArray{Type¦label}(arrayToSearch,valueToFind)
+    !% Searches an array, $x=(${\normalfont \ttfamily arrayToSearch}$)$, for value, $v(=${\normalfont \ttfamily valueToFind}$)$,
+    !% to find the index $i$ such that $x(i) \le v < x(i+1)$.
+    {Type¦match¦^(varstr)$¦  use :: ISO_Varying_String, only : varying_string, operator(<), operator(>), operator(<=), operator(>=)¦}
+    {Type¦match¦^(integer8)$¦use :: Kind_Numbers      , only : kind_int8¦}
     implicit none
-    integer(c_size_t      )                              :: Search_Array_Integer8
-    integer(kind=kind_int8), dimension(:), intent(in   ) :: arrayToSearch
-    integer(kind=kind_int8)              , intent(in   ) :: valueToFind
-    integer(c_size_t      )                              :: jLower       , jMidpoint, jUpper
-    logical                                              :: isInside
+    integer         (c_size_t)                              :: searchArray{Type¦label}
+    {Type¦intrinsic}          , dimension(:), intent(in   ) :: arrayToSearch
+    {Type¦intrinsic}                        , intent(in   ) :: valueToFind
+    integer         (c_size_t)                              :: jLower                 , jMidpoint, &
+         &                                                     jUpper
+    logical                                                 :: isInside
 
-    isInside=.true.
     ! Check whether valueToFind is outside range of arrayToSearch().
+    isInside=.true.
     if (arrayToSearch(size(arrayToSearch,kind=c_size_t)) >= arrayToSearch(1)) then ! arrayToSearch() is in ascending order.
-       if      (valueToFind < arrayToSearch(1                  )) then
+       if      (valueToFind < arrayToSearch(1                                )) then
           isInside=.false.
-          Search_Array_Integer8=0
+          searchArray{Type¦label}=                                 0_c_size_t
        else if (valueToFind > arrayToSearch(size(arrayToSearch,kind=c_size_t))) then
           isInside=.false.
-          Search_Array_Integer8=size(arrayToSearch,kind=c_size_t)+1
+          searchArray{Type¦label}=size(arrayToSearch,kind=c_size_t)+1_c_size_t
        end if
     else ! arrayToSearch() is in descending order.
-       if      (valueToFind > arrayToSearch(1                  )) then
+       if      (valueToFind > arrayToSearch(1                                )) then
           isInside=.false.
-          Search_Array_Integer8=0
+          searchArray{Type¦label}=                                 +0_c_size_t
        else if (valueToFind < arrayToSearch(size(arrayToSearch,kind=c_size_t))) then
           isInside=.false.
-          Search_Array_Integer8=size(arrayToSearch,kind=c_size_t)+1
+          searchArray{Type¦label}=size(arrayToSearch,kind=c_size_t)+1_c_size_t
        end if
     end if
     ! Binary search in array if valueToFind lies within array range.
@@ -95,96 +121,53 @@ contains
              jUpper=jMidpoint
           endif
        end do
-       Search_Array_Integer8=jLower
+       searchArray{Type¦label}=jLower
     end if
     return
-  end function Search_Array_Integer8
+  end function searchArray{Type¦label}
 
-  function Search_Array_VarString(arrayToSearch,valueToFind)
-    !% Searches an array, $x=(${\normalfont \ttfamily arrayToSearch}$)$, for value, $v(=${\normalfont \ttfamily valueToFind}$)$, to find the index $i$ such that $x(i)
-    !% = v$. With this algorithm, if multiple elements of $x()$ have the same value, then the largest value of $i$ for which
-    !% $x(i)=v$ occurs will be returned.
-    use, intrinsic :: ISO_C_Binding     , only : c_size_t
-    use            :: ISO_Varying_String, only : varying_string, operator(>=), operator(<), operator(>)
-    implicit none
-    integer(c_size_t      )                              :: Search_Array_VarString
-    type   (varying_string), dimension(:), intent(in   ) :: arrayToSearch
-    type   (varying_string)              , intent(in   ) :: valueToFind
-    integer(c_size_t      )                              :: jLower                , jMidpoint, jUpper
-    logical                                              :: isInside
-
-    isInside=.true.
-    ! Check whether valueToFind is outside range of arrayToSearch().
-    if (arrayToSearch(size(arrayToSearch,kind=c_size_t)) >= arrayToSearch(1)) then ! arrayToSearch() is in ascending order.
-       if      (valueToFind < arrayToSearch(1                  )) then
-          isInside=.false.
-          Search_Array_VarString=0
-       else if (valueToFind > arrayToSearch(size(arrayToSearch,kind=c_size_t))) then
-          isInside=.false.
-          Search_Array_VarString=size(arrayToSearch,kind=c_size_t)+1
-       end if
-    else ! arrayToSearch() is in descending order.
-       if      (valueToFind > arrayToSearch(1                  )) then
-          isInside=.false.
-          Search_Array_VarString=0
-       else if (valueToFind < arrayToSearch(size(arrayToSearch,kind=c_size_t))) then
-          isInside=.false.
-          Search_Array_VarString=size(arrayToSearch,kind=c_size_t)+1
-       end if
-    end if
-    ! Binary search in array if valueToFind lies within array range.
-    if (isInside) then
-       jLower=0
-       jUpper=size(arrayToSearch,kind=c_size_t)+1
-       do while (jUpper-jLower > 1)
-          jMidpoint=(jUpper+jLower)/2
-          if ((arrayToSearch(size(arrayToSearch,kind=c_size_t)) >= arrayToSearch(1)) .eqv. (valueToFind >= arrayToSearch(jMidpoint))) then
-             jLower=jMidpoint
-          else
-             jUpper=jMidpoint
-          endif
-       end do
-       Search_Array_VarString=jLower
-    end if
-    return
-  end function Search_Array_VarString
-
-   function Search_Array_For_Closest(arrayToSearch,valueToFind,tolerance,status)
+  function searchArrayClosest(arrayToSearch,valueToFind,tolerance,status)
     !% Searches an array, $x=(${\normalfont \ttfamily arrayToSearch}$)$, for the entry closest to value, $v(=${\normalfont
     !% \ttfamily valueToFind}$)$ and returns the index of that element in the array. Optionally, a tolerance may be specified
     !% within which the two values must match.
-    use            :: FGSL                , only : FGSL_Interp_BSearch    , fgsl_size_t
-    use            :: Galacticus_Error    , only : Galacticus_Error_Report, errorStatusFail, errorStatusSuccess
-    use, intrinsic :: ISO_C_Binding       , only : c_size_t
-    use            :: Numerical_Comparison, only : Values_Agree
+    use :: Galacticus_Error    , only : Galacticus_Error_Report, errorStatusFail, errorStatusSuccess
+    use :: Numerical_Comparison, only : Values_Agree
     implicit none
-    integer         (c_size_t)                                        :: Search_Array_For_Closest
+    integer         (c_size_t)                                        :: searchArrayClosest
     double precision          , dimension(:), intent(in   )           :: arrayToSearch
     double precision                        , intent(in   )           :: valueToFind
     double precision                        , intent(in   ), optional :: tolerance
     integer                                 , intent(  out), optional :: status
 
     if (present(status)) status=errorStatusSuccess
-
     ! For a single element array, just return the only option.
     if (size(arrayToSearch,dim=1,kind=c_size_t) <= 1) then
-       Search_Array_For_Closest=lbound(arrayToSearch,dim=1)
+       searchArrayClosest=lbound(arrayToSearch,dim=1)
        return
     end if
-
-    ! Call the FGSL routine to do the search.
+    ! Search for the closest entry.
     if      (valueToFind < arrayToSearch(lbound(arrayToSearch,dim=1))) then
-       Search_Array_For_Closest=lbound(arrayToSearch,dim=1)
+       searchArrayClosest=lbound(arrayToSearch,dim=1)
     else if (valueToFind > arrayToSearch(ubound(arrayToSearch,dim=1))) then
-       Search_Array_For_Closest=ubound(arrayToSearch,dim=1)
+       searchArrayClosest=ubound(arrayToSearch,dim=1)
     else
-       Search_Array_For_Closest=FGSL_Interp_BSearch(arrayToSearch,valueToFind,int(lbound(arrayToSearch,dim=1),kind=fgsl_size_t)-1&
-            &,int(ubound(arrayToSearch,dim=1),kind=fgsl_size_t)-1)
-       if (abs(valueToFind-arrayToSearch(Search_Array_For_Closest)) >= abs(valueToFind-arrayToSearch(Search_Array_For_Closest&
-            &+1))) Search_Array_For_Closest=Search_Array_For_Closest+1
+       searchArrayClosest=+GSL_Interp_BSearch(                                                           &
+            &                                 arrayToSearch                                            , &
+            &                                 valueToFind                                              , &
+            &                                 int(lbound(arrayToSearch,dim=1),kind=c_size_t)-1_c_size_t, &
+            &                                 int(ubound(arrayToSearch,dim=1),kind=c_size_t)-1_c_size_t  &
+            &                                )                                                           &
+            &              +1_c_size_t
+       if     (                                                               &
+            &   abs(valueToFind-arrayToSearch(searchArrayClosest           )) &
+            &  >=                                                             &
+            &   abs(valueToFind-arrayToSearch(searchArrayClosest+1_c_size_t)) &
+            & )                                                               &
+            & searchArrayClosest=+searchArrayClosest                          &
+            &                    +1_c_size_t
     end if
     if (present(tolerance)) then
-       if (.not.Values_Agree(valueToFind,arrayToSearch(Search_Array_For_Closest),absTol=tolerance)) then
+       if (.not.Values_Agree(valueToFind,arrayToSearch(searchArrayClosest),absTol=tolerance)) then
           if (present(status)) then
              status=errorStatusFail
           else
@@ -193,37 +176,39 @@ contains
        end if
     end if
     return
-  end function Search_Array_For_Closest
+  end function searchArrayClosest
 
-  function Search_Indexed_Integer8(arrayToSearch,arrayIndex,valueToFind)
-    !% Searches a long integer array, $x=(${\normalfont \ttfamily arrayToSearch}$)$, which is rank ordered when indexed by {\normalfont \ttfamily arrayIndex}, for value, $v(=${\normalfont \ttfamily valueToFind}$)$, to find the index $i$ such that $x(i) \le v < x(i+1)$.
-    use, intrinsic :: ISO_C_Binding, only : c_size_t
-    use            :: Kind_Numbers , only : kind_int8
+  function searchIndexedInteger8(arrayToSearch,arrayIndex,valueToFind)
+    !% Searches a long integer array, $x=(${\normalfont \ttfamily arrayToSearch}$)$, which is rank ordered when indexed by
+    !% {\normalfont \ttfamily arrayIndex}, for value, $v(=${\normalfont \ttfamily valueToFind}$)$, to find the index $i$ such that
+    !% $x(i) \le v < x(i+1)$.
+    use :: Kind_Numbers , only : kind_int8
     implicit none
-    integer(kind=kind_int8) :: Search_Indexed_Integer8
+    integer(kind=kind_int8)                              :: searchIndexedInteger8
     integer(kind=kind_int8), dimension(:), intent(in   ) :: arrayToSearch
     integer(kind=c_size_t ), dimension(:), intent(in   ) :: arrayIndex
     integer(kind=kind_int8)              , intent(in   ) :: valueToFind
-    integer(kind=kind_int8)                              :: jLower       , jMidpoint, jUpper
+    integer(kind=kind_int8)                              :: jLower               , jMidpoint, &
+         &                                                  jUpper
     logical                                              :: isInside
 
-    isInside=.true.
     ! Check whether valueToFind is outside range of arrayToSearch().
+    isInside=.true.
     if (arrayToSearch(arrayIndex(size(arrayToSearch,kind=c_size_t))) >= arrayToSearch(arrayIndex(1))) then ! arrayToSearch() is in ascending order.
-       if      (valueToFind < arrayToSearch(arrayIndex(1                  ))) then
-          isInside=.false.
-          Search_Indexed_Integer8=0
+       if      (valueToFind < arrayToSearch(arrayIndex(1                                ))) then
+          isInside             =.false.
+          searchIndexedInteger8=                                 +0_c_size_t
        else if (valueToFind > arrayToSearch(arrayIndex(size(arrayToSearch,kind=c_size_t)))) then
-          isInside=.false.
-          Search_Indexed_Integer8=size(arrayToSearch,kind=c_size_t)+1
+          isInside             =.false.
+          searchIndexedInteger8=size(arrayToSearch,kind=c_size_t)+1_c_size_t
        end if
     else ! arrayToSearch() is in descending order.
-       if      (valueToFind > arrayToSearch(arrayIndex(1                  ))) then
-          isInside=.false.
-          Search_Indexed_Integer8=0
+       if      (valueToFind > arrayToSearch(arrayIndex(1                                ))) then
+          isInside             =.false.
+          searchIndexedInteger8=                                 +0_c_size_t
        else if (valueToFind < arrayToSearch(arrayIndex(size(arrayToSearch,kind=c_size_t)))) then
-          isInside=.false.
-          Search_Indexed_Integer8=size(arrayToSearch,kind=c_size_t)+1
+          isInside             =.false.
+          searchIndexedInteger8=size(arrayToSearch,kind=c_size_t)+1_c_size_t
        end if
     end if
     ! Binary search in array if valueToFind lies within array range.
@@ -238,10 +223,10 @@ contains
              jUpper=jMidpoint
           endif
        end do
-       Search_Indexed_Integer8=jLower
+       searchIndexedInteger8=jLower
     end if
     return
-  end function Search_Indexed_Integer8
+  end function searchIndexedInteger8
 
 end module Arrays_Search
 

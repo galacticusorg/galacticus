@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -49,35 +49,27 @@ contains
 
     !# <inputParameter>
     !#   <name>opacityExponent</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.7d0</defaultValue>
     !#   <description>The exponent of wavelength appearing in the opacity.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>birthCloudLifetime</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d-2</defaultValue>
     !#   <description>The duration which stars remain within their birth clouds.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>opticalDepthISM</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.5d0</defaultValue>
     !#   <description>The effective optical depth of the ISM.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>opticalDepthBirthClouds</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The effective optical depth of birth clouds.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     self=stellarSpectraDustAttenuationCharlotFall2000(opacityExponent,birthCloudLifetime,opticalDepthISM,opticalDepthBirthClouds)
     !# <inputParametersValidate source="parameters"/>
@@ -119,7 +111,7 @@ contains
     !% Return true since attenuation is age-dependent in the \cite{charlot_simple_2000} dust attenuation model.
     implicit none
     class(stellarSpectraDustAttenuationCharlotFall2000), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     charlotFall2000IsAgeDependent=.true.
     return

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,61 +20,42 @@
   !% Contains a module which implements a excursion set first crossing statistics class utilizing the algorithm of \cite{zhang_random_2006}.
 
   use :: Excursion_Sets_Barriers, only : excursionSetBarrierClass
-  use :: FGSL                   , only : fgsl_interp_accel
+  use :: Numerical_Interpolation, only : interpolator
 
   !# <excursionSetFirstCrossing name="excursionSetFirstCrossingZhangHui">
-  !#  <description>An excursion set first crossing statistics class utilizing the algorithm of \cite{zhang_random_2006}.</description>
+  !#  <description>
+  !#   An excursion set first crossing statistics class utilizing the algorithm of \cite{zhang_random_2006}. First crossing (and
+  !#   non-crossing) rates are not supported by this method.
+  !#  </description>
   !# </excursionSetFirstCrossing>
   type, extends(excursionSetFirstCrossingClass) :: excursionSetFirstCrossingZhangHui
      !% An excursion set first crossing statistics class utilizing the algorithm of \cite{zhang_random_2006}.
      private
-     class           (excursionSetBarrierClass), pointer                     :: excursionSetBarrier_ => null()
-     double precision                                                        :: timeMaximum                  =0.0d0  , timeMinimum                     =0.0d0 , &
-          &                                                                     varianceMaximum              =0.0d0
-     integer                                                                 :: timeTableCount                       , varianceTableCount
+     class           (excursionSetBarrierClass), pointer                     :: excursionSetBarrier_         => null()
+     double precision                                                        :: timeMaximum                  =  0.0d0  , timeMinimum             =0.0d0 , &
+          &                                                                     varianceMaximum              =  0.0d0
+     integer                                                                 :: timeTableCount                         , varianceTableCount
      double precision                          , allocatable, dimension(:,:) :: firstCrossingProbabilityTable
-     double precision                          , allocatable, dimension(:  ) :: timeTable                            , varianceTable
+     double precision                          , allocatable, dimension(:  ) :: timeTable                              , varianceTable
      double precision                                                        :: varianceTableStep
-     logical                                                                 :: tableInitialized             =.false.
-     type            (fgsl_interp_accel)                                     :: interpolationAcceleratorTime         , interpolationAcceleratorVariance
-     logical                                                                 :: interpolationResetTime       =.true. , interpolationResetVariance      =.true.
+     logical                                                                 :: tableInitialized             =  .false.
+     type            (interpolator            ), allocatable                 :: interpolatorTime                       , interpolatorVariance
      ! Stored values.
-     double precision                                                        :: variancePrevious                     , timePrevious                           , &
-          &                                                                     barrierStored                        , barrierGradientStored
+     double precision                                                        :: variancePrevious                       , timePrevious                   , &
+          &                                                                     barrierStored                          , barrierGradientStored
      ! Stored values for Delta function.
-     integer                                                                 :: iDeltaPrevious                       , jDeltaPrevious
-     double precision                                                        :: timeDeltaPrevious                    , deltaStored
+     integer                                                                 :: iDeltaPrevious                         , jDeltaPrevious
+     double precision                                                        :: timeDeltaPrevious                      , deltaStored
      ! Variables used in integrations.
-     double precision                                                        :: barrierIntegrand                     , barrierGradientIntegrand               , &
-          &                                                                     timeIntegrand                        , varianceIntegrand
+     double precision                                                        :: barrierIntegrand                       , barrierGradientIntegrand       , &
+          &                                                                     timeIntegrand                          , varianceIntegrand
    contains
-     !@ <objectMethods>
-     !@   <object>excursionSetFirstCrossingZhangHui</object>
-     !@   <objectMethod>
-     !@     <method>g1</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ variance\argin, \doublezero\ time\argin</arguments>
-     !@     <description>Returns the function $g_1(S)$ \citep{zhang_random_2006}.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>g2</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ variance\argin, \doublezero\ variancePrimed\argin, \doublezero\ time\argin</arguments>
-     !@     <description>Returns the function $g_2(S,S^\prime)$ \citep{zhang_random_2006}.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>g2Integrated</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ variance\argin, \doublezero\ deltaVariance\argin, \doublezero\ time\argin</arguments>
-     !@     <description>Returns the function $g_2(S,S^\prime)$ integrated over a range $\Delta S$ \citep{zhang_random_2006}.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>delta</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\intzero\ i\argin, \intzero\ j\argin,\doublezero\ iVariance\argin, \doublezero\ jVariance\argin, \doublezero\ deltaVariance\argin, \doublezero\ time\argin</arguments>
-     !@     <description>Returns the function $g_2(S,S^\prime)$ integrated over a range $\Delta S$ \citep{zhang_random_2006}.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Returns the function $g_1(S)$ \citep{zhang_random_2006}." method="g1" />
+     !#   <method description="Returns the function $g_2(S,S^\prime)$ \citep{zhang_random_2006}." method="g2" />
+     !#   <method description="Returns the function $g_2(S,S^\prime)$ integrated over a range $\Delta S$ \citep{zhang_random_2006}." method="g2Integrated" />
+     !#   <method description="Returns the function $g_2(S,S^\prime)$ integrated over a range $\Delta S$ \citep{zhang_random_2006}." method="delta" />
+     !# </methods>
      final     ::                    zhangHuiDestructor
      procedure :: probability     => zhangHuiProbability
      procedure :: rate            => zhangHuiRate
@@ -141,12 +122,11 @@ contains
 
   double precision function zhangHuiProbability(self,variance,time,node)
     !% Return the excursion set barrier at the given variance and time.
-    use            :: Galacticus_Display     , only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear   , Galacticus_Display_Indent, Galacticus_Display_Unindent, &
-          &                                           verbosityWorking
-    use, intrinsic :: ISO_C_Binding          , only : c_size_t
-    use            :: Memory_Management      , only : allocateArray             , deallocateArray
-    use            :: Numerical_Interpolation, only : Interpolate_Done          , Interpolate_Linear_Generate_Factors, Interpolate_Locate
-    use            :: Numerical_Ranges       , only : Make_Range                , rangeTypeLinear                    , rangeTypeLogarithmic
+    use            :: Display          , only : displayCounter       , displayCounterClear, displayIndent       , displayUnindent, &
+          &                                     verbosityLevelWorking
+    use, intrinsic :: ISO_C_Binding    , only : c_size_t
+    use            :: Memory_Management, only : allocateArray        , deallocateArray
+    use            :: Numerical_Ranges , only : Make_Range           , rangeTypeLinear    , rangeTypeLogarithmic
     implicit none
     class           (excursionSetFirstCrossingZhangHui), intent(inout)  :: self
     double precision                                   , intent(in   )  :: variance         , time
@@ -189,10 +169,10 @@ contains
        self%varianceTableStep=+self%varianceTable(1) &
             &                 -self%varianceTable(0)
        ! Loop through the table and solve for the first crossing distribution.
-       call Galacticus_Display_Indent("solving for excursion set barrier crossing probabilities",verbosityWorking)
+       call displayIndent("solving for excursion set barrier crossing probabilities",verbosityLevelWorking)
        do iTime=1,self%timeTableCount
           do i=0,self%varianceTableCount
-             call Galacticus_Display_Counter(int(100.0d0*dble(i+(iTime-1)*self%varianceTableCount)/dble(self%varianceTableCount*self%timeTableCount)),i==0 .and. iTime==1,verbosityWorking)
+             call displayCounter(int(100.0d0*dble(i+(iTime-1)*self%varianceTableCount)/dble(self%varianceTableCount*self%timeTableCount)),i==0 .and. iTime==1,verbosityLevelWorking)
              if      (i  > 2) then
                 summedProbability=0.0d0
                 do j=1,i-1
@@ -235,22 +215,21 @@ contains
              end if
           end do
        end do
-       call Galacticus_Display_Counter_Clear(verbosityWorking)
-       call Galacticus_Display_Unindent("done",verbosityWorking)
-       ! Reset the interpolators.
-       call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorVariance,reset=self%interpolationResetVariance)
-       call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorTime    ,reset=self%interpolationResetTime    )
-       self%interpolationResetVariance=.true.
-       self%interpolationResetTime    =.true.
+       call displayCounterClear(verbosityLevelWorking)
+       call displayUnindent("done",verbosityLevelWorking)
+       ! Build the interpolators.
+       if (allocated(self%interpolatorVariance)) deallocate(self%interpolatorVariance)
+       if (allocated(self%interpolatorTime    )) deallocate(self%interpolatorTime    )
+       allocate(self%interpolatorVariance)
+       allocate(self%interpolatorTime    )
+       self%interpolatorVariance=interpolator(self%varianceTable)
+       self%interpolatorTime    =interpolator(self%timeTable    )
        ! Record that the table is now built.
        self%tableInitialized          =.true.
     end if
-    ! Get interpolation in time.
-    iTime    =Interpolate_Locate                 (self%timeTable    ,self%interpolationAcceleratorTime    ,time    ,reset=self%interpolationResetTime    )
-    hTime    =Interpolate_Linear_Generate_Factors(self%timeTable    ,iTime    ,time    )
-    ! Get interpolation in variance.
-    iVariance=Interpolate_Locate                 (self%varianceTable,self%interpolationAcceleratorVariance,variance,reset=self%interpolationResetVariance)
-    hVariance=Interpolate_Linear_Generate_Factors(self%varianceTable,iVariance,variance)
+    ! Get interpolating factors.
+    call self%interpolatorTime    %linearFactors(time    ,iTime    ,hTime    )
+    call self%interpolatorVariance%linearFactors(variance,iVariance,hVariance)
     ! Compute first crossing probability by interpolating.
     zhangHuiProbability=0.0d0
     do jTime=0,1
@@ -269,7 +248,7 @@ contains
     double precision                                   , intent(in   ) :: variance, varianceProgenitor, &
          &                                                                time
     type            (treeNode                         ), intent(inout) :: node
-    !GCC$ attributes unused :: self, time, variance, varianceProgenitor, node
+    !$GLC attributes unused :: self, time, variance, varianceProgenitor, node
 
     zhangHuiRate=0.0d0
     call Galacticus_Error_Report('barrier crossing rates are not implemented for this method [too slow]'//{introspection:location})
@@ -283,7 +262,7 @@ contains
     class           (excursionSetFirstCrossingZhangHui), intent(inout) :: self
     double precision                                   , intent(in   ) :: time, variance
     type            (treeNode                         ), intent(inout) :: node
-    !GCC$ attributes unused :: self, time, variance, node
+    !$GLC attributes unused :: self, time, variance, node
 
     zhangHuiRateNonCrossing=0.0d0
     call Galacticus_Error_Report('barrier non-crossing rates are not implemented for this method [too slow]'//{introspection:location})
@@ -365,9 +344,8 @@ contains
 
   double precision function zhangHuiG2Integrated(self,variance,deltaVariance,time,node)
     !% Integrated function $g_2(S,S^\prime)$ in the \cite{zhang_random_2006} algorithm for excursion set barrier crossing probabilities.
-    use :: FGSL                 , only : FGSL_Integ_Gauss15, fgsl_function , fgsl_integration_workspace
     use :: Numerical_Comparison , only : Values_Differ
-    use :: Numerical_Integration, only : Integrate         , Integrate_Done
+    use :: Numerical_Integration, only : GSL_Integ_Gauss15, integrator
     implicit none
     class           (excursionSetFirstCrossingZhangHui), intent(inout) :: self
     double precision                                   , intent(in   ) :: deltaVariance                 , time           , &
@@ -376,8 +354,7 @@ contains
     double precision                                   , parameter     :: gradientChangeTolerance=1.0d-3
     double precision                                                   :: smallStep                     , barrierGradient, &
          &                                                                barrier
-    type            (fgsl_function                    )                :: integrandFunction
-    type            (fgsl_integration_workspace       )                :: integrationWorkspace
+    type            (integrator                       )                :: integrator_
 
     ! Store variables needed in the integrand.
     barrier        =self%excursionSetBarrier_%barrier        (variance,time,node,rateCompute=.false.)
@@ -390,18 +367,17 @@ contains
        smallStep=0.5d0*smallStep
     end do
     ! Compute the non-divergent part of the integral numerically.
-    zhangHuiG2Integrated=Integrate(                                          &
-         &                                           variance-deltaVariance, &
-         &                                           variance-smallStep    , &
-         &                                           zhangHuiG2Integrand   , &
-         &                                           integrandFunction     , &
-         &                                           integrationWorkspace  , &
-         &                         toleranceAbsolute=1.0d-50               , &
-         &                         toleranceRelative=1.0d-06               , &
-         &                         hasSingularities =.true.                , &
-         &                         integrationRule  =FGSL_Integ_Gauss15      &
-         &                        )
-    call Integrate_Done(integrandFunction,integrationWorkspace)
+    integrator_         =integrator           (                                          &
+         &                                                        zhangHuiG2Integrand  , &
+         &                                     toleranceAbsolute=1.0d-50               , &
+         &                                     toleranceRelative=1.0d-06               , &
+         &                                     hasSingularities =.true.                , &
+         &                                     integrationRule  =GSL_Integ_Gauss15       &
+         &                                    )
+    zhangHuiG2Integrated=integrator_%integrate(                                          &
+         &                                                       variance-deltaVariance, &
+         &                                                       variance-smallStep      &
+         &                                    )
     ! Compute the divergent part of the integral with an analytic approximation.
     zhangHuiG2Integrated=+zhangHuiG2Integrated               &
          &               +erf(                               &

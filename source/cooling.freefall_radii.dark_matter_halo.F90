@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -24,7 +24,8 @@
 
   !# <freefallRadius name="freefallRadiusDarkMatterHalo">
   !#  <description>
-  !#   A freefall radius class which computes the freefall radius based on the freefall time in the dark matter halo.
+  !#   A freefall radius class that assumes that the freefall radius corresponds to the radius at which the freefall time in the
+  !#   dark matter halo equals the time available for freefall (see \refPhysics{freefallTimeAvailable}).
   !#  </description>
   !# </freefallRadius>
   type, extends(freefallRadiusClass) :: freefallRadiusDarkMatterHalo

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,15 +21,15 @@
 
 program Tests_Events_Hooks
   !% Tests the event hooks infrastructure.
+  use :: Display                   , only : displayVerbositySet       , verbosityLevelStandard
   use :: Events_Hooks              , only : eventsHooksInitialize
-  use :: Galacticus_Display        , only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use :: Tests_Event_Hook_Functions, only : testEventHooksInitialize      , hookedFunctionCalled  , hookedFunctionOrder2After3, hookedFunctionOrder2After4, &
-       &                                    hookedFunctionOrder3Before1, hookedFunctionOrder1After2, hookedFunctionOrder1After4
-  use :: Unit_Tests                , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group      , Unit_Tests_Finish
+  use :: Tests_Event_Hook_Functions, only : hookedFunctionCalled      , hookedFunctionOrder1After2 , hookedFunctionOrder1After4, hookedFunctionOrder2After3, &
+          &                                 hookedFunctionOrder2After4, hookedFunctionOrder3Before1, testEventHooksInitialize
+  use :: Unit_Tests                , only : Assert                    , Unit_Tests_Begin_Group     , Unit_Tests_End_Group      , Unit_Tests_Finish
   implicit none
   integer :: testValue
   
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
   call eventsHooksInitialize         (                 )
   call testEventHooksInitialize      (                 )
   call Unit_Tests_Begin_Group        ("Event hooks"    )

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,19 @@
   !% Implements a stellar initial mass function class based on \cite{chabrier_galactic_2001}.
 
   !# <initialMassFunction name="initialMassFunctionChabrier2001">
-  !#  <description>A stellar initial mass function class based on \cite{chabrier_galactic_2001}.</description>
+  !#  <description>
+  !#   A stellar initial mass function class based on \cite{chabrier_galactic_2001}:
+  !#   \begin{equation}
+  !#    \phi(M) \propto \left\{ \begin{array}{ll}
+  !#    M^{-1} \exp(-[\log_{10}(M/M_\mathrm{c})/\sigma_\mathrm{c}]^2/2) &amp; \hbox{ for } M_\mathrm{l} &lt; M &lt; M_\mathrm{t}  \\
+  !#    M^\alpha &amp; \hbox{ for } M_\mathrm{t} &lt; M &lt; M_\mathrm{u} \\
+  !#    0 &amp; \hbox {otherwise,} \end{array} \right.
+  !#   \end{equation}
+  !#   where $\sigma_\mathrm{c}=${\normalfont \ttfamily [sigma]}, $M_\mathrm{c}=${\normalfont \ttfamily
+  !#   [massCharacteristic]}$M_\odot$, $\alpha=${\normalfont \ttfamily [exponent]}, $M_\mathrm{t}=${\normalfont \ttfamily
+  !#   [massTransition]}$M_\odot$, $M_\mathrm{l}=${\normalfont \ttfamily [massLower]}$M_\odot$, and $M_\mathrm{u}=${\normalfont
+  !#   \ttfamily [massUpper]}$M_\odot$.
+  !#  </description>
   !# </initialMassFunction>
   type, extends(initialMassFunctionClass) :: initialMassFunctionChabrier2001
      !% A stellar initial mass function class based on \cite{chabrier_galactic_2001}.
@@ -57,51 +69,39 @@ contains
 
     !# <inputParameter>
     !#   <name>massUpper</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>125.0d0</defaultValue>
     !#   <description>The upper mass limit for the \cite{chabrier_galactic_2001} \gls{imf}.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massLower</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.1d0</defaultValue>
     !#   <description>The lower mass limit for the \cite{chabrier_galactic_2001} \gls{imf}.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massTransition</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The transition limit for the \cite{chabrier_galactic_2001} \gls{imf}.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>sigma</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.69d0</defaultValue>
     !#   <description>The width of the lognormal part of the \cite{chabrier_galactic_2001} \gls{imf}.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>exponent</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>-2.3d0</defaultValue>
     !#   <description>The exponent of the power law part of the \cite{chabrier_galactic_2001} \gls{imf}.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massCharacteristic</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.08d0</defaultValue>
     !#   <description>Characteristic mass of the lognormal part of the \cite{chabrier_galactic_2001} \gls{imf}.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     self=initialMassFunctionChabrier2001(massLower,massTransition,massUpper,exponent,massCharacteristic,sigma)
     !# <inputParametersValidate source="parameters"/>
@@ -269,7 +269,7 @@ contains
     implicit none
     class(initialMassFunctionChabrier2001), intent(inout) :: self
     type (varying_string                    )             :: chabrier2001Label
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     chabrier2001Label="Chabrier2001"
     return

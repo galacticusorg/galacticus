@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,6 +26,7 @@
      double precision               :: wavelengthMinimum_, wavelengthMaximum_, &
           &                            wavelength_       , luminosity_
      double precision, dimension(3) :: position_         , direction_
+     integer                        :: sourceType_
    contains
      procedure :: wavelength           => simpleWavelength
      procedure :: wavelengthSet        => simpleWavelengthSet
@@ -39,6 +40,8 @@
      procedure :: positionSet          => simplePositionSet
      procedure :: direction            => simpleDirection
      procedure :: directionSet         => simpleDirectionSet
+     procedure :: sourceType           => simpleSourceType
+     procedure :: sourceTypeSet        => simpleSourceTypeSet
   end type radiativeTransferPhotonPacketSimple
 
   interface radiativeTransferPhotonPacketSimple
@@ -60,35 +63,27 @@ contains
 
     !# <inputParameter>
     !#   <name>wavelength</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d4</defaultValue>
     !#   <description>The wavelength of the photon packet (in \AA).</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>wavelengthMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.5d4</defaultValue>
     !#   <description>The minimum wavelength of the photon packet (in \AA).</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>wavelengthMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>2.0d4</defaultValue>
     !#   <description>The maximum wavelength of the photon packet (in \AA).</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>luminosity</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The luminosity of the photon packet (in $L_\odot$).</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     self=radiativeTransferPhotonPacketSimple(wavelength,wavelengthMinimum,wavelengthMaximum,luminosity)
     !# <inputParametersValidate source="parameters"/>
@@ -106,6 +101,7 @@ contains
     self%wavelengthMinimum_=wavelengthMinimum
     self%wavelengthMaximum_=wavelengthMaximum
     self%luminosity_       =luminosity
+    self%sourceType_       =0
     return
   end function simpleConstructorInternal
 
@@ -224,3 +220,22 @@ contains
     simpleDirection=self%direction_
     return
   end function simpleDirection
+
+  integer function simpleSourceType(self)
+    !% Return the source type for this photon packet.
+    implicit none
+    class(radiativeTransferPhotonPacketSimple), intent(inout) :: self
+
+    simpleSourceType=self%sourceType_
+    return
+  end function simpleSourceType
+
+  subroutine simpleSourceTypeSet(self,sourceType)
+    !% Set the source type for this photon packet.
+    implicit none
+    class  (radiativeTransferPhotonPacketSimple), intent(inout) :: self
+    integer                                     , intent(in   ) :: sourceType
+
+    self%sourceType_=sourceType
+    return
+  end subroutine simpleSourceTypeSet

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -53,33 +53,12 @@
      class           (intergalacticMediumStateClass  ), pointer :: intergalacticMediumState_        => null()
      type            (linearGrowthCollisionlessMatter), pointer :: linearGrowthCollisionlessMatter_ => null()
    contains
-     !@ <objectMethods>
-     !@   <object>linearGrowthBaryonsDarkMatter</object>
-     !@   <objectMethod>
-     !@     <method>retabulate</method>
-     !@     <type>void</type>
-     !@     <arguments>\doublezero\ time\argin</arguments>
-     !@     <description>Tabulate linear growth factor.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>fileWrite</method>
-     !@     <type>void</type>
-     !@     <arguments></arguments>
-     !@     <description>Read the tabulated mass variance from file.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>fileRead</method>
-     !@     <type>void</type>
-     !@     <arguments></arguments>
-     !@     <description>Read the tabulated mass variance from file.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>remakeTable</method>
-     !@     <type>\logicalzero</type>
-     !@     <description>Return true if the table must be remade.</description>
-     !@     <arguments>\doublezero\ time\argin</arguments>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Tabulate linear growth factor." method="retabulate" />
+     !#   <method description="Read the tabulated mass variance from file." method="fileWrite" />
+     !#   <method description="Read the tabulated mass variance from file." method="fileRead" />
+     !#   <method description="Return true if the table must be remade." method="remakeTable" />
+     !# </methods>
      final     ::                                         baryonsDarkMatterDestructor
      procedure :: value                                => baryonsDarkMatterValue
      procedure :: logarithmicDerivativeExpansionFactor => baryonsDarkMatterLogarithmicDerivativeExpansionFactor
@@ -136,24 +115,18 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>100.0d0</defaultValue>
     !#   <description>The initial redshift from which integration of linear growth should be begin.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>redshiftInitialDelta</name>
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The initial step in redshift used to estimate growth rates of perturbations using finite differencing.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>cambCountPerDecade</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0</defaultValue>
     !#   <description>The number of points per decade of wavenumber to compute in the CAMB transfer function. A value of 0 allows CAMB to choose what it considers to be optimal spacing of wavenumbers.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
@@ -232,15 +205,14 @@ contains
   subroutine baryonsDarkMatterRetabulate(self,time,wavenumber)
     !% Returns the linear growth factor $D(a)$ for expansion factor {\normalfont \ttfamily aExpansion}, normalized such that
     !% $D(1)=1$ for a baryonsDarkMatter matter plus cosmological constant cosmology.
-    use    :: FGSL            , only : FGSL_Success
-    use    :: FODEIV2         , only : fodeiv2_driver                  , fodeiv2_system
-    use    :: File_Utilities  , only : File_Lock                       , File_Unlock
-    use    :: Galacticus_Error, only : Galacticus_Error_Report
-    use    :: Interfaces_CAMB , only : Interface_CAMB_Transfer_Function
-    use    :: ODEIV2_Solver   , only : ODEIV2_Solve                    , ODEIV2_Solver_Free
-    !$ use :: OMP_Lib         , only : omp_lock_kind
-    use    :: Table_Labels    , only : extrapolationTypeAbort          , extrapolationTypeFix
-    use    :: Tables          , only : table1DGeneric
+    use    :: File_Utilities       , only : File_Lock                       , File_Unlock
+    use    :: Galacticus_Error     , only : Galacticus_Error_Report
+    use    :: Interface_GSL        , only : GSL_Success
+    use    :: Interfaces_CAMB      , only : Interface_CAMB_Transfer_Function
+    use    :: Numerical_ODE_Solvers, only : odeSolver
+    !$ use :: OMP_Lib              , only : omp_lock_kind
+    use    :: Table_Labels         , only : extrapolationTypeAbort          , extrapolationTypeFix
+    use    :: Tables               , only : table1DGeneric
     implicit none
     class           (linearGrowthBaryonsDarkMatter), intent(inout)           :: self
     double precision                               , intent(in   )           :: time
@@ -255,9 +227,7 @@ contains
          &                                                                      timePresent                              , timeBigCrunch                                , &
          &                                                                      wavenumberLogarithmic
     integer                                                                  :: growthTableNumberPoints
-    type            (fodeiv2_system               )                          :: ode2System
-    type            (fodeiv2_driver               )                          :: ode2Driver
-    logical                                                                  :: odeReset
+    type            (odeSolver                    )                          :: solver
     type            (table1DGeneric               )                          :: transferFunctionDarkMatter               , transferFunctionBaryons
     integer                                                                  :: countWavenumbers
     !$ integer      (omp_lock_kind                )                          :: lockBaryons                              , lockDarkMatter
@@ -310,11 +280,15 @@ contains
        ! Iterate over wavenumber.
        !$ call OMP_Init_Lock(lockBaryons   )
        !$ call OMP_Init_Lock(lockDarkMatter)
-       !$omp parallel private(i,j,wavenumberLogarithmic,growthFactorDerivativeDarkMatter,growthFactorDerivativeBaryons,timeNow,growthFactorODEVariables,odeReset,ode2Driver,ode2System,linearGrowthFactorPresent)
+       !$omp parallel private(i,j,wavenumberLogarithmic,growthFactorDerivativeDarkMatter,growthFactorDerivativeBaryons,timeNow,growthFactorODEVariables,solver,linearGrowthFactorPresent)
        allocate(baryonsDarkMatterCosmologyFunctions_      ,mold=self%cosmologyFunctions_      )
        allocate(baryonsDarkMatterIntergalacticMediumState_,mold=self%intergalacticMediumState_)
+       !$omp critical(linearGrowthBaryonsDrkMttrDeepCopy)
+       !# <deepCopyReset variables="self%cosmologyFunctions_ self%intergalacticMediumState_"/>
        !# <deepCopy source="self%cosmologyFunctions_"       destination="baryonsDarkMatterCosmologyFunctions_"      />
        !# <deepCopy source="self%intergalacticMediumState_" destination="baryonsDarkMatterIntergalacticMediumState_"/>
+       !# <deepCopyFinalize variables="baryonsDarkMatterCosmologyFunctions_ baryonsDarkMatterIntergalacticMediumState_"/>
+       !$omp end critical(linearGrowthBaryonsDrkMttrDeepCopy)
        !$omp do
        do j=1,countWavenumbers
           baryonDarkMatterWavenumber=self%growthFactor%y(j)
@@ -328,28 +302,16 @@ contains
           call self%growthFactor%populate(exp(transferFunctionBaryons   %interpolate(wavenumberLogarithmic,table=1)),1,j,table=baryonsDarkMatterBaryons   )
           growthFactorDerivativeBaryons   =(transferFunctionBaryons   %interpolate(wavenumberLogarithmic,table=2)-transferFunctionBaryons   %interpolate(wavenumberLogarithmic,table=1))*exp(transferFunctionBaryons   %interpolate(wavenumberLogarithmic,table=1))/(timesInitial(2)-timesInitial(1))
           !$ call OMP_Unset_Lock(lockBaryons   )
+          solver=odeSolver(4_c_size_t,growthFactorODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative)    
           do i=2,growthTableNumberPoints
              timeNow                    =self%growthFactor                    %x(i-1                                    )
              growthFactorODEVariables(1)=self%growthFactor                    %z(i-1,j,table=baryonsDarkMatterDarkMatter)
              growthFactorODEVariables(2)=growthFactorDerivativeDarkMatter
              growthFactorODEVariables(3)=self%growthFactor                    %z(i-1,j,table=baryonsDarkMatterBaryons   )
              growthFactorODEVariables(4)=growthFactorDerivativeBaryons
-             odeReset=.true.
-             call ODEIV2_Solve(                                   &
-                  &            ode2Driver                       , &
-                  &            ode2System                       , &
-                  &            timeNow                          , &
-                  &            self%growthFactor%x(i)           , &
-                  &            4                                , &
-                  &            growthFactorODEVariables         , &
-                  &            growthFactorODEs                 , &
-                  &            odeToleranceAbsolute             , &
-                  &            odeToleranceRelative             , &
-                  &            reset                   =odeReset  &
-                  &           )
-             call ODEIV2_Solver_Free(ode2Driver,ode2System)
-             call self%growthFactor%populate(growthFactorODEVariables(1),i,j,table=baryonsDarkMatterDarkMatter)
-             call self%growthFactor%populate(growthFactorODEVariables(3),i,j,table=baryonsDarkMatterBaryons   )
+             call solver             %solve   (timeNow,self%growthFactor%x(i),growthFactorODEVariables                                         )
+             call self  %growthFactor%populate(                               growthFactorODEVariables(1),i,j,table=baryonsDarkMatterDarkMatter)
+             call self  %growthFactor%populate(                               growthFactorODEVariables(3),i,j,table=baryonsDarkMatterBaryons   )
              growthFactorDerivativeDarkMatter=growthFactorODEVariables(2)
              growthFactorDerivativeBaryons   =growthFactorODEVariables(4)
           end do
@@ -457,7 +419,7 @@ contains
       derivatives    (2)=perturbationDarkMatterDerivative2nd
       derivatives    (3)=perturbationBaryonsDerivative1st
       derivatives    (4)=perturbationBaryonsDerivative2nd
-      growthFactorODEs  =FGSL_Success
+      growthFactorODEs  =GSL_Success
     end function growthFactorODEs
 
   end subroutine baryonsDarkMatterRetabulate
@@ -472,7 +434,7 @@ contains
     double precision                               , intent(in   ), optional :: wavenumber
     double precision                                                         :: time_     , wavenumber_
     !# <optionalArgument name="normalize" defaultsTo="normalizePresentDay" />
-    !GCC$ attributes unused :: component
+    !$GLC attributes unused :: component
 
     ! Determine cosmological time.
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
@@ -506,7 +468,7 @@ contains
     double precision                               , intent(in   ), optional :: wavenumber
     double precision                                                         :: time_      , expansionFactor_, &
          &                                                                      wavenumber_
-    !GCC$ attributes unused :: component
+    !$GLC attributes unused :: component
 
     ! Determine cosmological time.
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_,expansionFactorOut=expansionFactor_)
@@ -535,7 +497,7 @@ contains
     double precision                               , intent(in   ), optional :: wavenumber
     double precision                                                         :: time_      , expansionFactor_, &
          &                                                                      wavenumber_
-    !GCC$ attributes unused :: component
+    !$GLC attributes unused :: component
 
     ! Determine cosmological time.
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_,expansionFactorOut=expansionFactor_)
@@ -559,7 +521,7 @@ contains
     implicit none
     class  (linearGrowthBaryonsDarkMatter), intent(inout)           :: self
     integer                               , intent(in   ), optional :: component
-    !GCC$ attributes unused :: self, component
+    !$GLC attributes unused :: self, component
 
     baryonsDarkMatterIsWavenumberDependent=.true.
     return
@@ -581,10 +543,10 @@ contains
 
   subroutine baryonsDarkMatterFileRead(self)
     !% Read tabulated data on linear growth factor from file.
-    use :: File_Utilities    , only : File_Exists
-    use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWorking
-    use :: IO_HDF5           , only : hdf5Access                , hdf5Object
-    use :: Table_Labels      , only : extrapolationTypeAbort    , extrapolationTypeFix
+    use :: Display       , only : displayMessage        , verbosityLevelWorking
+    use :: File_Utilities, only : File_Exists
+    use :: IO_HDF5       , only : hdf5Access            , hdf5Object
+    use :: Table_Labels  , only : extrapolationTypeAbort, extrapolationTypeFix
     implicit none
     class           (linearGrowthBaryonsDarkMatter), intent(inout)               :: self
     double precision                               , dimension(:,:), allocatable :: growthFactorDarkMatter, growthFactorBaryons
@@ -592,7 +554,7 @@ contains
 
     ! Return immediately if the file does not exist.
     if (.not.File_Exists(char(self%fileName))) return
-    call Galacticus_Display_Message('reading D(k,t) data from: '//self%fileName,verbosityWorking)
+    call displayMessage('reading D(k,t) data from: '//self%fileName,verbosityLevelWorking)
     if (self%tableInitialized) call self%growthFactor%destroy()
     !$ call hdf5Access%set()
     call dataFile%openFile     (char(self%fileName),overWrite=.false.                          )
@@ -621,15 +583,15 @@ contains
 
   subroutine baryonsDarkMatterFileWrite(self)
     !% Write tabulated data on linear growth factor to file.
-    use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWorking
-    use :: HDF5              , only : hsize_t
-    use :: IO_HDF5           , only : hdf5Access                , hdf5Object
+    use :: Display, only : displayMessage, verbosityLevelWorking
+    use :: HDF5   , only : hsize_t
+    use :: IO_HDF5, only : hdf5Access    , hdf5Object
     implicit none
     class(linearGrowthBaryonsDarkMatter), intent(inout) :: self
     type (hdf5Object                   )                :: dataFile
 
     ! Open the data file.
-    call Galacticus_Display_Message('writing D(k,t) data to: '//self%fileName,verbosityWorking)
+    call displayMessage('writing D(k,t) data to: '//self%fileName,verbosityLevelWorking)
     !$ call hdf5Access%set()
     call dataFile%openFile      (char   (self%fileName                                                                                                                  ),overWrite=.true.,chunkSize=100_hsize_t,compressionLevel=9)
     call dataFile%writeDataset  (reshape(self%growthFactor          %zs(table=baryonsDarkMatterDarkMatter),[self%growthFactor%size(dim=1),self%growthFactor%size(dim=2)]),          'growthFactorDarkMatter'                       )

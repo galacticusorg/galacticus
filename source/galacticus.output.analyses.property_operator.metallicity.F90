@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -53,8 +53,6 @@ contains
     !#   <name>massElement</name>
     !#   <source>parameters</source>
     !#   <description>The atomic mass of the element used to define metallicity.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=outputAnalysisPropertyOperatorMetallicity12LogNH(massElement)
     !# <inputParametersValidate source="parameters"/>
@@ -82,7 +80,7 @@ contains
     integer                                                           , intent(inout), optional :: propertyType
     integer         (c_size_t                                        ), intent(in   ), optional :: outputIndex
     double precision                                                                            :: ratioByNumber
-    !GCC$ attributes unused :: propertyType, outputIndex, node
+    !$GLC attributes unused :: propertyType, outputIndex, node
 
     ratioByNumber=+propertyValue      &
             &     *atomicMassHydrogen &

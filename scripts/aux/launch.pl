@@ -149,7 +149,7 @@ sub Construct_Models {
 		    }
 		    # Transfer parameters for this model to the active parameter set.
 		    foreach my $parameter ( keys(%{$parameterData}) ) {
-		    	$parameters->{$parameter} = $parameterData->{$parameter};
+			$parameters->{$parameter} = $parameterData->{$parameter};
 		    }
 		    # Output the parameters as an XML file.
 		    my $xmlOutput = new XML::Simple (RootName=>"parameters");
@@ -204,23 +204,25 @@ sub unfoldParameters {
 	    } elsif ( reftype($parameter->{'parameter'}) eq "ARRAY" ) {
 		# Duplicate the parameter structure, making a copy for each array element and push back onto the stack, unless
 		# explicitly forbidden, in which case just push the parameter onto the stack.
-		my $clonesAdded = 0;
+		my $i             = -1;
+		my $clonesAdded   =  0;
 		my $parameterCopy = clone($parameter->{'parameter'});
 		foreach my $element ( @{$parameterCopy} ) {
+		    ++$i;
 		    if ( exists($element->{'iterable'}) && $element->{'iterable'} eq "no" ) {
 			# Element is non-iterable, push onto the stack.
 			push(
 			    @parameterStack,
 			    {
-				parameter => $element              ,
-				parent    => $parameter->{'parent'},
-				name      => $parameter->{'name'  } 
+				parameter => $parameter->{'parameter'}->[$i],
+				parent    => $parameter->{'parent'   }      ,
+				name      => $parameter->{'name'     } 
 			    }
 			    );
 		    } else {
 			# Element is iterable - clone parameters.
 			$parameter->{'parent'}->{$parameter->{'name'}} = $element;
-			push(@parametersIn,clone($parameters));
+			push(@parametersIn,clone($parameters));			
 			$clonesAdded = 1;
 		    }
 		}
@@ -277,7 +279,7 @@ sub unfoldParameters {
 		    foreach ( keys(%{$parameter->{'parameter'}}) );
 	    }
 	}
-	# Step through the stack handling any parameterLevel attributes.
+      	# Step through the stack handling any parameterLevel attributes.
 	while ( scalar(@parameterStackNew) > 0 ) {
 	    my $parameter = pop(@parameterStackNew);
 	    if ( exists($parameter->{'parameter'}->{'parameterLevel'}) ) {

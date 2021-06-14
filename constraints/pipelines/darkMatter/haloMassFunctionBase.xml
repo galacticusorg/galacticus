@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+
+  <!-- Task and output -->
+  <task value="haloMassFunction">
+   <haloMassMinimum value=" 1.122018454e08"/>
+   <haloMassMaximum value=" 1.122018454e16"/>
+   <pointsPerDecade value="10.0"           />
+  </task>
+  <galacticusOutputFileName value="output.hdf5"/>
+  <outputTimes value="list">
+    <redshifts value="0.0"/>
+  </outputTimes>  
+
+  <!-- Cosmological parameters and options -->
+  <cosmologyFunctions  value="matterLambda"/>
+  <cosmologyParameters value="simple"       >
+    <!-- MDPL simulation cosmology; https://www.cosmosim.org/cms/simulations/mdpl -->
+    <HubbleConstant  value="67.770000"/>
+    <OmegaMatter     value=" 0.307115"/>
+    <OmegaDarkEnergy value=" 0.692885"/>
+    <OmegaBaryon     value=" 0.048206"/>
+    <temperatureCMB  value=" 2.725480"/>
+  </cosmologyParameters>
+
+  <!-- Power spectrum options -->
+  <powerSpectrumPrimordial value="powerLaw">
+    <!-- MDPL simulation power spectrum; https://www.cosmosim.org/cms/simulations/mdpl -->
+    <index               value="0.9600"/>
+    <wavenumberReference value="1.000"/>
+    <running             value="0.000"/>
+  </powerSpectrumPrimordial>
+  <cosmologicalMassVariance value="filteredPower">
+    <!-- MDPL simulation power spectrum; https://www.cosmosim.org/cms/simulations/mdpl -->
+    <sigma_8         value="0.8228"/>
+    <tolerance       value="4.0e-4"/>
+    <toleranceTopHat value="2.0e-4"/>
+  </cosmologicalMassVariance>
+  <transferFunction value="CAMB"/>
+  <powerSpectrumPrimordialTransferred value="simple"/>
+
+  <!-- Structure formation options -->
+  <linearGrowth          value="collisionlessMatter"                      />
+  <criticalOverdensity   value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+
+  <!-- Halo environments -->
+  <haloEnvironment value="normal">
+    <radiusEnvironment value="7.0"/>
+  </haloEnvironment>
+
+  <!-- N-body error model -->
+  <nbodyHaloMassError value="trenti2010">
+    <massParticle value="2.22812e9"/> <!-- MDPL simulation particle mass; https://www.cosmosim.org/cms/simulations/mdpl -->
+  </nbodyHaloMassError>
+
+  <!-- Halo mass function -->
+  <haloMassFunction value="errorConvolved">
+    <errorFractionalMaximum value="1.0"/>
+    <haloMassFunction value="environmentAveraged">
+      <haloMassFunctionConditioned value="shethTormen">
+	<!-- The "conditioned" mass function is used for halo mass scales below the environment scale - see Benson, Ludlow, & Cole (2019). -->
+	<cosmologicalMassVariance value="peakBackgroundSplit"    >
+	  <!-- Cosmological mass variance is based on peak-background split model, so is environment dependent. -->
+          <cosmologicalMassVariance value="filteredPower">
+            <sigma_8         value="0.8228"/>
+	    <tolerance       value="4.0e-4"/>
+	    <toleranceTopHat value="2.0e-4"/>
+          </cosmologicalMassVariance>
+	</cosmologicalMassVariance>
+	<criticalOverdensity value="peakBackgroundSplit">
+	  <!-- Critical overdensity is based on peak-background split model, so is environment dependent. -->
+          <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+	</criticalOverdensity>
+	<a             value="0.0"/>
+	<normalization value="0.0"/>
+	<p             value="0.0"/>
+      </haloMassFunctionConditioned>
+      <haloMassFunctionUnconditioned value="shethTormen">
+	<!-- The "unconditioned" mass function is used for halo mass scales above the environment scale - see Benson, Ludlow, & Cole (2019). -->
+	<a             value="0.0"/>
+	<normalization value="0.0"/>
+	<p             value="0.0"/>
+      </haloMassFunctionUnconditioned>
+    </haloMassFunction>
+  </haloMassFunction>
+
+</parameters>

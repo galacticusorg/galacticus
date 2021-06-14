@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,11 @@
   !% An implementation of a merger tree builder mass resolution which assumes a resolution which scales with tree mass.
 
   !# <mergerTreeMassResolution name="mergerTreeMassResolutionScaled">
-  !#  <description>Provides a mass resolution for merger tree building which scales with tree mass.</description>
+  !#  <description>
+  !#   A merger tree mass resolution class which computes the mass resolution to be min({\normalfont \ttfamily
+  !#   [massResolutionMaximum]},max({\normalfont \ttfamily [massResolutionMinimum]},{\normalfont \ttfamily
+  !#   [massResolutionFractional]}$\times M_\mathrm{base}$)), where $M_\mathrm{base}$ is the base mass of the merger tree.
+  !#  </description>
   !# </mergerTreeMassResolution>
   type, extends(mergerTreeMassResolutionClass) :: mergerTreeMassResolutionScaled
      !% A merger tree mass resolution class which assumes a mass resolution that scales with tree mass.
@@ -54,24 +58,18 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>5.0d9</defaultValue>
     !#   <description>The minimum mass resolution to use when building merger trees.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massResolutionMaximum</name>
     !#   <source>parameters</source>
     !#   <defaultValue>huge(0.0d0)</defaultValue>
     !#   <description>The maximum mass resolution to use when building merger trees.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massResolutionFractional</name>
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d-3</defaultValue>
     !#   <description>The fraction of the tree's root node mass to be used for the mass resolution when building merger trees.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=mergerTreeMassResolutionScaled(massResolutionMinimum,massResolutionMaximum,massResolutionFractional)
     !# <inputParametersValidate source="parameters"/>

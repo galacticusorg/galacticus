@@ -69,7 +69,7 @@ end select
 CODE
     } else {
 	$function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
-!GCC$ attributes unused :: self
+!$GLC attributes unused :: self
 treeNode{ucfirst($class->{'name'})}Count=0
 call Galacticus_Error_Report('Galacticus was not compiled with support for this class'//\{introspection:location\})
 CODE
@@ -128,29 +128,41 @@ sub Tree_Node_Class_Get {
 	    ]
     };
     if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
-	$function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
-instanceActual=1
-if (present(instance)) instanceActual=instance
-autoCreateActual=.false.
-if (present(autoCreate)) autoCreateActual=autoCreate
-if (autoCreateActual.and.allocated(self%component{ucfirst($class->{'name'})})) then
-   ! If we are allowed to autocreate the component and it still has generic type then deallocate it to force it to be created later.
-   if (same_type_as(self%component{ucfirst($class->{'name'})}(1),{ucfirst($class->{'name'})}Class)) deallocate(self%component{ucfirst($class->{'name'})})
+	$function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
+if (.not.present(autoCreate).and..not.present(instance)) then
+   component => self%component{ucfirst($class->{'name'})}(1)
+else
+   instanceActual=1
+   if (present(instance)) instanceActual=instance
+   autoCreateActual=.false.
+   if (present(autoCreate)) autoCreateActual=autoCreate
+   if (autoCreateActual.and.allocated(self%component{ucfirst($class->{'name'})})) then
+      ! If we are allowed to autocreate the component and it still has generic type then deallocate it to force it to be created later.
+      if (same_type_as(self%component{ucfirst($class->{'name'})}(1),{ucfirst($class->{'name'})}Class)) deallocate(self%component{ucfirst($class->{'name'})})
+   end if
+   if (.not.allocated(self%component{ucfirst($class->{'name'})})) then
+     if (autoCreateActual) then
+        call self%{$class->{'name'}}Create()
+     else
+        call nodeComponentGetError('{$class->{'name'}}',self%index())
+     end if
+   end if
+   component => self%component{ucfirst($class->{'name'})}(instanceActual)
 end if
-if (.not.allocated(self%component{ucfirst($class->{'name'})})) then
-  if (autoCreateActual) then
-     call self%{$class->{'name'}}Create()
-  else
-     call nodeComponentGetError('{$class->{'name'}}',self%index())
-  end if
-end if
-component => self%component{ucfirst($class->{'name'})}(instanceActual)
 CODE
     } else {
 	$function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
-!GCC$ attributes unused :: self, instance, autoCreate, instanceActual, autoCreateActual
-component => null()
-call Galacticus_Error_Report('Galacticus was compiled without support for this class'//\{introspection:location\})
+!$GLC attributes unused :: self, instance, instanceActual
+autoCreateActual=.false.
+if (present(autoCreate)) autoCreateActual=autoCreate
+if (autoCreateActual) then
+ ! Support for this component was not compiled, so we can not create it.
+ component => null()
+ call Galacticus_Error_Report('Galacticus was compiled without support for this class'//\{introspection:location\})
+else
+ ! Support for this component was not compiled, return the default of the class - and trust that the user knows what they are doing.
+ component => default{ucfirst($class->{'name'})}Component
+end if
 CODE
     }
     # Insert a type-binding for this function into the treeNode type.

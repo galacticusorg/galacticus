@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +22,13 @@
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !# <coldModeInfallRate name="coldModeInfallRateDynamicalTime">
-  !#  <description>A dynamicalTime cooling time calculation (based on the ratio of the thermal energy density to the volume cooling rate).</description>
+  !#  <description>
+  !#   A cold mode infall rate class in which the infall rate from the cold mode is given by
+  !#   \begin{equation}
+  !#   \dot{M}_\mathrm{infall, cold mode} = f_\mathrm{infall, cold mode}{M_\mathrm{cold mode} \over \tau_\mathrm{dyn}},
+  !#   \end{equation}
+  !#   where $f_\mathrm{infall, cold mode}=${\normalfont \ttfamily [dynamicalRateFraction]}.
+  !#  </description>
   !# </coldModeInfallRate>
   type, extends(coldModeInfallRateClass) :: coldModeInfallRateDynamicalTime
      !% Implementation of a calculation of cold mode infall rates assuming infall on a dynamical timescale.
@@ -56,8 +62,6 @@ contains
     !#   <defaultValue>2.0d0</defaultValue>
     !#   <source>parameters</source>
     !#   <description>The fraction of the inverse dynamical time to use as the rate for infall of the cold mode component.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     self=coldModeInfallRateDynamicalTime(dynamicalRateFraction,darkMatterHaloScale_)

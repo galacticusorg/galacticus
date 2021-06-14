@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -65,29 +65,23 @@ contains
 
     !# <inputParameter>
     !#   <name>gamma</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>5.0d0</defaultValue>
     !#   <description>The dimensionless parameter $\gamma$ which multiplier the rate at which reheated mass is returned to the hot phase.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>delta1</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>2.40d0</defaultValue>
     !#   <defaultSource>\cite{henriques_simulations_2013}</defaultSource>
     !#   <description>The exponent of the $(1+z)$ term, $\delta_1$.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>delta2</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>3.07d0</defaultValue>
     !#   <defaultSource>\cite{henriques_simulations_2013}</defaultSource>
     !#   <description>The exponent of the $V_\mathrm{vir}$ term, $\delta_2$.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
     !# <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>

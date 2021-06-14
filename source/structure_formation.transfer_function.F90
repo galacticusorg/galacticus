@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,7 +26,7 @@ module Transfer_Functions
   !# <functionClass>
   !#  <name>transferFunction</name>
   !#  <descriptiveName>Transfer Function</descriptiveName>
-  !#  <description>Object providing transfer functions.</description>
+  !#  <description>Class providing transfer functions for power spectra.</description>
   !#  <default>eisensteinHu1999</default>
   !#  <method name="value" >
   !#   <description>Return the transfer function for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].</description>
@@ -47,6 +47,12 @@ module Transfer_Functions
   !#  </method>
   !#  <method name="halfModeMass" >
   !#   <description>Return the mass (in $M_\odot$) corresponding to the wavenumber at which the transfer function is suppressed by a factor of two due to small-scale dark matter particle physics.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>integer, intent(  out), optional :: status</argument>
+  !#  </method>
+  !#  <method name="quarterModeMass" >
+  !#   <description>Return the mass (in $M_\odot$) corresponding to the wavenumber at which the transfer function is suppressed by a factor of four due to small-scale dark matter particle physics.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>integer, intent(  out), optional :: status</argument>

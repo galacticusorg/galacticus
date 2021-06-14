@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -58,16 +58,12 @@ contains
     !#   <name>selfBoundParticlesOnly</name>
     !#   <source>parameters</source>
     !#   <description>If true, the mean position and velocity are computed only for self-bound particles</description>
-    !#   <type>logical</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>bootstrapSampleCount</name>
     !#   <source>parameters</source>
     !#   <defaultValue>30_c_size_t</defaultValue>
     !#   <description>The number of bootstrap resamples of the particles that should be used.</description>
-    !#   <type>integer</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     self=nbodyOperatorMeanPosition(selfBoundParticlesOnly,bootstrapSampleCount,randomNumberGenerator_)
@@ -97,56 +93,63 @@ contains
     return
   end subroutine meanPositionDestructor
   
-  subroutine meanPositionOperate(self,simulation)
+  subroutine meanPositionOperate(self,simulations)
     !% Determine the mean position and velocity of N-body particles.
     use :: Galacticus_Error , only : Galacticus_Error_Report
     use :: Memory_Management, only : allocateArray          , deallocateArray
     implicit none
     class          (nbodyOperatorMeanPosition), intent(inout)                 :: self
-    type           (nBodyData                ), intent(inout)                 :: simulation
+    type           (nBodyData                ), intent(inout), dimension(:  ) :: simulations
     integer                                   , allocatable  , dimension(:,:) :: selfBoundStatus
     double precision                          , parameter                     :: sampleRate          =1.0d0
     double precision                          , allocatable  , dimension(:,:) :: positionMean               , velocityMean
+    double precision                          , pointer      , dimension(:,:) :: position                   , velocity
     double precision                                                          :: weight
-    integer         (c_size_t                )                                :: i                          , j
-
-    ! Determine the particle mask to use.
-    if (self%selfBoundParticlesOnly) then
-       if (simulation%analysis%hasDataset('selfBoundStatus')) then
-          call simulation%analysis%readDataset('selfBoundStatus',selfBoundStatus)
-          if (size(selfBoundStatus,dim=2) /= self%bootstrapSampleCount) call Galacticus_Error_Report('number of selfBoundStatus samples must equal number of requested bootstrap samples'//{introspection:location})
+    integer         (c_size_t                )                                :: i                          , j           , &
+         &                                                                       iSimulation
+    
+    do iSimulation=1,size(simulations)
+       ! Determine the particle mask to use.
+       if (self%selfBoundParticlesOnly) then
+          if (simulations(iSimulation)%analysis%hasDataset('selfBoundStatus')) then
+             call simulations(iSimulation)%analysis%readDataset('selfBoundStatus',selfBoundStatus)
+             if (size(selfBoundStatus,dim=2) /= self%bootstrapSampleCount) call Galacticus_Error_Report('number of selfBoundStatus samples must equal number of requested bootstrap samples'//{introspection:location})
+          else
+             call Galacticus_Error_Report('self-bound status not available - apply a self-bound operator first'//{introspection:location})
+          end if
        else
-          call Galacticus_Error_Report('self-bound status not available - apply a self-bound operator first'//{introspection:location})
-       end if
-    else
-       call allocateArray(selfBoundStatus,[size(simulation%position,dim=2,kind=c_size_t),self%bootstrapSampleCount])
-       do i=1,self%bootstrapSampleCount
-          do j=1,size(simulation%position,dim=2)
-             selfBoundStatus(j,i)=self%randomNumberGenerator_%poissonSample(sampleRate)
+          position => simulations(iSimulation)%propertiesRealRank1%value('position')
+          call allocateArray(selfBoundStatus,[size(position,dim=2,kind=c_size_t),self%bootstrapSampleCount])
+          do i=1,self%bootstrapSampleCount
+             do j=1,size(position,dim=2)
+                selfBoundStatus(j,i)=self%randomNumberGenerator_%poissonSample(sampleRate)
+             end do
           end do
+       end if
+       ! Compute mean position and velocity.
+       position => simulations(iSimulation)%propertiesRealRank1%value('position')
+       velocity => simulations(iSimulation)%propertiesRealRank1%value('velocity')
+       call allocateArray(positionMean,[3_c_size_t,self%bootstrapSampleCount])
+       call allocateArray(velocityMean,[3_c_size_t,self%bootstrapSampleCount])
+       do i=1,self%bootstrapSampleCount
+          !$omp parallel workshare
+          weight=dble(sum(selfBoundStatus(:,i)))
+          forall(j=1:3)
+             positionMean(j,i)=+sum(position(j,:)*dble(selfBoundStatus(:,i))) &
+                  &            /weight
+             velocityMean(j,i)=+sum(velocity(j,:)*dble(selfBoundStatus(:,i))) &
+                  &            /weight
+          end forall
+          !$omp end parallel workshare
        end do
-    end if
-    ! Compute mean position and velocity.
-    call allocateArray(positionMean,[3_c_size_t,self%bootstrapSampleCount])
-    call allocateArray(velocityMean,[3_c_size_t,self%bootstrapSampleCount])
-    do i=1,self%bootstrapSampleCount
-       !$omp parallel workshare
-       weight=dble(sum(selfBoundStatus(:,i)))
-       forall(j=1:3)
-          positionMean(j,i)=+sum(simulation%position(j,:)*dble(selfBoundStatus(:,i))) &
-               &            /weight
-          velocityMean(j,i)=+sum(simulation%velocity(j,:)*dble(selfBoundStatus(:,i))) &
-               &            /weight
-       end forall
-       !$omp end parallel workshare
+       ! Store results to file.
+       call simulations(iSimulation)%analysis%writeDataset(positionMean,'positionMean')
+       call simulations(iSimulation)%analysis%writeDataset(velocityMean,'velocityMean')
+       ! Deallocate workspace.
+       call deallocateArray(selfBoundStatus)
+       call deallocateArray(positionMean   )
+       call deallocateArray(velocityMean   )
     end do
-    ! Store results to file.
-    call simulation%analysis%writeDataset(positionMean,'positionMean')
-    call simulation%analysis%writeDataset(velocityMean,'velocityMean')
-    ! Deallocate workspace.
-    call deallocateArray(selfBoundStatus)
-    call deallocateArray(positionMean   )
-    call deallocateArray(velocityMean   )
     return
   end subroutine meanPositionOperate
 

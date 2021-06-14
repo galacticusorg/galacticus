@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +21,20 @@
   !% is adaptive.
 
   !# <posteriorSampleDffrntlEvltnPrpslSzTmpExp name="posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive">
-  !#  <description>A posterior sampling differential evolution proposal size class in which the exponent is adaptive.</description>
+  !#  <description>
+  !#   This class adaptively changes $\alpha$ in an attempt to maintain the gradient of the acceptance rate with the logarithm of
+  !#   temperature, $\mathrm{d} R/\mathrm{d}\ln T$, at an acceptable level. The algorithm is controlled by the following sub-parameters:
+  !#   \begin{description}
+  !#   \item[{\normalfont \ttfamily [exponentInitial]}] The initial value for $\alpha$;
+  !#   \item[{\normalfont \ttfamily [exponentFactor]}] The additive factor by which $\alpha$ should be increased or decreased if the
+  !#     acceptance rate gradient is out of range;
+  !#   \item[{\normalfont \ttfamily [exponentMinimum]}] The smallest value allowed for $\alpha$;
+  !#   \item[{\normalfont \ttfamily [exponentMaximum]}] The largest value allowed for $\alpha$;
+  !#   \item[{\normalfont \ttfamily [acceptanceRateMinimum]}] The minimum acceptance rate gradient to accept before reducing $\alpha$;
+  !#   \item[{\normalfont \ttfamily [acceptanceRateMaximum]}] The maximum acceptance rate gradient to accept before reducing $\alpha$;
+  !#   \item[{\normalfont \ttfamily [updateCount]}] The number of steps between successive checks of the acceptance rate gradient.
+  !#   \end{description}
+  !#  </description>
   !# </posteriorSampleDffrntlEvltnPrpslSzTmpExp>
   type, extends(posteriorSampleDffrntlEvltnPrpslSzTmpExpClass) :: posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive
      !% Implementation of a posterior sampling differential evolution proposal size class in which the exponent is adaptive.
@@ -57,52 +70,38 @@ contains
 
     !# <inputParameter>
     !#   <name>exponentInitial</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The initial exponent.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>exponentMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The minimum allowed exponent.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>exponentMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The maximum allowed exponent.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>exponentAdjustFactor</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The factor by which to adjust the exponent.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>gradientMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The minimum acceptable gradient of acceptance rate with log-temperature.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>gradientMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The maximum acceptable gradient of acceptance rate with log-temperature.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>updateCount</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The number of steps between potential updates of the temperature exponent.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     self=posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive(exponentInitial,exponentMinimum,exponentMaximum,exponentAdjustFactor,gradientMinimum,gradientMaximum,updateCount)
     !# <inputParametersValidate source="parameters"/>
@@ -126,8 +125,8 @@ contains
 
 double precision function adaptiveExponent(self,temperedStates,temperatures,simulationState,simulationConvergence)
   !% Return the adaptive differential evolution proposal size temperature exponent.
-  use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent, Galacticus_Verbosity_Level, &
-          &                         verbosityInfo
+  use :: Display           , only : displayIndent     , displayMessage, displayUnindent, displayVerbosity, &
+          &                         verbosityLevelInfo
   use :: ISO_Varying_String, only : varying_string
   use :: MPI_Utilities     , only : mpiSelf
   use :: String_Handling   , only : operator(//)
@@ -142,7 +141,7 @@ double precision function adaptiveExponent(self,temperedStates,temperatures,simu
   double precision                                                                                                   :: gradient
   character       (len=8                                           )                                                 :: label
   type            (varying_string                                  )                                                 :: message
-  !GCC$ attributes unused :: simulationState
+  !$GLC attributes unused :: simulationState
 
   ! Should we consider updating the exponent?
   levelCount=size(temperedStates)
@@ -172,37 +171,37 @@ double precision function adaptiveExponent(self,temperedStates,temperatures,simu
           &            /dble(levelCount        )                      &
           &          )
      ! Report.
-     if (mpiSelf%rank() == 0 .and. Galacticus_Verbosity_Level() >= verbosityInfo) then
+     if (mpiSelf%rank() == 0 .and. displayVerbosity() >= verbosityLevelInfo) then
         message='Tempered acceptance rate report after '
         message=message//temperedStates(levelCount)%count()//' tempered steps:'
-        call Galacticus_Display_Indent(message)
-        call Galacticus_Display_Message('Temperature Acceptance Rate')
-        call Galacticus_Display_Message('---------------------------')
+        call displayIndent(message)
+        call displayMessage('Temperature Acceptance Rate')
+        call displayMessage('---------------------------')
         do i=1,levelCount
            write (label,'(f8.1)') temperatures   (i)
            message="   "//trim(label)
            write (label,'(f5.3)') acceptanceRates(i)
            message=message//"           "//trim(label)
-           call Galacticus_Display_Message(message)
+           call displayMessage(message)
         end do
-        call Galacticus_Display_Message('---------------------------')
+        call displayMessage('---------------------------')
         write (label,'(f8.3)') gradient
         message="Gradient [dR/dln(T)] = "//trim(label)
-        call Galacticus_Display_Message(message)
-        call Galacticus_Display_Unindent('done')
+        call displayMessage(message)
+        call displayUnindent('done')
      end if
      ! If the gradient is out of range, adjust the exponent.
      if      (gradient > self%gradientMaximum .and. self%exponentCurrent < self%exponentMaximum) then
          self%exponentCurrent=min(self%exponentCurrent+self%exponentAdjustFactor,self%exponentMaximum)
-         if (mpiSelf%rank() == 0 .and. Galacticus_Verbosity_Level() >= verbosityInfo) then
+         if (mpiSelf%rank() == 0 .and. displayVerbosity() >= verbosityLevelInfo) then
             write (label,'(f8.5)') self%exponentCurrent
-            call Galacticus_Display_Message('Adjusting exponent up to '//label)
+            call displayMessage('Adjusting exponent up to '//label)
          end if
      else if (gradient < self%gradientMinimum .and. self%exponentCurrent > self%exponentMinimum) then
          self%exponentCurrent=max(self%exponentCurrent-self%exponentAdjustFactor,self%exponentMinimum)
-         if (mpiSelf%rank() == 0 .and. Galacticus_Verbosity_Level() >= verbosityInfo) then
+         if (mpiSelf%rank() == 0 .and. displayVerbosity() >= verbosityLevelInfo) then
             write (label,'(f8.5)') self%exponentCurrent
-            call Galacticus_Display_Message('Adjusting exponent down to '//label)
+            call displayMessage('Adjusting exponent down to '//label)
          end if
       end if
   end if

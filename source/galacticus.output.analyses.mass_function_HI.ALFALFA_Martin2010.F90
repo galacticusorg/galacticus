@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +21,13 @@
 
 
   !# <outputAnalysis name="outputAnalysisMassFunctionHIALFALFAMartin2010">
-  !#  <description>An ALFALFA HI mass function output analysis class.</description>
+  !#  <description>
+  !#   An ALFALFA HI $z\approx 0.0$ mass function output analysis class measured by \cite{martin_arecibo_2010}. HI mass estimates
+  !#   can be affected by HI self-absorption for highly inclined galaxies. \cite[][see also
+  !#   \protect\citealt{zwaan_hipass_2005}]{zwaan_h_1997} estimate that this effect would lead to a mean underestimation of HI
+  !#   masses by a factor $1.1$ for a randomly oriented galaxy sample. Therefore, a value of $-0.0414$ for the systematic parameter
+  !#   {\normalfont \ttfamily [systematicErrorPolynomialCoefficient]} is recommended.
+  !#  </description>
   !# </outputAnalysis>
   type, extends(outputAnalysisMassFunctionHI) :: outputAnalysisMassFunctionHIALFALFAMartin2010
      !% An ALFALFA HI mass function output analysis class.
@@ -67,8 +73,6 @@ contains
     !#   <variable>systematicErrorPolynomialCoefficient</variable>
     !#   <defaultValue>[0.0d0]</defaultValue>
     !#   <description>The coefficients of the systematic error polynomial for ALFALFA HI masses.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>sizeSourceLensing</name>
@@ -76,8 +80,6 @@ contains
     !#   <variable>sizeSourceLensing</variable>
     !#   <defaultValue>2.0d-3</defaultValue>
     !#   <description>The characteristic source size for gravitational lensing calculations.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>covarianceBinomialBinsPerDecade</name>
@@ -85,8 +87,6 @@ contains
     !#   <variable>covarianceBinomialBinsPerDecade</variable>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number of bins per decade of halo mass to use when constructing ALFALFA HI mass function covariance matrices for main branch galaxies.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>covarianceBinomialMassHaloMinimum</name>
@@ -94,8 +94,6 @@ contains
     !#   <variable>covarianceBinomialMassHaloMinimum</variable>
     !#   <defaultValue>1.0d8</defaultValue>
     !#   <description>The minimum halo mass to consider when constructing ALFALFA HI mass function covariance matrices for main branch galaxies.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>covarianceBinomialMassHaloMaximum</name>
@@ -103,8 +101,6 @@ contains
     !#   <variable>covarianceBinomialMassHaloMaximum</variable>
     !#   <defaultValue>1.0d16</defaultValue>
     !#   <description>The maximum halo mass to consider when constructing ALFALFA HI mass function covariance matrices for main branch galaxies.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"                 name="cosmologyFunctions_"                            source="parameters"/>
     !# <objectBuilder class="outputTimes"                        name="outputTimes_"                                   source="parameters"/>
@@ -232,6 +228,7 @@ contains
          &                             )
     ! Clean up.
     !# <objectDestructor name="surveyGeometry_"                               />
+    !# <objectDestructor name="outputAnalysisPropertyOperator_"               />
     !# <objectDestructor name="galacticFilter_"                               />
     !# <objectDestructor name="cosmologyParametersData"                       />
     !# <objectDestructor name="cosmologyFunctionsData"                        />

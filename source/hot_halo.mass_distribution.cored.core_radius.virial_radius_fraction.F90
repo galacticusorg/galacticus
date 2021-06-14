@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +22,10 @@
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !# <hotHaloMassDistributionCoreRadius name="hotHaloMassDistributionCoreRadiusVirialFraction">
-  !#  <description>Provides an implementation of the hot halo mass distribution core radius class which sets the core radius to a fraction of the virial radius.</description>
+  !#  <description>
+  !#   A hot halo mass distribution core radius class which sets the core radius equal to a fraction {\normalfont \ttfamily
+  !#   [coreRadiusOverVirialRadius]} of the node's virial radius.
+  !#  </description>
   !# </hotHaloMassDistributionCoreRadius>
   type, extends(hotHaloMassDistributionCoreRadiusClass) :: hotHaloMassDistributionCoreRadiusVirialFraction
      !% An implementation of the hot halo mass distribution core radius class which sets the core radius to a fraction of the virial radius.
@@ -54,11 +57,9 @@ contains
 
     !# <inputParameter>
     !#   <name>coreRadiusOverVirialRadius</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.3d0</defaultValue>
     !#   <description>The core radius in the hot halo density profile in units of the virial radius.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     self=hotHaloMassDistributionCoreRadiusVirialFraction(coreRadiusOverVirialRadius,darkMatterHaloScale_)

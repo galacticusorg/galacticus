@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,10 +21,10 @@
 
 program Test_Sort_Topological
   !% Tests of topological sorting functions.
-  use :: Galacticus_Display , only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use :: Galacticus_Error   , only : errorStatusFail               , errorStatusSuccess
+  use :: Display            , only : displayVerbositySet, verbosityLevelStandard
+  use :: Galacticus_Error   , only : errorStatusFail    , errorStatusSuccess
   use :: Sorting_Topological, only : Sort_Topological
-  use :: Unit_Tests         , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Unit_Tests         , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   integer, parameter                      :: countObjects=10, countDependencies=5
   integer, dimension(countObjects       ) :: order
@@ -33,7 +33,7 @@ program Test_Sort_Topological
        &                                     i              , j
   logical                                 :: success
 
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
   call Unit_Tests_Begin_Group("Topological sorting")
   ! A case with circular dependencies.
   dependencies(1,:)=[1,2]

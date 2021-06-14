@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -58,15 +58,11 @@ contains
     !#   <name>rangeLower</name>
     !#   <source>parameters</source>
     !#   <description>Lower integration limit for the nbodyMass distribution weight operator.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>rangeUpper</name>
     !#   <source>parameters</source>
     !#   <description>Upper integration limit for the nbodyMass distribution weight operator.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="nodePropertyExtractor"           name="nodePropertyExtractor_"           source="parameters"/>
     !# <objectBuilder class="outputAnalysisPropertyOperator"  name="outputAnalysisPropertyOperator_"  source="parameters"/>
@@ -121,7 +117,7 @@ contains
     integer         (c_size_t                             ), intent(in   ) :: outputIndex
     double precision                                                       :: nbodyMassPropertyValue
     integer                                                                :: nbodyMassPropertyType
-    !GCC$ attributes unused :: propertyValue, propertyValueIntrinsic, propertyType, propertyQuantity, outputIndex
+    !$GLC attributes unused :: propertyValue, propertyValueIntrinsic, propertyType, propertyQuantity, outputIndex
 
     ! Extract property and operate on it.
     nbodyMassPropertyType   =+self%nodePropertyExtractor_%type           (    )

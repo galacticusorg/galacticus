@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,13 +27,15 @@ module Merger_Trees_Merge_Node
   !# <functionClass>
   !#  <name>mergerTreeNodeMerger</name>
   !#  <descriptiveName>Merger Tree Node Merger Processing</descriptiveName>
-  !#  <description>Class providing processing of mergers between nodes in merger trees.</description>
+  !#  <description>
+  !#   Class providing processing of merger tree nodes when they become substructures.
+  !#  </description>
   !#  <default>singleLevelHierarchy</default>
   !#  <method name="process" >
   !#   <description>Process the merger between {\normalfont \ttfamily node} and its parent node, then destroy it.</description>
   !#   <type>void</type>
   !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout), pointer :: node</argument>
+  !#   <argument>type(treeNode), intent(inout), target :: node</argument>
   !#  </method>
   !# </functionClass>
 

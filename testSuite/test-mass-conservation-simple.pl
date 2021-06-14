@@ -54,39 +54,39 @@ for(my $i=0;$i<nelem($centrals);++$i) {
 	     +$properties->{'hotHaloUnaccretedMass'}->($satellites)->($inTree)->sum()
 	    )
 	    /(
-		+$parameters->{'cosmologyParametersMethod'}->{'OmegaBaryon'}->{'value'}
-		/$parameters->{'cosmologyParametersMethod'}->{'OmegaMatter'}->{'value'}
+		+$parameters->{'cosmologyParameters'}->{'OmegaBaryon'}->{'value'}
+		/$parameters->{'cosmologyParameters'}->{'OmegaMatter'}->{'value'}
 	    )
 	    /$properties->{'basicMassBertschinger'}->($centrals)->(($i));
 }
 $properties->{'diskMassStellar'} /= 
     (
-     +$parameters->{'cosmologyParametersMethod'}->{'OmegaBaryon'}->{'value'}
-     /$parameters->{'cosmologyParametersMethod'}->{'OmegaMatter'}->{'value'}
+     +$parameters->{'cosmologyParameters'}->{'OmegaBaryon'}->{'value'}
+     /$parameters->{'cosmologyParameters'}->{'OmegaMatter'}->{'value'}
     )
     *$properties->{'basicMassBertschinger'};
 $properties->{'diskMassGas'} /= 
     (
-     +$parameters->{'cosmologyParametersMethod'}->{'OmegaBaryon'}->{'value'}
-     /$parameters->{'cosmologyParametersMethod'}->{'OmegaMatter'}->{'value'}
+     +$parameters->{'cosmologyParameters'}->{'OmegaBaryon'}->{'value'}
+     /$parameters->{'cosmologyParameters'}->{'OmegaMatter'}->{'value'}
     )
     *$properties->{'basicMassBertschinger'  };
 $properties->{'hotHaloMass'} /= 
     (
-     +$parameters->{'cosmologyParametersMethod'}->{'OmegaBaryon'}->{'value'}
-     /$parameters->{'cosmologyParametersMethod'}->{'OmegaMatter'}->{'value'}
+     +$parameters->{'cosmologyParameters'}->{'OmegaBaryon'}->{'value'}
+     /$parameters->{'cosmologyParameters'}->{'OmegaMatter'}->{'value'}
     )
     *$properties->{'basicMassBertschinger'  };
 $properties->{'hotHaloOutflowedMass'} /= 
     (
-     +$parameters->{'cosmologyParametersMethod'}->{'OmegaBaryon'}->{'value'}
-     /$parameters->{'cosmologyParametersMethod'}->{'OmegaMatter'}->{'value'}
+     +$parameters->{'cosmologyParameters'}->{'OmegaBaryon'}->{'value'}
+     /$parameters->{'cosmologyParameters'}->{'OmegaMatter'}->{'value'}
     )
     *$properties->{'basicMassBertschinger'  };
 $properties->{'hotHaloUnaccretedMass'} /= 
     (
-     +$parameters->{'cosmologyParametersMethod'}->{'OmegaBaryon'}->{'value'}
-     /$parameters->{'cosmologyParametersMethod'}->{'OmegaMatter'}->{'value'}
+     +$parameters->{'cosmologyParameters'}->{'OmegaBaryon'}->{'value'}
+     /$parameters->{'cosmologyParameters'}->{'OmegaMatter'}->{'value'}
     )
     *$properties->{'basicMassBertschinger'  };
 my $massTotal =

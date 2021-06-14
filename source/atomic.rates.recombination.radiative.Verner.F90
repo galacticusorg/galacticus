@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,13 +18,13 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% An implementation of atomic radiative recombination rates based on the
-  !% \href{ftp://gradj.pa.uky.edu//dima//rec//rrfit.f}{code} originally written by Dima Verner.
+  !% \href{http://www.pa.uky.edu/~verner/dima/rec/rrfit.f}{code} originally written by Dima Verner.
 
   !# <atomicRecombinationRateRadiative name="atomicRecombinationRateRadiativeVerner1996">
-  !#  <description>Atomic radiative recombination rates are computed based on the \href{ftp://gradj.pa.uky.edu//dima//rec//rrfit.f}{code} originally written by Dima Verner.</description>
+  !#  <description>Atomic radiative recombination rates are computed based on the \href{http://www.pa.uky.edu/~verner/dima/rec/rrfit.f}{code} originally written by Dima Verner.</description>
   !# </atomicRecombinationRateRadiative>
   type, extends(atomicRecombinationRateRadiativeClass) :: atomicRecombinationRateRadiativeVerner1996
-     !% A radiative recombination rate class based on the \href{ftp://gradj.pa.uky.edu//dima//rec//rrfit.f}{code} originally written by Dima Verner.
+     !% A radiative recombination rate class based on the \href{http://www.pa.uky.edu/~verner/dima/rec/rrfit.f}{code} originally written by Dima Verner.
      private
    contains
      procedure :: rate => verner1996Rate
@@ -543,7 +543,7 @@ contains
     implicit none
     type(atomicRecombinationRateRadiativeVerner1996)                :: self
     type(inputParameters                           ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=atomicRecombinationRateRadiativeVerner1996()
     return
@@ -563,7 +563,7 @@ contains
     !% \item Other ions of F, P, Cl, K, Ti, Cr, Mn, Co (excluding Ti I-II, Cr I-IV, Mn I-V, Co I): \citep{landini_ion_1991};
     !% \item All other species: interpolations of the power-law fits.
     !% \end{itemize}
-    !% Based on the \href{ftp://gradj.pa.uky.edu//dima//rec//rrfit.f}{code} originally written by Dima Verner. The ionization state
+    !% Based on the \href{http://www.pa.uky.edu/~verner/dima/rec/rrfit.f}{code} originally written by Dima Verner. The ionization state
     !% passed to this function should be that of the atom/ion post recombination.
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
@@ -584,7 +584,7 @@ contains
     integer                                                                               :: electronNumber
     double precision                                                                      :: temperatureScaled, fitFactor       , &
          &                                                                                   logTemperature
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
     !# <optionalArgument name="level" defaultsTo="recombinationCaseA" />
 
     ! Set zero rate by default.
@@ -712,7 +712,7 @@ contains
                   &           /1.0d4       &
                   &         )**0.672d0
           case (2) ! HeIII
-             ! Fit from Aparna Venkatesan.
+             ! Fit from Aparna Venkatesan, via Mike Shull. This is a fit to the data in Table 1 of Storey & Hummer (1995; MNRAS; 272; 41) for Z=2 and Ne=100.
              if (temperature < 1.0d6) then
                 logTemperature=log10(temperature)
                 verner1996Rate=+2.06d-11            &
@@ -726,8 +726,23 @@ contains
                      &           *logTemperature**2 &
                      &          )
              else
-                ! Fit behaves badly above 10⁶K.
-                verner1996Rate=0.0d0
+                ! Fit behaves badly above 10⁶K, so we fix the logarithmic slope of the polynomial part at its value at 10⁵K to
+                ! avoid negative recombination rates at higher temperatures.
+                logTemperature=+5.00d+00
+                verner1996Rate=+2.06d-11            &
+                     &         *4.00d+00            &
+                     &         /sqrt(temperature)   &
+                     &         *(                   &
+                     &           +6.572345200d0     &
+                     &           -1.361055000d0     &
+                     &           *logTemperature    &
+                     &           +0.045686398d0     &
+                     &           *logTemperature**2 &
+                     &          )                   &
+                     &         /(                   &
+                     &           +temperature       &
+                     &           /1.0d5             &
+                     &          )**0.392685d0
              end if
           case default
              call Galacticus_Error_Report('ionization state invalid for helium'//{introspection:location})

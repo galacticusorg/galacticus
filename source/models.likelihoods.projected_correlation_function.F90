@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -31,7 +31,30 @@
   use :: Power_Spectra             , only : powerSpectrum               , powerSpectrumClass
 
   !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodPrjctdCorrelationFunction">
-  !#  <description>A posterior sampling likelihood class which implements a likelihood for projected correlation functions.</description>
+  !#  <description>
+  !#   The likelihood is computed as
+  !#   \begin{equation}
+  !#   \log \mathcal{L} = -{1\over2} \Delta \cdot \mathcal{C}^{-1} \cdot \Delta^\mathrm{T},
+  !#   \end{equation}
+  !#   where $\mathcal{C}$ is the covariance matrix, and $\Delta_i = w_i^\mathrm{model} - w_i^\mathrm{obs}$, $w_i^\mathrm{model}$
+  !#   is the computed projected correlation function at the $i^\mathrm{th}$ separation, and $w_i^\mathrm{obs}$ is the observed
+  !#   projected correlation function at the $i^\mathrm{th}$ separation. The projected correlation function is computed using the
+  !#   halo model and the parameterized conditional galaxy mass function of \cite[][see also \protect\cite{leauthaud_new_2011};
+  !#   \protect\refPhysics{conditionalMassFunctionBehroozi2010}]{behroozi_comprehensive_2010}.  The details of the projected
+  !#   correlation function calculation are specified by the following subparameters:
+  !#   \begin{description}
+  !#   \item[{\normalfont \ttfamily haloMass(Min|Max)imum}] The minimum/maximum halo mass over which to integrate in the halo model;
+  !#   \item[{\normalfont \ttfamily redshift(Min|Max)imum}] The minimum/maximum redshift over which to integrate in the halo model;
+  !#   \item[{\normalfont \ttfamily projectedCorrelationFunctionFileName}] The name of an HDF5 file containing the observed projected
+  !#     correlation function and its covariance matrix.
+  !#   \end{description}
+  !#   
+  !#   The HDF5 file specified by the {\normalfont \ttfamily projectedCorrelationFunctionFileName} element should contain a {\normalfont
+  !#   \ttfamily separation} dataset, giving the spearations at which the projected correlation function is measured (in units of Mpc),
+  !#   a {\normalfont \ttfamily projectedCorrelationFunctionObserved} dataset giving the observed values of the projected correlation
+  !#   function at those separations (in units of Mpc), and a {\normalfont \ttfamily covariance} dataset, giving the covariance of the
+  !#   projected correlation function (in units of Mpc$^2$).
+  !#  </description>
   !# </posteriorSampleLikelihood>
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodPrjctdCorrelationFunction
      !% Implementation of a posterior sampling likelihood class which implements a likelihood for projected correlation functions.
@@ -52,7 +75,7 @@
      double precision                                   , dimension(:,:), allocatable :: covarianceMatrix                              , projectedCorrelationFunction, &
           &                                                                              projectedCorrelationFunctionObserved          , integralConstraint
      type            (vector                           )                              :: means
-     type            (matrix                           )                              :: covariance                                    , inverseCovariance
+     type            (matrix                           )                              :: covariance
      type            (varying_string                   )                              :: fileName
    contains
      final     ::                    projectedCorrelationFunctionDestructor
@@ -90,38 +113,28 @@ contains
 
     !# <inputParameter>
     !#   <name>haloMassMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The minimum halo mass over which to integrate.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>haloMassMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The maximum halo mass over which to integrate.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>lineOfSightDepth</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The line of sight depth over which to integrate.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>halfIntegral</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>If true, integrate only over positive line of sight depths.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>fileName</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The name of the file containing the target projected correlation function.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <objectBuilder class="powerSpectrum"                name="powerSpectrum_"                source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
@@ -185,10 +198,8 @@ contains
     !$ call hdf5Access%unset()
     ! Allocate storage for the model projected correlation function.
     call allocateArray(self%projectedCorrelationFunction,[size(self%separation),size(self%massMinimum)])
-    ! Find the inverse covariance matrix.
-    self%covariance       =self%covarianceMatrix
-    self%inverseCovariance=self%covariance      %invert()
-    call self%inverseCovariance%makeSemiPositiveDefinite()
+    ! Build the covariance matrix.
+    self%covariance=self%covarianceMatrix
     return
   end function projectedCorrelationFunctionConstructorInternal
 
@@ -231,7 +242,7 @@ contains
     type            (conditionalMassFunctionBehroozi2010               )                              :: conditionalMassFunction_
     type            (vector                                            )                              :: difference
     integer                                                                                           :: i
-    !GCC$ attributes unused :: logLikelihoodCurrent, logPriorCurrent, simulationConvergence, temperature, timeEvaluate, modelParametersInactive_, forceAcceptance
+    !$GLC attributes unused :: logLikelihoodCurrent, logPriorCurrent, simulationConvergence, temperature, timeEvaluate, modelParametersInactive_, forceAcceptance
 
     ! There is no variance in our likelihood estimate.
     if (present(logLikelihoodVariance)) logLikelihoodVariance=0.0d0
@@ -294,7 +305,7 @@ contains
          &                                        *size(self%projectedCorrelationFunction        ,dim=2)  &
          &                                       ]                                                        &
          &                                      )
-    projectedCorrelationFunctionEvaluate=-0.5d0*(difference*(self%inverseCovariance*difference))
+    projectedCorrelationFunctionEvaluate=-0.5d0*self%covariance%covarianceProduct(difference)
     return
   end function projectedCorrelationFunctionEvaluate
 
@@ -302,7 +313,7 @@ contains
     !% Respond to possible changes in the likelihood function.
     implicit none
     class(posteriorSampleLikelihoodPrjctdCorrelationFunction), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     return
   end subroutine projectedCorrelationFunctionFunctionChanged

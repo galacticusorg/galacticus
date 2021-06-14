@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -104,7 +104,7 @@ contains
     integer         (c_size_t                            ), intent(in   ) :: outputIndex
     double precision                                                      :: weightPropertyValue
     integer                                                               :: weightPropertyType
-    !GCC$ attributes unused :: propertyType, propertyValueIntrinsic, propertyValue, propertyQuantity
+    !$GLC attributes unused :: propertyType, propertyValueIntrinsic, propertyValue, propertyQuantity
 
     select type (extractor_ => self%extractor_)
     class is (nodePropertyExtractorScalar)

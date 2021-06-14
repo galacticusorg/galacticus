@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -86,7 +86,7 @@ contains
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
-    !GCC$ attributes unused :: parameters_
+    !$GLC attributes unused :: parameters_
 
     if (defaultBasicComponent%standardTrackingIsActive()) &
          call nodePromotionEvent%attach(defaultBasicComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentBasicStandardTracking')
@@ -117,7 +117,7 @@ contains
     type (treeNode          ), intent(inout), target  :: node
     type (treeNode          )               , pointer :: nodeParent
     class(nodeComponentBasic)               , pointer :: basicParent, basic
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     basic       => node      %basic ()
     nodeParent  => node      %parent

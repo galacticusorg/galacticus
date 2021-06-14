@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -72,8 +72,6 @@ contains
     !#   <source>parameters</source>
     !#   <variable>redshiftInterval</variable>
     !#   <description>The redshift interval (1, 2, or 3) to use.</description>
-    !#   <type>integer</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>computeScatter</name>
@@ -81,8 +79,6 @@ contains
     !#   <variable>computeScatter</variable>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>If true, the scatter in log10(stellar mass) is computed. Otherwise, the mean is computed.</description>
-    !#   <type>logical</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>systematicErrorPolynomialCoefficient</name>
@@ -90,16 +86,12 @@ contains
     !#   <variable>systematicErrorPolynomialCoefficient</variable>
     !#   <defaultValue>[0.0d0]</defaultValue>
     !#   <description>The coefficients of the systematic error polynomial for stellar vs halo mass relation.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>likelihoodBin</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0_c_size_t</defaultValue>
     !#   <description>If $>0$ then use only the mass bin given by this value in the likelihood calculation.</description>
-    !#   <type>integer</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
@@ -117,7 +109,6 @@ contains
     !% Constructor for the ``stellarVsHaloMassRelationLeauthaud2012'' output analysis class for internal use.
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                    , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersClass                   , cosmologyParametersSimple
-    use :: FGSL                                  , only : fgsl_interp_cspline
     use :: Galactic_Filters                      , only : filterList                                 , galacticFilterAll                              , galacticFilterHaloIsolated                  , galacticFilterStellarMass
     use :: Galacticus_Error                      , only : Galacticus_Error_Report
     use :: Galacticus_Paths                      , only : galacticusPath                             , pathTypeDataStatic
@@ -127,6 +118,7 @@ contains
     use :: Memory_Management                     , only : allocateArray
     use :: Node_Property_Extractors              , only : nodePropertyExtractorMassHalo              , nodePropertyExtractorMassStellar
     use :: Numerical_Constants_Astronomical      , only : massSolar
+    use :: Numerical_Interpolation               , only : gsl_interp_cspline
     use :: Numerical_Ranges                      , only : Make_Range                                 , rangeTypeLinear
     use :: Output_Analyses_Options               , only : outputAnalysisCovarianceModelBinomial
     use :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorIdentity
@@ -147,7 +139,6 @@ contains
     class           (cosmologyFunctionsClass                             ), intent(inout), target         :: cosmologyFunctions_
     class           (outputTimesClass                                    ), intent(inout), target         :: outputTimes_
     integer         (c_size_t                                            ), parameter                     :: massHaloCount                                         =26
-    double precision                                                      , parameter                     :: massHaloMinimum                                       = 1.0d10, massHaloMaximum                              =1.0d15
     integer                                                               , parameter                     :: covarianceBinomialBinsPerDecade                       =10
     double precision                                                      , parameter                     :: covarianceBinomialMassHaloMinimum                     = 1.0d08, covarianceBinomialMassHaloMaximum            =1.0d16
     double precision                                                      , allocatable  , dimension(:  ) :: massHalo                                                      , massStellarDataLogarithmic                          , &
@@ -181,7 +172,8 @@ contains
     logical                                                               , parameter                     :: likelihoodNormalize                                   =.false.
     integer         (c_size_t                                            )                                :: iBin
     double precision                                                                                      :: massStellarLimit                                              , redshiftMinimum                                  , &
-         &                                                                                                   redshiftMaximum
+         &                                                                                                   redshiftMaximum                                               , massHaloMinimum                                  , &
+         &                                                                                                   massHaloMaximum
     type            (varying_string                                      )                                :: analysisLabel                                                 , weightPropertyLabel                              , &
          &                                                                                                   weightPropertyDescription                                     , groupRedshiftName
     type            (hdf5Object                                          )                                :: fileData                                                      , groupRedshift
@@ -236,8 +228,6 @@ contains
     !#      &amp;                      )
     !#  </constructor>
     !# </referenceConstruct>
-    ! Create bins in halo mass.
-    massHalo=Make_Range(log10(massHaloMinimum),log10(massHaloMaximum),int(massHaloCount),rangeType=rangeTypeLinear)
     ! Read observational data and convert masses to logarithmic.
     call fileData%openFile(char(galacticusPath(pathTypeDataStatic))//"observations/stellarHaloMassRelation/stellarHaloMassRelation_COSMOS_Leauthaud2012.hdf5")
     groupRedshiftName=var_str('redshiftInterval')//redshiftInterval
@@ -246,6 +236,10 @@ contains
     call groupRedshift%readDataset('massHaloMean',massHaloMeanData)
     call groupRedshift%readDataset('massHaloLow' ,massHaloLowData )
     call groupRedshift%readDataset('massHaloHigh',massHaloHighData)
+    ! Create bins in halo mass.
+    massHaloMinimum=massHaloMeanData(1                     )
+    massHaloMaximum=massHaloMeanData(size(massHaloMeanData))
+    massHalo       =Make_Range(log10(massHaloMinimum),log10(massHaloMaximum),int(massHaloCount),rangeType=rangeTypeLinear)
     ! Find a spline fit to the observed data, and compute the uncertainty in logarithm of halo mass.
     allocate(massHaloErrorDataLogarithmic(size(massStellarData)))
     massStellarDataLogarithmic  =log(massStellarData )
@@ -257,9 +251,9 @@ contains
          &                         +massHaloHighDataLogarithmic &
          &                         -massHaloLowDataLogarithmic  &
          &                        )
-    call interpolator%create  (massHaloMeanDataLogarithmic ,tableCount=2,interpolationType=fgsl_interp_cspline)
-    call interpolator%populate(massStellarDataLogarithmic  ,table     =1                                      )
-    call interpolator%populate(massHaloErrorDataLogarithmic,table     =2                                      )
+    call interpolator%create  (massHaloMeanDataLogarithmic ,tableCount=2,interpolationType=gsl_interp_cspline)
+    call interpolator%populate(massStellarDataLogarithmic  ,table     =1                                     )
+    call interpolator%populate(massHaloErrorDataLogarithmic,table     =2                                     )
     ! Interpolate observational data to model points.
     allocate(massStellarLogarithmicTarget          (massHaloCount              ))
     allocate(massStellarLogarithmicCovarianceTarget(massHaloCount,massHaloCount))
@@ -379,7 +373,7 @@ contains
        !#    &amp;                          massHalo                                                                                                          , &amp;
        !#    &amp;                          0_c_size_t                                                                                                        , &amp;
        !#    &amp;                          outputWeight                                                                                                      , &amp;
-       !#    &amp;                          nodePropertyExtractor_                                                                                  , &amp;
+       !#    &amp;                          nodePropertyExtractor_                                                                                            , &amp;
        !#    &amp;                          outputAnalysisWeightPropertyExtractor_                                                                            , &amp;
        !#    &amp;                          outputAnalysisPropertyOperator_                                                                                   , &amp;
        !#    &amp;                          outputAnalysisWeightPropertyOperator_                                                                             , &amp;
@@ -420,7 +414,7 @@ contains
        !#    &amp;                          massHalo                                                                                               , &amp;
        !#    &amp;                          0_c_size_t                                                                                             , &amp;
        !#    &amp;                          outputWeight                                                                                           , &amp;
-       !#    &amp;                          nodePropertyExtractor_                                                                       , &amp;
+       !#    &amp;                          nodePropertyExtractor_                                                                                 , &amp;
        !#    &amp;                          outputAnalysisWeightPropertyExtractor_                                                                 , &amp;
        !#    &amp;                          outputAnalysisPropertyOperator_                                                                        , &amp;
        !#    &amp;                          outputAnalysisWeightPropertyOperator_                                                                  , &amp;

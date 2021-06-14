@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -49,7 +49,7 @@ contains
     implicit none
     type(mergerTreeWalkerTreeConstruction)                :: self
     type(inputParameters         ), intent(inout) :: parameters
-    !GCC$ attributes unused :: self, parameters
+    !$GLC attributes unused :: self, parameters
 
     call Galacticus_Error_Report('this class can not be built from parameters'//{introspection:location})
     return
@@ -68,6 +68,8 @@ contains
   end function treeConstructionInternal
 
   logical function treeConstructionNext(self,node)
+    !% This function will update the given {\normalfont \ttfamily node} to the next node which should be visited in a tree to
+    !% perform a walk suitable for trees under construction.
     implicit none
     class(mergerTreeWalkerTreeConstruction), intent(inout)          :: self
     type (treeNode                        ), intent(inout), pointer :: node

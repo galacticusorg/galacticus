@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -66,7 +66,7 @@ contains
     use :: Kepler_Orbits          , only : keplerOrbit
     use :: Root_Finder            , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
-    type            (treeNode                 ), intent(inout), pointer  :: nodeHost
+    type            (treeNode                 ), intent(inout), target   :: nodeHost
     type            (keplerOrbit              ), intent(inout)           :: orbit
     integer                                    , intent(  out), optional :: errorCode
     class           (darkMatterHaloScaleClass ), intent(inout)           :: darkMatterHaloScale_
@@ -93,15 +93,16 @@ contains
        Satellite_Orbit_Equivalent_Circular_Orbit_Radius=-1.0d0
        if (present(errorCode)) errorCode=errorCodeNoEquivalentOrbit
     else
-       call finder%rootFunction(Equivalent_Circular_Orbit_Solver   )
-       call finder%tolerance   (toleranceAbsolute,toleranceRelative)
-       call finder%rangeExpand (                                                             &
-            &                   rangeExpandUpward            =2.0d0                        , &
-            &                   rangeExpandDownward          =0.5d0                        , &
-            &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
-            &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-            &                   rangeExpandType              =rangeExpandMultiplicative      &
-            &                  )
+       finder=rootFinder(                                                                &
+            &            rootFunction                 =Equivalent_Circular_Orbit_Solver, &
+            &            toleranceAbsolute            =toleranceAbsolute               , &
+            &            toleranceRelative            =toleranceRelative               , &
+            &            rangeExpandUpward            =2.0d0                           , &
+            &            rangeExpandDownward          =0.5d0                           , &
+            &            rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative   , &
+            &            rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive   , &
+            &            rangeExpandType              =rangeExpandMultiplicative         &
+            &           )
        Satellite_Orbit_Equivalent_Circular_Orbit_Radius=finder%find(rootGuess=darkMatterHaloScale_%virialRadius(nodeHost))
        if (present(errorCode)) errorCode=errorCodeSuccess
     end if
@@ -146,17 +147,18 @@ contains
     use :: Numerical_Constants_Prefixes , only : kilo
     use :: Root_Finder                  , only : rangeExpandMultiplicative   , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: nodeHost
-    type            (keplerOrbit       ), intent(inout)          :: orbit
-    integer                             , intent(in   )          :: extremumType
-    double precision                    , intent(  out)          :: radius                 , velocity
-    class           (nodeComponentBasic), pointer                :: basicHost
-    double precision                    , parameter              :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
-    type            (rootFinder        ), save                   :: finder
-    !$omp threadprivate(finder )
-    type            (keplerOrbit       )                         :: orbitCurrent
-    integer                                                      :: status
-    double precision                                             :: potential
+    type            (treeNode          ), intent(inout), target :: nodeHost
+    type            (keplerOrbit       ), intent(inout)         :: orbit
+    integer                             , intent(in   )         :: extremumType
+    double precision                    , intent(  out)         :: radius                   , velocity
+    class           (nodeComponentBasic), pointer               :: basicHost
+    double precision                    , parameter             :: toleranceAbsolute=0.0d0  , toleranceRelative=1.0d-6
+    type            (rootFinder        ), save                  :: finder
+    logical                             , save                  :: finderConstructed=.false.
+    !$omp threadprivate(finder,finderConstructed)
+    type            (keplerOrbit       )                        :: orbitCurrent
+    integer                                                     :: status
+    double precision                                            :: potential
 
 
 
@@ -216,9 +218,13 @@ contains
           ! Orbit is radial, so pericenter is zero.
           radius=0.0d0
        else
-          if (.not.finder%isInitialized()) then
-             call finder%rootFunction(Extremum_Solver                    )
-             call finder%tolerance   (toleranceAbsolute,toleranceRelative)
+          if (.not.finderConstructed) then
+             finder           =rootFinder(                                     &
+                  &                       rootFunction     =Extremum_Solver  , &
+                  &                       toleranceAbsolute=toleranceAbsolute, &
+                  &                       toleranceRelative=toleranceRelative  &
+                  &                      )
+             finderConstructed=.true.
           end if
           select case (extremumType)
           case (extremumPericenter)
@@ -303,13 +309,13 @@ contains
     !% current halo.
     use :: Galactic_Structure_Potentials, only : Galactic_Structure_Potential
     use :: Kepler_Orbits                , only : keplerOrbit
-    use :: Numerical_Constants_Physical , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical , only : gravitationalConstantGalacticus
     implicit none
-    type            (keplerOrbit)                         :: Satellite_Orbit_Convert_To_Current_Potential
-    type            (keplerOrbit), intent(inout)          :: orbit
-    type            (treeNode   ), intent(inout), pointer :: currentHost
-    double precision                                      :: potentialHost                               , radiusVirialOriginal, &
-         &                                                   velocityVirialOriginal
+    type            (keplerOrbit)                :: Satellite_Orbit_Convert_To_Current_Potential
+    type            (keplerOrbit), intent(inout) :: orbit
+    type            (treeNode   ), intent(inout) :: currentHost
+    double precision                             :: potentialHost                               , radiusVirialOriginal, &
+         &                                          velocityVirialOriginal
 
     ! Compute the properties of the initial orbit, and the current potential.
     radiusVirialOriginal  =gravitationalConstantGalacticus*orbit%hostMass()/orbit%velocityScale()**2
@@ -324,7 +330,7 @@ contains
   subroutine Satellite_Orbit_Reset(node)
     !% Reset the satellite orbit calculations.
     implicit none
-    type(treeNode), intent(inout), pointer :: node
+    type(treeNode), intent(inout) :: node
 
     pericenterCalculated=.false.
     apocenterCalculated =.false.

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,9 +23,9 @@ program Test_Recombination_Computed
   !% Test the radiative transfer state solver.
   use :: Atomic_Cross_Sections_Ionization_Photo      , only : atomicCrossSectionIonizationPhotoVerner
   use :: Atomic_Ionization_Potentials                , only : atomicIonizationPotentialVerner
-  use :: Atomic_Rates_Recombination_Radiative_Cooling, only : atomicRecombinationRateRadiativeCoolingComputed
   use :: Atomic_Rates_Recombination_Radiative        , only : atomicRecombinationRateRadiativeComputed
-  use :: Galacticus_Display                          , only : Galacticus_Verbosity_Level_Set                 , verbosityStandard
+  use :: Atomic_Rates_Recombination_Radiative_Cooling, only : atomicRecombinationRateRadiativeCoolingComputed
+  use :: Display                                     , only : displayVerbositySet                            , verbosityLevelStandard
   use :: Galacticus_Error                            , only : errorStatusSuccess
   use :: Unit_Tests                                  , only : Assert                                         , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
@@ -35,12 +35,12 @@ program Test_Recombination_Computed
   type(atomicRecombinationRateRadiativeComputed       ), pointer :: atomicRecombinationRateRadiative_
   
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
   ! Construct atomic matter.
-  allocate(atomicCrossSectionIonizationPhoto_)
-  allocate(atomicIonizationPotential_        )
-  allocate(atomicRecombinationRateRadiativeCooling_   )
-  allocate(atomicRecombinationRateRadiative_ )
+  allocate(atomicCrossSectionIonizationPhoto_      )
+  allocate(atomicIonizationPotential_              )
+  allocate(atomicRecombinationRateRadiativeCooling_)
+  allocate(atomicRecombinationRateRadiative_       )
   !# <referenceConstruct object="atomicCrossSectionIonizationPhoto_"       >
   !#  <constructor>
   !#   atomicCrossSectionIonizationPhotoVerner         (                                   &amp;
@@ -87,5 +87,9 @@ program Test_Recombination_Computed
   call Assert("H; 1²S; 2.0 × 10⁴K",atomicRecombinationRateRadiativeCooling_%rate(1,1,2.0d4,level=1),1.00d-13,relTol=1.0d-2)
   call Unit_Tests_End_Group()
   ! Done with unit tests.
+  !# <objectDestructor name="atomicCrossSectionIonizationPhoto_"      />
+  !# <objectDestructor name="atomicIonizationPotential_"              />
+  !# <objectDestructor name="atomicRecombinationRateRadiativeCooling_"/>
+  !# <objectDestructor name="atomicRecombinationRateRadiative_"       />
   call Unit_Tests_Finish()
 end program Test_Recombination_Computed

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +21,29 @@
 
 
   !# <outputAnalysis name="outputAnalysisMassFunctionStellarULTRAVISTA">
-  !#  <description>An ULTRAVISTA stellar mass function output analysis class.</description>
+  !#  <description>
+  !#   An ULTRAVISTA stellar mass function output analysis class, for $0.2 &lt; z&lt; 4.0$ galaxies measured by \cite{muzzin_evolution_2013}.
+  !#   
+  !#   Given a \glc\ model, total stellar masses of model galaxies are adjusted using:
+  !#   \begin{equation}
+  !#    M_\star \rightarrow \mathbf{C} \mathbf{L} \mathbf{G} \mathbf{S} M_\star,
+  !#   \end{equation}
+  !#   where the $\mathbf{S}$ operator is a multiplicative factor accounting for systematic errors in stellar mass determination and is
+  !#   equal to \citep{behroozi_comprehensive_2010}
+  !#   \begin{equation}
+  !#    \log_\mathrm{10} S = \sum_{i=0}^N s_i \log_\mathrm{10}^i \left({M_\star \over 10^{11.3}M_\odot}\right),
+  !#   \end{equation}
+  !#   where $s=${\normalfont \ttfamily [systematicErrorPolynomialCoefficient]}, the {\normalfont \bfseries G} operator is a
+  !#   multiplicative factor drawn from a log-normal distribution of width $\sigma(M)$~dex for each galaxy to mimic the effects of random
+  !#   errors on stellar masses (motivated by the discussion of \cite{behroozi_comprehensive_2010}), the {\normalfont \bfseries L}
+  !#   operator accounts for gravitational lensing, and the {\normalfont \bfseries C} operator accounts for the difference between model
+  !#   and observed cosmologies. The random error model is given by:
+  !#   \begin{equation}
+  !#    \sigma(M) = \hbox{min}\left[\sigma_\mathrm{max},\hbox{max}\left[\sigma_\mathrm{min},\sum_{i=0}^N r_i \log_\mathrm{10}^i \left({M_\star \over 10^{11.3}M_\odot}\right)\right]\right],
+  !#   \end{equation}
+  !#   where $r=${\normalfont \ttfamily [randomErrorPolynomialCoefficient]}, $\sigma_\mathrm{min}$={\normalfont \ttfamily
+  !#     [randomErrorMinimum]}, and $\sigma_\mathrm{max}$={\normalfont \ttfamily [randomErrorMaximum]}.
+  !#  </description>
   !# </outputAnalysis>
   type, extends(outputAnalysisMassFunctionStellar) :: outputAnalysisMassFunctionStellarULTRAVISTA
      !% An ULTRAVISTA stellar mass function output analysis class.
@@ -67,8 +89,6 @@ contains
     !#   <source>parameters</source>
     !#   <variable>redshiftInterval</variable>
     !#   <description>The redshift interval (0-6) to use.</description>
-    !#   <type>integer</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>randomErrorMinimum</name>
@@ -76,8 +96,6 @@ contains
     !#   <variable>randomErrorMinimum</variable>
     !#   <defaultValue>0.1d0</defaultValue>
     !#   <description>The minimum random error for ULTRAVISTA stellar masses.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>randomErrorMaximum</name>
@@ -85,8 +103,6 @@ contains
     !#   <variable>randomErrorMaximum</variable>
     !#   <defaultValue>0.1d0</defaultValue>
     !#   <description>The minimum random error for ULTRAVISTA stellar masses.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>randomErrorPolynomialCoefficient</name>
@@ -94,8 +110,6 @@ contains
     !#   <variable>randomErrorPolynomialCoefficient</variable>
     !#   <defaultValue>[0.1d0]</defaultValue>
     !#   <description>The coefficients of the random error polynomial for ULTRAVISTA stellar masses.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>systematicErrorPolynomialCoefficient</name>
@@ -103,8 +117,6 @@ contains
     !#   <variable>systematicErrorPolynomialCoefficient</variable>
     !#   <defaultValue>[0.0d0]</defaultValue>
     !#   <description>The coefficients of the systematic error polynomial for ULTRAVISTA stellar masses.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>sizeSourceLensing</name>
@@ -112,8 +124,6 @@ contains
     !#   <variable>sizeSourceLensing</variable>
     !#   <defaultValue>2.0d-3</defaultValue>
     !#   <description>The characteristic source size for gravitational lensing calculations.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>covarianceBinomialBinsPerDecade</name>
@@ -121,8 +131,6 @@ contains
     !#   <variable>covarianceBinomialBinsPerDecade</variable>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number of bins per decade of halo mass to use when constructing ULTRAVISTA stellar mass function covariance matrices for main branch galaxies.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>covarianceBinomialMassHaloMinimum</name>
@@ -130,8 +138,6 @@ contains
     !#   <variable>covarianceBinomialMassHaloMinimum</variable>
     !#   <defaultValue>1.0d8</defaultValue>
     !#   <description>The minimum halo mass to consider when constructing ULTRAVISTA stellar mass function covariance matrices for main branch galaxies.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>covarianceBinomialMassHaloMaximum</name>
@@ -139,8 +145,6 @@ contains
     !#   <variable>covarianceBinomialMassHaloMaximum</variable>
     !#   <defaultValue>1.0d16</defaultValue>
     !#   <description>The maximum halo mass to consider when constructing ULTRAVISTA stellar mass function covariance matrices for main branch galaxies.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
     !# <objectBuilder class="outputTimes"          name="outputTimes_"          source="parameters"/>
@@ -170,7 +174,7 @@ contains
     implicit none
     type            (outputAnalysisMassFunctionStellarULTRAVISTA        )                              :: self
     class           (cosmologyFunctionsClass                            ), intent(in   ), target       :: cosmologyFunctions_
-    class           (outputTimesClass                                   ), intent(in   ), target       :: outputTimes_
+    class           (outputTimesClass                                   ), intent(inout), target       :: outputTimes_
     class           (gravitationalLensingClass                          ), intent(in   ), target       :: gravitationalLensing_
     integer                                                              , intent(in   )               :: redshiftInterval
     double precision                                                     , intent(in   )               :: randomErrorMinimum                                         , randomErrorMaximum                  , &
@@ -188,7 +192,7 @@ contains
     type            (cosmologyFunctionsMatterLambda                     )               , pointer      :: cosmologyFunctionsData
     type            (distributionOperatorList                           )               , pointer      :: distributionOperatorSequence
     double precision                                                     , parameter                   :: errorPolynomialZeroPoint                            =11.3d+0
-    type            (varying_string                                     )                              :: fileName
+    type            (varying_string                                     )                              :: fileName                                                    , description
     double precision                                                                                   :: massThreshold
 
     ! Create cosmological model in which data were analyzed.
@@ -213,28 +217,36 @@ contains
     !#  </constructor>
     !# </referenceConstruct>
     ! Determine the data file and mass threshold to use.
+    description=var_str('Stellar mass function for the Muzzin et al. (2013) ULTRAVISTA analysis, ')
     select case (redshiftInterval)
     case (0)
        fileName     ='Stellar_Mass_Function_ULTRAVISTA_2013_z0.20_0.50.hdf5'
        massThreshold=3.0d6
+       description  =description//"$z=0.2$--$0.5$"
     case (1)
        fileName     ='Stellar_Mass_Function_ULTRAVISTA_2013_z0.50_1.00.hdf5'
        massThreshold=3.0d7
+       description  =description//"$z=0.5$--$1.0$"
     case (2)
        fileName     ='Stellar_Mass_Function_ULTRAVISTA_2013_z1.00_1.50.hdf5'
        massThreshold=3.0d7
+       description  =description//"$z=1.0$--$1.5$"
     case (3)
        fileName     ='Stellar_Mass_Function_ULTRAVISTA_2013_z1.50_2.00.hdf5'
        massThreshold=3.0d8
+       description  =description//"$z=1.5$--$2.0$"
     case (4)
        fileName     ='Stellar_Mass_Function_ULTRAVISTA_2013_z2.00_2.50.hdf5'
        massThreshold=3.0d8
+       description  =description//"$z=2.0$--$2.5$"
     case (5)
        fileName     ='Stellar_Mass_Function_ULTRAVISTA_2013_z2.50_3.00.hdf5'
        massThreshold=1.0d9
+       description  =description//"$z=2.5$--$3.0$"
     case (6)
        fileName     ='Stellar_Mass_Function_ULTRAVISTA_2013_z3.00_4.00.hdf5'
        massThreshold=1.0d9
+       description  =description//"$z=3.0$--$4.0$"
     case default
        call Galacticus_Error_Report('0 ≤ redshiftInterval ≤ 6 is required'//{introspection:location})
     end select
@@ -288,7 +300,7 @@ contains
     self%outputAnalysisMassFunctionStellar=                                                                                             &
          & outputAnalysisMassFunctionStellar(                                                                                           &
          &                                   var_str('Muzzin2013ULTRAVISTAz')//redshiftInterval                                       , &
-         &                                   var_str('Stellar mass function for the Muzzin et al. (2013) ULTRAVISTA analysis')        , &
+         &                                   description                                                                              , &
          &                                   char(galacticusPath(pathTypeDataStatic)//'/observations/massFunctionsStellar/'//fileName), &
          &                                   galacticFilter_                                                                          , &
          &                                   surveyGeometry_                                                                          , &
@@ -306,6 +318,7 @@ contains
     !# <objectDestructor name="galacticFilter_"                                     />
     !# <objectDestructor name="cosmologyParametersData"                             />
     !# <objectDestructor name="cosmologyFunctionsData"                              />
+    !# <objectDestructor name="outputAnalysisPropertyOperator_"                     />
     !# <objectDestructor name="outputAnalysisDistributionOperator_"                 />
     !# <objectDestructor name="outputAnalysisDistributionOperatorGrvtnlLnsng_"      />
     !# <objectDestructor name="outputAnalysisDistributionOperatorRandomErrorPlynml_"/>

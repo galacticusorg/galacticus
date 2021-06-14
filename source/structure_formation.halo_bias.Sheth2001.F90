@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -83,15 +83,17 @@ contains
     return
   end subroutine sheth2001Destructor
 
-  double precision function sheth2001BiasByMass(self,mass,time)
+  double precision function sheth2001BiasByMass(self,mass,time,radius)
     !% Returns the bias of a dark matter halo given the mass and time.
     implicit none
-    class           (darkMatterHaloBiasSheth2001), intent(inout) :: self
-    double precision                             , intent(in   ) :: mass                 , time
-    double precision                             , parameter     :: a            =0.707d0, b    =0.5d0, &
-         &                                                          c            =0.600d0
-    double precision                                             :: deltaCritical        , sigma      , &
-         &                                                          nu
+    class           (darkMatterHaloBiasSheth2001), intent(inout)           :: self
+    double precision                             , intent(in   )           :: mass                 , time
+    double precision                             , intent(in   ), optional :: radius
+    double precision                             , parameter               :: a            =0.707d0, b    =0.5d0, &
+         &                                                                    c            =0.600d0
+    double precision                                                       :: deltaCritical        , sigma      , &
+         &                                                                    nu
+    !$GLC attributes unused :: radius
 
     ! Get critical overdensity for collapse and root-variance, then compute peak height parameter, nu.
     deltaCritical=self%criticalOverdensity_     %value       (time=time,mass=mass)

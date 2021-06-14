@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -88,9 +88,8 @@ contains
 
   double precision function computedRate(self,atomicNumber,ionizationState,temperature,level)
     !% Returns the recombination rate coefficient.
-    use :: FGSL                        , only : fgsl_function          , fgsl_integration_workspace
     use :: Galacticus_Error            , only : Galacticus_Error_Report
-    use :: Numerical_Integration       , only : Integrate              , Integrate_Done
+    use :: Numerical_Integration       , only : integrator
     use :: Numerical_Constants_Physical, only : boltzmannsConstant     , electronMass
     use :: Numerical_Constants_Atomic  , only : atomicMassUnit
     implicit none
@@ -99,8 +98,7 @@ contains
     double precision                                          , intent(in   )           :: temperature
     integer                                                   , intent(in   ), optional :: level
     double precision                                                                    :: velocityMaximumFactor=100.0d0
-    type            (fgsl_function                           )                          :: integrandFunction
-    type            (fgsl_integration_workspace              )                          :: integrationWorkspace
+    type            (integrator                              )                          :: integrator_
     double precision                                                                    :: velocityMaximum
 
     ! A level is required.
@@ -114,16 +112,8 @@ contains
             &               )
        ! Compute the recombination rate by integration of the recombination cross section over the thermal distribution of electron
        ! velocities.
-       computedRate=Integrate(                                                &
-            &                                           0.0d0               , &
-            &                                           velocityMaximum     , &
-            &                                           rateIntegrand       , &
-            &                                           integrandFunction   , &
-            &                                           integrationWorkspace, &
-            &                         toleranceAbsolute=0.0d0               , &
-            &                         toleranceRelative=1.0d-4                &
-            &                        )  
-       call Integrate_Done(integrandFunction,integrationWorkspace)
+       integrator_ =integrator           (rateIntegrand,toleranceRelative=1.0d-4         )
+       computedRate=integrator_%integrate(0.0d0        ,                  velocityMaximum)
     else
        computedRate=0.0d0
        call Galacticus_Error_Report('calculation is only supported to specific levels'//{introspection:location})

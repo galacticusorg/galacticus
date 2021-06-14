@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,15 +27,9 @@
      private
      double precision :: temperature_
    contains
-     !@ <objectMethods>
-     !@  <object>radiationFieldBlackBody</object>
-     !@  <objectMethod>
-     !@   <method>temperature</method>
-     !@   <type>\doublezero</type>
-     !@   <arguments></arguments>
-     !@   <description>Return the temperature of te black-body radiation field.</description>
-     !@  </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return the temperature of te black-body radiation field." method="temperature" />
+     !# </methods>
      procedure :: flux        => blackBodyFlux
      procedure :: temperature => blackBodyTemperature
   end type radiationFieldBlackBody
@@ -59,10 +53,8 @@ contains
     !# <inputParameter>
     !#   <name>temperature</name>
     !#   <variable>temperature_</variable>
-    !#   <cardinality>1</cardinality>
     !#   <description>The temperature of the black body radiation field.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     self=radiationFieldBlackBody(temperature_)
     !# <inputParametersValidate source="parameters"/>
@@ -88,7 +80,7 @@ contains
     class           (radiationFieldBlackBody), intent(inout) :: self
     double precision                         , intent(in   ) :: wavelength
     type            (treeNode               ), intent(inout) :: node
-    !GCC$ attributes unused :: node
+    !$GLC attributes unused :: node
 
     blackBodyFlux=+centi**2                                                               &
          &        /ergs                                                                   &

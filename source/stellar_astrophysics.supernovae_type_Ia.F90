@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,7 +27,9 @@ module Supernovae_Type_Ia
   !# <functionClass>
   !#  <name>supernovaeTypeIa</name>
   !#  <descriptiveName>Supernovae Type Ia</descriptiveName>
-  !#  <description>Class providing models of supernovae type Ia.</description>
+  !#  <description>
+  !#   Class providing models of supernovae type Ia, including the cumulative number occuring and metal yield.
+  !#  </description>
   !#  <default>nagashima2005</default>
   !#  <method name="number" >
   !#   <description>Return the cumulative number of Type Ia supernovae from a stellar population of the given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age}, and {\normalfont \ttfamily metallicity}.</description>

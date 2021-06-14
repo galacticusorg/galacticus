@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -45,7 +45,7 @@ contains
     implicit none
     type(satelliteTidalStrippingZero)                :: self
     type(inputParameters            ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=satelliteTidalStrippingZero()
     return
@@ -54,9 +54,9 @@ contains
   double precision function zeroMassLossRate(self,node)
     !% Return a mass loss rate for satellites due to tidal stripping which is always zero.
     implicit none
-    class(satelliteTidalStrippingZero), intent(inout)         :: self
-    type (treeNode                   ), intent(inout), target :: node
-    !GCC$ attributes unused :: self, node
+    class(satelliteTidalStrippingZero), intent(inout) :: self
+    type (treeNode                   ), intent(inout) :: node
+    !$GLC attributes unused :: self, node
 
     zeroMassLossRate=0.0d0
     return

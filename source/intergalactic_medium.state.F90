@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -29,7 +29,9 @@ module Intergalactic_Medium_State
   !# <functionClass>
   !#  <name>intergalacticMediumState</name>
   !#  <descriptiveName>Intergalactic Medium State</descriptiveName>
-  !#  <description>Class providing intergalactic medium state.</description>
+  !#  <description>
+  !#   Class providing the thermal and ionization state of the intergalactic medium.
+  !#  </description>
   !#  <default>recFast</default>
   !#  <method name="electronFraction" >
   !#   <description>Return the electron fraction (relative to hydrogen) in the \gls{igm} at the given time.</description>
@@ -120,7 +122,7 @@ module Intergalactic_Medium_State
   !#    ! Ensure that the table is initialized.
   !#    call intergalacticMediumStateElectronScatteringTabulate(self,time)
   !#    ! Check for invalid input.
-  !#    if (time > self%electronScatteringTableTimeMaximum)                                &amp;
+  !#    if (time &gt; self%electronScatteringTableTimeMaximum)                                &amp;
   !#       &amp; call Galacticus_Error_Report(                                             &amp;
   !#       &amp;                              'time exceeds present age of the universe'// &amp;
   !#       &amp;                              {introspection:location}                     &amp;
@@ -152,10 +154,10 @@ module Intergalactic_Medium_State
   !#    ! Ensure that the table is initialized.
   !#    time=self%cosmologyFunctions_%cosmicTime(1.0d0)
   !#    call intergalacticMediumStateElectronScatteringTabulate(self,time)
-  !#    do while (                                                                                                    &amp;
-  !#         &amp;     (.not.assumeFullyIonizedActual .and. self%electronScattering            %y(1) > -opticalDepth) &amp;
-  !#         &amp;    .or.                                                                                            &amp;
-  !#         &amp;     (     assumeFullyIonizedActual .and. self%electronScatteringFullyIonized%y(1) > -opticalDepth) &amp;
+  !#    do while (                                                                                                       &amp;
+  !#         &amp;     (.not.assumeFullyIonizedActual .and. self%electronScattering            %y(1) &gt; -opticalDepth) &amp;
+  !#         &amp;    .or.                                                                                               &amp;
+  !#         &amp;     (     assumeFullyIonizedActual .and. self%electronScatteringFullyIonized%y(1) &gt; -opticalDepth) &amp;
   !#         &amp;   )
   !#       time=time/2.0d0
   !#       call intergalacticMediumStateElectronScatteringTabulate(self,time)
@@ -183,13 +185,11 @@ contains
 
   subroutine intergalacticMediumStateElectronScatteringTabulate(self,time)
     !% Construct a table of electron scattering optical depth as a function of cosmological time.
-    use :: FGSL                 , only : fgsl_function, fgsl_integration_workspace
-    use :: Numerical_Integration, only : Integrate    , Integrate_Done
+    use :: Numerical_Integration, only : integrator
     implicit none
     class           (intergalacticMediumStateClass), intent(inout), target :: self
     double precision                               , intent(in   )         :: time
-    type            (fgsl_function                )                        :: integrandFunction
-    type            (fgsl_integration_workspace   )                        :: integrationWorkspace
+    type            (integrator                   )                        :: integrator_
     integer                                                                :: iTime
     logical                                                                :: fullyIonized
 
@@ -214,35 +214,24 @@ contains
             &                                           self%electronScatteringTableNumberPoints  &
             &                                          )
        ! Loop over times and populate tables.
+       integrator_=integrator(intergalacticMediumStateElectronScatteringIntegrand,toleranceRelative=1.0d-6)
        do iTime=1,self%electronScatteringTableNumberPoints-1
           fullyIonized=.false.
-          call self%electronScattering%populate(                                                             &
-               &                      -Integrate(                                                            &
-               &                                 self%electronScattering%x(iTime)                          , &
-               &                                 self%electronScatteringTableTimeMaximum                   , &
-               &                                 intergalacticMediumStateElectronScatteringIntegrand       , &
-               &                                 integrandFunction                                         , &
-               &                                 integrationWorkspace                                      , &
-               &                                 toleranceAbsolute                                  =0.0d+0, &
-               &                                 toleranceRelative                                  =1.0d-6  &
-               &                                )                                                          , &
-               &                       iTime                                                                 &
-               &                      )
-          call Integrate_Done(integrandFunction,integrationWorkspace)
+          call self%electronScattering            %populate(                                                                         &
+               &                                            -integrator_%integrate(                                                  &
+               &                                                                   self%electronScattering                %x(iTime), &
+               &                                                                   self%electronScatteringTableTimeMaximum           &
+               &                                                                  )                                                , &
+               &                                                                                                             iTime   &
+               &                                           )
           fullyIonized=.true.
-          call self%electronScatteringFullyIonized%populate(                                                             &
-               &                                  -Integrate(                                                            &
-               &                                             self%electronScatteringFullyIonized%x(iTime)              , &
-               &                                             self%electronScatteringTableTimeMaximum                   , &
-               &                                             intergalacticMediumStateElectronScatteringIntegrand       , &
-               &                                             integrandFunction                                         , &
-               &                                             integrationWorkspace                                      , &
-               &                                             toleranceAbsolute                                  =0.0d+0, &
-               &                                             toleranceRelative                                  =1.0d-6  &
-               &                                            )                                                          , &
-               &                       iTime                                                                             &
-               &                      )
-          call Integrate_Done(integrandFunction,integrationWorkspace)
+          call self%electronScatteringFullyIonized%populate(                                                                         &
+               &                                            -integrator_%integrate(                                                  &
+               &                                                                   self%electronScatteringFullyIonized    %x(iTime), &
+               &                                                                   self%electronScatteringTableTimeMaximum           &
+               &                                                                  )                                                , &
+               &                                                                                                             iTime   &
+               &                                           )
        end do
        call self%electronScattering            %populate(0.0d0,self%electronScatteringTableNumberPoints)
        call self%electronScatteringFullyIonized%populate(0.0d0,self%electronScatteringTableNumberPoints)

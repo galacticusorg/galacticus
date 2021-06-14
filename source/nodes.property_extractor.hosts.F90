@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,13 +17,16 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an ISM mass output analysis property extractor class.
+!% Contains a module which implements a host index output analysis property extractor class.
 
   !# <nodePropertyExtractor name="nodePropertyExtractorIndicesHost">
-  !#  <description>An ISM mass output analysis property extractor class.</description>
+  !#  <description>
+  !#   A node property extractor which extracts the index of the node which hosts a given node. For unhosted nodes (i.e. nodes
+  !#   which are not subhalos), a value of $-1$ is extracted instead.
+  !#  </description>
   !# </nodePropertyExtractor>
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorIndicesHost
-     !% A stelalr mass output analysis class.
+     !% A host index output analysis class.
      private
      logical :: topLevel
    contains
@@ -51,11 +54,9 @@ contains
 
     !# <inputParameter>
     !#   <name>topLevel</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>If true, output the index of the host at the top level of the hierarchy, otherwise output the index of the direct host.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
      self=nodePropertyExtractorIndicesHost(topLevel)
     !# <inputParametersValidate source="parameters"/>
@@ -81,7 +82,7 @@ contains
     double precision                                  , intent(in   )           :: time
     type            (multiCounter                    ), intent(inout), optional :: instance
     type            (treeNode                        ), pointer                 :: nodeHost
-    !GCC$ attributes unused :: self, instance, time
+    !$GLC attributes unused :: self, instance, time
 
     if (node%isSatellite()) then
        nodeHost => node%parent
@@ -102,7 +103,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorIndicesHost), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     indicesHostType=outputAnalysisPropertyTypeLinear
     return
@@ -113,7 +114,7 @@ contains
     implicit none
     type (varying_string                  )                :: indicesHostName
     class(nodePropertyExtractorIndicesHost), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     indicesHostName=var_str('hostIndex')
     return
@@ -124,7 +125,7 @@ contains
     implicit none
     type (varying_string                  )                :: indicesHostDescription
     class(nodePropertyExtractorIndicesHost), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     indicesHostDescription=var_str('ID of the node which hosts this node (or -1 is there is no host).')
     return

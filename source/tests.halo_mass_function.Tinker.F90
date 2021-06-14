@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,67 +18,184 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Contains a program which tests the \cite{tinker_towardhalo_2008} mass function by comparing to Jeremy Tinker's
-!% \href{http://cosmo.nyu.edu/~tinker/massfunction/MF_code.tar}{code}.
+!% \href{https://cosmo.nyu.edu/~tinker/massfunction/MF_code.tar}{code}.
 
 program Tests_Halo_Mass_Function_Tinker
   !% Tests the \cite{tinker_towardhalo_2008} mass function by comparing to Jeremy Tinker's
-  !% \href{http://cosmo.nyu.edu/~tinker/massfunction/MF_code.tar}{code}.
-  use :: Cosmological_Density_Field, only : criticalOverdensity           , criticalOverdensityClass
-  use :: Cosmology_Functions       , only : cosmologyFunctions            , cosmologyFunctionsClass
-  use :: Cosmology_Parameters      , only : cosmologyParameters           , cosmologyParametersClass, hubbleUnitsLittleH
-  use :: Events_Hooks              , only : eventsHooksInitialize
-  use :: File_Utilities            , only : Count_Lines_In_File
-  use :: Galacticus_Display        , only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use :: Halo_Mass_Functions       , only : haloMassFunction              , haloMassFunctionClass
-  use :: ISO_Varying_String        , only : varying_string                , assignment(=)
-  use :: Input_Parameters          , only : inputParameters
-  use :: Memory_Management         , only : allocateArray                 , deallocateArray
-  use :: Unit_Tests                , only : Assert                        , Unit_Tests_Begin_Group  , Unit_Tests_End_Group, Unit_Tests_Finish
+  !% \href{https://cosmo.nyu.edu/~tinker/massfunction/MF_code.tar}{code}.
+  use :: Cosmological_Density_Field          , only : criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt, cosmologicalMassVarianceFilteredPower
+  use :: Cosmology_Functions                 , only : cosmologyFunctionsMatterLambda
+  use :: Cosmology_Parameters                , only : cosmologyParametersSimple                                   , hubbleUnitsLittleH
+  use :: Dark_Matter_Particles               , only : darkMatterParticleCDM
+  use :: Display                             , only : displayVerbositySet                                         , verbosityLevelStandard
+  use :: Events_Hooks                        , only : eventsHooksInitialize
+  use :: File_Utilities                      , only : Count_Lines_In_File
+  use :: Halo_Mass_Functions                 , only : haloMassFunctionTinker2008
+  use :: Linear_Growth                       , only : linearGrowthCollisionlessMatter
+  use :: Memory_Management                   , only : allocateArray                                               , deallocateArray
+  use :: Power_Spectra_Primordial            , only : powerSpectrumPrimordialPowerLaw
+  use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredSimple
+  use :: Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionTopHat
+  use :: Transfer_Functions                  , only : transferFunctionEisensteinHu1999
+  use :: Unit_Tests                          , only : Assert                                                      , Unit_Tests_Begin_Group               , Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Virial_Density_Contrast             , only : virialDensityContrastFixed                                  , fixedDensityTypeMean
   implicit none
-  type            (varying_string          )                                     :: parameterFile
-  integer                                                                        :: fUnit                    , i           , &
-       &                                                                            massCount
-  double precision                                                               :: time
-  double precision                                   , allocatable, dimension(:) :: mass                     , massFunction, &
-       &                                                                            massFunctionTinker
-  logical                                            , allocatable, dimension(:) :: success
-  class           (cosmologyParametersClass), pointer                            :: cosmologyParameters_
-  class           (cosmologyFunctionsClass ), pointer                            :: cosmologyFunctions_
-  class           (criticalOverdensityClass), pointer                            :: criticalOverdensity_
-  class           (haloMassFunctionClass   ), pointer                            :: haloMassFunction_
-  type            (inputParameters         )                                     :: parameters
+  integer                                                                                                   :: fUnit                              , i           , &
+       &                                                                                                       massCount
+  double precision                                                                                          :: time
+  double precision                                                              , allocatable, dimension(:) :: mass                               , massFunction, &
+       &                                                                                                       massFunctionTinker
+  logical                                                                       , allocatable, dimension(:) :: success
+  type            (cosmologyParametersSimple                                   )                            :: cosmologyParameters_
+  type            (cosmologyFunctionsMatterLambda                              )                            :: cosmologyFunctions_
+  type            (cosmologicalMassVarianceFilteredPower                       )                            :: cosmologicalMassVariance_
+  type            (linearGrowthCollisionlessMatter                             )                            :: linearGrowth_
+  type            (powerSpectrumWindowFunctionTopHat                           )                            :: powerSpectrumWindowFunction_
+  type            (powerSpectrumPrimordialPowerLaw                             )                            :: powerSpectrumPrimordial_
+  type            (transferFunctionEisensteinHu1999                            )                            :: transferFunction_
+  type            (powerSpectrumPrimordialTransferredSimple                    )                            :: powerSpectrumPrimordialTransferred_
+  type            (darkMatterParticleCDM                                       )                            :: darkMatterParticle_
+  type            (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt)                            :: criticalOverdensity_
+  type            (virialDensityContrastFixed                                  )                            :: virialDensityContrast_
+  type            (haloMassFunctionTinker2008                                  )                            :: haloMassFunction_
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
   ! Initialize event hooks.
   call eventsHooksInitialize()
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Halo mass function: Tinker et al. (2008)")
-
-  ! Test the Tinker et al. (2008) dark matter halo mass function.
-  parameterFile='testSuite/parameters/haloMassFunction/tinker.xml'
-  parameters=inputParameters(parameterFile)
-  call parameters%markGlobal()
-  ! Get required objects.
-  cosmologyParameters_ => cosmologyParameters()
-  cosmologyFunctions_  => cosmologyFunctions ()
-  criticalOverdensity_ => criticalOverdensity()
-  haloMassFunction_    => haloMassFunction   ()
-
+  ! Construct required objects.
+  !# <referenceConstruct object="darkMatterParticle_"                >
+  !#  <constructor>
+  !#   darkMatterParticleCDM                                        (                                                                         &amp;
+  !#    &amp;                                                       )
+  !#  </constructor>
+  !# </referenceConstruct>
+  !# <referenceConstruct object="cosmologyParameters_"               >
+  !#  <constructor>
+  !#   cosmologyParametersSimple                                    (                                                                         &amp;
+  !#    &amp;                                                        OmegaMatter                        = 0.30d0                            , &amp;
+  !#    &amp;                                                        OmegaBaryon                        = 0.04d0                            , &amp;
+  !#    &amp;                                                        OmegaDarkEnergy                    = 0.70d0                            , &amp;
+  !#    &amp;                                                        temperatureCMB                     = 2.70d0                            , &amp;
+  !#    &amp;                                                        HubbleConstant                     =71.00d0                              &amp;
+  !#    &amp;                                                       )
+  !#  </constructor>
+  !# </referenceConstruct>
+  !# <referenceConstruct object="cosmologyFunctions_"                >
+  !#  <constructor>
+  !#   cosmologyFunctionsMatterLambda                               (                                                                         &amp;
+  !#    &amp;                                                        cosmologyParameters_               =cosmologyParameters_                 &amp;
+  !#    &amp;                                                       )
+  !#  </constructor>
+  !# </referenceConstruct>
+  !# <referenceConstruct object="linearGrowth_"                      >
+  !#  <constructor>
+  !#   linearGrowthCollisionlessMatter                              (                                                                         &amp;
+  !#    &amp;                                                        cosmologyParameters_               =cosmologyParameters_               , &amp;
+  !#    &amp;                                                        cosmologyFunctions_                =cosmologyFunctions_                  &amp;
+  !#    &amp;                                                       )
+  !#  </constructor>
+  !# </referenceConstruct>
+  !# <referenceConstruct object="powerSpectrumPrimordial_"           >
+  !#  <constructor>
+  !#   powerSpectrumPrimordialPowerLaw                              (                                                                         &amp;
+  !#    &amp;                                                        index_                             =+1.0d0                             , &amp;
+  !#    &amp;                                                        running                            =+0.0d0                             , &amp;
+  !#    &amp;                                                        runningRunning                     =+0.0d0                             , &amp;
+  !#    &amp;                                                        wavenumberReference                =+1.0d0                               &amp;
+  !#    &amp;                                                       )
+  !#  </constructor>
+  !# </referenceConstruct>
+  !# <referenceConstruct object="transferFunction_"                  >
+  !#  <constructor>
+  !#   transferFunctionEisensteinHu1999                             (                                                                         &amp;
+  !#    &amp;                                                        neutrinoNumberEffective            =3.046d0                            , &amp;
+  !#    &amp;                                                        neutrinoMassSummed                 =0.000d0                            , &amp;
+  !#    &amp;                                                        darkMatterParticle_                =darkMatterParticle_                , &amp;
+  !#    &amp;                                                        cosmologyParameters_               =cosmologyParameters_               , &amp;
+  !#    &amp;                                                        cosmologyFunctions_                =cosmologyFunctions_                  &amp;
+  !#    &amp;                                                       )
+  !#  </constructor>
+  !# </referenceConstruct>
+  !# <referenceConstruct object="powerSpectrumPrimordialTransferred_">
+  !#  <constructor>
+  !#   powerSpectrumPrimordialTransferredSimple                     (                                                                         &amp;
+  !#    &amp;                                                        powerSpectrumPrimordial_           =powerSpectrumPrimordial_           , &amp;
+  !#    &amp;                                                        transferFunction_                  =transferFunction_                  , &amp;
+  !#    &amp;                                                        linearGrowth_                      =linearGrowth_                        &amp;
+  !#    &amp;                                                       )
+  !#  </constructor>
+  !# </referenceConstruct>
+  !# <referenceConstruct object="powerSpectrumWindowFunction_"       >
+  !#  <constructor>
+  !#   powerSpectrumWindowFunctionTopHat                            (                                                                         &amp;
+  !#    &amp;                                                        cosmologyParameters_               =cosmologyParameters_                 &amp;
+  !#    &amp;                                                       )
+  !#  </constructor>
+  !# </referenceConstruct>
+  !# <referenceConstruct object="cosmologicalMassVariance_"          >
+  !#  <constructor>
+  !#   cosmologicalMassVarianceFilteredPower                        (                                                                         &amp;
+  !#    &amp;                                                        sigma8                             =0.9d0                              , &amp;
+  !#    &amp;                                                        tolerance                          =1.0d-4                             , &amp;
+  !#    &amp;                                                        toleranceTopHat                    =1.0d-4                             , &amp;
+  !#    &amp;                                                        nonMonotonicIsFatal                =.true.                             , &amp;
+  !#    &amp;                                                        monotonicInterpolation             =.false.                            , &amp;
+  !#    &amp;                                                        truncateAtParticleHorizon          =.false.                            , &amp;
+  !#    &amp;                                                        cosmologyParameters_               =cosmologyParameters_               , &amp;
+  !#    &amp;                                                        cosmologyFunctions_                =cosmologyFunctions_                , &amp;
+  !#    &amp;                                                        linearGrowth_                      =linearGrowth_                      , &amp;
+  !#    &amp;                                                        powerSpectrumPrimordialTransferred_=powerSpectrumPrimordialTransferred_, &amp;
+  !#    &amp;                                                        powerSpectrumWindowFunction_       =powerSpectrumWindowFunction_         &amp;
+  !#    &amp;                                                       )
+  !#  </constructor>
+  !# </referenceConstruct>
+  !# <referenceConstruct object="criticalOverdensity_"               >
+  !#  <constructor>
+  !#   criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt(                                                                          &amp;
+  !#    &amp;                                                        linearGrowth_                      =linearGrowth_                      , &amp;
+  !#    &amp;                                                        cosmologyFunctions_                =cosmologyFunctions_                , &amp;
+  !#    &amp;                                                        cosmologicalMassVariance_          =cosmologicalMassVariance_          , &amp;
+  !#    &amp;                                                        darkMatterParticle_                =darkMatterParticle_                , &amp;
+  !#    &amp;                                                        tableStore                         =.true.                               &amp;
+  !#    &amp;                                                       )
+  !#  </constructor>
+  !# </referenceConstruct>
+  !# <referenceConstruct object="virialDensityContrast_"             >
+  !#  <constructor>
+  !#   virialDensityContrastFixed                                   (                                                                         &amp;
+  !#    &amp;                                                        cosmologyParameters_               =cosmologyParameters_               , &amp;
+  !#    &amp;                                                        cosmologyFunctions_                =cosmologyFunctions_                , &amp;
+  !#    &amp;                                                        densityType                        =fixedDensityTypeMean               , &amp;
+  !#    &amp;                                                        densityContrastValue               =200.0d0                            , &amp;
+  !#    &amp;                                                        turnAroundOverVirialRadius         =  2.0d0                              &amp;
+  !#    &amp;                                                       )
+  !#  </constructor>
+  !# </referenceConstruct>
+  !# <referenceConstruct object="haloMassFunction_"                  >
+  !#  <constructor>
+  !#   haloMassFunctionTinker2008                                   (                                                                         &amp;
+  !#    &amp;                                                        cosmologyParameters_               =cosmologyParameters_               , &amp;
+  !#    &amp;                                                        cosmologyFunctions_                =cosmologyFunctions_                , &amp;
+  !#    &amp;                                                        linearGrowth_                      =linearGrowth_                      , &amp;
+  !#    &amp;                                                        cosmologicalMassVariance_          =cosmologicalMassVariance_          , &amp;
+  !#    &amp;                                                        virialDensityContrast_             =virialDensityContrast_               &amp;
+  !#    &amp;                                                       )
+  !#  </constructor>
+  !# </referenceConstruct>
   time=cosmologyFunctions_%cosmicTime(1.0d0)
-
   ! Determine number of masses in reference data file and allocate arrays.
   massCount=Count_Lines_In_File('testSuite/data/haloMassFunction/tinker.txt')
   call allocateArray(mass              ,[massCount])
   call allocateArray(massFunction      ,[massCount])
   call allocateArray(massFunctionTinker,[massCount])
   call allocateArray(success           ,[massCount])
-
   ! Ensure that critical density and critical overdensity for collapse are consistent with values used in our input file to
   ! Tinker's code.
   call Assert('critical density consistency'                 ,cosmologyParameters_%densityCritical(    )/cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2,2.7751950000000000d11,relTol=1.0d-6)
   call Assert('critical overdensity for collapse consistency',criticalOverdensity_%value          (time)                                                           ,1.6755779626281502d00,relTol=1.0d-6)
-
   ! Compute mass function for each reference mass.
   open(newUnit=fUnit,file='testSuite/data/haloMassFunction/tinker.txt',status='old',form='formatted')
   do i=1,massCount
@@ -87,7 +204,6 @@ program Tests_Halo_Mass_Function_Tinker
      massFunctionTinker(i)=massFunctionTinker(i)*cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**4
      massFunction      (i)=haloMassFunction_%differential(time,mass(i))
   end do
-
   ! Assert that our mass function agrees with the reference data.
   success=                                                       &
        &   abs(1.0d0-massFunction/massFunctionTinker) < 1.0d-02  &
@@ -98,15 +214,12 @@ program Tests_Halo_Mass_Function_Tinker
        &      all(success),              &
        &      .true.                     &
        &     )
-
   ! Clean up memory.
   call deallocateArray(mass              )
   call deallocateArray(massFunction      )
   call deallocateArray(massFunctionTinker)
   call deallocateArray(success           )
-
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()
-
 end program Tests_Halo_Mass_Function_Tinker

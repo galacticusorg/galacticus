@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -58,16 +58,12 @@ contains
     !#   <source>parameters</source>
     !#   <variable>normalization</variable>
     !#   <description>Parameter $\sigma_{12}$ appearing in model for random errors in the halo mass function.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>fractionalErrorHighMass</name>
     !#   <source>parameters</source>
     !#   <variable>fractionalErrorHighMass</variable>
     !#   <description>Parameter $\sigma_\infty$ appearing in model for random errors in the halo mass function.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>exponent</name>
@@ -82,8 +78,6 @@ contains
     !#    where $\sigma_{12}=${\normalfont \ttfamily [normalization]}, and $\gamma=${\normalfont
     !#    \ttfamily [exponent]}.
     !#   </description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     nbodyHaloMassErrorPowerLawParameters%normalizationSquared          =normalization          **2
     nbodyHaloMassErrorPowerLawParameters%fractionalErrorHighMassSquared=fractionalErrorHighMass**2
@@ -131,7 +125,7 @@ contains
     class(nbodyHaloMassErrorPowerLaw), intent(inout) :: self
     type (treeNode                  ), intent(inout) :: node1 , node2
     class(nodeComponentBasic        ), pointer       :: basic1, basic2
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     basic1 => node1%basic()
     basic2 => node2%basic()

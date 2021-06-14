@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -80,12 +80,12 @@ contains
     !% Implement a galactic filter which passes only nodes with a survey geometry.
     use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentPosition, nodeComponentSpheroid, treeNode
     implicit none
-    class           (galacticFilterSurveyGeometry), intent(inout) :: self
-    type            (treeNode                    ), intent(inout) :: node
-    class           (nodeComponentDisk           ), pointer       :: disk
-    class           (nodeComponentSpheroid       ), pointer       :: spheroid
-    class           (nodeComponentPosition       ), pointer       :: position
-    double precision                                              :: massStellar
+    class           (galacticFilterSurveyGeometry), intent(inout)         :: self
+    type            (treeNode                    ), intent(inout), target :: node
+    class           (nodeComponentDisk           ), pointer               :: disk
+    class           (nodeComponentSpheroid       ), pointer               :: spheroid
+    class           (nodeComponentPosition       ), pointer               :: position
+    double precision                                                      :: massStellar
 
     position    => node    %position   ()
     disk        => node    %disk       ()

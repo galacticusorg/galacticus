@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -43,7 +43,7 @@ contains
     implicit none
     type   (mergerTreeOperatorPruneBranchTips)                :: self
     type   (inputParameters                  ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=mergerTreeOperatorPruneBranchTips()
     return
@@ -58,7 +58,7 @@ contains
     type (mergerTree                       ), intent(inout), target  :: tree
     type (treeNode                         )               , pointer :: node      , nodeWork, nodeDestroy
     type (mergerTreeWalkerIsolatedNodes    )                         :: treeWalker
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     treeWalker=mergerTreeWalkerIsolatedNodes(tree,spanForest=.true.)
     do while (treeWalker%next(node))

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,6 +27,7 @@
      private
      class           (galacticFilterClass), pointer :: galacticFilter_
      double precision                               :: timeDescendent
+     logical                                        :: allowSelf
    contains
      final     ::           descendentNodeDestructor
      procedure :: passes => descendentNodePasses
@@ -42,38 +43,43 @@ contains
 
   function descendentNodeConstructorParameters(parameters) result(self)
     !% Constructor for the ``descendentNode'' galactic filter class which takes a parameter set as input.
-    use :: Cosmology_Functions              , only : cosmologyFunctionsClass
-    use :: Input_Parameters, only : inputParameter, inputParameters
+    use :: Cosmology_Functions, only : cosmologyFunctionsClass
+    use :: Input_Parameters   , only : inputParameter         , inputParameters
     implicit none
     type            (galacticFilterDescendentNode)                :: self
     type            (inputParameters             ), intent(inout) :: parameters
     class           (cosmologyFunctionsClass     ), pointer       :: cosmologyFunctions_
     class           (galacticFilterClass         ), pointer       :: galacticFilter_
     double precision                                              :: redshiftDescendent
-    
+    logical                                                       :: allowSelf
+         
     !# <inputParameter>
     !#   <name>redshiftDescendent</name>
     !#   <source>parameters</source>
     !#   <description>The redshift of the descendent node to which to apply the filter.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>allowSelf</name>
+    !#   <source>parameters</source>
+    !#   <description>If true, the node itself is considered as a possible descendent, otherwise the node itself is excldued from the descendent node search.</description>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     !# <objectBuilder class="galacticFilter"      name="galacticFilter_"      source="parameters"/>
-    self=galacticFilterDescendentNode(cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftDescendent)),galacticFilter_)
+    self=galacticFilterDescendentNode(cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftDescendent)),allowSelf,galacticFilter_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyFunctions_"/>
     !# <objectDestructor name="galacticFilter_"    />
     return
   end function descendentNodeConstructorParameters
   
-  function descendentNodeConstructorInternal(timeDescendent,galacticFilter_) result(self)
+  function descendentNodeConstructorInternal(timeDescendent,allowSelf,galacticFilter_) result(self)
     !% Internal constructor for the ``descendentNode'' galactic filter class.
     implicit none
     type            (galacticFilterDescendentNode)                        :: self
     double precision                              , intent(in   )         :: timeDescendent
+    logical                                       , intent(in   )         :: allowSelf
     class           (galacticFilterClass         ), intent(in   ), target :: galacticFilter_
-    !# <constructorAssign variables="timeDescendent, *galacticFilter_"/>
+    !# <constructorAssign variables="timeDescendent, allowSelf, *galacticFilter_"/>
 
     return
   end function descendentNodeConstructorInternal
@@ -93,14 +99,18 @@ contains
     use :: Galacticus_Nodes    , only : nodeComponentBasic
     use :: Numerical_Comparison, only : Values_Agree
     implicit none
-    class           (galacticFilterDescendentNode), intent(inout) :: self
-    type            (treeNode                    ), intent(inout) :: node
-    type            (treeNode                    ), pointer       :: nodeDescendent
-    class           (nodeComponentBasic          ), pointer       :: basicDescendent
-    double precision                              , parameter     :: timeTolerance  =1.0d-4
+    class           (galacticFilterDescendentNode), intent(inout)         :: self
+    type            (treeNode                    ), intent(inout), target :: node
+    type            (treeNode                    ), pointer               :: nodeDescendent
+    class           (nodeComponentBasic          ), pointer               :: basicDescendent
+    double precision                              , parameter             :: timeTolerance  =1.0d-4
 
     descendentNodePasses=.false.
-    nodeDescendent => node%parent
+    if (self%allowSelf) then
+       nodeDescendent => node
+    else
+       nodeDescendent => node%parent
+    end if
     do while (associated(nodeDescendent))
        basicDescendent => nodeDescendent%basic()
        if (Values_Agree(basicDescendent%time(),self%timeDescendent,absTol=timeTolerance)) then

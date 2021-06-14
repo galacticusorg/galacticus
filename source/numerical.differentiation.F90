@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,6 +19,9 @@
 
 !% Contains a module which performs numerical differentiation.
 
+! Add dependency on GSL library.
+!; gsl
+
 module Numerical_Differentiation
   !% Implements numerical differentiation.
   use, intrinsic :: ISO_C_Binding, only : c_double   , c_int             , c_ptr
@@ -32,15 +35,9 @@ module Numerical_Differentiation
      private
      type(c_ptr) :: f
    contains
-     !@ <objectMethods>
-     !@   <object>differentiator</object>
-     !@   <objectMethod>
-     !@     <method>derivative</method>
-     !@     <type>double precision</type>
-     !@     <arguments>\doublezero\ x\argin, \doublezero\ [h]\argout, \doublezero\ [errorAbsolute]\argout</arguments>
-     !@     <description>Returns the derivative of the function at argument {\normalfont \ttfamily x}.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Returns the derivative of the function at argument {\normalfont \ttfamily x}." method="derivative" />
+     !# </methods>
      final     ::               differentiatorDestructor
      procedure :: derivative => differentiatorDerivative
   end type differentiator

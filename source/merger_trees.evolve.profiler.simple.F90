@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,7 +19,7 @@
 
   !% Implements a merger tree evolve profiler that collects simple data.
 
-  use :: Hashes, only : integerScalarHash
+  use :: Hashes, only : integerHash
   
   !# <mergerTreeEvolveProfiler name="mergerTreeEvolveProfilerSimple">
   !#  <description>
@@ -39,11 +39,11 @@
   type, extends(mergerTreeEvolveProfilerClass) :: mergerTreeEvolveProfilerSimple
      !% A merger tree evolve profiler that collects simple data.
      private
-     double precision                                               :: timeStepMaximum        , timeStepMinimum
-     integer                                                        :: timeStepPointsPerDecade
-     double precision                   , allocatable, dimension(:) :: timeStep
-     integer                            , allocatable, dimension(:) :: timeStepCount
-     type            (integerScalarHash)                            :: propertyHits
+     double precision                                         :: timeStepMaximum        , timeStepMinimum
+     integer                                                  :: timeStepPointsPerDecade
+     double precision             , allocatable, dimension(:) :: timeStep
+     integer                      , allocatable, dimension(:) :: timeStepCount
+     type            (integerHash)                            :: propertyHits
    contains
      final     ::            simpleDestructor
      procedure :: profile => simpleProfile
@@ -68,27 +68,21 @@ contains
 
     !# <inputParameter>
     !#   <name>timeStepMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d-6</defaultValue>
     !#   <description>The smallest timestep to use in profiling ODE solver steps.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>timeStepMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d+1</defaultValue>
     !#   <description>The largest timestep to use in profiling ODE solver steps.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>timeStepPointsPerDecade</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>3</defaultValue>
     !#   <description>The number of bins per decade of timestep to use when profiling ODE solver steps.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     self=mergerTreeEvolveProfilerSimple(timeStepMinimum,timeStepMaximum,timeStepPointsPerDecade)
     !# <inputParametersValidate source="parameters"/>
@@ -167,7 +161,7 @@ contains
   subroutine simpleProfile(self,timestep,propertyName)
     !% Profile the differential evolution step.
     use, intrinsic :: ISO_C_Binding, only : c_size_t
-    use            :: Arrays_Search, only : Search_Array
+    use            :: Arrays_Search, only : searchArray
     implicit none
     class           (mergerTreeEvolveProfilerSimple), intent(inout) :: self
     double precision                                , intent(in   ) :: timeStep
@@ -175,7 +169,7 @@ contains
     integer                                                         :: hitCount
     integer         (c_size_t                      )                :: i
 
-    i                    =Search_Array(self%timeStep,timeStep)
+    i                    =searchArray(self%timeStep,timeStep)
     self%timeStepCount(i)=self%timeStepCount(i)+1
     if (self%propertyHits%exists(propertyName)) then
        hitCount=self%propertyHits%value(propertyName)+1

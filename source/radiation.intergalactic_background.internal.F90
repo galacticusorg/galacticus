@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,9 +23,12 @@
   use :: Atomic_Cross_Sections_Ionization_Photo, only : atomicCrossSectionIonizationPhotoClass
   use :: Cosmology_Functions                   , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters                  , only : cosmologyParametersClass
-  use :: FGSL                                  , only : fgsl_interp_accel
   use :: Intergalactic_Medium_State            , only : intergalacticMediumStateClass
+  use :: Kind_Numbers                          , only : kind_int8
+  use :: Numerical_Interpolation               , only : interpolator
   use :: Output_Times                          , only : outputTimesClass
+  use :: Star_Formation_Rates_Disks            , only : starFormationRateDisksClass
+  use :: Star_Formation_Rates_Spheroids        , only : starFormationRateSpheroidsClass
   use :: Stellar_Population_Selectors          , only : stellarPopulationSelectorClass
 
   !# <radiationField name="radiationFieldIntergalacticBackgroundInternal">
@@ -39,11 +42,15 @@
      class           (intergalacticMediumStateClass         ), pointer                     :: intergalacticMediumState_          => null()
      class           (atomicCrossSectionIonizationPhotoClass), pointer                     :: atomicCrossSectionIonizationPhoto_ => null()
      class           (accretionDiskSpectraClass             ), pointer                     :: accretionDiskSpectra_              => null()
+     class           (starFormationRateDisksClass           ), pointer                     :: starFormationRateDisks_            => null()
+     class           (starFormationRateSpheroidsClass       ), pointer                     :: starFormationRateSpheroids_        => null()
      class           (stellarPopulationSelectorClass        ), pointer                     :: stellarPopulationSelector_         => null()
      class           (outputTimesClass                      ), pointer                     :: outputTimes_                       => null()
-     integer                                                                               :: wavelengthCountPerDecade                    , wavelengthCount
+     integer                                                                               :: wavelengthCountPerDecade
+     integer         (c_size_t                              )                              :: wavelengthCount
      double precision                                                                      :: wavelengthMinimum                           , wavelengthMaximum
-     integer                                                                               :: timeCountPerDecade                          , timeCount
+     integer                                                                               :: timeCountPerDecade
+     integer         (c_size_t                              )                              :: timeCount
      double precision                                                                      :: redshiftMinimum                             , redshiftMaximum
      double precision                                                                      :: timeMinimum                                 , timeMaximum
      double precision                                        , allocatable, dimension(:  ) :: wavelength                                  , redshift                       , &
@@ -53,8 +60,12 @@
      double precision                                        , allocatable, dimension(:,:) :: emissivityODE                               , emissivity
      double precision                                                     , dimension(0:1) :: timeODE
      double precision                                                                      :: timeCurrent
-     logical                                                                               :: interpolationReset                          , interpolationResetTime
-     type            (fgsl_interp_accel                     )                              :: interpolationAccelerator                    , interpolationAcceleratorTime
+     type            (interpolator                          )                              :: interpolatorWavelength                      , interpolatorTime
+     class           (*                                     ), pointer                     :: statePrevious
+     double precision                                                                      :: timePrevious
+     integer         (kind_int8                             )                              :: universeUniqueIDPrevious
+     integer         (c_size_t                              )                              :: iTime
+     double precision                                                     , dimension(0:1) :: hTime
    contains
      final     ::             intergalacticBackgroundInternalDestructor
      procedure :: flux     => intergalacticBackgroundInternalFlux
@@ -92,6 +103,8 @@ contains
     class           (intergalacticMediumStateClass                ), pointer       :: intergalacticMediumState_
     class           (atomicCrossSectionIonizationPhotoClass       ), pointer       :: atomicCrossSectionIonizationPhoto_
     class           (accretionDiskSpectraClass                    ), pointer       :: accretionDiskSpectra_
+    class           (starFormationRateDisksClass                  ), pointer       :: starFormationRateDisks_
+    class           (starFormationRateSpheroidsClass              ), pointer       :: starFormationRateSpheroids_
     class           (stellarPopulationSelectorClass               ), pointer       :: stellarPopulationSelector_
     class           (outputTimesClass                             ), pointer       :: outputTimes_
     integer                                                                        :: wavelengthCountPerDecade          , timeCountPerDecade
@@ -100,72 +113,64 @@ contains
 
     !# <inputParameter>
     !#   <name>wavelengthCountPerDecade</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number of bins per decade of wavelength to use for calculations of the cosmic background radiation.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>wavelengthMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>100.0d0</defaultValue>
     !#   <description>The minimum wavelength (in units of \AA) to use in calculations of the cosmic background radiation.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>wavelengthMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>100000.0d0</defaultValue>
     !#   <description>The maximum wavelength (in units of \AA) to use in calculations of the cosmic background radiation.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>timeCountPerDecade</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number of bins per decade of time to use for calculations of tge cosmic background radiation.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>redshiftMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The minimum redshift to use in calculations of the cosmic background radiation.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>redshiftMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>30.0d0</defaultValue>
     !#   <description>The maximum redshift to use in calculations of the cosmic background radiation.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters"               name="cosmologyParameters_"               source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"                name="cosmologyFunctions_"                source="parameters"/>
     !# <objectBuilder class="intergalacticMediumState"          name="intergalacticMediumState_"          source="parameters"/>
     !# <objectBuilder class="atomicCrossSectionIonizationPhoto" name="atomicCrossSectionIonizationPhoto_" source="parameters"/>
     !# <objectBuilder class="accretionDiskSpectra"              name="accretionDiskSpectra_"              source="parameters"/>
+    !# <objectBuilder class="starFormationRateDisks"            name="starFormationRateDisks_"            source="parameters"/>
+    !# <objectBuilder class="starFormationRateSpheroids"        name="starFormationRateSpheroids_"        source="parameters"/>
     !# <objectBuilder class="stellarPopulationSelector"         name="stellarPopulationSelector_"         source="parameters"/>
     !# <objectBuilder class="outputTimes"                       name="outputTimes_"                       source="parameters"/>
-    self=radiationFieldIntergalacticBackgroundInternal(wavelengthMinimum,wavelengthMaximum,wavelengthCountPerDecade,redshiftMinimum,redshiftMaximum,timeCountPerDecade,cosmologyParameters_,cosmologyFunctions_,intergalacticMediumState_,atomicCrossSectionIonizationPhoto_,accretionDiskSpectra_,stellarPopulationSelector_,outputTimes_)
+    self=radiationFieldIntergalacticBackgroundInternal(wavelengthMinimum,wavelengthMaximum,wavelengthCountPerDecade,redshiftMinimum,redshiftMaximum,timeCountPerDecade,cosmologyParameters_,cosmologyFunctions_,intergalacticMediumState_,atomicCrossSectionIonizationPhoto_,accretionDiskSpectra_,starFormationRateDisks_,starFormationRateSpheroids_,stellarPopulationSelector_,outputTimes_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyParameters_"              />
     !# <objectDestructor name="cosmologyFunctions_"               />
     !# <objectDestructor name="intergalacticMediumState_"         />
     !# <objectDestructor name="atomicCrossSectionIonizationPhoto_"/>
     !# <objectDestructor name="accretionDiskSpectra_"             />
+    !# <objectDestructor name="starFormationRateDisks_"           />
+    !# <objectDestructor name="starFormationRateSpheroids_"       />
     !# <objectDestructor name="stellarPopulationSelector_"        />
     !# <objectDestructor name="outputTimes_"                      />
     return
   end function intergalacticBackgroundInternalConstructorParameters
 
-  function intergalacticBackgroundInternalConstructorInternal(wavelengthMinimum,wavelengthMaximum,wavelengthCountPerDecade,redshiftMinimum,redshiftMaximum,timeCountPerDecade,cosmologyParameters_,cosmologyFunctions_,intergalacticMediumState_,atomicCrossSectionIonizationPhoto_,accretionDiskSpectra_,stellarPopulationSelector_,outputTimes_) result(self)
+  function intergalacticBackgroundInternalConstructorInternal(wavelengthMinimum,wavelengthMaximum,wavelengthCountPerDecade,redshiftMinimum,redshiftMaximum,timeCountPerDecade,cosmologyParameters_,cosmologyFunctions_,intergalacticMediumState_,atomicCrossSectionIonizationPhoto_,accretionDiskSpectra_,starFormationRateDisks_,starFormationRateSpheroids_,stellarPopulationSelector_,outputTimes_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily intergalacticBackgroundInternal} radiation field class.
     use :: Memory_Management, only : allocateArray
     use :: Numerical_Ranges , only : Make_Range   , rangeTypeLogarithmic
@@ -179,10 +184,12 @@ contains
     class           (intergalacticMediumStateClass                ), intent(in   ), target :: intergalacticMediumState_
     class           (atomicCrossSectionIonizationPhotoClass       ), intent(in   ), target :: atomicCrossSectionIonizationPhoto_
     class           (accretionDiskSpectraClass                    ), intent(in   ), target :: accretionDiskSpectra_
+    class           (starFormationRateDisksClass                  ), intent(in   ), target :: starFormationRateDisks_
+    class           (starFormationRateSpheroidsClass              ), intent(in   ), target :: starFormationRateSpheroids_
     class           (stellarPopulationSelectorClass               ), intent(in   ), target :: stellarPopulationSelector_
     class           (outputTimesClass                             ), intent(in   ), target :: outputTimes_
-    integer                                                                                :: iTime                             , iWavelength
-    !# <constructorAssign variables="wavelengthMinimum, wavelengthMaximum, wavelengthCountPerDecade, redshiftMinimum, redshiftMaximum, timeCountPerDecade, *cosmologyParameters_, *cosmologyFunctions_, *intergalacticMediumState_, *atomicCrossSectionIonizationPhoto_, *accretionDiskSpectra_, *stellarPopulationSelector_, *outputTimes_"/>
+    integer         (c_size_t                                     )                        :: iTime                             , iWavelength
+    !# <constructorAssign variables="wavelengthMinimum, wavelengthMaximum, wavelengthCountPerDecade, redshiftMinimum, redshiftMaximum, timeCountPerDecade, *cosmologyParameters_, *cosmologyFunctions_, *intergalacticMediumState_, *atomicCrossSectionIonizationPhoto_, *accretionDiskSpectra_, *starFormationRateDisks_, *starFormationRateSpheroids_, *stellarPopulationSelector_, *outputTimes_"/>
 
     ! Build tables of wavelength and time for cosmic background radiation.
     self%timeMaximum=self%cosmologyFunctions_%cosmicTime                 (                      &
@@ -211,23 +218,23 @@ contains
          &                          )                              &
          &                   )                                     &
          &               +1
-    call allocateArray(self%wavelength   ,[self%wavelengthCount               ]                  )
-    call allocateArray(self%spectrum     ,[self%wavelengthCount               ]                  )
-    call allocateArray(self%time         ,[                     self%timeCount]                  )
-    call allocateArray(self%redshift     ,[                     self%timeCount]                  )
-    call allocateArray(self%emissivity   ,[self%wavelengthCount,self%timeCount]                  )
-    call allocateArray(self%emissivityODE,[self%wavelengthCount,2             ],lowerBounds=[1,0])
-    self%wavelength=Make_Range(                        &
-         &                     self%wavelengthMinimum, &
-         &                     self%wavelengthMaximum, &
-         &                     self%wavelengthCount  , &
-         &                     rangeTypeLogarithmic    &
+    call allocateArray(self%wavelength   ,[self%wavelengthCount               ]                                    )
+    call allocateArray(self%spectrum     ,[self%wavelengthCount               ]                                    )
+    call allocateArray(self%time         ,[                     self%timeCount]                                    )
+    call allocateArray(self%redshift     ,[                     self%timeCount]                                    )
+    call allocateArray(self%emissivity   ,[self%wavelengthCount,self%timeCount]                                    )
+    call allocateArray(self%emissivityODE,[self%wavelengthCount,2_c_size_t    ],lowerBounds=[1_c_size_t,0_c_size_t])
+    self%wavelength=Make_Range(                             &
+         &                         self%wavelengthMinimum , &
+         &                         self%wavelengthMaximum , &
+         &                     int(self%wavelengthCount  ), &
+         &                     rangeTypeLogarithmic         &
          &                    )
-    self%time      =Make_Range(                        &
-         &                     self%timeMinimum      , &
-         &                     self%timeMaximum      , &
-         &                     self%timeCount        , &
-         &                     rangeTypeLogarithmic    &
+    self%time      =Make_Range(                             &
+         &                         self%timeMinimum       , &
+         &                         self%timeMaximum       , &
+         &                     int(self%timeCount        ), &
+         &                     rangeTypeLogarithmic         &
          &                    )
     ! Convert times to redshifts.
     do iTime=1,self%timeCount
@@ -251,9 +258,13 @@ contains
        self%crossSectionNeutralHelium      (iWavelength)=self%atomicCrossSectionIonizationPhoto_%crossSection(2,1,1,self%wavelength(iWavelength))
        self%crossSectionSinglyIonizedHelium(iWavelength)=self%atomicCrossSectionIonizationPhoto_%crossSection(2,2,1,self%wavelength(iWavelength))
     end do
-    ! Initialize interpolators.
-    self%interpolationReset    =.true.
-    self%interpolationResetTime=.true.
+    ! Build interpolators.
+    self%interpolatorWavelength=interpolator(self%wavelength)
+    self%interpolatorTime      =interpolator(self%time      )
+    ! Initialize state.
+    self%statePrevious            => null()
+    self%timePrevious             =  -1.0d0
+    self%universeUniqueIDPrevious =  -1_kind_int8
     return
   end function intergalacticBackgroundInternalConstructorInternal
 
@@ -279,6 +290,8 @@ contains
     !# <objectDestructor name="self%intergalacticMediumState_"         />
     !# <objectDestructor name="self%atomicCrossSectionIonizationPhoto_"/>
     !# <objectDestructor name="self%accretionDiskSpectra_"             />
+    !# <objectDestructor name="self%starFormationRateDisks_"           />
+    !# <objectDestructor name="self%starFormationRateSpheroids_"       />
     !# <objectDestructor name="self%stellarPopulationSelector_"        />
     !# <objectDestructor name="self%outputTimes_"                      />
     return
@@ -296,48 +309,64 @@ contains
 
  double precision function intergalacticBackgroundInternalFlux(self,wavelength,node)
     !% Return the flux in the internally-computed intergalatic background.
-    use            :: Galacticus_Error       , only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding          , only : c_size_t
-    use            :: Numerical_Interpolation, only : Interpolate_Linear_Generate_Factors, Interpolate_Locate
+    use            :: Galacticus_Error, only : Galacticus_Error_Report
+    use, intrinsic :: ISO_C_Binding   , only : c_size_t
     implicit none
     class           (radiationFieldIntergalacticBackgroundInternal), intent(inout)  :: self
     double precision                                               , intent(in   )  :: wavelength
     type            (treeNode                                     ), intent(inout)  :: node
-    double precision                                               , dimension(0:1) :: hWavelength         , hTime
+    double precision                                               , dimension(0:1) :: hWavelength
     double precision                                               , parameter      :: timeTolerance=1.0d-3
-    class           (*                                            ), pointer        :: state
+    character       (len=16                                       )                 :: timeCurrent         , timeNext
     integer         (c_size_t                                     )                 :: iWavelength         , jWavelength, &
-         &                                                                             iTime               , jTime
+         &                                                                             jTime
 
-    !$omp critical (radiationFieldIntergalacticBackgroundInternalCritical)
-    ! Get the state of the radiation field.
-    state => node%hostTree%hostUniverse%attributes%value('radiationFieldIntergalacticBackgroundInternal')
-    select type (state)
+    if (node%hostTree%hostUniverse%uniqueID /= self%universeUniqueIDPrevious .or. self%timeCurrent /= self%timePrevious) then
+       !$omp critical (radiationFieldIntergalacticBackgroundInternalCritical)    
+       ! Get the state of the radiation field.
+       self%universeUniqueIDPrevious =  node%hostTree%hostUniverse%uniqueID
+       self%timePrevious             =  self                      %timeCurrent
+       self%statePrevious            => node%hostTree%hostUniverse%attributes %value('radiationFieldIntergalacticBackgroundInternal')
+       select type (state => self%statePrevious)
+       type is (intergalacticBackgroundInternalState)
+          ! Check that the time is within the applicable range.
+          if (self%timeCurrent > state%timeNext*(1.0d0+timeTolerance)) then
+             write (timeCurrent,'(e16.8)') self %timeCurrent
+             write (timeNext   ,'(e16.8)') state%timeNext
+             call Galacticus_Error_Report(                                                                       &
+                  &                       'time is out of range for intergalactic radiation field: '//char(10)// &
+                  &                       '   timeCurrent = Gyr'//adjustl(trim(timeCurrent))        //char(10)// &
+                  &                       '  >'                                                     //char(10)// &
+                  &                       '   timeNext    = Gyr'//adjustl(trim(timeNext   ))        //char(10)// &
+                  &                       {introspection:location}                                               &
+                  &                      )
+          end if
+          ! Find interpolation in array of times.
+          call self%interpolatorTime%linearFactors(self%timeCurrent,self%iTime,self%hTime)
+          if (self%timeCurrent > state%timePrevious) self%hTime=[1.0d0,0.0d0]
+       class default
+          call Galacticus_Error_Report('state has unknown type'//{introspection:location})
+       end select
+       !$omp end critical (radiationFieldIntergalacticBackgroundInternalCritical)
+    end if
+    ! Find interpolation in the array of wavelengths.
+    call self%interpolatorWavelength%linearFactors(     wavelength ,iWavelength,hWavelength)
+    ! Interpolate in wavelength and time.
+    intergalacticBackgroundInternalFlux=0.0d0
+    select type (state => self%statePrevious)
     type is (intergalacticBackgroundInternalState)
-       ! Check that the time is within the applicable range.
-       if (self%timeCurrent > state%timeNext*(1.0d0+timeTolerance)) call Galacticus_Error_Report('time is out of range'//{introspection:location})
-       ! Find interpolation in the array of wavelengths.
-       iWavelength =  Interpolate_Locate                 (self%wavelength,self%interpolationAccelerator    ,     wavelength,reset=self%interpolationReset     )
-       hWavelength =  Interpolate_Linear_Generate_Factors(self%wavelength,iWavelength                      ,     wavelength                                   )
-       ! Find interpolation in array of times.
-       iTime       =  Interpolate_Locate                 (self%time      ,self%interpolationAcceleratorTime,self%timeCurrent,reset=self%interpolationResetTime)
-       hTime       =  Interpolate_Linear_Generate_Factors(self%time      ,iTime                            ,self%timeCurrent                                  )
-       if (self%timeCurrent > state%timePrevious) hTime=[1.0d0,0.0d0]
-       ! Interpolate in wavelength and time.
-       intergalacticBackgroundInternalFlux=0.0d0
        do jTime=0,1
           do jWavelength=0,1
-             intergalacticBackgroundInternalFlux=+intergalacticBackgroundInternalFlux                                      &
-                  &                              +hTime                              (                        jTime      ) &
-                  &                              *hWavelength                        (jWavelength                        ) &
-                  &                              *state%flux                         (jWavelength+iWavelength,jTime+iTime)
+             intergalacticBackgroundInternalFlux=+intergalacticBackgroundInternalFlux                                           &
+                  &                              +     hWavelength                   (jWavelength                             ) &
+                  &                              *self%hTime                         (                        jTime           ) &
+                  &                              *state%flux                         (jWavelength+iWavelength,jTime+self%iTime)
           end do
        end do
+       intergalacticBackgroundInternalFlux=max(intergalacticBackgroundInternalFlux,0.0d0)
     class default
-       intergalacticBackgroundInternalFlux=0.0d0
+       call Galacticus_Error_Report('state has unknown type'//{introspection:location})
     end select
-    !$omp end critical (radiationFieldIntergalacticBackgroundInternalCritical)
-    intergalacticBackgroundInternalFlux=max(intergalacticBackgroundInternalFlux,0.0d0)
     return
   end function intergalacticBackgroundInternalFlux
 
@@ -368,6 +397,9 @@ contains
           state%flux        =0.0d0
           call universe_%attributes%set('radiationFieldIntergalacticBackgroundInternal',state)
           !$omp end critical (radiationFieldIntergalacticBackgroundInternalCritical)
+          self%universeUniqueIDPrevious =  -1_kind_int8
+          self%timePrevious             =  -1.0d0
+          self%statePrevious            => null()
        end if
     class default
        call Galacticus_Error_Report('incorrect class'//{introspection:location})
@@ -378,14 +410,12 @@ contains
   logical function intergalacticBackgroundInternalUpdate(event,universe_) result (success)
     !% Update the radiation background for a given universe.
     use            :: Abundances_Structure        , only : abundances                   , max
-    use            :: Arrays_Search               , only : Search_Array_For_Closest
-    use            :: FGSL                        , only : FGSL_Success                 , fgsl_function             , fgsl_integration_workspace
-    use            :: FODEIV2                     , only : fodeiv2_driver               , fodeiv2_system
-    use            :: Galacticus_Display          , only : Galacticus_Display_Indent    , Galacticus_Display_Message, Galacticus_Display_Unindent
+    use            :: Arrays_Search               , only : searchArrayClosest
+    use            :: Display                     , only : displayIndent                , displayMessage          , displayUnindent
     use            :: Galacticus_Error            , only : Galacticus_Error_Report
     use            :: Galacticus_HDF5             , only : galacticusOutputFile
-    use            :: Galacticus_Nodes            , only : defaultDiskComponent         , defaultSpheroidComponent  , mergerTreeList             , nodeComponentBasic, &
-          &                                                nodeComponentDisk            , nodeComponentSpheroid     , treeNode                   , universe          , &
+    use            :: Galacticus_Nodes            , only : defaultDiskComponent         , defaultSpheroidComponent, mergerTreeList , nodeComponentBasic, &
+          &                                                nodeComponentDisk            , nodeComponentSpheroid   , treeNode       , universe          , &
           &                                                universeEvent
     use            :: IO_HDF5                     , only : hdf5Access                   , hdf5Object
     use, intrinsic :: ISO_C_Binding               , only : c_size_t
@@ -395,8 +425,8 @@ contains
     use            :: Numerical_Constants_Physical, only : plancksConstant              , speedLight
     use            :: Numerical_Constants_Prefixes, only : centi
     use            :: Numerical_Constants_Units   , only : angstromsPerMeter            , ergs
-    use            :: Numerical_Integration       , only : Integrate                    , Integrate_Done
-    use            :: ODEIV2_Solver               , only : ODEIV2_Solve                 , ODEIV2_Solver_Free
+    use            :: Numerical_Integration       , only : integrator
+    use            :: Numerical_ODE_Solvers       , only : odeSolver
     use            :: Stellar_Population_Spectra  , only : stellarPopulationSpectraClass
     use            :: Stellar_Populations         , only : stellarPopulationClass
     implicit none
@@ -413,14 +443,12 @@ contains
          &                                                                   stellarPopulationSpectra_
     double precision                                      , parameter     :: odeToleranceAbsolute         =1.0d-30, odeToleranceRelative             =1.0d-3
     double precision                                      , parameter     :: integrationToleranceAbsolute =1.0d-30, integrationToleranceRelative     =1.0d-3
+    double precision                                      , parameter     :: timeTolerance                =1.0d-03
     type            (abundances                          ), target        :: gasAbundancesDisk                    , gasAbundancesSpheroid
     type            (abundances                          ), pointer       :: gasAbundances
     class           (*                                   ), pointer       :: state
-    type            (fodeiv2_system                      ), save          :: ode2System
-    type            (fodeiv2_driver                      ), save          :: ode2Driver
-    type            (fgsl_function                       ), save          :: integrandFunction
-    type            (fgsl_integration_workspace          ), save          :: integrationWorkspace
-    logical                                               , save          :: odeReset                             , integrationReset                 =.true.
+    type            (odeSolver                           )                :: solver
+    type            (integrator                          )                :: integrator_
     type            (mergerTreeWalkerAllNodes            )                :: treeWalker
     double precision                                                      :: starFormationRateDisk                , starFormationRateSpheroid               , &
          &                                                                   gasMassDisk                          , gasMassSpheroid                         , &
@@ -428,11 +456,11 @@ contains
          &                                                                   stellarSpectrumDisk                  , stellarSpectrumSpheroid                 , &
          &                                                                   timeStart                            , timeEnd                                 , &
          &                                                                   treeTimeLatest                       , wavelength
-    integer                                                               :: iTime                                , iWavelength
     type            (varying_string                      )                :: message
     character       (len=6                               )                :: label
     type            (hdf5Object                          )                :: outputGroup                          , outputDataset
-    integer         (c_size_t                            )                :: iNow
+    integer         (c_size_t                            )                :: iTime                                , iWavelength                             , &
+         &                                                                   iNow
     logical                                                               :: firstTime
 
     ! Guard on event creator class.
@@ -441,11 +469,11 @@ contains
        ! Display message.
        write (label,'(f6.3)') event%time
        message="Evolving cosmic background radiation to time "//trim(label)//" Gyr"
-       call Galacticus_Display_Indent(message)
+       call displayIndent(message)
        ! Find the current timestep.
-       iNow=Search_Array_For_Closest(self%time,event%time)
+       iNow=searchArrayClosest(self%time,event%time)
        ! Iterate over all nodes.
-       call Galacticus_Display_Message('Accumulating emissivity')
+       call displayMessage('Accumulating emissivity')
        treeTimeLatest=0.0d0
        forest => universe_%trees
        do while (associated(forest))
@@ -455,14 +483,14 @@ contains
              treeTimeLatest =  max(treeTimeLatest,basic%time ())
              if (basic%time() == event%time) then
                 ! Get the star formation rates and metallicites for this node.
-                disk                      => node    %disk             ()
-                spheroid                  => node    %spheroid         ()
-                starFormationRateDisk     =  disk    %starFormationRate()
-                starFormationRateSpheroid =  spheroid%starFormationRate()
-                gasMassDisk               =  disk    %massGas          ()
-                gasMassSpheroid           =  spheroid%massGas          ()
-                gasAbundancesDisk         =  disk    %abundancesGas    ()
-                gasAbundancesSpheroid     =  spheroid%abundancesGas    ()
+                disk                      => node    %disk                            (    )
+                spheroid                  => node    %spheroid                        (    )
+                starFormationRateDisk     =  self    %starFormationRateDisks_    %rate(node)
+                starFormationRateSpheroid =  self    %starFormationRateSpheroids_%rate(node)
+                gasMassDisk               =  disk    %massGas                         (    )
+                gasMassSpheroid           =  spheroid%massGas                         (    )
+                gasAbundancesDisk         =  disk    %abundancesGas                   (    )
+                gasAbundancesSpheroid     =  spheroid%abundancesGas                   (    )
                 if (starFormationRateDisk     > 0.0d0) gasAbundancesDisk    =gasAbundancesDisk    /gasMassDisk
                 if (starFormationRateSpheroid > 0.0d0) gasAbundancesSpheroid=gasAbundancesSpheroid/gasMassSpheroid
                 if (starFormationRateDisk > 0.0d0 .or. starFormationRateSpheroid > 0.0d0) then
@@ -485,36 +513,15 @@ contains
                          ageStart=max(self%time(iTime-1)-event%time,0.0d0)
                       end if
                       ! Iterate over wavelength
+                      integrator_=integrator(stellarSpectraConvolution,toleranceAbsolute=integrationToleranceAbsolute,toleranceRelative=integrationToleranceRelative)
                       do iWavelength=1,self%wavelengthCount
                          wavelength                =  self%wavelength(iWavelength)
                          stellarPopulationSpectra_ => stellarPopulationSpectraDisk_
                          gasAbundances             => gasAbundancesDisk
-                         integrationReset          =  .true.
-                         stellarSpectrumDisk       =  Integrate(                                                        &
-                              &                                 ageStart                                              , &
-                              &                                 ageEnd                                                , &
-                              &                                 stellarSpectraConvolution                             , &
-                              &                                 integrandFunction                                     , &
-                              &                                 integrationWorkspace                                  , &
-                              &                                 toleranceAbsolute        =integrationToleranceAbsolute, &
-                              &                                 toleranceRelative        =integrationToleranceRelative, &
-                              &                                 reset                    =integrationReset              &
-                              &                                )
-                         call Integrate_Done(integrandFunction,integrationWorkspace)
+                         stellarSpectrumDisk       =  integrator_%integrate(ageStart,ageEnd)
                          stellarPopulationSpectra_ => stellarPopulationSpectraSpheroid_
                          gasAbundances             => gasAbundancesSpheroid
-                         integrationReset          =  .true.
-                         stellarSpectrumSpheroid   =  Integrate(                                                        &
-                              &                                 ageStart                                              , &
-                              &                                 ageEnd                                                , &
-                              &                                 stellarSpectraConvolution                             , &
-                              &                                 integrandFunction                                     , &
-                              &                                 integrationWorkspace                                  , &
-                              &                                 toleranceAbsolute        =integrationToleranceAbsolute, &
-                              &                                 toleranceRelative        =integrationToleranceRelative, &
-                              &                                 reset                    =integrationReset              &
-                              &                                )
-                         call Integrate_Done(integrandFunction,integrationWorkspace)
+                         stellarSpectrumSpheroid   =  integrator_%integrate(ageStart,ageEnd)
                          self%emissivity         (iWavelength,iTime) &
                               & =+self%emissivity(iWavelength,iTime) &
                               &  +(                                  &
@@ -542,27 +549,15 @@ contains
        select type (state)
        type is (intergalacticBackgroundInternalState)
           if (iNow > 1) then
-             call Galacticus_Display_Message('Solving cosmic background radiation evolution')
+             call displayMessage('Solving cosmic background radiation evolution')
              self%timeODE      (  0:1)=self%time      (  iNow-1:iNow)
              self%emissivityODE(:,0  )=self%emissivity(:,iNow-1     )
              self%emissivityODE(:,  1)=self%emissivity(:,       iNow)
              intergalacticBackgroundInternalSelf => self
-             odeReset=.true.
              timeStart=self%time(iNow-1)
              timeEnd  =self%time(iNow  )
-             call ODEIV2_Solve(                                            &
-                  &            ode2Driver                                , &
-                  &            ode2System                                , &
-                  &            timeStart                                 , &
-                  &            timeEnd                                   , &
-                  &            self%wavelengthCount                      , &
-                  &            self%spectrum                             , &
-                  &            intergalacticBackgroundInternalODEs       , &
-                  &            odeToleranceAbsolute                      , &
-                  &            odeToleranceRelative                      , &
-                  &            reset=odeReset                              &
-                  &           )
-             call ODEIV2_Solver_Free(ode2Driver,ode2System)
+             solver   =odeSolver(self%wavelengthCount,intergalacticBackgroundInternalODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative)    
+             call solver%solve(timeStart,timeEnd,self%spectrum)
              ! Convert
              !$omp critical (radiationFieldIntergalacticBackgroundInternalCritical)
              state%flux(:,iNow)=max(                                   &
@@ -581,8 +576,18 @@ contains
           end if
           ! Add the next event to the universe.
           !$omp critical (radiationFieldIntergalacticBackgroundInternalCritical)
-          state%timeNext=self%time(iNow+1)
+          state    %timePrevious=self%time(iNow  )
+          if (iNow < self%timeCount) then
+             state%timeNext     =self%time(iNow+1)
+          else
+             ! At the final step, set the next time to the current time plus a small tolerance to allow interpolation of the
+             ! radiation field to slightly later times (which may occur due to numerical inaccuracies).
+             state%timeNext     =self%time(iNow  )*(1.0d0+timeTolerance)
+          end if
           !$omp end critical (radiationFieldIntergalacticBackgroundInternalCritical)
+          self%universeUniqueIDPrevious =  -1_kind_int8
+          self%timePrevious             =  -1.0d0
+          self%statePrevious            => null()
           if     (                                                                           &
                &             iNow    <                        self             %timeCount    &
                &  .and.                                                                      &
@@ -590,9 +595,6 @@ contains
                &  .and.                                                                      &
                &   self%time(iNow+1) < self%outputTimes_%time(self%outputTimes_%count    ()) &
                & ) then
-             !$omp critical (radiationFieldIntergalacticBackgroundInternalCritical)
-             state%timePrevious=self%time(iNow)
-             !$omp end critical (radiationFieldIntergalacticBackgroundInternalCritical)
              eventNew         => universe_%createEvent(      )
              eventNew%time    =  self     %time       (iNow+1)
              eventNew%creator => event    %creator
@@ -615,7 +617,7 @@ contains
           end if
        end select
        ! Display message.
-       call Galacticus_Display_Unindent('done')
+       call displayUnindent('done')
        ! Return true since we've performed our task.
        success=.true.
     class default
@@ -655,7 +657,7 @@ contains
 
   integer function intergalacticBackgroundInternalODEs(time,spectrum,spectrumRateOfChange)
     !% Evaluates the ODEs controlling the evolution of cosmic background radiation.
-    use :: FGSL                            , only : FGSL_Success
+    use :: Interface_GSL                   , only : GSL_Success
     use :: Numerical_Constants_Astronomical, only : gigaYear         , heliumByMassPrimordial, hydrogenByMassPrimordial, luminositySolar, &
           &                                         massSolar        , megaParsec
     use :: Numerical_Constants_Atomic      , only : atomicMassHelium , atomicMassHydrogen    , atomicMassUnit
@@ -736,6 +738,6 @@ contains
             &  /  intergalacticBackgroundInternalSelf%cosmologyFunctions_            %expansionFactor            (time)**3
     end where
     ! Return success.
-    intergalacticBackgroundInternalODEs=FGSL_Success
+    intergalacticBackgroundInternalODEs=GSL_Success
     return
   end function intergalacticBackgroundInternalODEs

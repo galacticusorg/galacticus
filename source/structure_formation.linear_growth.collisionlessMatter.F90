@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +21,10 @@
   !% pressure terms for the growth of baryons and has no wavenumber dependence. Also assumes no growth of radiation perturbations.
 
   !# <linearGrowth name="linearGrowthCollisionlessMatter">
-  !#  <description>Linear growth of cosmological structure in models consisting of only collisionless matter. Ignores pressure terms for the growth of baryons and has no wavenumber dependence. Also assumes no growth of radiation perturbations.
+  !#  <description>
+  !#   A linear growth of cosmological structure class for models consisting of only collisionless matter. Pressure terms for the
+  !#   growth of baryons are ignored, and there is no wavenumber dependence. It further assumes no growth of radiation
+  !#   perturbations.
   !#  </description>
   !# </linearGrowth>
   use :: Cosmology_Functions , only : cosmologyFunctions , cosmologyFunctionsClass
@@ -38,15 +41,9 @@
      class           (cosmologyParametersClass), pointer     :: cosmologyParameters_         => null()
      class           (cosmologyFunctionsClass ), pointer     :: cosmologyFunctions_          => null()
    contains
-     !@ <objectMethods>
-     !@   <object>linearGrowthCollisionlessMatter</object>
-     !@   <objectMethod>
-     !@     <method>retabulate</method>
-     !@     <type>void</type>
-     !@     <arguments>\doublezero\ time\argin</arguments>
-     !@     <description>Tabulate linear growth factor.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Tabulate linear growth factor." method="retabulate" />
+     !# </methods>
      final     ::                                         collisionlessMatterDestructor
      procedure :: value                                => collisionlessMatterValue
      procedure :: logarithmicDerivativeExpansionFactor => collisionlessMatterLogarithmicDerivativeExpansionFactor
@@ -121,11 +118,10 @@ contains
 
   subroutine collisionlessMatterRetabulate(self,time)
     !% Returns the linear growth factor $D(a)$ for expansion factor {\normalfont \ttfamily aExpansion}, normalized such that
-    !% $D(1)=1$ for a collisionlessMatter matter plus cosmological constant cosmology.
-    use :: FGSL      , only : FGSL_Success            , fgsl_odeiv_control, fgsl_odeiv_evolve, fgsl_odeiv_step, &
-          &                   fgsl_odeiv_system
-    use :: ODE_Solver, only : ODE_Solve               , ODE_Solver_Free
-    use :: Tables    , only : table1DLogarithmicLinear
+    !% $D(1)=1$ for a collisionless matter plus cosmological constant cosmology.
+    use :: Interface_GSL        , only : GSL_Success
+    use :: Numerical_ODE_Solvers, only : odeSolver
+    use :: Tables                , only : table1DLogarithmicLinear
     implicit none
     class           (linearGrowthCollisionlessMatter), intent(inout) :: self
     double precision                                 , intent(in   ) :: time
@@ -133,6 +129,7 @@ contains
     double precision                                 , parameter     :: odeToleranceAbsolute         =   1.0d-10, odeToleranceRelative     =1.0d-10
     integer                                          , parameter     :: growthTablePointsPerDecade   =1000
     double precision                                 , dimension(2)  :: growthFactorODEVariables
+    type            (odeSolver                      ), allocatable   :: solver
     logical                                                          :: remakeTable
     integer                                                          :: i
     double precision                                                 :: expansionFactorMatterDominant           , growthFactorDerivative           , &
@@ -140,11 +137,6 @@ contains
          &                                                              timeMatterDominant                      , timePresent                      , &
          &                                                              timeBigCrunch
     integer                                                          :: growthTableNumberPoints
-    type            (fgsl_odeiv_step                )                :: odeStepper
-    type            (fgsl_odeiv_control             )                :: odeController
-    type            (fgsl_odeiv_evolve              )                :: odeEvolver
-    type            (fgsl_odeiv_system              )                :: odeSystem
-    logical                                                          :: odeReset                     =.true.
 
     ! Check if we need to recompute our table.
     if (self%tableInitialized) then
@@ -195,28 +187,17 @@ contains
                &                                                               )                  &
                &                                                              )                   &
                &                    )
+          allocate(solver)
+          solver=odeSolver(2_c_size_t,growthFactorODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative)    
           do i=2,growthTableNumberPoints
              timeNow                    =growthFactor          %x(i-1)
              growthFactorODEVariables(1)=growthFactor          %y(i-1)
              growthFactorODEVariables(2)=growthFactorDerivative
-             call ODE_Solve(                                   &
-                  &         odeStepper                       , &
-                  &         odeController                    , &
-                  &         odeEvolver                       , &
-                  &         odeSystem                        , &
-                  &         timeNow                          , &
-                  &         growthFactor%x(i)                , &
-                  &         2                                , &
-                  &         growthFactorODEVariables         , &
-                  &         growthFactorODEs                 , &
-                  &         odeToleranceAbsolute             , &
-                  &         odeToleranceRelative             , &
-                  &         reset                   =odeReset  &
-                  &        )
-             call growthFactor%populate(growthFactorODEVariables(1),i)
+             call solver      %solve   (timeNow,growthFactor%x(i),growthFactorODEVariables     )
+             call growthFactor%populate(                          growthFactorODEVariables(1),i)
              growthFactorDerivative=growthFactorODEVariables(2)
           end do
-          call ODE_Solver_Free(odeStepper,odeController,odeEvolver,odeSystem)
+          deallocate(solver)
           ! Normalize to growth factor of unity at present day.
           linearGrowthFactorPresent=growthFactor%interpolate(timePresent)
           call growthFactor%populate(reshape(growthFactor%ys(),[growthTableNumberPoints])/linearGrowthFactorPresent)
@@ -254,7 +235,7 @@ contains
            &             -    2.0d0                                                                           &
            &             *abs(self%cosmologyFunctions_%expansionRate     (                expansionFactor))   &
            &             *    values                                     (                              2)
-      growthFactorODEs  = FGSL_Success
+      growthFactorODEs  = GSL_Success
     end function growthFactorODEs
 
   end subroutine collisionlessMatterRetabulate
@@ -269,7 +250,7 @@ contains
     double precision                                 , intent(in   ), optional :: wavenumber
     double precision                                                           :: time_
     !# <optionalArgument name="normalize" defaultsTo="normalizePresentDay" />
-    !GCC$ attributes unused :: component, wavenumber
+    !$GLC attributes unused :: component, wavenumber
 
     ! Determine cosmological time.
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
@@ -295,7 +276,7 @@ contains
     integer                                          , intent(in   ), optional :: component
     double precision                                 , intent(in   ), optional :: wavenumber
     double precision                                                           :: time_     , expansionFactor_
-    !GCC$ attributes unused :: component, wavenumber
+    !$GLC attributes unused :: component, wavenumber
 
     ! Determine cosmological time.
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_,expansionFactorOut=expansionFactor_)
@@ -316,7 +297,7 @@ contains
     logical                                          , intent(in   ), optional :: collapsing
     integer                                          , intent(in   ), optional :: component
     double precision                                 , intent(in   ), optional :: wavenumber
-    !GCC$ attributes unused :: self, time, expansionFactor, collapsing, component, wavenumber
+    !$GLC attributes unused :: self, time, expansionFactor, collapsing, component, wavenumber
 
     ! No dependence on wavenumber.
     collisionlessMatterLogarithmicDerivativeWavenumber=0.0d0
@@ -328,7 +309,7 @@ contains
     implicit none
     class  (linearGrowthCollisionlessMatter), intent(inout)           :: self
     integer                                 , intent(in   ), optional :: component
-    !GCC$ attributes unused :: self, component
+    !$GLC attributes unused :: self, component
 
     collisionlessMatterIsWavenumberDependent=.false.
     return

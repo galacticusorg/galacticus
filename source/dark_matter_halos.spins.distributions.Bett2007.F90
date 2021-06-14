@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,7 +23,11 @@
   use :: Tables, only : table1D, table1DLogarithmicLinear
 
   !# <haloSpinDistribution name="haloSpinDistributionBett2007">
-  !#  <description>A halo spin distribution using the fitting formula of \cite{bett_spin_2007}.</description>
+  !#  <description>
+  !#   A halo spin distribution in which the spin is drawn from the distribution found by \cite{bett_spin_2007}. The $\lambda_0$
+  !#   and $\alpha$ parameter of Bett et al.'s distribution are set by the {\normalfont \ttfamily [lambda0]} and {\normalfont
+  !#   \ttfamily [alpha]} input parameters.
+  !#  </description>
   !# </haloSpinDistribution>
   type, extends(haloSpinDistributionClass) :: haloSpinDistributionBett2007
      !% A dark matter halo spin distribution class which assumes a \cite{bett_spin_2007} distribution.
@@ -69,8 +73,6 @@ contains
     !#   <defaultValue>0.04326d0</defaultValue>
     !#   <defaultSource>\citep{bett_spin_2007}</defaultSource>
     !#   <description>The parameter $\lambda_0$ in the halo spin distribution of \cite{bett_spin_2007}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>alpha</name>
@@ -78,8 +80,6 @@ contains
     !#   <defaultValue>2.509d0</defaultValue>
     !#   <defaultSource>\citep{bett_spin_2007}</defaultSource>
     !#   <description>The parameter $\alpha$ in the halo spin distribution of \cite{bett_spin_2007}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     bett2007ConstructorParameters=bett2007ConstructorInternal(lambda0,alpha)
     !# <inputParametersValidate source="parameters"/>

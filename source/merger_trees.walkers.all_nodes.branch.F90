@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -28,15 +28,9 @@
      type   (treeNode), pointer :: branchHead  , node
      logical                    :: nodesRemain_
    contains
-     !@ <objectMethods>
-     !@  <object>mergerTreeWalkerAllNodesBranch</object>
-     !@  <objectMethod>
-     !@   <method>descend</method>
-     !@   <type>\void</type>
-     !@   <arguments></arguments>
-     !@   <description>Descend through the hierarchy to the deepest node along the current branch.</description>
-     !@  </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Descend through the hierarchy to the deepest node along the current branch." method="descend" />
+     !# </methods>
      procedure :: next        => allNodesBranchNext
      procedure :: nodesRemain => allNodesBranchNodesRemain
      procedure :: descend     => allNodesBranchDescend
@@ -57,7 +51,7 @@ contains
     implicit none
     type(mergerTreeWalkerAllNodesBranch)                :: self
     type(inputParameters               ), intent(inout) :: parameters
-    !GCC$ attributes unused :: self, parameters
+    !$GLC attributes unused :: self, parameters
 
     call Galacticus_Error_Report('this class can not be built from parameters'//{introspection:location})
     return

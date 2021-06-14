@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,7 +26,6 @@ module Node_Component_Hot_Halo_Cold_Mode
   use :: Accretion_Halos               , only : accretionHaloClass
   use :: Cooling_Cold_Mode_Infall_Rates, only : coldModeInfallRateClass
   use :: Cosmology_Parameters          , only : cosmologyParametersClass
-  use :: Dark_Matter_Halo_Scales       , only : darkMatterHaloScaleClass
   use :: Dark_Matter_Profiles_DMO      , only : darkMatterProfileDMOClass
   implicit none
   private
@@ -78,11 +77,10 @@ module Node_Component_Hot_Halo_Cold_Mode
 
   ! Objects used by this component.
   class(accretionHaloClass       ), pointer :: accretionHalo_
-  class(darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_
   class(darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_
   class(coldModeInfallRateClass  ), pointer :: coldModeInfallRate_
   class(cosmologyParametersClass ), pointer :: cosmologyParameters_
-  !$omp threadprivate(accretionHalo_,darkMatterHaloScale_,darkMatterProfileDMO_,coldModeInfallRate_,cosmologyParameters_)
+  !$omp threadprivate(accretionHalo_,darkMatterProfileDMO_,coldModeInfallRate_,cosmologyParameters_)
 
   ! Options controlling the behavior of the cold mode gas.
   logical :: hotHaloOutflowToColdMode
@@ -102,7 +100,7 @@ contains
     use :: Input_Parameters    , only : inputParameter           , inputParameters
     implicit none
     type(inputParameters             ), intent(inout) :: parameters_
-    type(nodeComponentHotHaloColdMode)                :: hotHaloComponent
+    type(nodeComponentHotHaloColdMode)                :: hotHalo
 
     ! Initialize the module if necessary.
     !$omp critical (Node_Component_Hot_Halo_Cold_Mode_Initialize)
@@ -112,15 +110,13 @@ contains
        ! Determine whether outflows go to the cold mode.
        !# <inputParameter>
        !#   <name>hotHaloOutflowToColdMode</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>Specifies whether or not outflows from galaxies are returned to the cold or hot modes in the hot halo.</description>
        !#   <source>parameters_</source>
-       !#   <type>boolean</type>
        !# </inputParameter>
        ! Bind the outflow return function if outflow returns to the cold mode. (If it does not, do
        ! not bind any function and let the parent class handle this behavior.)
-       if (hotHaloOutflowToColdMode) call hotHaloComponent%outflowReturnFunction(Node_Component_Hot_Halo_Cold_Mode_Outflow_Return)
+       if (hotHaloOutflowToColdMode) call hotHalo%outflowReturnFunction(Node_Component_Hot_Halo_Cold_Mode_Outflow_Return)
     end if
     !$omp end critical (Node_Component_Hot_Halo_Cold_Mode_Initialize)
     return
@@ -131,12 +127,12 @@ contains
   !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Hot_Halo_Cold_Mode_Thread_Initialize(parameters_)
     !% Initializes the tree node hot halo cold mode methods module.
-    use :: Events_Hooks                                     , only : nodePromotionEvent       , satelliteMergerEvent, openMPThreadBindingAtLevel, dependencyRegEx, &
+    use :: Events_Hooks                                     , only : nodePromotionEvent       , satelliteMergerEvent    , openMPThreadBindingAtLevel, dependencyRegEx, &
          &                                                           dependencyDirectionAfter
     use :: Galacticus_Nodes                                 , only : defaultHotHaloComponent
     use :: Hot_Halo_Cold_Mode_Density_Core_Radii            , only : hotHaloColdModeCoreRadii
     use :: Input_Parameters                                 , only : inputParameter           , inputParameters
-    use :: Node_Component_Hot_Halo_Cold_Mode_Structure_Tasks, only : hotHaloColdModeCoreRadii_
+    use :: Node_Component_Hot_Halo_Cold_Mode_Structure_Tasks, only : darkMatterHaloScale_     , hotHaloColdModeCoreRadii_
     implicit none
     type(inputParameters), intent(inout) :: parameters_
     type(dependencyRegEx), dimension(1)  :: dependencies
@@ -162,7 +158,7 @@ contains
     !% Uninitializes the tree node hot halo cold mode methods module.
     use :: Events_Hooks                                     , only : nodePromotionEvent       , satelliteMergerEvent
     use :: Galacticus_Nodes                                 , only : defaultHotHaloComponent
-    use :: Node_Component_Hot_Halo_Cold_Mode_Structure_Tasks, only : hotHaloColdModeCoreRadii_
+    use :: Node_Component_Hot_Halo_Cold_Mode_Structure_Tasks, only : darkMatterHaloScale_     , hotHaloColdModeCoreRadii_
     implicit none
 
     if (defaultHotHaloComponent%coldModeIsActive()) then
@@ -186,7 +182,7 @@ contains
     use :: Node_Component_Hot_Halo_Standard_Data, only : currentNode            , formationNode       , hotHaloAngularMomentumLossFraction, hotHaloCoolingFromNode
     use :: Numerical_Constants_Math             , only : Pi
     implicit none
-    type            (treeNode                    ), intent(inout)          , pointer :: node
+    type            (treeNode                    ), intent(inout)          , target  :: node
     double precision                              , intent(in   )                    :: massRate
     logical                                       , intent(inout), optional          :: interrupt
     procedure       (interruptTask               ), intent(inout), optional, pointer :: interruptProcedure
@@ -239,30 +235,29 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Hot_Halo_Cold_Mode_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Hot_Halo_Cold_Mode_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
+  subroutine Node_Component_Hot_Halo_Cold_Mode_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
     !% Compute the hot halo node mass rate of change.
-    use :: Abundances_Structure                 , only : abs
-    use :: Accretion_Halos                      , only : accretionModeCold
-    use :: Dark_Matter_Halo_Spins               , only : Dark_Matter_Halo_Angular_Momentum_Growth_Rate
-    use :: Galactic_Structure_Densities         , only : Galactic_Structure_Density
-    use :: Galactic_Structure_Options           , only : componentTypeColdHalo                        , coordinateSystemSpherical         , massTypeGaseous
-    use :: Galacticus_Nodes                     , only : defaultHotHaloComponent                      , interruptTask                     , nodeComponentBasic, nodeComponentHotHalo, &
-          &                                              nodeComponentHotHaloColdMode                 , propertyTypeInactive              , treeNode
-    use :: Node_Component_Hot_Halo_Standard_Data, only : hotHaloOutflowAngularMomentumAlwaysGrows     , outerRadiusOverVirialRadiusMinimum
-    use :: Numerical_Constants_Math             , only : Pi
+    use :: Abundances_Structure                             , only : abs
+    use :: Accretion_Halos                                  , only : accretionModeCold
+    use :: Dark_Matter_Halo_Spins                           , only : Dark_Matter_Halo_Angular_Momentum_Growth_Rate
+    use :: Galactic_Structure_Densities                     , only : Galactic_Structure_Density
+    use :: Galactic_Structure_Options                       , only : componentTypeColdHalo                        , coordinateSystemSpherical         , massTypeGaseous
+    use :: Galacticus_Nodes                                 , only : defaultHotHaloComponent                      , interruptTask                     , nodeComponentBasic, nodeComponentHotHalo, &            
+          &                                                          nodeComponentHotHaloColdMode                 , propertyTypeInactive              , treeNode
+    use :: Node_Component_Hot_Halo_Standard_Data            , only : hotHaloOutflowAngularMomentumAlwaysGrows     , outerRadiusOverVirialRadiusMinimum
+    use :: Node_Component_Hot_Halo_Cold_Mode_Structure_Tasks, only : darkMatterHaloScale_
+    use :: Numerical_Constants_Math                         , only : Pi
     implicit none
-    type            (treeNode                ), intent(inout), pointer :: node
-    logical                                   , intent(in   )          :: odeConverged
-    logical                                   , intent(inout)          :: interrupt
-    procedure       (interruptTask           ), intent(inout), pointer :: interruptProcedure
-    integer                                   , intent(in   )          :: propertyType
-    class           (nodeComponentHotHalo    )               , pointer :: hotHalo
-    class           (nodeComponentBasic      )               , pointer :: basic
-    double precision                                                   :: angularMomentumAccretionRate, densityAtOuterRadius , &
-         &                                                                massAccretionRate           , massLossRate         , &
-         &                                                                outerRadius                 , outerRadiusGrowthRate, &
-         &                                                                gasMass                     , infallRate
-    !GCC$ attributes unused :: odeConverged
+    type            (treeNode            ), intent(inout)          :: node
+    logical                               , intent(inout)          :: interrupt
+    procedure       (interruptTask       ), intent(inout), pointer :: interruptProcedure
+    integer                               , intent(in   )          :: propertyType
+    class           (nodeComponentHotHalo)               , pointer :: hotHalo
+    class           (nodeComponentBasic  )               , pointer :: basic
+    double precision                                               :: angularMomentumAccretionRate, densityAtOuterRadius , &
+         &                                                            massAccretionRate           , massLossRate         , &
+         &                                                            outerRadius                 , outerRadiusGrowthRate, &
+         &                                                            gasMass                     , infallRate
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
@@ -330,22 +325,23 @@ contains
 
   subroutine Node_Component_Hot_Halo_Cold_Mode_Outflow_Return(self,interrupt,interruptProcedure)
     !% Return outflowed gas to the cold mode reservoir.
-    use :: Abundances_Structure                 , only : abundances                , max                      , operator(*)
-    use :: Galactic_Structure_Densities         , only : Galactic_Structure_Density
-    use :: Galactic_Structure_Options           , only : componentTypeColdHalo     , coordinateSystemSpherical, massTypeGaseous
-    use :: Galacticus_Error                     , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes                     , only : interruptTask             , nodeComponentBasic       , nodeComponentHotHaloColdMode, nodeComponentHotHaloStandard, &
-          &                                              treeNode
-    use :: Node_Component_Hot_Halo_Standard_Data, only : hotHaloOutflowReturnRate  , starveSatellites
-    use :: Numerical_Constants_Astronomical     , only : gigaYear                  , megaParsec
-    use :: Numerical_Constants_Math             , only : Pi
-    use :: Numerical_Constants_Prefixes         , only : kilo
+    use :: Abundances_Structure                             , only : abundances                , max                      , operator(*)
+    use :: Galactic_Structure_Densities                     , only : Galactic_Structure_Density
+    use :: Galactic_Structure_Options                       , only : componentTypeColdHalo     , coordinateSystemSpherical, massTypeGaseous
+    use :: Galacticus_Error                                 , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes                                 , only : interruptTask             , nodeComponentBasic       , nodeComponentHotHaloColdMode, nodeComponentHotHaloStandard, &
+          &                                                          treeNode
+    use :: Node_Component_Hot_Halo_Standard_Data            , only : hotHaloOutflowReturnRate  , starveSatellites
+    use :: Node_Component_Hot_Halo_Cold_Mode_Structure_Tasks, only : darkMatterHaloScale_
+    use :: Numerical_Constants_Astronomical                 , only : gigaYear                  , megaParsec
+    use :: Numerical_Constants_Math                         , only : Pi
+    use :: Numerical_Constants_Prefixes                     , only : kilo
     implicit none
     class           (nodeComponentHotHaloStandard), intent(inout)          :: self
     logical                                       , intent(inout)          :: interrupt
     procedure       (interruptTask               ), intent(inout), pointer :: interruptProcedure
-    type            (treeNode                    ), pointer                :: selfNode
-    class           (nodeComponentBasic          ), pointer                :: selfBasic
+    type            (treeNode                    ), pointer                :: node
+    class           (nodeComponentBasic          ), pointer                :: basic
     double precision                                                       :: outflowedMass            , massReturnRate, &
          &                                                                    angularMomentumReturnRate, radiusVirial  , &
          &                                                                    densityAtOuterRadius     , densityMinimum, &
@@ -356,14 +352,14 @@ contains
     select type (self)
     class is (nodeComponentHotHaloColdMode)
        ! Get the hosting node.
-       selfNode => self%hostNode
+       node => self%hostNode
        ! Next tasks occur only for systems in which outflowed gas is being recycled.
        massReturnRate=0.0d0
-       if (.not.starveSatellites.or..not.selfNode%isSatellite()) then
+       if (.not.starveSatellites.or..not.node%isSatellite()) then
           outflowedMass            =self%outflowedMass()
-          massReturnRate           =hotHaloOutflowReturnRate*outflowedMass                  /darkMatterHaloScale_%dynamicalTimescale(selfNode)
-          angularMomentumReturnRate=hotHaloOutflowReturnRate*self%outflowedAngularMomentum()/darkMatterHaloScale_%dynamicalTimescale(selfNode)
-          abundancesReturnRate     =hotHaloOutflowReturnRate*self%outflowedAbundances     ()/darkMatterHaloScale_%dynamicalTimescale(selfNode)
+          massReturnRate           =hotHaloOutflowReturnRate*outflowedMass                  /darkMatterHaloScale_%dynamicalTimescale(node)
+          angularMomentumReturnRate=hotHaloOutflowReturnRate*self%outflowedAngularMomentum()/darkMatterHaloScale_%dynamicalTimescale(node)
+          abundancesReturnRate     =hotHaloOutflowReturnRate*self%outflowedAbundances     ()/darkMatterHaloScale_%dynamicalTimescale(node)
           call self%           outflowedMassRate(-           massReturnRate,interrupt,interruptProcedure)
           call self%                massColdRate(+           massReturnRate,interrupt,interruptProcedure)
           call self%outflowedAngularMomentumRate(-angularMomentumReturnRate,interrupt,interruptProcedure)
@@ -373,17 +369,17 @@ contains
        end if
        ! The outer radius must be increased as the halo fills up with gas.
        outerRadius =self%outerRadius()
-       radiusVirial=darkMatterHaloScale_%virialRadius(selfNode)
+       radiusVirial=darkMatterHaloScale_%virialRadius(node)
        if (outerRadius < radiusVirial) then
-          densityAtOuterRadius=Galactic_Structure_Density(selfNode,[outerRadius,0.0d0,0.0d0],coordinateSystemSpherical,componentTypeColdHalo,massTypeGaseous)
+          densityAtOuterRadius=Galactic_Structure_Density(node,[outerRadius,0.0d0,0.0d0],coordinateSystemSpherical,componentTypeColdHalo,massTypeGaseous)
           ! If the outer radius and density are non-zero we can expand the outer radius at a rate determined by the current
           ! density profile.
           if (outerRadius > 0.0d0 .and. densityAtOuterRadius > 0.0d0) then
              ! Limit the density at the outer radius to one third of the mean virial density (for baryons, assuming a
              ! universal baryon fraction) to prevent arbitrarily rapid growth of the outer radius in halos containing almost
              ! no gas.
-             selfBasic => selfNode%basic()
-             densityMinimum=(cosmologyParameters_%omegaBaryon()/cosmologyParameters_%omegaMatter())*selfBasic%mass()/radiusVirial**3/4.0d0/Pi
+             basic => node%basic()
+             densityMinimum=(cosmologyParameters_%omegaBaryon()/cosmologyParameters_%omegaMatter())*basic%mass()/radiusVirial**3/4.0d0/Pi
              call self%outerRadiusRate(                           &
                   &                     massReturnRate            &
                   &                    /4.0d0                     &
@@ -397,7 +393,7 @@ contains
           ! Otherwise, if we have a positive rate of mass return, simply grow the radius at the virial velocity.
           else if (massReturnRate > 0.0d0) then
              ! Force some growth here so the radius is not trapped at zero.
-             call self%outerRadiusRate(darkMatterHaloScale_%virialVelocity(selfNode)*kilo*gigaYear/megaParsec)
+             call self%outerRadiusRate(darkMatterHaloScale_%virialVelocity(node)*kilo*gigaYear/megaParsec)
           end if
        end if
     class default
@@ -411,9 +407,10 @@ contains
   !# </scaleSetTask>
   subroutine Node_Component_Hot_Halo_Cold_Mode_Scale_Set(node)
     !% Set scales for properties of {\normalfont \ttfamily node}.
-    use :: Abundances_Structure, only : unitAbundances
-    use :: Galacticus_Nodes    , only : nodeComponentBasic     , nodeComponentHotHalo, nodeComponentHotHaloColdMode, treeNode, &
-         &                              defaultHotHaloComponent
+    use :: Abundances_Structure                             , only : unitAbundances
+    use :: Galacticus_Nodes                                 , only : nodeComponentBasic     , nodeComponentHotHalo, nodeComponentHotHaloColdMode, treeNode, &
+         &                                                           defaultHotHaloComponent
+    use :: Node_Component_Hot_Halo_Cold_Mode_Structure_Tasks, only : darkMatterHaloScale_
     implicit none
     type            (treeNode            ), intent(inout), pointer :: node
     class           (nodeComponentHotHalo)               , pointer :: hotHalo
@@ -445,7 +442,6 @@ contains
 
   !# <mergerTreeInitializeTask>
   !#  <unitName>Node_Component_Hot_Halo_Cold_Mode_Tree_Initialize</unitName>
-  !#  <after>spin</after>
   !#  <after>darkMatterProfile</after>
   !#  <after>Node_Component_Hot_Halo_Standard_Tree_Initialize</after>
   !# </mergerTreeInitializeTask>
@@ -503,26 +499,27 @@ contains
   !# </nodeMergerTask>
   subroutine Node_Component_Hot_Halo_Cold_Mode_Node_Merger(node)
     !% Starve {\normalfont \ttfamily node} by transferring its hot halo to its parent.
-    use :: Abundances_Structure                 , only : abundances                          , operator(*)            , zeroAbundances
-    use :: Accretion_Halos                      , only : accretionModeCold                   , accretionModeTotal
-    use :: Galactic_Structure_Enclosed_Masses   , only : Galactic_Structure_Enclosed_Mass
-    use :: Galactic_Structure_Options           , only : componentTypeAll                    , massTypeBaryonic       , radiusLarge
-    use :: Galacticus_Nodes                     , only : nodeComponentBasic                  , nodeComponentHotHalo   , nodeComponentHotHaloColdMode, nodeComponentSpin, &
-          &                                              treeNode                            , defaultHotHaloComponent
-    use :: Node_Component_Hot_Halo_Standard_Data, only : hotHaloNodeMergerLimitBaryonFraction, starveSatellites
+    use :: Abundances_Structure                             , only : abundances                          , operator(*)            , zeroAbundances
+    use :: Accretion_Halos                                  , only : accretionModeCold                   , accretionModeTotal
+    use :: Galactic_Structure_Enclosed_Masses               , only : Galactic_Structure_Enclosed_Mass
+    use :: Galactic_Structure_Options                       , only : componentTypeAll                    , massTypeBaryonic       , radiusLarge
+    use :: Galacticus_Nodes                                 , only : nodeComponentBasic                  , nodeComponentHotHalo   , nodeComponentHotHaloColdMode, nodeComponentSpin, &
+          &                                                          treeNode                            , defaultHotHaloComponent
+    use :: Node_Component_Hot_Halo_Standard_Data            , only : hotHaloNodeMergerLimitBaryonFraction, starveSatellites
+    use :: Node_Component_Hot_Halo_Cold_Mode_Structure_Tasks, only : darkMatterHaloScale_
     implicit none
-    type            (treeNode            ), intent(inout), pointer :: node
-    type            (treeNode            )               , pointer :: nodeParent
-    class           (nodeComponentHotHalo)               , pointer :: hotHaloParent          , hotHalo
-    class           (nodeComponentSpin   )               , pointer :: spinParent
-    class           (nodeComponentBasic  )               , pointer :: basicParent            , basic
-    double precision                                               :: baryonicMassCurrent    , baryonicMassMaximum   , &
-         &                                                            fractionRemove         , massAccretedCold      , &
-         &                                                            massAccreted           , massUnaccreted        , &
-         &                                                            angularMomentumAccreted, massReaccreted        , &
-         &                                                            fractionAccreted
-    type            (abundances          ), save                   :: massMetalsAccreted     , fractionMetalsAccreted, &
-         &                                                            massMetalsReaccreted
+    type            (treeNode            ), intent(inout) :: node
+    type            (treeNode            ), pointer       :: nodeParent
+    class           (nodeComponentHotHalo), pointer       :: hotHaloParent          , hotHalo
+    class           (nodeComponentSpin   ), pointer       :: spinParent
+    class           (nodeComponentBasic  ), pointer       :: basicParent            , basic
+    double precision                                      :: baryonicMassCurrent    , baryonicMassMaximum   , &
+         &                                                   fractionRemove         , massAccretedCold      , &
+         &                                                   massAccreted           , massUnaccreted        , &
+         &                                                   angularMomentumAccreted, massReaccreted        , &
+         &                                                   fractionAccreted
+    type            (abundances          ), save          :: massMetalsAccreted     , fractionMetalsAccreted, &
+         &                                                   massMetalsReaccreted
     !$omp threadprivate(massMetalsAccreted,fractionMetalsAccreted,massMetalsReaccreted)
 
     ! Return immediately if this class is not in use.
@@ -638,16 +635,17 @@ contains
 
   subroutine satelliteMerger(self,node)
     !% Remove any cold mode gas associated with {\normalfont \ttfamily node} before it merges with its host halo.
-    use :: Abundances_Structure                 , only : abundances          , zeroAbundances
-    use :: Galacticus_Nodes                     , only : nodeComponentHotHalo, nodeComponentHotHaloColdMode, nodeComponentSpin, treeNode
-    use :: Node_Component_Hot_Halo_Standard_Data, only : starveSatellites
+    use :: Abundances_Structure                             , only : abundances          , zeroAbundances
+    use :: Galacticus_Nodes                                 , only : nodeComponentHotHalo, nodeComponentHotHaloColdMode, nodeComponentSpin, treeNode
+    use :: Node_Component_Hot_Halo_Standard_Data            , only : starveSatellites
+    use :: Node_Component_Hot_Halo_Cold_Mode_Structure_Tasks, only : darkMatterHaloScale_
     implicit none
     class(*                   ), intent(inout) :: self
     type (treeNode            ), intent(inout) :: node
     type (treeNode            ), pointer       :: nodeHost
     class(nodeComponentHotHalo), pointer       :: hotHaloHost, hotHalo
     class(nodeComponentSpin   ), pointer       :: spinHost
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Return immediately if satellites are starved, as in that case there is no hot halo to transfer.
     if (starveSatellites) return
@@ -699,9 +697,9 @@ contains
     type (treeNode            ), intent(inout) :: node
     type (treeNode            ), pointer       :: nodeParent
     class(nodeComponentHotHalo), pointer       :: hotHaloParent, hotHalo
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
-    hotHalo       => node      %hotHalo(                 )
+    hotHalo       => node      %hotHalo(autoCreate=.true.)
     nodeParent    => node      %parent
     hotHaloParent => nodeParent%hotHalo(autoCreate=.true.)
     ! If the parent node has a hot halo component, then add its cold mode to that of this node,

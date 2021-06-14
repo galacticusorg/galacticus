@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +22,24 @@
   use :: Kind_Numbers, only : kind_int8
 
   !# <mergerMassMovements name="mergerMassMovementsBaugh2005">
-  !#  <description>A merger mass movements class which uses a simple calculation.</description>
+  !#  <description>
+  !#   A merger mass movements class which implements mass movements according to:
+  !#   \begin{itemize}
+  !#    \item If $M_\mathrm{satellite} &gt; f_\mathrm{major} M_\mathrm{central}$ then all mass from both satellite and central
+  !#    galaxies moves to the spheroid \gls{component} of the central galaxy;
+  !#    \item Otherwise:
+  !#    \begin{itemize}
+  !#     \item If $M_\mathrm{central, spheroid} &lt; f_\mathrm{burst} M_\mathrm{central}$ and the gas fraction in the host equals or
+  !#     exceeds $f_\mathrm{gas,crit}$ then all gas is moved to the host spheroid, while the host stellar disk remains in place.
+  !#     \item Otherwise, gas from the satellite moves to the \gls{component} of the central specified by the {\normalfont
+  !#     \ttfamily [destinationGasMinorMerger]} parameter (either ``{\normalfont \ttfamily disk}'' or ``{\normalfont \ttfamily
+  !#     spheroid}''), stars from the satellite moves to the spheroid of the central and mass in the central does not move.
+  !#    \end{itemize}
+  !#   \end{itemize}
+  !#   Here, $f_\mathrm{major}=${\normalfont \ttfamily [massRatioMajorMerger]} is the mass ratio above which a merger is
+  !#   considered to be ``major'', while $f_\mathrm{burst}=${\normalfont \ttfamily [ratioMassBurst]} and
+  !#   $f_\mathrm{gas,crit}=${\normalfont \ttfamily [fractionGasCriticalBurst]}.
+  !#  </description>
   !# </mergerMassMovements>
   type, extends(mergerMassMovementsClass) :: mergerMassMovementsBaugh2005
      !% A merger mass movements class which uses the \cite{baugh_can_2005} calculation.
@@ -60,35 +77,27 @@ contains
 
     !# <inputParameter>
     !#   <name>massRatioMajorMerger</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.25d0</defaultValue>
     !#   <description>The mass ratio above which mergers are considered to be ``major''.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>ratioMassBurst</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.05d0</defaultValue>
     !#   <description>The mass ratio above which mergers are considered to trigger a burst.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>fractionGasCriticalBurst</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.75d0</defaultValue>
     !#   <description>The host gas fraction above which mergers are considered to trigger a burst.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>destinationGasMinorMerger</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('spheroid')</defaultValue>
     !#   <description>The component to which satellite galaxy gas moves to as a result of a minor merger.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     self=mergerMassMovementsBaugh2005(massRatioMajorMerger,enumerationDestinationMergerEncode(char(destinationGasMinorMerger),includesPrefix=.false.),ratioMassBurst,fractionGasCriticalBurst)
     !# <inputParametersValidate source="parameters"/>
@@ -178,15 +187,15 @@ contains
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
     use :: Galactic_Structure_Options        , only : componentTypeSpheroid           , massTypeGalactic, massTypeGaseous
     implicit none
-    class           (mergerMassMovementsBaugh2005), intent(inout) :: self
-    type            (treeNode                    ), intent(inout) :: node
-    integer                                       , intent(  out) :: destinationGasSatellite, destinationGasHost       , &
-         &                                                           destinationStarsHost   , destinationStarsSatellite
-    logical                                       , intent(  out) :: mergerIsMajor
-    type            (treeNode                    ), pointer       :: nodeHost
-    double precision                                              :: massHost               , massSatellite            , &
-         &                                                           massSpheroidHost       , massGasHost
-    logical                                                       :: triggersBurst
+    class           (mergerMassMovementsBaugh2005), intent(inout)         :: self
+    type            (treeNode                    ), intent(inout), target :: node
+    integer                                       , intent(  out)         :: destinationGasSatellite, destinationGasHost       , &
+         &                                                                   destinationStarsHost   , destinationStarsSatellite
+    logical                                       , intent(  out)         :: mergerIsMajor
+    type            (treeNode                    ), pointer               :: nodeHost
+    double precision                                                      :: massHost               , massSatellite            , &
+         &                                                                   massSpheroidHost       , massGasHost
+    logical                                                               :: triggersBurst
     
     ! The calculation of how mass moves as a result of the merger is computed when first needed and then stored. This ensures that
     ! the results are determined by the properties of the merge target prior to any modification that will occur as node

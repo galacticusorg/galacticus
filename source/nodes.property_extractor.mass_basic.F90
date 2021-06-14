@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -46,7 +46,7 @@ contains
     implicit none
     type (nodePropertyExtractorMassBasic)                :: self
     type (inputParameters               ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
     
     self=nodePropertyExtractorMassBasic()
     return
@@ -60,7 +60,7 @@ contains
     type (treeNode                      ), intent(inout), target   :: node
     type (multiCounter                  ), intent(inout), optional :: instance
     class(nodeComponentBasic            ), pointer                 :: basic
-    !GCC$ attributes unused :: self, instance
+    !$GLC attributes unused :: self, instance
 
     basic            => node %basic()
     massBasicExtract =  basic%mass ()
@@ -72,7 +72,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorMassBasic), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     massBasicType=outputAnalysisPropertyTypeLinear
     return
@@ -83,7 +83,7 @@ contains
     implicit none
     type (varying_string                )                :: massBasicName
     class(nodePropertyExtractorMassBasic), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     massBasicName=var_str('massBasic')
     return
@@ -94,7 +94,7 @@ contains
     implicit none
     type (varying_string                )                :: massBasicDescription
     class(nodePropertyExtractorMassBasic), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     massBasicDescription=var_str('The basic mass of the node.')
     return
@@ -105,7 +105,7 @@ contains
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
     class(nodePropertyExtractorMassBasic), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     massBasicUnitsInSI=massSolar
     return

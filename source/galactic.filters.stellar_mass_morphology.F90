@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -55,8 +55,6 @@ contains
     !#   <source>parameters</source>
     !#   <variable>stellarMassMorphologyConstructorParameters%spheroidToTotalRatioThreshold</variable>
     !#   <description>The parameter $R_0$ appearing in the stellar mass-weight morphology threshold for the stellar mass-weighted morphology galactic filter class.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParametersValidate source="parameters"/>
     return
@@ -75,11 +73,11 @@ contains
     !% Implement a stellar mass-weighted morphology high-pass galactic filter.
     use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid, treeNode
     implicit none
-    class           (galacticFilterStellarMassMorphology), intent(inout) :: self
-    type            (treeNode                           ), intent(inout) :: node
-    class           (nodeComponentDisk                  ), pointer       :: disk
-    class           (nodeComponentSpheroid              ), pointer       :: spheroid
-    double precision                                                     :: stellarMass
+    class           (galacticFilterStellarMassMorphology), intent(inout)         :: self
+    type            (treeNode                           ), intent(inout), target :: node
+    class           (nodeComponentDisk                  ), pointer               :: disk
+    class           (nodeComponentSpheroid              ), pointer               :: spheroid
+    double precision                                                             :: stellarMass
 
     disk              => node    %disk       ()
     spheroid          => node    %spheroid   ()

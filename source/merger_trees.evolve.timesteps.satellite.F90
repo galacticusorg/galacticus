@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,13 +17,33 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !% Contains a merger tree evolution timestep class which limits the step to the next satellite merger.
+
   use :: Nodes_Operators, only : nodeOperatorClass
 
   !# <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepSatellite">
-  !#  <description>A merger tree evolution timestepping class which limits the step to the next satellite merger.</description>
+  !#  <description>  
+  !#   A merger tree evolution timestepping class which enforces the following for satellite \glspl{node}. If the satellite's merge
+  !#   target has been advanced to at least a time of $t_\mathrm{required} = t_\mathrm{satellite} + \Delta t_\mathrm{merge} - \delta
+  !#   t_\mathrm{merge,maximum}$ then
+  !#   \begin{equation}
+  !#    \Delta t \le \Delta t_\mathrm{merge},
+  !#   \end{equation}
+  !#   where $t_\mathrm{satellite}$ is the current time for the satellite \gls{node}, $\Delta t_\mathrm{merge}$ is the time until the
+  !#   satellite is due to merge and $\delta t_\mathrm{merge,maximum}$ is the maximum allowed time difference between merging
+  !#   galaxies. This ensures that the satellite is not evolved past the time at which it is due to merge. If this criterion is the
+  !#   limiting criteria for $\Delta t$ then the merging of the satellite will be triggered at the end of the timestep.
+  !#
+  !#   If the merge target has not been advanced to at least $t_\mathrm{required}$ then instead
+  !#   \begin{equation}
+  !#    \Delta t \le \hbox{max}(\Delta t_\mathrm{merge}-\delta t_\mathrm{merge,maximum}/2,0),
+  !#   \end{equation}
+  !#   is asserted to ensure that the satellite does not reach the time of merging until its merge target is sufficiently close (within
+  !#   $\delta t_\mathrm{merge,maximum}$) of the time of merging.
+  !#  </description>
   !# </mergerTreeEvolveTimestep>
   type, extends(mergerTreeEvolveTimestepClass) :: mergerTreeEvolveTimestepSatellite
-     !% Implementation of an output times class which reads a satellite of output times from a parameter.
+     !% Implementation of a merger tree evolution timestep class which limits the step to the next satellite merger.
      private
      class           (nodeOperatorClass), pointer :: nodeOperator_
      double precision                             :: timeOffsetMaximumAbsolute, timeOffsetMaximumRelative
@@ -52,21 +72,15 @@ contains
 
     !# <inputParameter>
     !#   <name>timeOffsetMaximumAbsolute</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.010d0</defaultValue>
     !#   <description>The maximum absolute time difference (in Gyr) allowed between merging pairs of galaxies.</description>
-    !#   <group>timeStepping</group>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>timeOffsetMaximumRelative</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.001d0</defaultValue>
     !#   <description>The maximum time difference (relative to the cosmic time at the merger epoch) allowed between merging pairs of galaxies.</description>
-    !#   <group>timeStepping</group>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="nodeOperator" name="nodeOperator_" source="parameters"/>
     self=mergerTreeEvolveTimestepSatellite(timeOffsetMaximumAbsolute,timeOffsetMaximumRelative,nodeOperator_)
@@ -97,13 +111,14 @@ contains
     return
   end subroutine satelliteDestructor
 
-  double precision function satelliteTimeEvolveTo(self,node,task,taskSelf,report,lockNode,lockType)
+  double precision function satelliteTimeEvolveTo(self,timeEnd,node,task,taskSelf,report,lockNode,lockType)
     !% Determine a suitable timestep for {\normalfont \ttfamily node} such that it does not exceed the time of the next satellite merger.
     use :: Evolve_To_Time_Reports, only : Evolve_To_Time_Report
     use :: Galacticus_Nodes      , only : nodeComponentBasic   , nodeComponentSatellite, treeNode
     use :: ISO_Varying_String    , only : varying_string
     implicit none
     class           (mergerTreeEvolveTimestepSatellite), intent(inout), target            :: self
+    double precision                                   , intent(in   )                    :: timeEnd
     type            (treeNode                         ), intent(inout), target            :: node
     procedure       (timestepTask                     ), intent(  out), pointer           :: task
     class           (*                                ), intent(  out), pointer           :: taskSelf
@@ -115,8 +130,9 @@ contains
     class           (nodeComponentSatellite           )               , pointer           :: satellite
     double precision                                                                      :: mergeTargetTimeMinimum, mergeTargetTimeOffsetMaximum, &
          &                                                                                   timeUntilMerging
+    !$GLC attributes unused :: timeEnd
 
-    ! By default set a huge timestep so that this class has no effect,
+    ! By default set a huge timestep so that this class has no effect.
     satelliteTimeEvolveTo           =  huge(0.0d0)
     task                            => null(     )
     taskSelf                        => null(     )
@@ -168,25 +184,27 @@ contains
 
   subroutine satelliteMergerProcess(self,tree,node,deadlockStatus)
     !% Process a satellite node which has undergone a merger with its host node.
-    use :: Galacticus_Display                 , only : Galacticus_Display_Message   , Galacticus_Verbosity_Level, verbosityInfo
+    use :: Display                            , only : displayMessage               , displayVerbosity, verbosityLevelInfo
     use :: Galacticus_Error                   , only : Galacticus_Error_Report
     use :: ISO_Varying_String                 , only : varying_string
     use :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsNotDeadlocked
+    use :: Satellite_Promotion                , only : Satellite_Move_To_New_Host
     use :: String_Handling                    , only : operator(//)
     implicit none
     class  (*             ), intent(inout)          :: self
     type   (mergerTree    ), intent(in   )          :: tree
     type   (treeNode      ), intent(inout), pointer :: node
     integer                , intent(inout)          :: deadlockStatus
-    type   (treeNode      )               , pointer :: mergee        , mergeeNext
+    type   (treeNode      )               , pointer :: mergee        , mergeeNext       , &
+         &                                             nodeSatellite , nodeSatelliteNext
     type   (varying_string)                         :: message
-    !GCC$ attributes unused :: tree
+    !$GLC attributes unused :: tree
 
     ! Report if necessary.
-    if (Galacticus_Verbosity_Level() >= verbosityInfo) then
+    if (displayVerbosity() >= verbosityLevelInfo) then
        message='Satellite node ['
        message=message//node%index()//'] is being merged'
-       call Galacticus_Display_Message(message)
+       call displayMessage(message)
     end if
     ! Perform any node operations on the galaxy merger, and then trigger the satellite merger event.
     select type (self)
@@ -207,6 +225,13 @@ contains
        node  %mergeTarget  %firstMergee => mergee
        mergee%mergeTarget               => node      %mergeTarget
        mergee                           => mergeeNext
+    end do
+    ! Move the sub-sub-halo into its host's host.
+    nodeSatellite => node%firstSatellite
+    do while (associated(nodeSatellite))
+       nodeSatelliteNext => nodeSatellite%sibling
+       call Satellite_Move_To_New_Host(nodeSatellite,node%parent)
+       nodeSatellite     => nodeSatelliteNext
     end do
     ! Finally remove the satellite node from the host and merge targets and destroy it.
     call node%removeFromHost  ()

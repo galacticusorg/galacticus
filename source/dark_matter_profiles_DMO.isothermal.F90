@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,13 @@
   !% An implementation of isothermal dark matter halo profiles.
 
   !# <darkMatterProfileDMO name="darkMatterProfileDMOIsothermal">
-  !#  <description>Isothermal dark matter halo profiles</description>
+  !#  <description>
+  !#   A dark matter profile DMO class in which the density profile is given by:
+  !#   \begin{equation}
+  !#    \rho_\mathrm{dark matter}(r) \propto r^{-2},
+  !#   \end{equation}
+  !#   normalized such that the total mass of the \gls{node} is enclosed with the virial radius.
+  !#  </description>
   !# </darkMatterProfileDMO>
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOIsothermal
      !% A dark matter halo profile class implementing isothermal dark matter halos.
@@ -34,6 +40,7 @@
      procedure :: radiusEnclosingDensity            => isothermalRadiusEnclosingDensity
      procedure :: potential                         => isothermalPotential
      procedure :: circularVelocity                  => isothermalCircularVelocity
+     procedure :: radiusCircularVelocityMaximum     => isothermalRadiusCircularVelocityMaximum
      procedure :: circularVelocityMaximum           => isothermalCircularVelocityMaximum
      procedure :: radialVelocityDispersion          => isothermalRadialVelocityDispersion
      procedure :: radiusFromSpecificAngularMomentum => isothermalRadiusFromSpecificAngularMomentum
@@ -110,7 +117,7 @@ contains
     class           (darkMatterProfileDMOIsothermal), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
     double precision                                , intent(in   ) :: radius
-    !GCC$ attributes unused :: self, node, radius
+    !$GLC attributes unused :: self, node, radius
 
     isothermalDensityLogSlope=-2.0d0
     return
@@ -204,18 +211,29 @@ contains
     class           (darkMatterProfileDMOIsothermal), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
     double precision                                , intent(in   ) :: radius
-    !GCC$ attributes unused :: radius
+    !$GLC attributes unused :: radius
 
     isothermalCircularVelocity=self%darkMatterHaloScale_%virialVelocity(node)
     return
   end function isothermalCircularVelocity
 
+  double precision function isothermalRadiusCircularVelocityMaximum(self,node)
+    !% Returns the radius (in Mpc) at which the maximum circular velocity is achieved in the dark matter profile of {\normalfont \ttfamily node}. For an isothermal halo circular
+    !% velocity is independent of radius, so a value of the virial radius is returned.
+    implicit none
+    class(darkMatterProfileDMOIsothermal), intent(inout) :: self
+    type (treeNode                      ), intent(inout) :: node
+
+    isothermalRadiusCircularVelocityMaximum=self%darkMatterHaloScale_%virialRadius(node)
+    return
+  end function isothermalRadiusCircularVelocityMaximum
+
   double precision function isothermalCircularVelocityMaximum(self,node)
     !% Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}. For an isothermal halo circular
     !% velocity is independent of radius.
     implicit none
-    class           (darkMatterProfileDMOIsothermal), intent(inout) :: self
-    type            (treeNode                      ), intent(inout) :: node
+    class(darkMatterProfileDMOIsothermal), intent(inout) :: self
+    type (treeNode                      ), intent(inout) :: node
 
     isothermalCircularVelocityMaximum=self%circularVelocity(node,0.0d0)
     return
@@ -228,7 +246,7 @@ contains
     class           (darkMatterProfileDMOIsothermal), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
     double precision                                , intent(in   ) :: radius
-    !GCC$ attributes unused :: radius
+    !$GLC attributes unused :: radius
 
     isothermalRadialVelocityDispersion=self%darkMatterHaloScale_%virialVelocity(node)/sqrt(2.0d0)
     return
@@ -240,9 +258,9 @@ contains
     !% velocity). Therefore, $r = j/V_\mathrm{virial}$ where $j$(={\normalfont \ttfamily specificAngularMomentum}) is the specific angular momentum and
     !% $r$ the required radius.
     implicit none
-    class           (darkMatterProfileDMOIsothermal), intent(inout)          :: self
-    type            (treeNode                      ), intent(inout), pointer :: node
-    double precision                                , intent(in   )          :: specificAngularMomentum
+    class           (darkMatterProfileDMOIsothermal), intent(inout) :: self
+    type            (treeNode                      ), intent(inout) :: node
+    double precision                                , intent(in   ) :: specificAngularMomentum
 
     isothermalRadiusFromSpecificAngularMomentum=specificAngularMomentum/self%darkMatterHaloScale_%virialVelocity(node)
     return
@@ -318,9 +336,9 @@ contains
     !% \end{equation}
     use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
     implicit none
-    class           (darkMatterProfileDMOIsothermal), intent(inout) :: self
-    type            (treeNode                      ), intent(inout) :: node
-    double precision                                , intent(in   ) :: time
+    class           (darkMatterProfileDMOIsothermal), intent(inout), target :: self
+    type            (treeNode                      ), intent(inout), target :: node
+    double precision                                , intent(in   )         :: time
 
     isothermalFreefallRadius=sqrt(2.0d0/Pi)*self%darkMatterHaloScale_%virialVelocity(node)*time&
          &/Mpc_per_km_per_s_To_Gyr
@@ -335,10 +353,10 @@ contains
     !% \end{equation}
     use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
     implicit none
-    class           (darkMatterProfileDMOIsothermal), intent(inout) :: self
-    type            (treeNode                      ), intent(inout) :: node
-    double precision                                , intent(in   ) :: time
-    !GCC$ attributes unused :: time
+    class           (darkMatterProfileDMOIsothermal), intent(inout), target :: self
+    type            (treeNode                      ), intent(inout), target :: node
+    double precision                                , intent(in   )         :: time
+    !$GLC attributes unused :: time
 
     isothermalFreefallRadiusIncreaseRate=sqrt(2.0d0/Pi)*self%darkMatterHaloScale_%virialVelocity(node) &
          & /Mpc_per_km_per_s_To_Gyr

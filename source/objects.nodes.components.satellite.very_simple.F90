@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -81,11 +81,9 @@ contains
     ! Determine if satellite orbits are to be reset on halo formation events.
     !# <inputParameter>
     !#   <name>satelliteOrbitResetOnHaloFormation</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Specifies whether satellite virial orbital parameters should be reset on halo formation events.</description>
     !#   <source>parameters_</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     return
   end subroutine Node_Component_Satellite_Very_Simple_Initialize
@@ -125,11 +123,11 @@ contains
   !# <haloFormationTask>
   !#  <unitName>Node_Component_Satellite_Very_Simple_Halo_Formation_Task</unitName>
   !# </haloFormationTask>
-  subroutine Node_Component_Satellite_Very_Simple_Halo_Formation_Task(thisNode)
+  subroutine Node_Component_Satellite_Very_Simple_Halo_Formation_Task(node)
     !% Reset the orbits of satellite galaxies on halo formation events.
     use :: Galacticus_Nodes, only : defaultSatelliteComponent, treeNode
     implicit none
-    type(treeNode), intent(inout) :: thisNode
+    type(treeNode), intent(inout) :: node
     type(treeNode), pointer       :: satelliteNode
 
     ! Return immediately if this method is not active.
@@ -139,7 +137,7 @@ contains
     if (.not.satelliteOrbitResetOnHaloFormation) return
 
     ! Loop over all satellites.
-    satelliteNode => thisNode%firstSatellite
+    satelliteNode => node%firstSatellite
     do while (associated(satelliteNode))
        ! Create a new orbit for this satellite.
        call Node_Component_Satellite_Very_Simple_Create(satelliteNode)
@@ -151,43 +149,43 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Satellite_Very_Simple_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Satellite_Very_Simple_Rate_Compute(thisNode,odeConverged,interrupt,interruptProcedure,propertyType)
+  subroutine Node_Component_Satellite_Very_Simple_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
     !% Compute the time until satellite merging rate of change.
     use :: Galacticus_Nodes, only : defaultSatelliteComponent, nodeComponentSatellite, nodeComponentSatelliteVerySimple, propertyTypeInactive, &
           &                         treeNode
     implicit none
-    type            (treeNode              ), intent(inout), pointer :: thisNode
-    logical                                 , intent(in   )          :: odeConverged
+    type            (treeNode              ), intent(inout)          :: node
     logical                                 , intent(inout)          :: interrupt
     procedure       (                      ), intent(inout), pointer :: interruptProcedure
     integer                                 , intent(in   )          :: propertyType
-    class           (nodeComponentSatellite)               , pointer :: satelliteComponent
-    !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
+    class           (nodeComponentSatellite)               , pointer :: satellite
+    !$GLC attributes unused :: interrupt, interruptProcedure
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
     ! Return immediately if this class is not in use.
     if (.not.defaultSatelliteComponent%verySimpleIsActive()) return
     ! Get the satellite component.
-    satelliteComponent => thisNode%satellite()
+    satellite => node%satellite()
     ! Ensure that it is of the standard class.
-    select type (satelliteComponent)
+    select type (satellite)
     class is (nodeComponentSatelliteVerySimple)
-       if (thisNode%isSatellite()) call satelliteComponent%mergeTimeRate(-1.0d0)
+       if (node%isSatellite()) call satellite%mergeTimeRate(-1.0d0)
     end select
     return
   end subroutine Node_Component_Satellite_Very_Simple_Rate_Compute
 
   !# <mergerTreeInitializeTask>
   !#  <unitName>Node_Component_Satellite_Very_Simple_Tree_Initialize</unitName>
+  !#  <after>darkMatterProfile</after>
   !# </mergerTreeInitializeTask>
-  subroutine Node_Component_Satellite_Very_Simple_Tree_Initialize(thisNode)
+  subroutine Node_Component_Satellite_Very_Simple_Tree_Initialize(node)
     !% Initialize the very simple satellite component.
     use :: Galacticus_Nodes, only : treeNode
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type(treeNode), intent(inout), pointer :: node
 
-    if (thisNode%isSatellite()) call Node_Component_Satellite_Very_Simple_Create(thisNode)
+    if (node%isSatellite()) call Node_Component_Satellite_Very_Simple_Create(node)
     return
   end subroutine Node_Component_Satellite_Very_Simple_Tree_Initialize
 
@@ -197,45 +195,45 @@ contains
   !# <satelliteHostChangeTask>
   !#  <unitName>Node_Component_Satellite_Very_Simple_Create</unitName>
   !# </satelliteHostChangeTask>
-  subroutine Node_Component_Satellite_Very_Simple_Create(thisNode)
+  subroutine Node_Component_Satellite_Very_Simple_Create(node)
     !% Create a satellite orbit component and assign a time until merging and a bound mass equal initially to the total halo mass.
     use :: Galacticus_Nodes, only : defaultSatelliteComponent, nodeComponentSatellite, nodeComponentSatelliteVerySimple, treeNode
     use :: Kepler_Orbits   , only : keplerOrbit
     implicit none
-    type            (treeNode              ), intent(inout), pointer :: thisNode
-    type            (treeNode              )               , pointer :: hostNode
-    class           (nodeComponentSatellite)               , pointer :: satelliteComponent
-    logical                                                          :: isNewSatellite
-    double precision                                                 :: mergeTime
-    type            (keplerOrbit           )                         :: thisOrbit
+    type            (treeNode              ), intent(inout) :: node
+    type            (treeNode              ), pointer       :: nodeHost
+    class           (nodeComponentSatellite), pointer       :: satellite
+    logical                                                 :: isNewSatellite
+    double precision                                        :: mergeTime
+    type            (keplerOrbit           )                :: orbit
 
     ! Return immediately if this method is not active.
     if (.not.defaultSatelliteComponent%verySimpleIsActive()) return
 
     ! Get the satellite component.
-    satelliteComponent => thisNode%satellite()
+    satellite => node%satellite()
     ! Determine if the satellite component exists already.
     isNewSatellite=.false.
-    select type (satelliteComponent)
+    select type (satellite)
     type is (nodeComponentSatellite)
        isNewSatellite=.true.
     end select
 
     ! If this is a new satellite, create the component.
-    if (isNewSatellite) satelliteComponent => thisNode%satellite(autoCreate=.true.)
+    if (isNewSatellite) satellite => node%satellite(autoCreate=.true.)
 
-    select type (satelliteComponent)
+    select type (satellite)
     class is (nodeComponentSatelliteVerySimple)
        ! Get an orbit for this satellite.
-       if (thisNode%isSatellite()) then
-          hostNode => thisNode%parent
+       if (node%isSatellite()) then
+          nodeHost => node%parent
        else
-          hostNode => thisNode%parent%firstChild
+          nodeHost => node%parent%firstChild
        end if
-       thisOrbit=virialOrbit_%orbit(thisNode,hostNode,acceptUnboundOrbits)
+       orbit=virialOrbit_%orbit(node,nodeHost,acceptUnboundOrbits)
        ! Compute and store a time until merging.
-       mergeTime=satelliteMergingTimescales_%timeUntilMerging(thisNode,thisOrbit)
-       if (mergeTime >= 0.0d0) call satelliteComponent%mergeTimeSet(mergeTime)
+       mergeTime=satelliteMergingTimescales_%timeUntilMerging(node,orbit)
+       if (mergeTime >= 0.0d0) call satellite%mergeTimeSet(mergeTime)
     end select
     return
   end subroutine Node_Component_Satellite_Very_Simple_Create

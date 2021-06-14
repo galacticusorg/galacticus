@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -89,7 +89,7 @@ contains
     implicit none
     class           (nodePropertyExtractorPeakHeight), intent(inout) :: self
     double precision                                 , intent(in   ) :: time
-    !GCC$ attributes unused :: self, time
+    !$GLC attributes unused :: self, time
 
     peakHeightElementCount=3
     return
@@ -107,7 +107,7 @@ contains
     class           (nodeComponentBasic             ), pointer                    :: basic
     double precision                                                              :: criticalOverdensityLastIsolated, densityFieldRootVariance, &
          &                                                                           peakHeightNu
-    !GCC$ attributes unused :: time, instance
+    !$GLC attributes unused :: time, instance
 
     basic => node%basic()
     criticalOverdensityLastIsolated=self%criticalOverdensity_     %value       (mass=basic%mass(),time=basic%timeLastIsolated())
@@ -128,7 +128,7 @@ contains
     type            (varying_string                 ), dimension(:) , allocatable :: peakHeightNames
     class           (nodePropertyExtractorPeakHeight), intent(inout)              :: self
     double precision                                 , intent(in   )              :: time
-    !GCC$ attributes unused :: self, time
+    !$GLC attributes unused :: self, time
 
     allocate(peakHeightNames(3))
     peakHeightNames=[                                              &
@@ -145,7 +145,7 @@ contains
     type            (varying_string                 ), dimension(:) , allocatable :: peakHeightDescriptions
     class           (nodePropertyExtractorPeakHeight), intent(inout)              :: self
     double precision                                 , intent(in   )              :: time
-    !GCC$ attributes unused :: self, time
+    !$GLC attributes unused :: self, time
 
     allocate(peakHeightDescriptions(3))
     peakHeightDescriptions=[                                                                              &
@@ -162,7 +162,7 @@ contains
     double precision                                 , dimension(:) , allocatable :: peakHeightUnitsInSI
     class           (nodePropertyExtractorPeakHeight), intent(inout)              :: self
     double precision                                 , intent(in   )              :: time
-    !GCC$ attributes unused :: self, time
+    !$GLC attributes unused :: self, time
 
     allocate(peakHeightUnitsInSI(3))
     peakHeightUnitsInSI=[0.0d0,0.0d0,0.0d0]
@@ -174,7 +174,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorPeakHeight), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     peakHeightType=outputAnalysisPropertyTypeLinear
     return

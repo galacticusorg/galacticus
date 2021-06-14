@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,13 +23,21 @@
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !# <satelliteMergingTimescales name="satelliteMergingTimescalesVillalobos2013">
-  !#  <description>Computes the merging timescale using the method of \cite{villalobos_improved_2013} to modify another merging timescale method.</description>
+  !#  <description>
+  !#   A satellite merging timescale class which computes merging timescales using the modifier of \cite{villalobos_improved_2013}
+  !#   as
+  !#   \begin{equation}
+  !#   \tau_\mathrm{merge} = (1+z)^\alpha \tau^\prime_\mathrm{merge},
+  !#   \end{equation}
+  !#   where $\alpha=${\normalfont \ttfamily [exponent]} and $\tau^\prime_\mathrm{merge}$ is the merging timescale computed by
+  !#   another satellite merging timescale.
+  !#  </description>
   !# </satelliteMergingTimescales>
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesVillalobos2013
      !% A class implementing calculations of satellite merging times by applying the \cite{villalobos_improved_2013} modifier to
      !% another selected satellite merging time method.
      private
-     class           (cosmologyFunctionsClass        ), pointer :: cosmologyFunctions_ => null()
+     class           (cosmologyFunctionsClass        ), pointer :: cosmologyFunctions_         => null()
      class           (satelliteMergingTimescalesClass), pointer :: satelliteMergingTimescales_ => null()
      double precision                                           :: exponent
    contains
@@ -57,13 +65,10 @@ contains
 
     !# <inputParameter>
     !#   <name>exponent</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultSource>\citep{villalobos_improved_2013}</defaultSource>
     !#   <defaultValue>0.44d0</defaultValue>
     !#   <description>The exponent of $1+z$ appearing in the \cite{villalobos_improved_2013} modifier for satellite merging timescales.</description>
-    !#   <group>starFormation</group>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <objectBuilder class="satelliteMergingTimescales" name="satelliteMergingTimescales_" source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"         name="cosmologyFunctions_"         source="parameters"/>

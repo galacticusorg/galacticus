@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,8 +19,25 @@
 
   !% An implementation of heated dark matter halo profiles.
 
+  use :: Root_Finder, only : rootFinder
+    
   !# <darkMatterProfileDMO name="darkMatterProfileDMOHeated">
-  !#  <description>Heated dark matter halo profiles.</description>
+  !#  <description>
+  !#   A dark matter profile DMO class in which dark matter halos start out with a density profile defined by another {\normalfont
+  !#   \ttfamily darkMatterProfileDMO}. For subhalos, this profile is modified by tidal heating, under the assumption that the
+  !#   energy of a shell of mass before and after heating are related by
+  !#   \begin{equation}
+  !#   { \mathrm{G} M^\prime(r^\prime) \over r^\prime } = { \mathrm{G} M(r) \over r } + Q r^2,
+  !#   \end{equation}
+  !#   where $M(r)$ is the mass enclosed within a radius $r$, and $Q$ represents a normalized tidal heating (see
+  !#   \S\ref{sec:ComponentSatelliteOrbiting} for example). Primes indicate values after heating, while unprimed variables
+  !#   indicate quantities prior to heating. With the assumption of no shell crossing, $M^\prime(r^\prime)=M(r)$ and this equation
+  !#   can be solved for $r$ given $r^\prime$.
+  !#   
+  !#   Not all methods have anakytic solutions for this profile. If {\normalfont \ttfamily [nonAnalyticSolver]}$=${\normalfont
+  !#   \ttfamily fallThrough} then attempts to call these methods in heated profiles will simply return the result from the
+  !#   unheated profile, otherwise a numerical calculation is performed.
+  !#  </description>
   !# </darkMatterProfileDMO>
 
   use :: Dark_Matter_Profiles_Generic, only : enumerationNonAnalyticSolversEncode, enumerationNonAnalyticSolversIsValid, nonAnalyticSolversFallThrough
@@ -29,27 +46,18 @@
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOHeated
      !% A dark matter halo profile class implementing heated dark matter halos.
      private
-     class           (darkMatterProfileDMOClass    ), pointer :: darkMatterProfileDMO_     => null()
-     class           (darkMatterProfileHeatingClass), pointer :: darkMatterProfileHeating_ => null()
+     class           (darkMatterProfileDMOClass    ), pointer :: darkMatterProfileDMO_         => null()
+     class           (darkMatterProfileHeatingClass), pointer :: darkMatterProfileHeating_     => null()
      integer         (kind=kind_int8               )          :: lastUniqueID
-     double precision                                         :: radiusFinalPrevious                , radiusInitialPrevious
+     double precision                                         :: radiusFinalPrevious                    , radiusInitialPrevious
      integer                                                  :: nonAnalyticSolver
+     logical                                                  :: velocityDispersionApproximate
+     type            (rootFinder                   )          :: finder
    contains
-     !@ <objectMethods>
-     !@   <object>darkMatterProfileDMOHeated</object>
-     !@   <objectMethod>
-     !@     <method>calculationReset</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(table)\textgreater} node\arginout</arguments>
-     !@     <description>Reset memoized calculations.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>radiusInitial</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\textcolor{red}{\textless *type(treeNode)\textgreater} node\arginout, \doublezero\ radiusFinal\argin</arguments>
-     !@     <description>Return the initial radius corresponding to the given final radius in a heated dark matter halo density profile.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Reset memoized calculations."                                                                                    method="calculationReset"/>
+     !#   <method description="Return the initial radius corresponding to the given final radius in a heated dark matter halo density profile." method="radiusInitial"   />
+     !# </methods>
      final     ::                                      heatedDestructor
      procedure :: autoHook                          => heatedAutoHook
      procedure :: calculationReset                  => heatedCalculationReset
@@ -62,6 +70,7 @@
      procedure :: enclosedMass                      => heatedEnclosedMass
      procedure :: potential                         => heatedPotential
      procedure :: circularVelocity                  => heatedCircularVelocity
+     procedure :: radiusCircularVelocityMaximum     => heatedRadiusCircularVelocityMaximum
      procedure :: circularVelocityMaximum           => heatedCircularVelocityMaximum
      procedure :: radialVelocityDispersion          => heatedRadialVelocityDispersion
      procedure :: radiusFromSpecificAngularMomentum => heatedRadiusFromSpecificAngularMomentum
@@ -84,32 +93,44 @@
   type            (treeNode                  ), pointer :: heatedNode
   type            (darkMatterProfileDMOHeated), pointer :: heatedSelf
   !$omp threadprivate(heatedRadiusFinal,heatedNode,heatedSelf)
-
+  
 contains
 
   function heatedConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily heated} dark matter halo profile class.
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type   (darkMatterProfileDMOHeated    )                :: self
-    type   (inputParameters               ), intent(inout) :: parameters
-    class  (darkMatterProfileDMOClass     ), pointer       :: darkMatterProfileDMO_
-    class  (darkMatterHaloScaleClass      ), pointer       :: darkMatterHaloScale_
-    class  (darkMatterProfileHeatingClass ), pointer       :: darkMatterProfileHeating_
-    type   (varying_string                )                :: nonAnalyticSolver
+    type            (darkMatterProfileDMOHeated    )                :: self
+    type            (inputParameters               ), intent(inout) :: parameters
+    class           (darkMatterProfileDMOClass     ), pointer       :: darkMatterProfileDMO_
+    class           (darkMatterHaloScaleClass      ), pointer       :: darkMatterHaloScale_
+    class           (darkMatterProfileHeatingClass ), pointer       :: darkMatterProfileHeating_
+    type            (varying_string                )                :: nonAnalyticSolver
+    logical                                                         :: velocityDispersionApproximate
+    double precision                                                :: toleranceRelativeVelocityDispersion
 
     !# <inputParameter>
     !#   <name>nonAnalyticSolver</name>
     !#   <defaultValue>var_str('fallThrough')</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Selects how solutions are computed when no analytic solution is available. If set to ``{\normalfont \ttfamily fallThrough}'' then the solution ignoring heating is used, while if set to ``{\normalfont \ttfamily numerical}'' then numerical solvers are used to find solutions.</description>
-    !#   <type>string</type>
-    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>velocityDispersionApproximate</name>
+    !#   <defaultValue>.true.</defaultValue>
+    !#   <source>parameters</source>
+    !#   <description>If {\normalfont \ttfamily true}, radial velocity dispersion is computed using an approximate method in which we assume that $\sigma_\mathrm{r}^2(r) \rightarrow \sigma_\mathrm{r}^2(r) - (2/3) \epsilon(r)$, where $\epsilon(r)$ is the specific heating energy. If {\normalfont \ttfamily false} then radial velocity dispersion is computed by numerically solving the Jeans equation.</description>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>toleranceRelativeVelocityDispersion</name>
+    !#   <defaultValue>1.0d-6</defaultValue>
+    !#   <source>parameters</source>
+    !#   <description>The relative tolerance to use in numerical solutions for the velocity dispersion in dark-matter-only density profiles.</description>
     !# </inputParameter>
     !# <objectBuilder class="darkMatterProfileDMO"     name="darkMatterProfileDMO_"     source="parameters"/>
     !# <objectBuilder class="darkMatterHaloScale"      name="darkMatterHaloScale_"      source="parameters"/>
     !# <objectBuilder class="darkMatterProfileHeating" name="darkMatterProfileHeating_" source="parameters"/>
-    self=darkMatterProfileDMOHeated(enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterProfileHeating_)
+    self=darkMatterProfileDMOHeated(enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),velocityDispersionApproximate,toleranceRelativeVelocityDispersion,darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterProfileHeating_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="darkMatterProfileDMO_"    />
     !# <objectDestructor name="darkMatterHaloScale_"     />
@@ -117,22 +138,31 @@ contains
     return
   end function heatedConstructorParameters
 
-  function heatedConstructorInternal(nonAnalyticSolver,darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterProfileHeating_) result(self)
+  function heatedConstructorInternal(nonAnalyticSolver,velocityDispersionApproximate,toleranceRelativeVelocityDispersion,darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterProfileHeating_) result(self)
     !% Generic constructor for the {\normalfont \ttfamily heated} dark matter profile class.
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    type   (darkMatterProfileDMOHeated   )                        :: self
-    class  (darkMatterProfileDMOClass    ), intent(in   ), target :: darkMatterProfileDMO_
-    class  (darkMatterHaloScaleClass     ), intent(in   ), target :: darkMatterHaloScale_
-    class  (darkMatterProfileHeatingClass), intent(in   ), target :: darkMatterProfileHeating_
-    integer                               , intent(in   )         :: nonAnalyticSolver
-    !# <constructorAssign variables="nonAnalyticSolver, *darkMatterProfileDMO_, *darkMatterHaloScale_, *darkMatterProfileHeating_"/>
+    type            (darkMatterProfileDMOHeated   )                        :: self
+    class           (darkMatterProfileDMOClass    ), intent(in   ), target :: darkMatterProfileDMO_
+    class           (darkMatterHaloScaleClass     ), intent(in   ), target :: darkMatterHaloScale_
+    class           (darkMatterProfileHeatingClass), intent(in   ), target :: darkMatterProfileHeating_
+    integer                                        , intent(in   )         :: nonAnalyticSolver
+    logical                                        , intent(in   )         :: velocityDispersionApproximate
+    double precision                               , intent(in   )         :: toleranceRelativeVelocityDispersion
+    double precision                               , parameter             :: toleranceAbsolute                  =0.0d0, toleranceRelative=1.0d-6
+    !# <constructorAssign variables="nonAnalyticSolver, velocityDispersionApproximate, toleranceRelativeVelocityDispersion, *darkMatterProfileDMO_, *darkMatterHaloScale_, *darkMatterProfileHeating_"/>
 
     ! Validate.
     if (.not.enumerationNonAnalyticSolversIsValid(nonAnalyticSolver)) call Galacticus_Error_Report('invalid non-analytic solver type'//{introspection:location})
     ! Construct the object.
+    self%genericLastUniqueID=-1_kind_int8
     self%lastUniqueID       =-1_kind_int8
     self%radiusFinalPrevious=-huge(0.0d0)
+    self%finder             =rootFinder(                                           &
+         &                              rootFunction     =heatedRadiusInitialRoot, &
+         &                              toleranceAbsolute=toleranceAbsolute      , &
+         &                              toleranceRelative=toleranceRelative        &
+         &                             )
     return
   end function heatedConstructorInternal
 
@@ -167,7 +197,12 @@ contains
 
     ! Reset calculations for this profile.
     self%lastUniqueID       =node%uniqueID()
+    self%genericLastUniqueID=node%uniqueID()
     self%radiusFinalPrevious=-huge(0.0d0)
+    if (allocated(self%genericVelocityDispersionRadialVelocity)) deallocate(self%genericVelocityDispersionRadialVelocity)
+    if (allocated(self%genericVelocityDispersionRadialRadius  )) deallocate(self%genericVelocityDispersionRadialRadius  )
+    if (allocated(self%genericEnclosedMassMass                )) deallocate(self%genericEnclosedMassMass                )
+    if (allocated(self%genericEnclosedMassRadius              )) deallocate(self%genericEnclosedMassRadius              )
     return
   end subroutine heatedCalculationReset
 
@@ -175,7 +210,7 @@ contains
     !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given
     !% {\normalfont \ttfamily radius} (given in units of Mpc).
     use :: Numerical_Constants_Math    , only : Pi
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (darkMatterProfileDMOHeated), intent(inout) :: self
     type            (treeNode                  ), intent(inout) :: node
@@ -183,35 +218,44 @@ contains
     double precision                                            :: radiusInitial , massEnclosed, &
          &                                                         densityInitial, jacobian
 
-    radiusInitial      =self                %radiusInitial(node,radius       )
-    massEnclosed       =self%darkMatterProfileDMO_%enclosedMass (node,radiusInitial)
-    densityInitial     =self%darkMatterProfileDMO_%density      (node,radiusInitial)
-    jacobian           =+1.0d0                                                                                                       &
-         &              /(                                                                                                           &
-         &                +(                                                                                                         &
-         &                  +radius                                                                                                  &
-         &                  /radiusInitial                                                                                           &
-         &                 )                                                                                                     **2 &
-         &                +2.0d0                                                                                                     &
-         &                *radius                                                                                                **2 &
-         &                /gravitationalConstantGalacticus                                                                           &
-         &                /massEnclosed                                                                                              &
-         &                *(                                                                                                         &
-         &                  +self%darkMatterProfileHeating_%specificEnergyGradient(node,self%darkMatterProfileDMO_,radiusInitial)    &
-         &                  -4.0d0                                                                                                   &
-         &                  *Pi                                                                                                      &
-         &                  *radiusInitial                                                                                       **2 &
-         &                  *densityInitial                                                                                          &
-         &                  *self%darkMatterProfileHeating_%specificEnergy        (node,self%darkMatterProfileDMO_,radiusInitial)    &
-         &                  /massEnclosed                                                                                            &
-         &                 )                                                                                                         &
-         &               )
-    heatedDensity=+densityInitial                                                                                                    &
-         &               *(                                                                                                          &
-         &                 +radiusInitial                                                                                            &
-         &                 /radius                                                                                                   &
-         &                )                                                                                                      **2 &
-         &               *jacobian
+    radiusInitial =self                      %radiusInitial(node,radius       )
+    densityInitial=self%darkMatterProfileDMO_%density      (node,radiusInitial)
+    if (radius == 0.0d0 .and. radiusInitial == 0.0d0) then
+       ! At zero radius, the density is unchanged.
+       heatedDensity =+densityInitial
+    else
+       massEnclosed  =+self%darkMatterProfileDMO_%enclosedMass (node,radiusInitial)
+       if (massEnclosed > 0.0d0) then
+          jacobian      =+1.0d0                                                                                                       &
+               &         /(                                                                                                           &
+               &           +(                                                                                                         &
+               &             +radius                                                                                                  &
+               &             /radiusInitial                                                                                           &
+               &            )                                                                                                     **2 &
+               &           +2.0d0                                                                                                     &
+               &           *radius                                                                                                **2 &
+               &           /gravitationalConstantGalacticus                                                                           &
+               &           /massEnclosed                                                                                              &
+               &           *(                                                                                                         &
+               &             +self%darkMatterProfileHeating_%specificEnergyGradient(node,self%darkMatterProfileDMO_,radiusInitial)    &
+               &             -4.0d0                                                                                                   &
+               &             *Pi                                                                                                      &
+               &             *radiusInitial                                                                                       **2 &
+               &             *densityInitial                                                                                          &
+               &             *self%darkMatterProfileHeating_%specificEnergy        (node,self%darkMatterProfileDMO_,radiusInitial)    &
+               &             /massEnclosed                                                                                            &
+               &            )                                                                                                         &
+               &          )
+          heatedDensity =+densityInitial                                                                                              &
+               &         *(                                                                                                           &
+               &           +radiusInitial                                                                                             &
+               &           /radius                                                                                                    &
+               &          )                                                                                                       **2 &
+               &         *jacobian
+       else
+          heatedDensity =+densityInitial
+       end if
+    end if
     return
   end function heatedDensity
 
@@ -250,8 +294,8 @@ contains
   double precision function heatedRadiusEnclosingMass(self,node,mass)
     !% Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given
     !% {\normalfont \ttfamily mass} (given in units of $M_\odot$).
-    use :: Galactic_Structure_Options  , only : radiusLarge
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Galactic_Structure_Options      , only : radiusLarge
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (darkMatterProfileDMOHeated), intent(inout), target :: self
     type            (treeNode                  ), intent(inout), target :: node
@@ -304,16 +348,13 @@ contains
   double precision function heatedRadiusInitial(self,node,radiusFinal)
     !% Find the initial radius corresponding to the given {\normalfont \ttfamily radiusFinal} in
     !% the heated dark matter profile.
-    use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
+    use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
     implicit none
     class           (darkMatterProfileDMOHeated), intent(inout), target  :: self
     type            (treeNode                  ), intent(inout), target  :: node
     double precision                            , intent(in   )          :: radiusFinal
-    double precision                            , parameter              :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
-    type            (rootFinder                ), save                   :: finder
     double precision                                                     :: factorExpand
-    !$omp threadprivate(finder)
-
+    
     ! If profile is unheated, the initial radius equals the final radius.
     if (self%darkMatterProfileHeating_%specificEnergyIsEverywhereZero(node,self%darkMatterProfileDMO_)) then
        heatedRadiusInitial=radiusFinal
@@ -326,40 +367,37 @@ contains
        heatedSelf        => self
        heatedNode        => node
        heatedRadiusFinal =  radiusFinal
-       if (.not.finder%isInitialized()) then
-          call finder%rootFunction(heatedRadiusInitialRoot                  )
-          call finder%tolerance   (toleranceAbsolute      ,toleranceRelative)
-       end if
-       if (self%radiusFinalPrevious <= -huge(0.0d0) .or. radiusFinal < self%radiusInitialPrevious) then
-          ! No previous solution is available, or the requested final radius is smaller than the previous initial radius. In this
-          ! case, our guess for the initial radius is the final radius, and we expand the range downward to find a solution.
-          call finder%rangeExpand (                                                             &
-               &                   rangeExpandUpward            =1.01d0                       , &
-               &                   rangeExpandDownward          =0.50d0                       , &
-               &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
-               &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-               &                   rangeExpandType              =rangeExpandMultiplicative      &
-               &                  )
-          self%radiusInitialPrevious=finder%find(rootGuess=radiusFinal)
+       if (self%radiusFinalPrevious <= -huge(0.0d0) .or. radiusFinal < self%radiusInitialPrevious .or. radiusFinal > 10.0d0*self%radiusInitialPrevious) then
+          ! No previous solution is available, or the requested final radius is smaller than the previous initial radius, or the
+          ! final radius is much larger than the previous initial radius. In this case, our guess for the initial radius is the
+          ! final radius, and we expand the range downward to find a solution.
+          call self%finder%rangeExpand(                                                             &
+               &                       rangeExpandUpward            =1.01d0                       , &
+               &                       rangeExpandDownward          =0.50d0                       , &
+               &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+               &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+               &                       rangeExpandType              =rangeExpandMultiplicative      &
+               &                      )
+          self%radiusInitialPrevious=self%finder%find(rootGuess=radiusFinal)
        else
-          ! Previous solution exists, and the requested final radius is larger than the previous initial radius. Use the previous
-          ! initial radius as a guess for the solution, with range expansion in steps determined by the relative values of the
-          ! current and previous final radii. If the current final radius is close to the previous final radius this should give a
-          ! guess for the initial radius close to the actual solution.
+          ! Previous solution exists, and the requested final radius is larger (but not too much larger) than the previous initial
+          ! radius. Use the previous initial radius as a guess for the solution, with range expansion in steps determined by the
+          ! relative values of the current and previous final radii. If the current final radius is close to the previous final
+          ! radius this should give a guess for the initial radius close to the actual solution.
           if (radiusFinal > self%radiusFinalPrevious) then
              factorExpand=     radiusFinal        /self%radiusFinalPrevious
           else
              factorExpand=self%radiusFinalPrevious/     radiusFinal
           end if
-          call finder%rangeExpand (                                                             &
-               &                   rangeExpandUpward            =1.0d0*factorExpand           , &
-               &                   rangeExpandDownward          =1.0d0/factorExpand           , &
-               &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
-               &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-               &                   rangeExpandType              =rangeExpandMultiplicative      &
-               &                  )
-          self%radiusInitialPrevious=finder%find(rootGuess=self%radiusInitialPrevious)
-       end if
+          call self%finder%rangeExpand(                                                             &
+               &                       rangeExpandUpward            =1.0d0*factorExpand           , &
+               &                       rangeExpandDownward          =1.0d0/factorExpand           , &
+               &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+               &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+               &                       rangeExpandType              =rangeExpandMultiplicative      &
+               &                      )
+          self%radiusInitialPrevious=self%finder%find(rootGuess=self%radiusInitialPrevious)
+       end if       
        self%radiusFinalPrevious=radiusFinal
     end if
     heatedRadiusInitial=self%radiusInitialPrevious
@@ -368,12 +406,40 @@ contains
 
   double precision function heatedRadiusInitialRoot(radiusInitial)
     !% Root function used in finding initial radii in heated dark matter halo profiles.
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     double precision, intent(in   ) :: radiusInitial
+    double precision, parameter     :: fractionRadiusSmall   =1.0d-3
     double precision                :: massEnclosed
-
-    massEnclosed           =+heatedSelf%darkMatterProfileDMO_    %enclosedMass  (heatedNode,                                 radiusInitial)
+    logical                         :: noShellCrossingIsValid
+    
+    massEnclosed=+heatedSelf%darkMatterProfileDMO_%enclosedMass(heatedNode,radiusInitial)
+    if (radiusInitial < fractionRadiusSmall*heatedRadiusFinal) then
+       ! The initial radius is a small fraction of the final radius. Check if the assumption of no shell crossing is locally
+       ! broken. If the gradient of the heating term is less than that of the gravitational potential term then it is likely that
+       ! no root exists. In this case shell crossing is likely to be occuring. Simply return a value of zero, which places the
+       ! root at the current radius.
+       noShellCrossingIsValid= +  heatedSelf%darkMatterProfileHeating_%specificEnergyGradient(heatedNode,heatedSelf%darkMatterProfileDMO_,radiusInitial) &
+            &                 <                                                                                                                          &
+            &                  +0.5d0                                                                                                                    &
+            &                  *gravitationalConstantGalacticus                                                                                          &
+            &                  *(                                                                                                                        &
+            &                    +4.0d0                                                                                                                  &
+            &                    *Pi                                                                                                                     &
+            &                    *radiusInitial**2                                                                                                       &
+            &                    *heatedSelf%darkMatterProfileDMO_    %density               (heatedNode                                 ,radiusInitial) &
+            &                    *(                                                                                                                      &
+            &                      +1.0d0/heatedRadiusFinal                                                                                              &
+            &                      -1.0d0/radiusInitial                                                                                                  &
+            &                     )                                                                                                                      &
+            &                    +massEnclosed                                                                                                             &
+            &                    /radiusInitial**2                                                                                                         &
+            &                   )
+       if (.not.noShellCrossingIsValid) then
+          heatedRadiusInitialRoot=0.0d0
+          return
+       end if
+    end if
     heatedRadiusInitialRoot=+heatedSelf%darkMatterProfileHeating_%specificEnergy(heatedNode,heatedSelf%darkMatterProfileDMO_,radiusInitial) &
          &                  +0.5d0                                                                                                          &
          &                  *gravitationalConstantGalacticus                                                                                &
@@ -405,7 +471,7 @@ contains
   double precision function heatedCircularVelocity(self,node,radius)
     !% Returns the circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
     !% {\normalfont \ttfamily radius} (given in units of Mpc).
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (darkMatterProfileDMOHeated), intent(inout) :: self
     type            (treeNode                  ), intent(inout) :: node
@@ -422,6 +488,20 @@ contains
     end if
     return
   end function heatedCircularVelocity
+
+  double precision function heatedRadiusCircularVelocityMaximum(self,node)
+    !% Returns the radius (in Mpc) at which the maximum circular velocity is acheived in the dark matter profile of {\normalfont \ttfamily node}.
+    implicit none
+    class(darkMatterProfileDMOHeated), intent(inout) :: self
+    type (treeNode                  ), intent(inout) :: node
+
+    if (self%darkMatterProfileHeating_%specificEnergyIsEverywhereZero(node,self%darkMatterProfileDMO_) .or. self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
+       heatedRadiusCircularVelocityMaximum=self%darkMatterProfileDMO_%radiusCircularVelocityMaximum         (node)
+    else
+       heatedRadiusCircularVelocityMaximum=self                      %radiusCircularVelocityMaximumNumerical(node)
+    end if
+    return
+  end function heatedRadiusCircularVelocityMaximum
 
   double precision function heatedCircularVelocityMaximum(self,node)
     !% Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}.
@@ -448,13 +528,18 @@ contains
          &                                                         velocityDispersionSquare
 
     if (self%darkMatterProfileHeating_%specificEnergyIsEverywhereZero(node,self%darkMatterProfileDMO_) .or. self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
+       ! Use the original, unheated profile velocity dispersion.
        heatedRadialVelocityDispersion=self%darkMatterProfileDMO_%radialVelocityDispersion(node,radius)
-    else
-       radiusInitial                 = self%radiusInitial                                     (node                           ,radius       )
-       energySpecific                = self%darkMatterProfileHeating_%specificEnergy          (node,self%darkMatterProfileDMO_,radiusInitial)
-       velocityDispersionSquare      =+self%darkMatterProfileDMO_    %radialVelocityDispersion(node                           ,radiusInitial)**2 &
+    else if (self%velocityDispersionApproximate) then
+       ! Use the approximate solution for velocity dispersion.
+       radiusInitial                 = self%radiusInitial                                               (node                           ,radius       )
+       energySpecific                = self%darkMatterProfileHeating_%specificEnergy                    (node,self%darkMatterProfileDMO_,radiusInitial)
+       velocityDispersionSquare      =+self%darkMatterProfileDMO_    %radialVelocityDispersion          (node                           ,radiusInitial)**2 &
             &                         -2.0d0/3.0d0*energySpecific
        heatedRadialVelocityDispersion=sqrt(max(0.0d0,velocityDispersionSquare))
+    else
+       ! Use a numerical solution.
+       heatedRadialVelocityDispersion=+self                           %radialVelocityDispersionNumerical(node                           ,radius       )
     end if
     return
   end function heatedRadialVelocityDispersion
@@ -463,9 +548,9 @@ contains
     !% Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentum} (given
     !% in units of km s$^{-1}$ Mpc).
     implicit none
-    class           (darkMatterProfileDMOHeated), intent(inout)          :: self
-    type            (treeNode                  ), intent(inout), pointer :: node
-    double precision                            , intent(in   )          :: specificAngularMomentum
+    class           (darkMatterProfileDMOHeated), intent(inout) :: self
+    type            (treeNode                  ), intent(inout) :: node
+    double precision                            , intent(in   ) :: specificAngularMomentum
 
     if (self%darkMatterProfileHeating_%specificEnergyIsEverywhereZero(node,self%darkMatterProfileDMO_) .or. self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        heatedRadiusFromSpecificAngularMomentum=self%darkMatterProfileDMO_%radiusFromSpecificAngularMomentum         (node,specificAngularMomentum)
@@ -537,9 +622,9 @@ contains
     !% Returns the freefall radius in the heated density profile at the specified {\normalfont \ttfamily time} (given in
     !% Gyr).
     implicit none
-    class           (darkMatterProfileDMOHeated), intent(inout) :: self
-    type            (treeNode                  ), intent(inout) :: node
-    double precision                            , intent(in   ) :: time
+    class           (darkMatterProfileDMOHeated), intent(inout), target :: self
+    type            (treeNode                  ), intent(inout), target :: node
+    double precision                            , intent(in   )         :: time
 
    if (self%darkMatterProfileHeating_%specificEnergyIsEverywhereZero(node,self%darkMatterProfileDMO_) .or. self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        heatedFreefallRadius=self%darkMatterProfileDMO_%freefallRadius         (node,time)
@@ -553,9 +638,9 @@ contains
     !% Returns the rate of increase of the freefall radius in the heated density profile at the specified {\normalfont
     !% \ttfamily time} (given in Gyr).
     implicit none
-    class           (darkMatterProfileDMOHeated), intent(inout) :: self
-    type            (treeNode                  ), intent(inout) :: node
-    double precision                            , intent(in   ) :: time
+    class           (darkMatterProfileDMOHeated), intent(inout), target :: self
+    type            (treeNode                  ), intent(inout), target :: node
+    double precision                            , intent(in   )         :: time
 
    if (self%darkMatterProfileHeating_%specificEnergyIsEverywhereZero(node,self%darkMatterProfileDMO_) .or. self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        heatedFreefallRadiusIncreaseRate=self%darkMatterProfileDMO_%freefallRadiusIncreaseRate         (node,time)

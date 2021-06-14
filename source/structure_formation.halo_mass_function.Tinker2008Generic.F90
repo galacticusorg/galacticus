@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -60,37 +60,29 @@ contains
     !#   <name>normalization</name>
     !#   <defaultValue>0.150d0</defaultValue>
     !#   <defaultSource>\citep{trac_scorch_2015}</defaultSource>
-    !#   <cardinality>1</cardinality>
     !#   <description>The normalization parameter, $A$, for the \cite{tinker_towardhalo_2008} halo mass function.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>a</name>
     !#   <defaultValue>1.36d0</defaultValue>
     !#   <defaultSource>\citep{trac_scorch_2015}</defaultSource>
-    !#   <cardinality>1</cardinality>
     !#   <description>The parameter $a$ for the \cite{tinker_towardhalo_2008} halo mass function.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>b</name>
     !#   <defaultValue>2.54d0</defaultValue>
     !#   <defaultSource>\citep{trac_scorch_2015}</defaultSource>
-    !#   <cardinality>1</cardinality>
     !#   <description>The parameter $b$ for the \cite{tinker_towardhalo_2008} halo mass function.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>c</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.14d0</defaultValue>
     !#   <defaultSource>\citep{trac_scorch_2015}</defaultSource>
     !#   <description>The parameter $c$ for the \cite{tinker_towardhalo_2008} halo mass function.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
     !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
@@ -152,7 +144,7 @@ contains
     implicit none
     class           (haloMassFunctionTinker2008Generic), intent(inout) :: self
     double precision                                   , intent(in   ) :: time, mass
-    !GCC$ attributes unused :: time, mass
+    !$GLC attributes unused :: time, mass
 
     tinker2008GenericNormalization=self%normalizationValue
     return
@@ -163,7 +155,7 @@ contains
     implicit none
     class           (haloMassFunctionTinker2008Generic), intent(inout) :: self
     double precision                                   , intent(in   ) :: time, mass
-    !GCC$ attributes unused :: time, mass
+    !$GLC attributes unused :: time, mass
 
     tinker2008GenericA=self%aValue
     return
@@ -174,7 +166,7 @@ contains
     implicit none
     class           (haloMassFunctionTinker2008Generic), intent(inout) :: self
     double precision                                   , intent(in   ) :: time, mass
-    !GCC$ attributes unused :: time, mass
+    !$GLC attributes unused :: time, mass
 
     tinker2008GenericB=self%bValue
     return
@@ -185,7 +177,7 @@ contains
     implicit none
     class           (haloMassFunctionTinker2008Generic), intent(inout) :: self
     double precision                                   , intent(in   ) :: time, mass
-    !GCC$ attributes unused :: time, mass
+    !$GLC attributes unused :: time, mass
 
     tinker2008GenericC=self%cValue
     return

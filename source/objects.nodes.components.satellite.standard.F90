@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -68,7 +68,6 @@ module Node_Component_Satellite_Standard
   !#     <type>keplerOrbit</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" isDeferred="set:get" />
-  !#     <output condition="[[satelliteOutputVirialOrbit]]" comment="Virial orbital parameters of the satellite node."/>
   !#   </property>
   !#  </properties>
   !#  <functions>objects.nodes.components.satellite.standard.bound_functions.inc</functions>
@@ -109,30 +108,24 @@ contains
         ! Determine if satellite orbits are to be stored.
         !# <inputParameter>
         !#   <name>satelliteOrbitStoreOrbitalParameters</name>
-        !#   <cardinality>1</cardinality>
         !#   <defaultValue>.true.</defaultValue>
         !#   <description>Specifies whether satellite virial orbital parameters should be stored (otherwise they are computed
         !#      again---possibly at random---each time they are requested).</description>
         !#   <source>parameters_</source>
-        !#   <type>boolean</type>
         !# </inputParameter>
         ! Determine if satellite orbits are to be reset on halo formation events.
         !# <inputParameter>
         !#   <name>satelliteOrbitResetOnHaloFormation</name>
-        !#   <cardinality>1</cardinality>
         !#   <defaultValue>.false.</defaultValue>
         !#   <description>Specifies whether satellite virial orbital parameters should be reset on halo formation events.</description>
         !#   <source>parameters_</source>
-        !#   <type>boolean</type>
         !# </inputParameter>
         ! Determine if bound mass is an inactive variable.
         !# <inputParameter>
         !#   <name>satelliteBoundMassIsInactive</name>
-        !#   <cardinality>1</cardinality>
         !#   <defaultValue>.false.</defaultValue>
         !#   <description>Specifies whether or not the bound mass variable of the standard satellite component is inactive (i.e. does not appear in any ODE being solved).</description>
         !#   <source>parameters_</source>
-        !#   <type>boolean</type>
         !# </inputParameter>
          ! Specify the function to use for setting virial orbits.
         call satellite%virialOrbitSetFunction(Node_Component_Satellite_Standard_Virial_Orbit_Set)
@@ -197,6 +190,7 @@ contains
 
   !# <mergerTreeInitializeTask>
   !#  <unitName>Node_Component_Satellite_Standard_Tree_Initialize</unitName>
+  !#  <after>darkMatterProfile</after>
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Satellite_Standard_Tree_Initialize(node)
     !% Initialize the standard satellite component.
@@ -221,19 +215,18 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Satellite_Standard_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Satellite_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
+  subroutine Node_Component_Satellite_Standard_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
     !% Compute the time until satellite merging rate of change.
     use :: Galacticus_Nodes, only : defaultSatelliteComponent, nodeComponentSatellite, nodeComponentSatelliteStandard, propertyTypeActive, &
           &                         propertyTypeAll          , propertyTypeInactive  , treeNode
     implicit none
-    type            (treeNode              ), intent(inout), pointer :: node
-    logical                                 , intent(in   )          :: odeConverged
+    type            (treeNode              ), intent(inout)          :: node
     logical                                 , intent(inout)          :: interrupt
     procedure       (                      ), intent(inout), pointer :: interruptProcedure
     integer                                 , intent(in   )          :: propertyType
     class           (nodeComponentSatellite)               , pointer :: satellite
     double precision                                                 :: massLossRate
-    !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
+    !$GLC attributes unused :: interrupt, interruptProcedure
 
     ! Return immediately if this class is not in use.
     if (.not.defaultSatelliteComponent%standardIsActive()) return
@@ -379,16 +372,18 @@ contains
   !# </satelliteHostChangeTask>
   subroutine Node_Component_Satellite_Standard_Create(node)
     !% Create a satellite orbit component and assign a time until merging and a bound mass equal initially to the total halo mass.
-    use :: Galacticus_Nodes, only : defaultSatelliteComponent, nodeComponentBasic, nodeComponentSatellite, nodeComponentSatelliteStandard, &
-          &                         treeNode
+    use :: Galacticus_Nodes, only : defaultSatelliteComponent, nodeComponentBasic           , nodeComponentSatellite, nodeComponentSatelliteStandard, &
+         &                          treeNode
+    use :: Kepler_Orbits   , only : keplerOrbitMasses        , keplerOrbitRadius            , keplerOrbitTheta      , keplerOrbitPhi                , &
+         &                          keplerOrbitVelocityRadial, keplerOrbitVelocityTangential
     implicit none
-    type            (treeNode              ), intent(inout), pointer :: node
-    type            (treeNode              )               , pointer :: hostNode
-    class           (nodeComponentSatellite)               , pointer :: satellite
-    class           (nodeComponentBasic    )               , pointer :: basic
-    logical                                                          :: isNewSatellite
-    double precision                                                 :: mergeTime
-    type            (keplerOrbit           )                         :: orbit
+    type            (treeNode              ), intent(inout) :: node
+    type            (treeNode              ), pointer       :: hostNode
+    class           (nodeComponentSatellite), pointer       :: satellite
+    class           (nodeComponentBasic    ), pointer       :: basic
+    logical                                                 :: isNewSatellite
+    double precision                                        :: mergeTime
+    type            (keplerOrbit           )                :: orbit
 
     ! Return immediately if this method is not active.
     if (.not.defaultSatelliteComponent%standardIsActive()) return
@@ -421,7 +416,15 @@ contains
        else
           hostNode => node%parent%firstChild
        end if
-       orbit=virialOrbit_%orbit(node,hostNode,acceptUnboundOrbits)
+       ! Test if the orbit is already defined. (This can happen if some other component requested the orbit during its initialization.)
+       orbit=satellite%virialOrbitValue()
+       if (orbit%isDefined()) then
+          ! The orbit has been previous defined, reset derived properties.
+          call orbit%reset(keep=[keplerOrbitMasses,keplerOrbitRadius,keplerOrbitTheta,keplerOrbitPhi,keplerOrbitVelocityRadial,keplerOrbitVelocityTangential])
+       else
+          ! The orbit is not previously defined, so choose an orbit now.
+          orbit=virialOrbit_%orbit(node,hostNode,acceptUnboundOrbits)
+       end if
        ! Store the orbit if necessary.
        if (satelliteOrbitStoreOrbitalParameters) call satellite%virialOrbitSet(orbit)
        ! Compute and store a time until merging.

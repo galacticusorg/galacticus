@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,6 +21,9 @@
 
   !# <darkMatterProfileHeating name="darkMatterProfileHeatingSummation">
   !#  <description>A dark matter profile heating model which sums over other heat sources.</description>
+  !#  <deepCopy>
+  !#   <linkedList type="heatSourceList" variable="heatSources" next="next" object="heatSource" objectType="darkMatterProfileHeatingClass"/>
+  !#  </deepCopy>
   !# </darkMatterProfileHeating>
 
   type, public :: heatSourceList
@@ -37,7 +40,6 @@
      procedure :: specificEnergy                 => summationSpecificEnergy
      procedure :: specificEnergyGradient         => summationSpecificEnergyGradient
      procedure :: specificEnergyIsEverywhereZero => summationSpecificEnergyIsEverywhereZero
-     procedure :: deepCopy                       => summationDeepCopy
   end type darkMatterProfileHeatingSummation
 
   interface darkMatterProfileHeatingSummation
@@ -58,7 +60,7 @@ contains
     integer                                                   :: i
 
     heatSource => null()
-    do i=1,parameters%copiesCount('darkMatterProfileHeatingMethod',zeroIfNotPresent=.true.)
+    do i=1,parameters%copiesCount('darkMatterProfileHeating',zeroIfNotPresent=.true.)
        if (associated(heatSource)) then
           allocate(heatSource%next)
           heatSource => heatSource%next
@@ -168,37 +170,3 @@ contains
     end do
     return
   end function summationSpecificEnergyIsEverywhereZero
-
-  subroutine summationDeepCopy(self,destination)
-    !% Perform a deep copy for the {\normalfont \ttfamily summation} dark matter halo profile heating class.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    implicit none
-    class(darkMatterProfileHeatingSummation), intent(inout) :: self
-    class(darkMatterProfileHeatingClass    ), intent(inout) :: destination
-    type (heatSourceList                   ), pointer       :: heatSource_   , heatSourceDestination_, &
-         &                                                     heatSourceNew_
-
-    call self%darkMatterProfileHeatingClass%deepCopy(destination)
-    select type (destination)
-    type is (darkMatterProfileHeatingSummation)
-       destination%heatSources => null          ()
-       heatSourceDestination_  => null          ()
-       heatSource_             => self%heatSources
-       do while (associated(heatSource_))
-          allocate(heatSourceNew_)
-          if (associated(heatSourceDestination_)) then
-             heatSourceDestination_%next       => heatSourceNew_
-             heatSourceDestination_            => heatSourceNew_
-          else
-             destination          %heatSources => heatSourceNew_
-             heatSourceDestination_            => heatSourceNew_
-          end if
-          allocate(heatSourceNew_%heatSource,mold=heatSource_%heatSource)
-          !# <deepCopy source="heatSource_%heatSource" destination="heatSourceNew_%heatSource"/>
-          heatSource_ => heatSource_%next
-       end do
-    class default
-       call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})
-    end select
-    return
-  end subroutine summationDeepCopy

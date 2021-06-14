@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -66,8 +66,6 @@ contains
     !#   <variable>informationContentConstructorParameters%outputGroupName</variable>
     !#   <defaultValue>var_str('treeInformationContent')</defaultValue>
     !#   <description>The name of an \gls{hdf5} group to which tree information content should be written.</description>
-    !#   <type>string</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     informationContentConstructorParameters%treeCount=0_c_size_t
     !# <inputParametersValidate source="parameters"/>

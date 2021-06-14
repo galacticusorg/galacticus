@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +21,7 @@
 
   !# <darkMatterHaloMassLossRate name="darkMatterHaloMassLossRateZero">
   !#  <description>
-  !#   A dark matter halo mass loss rate class which assumes a zero rate of mass loss.
+  !#   A dark matter halo mass loss rate class which assumes a zero rate of mass loss from dark matter halos.
   !#  </description>
   !# </darkMatterHaloMassLossRate>
   type, extends(darkMatterHaloMassLossRateClass) :: darkMatterHaloMassLossRateZero
@@ -44,7 +44,7 @@ contains
     implicit none
     type(darkMatterHaloMassLossRateZero)                :: self
     type(inputParameters               ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=darkMatterHaloMassLossRateZero()
     return
@@ -55,7 +55,7 @@ contains
     implicit none
     class(darkMatterHaloMassLossRateZero), intent(inout) :: self
     type (treeNode                      ), intent(inout) :: node
-    !GCC$ attributes unused :: self,node
+    !$GLC attributes unused :: self,node
 
     zeroRate=0.0d0
     return

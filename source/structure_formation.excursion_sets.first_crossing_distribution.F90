@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -28,7 +28,9 @@ module Excursion_Sets_First_Crossings
   !# <functionClass>
   !#  <name>excursionSetFirstCrossing</name>
   !#  <descriptiveName>Excursion Set First Crossing Statistics</descriptiveName>
-  !#  <description>Class providing first crossing statistics for the excursion set problem.</description>
+  !#  <description>
+  !#   Class providing first crossing statistics for the excursion set problem.
+  !#  </description>
   !#  <default>linearBarrier</default>
   !#  <data>logical :: coordinatedMPI_=.false. </data>
   !#  <method name="probability" >

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,12 @@
   !% Provides a node merger class implementing a single level hierarchy.
 
   !# <mergerTreeNodeMerger name="mergerTreeNodeMergerSingleLevelHierarchy">
-  !#  <description>A node merger class implementing a single level hierarchy.</description>
+  !#  <description>
+  !#   A merger tree node merger class which maintains a single level hierarchy of substructure, i.e. it tracks only
+  !#   substructures, not sub-substructures or deeper levels. When a \gls{node} first becomes a satellite it is appended to the
+  !#   list of satellites associated with its host halo. If the \gls{node} contains its own satellites they will be detached from
+  !#   the \gls{node} and appended to the list of satellites of the new host (and assigned new merging times).
+  !#  </description>
   !# </mergerTreeNodeMerger>
   type, extends(mergerTreeNodeMergerClass) :: mergerTreeNodeMergerSingleLevelHierarchy
      !% Implementation of the standars merger tree evolver.
@@ -42,26 +47,26 @@ contains
     implicit none
     type(mergerTreeNodeMergerSingleLevelHierarchy)                :: self
     type(inputParameters                         ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=mergerTreeNodeMergerSingleLevelHierarchy()
     return
   end function singleLevelHierarchyConstructorParameters
 
-
   subroutine singleLevelHierarchyProcess(self,node)
     !% Processes a node merging event, utilizing a single level substructure hierarchy.
+    use :: Display            , only : displayGreen              , displayReset
     use :: Galacticus_Error   , only : Galacticus_Error_Report
     use :: Galacticus_Nodes   , only : treeNode
     use :: Satellite_Promotion, only : Satellite_Move_To_New_Host
     use :: String_Handling    , only : operator(//)
     implicit none
     class(mergerTreeNodeMergerSingleLevelHierarchy), intent(inout)          :: self
-    type (treeNode                                ), intent(inout), pointer :: node
+    type (treeNode                                ), intent(inout), target  :: node
     type (treeNode                                )               , pointer :: nodeChild    , nodeParent, &
          &                                                                     nodeSatellite
     type (varying_string                          )                         :: message
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Get the parent node.
     nodeParent => node      %parent
@@ -71,7 +76,7 @@ contains
        message='attempting to make node '
        message=message//node%index()//' a satellite, but it is the primary progenitor'//char(10)
        message=message//'this can happen if branch jumps are allowed and the tree is postprocessed to remove nodes'//char(10)
-       message=message//'HELP: to resolve this issue, either switch off postprocessing of the tree, or prevent'//char(10)
+       message=message//displayGreen()//'HELP:'//displayReset()//' to resolve this issue, either switch off postprocessing of the tree, or prevent'//char(10)
        message=message//'branch jumps by setting [mergerTreeReadAllowBranchJumps]=false'
        call Galacticus_Error_Report(message//{introspection:location})
     end if

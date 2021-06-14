@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,23 +20,28 @@
 !% Implements the gravitational lensing distribution by modifying another distribution for the effects of baryons.
 
   !# <gravitationalLensing name="gravitationalLensingBaryonicModifier">
-  !#  <description>Implements the gravitational lensing distribution by modifying another distribution for the effects of baryons.</description>
+  !#  <description>
+  !#   A gravitational lensing distribution class which (approximately) modifies another distribution for the effects of
+  !#   baryons. The distribution to modify is specified via the {\normalfont \ttfamily
+  !#   [gravitationalLensingBaryonicModifierOriginalDistribution]} parameter. The modification takes the form:
+  !#   \begin{equation}
+  !#   P(\mu) \rightarrow P(\mu) + \hbox{min}[\alpha,\beta P(\mu)]
+  !#   \end{equation}
+  !#   where $\alpha=${\normalfont \ttfamily [gravitationalLensingBaryonicModifierAlpha]} and $\beta=${\normalfont \ttfamily
+  !#   [gravitationalLensingBaryonicModifierBeta]}. The distribution is then renormalized to ensure that the cumulative
+  !#   probability reaches unity for infinite magnification. As an example, values of $\alpha=2.05\times 10^{-3}$ and $\beta=0.62$
+  !#   approximately reproduce the results of \cite[][their Fig.~1]{hilbert_strong-lensing_2008}.
+  !#  </description>
   !# </gravitationalLensing>
   type, extends(gravitationalLensingClass) :: gravitationalLensingBaryonicModifier
-     class           (gravitationalLensingClass), pointer :: gravitationalLensing_ => null()
-     double precision                                     :: alpha                  , beta               , &
-          &                                                  transitionMagnification, renormalization    , &
-          &                                                  redshiftPrevious       , scaleSourcePrevious
+     class           (gravitationalLensingClass), pointer :: gravitationalLensing_   => null()
+     double precision                                     :: alpha                            , beta               , &
+          &                                                  transitionMagnification          , renormalization    , &
+          &                                                  redshiftPrevious                 , scaleSourcePrevious
    contains
-     !@ <objectMethods>
-     !@   <object>gravitationalLensingBaryonicModifier</object>
-     !@   <objectMethod>
-     !@     <method>renormalize</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ redshift\argin, \doublezero\ scaleSource\argin</arguments>
-     !@     <description>Renormalize the gravitational lensing magnification distribution function.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Renormalize the gravitational lensing magnification distribution function." method="renormalize" />
+     !# </methods>
      final     ::                     baryonicModifierDestructor
      procedure :: magnificationPDF => baryonicModifierMagnificationPDF
      procedure :: magnificationCDF => baryonicModifierMagnificationCDF
@@ -66,16 +71,12 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>Parameter $\alpha$ in the modified gravitational lensing \gls{pdf}, $P(\mu) \rightarrow P(\mu) + \hbox{min}[\alpha,\beta P(\mu)]$.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>beta</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>Parameter $\beta$ in the modified gravitational lensing \gls{pdf}, $P(\mu) \rightarrow P(\mu) + \hbox{min}[\alpha,\beta P(\mu)]$.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="gravitationalLensing" name="gravitationalLensing_" source="parameters"/>
     ! Build the object.
@@ -113,10 +114,11 @@ contains
     use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
     class           (gravitationalLensingBaryonicModifier), intent(inout) :: self
-    double precision                                      , intent(in   ) :: redshift               , scaleSource
-    double precision                                      , parameter     :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
+    double precision                                      , intent(in   ) :: redshift                 , scaleSource
+    double precision                                      , parameter     :: toleranceAbsolute =0.0d0 , toleranceRelative=1.0d-6
     type            (rootFinder                          ), save          :: finder
-    !$omp threadprivate(finder)
+    logical                                               , save          :: finderConstructed=.false.
+    !$omp threadprivate(finder,finderConstructed)
 
     ! Exit if nothing has changed since the previous call.
     if (redshift == self%redshiftPrevious .and. scaleSource == self%scaleSourcePrevious) return
@@ -133,16 +135,18 @@ contains
        return
     end if
     ! Find the magnification at which we transition from additive to multiplicative correction.
-    if (.not.finder%isInitialized()) then
-       call finder%rootFunction(magnificationTransition            )
-       call finder%tolerance   (toleranceAbsolute,toleranceRelative)
-       call finder%rangeExpand (                                                             &
-            &                   rangeExpandUpward            =2.0d0                        , &
-            &                   rangeExpandDownward          =0.5d0                        , &
-            &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
-            &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
-            &                   rangeExpandType              =rangeExpandMultiplicative      &
-            &                  )
+    if (.not.finderConstructed) then
+       finder=rootFinder(                                                             &
+            &            rootFunction                 =magnificationTransition      , &
+            &            toleranceAbsolute            =toleranceAbsolute            , &
+            &            toleranceRelative            =toleranceRelative            , &
+            &            rangeExpandUpward            =2.0d0                        , &
+            &            rangeExpandDownward          =0.5d0                        , &
+            &            rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
+            &            rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
+            &            rangeExpandType              =rangeExpandMultiplicative      &
+            &           )
+       finderConstructed=.true.
     end if
     self%transitionMagnification=finder%find(rootGuess=2.0d0)
     ! Find renormalization.

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -42,7 +42,7 @@ contains
     implicit none
     type(outputAnalysisPropertyOperatorMagnitude)                :: magnitudeConstructorParameters
     type(inputParameters                        ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     magnitudeConstructorParameters=outputAnalysisPropertyOperatorMagnitude()
     return
@@ -58,7 +58,7 @@ contains
     type            (treeNode                               ), intent(inout), optional :: node
     integer                                                  , intent(inout), optional :: propertyType
     integer         (c_size_t                               ), intent(in   ), optional :: outputIndex
-    !GCC$ attributes unused :: self, outputIndex, node
+    !$GLC attributes unused :: self, outputIndex, node
 
     if (propertyValue > 0.0d0) then
        magnitudeOperate=-2.5d0*log10(propertyValue)

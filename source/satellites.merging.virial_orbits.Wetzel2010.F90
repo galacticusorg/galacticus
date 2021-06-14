@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,7 +27,18 @@
   use :: Virial_Density_Contrast   , only : virialDensityContrastFriendsOfFriends
 
   !# <virialOrbit name="virialOrbitWetzel2010">
-  !#  <description>Virial orbits using the \cite{wetzel_orbits_2010} orbital parameter distribution.</description>
+  !#  <description>
+  !#   A virial orbits class which selects orbital parameters randomly from the distribution given by \cite{wetzel_orbits_2010},
+  !#   including the redshift and mass dependence of the distributions. Note that the parameter $R_1$ can become negative (which
+  !#   is unphysical) for certain regimes of mass and redshift according to the fitting function for $R_1$ given by
+  !#   \cite{wetzel_orbits_2010}. Therefore, we enforce $R_1>0.05$. Similarly, the parameter $C_1$ can become very large in some
+  !#   regimes which is probably an artifact of the fitting function used rather than physically meaningful (and which causes
+  !#   numerical difficulties in evaluating the distribution). We therefore prevent $C_1$ from exceeding $9.999999$\footnote{We
+  !#   use this value rather than $10$ since the GSL $_2F_1$ hypergeomtric function fails in some cases when $C_1\ge 10$.} If the
+  !#   virial density contrast definition differs from that used by \cite{wetzel_orbits_2010} then the orbit is assigned based on
+  !#   \cite{wetzel_orbits_2010}'s definition and then propagated to the virial radius relevant to the current definition of
+  !#   density contrast.
+  !#  </description>
   !#  <deepCopy>
   !#   <functionClass variables="virialDensityContrast_"/>
   !#  </deepCopy>
@@ -120,8 +131,11 @@ contains
     !# <constructorAssign variables="*darkMatterHaloScale_, *cosmologyFunctions_, *criticalOverdensity_"/>
 
     ! Initialize root finder.
-    call self%finder%rootFunction(wetzel2010CircularityRoot          )
-    call self%finder%tolerance   (toleranceAbsolute,toleranceRelative)
+    self%finder=rootFinder(                                             &
+         &                 rootFunction     =wetzel2010CircularityRoot, &
+         &                 toleranceAbsolute=toleranceAbsolute        , &
+         &                 toleranceRelative=toleranceRelative          &
+         &                )
     ! Construct a look-up table for the pericentric radius distribution.
     ! Determine number of points to use in the tabulation.
     self%pericentricRadiusCount=int(log10(wetzel2010PericentricRadiusMaximum/wetzel2010PericentricRadiusMinimum)*dble(wetzel2010PericentricRadiusPointsPerDecade))+1
@@ -191,7 +205,7 @@ contains
          &                                                                 radiusHost                  , massHost                                            , &
          &                                                                 radiusHostSelf
     logical                                                     ::         foundOrbit
-    !GCC$ attributes unused :: acceptUnboundOrbits
+    !$GLC attributes unused :: acceptUnboundOrbits
 
     ! Set masses and radius of the orbit.
     basic                => node%basic         ()
@@ -294,7 +308,7 @@ contains
     implicit none
     class(virialOrbitWetzel2010), intent(inout) :: self
     type (treeNode             ), intent(inout) :: node, host
-    !GCC$ attributes unused :: self, node, host
+    !$GLC attributes unused :: self, node, host
 
     wetzel2010VelocityTangentialMagnitudeMean=0.0d0
     call Galacticus_Error_Report('mean tangential velocity is not defined for this class'//{introspection:location})
@@ -308,7 +322,7 @@ contains
     double precision                       , dimension(3)  :: wetzel2010VelocityTangentialVectorMean
     class           (virialOrbitWetzel2010), intent(inout) :: self
     type            (treeNode             ), intent(inout) :: node                                  , host
-    !GCC$ attributes unused :: self, node, host
+    !$GLC attributes unused :: self, node, host
 
     wetzel2010VelocityTangentialVectorMean=0.0d0
     call Galacticus_Error_Report('vector velocity is not defined for this class'//{introspection:location})
@@ -346,7 +360,7 @@ contains
     double precision                       , dimension(3)  :: wetzel2010AngularMomentumVectorMean
     class           (virialOrbitWetzel2010), intent(inout) :: self
     type            (treeNode             ), intent(inout) :: node                               , host
-    !GCC$ attributes unused :: self, node, host
+    !$GLC attributes unused :: self, node, host
 
     wetzel2010AngularMomentumVectorMean=0.0d0
     call Galacticus_Error_Report('vector angular momentum is not defined for this class'//{introspection:location})
@@ -359,7 +373,7 @@ contains
     implicit none
     class(virialOrbitWetzel2010), intent(inout) :: self
     type (treeNode             ), intent(inout) :: node, host
-    !GCC$ attributes unused :: self, node, host
+    !$GLC attributes unused :: self, node, host
 
     wetzel2010VelocityTotalRootMeanSquared=0.0d0
     call Galacticus_Error_Report('root mean squared total velocity is not defined for this class'//{introspection:location})
@@ -370,7 +384,7 @@ contains
     !% Return the mean magnitude of the tangential velocity.
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
-    use :: Numerical_Constants_Physical        , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical        , only : gravitationalConstantGalacticus
     implicit none
     class           (virialOrbitWetzel2010), intent(inout) :: self
     type            (treeNode             ), intent(inout) :: node        , host

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,10 @@
   !% Implementation of a posterior sampling state class which computes correlation lengths.
 
   !# <posteriorSampleState name="posteriorSampleStateCorrelation">
-  !#  <description>A correlation posterior sampling state class.</description>
+  !#  <description>
+  !#   An extension of the {\normalfont \ttfamily history} state, this class also computes and stores the correlation length in each
+  !#   parameter (which is taken to be the median correlation length over all non-outlier chains).
+  !#  </description>
   !# </posteriorSampleState>
   type, extends(posteriorSampleStateHistory) :: posteriorSampleStateCorrelation
      !% Implementation of a correlation posterior sampling state class.
@@ -30,27 +33,11 @@
      double precision, allocatable, dimension(:,:) :: states
      integer         , allocatable, dimension(:  ) :: correlationLengths
    contains
-     !@ <objectMethods>
-     !@   <object>posteriorSampleStateCorrelation</object>
-     !@   <objectMethod>
-     !@     <method>correlationLength</method>
-     !@     <type>\intzero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return the current correlation length in the chains.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>correlationLengthCompute</method>
-     !@     <type>\intzero</type>
-     !@     <arguments>\logicalone\ [outlierMask]\argin</arguments>
-     !@     <description>Compute correlation lengths in the chains.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>postConvergenceCorrelationCount</method>
-     !@     <type>\intzero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return the number of post-convergence correlation lengths that have accrued.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return the current correlation length in the chains." method="correlationLength" />
+     !#   <method description="Compute correlation lengths in the chains." method="correlationLengthCompute" />
+     !#   <method description="Return the number of post-convergence correlation lengths that have accrued." method="postConvergenceCorrelationCount" />
+     !# </methods>
      procedure :: parameterCountSet               => correlationParameterCountSet
      procedure :: update                          => correlationUpdate
      procedure :: reset                           => correlationReset
@@ -79,11 +66,9 @@ contains
 
     !# <inputParameter>
     !#   <name>acceptedStateCount</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The number of states to use in acceptance rate statistics.</description>
     !#   <defaultValue>100</defaultValue>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     self=posteriorSampleStateCorrelation(acceptedStateCount)
     !# <inputParametersValidate source="parameters"/>
@@ -206,8 +191,8 @@ contains
 
   subroutine correlationCorrelationLengthCompute(self,outlierMask)
     !% Compute correlation lengths.
-    use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent
-    use :: ISO_Varying_String, only : assignment(=)            , operator(//)              , varying_string
+    use :: Display           , only : displayIndent, displayMessage, displayUnindent
+    use :: ISO_Varying_String, only : assignment(=), operator(//)  , varying_string
     use :: MPI_Utilities     , only : mpiSelf
     use :: String_Handling   , only : operator(//)
     implicit none
@@ -219,7 +204,7 @@ contains
     type            (varying_string                 )                                           :: message
 
     ! Compute correlation lengths.
-    if (mpiSelf%isMaster()) call Galacticus_Display_Indent("Computing correlation lengths")
+    if (mpiSelf%isMaster()) call displayIndent("Computing correlation lengths")
     stateMean              =sum(self%states(:,1:self%storedStateCount),dim=2)/dble(self%storedStateCount)
     self%correlationLengths=-1
     do i=1,size(stateMean)
@@ -239,8 +224,8 @@ contains
           message=message//self%correlationLengths(i)
           if (i < size(stateMean)) message=message//", "
        end do
-       call Galacticus_Display_Message (message)
-       call Galacticus_Display_Unindent("done" )
+       call displayMessage (message)
+       call displayUnindent("done" )
     end if
     return
   end subroutine correlationCorrelationLengthCompute

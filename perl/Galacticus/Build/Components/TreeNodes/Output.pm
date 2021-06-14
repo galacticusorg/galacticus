@@ -27,6 +27,17 @@ use Galacticus::Build::Components::DataTypes;
      }
     );
 
+# List of node properties to be output.
+my @nodePropertiesOutputList =
+    (
+     {
+	 type        => "double",
+	 name        => "subsamplingWeight",
+	 description => "Weight of node in the subsample.",
+	 unitsInSI   => "0.0d0"
+     }
+    );
+
 sub Tree_Node_Output_Count {
     # Generate a function to return a count of the number of properties to be output from a tree node.
     my $build = shift();   
@@ -60,6 +71,21 @@ sub Tree_Node_Output_Count {
 	     }
 	    ]
     };    
+    # Add necessary node properties to the output.
+    foreach ( @nodePropertiesOutputList ) {
+	if    ( $_->{'type'} eq "integer" )
+	{
+	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+integerPropertyCount=integerPropertyCount+1
+CODE
+	}
+	elsif ( $_->{'type'} eq "double"  )
+	{
+	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+doublePropertyCount=doublePropertyCount+1
+CODE
+	}
+    };
     # Iterate over all component classes
     foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
 	next
@@ -92,6 +118,10 @@ sub Tree_Node_Output_Names {
 	name        => "treeNodeOutputNames",
 	description => "Establish the names of properties to output for a {\\normalfont \\ttfamily treeNode}.",
 	content     => "",
+	modules     =>
+	    [
+	     "Merger_Tree_Outputter_Buffer_Types"
+	    ],
 	variables   =>
 	    [
 	     {
@@ -106,15 +136,10 @@ sub Tree_Node_Output_Names {
 		 variables  => [ "integerProperty" ]
 	     },
 	     {
-		 intrinsic  => "character",
-		 type       => "len=*",
+		 intrinsic  => "type",
+		 type       => "outputPropertyInteger",
 		 attributes => [ "intent(inout)", "dimension(:)" ], 
-		 variables  => [ "integerPropertyNames", "integerPropertyComments" ]
-	     },
-	     {
-		 intrinsic  => "double precision",
-		 attributes => [ "intent(inout)", "dimension(:)" ],
-		 variables  => [ "integerPropertyUnitsSI" ]
+		 variables  => [ "integerProperties" ]
 	     },
 	     {
 		 intrinsic  => "integer", 
@@ -122,15 +147,10 @@ sub Tree_Node_Output_Names {
 		 variables  => [ "doubleProperty" ]
 	     },
 	     {
-		 intrinsic  => "character",
-		 type       => "len=*",
+		 intrinsic  => "type",
+		 type       => "outputPropertyDouble",
 		 attributes => [ "intent(inout)", "dimension(:)" ], 
-		 variables  => [ "doublePropertyNames", "doublePropertyComments" ]
-	     },
-	     {
-		 intrinsic  => "double precision",
-		 attributes => [ "intent(inout)", "dimension(:)" ],
-		 variables  => [ "doublePropertyUnitsSI" ]
+		 variables  => [ "doubleProperties" ]
 	     },
 	     {
 		 intrinsic  => "double precision",
@@ -143,6 +163,27 @@ sub Tree_Node_Output_Names {
 	     }
 	    ]
     };    
+    # Add necessary node properties to the output.
+    foreach ( @nodePropertiesOutputList ) {
+	if    ( $_->{'type'} eq "integer" )
+	{
+	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+integerProperty=integerProperty+1
+integerProperties(integerProperty)%name     ="node{ucfirst($_->{'name'})}"
+integerProperties(integerProperty)%comment  ="{$_->{'description'}}"
+integerProperties(integerProperty)%unitsInSI={$_->{'unitsInSI'}}
+CODE
+	}
+	elsif ( $_->{'type'} eq "double"  )
+	{
+	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+doubleProperty=doubleProperty+1
+doubleProperties(doubleProperty)%name     ="node{ucfirst($_->{'name'})}"
+doubleProperties(doubleProperty)%comment  ="{$_->{'description'}}"
+doubleProperties(doubleProperty)%unitsInSI={$_->{'unitsInSI'}}
+CODE
+	}
+    };
     # Iterate over all component classes
     foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
 	next
@@ -150,7 +191,7 @@ sub Tree_Node_Output_Names {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated(self%component{ucfirst($class->{'name'})})) then
   do i=1,size(self%component{ucfirst($class->{'name'})})
-    call self%component{ucfirst($class->{'name'})}(i)%outputNames(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,instance=i)
+    call self%component{ucfirst($class->{'name'})}(i)%outputNames(integerProperty,integerProperties,doubleProperty,doubleProperties,time,instance=i)
   end do
 end if
 CODE
@@ -177,7 +218,8 @@ sub Tree_Node_Output {
 	content     => "",
 	modules     =>
 	    [
-	     "Multi_Counters"
+	     "Multi_Counters"                    ,
+	     "Merger_Tree_Outputter_Buffer_Types"
 	    ],
 	variables   =>
 	    [
@@ -193,10 +235,10 @@ sub Tree_Node_Output {
 		 variables  => [ "integerProperty", "integerBufferCount" ]
 	     },
 	     {
-		 intrinsic  => "integer",
-		 type       => "kind=kind_int8",
-		 attributes => [ "intent(inout)", "dimension(:,:)" ],
-		 variables  => [ "integerBuffer" ]
+		 intrinsic  => "type",
+		 type       => "outputPropertyInteger",
+		 attributes => [ "intent(inout)", "dimension(:)" ], 
+		 variables  => [ "integerProperties" ]
 	     },
 	     {
 		 intrinsic  => "integer", 
@@ -204,9 +246,10 @@ sub Tree_Node_Output {
 		 variables  => [ "doubleProperty", "doubleBufferCount" ]
 	     },
 	     {
-		 intrinsic  => "double precision",
-		 attributes => [ "intent(inout)", "dimension(:,:)" ],
-		 variables  => [ "doubleBuffer" ]
+		 intrinsic  => "type",
+		 type       => "outputPropertyDouble",
+		 attributes => [ "intent(inout)", "dimension(:)" ], 
+		 variables  => [ "doubleProperties" ]
 	     },
 	     {
 		 intrinsic  => "double precision",
@@ -225,6 +268,23 @@ sub Tree_Node_Output {
 	     }
 	    ]
     };    
+    # Add necessary node properties to the output.
+    foreach ( @nodePropertiesOutputList ) {
+	if    ( $_->{'type'} eq "integer" )
+	{
+	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+integerProperty=integerProperty+1
+integerProperties(integerProperty)%scalar(integerBufferCount)=self%{$_->{'name'}}()
+CODE
+	}
+	elsif ( $_->{'type'} eq "double"  )
+	{
+	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+doubleProperty=doubleProperty+1
+doubleProperties(doubleProperty)%scalar(doubleBufferCount)=self%{$_->{'name'}}()
+CODE
+	}
+    };
     # Iterate over all component classes
     foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
 	next
@@ -232,7 +292,7 @@ sub Tree_Node_Output {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated(self%component{ucfirst($class->{'name'})})) then
   do i=1,size(self%component{ucfirst($class->{'name'})})
-    call self%component{ucfirst($class->{'name'})}(i)%output(integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount,doubleBuffer,time,outputInstance,instance=i)
+    call self%component{ucfirst($class->{'name'})}(i)%output(integerProperty,integerBufferCount,integerProperties,doubleProperty,doubleBufferCount,doubleProperties,time,outputInstance,instance=i)
   end do
 end if
 CODE

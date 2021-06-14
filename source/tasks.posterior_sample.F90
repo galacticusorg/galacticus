@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -44,7 +44,7 @@ contains
     !% Constructor for the {\normalfont \ttfamily posteriorSample} task class which takes a parameter set as input.
     use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize
     use :: Input_Parameters, only : inputParameter              , inputParameters
-    use :: Node_Components , only : Node_Components_Initialize
+    use :: Node_Components , only : Node_Components_Initialize  , Node_Components_Thread_Initialize
     implicit none
     type   (taskPosteriorSample           )                :: self
     type   (inputParameters               ), intent(inout) :: parameters
@@ -54,11 +54,9 @@ contains
 
     !# <inputParameter>
     !#   <name>initializeNodeClassHierarchy</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>If true then initialize the node class hierarchy in the posterior sampling class. This should be set to false if the likelihood function will instead perform this action.</description>
     !#   <defaultValue>.true.</defaultValue>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     if (initializeNodeClassHierarchy) then
        if (associated(parameters%parent)) then
@@ -69,8 +67,9 @@ contains
        else
           parametersRoot => parameters
        end if
-       call nodeClassHierarchyInitialize(parametersRoot)
-       call Node_Components_Initialize  (parametersRoot)
+       call nodeClassHierarchyInitialize     (parametersRoot)
+       call Node_Components_Initialize       (parametersRoot)
+       call Node_Components_Thread_Initialize(parametersRoot)
     end if
     !# <objectBuilder class="posteriorSampleSimulation" name="posteriorSampleSimulation_" source="parameters"/>
     self=taskPosteriorSample(posteriorSampleSimulation_)
@@ -92,26 +91,29 @@ contains
 
   subroutine posteriorSampleDestructor(self)
     !% Destructor for the {\normalfont \ttfamily posteriorSample} task class.
-    use :: Node_Components, only : Node_Components_Uninitialize
+    use :: Node_Components, only : Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
     implicit none
     type(taskPosteriorSample), intent(inout) :: self
 
     !# <objectDestructor name="self%posteriorSampleSimulation_"/>
-    if (self%nodeClassHierarchyInitialized) call Node_Components_Uninitialize()
+    if (self%nodeClassHierarchyInitialized) then
+       call Node_Components_Thread_Uninitialize()
+       call Node_Components_Uninitialize       ()
+    end if
     return
   end subroutine posteriorSampleDestructor
 
   subroutine posteriorSamplePerform(self,status)
     !% Perform the posterior sampling.
-    use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Unindent
-    use :: Galacticus_Error  , only : errorStatusSuccess
+    use :: Display         , only : displayIndent     , displayUnindent
+    use :: Galacticus_Error, only : errorStatusSuccess
     implicit none
     class  (taskPosteriorSample), intent(inout), target   :: self
     integer                     , intent(  out), optional :: status
 
-    call Galacticus_Display_Indent('Begin task: posterior sampling')
+    call displayIndent('Begin task: posterior sampling')
     call self%posteriorSampleSimulation_%simulate()
     if (present(status)) status=errorStatusSuccess
-    call Galacticus_Display_Unindent('Done task: posterior sampling' )
+    call displayUnindent('Done task: posterior sampling' )
     return
   end subroutine posteriorSamplePerform

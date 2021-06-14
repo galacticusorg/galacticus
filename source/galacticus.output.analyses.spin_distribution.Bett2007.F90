@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -60,15 +60,11 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Error tolerance for the N-body spin distribution operator.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>timeRecent</name>
     !#   <source>parameters</source>
     !#   <description>Halos which experienced a major node merger within a time $\Delta t=${\normalfont \ttfamily [timeRecent]} of the analysis time will be excluded from the analysis.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>logNormalRange</name>
@@ -76,8 +72,6 @@ contains
     !#   <defaultValue>100.0d0</defaultValue>
     !#   <defaultSource>Approximately the range expected for the \cite{bett_spin_2007} ``QE'' cut.</defaultSource>
     !#   <description>The multiplicative range of the log-normal distribution used to model the distribution of the mass and energy terms in the spin parameter. Specifically, the lognormal distribution is truncated outside the range $(\lambda_\mathrm{m}/R,\lambda_\mathrm{m} R$, where $\lambda_\mathrm{m}$ is the measured spin, and $R=${\normalfont \ttfamily [logNormalRange]}</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
     !# <objectBuilder class="outputTimes"                  name="outputTimes_"                  source="parameters"/>

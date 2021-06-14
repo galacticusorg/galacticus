@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +21,6 @@
 
 module Halo_Mass_Functions
   use :: Cosmology_Parameters, only : cosmologyParameters, cosmologyParametersClass
-  use :: FGSL                , only : FGSL_Integ_Gauss15 , fgsl_function           , fgsl_integration_workspace
   use :: Galacticus_Nodes    , only : treeNode
   implicit none
   private
@@ -55,9 +54,8 @@ module Halo_Mass_Functions
   !#   <argument>type            (treeNode), intent(inout), target, optional :: node                   </argument>
   !#   <modules>Numerical_Integration</modules>
   !#   <code>
-  !#    double precision                             :: logMassHigh         , logMassLow
-  !#    type            (fgsl_function             ) :: integrandFunction
-  !#    type            (fgsl_integration_workspace) :: integrationWorkspace
+  !#    double precision             :: logMassHigh, logMassLow
+  !#    type            (integrator) :: integrator_
   !#    globalSelf => self
   !#    if (present(node)) then
   !#       self%node => node
@@ -67,17 +65,8 @@ module Halo_Mass_Functions
   !#    self%time_ =  time
   !#    logMassLow =log(massLow )
   !#    logMassHigh=log(massHigh)
-  !#    haloMassFunctionIntegrated=Integrate(                                         &amp;
-  !#        &amp;                            logMassLow                             , &amp;
-  !#        &amp;                            logMassHigh                            , &amp;
-  !#        &amp;                            integratedIntegrand                    , &amp;
-  !#        &amp;                            integrandFunction                      , &amp;
-  !#        &amp;                            integrationWorkspace                   , &amp;
-  !#        &amp;                            toleranceAbsolute   =0.0d+0            , &amp;
-  !#        &amp;                            toleranceRelative   =1.0d-3            , &amp;
-  !#        &amp;                            integrationRule     =FGSL_Integ_Gauss15  &amp;
-  !#        &amp;                           )
-  !#    call Integrate_Done(integrandFunction,integrationWorkspace)
+  !#    integrator_=integrator(integratedIntegrand,toleranceRelative=1.0d-3,integrationRule=GSL_Integ_Gauss15)
+  !#    haloMassFunctionIntegrated=integrator_%integrate(logMassLow,logMassHigh)
   !#    return
   !#   </code>
   !#  </method>
@@ -90,9 +79,8 @@ module Halo_Mass_Functions
   !#   <argument>type            (treeNode), intent(inout), target, optional :: node                   </argument>
   !#   <modules>Numerical_Integration</modules>
   !#   <code>
-  !#    double precision                             :: logMassHigh         , logMassLow
-  !#    type            (fgsl_function             ) :: integrandFunction
-  !#    type            (fgsl_integration_workspace) :: integrationWorkspace
+  !#    double precision             :: logMassHigh, logMassLow
+  !#    type            (integrator) :: integrator_
   !#    globalSelf => self
   !#    if (present(node)) then
   !#       self%node => node
@@ -102,17 +90,8 @@ module Halo_Mass_Functions
   !#    self%time_ =  time
   !#    logMassLow =log(massLow )
   !#    logMassHigh=log(massHigh)
-  !#    haloMassFunctionMassFraction=Integrate(                                          &amp;
-  !#         &amp;                             logMassLow                              , &amp;
-  !#         &amp;                             logMassHigh                             , &amp;
-  !#         &amp;                             massFractionIntegrand                   , &amp;
-  !#         &amp;                             integrandFunction                       , &amp;
-  !#         &amp;                             integrationWorkspace                    , &amp;
-  !#         &amp;                             toleranceAbsolute    =0.0d+0            , &amp;
-  !#         &amp;                             toleranceRelative    =1.0d-3            , &amp;
-  !#         &amp;                             integrationRule      =FGSL_Integ_Gauss15  &amp;
-  !#         &amp;                            )
-  !#    call Integrate_Done(integrandFunction,integrationWorkspace)
+  !#    integrator_=integrator(massFractionIntegrand,toleranceRelative=1.0d-3,integrationRule=GSL_Integ_Gauss15)
+  !#    haloMassFunctionMassFraction=integrator_%integrate(logMassLow,logMassHigh)
   !#    ! Convert to a mass fraction.
   !#    haloMassFunctionMassFraction=+haloMassFunctionMassFraction                &amp;
   !#        &amp;                    /self%cosmologyParameters_%densityCritical() &amp;

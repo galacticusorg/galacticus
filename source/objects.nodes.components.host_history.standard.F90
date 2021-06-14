@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -47,26 +47,26 @@ contains
   !# <mergerTreeInitializeTask>
   !#  <unitName>Node_Component_Host_History_Standard_Merger_Tree_Init</unitName>
   !# </mergerTreeInitializeTask>
-  subroutine Node_Component_Host_History_Standard_Merger_Tree_Init(thisNode)
+  subroutine Node_Component_Host_History_Standard_Merger_Tree_Init(node)
     !% Initialize the standard host history component by creating components in nodes and assigning
     !% host mass for satellites.
     use :: Galacticus_Nodes, only : defaultHostHistoryComponent, nodeComponentBasic, nodeComponentHostHistory, nodeComponentHostHistoryStandard, &
           &                         treeNode
     implicit none
-    type (treeNode                ), pointer, intent(inout) :: thisNode
-    class(nodeComponentHostHistory), pointer                :: thisHostHistory
+    type (treeNode                ), pointer, intent(inout) :: node
+    class(nodeComponentHostHistory), pointer                :: hostHistory
     class(nodeComponentBasic      ), pointer                :: hostBasic
 
     ! Return immediately if this class is not active.
     if (.not.defaultHostHistoryComponent%standardIsActive()) return
 
     ! Create a host history component and initialize it.
-    thisHostHistory => thisNode%hostHistory(autoCreate=.true.)
-    select type (thisHostHistory)
+    hostHistory => node%hostHistory(autoCreate=.true.)
+    select type (hostHistory)
     class is (nodeComponentHostHistoryStandard)
-       if (thisNode%isSatellite()) then
-          hostBasic => thisNode%parent%basic()
-          call thisHostHistory%hostMassMaximumSet(hostBasic%mass())
+       if (node%isSatellite()) then
+          hostBasic => node%parent%basic()
+          call hostHistory%hostMassMaximumSet(hostBasic%mass())
        end if
     end select
     return
@@ -82,7 +82,7 @@ contains
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
-    !GCC$ attributes unused :: parameters_
+    !$GLC attributes unused :: parameters_
     
     if (defaultHostHistoryComponent%standardIsActive()) then
        call nodePromotionEvent%attach(defaultHostHistoryComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentHostHistoryStandard')
@@ -113,7 +113,7 @@ contains
     implicit none
     class(*       ), intent(inout)         :: self
     type (treeNode), intent(inout), target :: node
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
     
     call Node_Component_Host_History_Standard_Update_History(node)
     return
@@ -125,7 +125,7 @@ contains
     implicit none
     class(*       ), intent(inout) :: self
     type (treeNode), intent(inout) :: node
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
     
     call Node_Component_Host_History_Standard_Update_History(node)
     return
@@ -134,26 +134,26 @@ contains
   !# <nodeMergerTask>
   !#  <unitName>Node_Component_Host_History_Standard_Update_History</unitName>
   !# </nodeMergerTask>
-  subroutine Node_Component_Host_History_Standard_Update_History(thisNode)
-    !% Record any major merger of {\normalfont \ttfamily thisNode}.
+  subroutine Node_Component_Host_History_Standard_Update_History(node)
+    !% Record any major merger of {\normalfont \ttfamily node}.
     use :: Galacticus_Nodes, only : defaultHostHistoryComponent, nodeComponentBasic, nodeComponentHostHistory, treeNode
     implicit none
-    type (treeNode                ), intent(inout) :: thisNode
-    class(nodeComponentHostHistory), pointer       :: thisHostHistory
+    type (treeNode                ), intent(inout) :: node
+    class(nodeComponentHostHistory), pointer       :: hostHistory
     class(nodeComponentBasic      ), pointer       :: hostBasic
 
     ! Return immediately if this class is not active.
     if (.not.defaultHostHistoryComponent%standardIsActive()) return
-    ! Return immediately if thisNode is not a satellite.
-    if (.not.thisNode                   %isSatellite     ()) return
+    ! Return immediately if node is not a satellite.
+    if (.not.node                   %isSatellite     ()) return
     ! Set the maximum host mass to the larger of the current host mass and the previous maximum host mass.
-    thisHostHistory => thisNode       %hostHistory()
-    hostBasic       => thisNode%parent%basic      ()
-    call thisHostHistory%hostMassMaximumSet(                                       &
-         &                                  max(                                   &
-         &                                      hostBasic      %mass           (), &
-         &                                      thisHostHistory%hostMassMaximum()  &
-         &                                     )                                   &
+    hostHistory => node       %hostHistory()
+    hostBasic   => node%parent%basic      ()
+    call hostHistory%hostMassMaximumSet(                                       &
+         &                                  max(                               &
+         &                                      hostBasic      %mass       (), &
+         &                                      hostHistory%hostMassMaximum()  &
+         &                                     )                               &
          &                                 )
     return
   end subroutine Node_Component_Host_History_Standard_Update_History

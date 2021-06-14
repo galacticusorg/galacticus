@@ -6,14 +6,14 @@
   <version>0.9.4</version>
 
   <!-- Component selection -->
-  <treeNodeMethodBasic value="standard"/>
-  <treeNodeMethodHotHalo value="standard"/>
-  <treeNodeMethodBlackHole value="null"/>
-  <treeNodeMethodDarkMatterProfile value="null"/>
-  <treeNodeMethodDisk value="null"/>
-  <treeNodeMethodSatellite value="null"/>
-  <treeNodeMethodSpheroid value="null"/>
-  <treeNodeMethodSpin value="null"/>
+  <componentBasic value="standard"/>
+  <componentHotHalo value="standard"/>
+  <componentBlackHole value="null"/>
+  <componentDarkMatterProfile value="null"/>
+  <componentDisk value="null"/>
+  <componentSatellite value="null"/>
+  <componentSpheroid value="null"/>
+  <componentSpin value="null"/>
   <diskMassDistribution value="exponentialDisk">
     <dimensionless value="true"/>
   </diskMassDistribution>
@@ -22,86 +22,105 @@
   </spheroidMassDistribution>
 
   <!-- Cosmological parameters and options -->
-  <cosmologyFunctionsMethod value="matterLambda"/>
-  <cosmologyParametersMethod value="simple">
+  <cosmologyFunctions value="matterLambda"/>
+  <cosmologyParameters value="simple">
     <HubbleConstant value="70.0"/>
     <OmegaMatter value="0.3"/>
     <OmegaDarkEnergy value="0.7"/>
     <OmegaBaryon value="0.05"/>
     <temperatureCMB value="2.72548"/>
-  </cosmologyParametersMethod>
+  </cosmologyParameters>
 
   <!-- Power spectrum options -->
-  <cosmologicalMassVarianceMethod value="filteredPower">
+  <cosmologicalMassVariance value="filteredPower">
     <sigma_8 value="0.807"/>
-  </cosmologicalMassVarianceMethod>
-  <transferFunctionMethod value="eisensteinHu1999">
+  </cosmologicalMassVariance>
+  <transferFunction value="eisensteinHu1999">
     <neutrinoNumberEffective value="3.046"/>
     <neutrinoMassSummed value="0.000"/>
-  </transferFunctionMethod>
-  <powerSpectrumPrimordialMethod value="powerLaw">
+  </transferFunction>
+  <powerSpectrumPrimordial value="powerLaw">
     <index value="1.000"/>
     <wavenumberReference value="1.000"/>
     <running value="0.000"/>
-  </powerSpectrumPrimordialMethod>
+  </powerSpectrumPrimordial>
 
   <!-- Structure formation options -->
-  <linearGrowthMethod value="collisionlessMatter"/>
-  <haloMassFunctionMethod value="tinker2008"/>
-  <criticalOverdensityMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
-  <virialDensityContrastMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <linearGrowth value="collisionlessMatter"/>
+  <haloMassFunction value="tinker2008"/>
+  <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
 
   <!-- Merger tree building options -->
-  <mergerTreeConstructorMethod value="fullySpecified">
+  <mergerTreeConstructor value="fullySpecified">
     <fileName value="testSuite/parameters/reproducibility/coolingTree.xml"/>
-  </mergerTreeConstructorMethod>
+  </mergerTreeConstructor>
   <!-- Dark matter halo profile -->
-  <darkMatterProfileDMOMethod value="isothermal"/>
-  
+  <darkMatterProfileDMO value="isothermal"/>
+
   <!-- Halo accretion options -->
-  <accretionHaloMethod value="zero"/>
+  <accretionHalo value="zero"/>
 
   <!-- Hot halo gas cooling model options -->
-  <hotHaloMassDistributionMethod value="betaProfile"/>
-  <hotHaloTemperatureProfileMethod value="virial"/>
-  <hotHaloMassDistributionCoreRadiusMethod value="virialFraction">
+  <hotHaloMassDistribution value="betaProfile"/>
+  <hotHaloTemperatureProfile value="virial"/>
+  <hotHaloMassDistributionCoreRadius value="virialFraction">
     <coreRadiusOverVirialRadius value="0.1"/>
-  </hotHaloMassDistributionCoreRadiusMethod>
-  <coolingFunctionMethod value="CIEFile">
+  </hotHaloMassDistributionCoreRadius>
+  <coolingFunction value="CIEFile">
     <fileName value="%DATASTATICPATH%/cooling/cooling_function_Atomic_CIE_Cloudy_13.05.hdf5"/>
-  </coolingFunctionMethod>
-  <chemicalStateMethod value="CIEFile">
+  </coolingFunction>
+  <chemicalState value="CIEFile">
     <fileName value="%DATASTATICPATH%/chemicalState/chemical_state_Atomic_CIE_Cloudy_13.05.hdf5"/>
-  </chemicalStateMethod>
-  
-  <coolingRadiusMethod value="simple"/>
-  <coolingRateMethod value="whiteFrenk1991">
+  </chemicalState>
+
+  <coolingRadius value="simple"/>
+  <coolingRate value="whiteFrenk1991">
     <velocityCutOff value="1.0e6"/>
-  </coolingRateMethod>
-  <coolingTimeMethod value="simple">
+  </coolingRate>
+  <coolingTime value="simple">
     <degreesOfFreedom value="3.0"/>
-  </coolingTimeMethod>
-   <coolingTimeAvailableMethod value="whiteFrenk1991">
+  </coolingTime>
+  <coolingTimeAvailable value="whiteFrenk1991">
     <ageFactor value="0"/>
-  </coolingTimeAvailableMethod>
+  </coolingTimeAvailable>
 
   <!-- Numerical tolerances -->
-  <mergerTreeNodeEvolverMethod value="standard">
+  <mergerTreeNodeEvolver value="standard">
     <odeToleranceAbsolute value="0.01"/>
     <odeToleranceRelative value="0.01"/>
-  </mergerTreeNodeEvolverMethod>
+  </mergerTreeNodeEvolver>
 
-  <mergerTreeEvolverMethod value="standard">
+  <mergerTreeEvolver value="standard">
     <timestepHostAbsolute value="1.00"/>
     <timestepHostRelative value="0.10"/>
-  </mergerTreeEvolverMethod>
+  </mergerTreeEvolver>
 
   <!-- Output options -->
-  <mergerTreeOutputterMethod value="standard">
+  <mergerTreeOutputter value="standard">
     <outputReferences value="false"/>
-  </mergerTreeOutputterMethod>
+  </mergerTreeOutputter>
 
   <!-- Output file -->
   <galacticusOutputFileName value="testSuite/outputs/reproducibility/cooling.hdf5"/>
-  
+
+  <!--Stellar feedback outflows-->
+  <nodeOperator value="stellarFeedbackDisks">
+    <stellarFeedbackOutflows value="rateLimit">
+      <timescaleOutflowFractionalMinimum value="0.001"/>
+      <stellarFeedbackOutflows value="powerLaw">
+        <velocityCharacteristic value="250.0"/>
+        <exponent value="3.5"/>
+      </stellarFeedbackOutflows>
+    </stellarFeedbackOutflows>
+  </nodeOperator>
+  <nodeOperator value="stellarFeedbackSpheroids">
+    <stellarFeedbackOutflows value="rateLimit">
+      <timescaleOutflowFractionalMinimum value="0.001"/>
+      <stellarFeedbackOutflows value="powerLaw">
+        <velocityCharacteristic value="250.0"/>
+        <exponent value="3.5"/>
+      </stellarFeedbackOutflows>
+    </stellarFeedbackOutflows>
+  </nodeOperator>
 </parameters>

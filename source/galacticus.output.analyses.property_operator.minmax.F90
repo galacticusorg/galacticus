@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -51,15 +51,11 @@ contains
     !#   <name>thresholdMinimum</name>
     !#   <source>parameters</source>
     !#   <description>Minimum threshold for the min-max property operator.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>thresholdMaximum</name>
     !#   <source>parameters</source>
     !#   <description>Maximum threshold for the min-max property operator.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=outputAnalysisPropertyOperatorMinMax(thresholdMinimum,thresholdMaximum)
     !# <inputParametersValidate source="parameters"/>
@@ -85,7 +81,7 @@ contains
     type            (treeNode                            ), intent(inout), optional :: node
     integer                                               , intent(inout), optional :: propertyType
     integer         (c_size_t                            ), intent(in   ), optional :: outputIndex
-    !GCC$ attributes unused :: propertyType, outputIndex, node
+    !$GLC attributes unused :: propertyType, outputIndex, node
 
     minMaxOperate=min(max(propertyValue,self%thresholdMinimum),self%thresholdMaximum)
     return

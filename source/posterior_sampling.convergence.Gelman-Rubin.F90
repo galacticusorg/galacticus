@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +22,21 @@
   use :: ISO_Varying_String, only : varying_string
 
   !# <posteriorSampleConvergence name="posteriorSampleConvergenceGelmanRubin">
-  !#  <description>A posterior sampling convergence class which implements the Gelman-Rubin statistic.</description>
+  !#  <description>
+  !#   This class adopts the convergence criterion proposed by
+  !#   \citeauthor{gelman_a._inference_1992}~(\citeyear{gelman_a._inference_1992}; see also \citealt{brooks_general_1998}), which
+  !#   compares the variance in parameter values within chains to that between chains. Outlier detection is applied to the chains using a
+  !#   standard Grubb's outlier test. The behavior of this criterion is controlled by the following subparameters:
+  !#   \begin{description}
+  !#   \item [{\normalfont \ttfamily Rhat}] The correlation coefficient, $\hat{R}$, value at which to declare convergence.
+  !#   \item [{\normalfont \ttfamily burnCount}] Set number of steps to burn before applying the convergence test.
+  !#   \item [{\normalfont \ttfamily testCount}] Set the number of steps between successive applications of the convergence test.
+  !#   \item [{\normalfont \ttfamily outlierSignificance}] The significance level required in outlier detection.
+  !#   \item [{\normalfont \ttfamily outlierLogLikelihoodOffset}] The offset in log-likelihood from the current maximum likelihood chain
+  !#     required for a chain to be declared to be an outlier.
+  !#   \item [{\normalfont \ttfamily outlierCountMaximum}] The maximum number of outlier chains allowed.
+  !#   \end{description}
+  !#  </description>
   !# </posteriorSampleConvergence>
   type, extends(posteriorSampleConvergenceClass) :: posteriorSampleConvergenceGelmanRubin
      !% Implementation of a posterior sampling convergence class which implements the Gelman-Rubin statistic.
@@ -38,21 +52,10 @@
      double precision                , allocatable, dimension(:) :: correctedHatR
      logical                         , allocatable, dimension(:) :: chainMask
    contains
-     !@ <objectMethods>
-     !@   <object>posteriorSampleConvergenceGelmanRubin</object>
-     !@   <objectMethod>
-     !@     <method>convergenceMeasure</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return the current convergence measure, $\hat{R}$.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>convergenceMeasureTarget</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return the target convergence measure, $\hat{R}$.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return the current convergence measure, $\hat{R}$." method="convergenceMeasure" />
+     !#   <method description="Return the target convergence measure, $\hat{R}$." method="convergenceMeasureTarget" />
+     !# </methods>
      final     ::                             gelmanRubinDestructor
      procedure :: isConverged              => gelmanRubinIsConverged
      procedure :: convergedAtStep          => gelmanRubinConvergedAtStep
@@ -87,66 +90,50 @@ contains
 
     !# <inputParameter>
     !#   <name>thresholdHatR</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.2d0</defaultValue>
     !#   <description>The $\hat{R}$ value at which convergence is declared.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>burnCount</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0</defaultValue>
     !#   <description>The number of steps to burn before computing convergence.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>testCount</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The interval in number of steps at which to check convergence.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>outlierCountMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0</defaultValue>
     !#   <description>The maximum number of outlier states allowed.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>outlierSignificance</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.05d0</defaultValue>
     !#   <description>The significance at which to declare a state an outlier.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>outlierLogLikelihoodOffset</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The log-likelihood offset at which to declare a state an outlier.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>reportCount</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The interval in number of steps at which to report on convergence status.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>logFileName</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The name of the file to which convergence state should be logged.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     self=posteriorSampleConvergenceGelmanRubin(thresholdHatR,burnCount,testCount,outlierCountMaximum,outlierSignificance,outlierLogLikelihoodOffset,reportCount,logFileName)
     !# <inputParametersValidate source="parameters"/>
@@ -192,12 +179,12 @@ contains
 
   logical function gelmanRubinIsConverged(self,simulationState,logLikelihood)
     !% Return whether the simulation is converged.
-    use :: FGSL                    , only : FGSL_CDF_tDist_Qinv
-    use :: Galacticus_Display      , only : Galacticus_Display_Message
+    use :: Display                 , only : displayMessage
     use :: ISO_Varying_String      , only : varying_string
-    use :: MPI_Utilities           , only : mpiBarrier                , mpiSelf
+    use :: MPI_Utilities           , only : mpiBarrier                    , mpiSelf
     use :: Memory_Management       , only : allocateArray
     use :: Posterior_Sampling_State, only : posteriorSampleStateClass
+    use :: Statistics_Distributions, only : distributionFunction1DStudentT
     use :: String_Handling         , only : operator(//)
     implicit none
     class           (posteriorSampleConvergenceGelmanRubin), intent(inout)               :: self
@@ -220,6 +207,7 @@ contains
          &                                                                                  i                            , deviationMaximumChain
     double precision                                                                     :: grubbsCriticalValue          , tStatisticCriticalValue, &
          &                                                                                  logLikelihoodMaximum         , deviationMaximum
+    type            (distributionFunction1DStudentT       )                              :: studentT
     type            (varying_string                       )                              :: message
     character       (len=16                               )                              :: label
 
@@ -274,16 +262,15 @@ contains
        chainDeviationIndex  =mpiSelf%maxloc(chainDeviation,self%chainMask)+1
        deallocate(chainDeviation)
        ! Evaluate the critical value for outlier rejection.
-       tStatisticCriticalValue=                                 &
-            &   FGSL_CDF_tDist_Qinv(                            &
-            &                       (                           &
-            &                        +1.0d0                     &
-            &                        -self%outlierSignificance  &
-            &                       )                           &
-            &                       /2.0d0                      &
-            &                       /dble(activeChainCount  ) , &
-            &                        dble(activeChainCount-2)   &
-            &                      )
+       studentT               =distributionFunction1DStudentT( dble(activeChainCount-2))
+       tStatisticCriticalValue=studentT%inverseUpper         (                            &
+            &                                                 +(                          &
+            &                                                   +1.0d0                    &
+            &                                                   -self%outlierSignificance &
+            &                                                  )                          &
+            &                                                 /2.0d0                      &
+            &                                                 /dble(activeChainCount  )   &
+            &                                                )
        grubbsCriticalValue= dble(                              &
             &                         activeChainCount-1       &
             &                   )                              &
@@ -352,7 +339,7 @@ contains
           write (label,'(i16)') simulationState%count()
           message="Gelman-Rubin statistic at "//trim(adjustl(label))
           message=message//" steps cannot be computed (zero variances)"
-          call Galacticus_Display_Message(message)
+          call displayMessage(message)
        end if
        gelmanRubinIsConverged=.false.
        return
@@ -451,7 +438,7 @@ contains
           message=message//" steps min/max="//trim(adjustl(label))//"/"
           write (label,'(f6.2)') maxval(self%correctedHatR)
           message=message//trim(adjustl(label))//")"
-          call Galacticus_Display_Message(message)
+          call displayMessage(message)
           if (activeChainCount < mpiSelf%count()) then
              message='outlier chains:'
              label=''
@@ -461,9 +448,9 @@ contains
                    label=","
                 end if
              end do
-             call Galacticus_Display_Message(message)
+             call displayMessage(message)
           else
-             call Galacticus_Display_Message('no outlier chains')
+             call displayMessage('no outlier chains')
           end if
        end if
        write (self%logFileUnit,*) "outliers    ",simulationState%count(),self%chainMask

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -240,9 +240,9 @@ contains
     !% Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentum} (given
     !% in units of km s$^{-1}$ Mpc).
     implicit none
-    class           (darkMatterProfileDarkMatterOnly), intent(inout), target  :: self
-    type            (treeNode                       ), intent(inout), pointer :: node
-    double precision                                 , intent(in   )          :: specificAngularMomentum
+    class           (darkMatterProfileDarkMatterOnly), intent(inout), target :: self
+    type            (treeNode                       ), intent(inout)         :: node
+    double precision                                 , intent(in   )         :: specificAngularMomentum
 
     darkMatterOnlyRadiusFromSpecificAngularMomentum=self%darkMatterProfileDMO_%radiusFromSpecificAngularMomentum(node,specificAngularMomentum/sqrt(self%darkMatterFraction))
     return

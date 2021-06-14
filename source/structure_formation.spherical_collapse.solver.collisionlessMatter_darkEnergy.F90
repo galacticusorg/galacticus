@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -78,8 +78,6 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>var_str('turnaround')</defaultValue>
     !#   <description>The radius at which the energy of a spherical top-hat perturbation in a dark energy cosmology can be considered to be fixed.</description>
-    !#   <type>integer</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     !# <objectBuilder class="linearGrowth"       name="linearGrowth_"       source="parameters"/>
@@ -92,9 +90,9 @@ contains
 
   function cllsnlssMttrDarkEnergyConstructorInternal(energyFixedAt,cosmologyFunctions_,linearGrowth_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily cllsnlssMttrDarkEnergy} spherical collapse solver class.
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: Galacticus_Paths  , only : galacticusPath         , pathTypeDataDynamic
     use :: ISO_Varying_String, only : operator(//)
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
     implicit none
     type   (sphericalCollapseSolverCllsnlssMttrDarkEnergy)                                  :: self
     integer                                               , intent(in   )                   :: energyFixedAt
@@ -126,33 +124,34 @@ contains
 
   subroutine cllsnlssMttrDarkEnergyTabulate(self,time,sphericalCollapse_,calculationType)
     !% Tabulate spherical collapse solutions for $\delta_\mathrm{crit}$, $\Delta_\mathrm{vir}$, or $R_\mathrm{ta}/R_\mathrm{vir}$ vs. time.
-    use :: Galacticus_Display, only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, Galacticus_Display_Indent    , Galacticus_Display_Unindent, &
-          &                           verbosityWorking
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: Linear_Growth     , only : normalizeMatterDominated
-    use :: Root_Finder       , only : rangeExpandMultiplicative , rangeExpandSignExpectNegative   , rangeExpandSignExpectPositive, rootFinder
-    use :: Tables            , only : table1DLogarithmicLinear
+    use :: Display         , only : displayCounter           , displayCounterClear          , displayIndent                , displayUnindent, &
+          &                         verbosityLevelWorking
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Linear_Growth   , only : normalizeMatterDominated
+    use :: Root_Finder     , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
+    use :: Tables          , only : table1DLogarithmicLinear
     implicit none
     class           (sphericalCollapseSolverCllsnlssMttrDarkEnergy)             , intent(inout) :: self
     double precision                                                            , intent(in   ) :: time
     integer                                                                     , intent(in   ) :: calculationType
     class           (table1D                                      ), allocatable, intent(inout) :: sphericalCollapse_
     class           (linearGrowthClass                            ), pointer                    :: linearGrowth_
-    double precision                                               , parameter                  :: toleranceAbsolute              =0.0d0, toleranceRelative              =1.0d-9
+    double precision                                               , parameter                  :: toleranceAbsolute              =0.0d0  , toleranceRelative              =1.0d-9
     double precision                                               , dimension(2)               :: timeRange
-    type            (rootFinder                                   ), save                       :: finderAmplitudePerturbation          , finderExpansionMaximum
-    !$omp threadprivate(finderAmplitudePerturbation,finderExpansionMaximum)
-    integer                                                                                     :: countTimes                           , iTime                                 , &
+    type            (rootFinder                                   ), save                       :: finderAmplitudePerturbation            , finderExpansionMaximum
+    logical                                                                                     :: finderAmplitudeConstructed     =.false., finderExpansionConstructed     =.false.
+    !$omp threadprivate(finderAmplitudePerturbation,finderExpansionMaximum,finderAmplitudeConstructed,finderExpansionConstructed)
+    integer                                                                                     :: countTimes                             , iTime                                  , &
          &                                                                                         iCount
-    double precision                                                                            :: expansionFactor                      , epsilonPerturbation                   , &
-         &                                                                                         epsilonPerturbationMaximum           , epsilonPerturbationMinimum            , &
-         &                                                                                         densityContrastExpansionMaximum      , expansionFactorExpansionMaximum       , &
-         &                                                                                         radiusExpansionMaximum               , maximumExpansionTime                  , &
-         &                                                                                         normalization                        , q                                     , &
-         &                                                                                         timeEnergyFixed                      , timeInitial                           , &
-         &                                                                                         y                                    , timeMinimum                           , &
+    double precision                                                                            :: expansionFactor                        , epsilonPerturbation                    , &
+         &                                                                                         epsilonPerturbationMaximum             , epsilonPerturbationMinimum             , &
+         &                                                                                         densityContrastExpansionMaximum        , expansionFactorExpansionMaximum        , &
+         &                                                                                         radiusExpansionMaximum                 , maximumExpansionTime                   , &
+         &                                                                                         normalization                          , q                                      , &
+         &                                                                                         timeEnergyFixed                        , timeInitial                            , &
+         &                                                                                         y                                      , timeMinimum                            , &
          &                                                                                         timeMaximum
-    double complex                                                                              :: a                                    , b                                     , &
+    double complex                                                                              :: a                                      , b                                      , &
          &                                                                                         x
     type            (varying_string                               )                             :: message
     character       (len=13                                       )                             :: label
@@ -190,26 +189,32 @@ contains
        message=message//trim(adjustl(label))//" ≤ t/Gyr ≤ "
        write (label,'(e12.6)') timeMaximum
        message=message//trim(adjustl(label))
-       call Galacticus_Display_Indent(message,verbosity=verbosityWorking)
+       call displayIndent(message,verbosity=verbosityLevelWorking)
        iCount=0
-       call Galacticus_Display_Counter(                            &
+       call displayCounter(                            &
             &                                    iCount          , &
             &                          isNew    =.true.          , &
-            &                          verbosity=verbosityWorking  &
+            &                          verbosity=verbosityLevelWorking  &
             &                         )
        !$omp parallel private(expansionFactor,epsilonPerturbationMaximum,epsilonPerturbationMinimum,epsilonPerturbation,timeInitial,timeRange,maximumExpansionTime,expansionFactorExpansionMaximum,q,y,timeEnergyFixed,a,b,x,linearGrowth_)
        allocate(cllsnlssMttrDarkEnergyCosmologyFunctions_,mold=self%cosmologyFunctions_)
+       !$omp critical(sphericalCollapseSolveCllnlssMttrDrkEnrgyDeepCopy)
+       !# <deepCopyReset variables="self%cosmologyFunctions_"/>
        !# <deepCopy source="self%cosmologyFunctions_" destination="cllsnlssMttrDarkEnergyCosmologyFunctions_"/>
+       !# <deepCopyFinalize variables="cllsnlssMttrDarkEnergyCosmologyFunctions_"/>
        if (calculationType == cllsnlssMttCsmlgclCnstntClcltnCriticalOverdensity) then
           allocate(linearGrowth_,mold=self%linearGrowth_)
+          !# <deepCopyReset variables="self%linearGrowth_"/>
           !# <deepCopy source="self%linearGrowth_" destination="linearGrowth_"/>
+          !# <deepCopyFinalize variables="linearGrowth_"/>
        end if
+       !$omp end critical(sphericalCollapseSolveCllnlssMttrDrkEnrgyDeepCopy)
        !$omp do schedule(dynamic)
        do iTime=1,countTimes
-          call Galacticus_Display_Counter(                                              &
+          call displayCounter(                                              &
                &                          int(100.0d0*dble(iCount-1)/dble(countTimes)), &
                &                          isNew=.false.                               , &
-               &                          verbosity=verbosityWorking                    &
+               &                          verbosity=verbosityLevelWorking                    &
                &                         )
           ! Get the current expansion factor.
           expansionFactor=cllsnlssMttrDarkEnergyCosmologyFunctions_%expansionFactor(sphericalCollapse_%x(iTime))
@@ -227,9 +232,13 @@ contains
           if (cllsnlssMttrDarkEnergyCosmologyFunctions_%equationOfStateDarkEnergy(time=cllsnlssMttCsmlgclCnstntTime) >= -1.0d0/3.0d0) &
                & call Galacticus_Error_Report('ω<-⅓ required'//{introspection:location})
           ! Find the value of ε for which the perturbation just collapses at this time.
-          if (.not.finderAmplitudePerturbation%isInitialized()) then
-             call finderAmplitudePerturbation%rootFunction(cllsnlssMttrDarkEnergyRadiusPerturbation)
-             call finderAmplitudePerturbation%tolerance   (toleranceAbsolute,toleranceRelative     )
+          if (.not.finderAmplitudeConstructed) then
+             finderAmplitudePerturbation=rootFinder(                                                       &
+                  &                                 rootFunction=cllsnlssMttrDarkEnergyRadiusPerturbation, &
+                  &                                 toleranceAbsolute=toleranceAbsolute                  , &
+                  &                                 toleranceRelative=toleranceRelative                    &
+                  &                                )
+             finderAmplitudeConstructed=.true.
           end if
           epsilonPerturbation=finderAmplitudePerturbation%find(rootRange=[epsilonPerturbationMinimum,epsilonPerturbationMaximum])
           select case (calculationType)
@@ -251,9 +260,13 @@ contains
                   &                          )
           case (cllsnlssMttCsmlgclCnstntClcltnVirialDensityContrast,cllsnlssMttCsmlgclCnstntClcltnRadiusTurnaround)
              ! Find the epoch of maximum expansion for the perturbation.
-             if (.not.finderExpansionMaximum%isInitialized()) then
-                call finderExpansionMaximum%rootFunction(cllsnlssMttrDarkEnergyExpansionRatePerturbation)
-                call finderExpansionMaximum%tolerance   (toleranceAbsolute,toleranceRelative            )
+             if (.not.finderExpansionConstructed) then
+                finderExpansionMaximum=rootFinder(                                                                   &
+                     &                            rootFunction     =cllsnlssMttrDarkEnergyExpansionRatePerturbation, &
+                     &                            toleranceAbsolute=toleranceAbsolute                              , &
+                     &                            toleranceRelative=toleranceRelative                                &
+                     &                           )
+                finderExpansionConstructed=.true.
              end if
              call finderExpansionMaximum%rangeExpand (                                                             &
                   &                                   rangeExpandDownward          =1.0d0-1.0d-2                 , &
@@ -325,8 +338,8 @@ contains
        !$omp end do
        !# <objectDestructor name="cllsnlssMttrDarkEnergyCosmologyFunctions_"/>
        !$omp end parallel
-       call Galacticus_Display_Counter_Clear(       verbosity=verbosityWorking)
-       call Galacticus_Display_Unindent     ('done',verbosity=verbosityWorking)
+       call displayCounterClear(       verbosity=verbosityLevelWorking)
+       call displayUnindent     ('done',verbosity=verbosityLevelWorking)
     end select
     return
   end subroutine cllsnlssMttrDarkEnergyTabulate
@@ -354,21 +367,18 @@ contains
   subroutine cllsnlssMttrDarkEnergyPerturbationDynamicsSolver(epsilonPerturbation,time,radiusPerturbation,expansionRatePerturbation)
     !% Integrate the dynamics of a spherical top-hat perturbation in a dark energy universe given an initial perturbation
     !% amplitude {\normalfont \ttfamily epsilonPerturbation}.
-    use :: FGSL         , only : FGSL_Success
-    use :: FODEIV2      , only : fodeiv2_driver, fodeiv2_system
-    use :: ODEIV2_Solver, only : ODEIV2_Solve  , ODEIV2_Solver_Free
+    use :: Interface_GSL        , only : GSL_Success
+    use :: Numerical_ODE_Solvers, only : odeSolver
     implicit none
-    double precision                                                , intent(in   )           :: epsilonPerturbation            , time
-    double precision                                                , intent(  out), optional :: expansionRatePerturbation      , radiusPerturbation
-    integer                             , parameter                                           :: countProperties          =2
-    double precision                    , dimension(countProperties)                          :: propertyValues
-    double precision                    , parameter                                           :: odeToleranceAbsolute     =0.0d0, odeToleranceRelative            =1.0d-12
-    type            (fodeiv2_system    )                                                      :: ode2System
-    type            (fodeiv2_driver    )                                                      :: ode2Driver
-    logical                                                                                   :: odeReset
-    double precision                                                                          :: expansionFactorInitial         , expansionRatePerturbationInitial        , &
-         &                                                                                       overdensityInitial             , timeInitial
-    integer                                                                                   :: odeStatus
+    double precision                                       , intent(in   )           :: epsilonPerturbation                 , time
+    double precision                                       , intent(  out), optional :: expansionRatePerturbation           , radiusPerturbation
+    integer         (c_size_t ), parameter                                           :: countProperties          =2_c_size_t
+    double precision           , dimension(countProperties)                          :: propertyValues
+    double precision           , parameter                                           :: odeToleranceAbsolute     =0.0d0     , odeToleranceRelative            =1.0d-12
+    type            (odeSolver)                                                      :: solver
+    double precision                                                                 :: expansionFactorInitial               , expansionRatePerturbationInitial        , &
+         &                                                                              overdensityInitial                   , timeInitial
+    integer                                                                          :: odeStatus
 
     ! Specify a sufficiently early time.
     expansionFactorInitial=cllsnlssMttrDarkEnergyExpansionFactorInitialFraction
@@ -406,27 +416,17 @@ contains
     ! Evolve if the requested time is after the initial time.
     if (time > timeInitial) then
        ! Solve the ODE to find the perturbation radius at the present day.
-       odeReset=.true.
-       call ODEIV2_Solve(                                                  &
-            &                   ode2Driver,ode2System                    , &
-            &                   timeInitial,time                         , &
-            &                   countProperties                          , &
-            &                   propertyValues                           , &
-            &                   cllsnlssMttrDarkEnergyPerturbationODEs   , &
-            &                   odeToleranceAbsolute,odeToleranceRelative, &
-            &                   reset=odeReset                           , &
-            &                   odeStatus=odeStatus                        &
-            &                  )
-       call ODEIV2_Solver_Free(ode2Driver,ode2System)
+       solver=odeSolver(countProperties,cllsnlssMttrDarkEnergyPerturbationODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative)    
+       call solver%solve(timeInitial,time,propertyValues,status=odeStatus)
        ! If the ODE solver did not succeed, it is because the perturbation collapsed to zero radius (causing a divergence). This
        ! means it collapsed prior to the current time. We extrapolate to negative radius (using the velocity at the final step) to
        ! permit our root finder to locate the point at which collapse occurs at the current time.
-       if (odeStatus /= FGSL_Success) propertyValues(1)=+propertyValues(1) &
-            &                                           +propertyValues(2) &
-            &                                           *(                 &
-            &                                             +time            &
-            &                                             -timeInitial     &
-            &                                            )
+       if (odeStatus /= GSL_Success) propertyValues(1)=+propertyValues(1) &
+            &                                          +propertyValues(2) &
+            &                                          *(                 &
+            &                                            +time            &
+            &                                            -timeInitial     &
+            &                                           )
     end if
     ! Return the computed quantities.
     if (present(radiusPerturbation       )) radiusPerturbation       =propertyValues(1)
@@ -436,7 +436,7 @@ contains
 
   integer function cllsnlssMttrDarkEnergyPerturbationODEs(time,y,dydt)
     !% Differential equations describing the evolution of spherical perturbations in a universe containing collisionless dark matter and dark energy.
-    use :: FGSL, only : FGSL_Success
+    use :: Interface_GSL, only : GSL_Success
     implicit none
     double precision, intent(in   )               :: time
     double precision, intent(in   ), dimension(:) :: y
@@ -458,7 +458,7 @@ contains
             &   )
     end if
     ! Return success.
-    cllsnlssMttrDarkEnergyPerturbationODEs=FGSL_Success
+    cllsnlssMttrDarkEnergyPerturbationODEs=GSL_Success
     return
   end function cllsnlssMttrDarkEnergyPerturbationODEs
 
@@ -469,7 +469,7 @@ contains
     class           (sphericalCollapseSolverCllsnlssMttrDarkEnergy), intent(inout) :: self
     double precision                                               , intent(in   ) :: time
     class           (table2DLinLinLin                             ), intent(inout) :: linearNonlinearMap_
-    !GCC$ attributes unused :: self, time, linearNonlinearMap_
+    !$GLC attributes unused :: self, time, linearNonlinearMap_
 
     call Galacticus_Error_Report('linear-nonlinear mapping is not supported by this class'//{introspection:location})
     return

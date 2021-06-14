@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,35 +20,47 @@
 !% Implements a merger tree evolution timestepping class which limits the step to the next epoch at which to record evolution of the
 !% main branch galaxy.
 
-  use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
-  use :: FGSL               , only : fgsl_interp_accel
-  use :: Output_Times       , only : outputTimes       , outputTimesClass
+  use :: Cosmology_Functions    , only : cosmologyFunctions, cosmologyFunctionsClass
+  use :: Numerical_Interpolation, only : interpolator
+  use :: Output_Times           , only : outputTimes       , outputTimesClass
 
   !# <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepRecordEvolution">
-  !#  <description>A merger tree evolution timestepping class which limits the step to the next epoch at which to record evolution of the main branch galaxy.</description>
+  !#  <description>
+  !#   A merger tree evolution timestepping class which enforces that
+  !#   \begin{equation}
+  !#    \Delta t \le t_{\mathrm{record},i} - t
+  !#   \end{equation}
+  !#   where $t$ is the current time, $t_{\mathrm{record},i}$ is the $i^\mathrm{th}$ time at which the evolution of main branch galaxies
+  !#   is to be output and $i$ is chosen to be the smallest $i$ such that $t_{\mathrm{record},i} &gt; t$. If there is no $i$ for which
+  !#   $t_{\mathrm{record},i} &gt; t$ this criterion is not applied. If this criterion is the limiting criterion for $\Delta t$ then the
+  !#   properties of the galaxy will be recorded at the end of the timestep.
+  !#
+  !#   Timesteps are logarithmically in cosmic time between {\normalfont \ttfamily [timeBegin]} and \newline {\normalfont
+  !#   \ttfamily [timeEnd]}, with the total number of timesteps specified by {\normalfont \ttfamily [countSteps]}.
+  !#
+  !#   This recorded evolution will be written to the group {\normalfont \ttfamily mainProgenitorEvolution} in the \glc\ output
+  !#   file. Within that group two datasets, {\normalfont \ttfamily time} and {\normalfont \ttfamily expansionFactor}, give the
+  !#   times and expansion factors at which evolution was recorded. Then for each merger tree two datasets, {\normalfont \ttfamily
+  !#   stellarMass&lt;N&gt;} and {\normalfont \ttfamily totalMass&lt;N&gt;} (where {\normalfont \ttfamily &lt;N&gt;} is the merger tree index), give
+  !#   the stellar and total baryonic mass of the main branch progenitor at each timestep.
+  !#  </description>
   !# </mergerTreeEvolveTimestep>
   type, extends(mergerTreeEvolveTimestepClass) :: mergerTreeEvolveTimestepRecordEvolution
      !% Implementation of a merger tree evolution timestepping class which limits the step to the next epoch at which to record
      !% evolution of the main branch galaxy.
      private
-     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_ => null()
-     class           (outputTimesClass       ), pointer                   :: outputTimes_ => null()
+     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_    => null()
+     class           (outputTimesClass       ), pointer                   :: outputTimes_           => null()
      logical                                                              :: oneTimeDatasetsWritten
      integer                                                              :: countSteps
-     double precision                                                     :: timeBegin               , timeEnd
-     double precision                         , allocatable, dimension(:) :: expansionFactor         , massStellar, &
-          &                                                                  time                    , massTotal
-     type            (fgsl_interp_accel      )                            :: interpolationAccelerator
+     double precision                                                     :: timeBegin                       , timeEnd
+     double precision                         , allocatable, dimension(:) :: expansionFactor                 , massStellar, &
+          &                                                                  time                            , massTotal
+     type            (interpolator           )                            :: interpolator_
    contains
-     !@ <objectMethods>
-     !@   <object>mergerTreeEvolveTimestepRecordEvolution</object>
-     !@   <objectMethod>
-     !@     <method>reset</method>
-     !@     <arguments></arguments>
-     !@     <type>\void</type>
-     !@     <description>Reset the record of galaxy evolution.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Reset the record of galaxy evolution." method="reset" />
+     !# </methods>
      final     ::                 recordEvolutionDestructor
      procedure :: timeEvolveTo => recordEvolutionTimeEvolveTo
      procedure :: autoHook     => recordEvolutionAutoHook
@@ -80,27 +92,21 @@ contains
     ageUniverse=cosmologyFunctions_%cosmicTime(1.0d0)
     !# <inputParameter>
     !#   <name>timeBegin</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.05d0*ageUniverse</defaultValue>
     !#   <description>The earliest time at which to tabulate the evolution of main branch progenitor galaxies (in Gyr).</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>timeEnd</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>ageUniverse</defaultValue>
     !#   <description>The latest time at which to tabulate the evolution of main branch progenitor galaxies (in Gyr).</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>countSteps</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>100</defaultValue>
     !#   <description>The number of steps (spaced logarithmically in cosmic time) at which to tabulate the evolution of main branch progenitor galaxies.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     self=mergerTreeEvolveTimestepRecordEvolution(timeBegin,timeEnd,countSteps,cosmologyFunctions_,outputTimes_)
     !# <inputParametersValidate source="parameters"/>
@@ -133,6 +139,7 @@ contains
     end do
     call self%reset()
     self%oneTimeDatasetsWritten=.false.
+    self%interpolator_         =interpolator(self%time)
     return
   end function recordEvolutionConstructorInternal
 
@@ -156,15 +163,15 @@ contains
     return
   end subroutine recordEvolutionDestructor
 
-  double precision function recordEvolutionTimeEvolveTo(self,node,task,taskSelf,report,lockNode,lockType)
+  double precision function recordEvolutionTimeEvolveTo(self,timeEnd,node,task,taskSelf,report,lockNode,lockType)
     !% Determines the timestep to go to the next tabulation point for galaxy evolution storage.
     use            :: Evolve_To_Time_Reports , only : Evolve_To_Time_Report
     use            :: Galacticus_Nodes       , only : nodeComponentBasic   , treeNode
     use, intrinsic :: ISO_C_Binding          , only : c_size_t
     use            :: ISO_Varying_String     , only : varying_string
-    use            :: Numerical_Interpolation, only : Interpolate_Locate
     implicit none
     class           (mergerTreeEvolveTimestepRecordEvolution), intent(inout), target            :: self
+    double precision                                         , intent(in   )                    :: timeEnd
     type            (treeNode                               ), intent(inout), target            :: node
     procedure       (timestepTask                           ), intent(  out), pointer           :: task
     class           (*                                      ), intent(  out), pointer           :: taskSelf
@@ -174,6 +181,7 @@ contains
     class           (nodeComponentBasic                     )               , pointer           :: basic
     integer         (c_size_t                               )                                   :: indexTime
     double precision                                                                            :: time
+    !$GLC attributes unused :: timeEnd
 
     recordEvolutionTimeEvolveTo =  huge(0.0d0)
     if (present(lockNode)) lockNode => null()
@@ -183,7 +191,7 @@ contains
     if (node%isOnMainBranch()) then
        basic     => node %basic()
        time      =  basic%time ()
-       indexTime =  Interpolate_Locate(self%time,self%interpolationAccelerator,time)
+       indexTime =  self%interpolator_%locate(time)
        if (time < self%time(indexTime+1)) then
           recordEvolutionTimeEvolveTo     =  self%time(indexTime+1)
           if (present(lockNode)) lockNode => node
@@ -203,7 +211,6 @@ contains
     use            :: Galacticus_Error                  , only : Galacticus_Error_Report
     use            :: Galacticus_Nodes                  , only : mergerTree                      , nodeComponentBasic, treeNode
     use, intrinsic :: ISO_C_Binding                     , only : c_size_t
-    use            :: Numerical_Interpolation           , only : Interpolate_Locate
     implicit none
     class           (*                 ), intent(inout)          :: self
     type            (mergerTree        ), intent(in   )          :: tree
@@ -212,7 +219,7 @@ contains
     class           (nodeComponentBasic)               , pointer :: basic
     integer         (c_size_t          )                         :: indexTime
     double precision                                             :: time
-    !GCC$ attributes unused :: deadlockStatus, tree
+    !$GLC attributes unused :: deadlockStatus, tree
 
     select type (self)
     class is (mergerTreeEvolveTimestepRecordEvolution)
@@ -221,7 +228,7 @@ contains
        if (time == self%time(self%countSteps)) then
           indexTime=self%countSteps
        else
-          indexTime=Interpolate_Locate(self%time,self%interpolationAccelerator,time)
+          indexTime=self%interpolator_%locate(time)
        end if
        self%massStellar(indexTime)=Galactic_Structure_Enclosed_Mass(node,massType=massTypeStellar )
        self%massTotal  (indexTime)=Galactic_Structure_Enclosed_Mass(node,massType=massTypeGalactic)

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -57,15 +57,11 @@ contains
     !#   <name>distributionNumber</name>
     !#   <source>parameters</source>
     !#   <description>The number (1-7) of the distribution to compute.</description>
-    !#   <type>integer</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>formationTimeRecent</name>
     !#   <source>parameters</source>
     !#   <description>Halos which ``formed'' more recently than this time in the past will be excluded from the analysis.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
@@ -224,7 +220,7 @@ contains
     !#     &amp;                                         )
     !#  </constructor>
     !# </referenceConstruct>
-    ! Create a virial density contrast object matched to the defintion used by Ludlow et al. (2016).
+    ! Create a virial density contrast object matched to the definition used by Ludlow et al. (2016).
     allocate(virialDensityContrast_                )
     !# <referenceConstruct object="virialDensityContrast_">
     !#  <constructor>

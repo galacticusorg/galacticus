@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -32,15 +32,14 @@ contains
   !# <galacticusStateStoreTask>
   !#  <unitName>mergerTreeStateStore</unitName>
   !# </galacticusStateStoreTask>
-  subroutine mergerTreeStateStore(stateFile,fgslStateFile,stateOperatorID)
+  subroutine mergerTreeStateStore(stateFile,gslStateFile,stateOperatorID)
     !% Write the stored snapshot of the random number state to file.
-    use            :: FGSL         , only : fgsl_file
-    use, intrinsic :: ISO_C_Binding, only : c_size_t
+    use, intrinsic :: ISO_C_Binding, only : c_size_t, c_ptr
     implicit none
-    integer            , intent(in   ) :: stateFile
-    integer(c_size_t  ), intent(in   ) :: stateOperatorID
-    type   (fgsl_file ), intent(in   ) :: fgslStateFile
-    !GCC$ attributes unused :: fgslStateFile, stateOperatorID
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperatorID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+    !$GLC attributes unused :: gslStateFile, stateOperatorID
 
     write (stateFile) treeStateStoreSequence
     return
@@ -49,15 +48,14 @@ contains
   !# <galacticusStateRetrieveTask>
   !#  <unitName>mergerTreeStateRestore</unitName>
   !# </galacticusStateRetrieveTask>
-  subroutine mergerTreeStateRestore(stateFile,fgslStateFile,stateOperatorID)
+  subroutine mergerTreeStateRestore(stateFile,gslStateFile,stateOperatorID)
     !% Write the stored snapshot of the random number state to file.
-    use            :: FGSL         , only : fgsl_file
-    use, intrinsic :: ISO_C_Binding, only : c_size_t
+    use, intrinsic :: ISO_C_Binding, only : c_size_t, c_ptr
     implicit none
-    integer            , intent(in   ) :: stateFile
-    integer(c_size_t  ), intent(in   ) :: stateOperatorID
-    type   (fgsl_file ), intent(in   ) :: fgslStateFile
-    !GCC$ attributes unused :: fgslStateFile, stateOperatorID
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperatorID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+    !$GLC attributes unused :: gslStateFile, stateOperatorID
 
     read (stateFile) treeStateStoreSequence
     return

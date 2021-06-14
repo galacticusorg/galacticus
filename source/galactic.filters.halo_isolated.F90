@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -42,7 +42,7 @@ contains
     implicit none
     type(galacticFilterHaloIsolated)                :: self
     type(inputParameters           ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=galacticFilterHaloIsolated()
     return
@@ -51,9 +51,9 @@ contains
   logical function haloIsolatedPasses(self,node)
     !% Implement a galactic filter which passes only isolated halos.
     implicit none
-    class(galacticFilterHaloIsolated), intent(inout) :: self
-    type (treeNode                  ), intent(inout) :: node
-    !GCC$ attributes unused :: self
+    class(galacticFilterHaloIsolated), intent(inout)         :: self
+    type (treeNode                  ), intent(inout), target :: node
+    !$GLC attributes unused :: self
 
     haloIsolatedPasses=.not.node%isSatellite()
     return

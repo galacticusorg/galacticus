@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,21 +20,17 @@
   !% Implements a class for intergalactic background light.
 
   !# <radiationField name="radiationFieldIntergalacticBackground" abstract="yes">
-  !#  <description>A radiation field class for intergalactic background light with properties read from file.</description>
+  !#  <description>
+  !#   An abstract radiation field class for intergalactic background light.
+  !#  </description>
   !# </radiationField>
   type, extends(radiationFieldClass), abstract :: radiationFieldIntergalacticBackground
      !% A radiation field class for intergalactic background light.
      private
    contains
-     !@ <objectMethods>
-     !@  <object>radiationFieldIntergalacticBackground</object>
-     !@  <objectMethod>
-     !@   <method>timeSet</method>
-     !@   <type>\void</type>
-     !@   <arguments>\doublezero\ time\argin</arguments>
-     !@   <description>Set the time for the intergalactic background radiation field.</description>
-     !@  </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Set the time for the intergalactic background radiation field." method="timeSet" />
+     !# </methods>
      procedure(intergalacticBackgroundTimeSet), deferred :: timeSet
   end type radiationFieldIntergalacticBackground
 

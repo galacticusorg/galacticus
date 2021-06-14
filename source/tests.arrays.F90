@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,47 +21,48 @@
 
 program Test_Array_Monotonicity
   !% Tests that array functions.
-  use :: Array_Utilities   , only : Array_Cumulate                , Array_Is_Monotonic      , Array_Reverse       , directionDecreasing, &
-          &                         directionIncreasing           , operator(.intersection.)
-  use :: Galacticus_Display, only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use :: ISO_Varying_String, only : varying_string                , assignment(=)           , char
+  use :: Array_Utilities   , only : Array_Cumulate     , Array_Is_Monotonic      , Array_Reverse       , directionDecreasing, &
+          &                         directionIncreasing, operator(.intersection.)
+  use :: Display           , only : displayVerbositySet, verbosityLevelStandard
+  use :: ISO_Varying_String, only : assignment(=)      , char                    , varying_string
   use :: Kind_Numbers      , only : kind_int8
-  use :: Unit_Tests        , only : Assert                        , Unit_Tests_Begin_Group  , Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Unit_Tests        , only : Assert             , Unit_Tests_Begin_Group  , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   double precision                , dimension( 1,2), target     :: singleElementArrays       =reshape([1.23d0,-2.31d0],shape(singleElementArrays))
   integer         (kind=kind_int8), dimension( 1,2), target     :: singleElementArraysInteger=reshape([123,-231],shape(singleElementArraysInteger))
   logical                         , dimension( 9,2), target     :: singleElementExpectations =reshape([.true.,.true.,.true.,.true.,.true.,.true.,.true.,.true.,.true.,.true.,.true.,.true.,.true.,.true.,.true.,.true.,.true.,.true.],shape(singleElementExpectations))
-  character(len=128),      target , dimension(   2)             :: singleElementNames=    [                                                                         &
-       &                                                                                    'Single element array (positive value)'                                 &
-       &                                                                                   ,'Single element array (negative value)'                                 &
+  character(len=128),      target , dimension(   2)             :: singleElementNames=    [                                                                              &
+       &                                                                                    'Single element array (positive value)'                                      &
+       &                                                                                   ,'Single element array (negative value)'                                      &
        &                                                                                  ]
   double precision                , dimension(10,6), target     :: tenElementArrays       =reshape([1.0d0,2.0d0,3.0d0,4.0d0,5.0d0,6.0d0,7.0d0,8.0d0,9.0d0,10.0d0,3.0d0,2.0d0,1.0d0,0.0d0,-1.0d0,-2.0d0,-3.0d0,-4.0d0,-5.0d0,-6.0d0,1.0d0,0.0d0,3.0d0,4.0d0,-3.0d0,5.0d0,1.0d0,8.0d0,2.0d0,3.0d0,1.0d0,1.0d0,1.0d0,4.0d0,5.0d0,6.0d0,7.0d0,8.0d0,9.0d0,10.0d0,3.0d0,2.0d0,1.0d0,1.0d0,-1.0d0,-2.0d0,-3.0d0,-4.0d0,-5.0d0,-6.0d0,1.0d0,0.0d0,3.0d0,3.0d0,-3.0d0,5.0d0,1.0d0,8.0d0,2.0d0,3.0d0],shape(tenElementArrays))
   integer         (kind=kind_int8), dimension(10,6), target     :: tenElementArraysInteger=reshape([10,20,30,40,50,60,70,80,90,100,30,20,10,00,-10,-20,-30,-40,-50,-60,10,00,30,40,-30,50,10,80,20,30,10,10,10,40,50,60,70,80,90,100,30,20,10,10,-10,-20,-30,-40,-50,-60,10,00,30,30,-30,50,10,80,20,30],shape(tenElementArrays))
   logical                         , dimension( 9,6), target     :: tenElementExpectations =reshape([.true.,.true.,.false.,.true.,.true.,.false.,.true.,.true.,.false.,.true.,.false.,.true.,.true.,.false.,.true.,.true.,.false.,.true.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.true.,.true.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.true.,.false.,.true.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.],shape(tenElementExpectations))
-  character(len=128),      target , dimension(   6)             :: tenElementNames=       [                                                                         &
-       &                                                                                    'Increasing array (no equalities)     '                                 &
-       &                                                                                   ,'Decreasing array (no equalities)     '                                 &
-       &                                                                                   ,'Non-monotinic array (no equalities)  '                                 &
-       &                                                                                   ,'Increasing array (with equalities)   '                                 &
-       &                                                                                   ,'Decreasing array (with equalities)   '                                 &
-       &                                                                                   ,'Non-monotinic array (with equalities)'                                 &
+  character(len=128),      target , dimension(   6)             :: tenElementNames=       [                                                                              &
+       &                                                                                    'Increasing array (no equalities)     '                                      &
+       &                                                                                   ,'Decreasing array (no equalities)     '                                      &
+       &                                                                                   ,'Non-monotinic array (no equalities)  '                                      &
+       &                                                                                   ,'Increasing array (with equalities)   '                                      &
+       &                                                                                   ,'Decreasing array (with equalities)   '                                      &
+       &                                                                                   ,'Non-monotinic array (with equalities)'                                      &
        &                                                                                  ]
   double precision                , dimension(  10)              :: doubleArray         =[0.0d0,1.0d0,2.0d0,3.0d0,4.0d0,5.0d0,6.0d0,7.0d0,8.0d0,9.0d0]
   double precision                , dimension(  10)              :: doubleArrayReversed =[9.0d0,8.0d0,7.0d0,6.0d0,5.0d0,4.0d0,3.0d0,2.0d0,1.0d0,0.0d0]
   double precision                , dimension(  10)              :: doubleArrayCumulated=[0.0d0,1.0d0,3.0d0,6.0d0,10.0d0,15.0d0,21.0d0,28.0d0,36.0d0,45.0d0]
   real                            , dimension(  10)              :: realArray           =[0.0e0,1.0e0,2.0e0,3.0e0,4.0e0,5.0e0,6.0e0,7.0e0,8.0e0,9.0e0]
   real                            , dimension(  10)              :: realArrayReversed   =[9.0e0,8.0e0,7.0e0,6.0e0,5.0e0,4.0e0,3.0e0,2.0e0,1.0e0,0.0e0]
-  double precision                , dimension( :,:), pointer     :: thisArraySet
-  integer         (kind=kind_int8), dimension( :,:), pointer     :: thisArraySetInteger
-  logical                         , dimension( :,:), pointer     :: thisExpectations
-  character       (len=128       ), dimension(   :), pointer     :: thisNames
-  type            (varying_string), dimension(   :), allocatable :: set1,set2,set3
+  double precision                , dimension( :,:), pointer     :: arraySet
+  integer         (kind=kind_int8), dimension( :,:), pointer     :: arraySetInteger
+  logical                         , dimension( :,:), pointer     :: expectations
+  character       (len=128       ), dimension(   :), pointer     :: names
+  type            (varying_string), dimension(   :), allocatable :: set1                                                                                    , set2     , &
+       &                                                            set3
   logical                                                        :: isMonotonic
   integer                                                        :: iArray                                                                                  , iArraySet
   type            (varying_string)                               :: test
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Array functions")
@@ -72,57 +73,57 @@ program Test_Array_Monotonicity
      ! Create pointers to the specific array set to process.
      select case (iArraySet)
      case (1)
-        thisArraySet     => singleElementArrays
-        thisExpectations => singleElementExpectations
-        thisNames        => singleElementNames
+        arraySet     => singleElementArrays
+        expectations => singleElementExpectations
+        names        => singleElementNames
      case (2)
-        thisArraySet     => tenElementArrays
-        thisExpectations => tenElementExpectations
-        thisNames        => tenElementNames
+        arraySet     => tenElementArrays
+        expectations => tenElementExpectations
+        names        => tenElementNames
      end select
 
      ! Loop over all arrays in this array set.
-     do iArray=1,size(thisArraySet,dim=2)
+     do iArray=1,size(arraySet,dim=2)
 
         ! Perform tests on this array for each of the nine permutations of options:
         !  direction=   increasing|decreasing|undefined
         !  allowEquals= true      |false     |undefined
 
-        test=trim(thisNames(iArray))//' is monotonic [no direction asserted, no equality condition]'
-        isMonotonic=Array_Is_Monotonic(thisArraySet(:,iArray)                                                 )
-        call Assert(char(test),isMonotonic,thisExpectations(1,iArray))
+        test=trim(names(iArray))//' is monotonic [no direction asserted, no equality condition]'
+        isMonotonic=Array_Is_Monotonic(arraySet(:,iArray)                                                 )
+        call Assert(char(test),isMonotonic,expectations(1,iArray))
 
-        test=trim(thisNames(iArray))//' is monotonic [increasing direction asserted, no equality condition]'
-        isMonotonic=Array_Is_Monotonic(thisArraySet(:,iArray),direction=directionIncreasing                   )
-        call Assert(char(test),isMonotonic,thisExpectations(2,iArray))
+        test=trim(names(iArray))//' is monotonic [increasing direction asserted, no equality condition]'
+        isMonotonic=Array_Is_Monotonic(arraySet(:,iArray),direction=directionIncreasing                   )
+        call Assert(char(test),isMonotonic,expectations(2,iArray))
 
-        test=trim(thisNames(iArray))//' is monotonic [decreasing direction asserted, no equality condition]'
-        isMonotonic=Array_Is_Monotonic(thisArraySet(:,iArray),direction=directionDecreasing                   )
-        call Assert(char(test),isMonotonic,thisExpectations(3,iArray))
+        test=trim(names(iArray))//' is monotonic [decreasing direction asserted, no equality condition]'
+        isMonotonic=Array_Is_Monotonic(arraySet(:,iArray),direction=directionDecreasing                   )
+        call Assert(char(test),isMonotonic,expectations(3,iArray))
 
-        test=trim(thisNames(iArray))//' is monotonic [no direction asserted, equality disallowed]'
-        isMonotonic=Array_Is_Monotonic(thisArraySet(:,iArray)                              ,allowEqual=.false.)
-        call Assert(char(test),isMonotonic,thisExpectations(4,iArray))
+        test=trim(names(iArray))//' is monotonic [no direction asserted, equality disallowed]'
+        isMonotonic=Array_Is_Monotonic(arraySet(:,iArray)                              ,allowEqual=.false.)
+        call Assert(char(test),isMonotonic,expectations(4,iArray))
 
-        test=trim(thisNames(iArray))//' is monotonic [increasing direction asserted, equality disallowed]'
-        isMonotonic=Array_Is_Monotonic(thisArraySet(:,iArray),direction=directionIncreasing,allowEqual=.false.)
-        call Assert(char(test),isMonotonic,thisExpectations(5,iArray))
+        test=trim(names(iArray))//' is monotonic [increasing direction asserted, equality disallowed]'
+        isMonotonic=Array_Is_Monotonic(arraySet(:,iArray),direction=directionIncreasing,allowEqual=.false.)
+        call Assert(char(test),isMonotonic,expectations(5,iArray))
 
-        test=trim(thisNames(iArray))//' is monotonic [decreasing direction asserted, equality disallowed]'
-        isMonotonic=Array_Is_Monotonic(thisArraySet(:,iArray),direction=directionDecreasing,allowEqual=.false.)
-        call Assert(char(test),isMonotonic,thisExpectations(6,iArray))
+        test=trim(names(iArray))//' is monotonic [decreasing direction asserted, equality disallowed]'
+        isMonotonic=Array_Is_Monotonic(arraySet(:,iArray),direction=directionDecreasing,allowEqual=.false.)
+        call Assert(char(test),isMonotonic,expectations(6,iArray))
 
-        test=trim(thisNames(iArray))//' is monotonic [no direction asserted, equality allowed]'
-        isMonotonic=Array_Is_Monotonic(thisArraySet(:,iArray)                              ,allowEqual=.true. )
-        call Assert(char(test),isMonotonic,thisExpectations(7,iArray))
+        test=trim(names(iArray))//' is monotonic [no direction asserted, equality allowed]'
+        isMonotonic=Array_Is_Monotonic(arraySet(:,iArray)                              ,allowEqual=.true. )
+        call Assert(char(test),isMonotonic,expectations(7,iArray))
 
-        test=trim(thisNames(iArray))//' is monotonic [increasing direction asserted, equality allowed]'
-        isMonotonic=Array_Is_Monotonic(thisArraySet(:,iArray),direction=directionIncreasing,allowEqual=.true. )
-        call Assert(char(test),isMonotonic,thisExpectations(8,iArray))
+        test=trim(names(iArray))//' is monotonic [increasing direction asserted, equality allowed]'
+        isMonotonic=Array_Is_Monotonic(arraySet(:,iArray),direction=directionIncreasing,allowEqual=.true. )
+        call Assert(char(test),isMonotonic,expectations(8,iArray))
 
-        test=trim(thisNames(iArray))//' is monotonic [decreasing direction asserted, equality allowed]'
-        isMonotonic=Array_Is_Monotonic(thisArraySet(:,iArray),direction=directionDecreasing,allowEqual=.true. )
-        call Assert(char(test),isMonotonic,thisExpectations(9,iArray))
+        test=trim(names(iArray))//' is monotonic [decreasing direction asserted, equality allowed]'
+        isMonotonic=Array_Is_Monotonic(arraySet(:,iArray),direction=directionDecreasing,allowEqual=.true. )
+        call Assert(char(test),isMonotonic,expectations(9,iArray))
 
      end do
   end do
@@ -133,53 +134,53 @@ program Test_Array_Monotonicity
      ! Create pointers to the specific array set to process.
      select case (iArraySet)
      case (1)
-        thisArraySetInteger => singleElementArraysInteger
-        thisExpectations    => singleElementExpectations
-        thisNames           => singleElementNames
+        arraySetInteger => singleElementArraysInteger
+        expectations    => singleElementExpectations
+        names           => singleElementNames
      case (2)
-        thisArraySetInteger => tenElementArraysInteger
-        thisExpectations    => tenElementExpectations
-        thisNames           => tenElementNames
+        arraySetInteger => tenElementArraysInteger
+        expectations    => tenElementExpectations
+        names           => tenElementNames
      end select
 
      ! Loop over all arrays in this array set.
-     do iArray=1,size(thisArraySetInteger,dim=2)
+     do iArray=1,size(arraySetInteger,dim=2)
 
-        test=trim(thisNames(iArray))//' [integer] is monotonic [no direction asserted, no equality condition]'
-        isMonotonic=Array_Is_Monotonic(thisArraySetInteger(:,iArray)                                                 )
-        call Assert(char(test),isMonotonic,thisExpectations(1,iArray))
+        test=trim(names(iArray))//' [integer] is monotonic [no direction asserted, no equality condition]'
+        isMonotonic=Array_Is_Monotonic(arraySetInteger(:,iArray)                                                 )
+        call Assert(char(test),isMonotonic,expectations(1,iArray))
 
-        test=trim(thisNames(iArray))//' [integer] is monotonic [increasing direction asserted, no equality condition]'
-        isMonotonic=Array_Is_Monotonic(thisArraySetInteger(:,iArray),direction=directionIncreasing                   )
-        call Assert(char(test),isMonotonic,thisExpectations(2,iArray))
+        test=trim(names(iArray))//' [integer] is monotonic [increasing direction asserted, no equality condition]'
+        isMonotonic=Array_Is_Monotonic(arraySetInteger(:,iArray),direction=directionIncreasing                   )
+        call Assert(char(test),isMonotonic,expectations(2,iArray))
 
-        test=trim(thisNames(iArray))//' [integer] is monotonic [decreasing direction asserted, no equality condition]'
-        isMonotonic=Array_Is_Monotonic(thisArraySetInteger(:,iArray),direction=directionDecreasing                   )
-        call Assert(char(test),isMonotonic,thisExpectations(3,iArray))
+        test=trim(names(iArray))//' [integer] is monotonic [decreasing direction asserted, no equality condition]'
+        isMonotonic=Array_Is_Monotonic(arraySetInteger(:,iArray),direction=directionDecreasing                   )
+        call Assert(char(test),isMonotonic,expectations(3,iArray))
 
-        test=trim(thisNames(iArray))//' [integer] is monotonic [no direction asserted, equality disallowed]'
-        isMonotonic=Array_Is_Monotonic(thisArraySetInteger(:,iArray)                              ,allowEqual=.false.)
-        call Assert(char(test),isMonotonic,thisExpectations(4,iArray))
+        test=trim(names(iArray))//' [integer] is monotonic [no direction asserted, equality disallowed]'
+        isMonotonic=Array_Is_Monotonic(arraySetInteger(:,iArray)                              ,allowEqual=.false.)
+        call Assert(char(test),isMonotonic,expectations(4,iArray))
 
-        test=trim(thisNames(iArray))//' [integer] is monotonic [increasing direction asserted, equality disallowed]'
-        isMonotonic=Array_Is_Monotonic(thisArraySetInteger(:,iArray),direction=directionIncreasing,allowEqual=.false.)
-        call Assert(char(test),isMonotonic,thisExpectations(5,iArray))
+        test=trim(names(iArray))//' [integer] is monotonic [increasing direction asserted, equality disallowed]'
+        isMonotonic=Array_Is_Monotonic(arraySetInteger(:,iArray),direction=directionIncreasing,allowEqual=.false.)
+        call Assert(char(test),isMonotonic,expectations(5,iArray))
 
-        test=trim(thisNames(iArray))//' [integer] is monotonic [decreasing direction asserted, equality disallowed]'
-        isMonotonic=Array_Is_Monotonic(thisArraySetInteger(:,iArray),direction=directionDecreasing,allowEqual=.false.)
-        call Assert(char(test),isMonotonic,thisExpectations(6,iArray))
+        test=trim(names(iArray))//' [integer] is monotonic [decreasing direction asserted, equality disallowed]'
+        isMonotonic=Array_Is_Monotonic(arraySetInteger(:,iArray),direction=directionDecreasing,allowEqual=.false.)
+        call Assert(char(test),isMonotonic,expectations(6,iArray))
 
-        test=trim(thisNames(iArray))//' [integer] is monotonic [no direction asserted, equality allowed]'
-        isMonotonic=Array_Is_Monotonic(thisArraySetInteger(:,iArray)                              ,allowEqual=.true. )
-        call Assert(char(test),isMonotonic,thisExpectations(7,iArray))
+        test=trim(names(iArray))//' [integer] is monotonic [no direction asserted, equality allowed]'
+        isMonotonic=Array_Is_Monotonic(arraySetInteger(:,iArray)                              ,allowEqual=.true. )
+        call Assert(char(test),isMonotonic,expectations(7,iArray))
 
-        test=trim(thisNames(iArray))//' [integer] is monotonic [increasing direction asserted, equality allowed]'
-        isMonotonic=Array_Is_Monotonic(thisArraySetInteger(:,iArray),direction=directionIncreasing,allowEqual=.true. )
-        call Assert(char(test),isMonotonic,thisExpectations(8,iArray))
+        test=trim(names(iArray))//' [integer] is monotonic [increasing direction asserted, equality allowed]'
+        isMonotonic=Array_Is_Monotonic(arraySetInteger(:,iArray),direction=directionIncreasing,allowEqual=.true. )
+        call Assert(char(test),isMonotonic,expectations(8,iArray))
 
-        test=trim(thisNames(iArray))//' [integer] is monotonic [decreasing direction asserted, equality allowed]'
-        isMonotonic=Array_Is_Monotonic(thisArraySetInteger(:,iArray),direction=directionDecreasing,allowEqual=.true. )
-        call Assert(char(test),isMonotonic,thisExpectations(9,iArray))
+        test=trim(names(iArray))//' [integer] is monotonic [decreasing direction asserted, equality allowed]'
+        isMonotonic=Array_Is_Monotonic(arraySetInteger(:,iArray),direction=directionDecreasing,allowEqual=.true. )
+        call Assert(char(test),isMonotonic,expectations(9,iArray))
 
      end do
   end do

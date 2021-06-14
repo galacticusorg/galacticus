@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -48,10 +48,8 @@ contains
 
     !# <inputParameter>
     !#   <name>rateCoefficient</name>
-    !#   <cardinality>2</cardinality>
     !#   <description>The rate coefficient (in units of cm$^3$ s$^{-1}$) for radiative recombination.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     self=atomicRecombinationRateRadiativeFixed(rateCoefficient)
     !# <inputParametersValidate source="parameters"/>
@@ -76,7 +74,7 @@ contains
     integer                                                , intent(in   )           :: atomicNumber, ionizationState
     double precision                                       , intent(in   )           :: temperature
     integer                                                , intent(in   ), optional :: level
-    !GCC$ attributes unused :: atomicNumber, ionizationState, temperature, level
+    !$GLC attributes unused :: atomicNumber, ionizationState, temperature, level
 
     fixedRate=self%rateCoefficient
     return

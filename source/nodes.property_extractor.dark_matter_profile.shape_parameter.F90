@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -46,7 +46,7 @@ contains
     implicit none
     type (nodePropertyExtractorDarkMatterProfileShapeParameter)                :: self
     type (inputParameters                                  ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
     
     self=nodePropertyExtractorDarkMatterProfileShapeParameter()
     return
@@ -60,7 +60,7 @@ contains
     type (treeNode                                            ), intent(inout), target   :: node
     type (multiCounter                                        ), intent(inout), optional :: instance
     class(nodeComponentDarkMatterProfile                      ), pointer                 :: darkMatterProfile
-    !GCC$ attributes unused :: self, instance
+    !$GLC attributes unused :: self, instance
 
     darkMatterProfile                      => node             %darkMatterProfile()
     darkMatterProfileShapeParameterExtract =  darkMatterProfile%shape            ()
@@ -72,7 +72,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorDarkMatterProfileShapeParameter), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     darkMatterProfileShapeParameterType=outputAnalysisPropertyTypeLinear
     return
@@ -83,7 +83,7 @@ contains
     implicit none
     type (varying_string                                      )                :: darkMatterProfileShapeParameterName
     class(nodePropertyExtractorDarkMatterProfileShapeParameter), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     darkMatterProfileShapeParameterName=var_str('darkMatterProfileShapeParameter')
     return
@@ -94,7 +94,7 @@ contains
     implicit none
     type (varying_string                                      )                :: darkMatterProfileShapeParameterDescription
     class(nodePropertyExtractorDarkMatterProfileShapeParameter), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     darkMatterProfileShapeParameterDescription=var_str('The shape parameter of the dark matter profile.')
     return
@@ -104,7 +104,7 @@ contains
     !% Return the units of the darkMatterProfileShapeParameter property in the SI system.
     implicit none
     class(nodePropertyExtractorDarkMatterProfileShapeParameter), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     darkMatterProfileShapeParameterUnitsInSI=0.0d0
     return

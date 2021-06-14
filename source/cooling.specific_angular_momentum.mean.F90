@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +22,11 @@
 
   !# <coolingSpecificAngularMomentum name="coolingSpecificAngularMomentumMean">
   !#  <description>
-  !#   A specific angular momentum of cooling gas class in which all gas has the mean specific angular momentum of the hot gas halo.
+  !#   A cooling specific angular momentum class in which the specific angular momentum of cooling gas is given by
+  !# \begin{equation}
+  !#    j_\mathrm{cool} = J_\mathrm{hot}/M_\mathrm{hot},
+  !#   \end{equation}
+  !#   where $J_\mathrm{hot}$ and $M_\mathrm{hot}$ are the total angular momentum and mass of the hot halo respectively.
   !#  </description>
   !# </coolingSpecificAngularMomentum>
   type, extends(coolingSpecificAngularMomentumClass) :: coolingSpecificAngularMomentumMean
@@ -45,7 +49,7 @@ contains
     implicit none
     type(coolingSpecificAngularMomentumMean)                :: self
     type(inputParameters                   ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=coolingSpecificAngularMomentumMean()
     return
@@ -59,7 +63,7 @@ contains
     type            (treeNode                           ), intent(inout) :: node
     double precision                                     , intent(in   ) :: radius
     class           (nodeComponentHotHalo               ), pointer       :: hotHalo
-    !GCC$ attributes unused :: self, radius
+    !$GLC attributes unused :: self, radius
 
     ! Compute mean specific angular momentum from the hot halo component.
     hotHalo                     =>  node   %hotHalo        ()

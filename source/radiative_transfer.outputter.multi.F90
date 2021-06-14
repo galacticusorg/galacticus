@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,6 +26,9 @@
 
   !# <radiativeTransferOutputter name="radiativeTransferOutputterMulti">
   !#  <description>A radiative transfer outputter class which combines multiple other outputters.</description>
+  !#  <deepCopy>
+  !#   <linkedList type="multiOutputterList" variable="outputters" next="next" object="outputter_" objectType="radiativeTransferOutputterClass"/>
+  !#  </deepCopy>
   !# </radiativeTransferOutputter>
   type, extends(radiativeTransferOutputterClass) :: radiativeTransferOutputterMulti
      !% Implementation of a radiative transfer outputter class which combines multiple other outputters.
@@ -38,7 +41,6 @@
      procedure :: photonPacketEscapes => multiPhotonPacketEscapes
      procedure :: finalize            => multiFinalize
      procedure :: output              => multiOutput
-     procedure :: deepCopy            => multiDeepCopy
   end type radiativeTransferOutputterMulti
 
   interface radiativeTransferOutputterMulti
@@ -60,7 +62,7 @@ contains
 
     self      %outputters => null()
     outputter_            => null()
-    do i=1,parameters%copiesCount('radiativeTransferOutputterMethod',zeroIfNotPresent=.true.)
+    do i=1,parameters%copiesCount('radiativeTransferOutputter',zeroIfNotPresent=.true.)
        if (associated(outputter_)) then
           allocate(outputter_%next)
           outputter_ => outputter_%next
@@ -181,36 +183,3 @@ contains
     return
   end subroutine multiOutput
   
-  subroutine multiDeepCopy(self,destination)
-    !% Perform a deep copy for the {\normalfont \ttfamily multi} radiative transfer outputter class.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    implicit none
-    class(radiativeTransferOutputterMulti), intent(inout) :: self
-    class(radiativeTransferOutputterClass), intent(inout) :: destination
-    type (multiOutputterList             ), pointer       :: outputter_   , outputterDestination_, &
-         &                                                   outputterNew_
-
-    call self%radiativeTransferOutputterClass%deepCopy(destination)
-    select type (destination)
-    type is (radiativeTransferOutputterMulti)
-       destination%outputters => null           ()
-       outputterDestination_  => null           ()
-       outputter_             => self%outputters
-       do while (associated(outputter_))
-          allocate(outputterNew_)
-          if (associated(outputterDestination_)) then
-             outputterDestination_%next       => outputterNew_
-             outputterDestination_            => outputterNew_
-          else
-             destination          %outputters => outputterNew_
-             outputterDestination_            => outputterNew_
-          end if
-          allocate(outputterNew_%outputter_,mold=outputter_%outputter_)
-          !# <deepCopy source="outputter_%outputter_" destination="outputterNew_%outputter_"/>
-          outputter_ => outputter_%next
-       end do
-    class default
-       call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})
-    end select
-    return
-  end subroutine multiDeepCopy

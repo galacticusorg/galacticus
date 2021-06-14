@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,7 +23,7 @@ program Test_Gaunt_Factors
   !% Tests Gaunt factor functions.
   use :: Atomic_Ionization_Potentials  , only : atomicIonizationPotentialVerner
   use :: Atomic_Radiation_Gaunt_Factors, only : gauntFactorVanHoof2014
-  use :: Galacticus_Display            , only : Galacticus_Verbosity_Level_Set , verbosityStandard
+  use :: Display                       , only : displayVerbositySet            , verbosityLevelStandard
   use :: Input_Parameters              , only : inputParameters
   use :: Unit_Tests                    , only : Assert                         , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
@@ -37,10 +37,9 @@ program Test_Gaunt_Factors
   type            (inputParameters                )                          :: parameters
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
   ! Initialize parameters.
   parameters=inputParameters()
-  call parameters%markGlobal()
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("van Hoof et al. (2014) fitting function:")
   atomicIonizationPotential_=atomicIonizationPotentialVerner(                          )

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,14 +21,9 @@
 
 module Test_Integration_Functions
   !% Contains integrands for unit tests.
-  use :: FGSL, only : fgsl_function, fgsl_integration_workspace
   implicit none
   private
   public :: Integrand1, Integrand2, Integrand3, Integrand4
-
-  type   (fgsl_function             ), save :: integrandFunction
-  type   (fgsl_integration_workspace), save :: integrationWorkspace
-  logical                            , save :: integrationReset    =.true.
 
 contains
 
@@ -61,12 +56,14 @@ contains
 
   double precision function Integrand4(x)
     !% Integral for unit testing.
-    use :: Numerical_Integration, only : Integrate
+    use :: Numerical_Integration, only : integrator
     implicit none
-    double precision, intent(in   ) :: x
+    double precision            , intent(in   ) :: x
+    type            (integrator)                :: integrator_
 
-    Integrand4=cos(x)*Integrate(0.0d0,x,Integrand1,integrandFunction&
-       &,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)
+    integrator_=integrator(Integrand1,toleranceRelative=1.0d-6)
+    Integrand4 =+cos                  (      x) &
+         &      *integrator_%integrate(0.0d0,x)
     return
   end function Integrand4
 

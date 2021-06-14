@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -32,11 +32,11 @@ contains
 
   subroutine Interface_FSPS_Initialize(fspsPath,fspsVersion,static)
     !% Initialize the interface with FSPS, including downloading and compiling FSPS if necessary.
-    use :: File_Utilities    , only : File_Exists               , File_Lock          , File_Remove  , File_Unlock
-    use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWorking
+    use :: Display           , only : displayMessage         , verbosityLevelWorking
+    use :: File_Utilities    , only : File_Exists            , File_Lock            , File_Remove , File_Unlock
     use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: Galacticus_Paths  , only : galacticusPath            , pathTypeDataDynamic, pathTypeExec
-    use :: ISO_Varying_String, only : varying_string            , operator(//)       , assignment(=), char
+    use :: Galacticus_Paths  , only : galacticusPath         , pathTypeDataDynamic  , pathTypeExec
+    use :: ISO_Varying_String, only : assignment(=)          , char                 , operator(//), varying_string
     use :: String_Handling   , only : operator(//)
     use :: System_Command    , only : System_Command_Do
     implicit none
@@ -56,7 +56,7 @@ contains
     if (.not.File_Exists(fspsPath//"/src/autosps.exe")) then
        ! Check out the code if not already done.
        if (.not.File_Exists(fspsPath)) then
-          call Galacticus_Display_Message("downloading FSPS source code....",verbosityWorking)
+          call displayMessage("downloading FSPS source code....",verbosityLevelWorking)
           call System_Command_Do("git clone git://github.com/cconroy20/fsps.git/ "//fspsPath,status)
           if (.not.File_Exists(fspsPath) .or. status /= 0) call Galacticus_Error_Report("failed to clone FSPS git repository"//{introspection:location})
        end if
@@ -64,7 +64,7 @@ contains
        call System_Command_Do("cd "//fspsPath//"; git fetch; [[ $(git rev-parse HEAD) == $(git rev-parse @{u}) ]]",status)
        upToDate=(status == 0)
        if (.not.upToDate) then
-          call Galacticus_Display_Message("updating FSPS source code",verbosityWorking)
+          call displayMessage("updating FSPS source code",verbosityLevelWorking)
           ! Update and remove the galacticus_IMF.f90 file to trigger re-patching of the code.
           call System_Command_Do("cd "//fspsPath//"; git checkout -- .; git pull")
           call File_Remove(fspsPath//"src/galacticus_IMF.f90")
@@ -85,13 +85,13 @@ contains
           if (status /= 0) call Galacticus_Error_Report("failed to patch FSPS file 'Makefile'"          //{introspection:location})
           call File_Remove(fspsPath//"/src/autosps.exe")
        end if
-       call Galacticus_Display_Message("compiling autosps.exe code",verbosityWorking)
+       call displayMessage("compiling autosps.exe code",verbosityLevelWorking)
        if (static_) then
           call System_Command_Do("cd "//fspsPath//"/src; sed -i~ -r s/'^(F90FLAGS = .*)'/'\1 \-static'/g Makefile")
        else
           call System_Command_Do("cd "//fspsPath//"/src; sed -i~ -r s/'^(F90FLAGS = .*)\s*\-static(.*)'/'\1 \2'/g Makefile")
        end if
-       call System_Command_Do("cd "//fspsPath//"/src; export SPS_HOME="//fspsPath//"; make clean; make -j 1",status)
+       call System_Command_Do("cd "//fspsPath//"/src; export SPS_HOME="//fspsPath//"; export F90FLAGS=-mcmodel=medium; make clean; make -j 1",status)
        if (.not.File_Exists(fspsPath//"/src/autosps.exe") .or. status /= 0) call Galacticus_Error_Report("failed to build autosps.exe code"//{introspection:location})
     end if
     ! Get the code revision number.
@@ -114,8 +114,8 @@ contains
           &                                         File_Remove
     use :: Galacticus_Error                , only : Galacticus_Error_Report
     use :: IO_HDF5                         , only : hdf5Access             , hdf5Object
-    use :: ISO_Varying_String              , only : var_str                , varying_string , operator(//)       , char     , &
-         &                                          trim
+    use :: ISO_Varying_String              , only : char                   , operator(//)   , trim               , var_str  , &
+          &                                         varying_string
     use :: Numerical_Constants_Astronomical, only : gigaYear               , luminositySolar, massSolar
     use :: Numerical_Constants_Units       , only : angstromsPerMeter
     use :: String_Handling                 , only : operator(//)

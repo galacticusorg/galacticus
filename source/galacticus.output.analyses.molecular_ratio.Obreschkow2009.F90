@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,34 @@
 !% Contains a module which implements a molecular ratio class that assumes the model of \cite{obreschkow_simulation_2009}.
 
   !# <outputAnalysisMolecularRatio name="outputAnalysisMolecularRatioObreschkow2009">
-  !#  <description>A high-pass filter analysis property operator class.</description>
+  !#  <description>
+  !#   A molecular ratio class which computes the molecular ratio. The class assumes that only the total \gls{ism} mass of each
+  !#   galaxy is available, along with the disk radius (assuming an exponential disk). To infer the HI mass the model of
+  !#   \cite{obreschkow_simulation_2009} is used. Specifically, the molecular ratio, $R_\mathrm{mol}\equiv
+  !#   M_\mathrm{H_2}/M_\mathrm{HI}$, is given by:
+  !#   \begin{equation}
+  !#    R_\mathrm{mol} = \left( A_1 R_\mathrm{mol}^\mathrm{c\,\alpha_1} + A_2 R_\mathrm{mol}^\mathrm{c\,\alpha_2} \right)^{-1},
+  !#    \label{eq:HIMassSystematic}
+  !#   \end{equation}
+  !#   where the ratio at the disk center is given by    
+  !#   \begin{equation}
+  !#    R_\mathrm{mol}^\mathrm{c} = [ K r_\mathrm{disk}^{-4} M_\mathrm{gas} (M_\mathrm{gas} + \langle f_\sigma \rangle M_\star)]^\beta.
+  !#   \end{equation}
+  !#     
+  !#   Here, $R_\mathrm{mol}$ is the mass ratio of H$_2$ to HI, $M_\star$ is the stellar mass of the disk, $r_\mathrm{disk}$ is the
+  !#   disk exponential scale length, $\langle f_\sigma \rangle$ is the average ratio of the vertical velocity dispersions of gas to
+  !#   stars, and $K=\mathrm{G}/(8\pi P_\star)$. The HI mass is then determined from:
+  !#   \begin{equation}
+  !#    M_\mathrm{HI} = X_\mathrm{H} M_\mathrm{gas} / ( 1 + R_\mathrm{mol} ),
+  !#   \end{equation}
+  !#   where $X_\mathrm{H}=0.778$ is the primordial hydrogen fraction by mass. In the above $K=${\normalfont \ttfamily [K]},
+  !#   $\langle f_\sigma \rangle=${\normalfont \ttfamily [fSigma]}, $A_1=${\normalfont \ttfamily [A1]}, $A_2=${\normalfont \ttfamily
+  !#   [A2]}, $\alpha_1=${\normalfont \ttfamily [alpha1]}, $\alpha_2=${\normalfont \ttfamily [alpha2]}, and $\beta=${\normalfont
+  !#   \ttfamily [beta]}. Default values for these parameters are taken from \cite{obreschkow_simulation_2009}. According to
+  !#   Obreschkow (private communication), there remains significant scatter of $\sigma_{R_\mathrm{mol}}=0.4$~dex between the
+  !#   predicted $R_\mathrm{mol}$ from this model and that observed. This is accounted for in when constructing the mass function
+  !#   (see below).
+  !#  </description>
   !# </outputAnalysisMolecularRatio>
   type, extends(outputAnalysisMolecularRatioClass) :: outputAnalysisMolecularRatioObreschkow2009
      !% A multiplication property operator class.
@@ -60,8 +87,6 @@ contains
     !#   <defaultSource>\citep{obreschkow_simulation_2009}</defaultSource>
     !#   <source>parameters</source>
     !#   <description>The parameter, $K$ (in units of m$^4$ kg$^{-2}$), appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow_simulation_2009}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>fSigma</name>
@@ -69,8 +94,6 @@ contains
     !#   <defaultSource>\citep{obreschkow_simulation_2009}</defaultSource>
     !#   <source>parameters</source>
     !#   <description>The parameter, $\langle f_\sigma \rangle$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow_simulation_2009}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>A1</name>
@@ -78,8 +101,6 @@ contains
     !#   <defaultSource>\citep{obreschkow_simulation_2009}</defaultSource>
     !#   <source>parameters</source>
     !#   <description>The parameter, $A_1$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow_simulation_2009}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>A2</name>
@@ -89,8 +110,6 @@ contains
     !#   <description>
     !#    The parameter, $A_2$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow_simulation_2009}.
     !#   </description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>alpha1</name>
@@ -98,8 +117,6 @@ contains
     !#   <defaultSource>\citep{obreschkow_simulation_2009}</defaultSource>
     !#   <source>parameters</source>
     !#   <description>The parameter, $\alpha_1$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow_simulation_2009}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>alpha2</name>
@@ -107,8 +124,6 @@ contains
     !#   <defaultSource>\citep{obreschkow_simulation_2009}</defaultSource>
     !#   <source>parameters</source>
     !#   <description>The parameter, $\alpha_2$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow_simulation_2009}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>beta</name>
@@ -116,8 +131,6 @@ contains
     !#   <defaultSource>\citep{obreschkow_simulation_2009}</defaultSource>
     !#   <source>parameters</source>
     !#   <description>The parameter, $\beta$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow_simulation_2009}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>scatter</name>
@@ -125,8 +138,6 @@ contains
     !#   <defaultSource>(Obsreschkow, private communication)</defaultSource>
     !#   <source>parameters</source>
     !#   <description>The scatter (in dex) in the molecular ratio $\log_{10}R_\mathrm{mol}$ of \cite{obreschkow_simulation_2009} compared to observational data.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=outputAnalysisMolecularRatioObreschkow2009(K,fSigma,A1,A2,alpha1,alpha2,beta,scatter)
     !# <inputParametersValidate source="parameters"/>
@@ -155,14 +166,14 @@ contains
     double precision                                            , intent(in   ) :: massISM
     type            (treeNode                                  ), intent(inout) :: node
     class           (nodeComponentDisk                         ), pointer       :: disk
-    double precision                                                            :: massStellar          , diskRadius, &
+    double precision                                                            :: massStellar          , diskRadius    , &
          &                                                                         molecularRatioCentral
 
     ! Get disk properties.
     disk        => node%disk       ()
     massStellar =  disk%massStellar()
     diskRadius  =  disk%radius     ()
-    ! Get the molecular to atomic mass ratio (H2/HI).
+    ! Get the molecular to atomic mass ratio (H₂/HI).
     if (diskRadius <= 0.0d0 .or. massStellar < 0.0d0) then
        obreschkow2009Ratio=1.0d0
     else
@@ -180,6 +191,7 @@ contains
             &   /diskRadius**4 &
             &  )**self%beta
        if (molecularRatioCentral > 0.0d0) then
+          ! Find the H₂/HI ratio using eqn. (15) of Obreschkow et al. (2009).
           obreschkow2009Ratio=+1.0d0                                &
                &              /(                                    &
                &                +                       self%A1     &
@@ -200,7 +212,7 @@ contains
     class           (outputAnalysisMolecularRatioObreschkow2009), intent(inout) :: self
     double precision                                            , intent(in   ) :: massISM
     type            (treeNode                                  ), intent(inout) :: node
-    !GCC$ attributes unused :: massISM, node
+    !$GLC attributes unused :: massISM, node
 
     obreschkow2009RatioScatter=self%scatter
     return

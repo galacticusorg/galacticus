@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,8 +22,10 @@
 
   !# <mergerTreeOperator name="mergerTreeOperatorMonotonizeMassGrowth">
   !#  <description>
-  !#   A merger tree operator which makes mass growth along merger tree branches monotonic.
-  !# </description>
+  !#   A merger tree operator class which enforces monotonic growth a halo mass along each branch of each merger tree. It does
+  !#   this by searching the tree for nodes which are less massive than the sum of the masses of their immediate progenitors, and
+  !#   increasing the mass of such nodes to equal the sum of the masses of their immediate progenitors.
+  !#  </description>
   !# </mergerTreeOperator>
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorMonotonizeMassGrowth
      !% A merger tree operator class makes mass growth along branch monotonically increasing.
@@ -46,7 +48,7 @@ contains
     implicit none
     type(mergerTreeOperatorMonotonizeMassGrowth)                :: monotonizeMassGrowthConstructorParameters
     type(inputParameters                       ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     monotonizeMassGrowthConstructorParameters=mergerTreeOperatorMonotonizeMassGrowth()
     return
@@ -59,13 +61,13 @@ contains
     implicit none
     class           (mergerTreeOperatorMonotonizeMassGrowth), intent(inout), target :: self
     type            (mergerTree                            ), intent(inout), target :: tree
-    type            (treeNode                              ), pointer               :: nodeProgenitor          , node
+    type            (treeNode                              ), pointer               :: nodeProgenitor , node
     class           (nodeComponentBasic                    ), pointer               :: basicProgenitor, basic
     type            (mergerTree                            ), pointer               :: treeCurrent
     type            (mergerTreeWalkerIsolatedNodes         )                        :: treeWalker
     logical                                                                         :: didModifyTree
     double precision                                                                :: massProgenitor
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Iterate over trees.
     treeCurrent => tree

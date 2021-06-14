@@ -42,7 +42,7 @@ sub Class_Dump_ASCII {
 	description => "Dump the content of a {\\normalfont \\ttfamily ".$code::class->{'name'}."} component.",
 	modules     =>
 	    [
-	     "Galacticus_Display",
+	     "Display",
 	     "ISO_Varying_String"
 	    ],
 	variables   =>
@@ -57,9 +57,9 @@ sub Class_Dump_ASCII {
     };
     $code::padding = " " x ($fullyQualifiedNameLengthMax-length($code::class->{'name'}));
     $function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
-!GCC$ attributes unused :: self
-call Galacticus_Display_Indent('{$class->{'name'}}: {$padding}generic')
-call Galacticus_Display_Unindent('done')
+!$GLC attributes unused :: self
+call displayIndent('{$class->{'name'}}: {$padding}generic')
+call displayUnindent('done')
 CODE
     # Insert a type-binding for this function.
     push(
@@ -141,6 +141,10 @@ sub Class_Output_Names {
 	type        => "void",
 	name        => $code::class->{'name'}."OutputNames",
 	description => "Establish the names of properties to output for a generic {\\normalfont \\ttfamily ".$code::class->{'name'}."} component.",
+	modules     =>
+	    [
+	     "Merger_Tree_Outputter_Buffer_Types"
+	    ],
 	variables   =>
 	    [
 	     {
@@ -155,15 +159,10 @@ sub Class_Output_Names {
 		 variables  => [ "integerProperty" ]
 	     },
 	     {
-		 intrinsic  => "character",
-		 type       => "len=*",
+		 intrinsic  => "type",
+		 type       => "outputPropertyInteger",
 		 attributes => [ "intent(inout)", "dimension(:)" ], 
-		 variables  => [ "integerPropertyNames", "integerPropertyComments" ]
-	     },
-	     {
-		 intrinsic  => "double precision",
-		 attributes => [ "intent(inout)", "dimension(:)" ],
-		 variables  => [ "integerPropertyUnitsSI" ]
+		 variables  => [ "integerProperties" ]
 	     },
 	     {
 		 intrinsic  => "integer", 
@@ -171,15 +170,10 @@ sub Class_Output_Names {
 		 variables  => [ "doubleProperty" ]
 	     },
 	     {
-		 intrinsic  => "character",
-		 type       => "len=*",
+		 intrinsic  => "type",
+		 type       => "outputPropertyDouble",
 		 attributes => [ "intent(inout)", "dimension(:)" ], 
-		 variables  => [ "doublePropertyNames", "doublePropertyComments" ]
-	     },
-	     {
-		 intrinsic  => "double precision",
-		 attributes => [ "intent(inout)", "dimension(:)" ],
-		 variables  => [ "doublePropertyUnitsSI" ]
+		 variables  => [ "doubleProperties" ]
 	     },
 	     {
 		 intrinsic  => "double precision",
@@ -202,7 +196,7 @@ sub Class_Output_Names {
     $function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
 allocate(selfDefault,source=default{ucfirst($class->{'name'})}Component)
 selfDefault%hostNode => self%hostNode
-call selfDefault%outputNames(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,instance)
+call selfDefault%outputNames(integerProperty,integerProperties,doubleProperty,doubleProperties,time,instance)
 CODE
     # Insert a type-binding for this function into the treeNode type.
     push(
@@ -229,7 +223,8 @@ sub Class_Output {
 	content     => "",
 	modules     =>
 	    [
-	     "Multi_Counters"
+	     "Multi_Counters"                    ,
+	     "Merger_Tree_Outputter_Buffer_Types"
 	    ],
 	variables   =>
 	    [
@@ -245,10 +240,10 @@ sub Class_Output {
 		 variables  => [ "integerProperty", "integerBufferCount" ]
 	     },
 	     {
-		 intrinsic  => "integer",
-		 type       => "kind=kind_int8",
-		 attributes => [ "intent(inout)", "dimension(:,:)" ],
-		 variables  => [ "integerBuffer" ]
+		 intrinsic  => "type",
+		 type       => "outputPropertyInteger",
+		 attributes => [ "intent(inout)", "dimension(:)" ], 
+		 variables  => [ "integerProperties" ]
 	     },
 	     {
 		 intrinsic  => "integer", 
@@ -256,9 +251,10 @@ sub Class_Output {
 		 variables  => [ "doubleProperty", "doubleBufferCount" ]
 	     },
 	     {
-		 intrinsic  => "double precision",
-		 attributes => [ "intent(inout)", "dimension(:,:)" ],
-		 variables  => [ "doubleBuffer" ]
+		 intrinsic  => "type",
+		 type       => "outputPropertyDouble",
+		 attributes => [ "intent(inout)", "dimension(:)" ], 
+		 variables  => [ "doubleProperties" ]
 	     },
 	     {
 		 intrinsic  => "double precision",
@@ -278,7 +274,7 @@ sub Class_Output {
 	     }
 	    ]
     };
-    # Find all derived types to be output, whether we have any rank-1, conditional, intrinsic outputs, and any modules required.
+    # Find all derived types to be output, and any modules required.
     my %intrinsicTypeMap =
 	(
 	 double      => {label => "double" , intrinsic => "double precision"                     },
@@ -293,8 +289,13 @@ sub Class_Output {
 	 "integer"  => 0,
 	 "double"   => 0
 	);
+    my %tmpsAdded =
+	(
+	 "double"  => 0,
+	 "integer" => 0,
+	 "index"   => 0
+	);
     my %outputDerivedTypes;
-    my %rank1ConditionalIntrinsicOutputs;
     my %modulesRequired;
     # Iterate over class member implementations.
     foreach my $member ( @{$code::class->{'members'}} ) {
@@ -312,42 +313,19 @@ sub Class_Output {
 		unless ( exists($property->{'output'}) );
 	    $argumentUsage                   {'self'                                                     } = 1;
 	    $argumentUsage                   {'time'                                                     } = 1
-		unless ( &isOutputIntrinsic($property->{'data'}->{'type'})                                                                                       );
+		unless ( &isOutputIntrinsic($property->{'data'}->{'type'}) );
 	    $argumentUsage                   {$intrinsicTypeMap{$property->{'data'}->{'type'}}->{'label'}} = 1
-		if     ( &isOutputIntrinsic($property->{'data'}->{'type'})                                                                                       );
+		if     ( &isOutputIntrinsic($property->{'data'}->{'type'}) );
 	    unless ( &isOutputIntrinsic($property->{'data'}->{'type'}) ) {
 		$argumentUsage               {'integer'                                                  } = 1;
 		$argumentUsage               {'double'                                                   } = 1;
 	    }
 	    $outputDerivedTypes              {                  $property->{'data'}->{'type'}}             = 1
-		unless ( &isOutputIntrinsic($property->{'data'}->{'type'})                                                                                       );
-	    $rank1ConditionalIntrinsicOutputs{                  $property->{'data'}->{'type'}}             = 1
-		if ( &isOutputIntrinsic($property->{'data'}->{'type'}) && $property->{'data'}->{'rank'} == 1 && exists($property->{'output'}->{'condition'}) );
+		unless ( &isOutputIntrinsic($property->{'data'}->{'type'}) );
 	    map {$modulesRequired{$_} = 1} split(/,/,$property->{'output'}->{'modules'})
 		if ( exists($property->{'output'}->{'modules'}) );
 	}
     }
-    # Add a counter variable for rank-1, conditional, intrinsic outputs.
-    push(
-	@{$function->{'variables'}},
-	{
-	    intrinsic  => "integer",
-	    variables  => [ "i" ]
-	}
-	)
-	if ( %rank1ConditionalIntrinsicOutputs );
-    # Add output arrays for rank-1, conditional, intrinsic outputs.
-    push(
-	@{$function->{'variables'}},
-	map
-	{
-	    my %descriptor = %{$intrinsicTypeMap{$_}};
-	    $descriptor{'attributes'} = [ "allocatable", "dimension(:)" ];
-	    $descriptor{'variables' } = [ "outputRank1".ucfirst($intrinsicTypeMap{$_}->{'label'}) ];
-	    \%descriptor
-	}
-        &List::ExtraUtils::sortedKeys(\%rank1ConditionalIntrinsicOutputs)
-	);
     # Add output variables for all derived types to be output.
     push(
 	@{$function->{'variables'}},
@@ -374,7 +352,7 @@ sub Class_Output {
 	 (
 	  ($NestedMap::stack[0] eq "integer" || $NestedMap::stack[0] eq "double")
 	  ?
-	  nestedmap {$NestedMap::stack[1].$NestedMap::stack[0]} ( "Property", "BufferCount", "Buffer" )
+	  nestedmap {$NestedMap::stack[1].$NestedMap::stack[0]} ( "Property", "BufferCount", "Properties" )
 	  :
 	  $NestedMap::stack[0]
 	 )
@@ -382,7 +360,7 @@ sub Class_Output {
     push(@code::argumentsUnused,"outputInstance");
     if ( scalar(@code::argumentsUnused) > 0 ) {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-!GCC$ attributes unused :: {join(", ",@argumentsUnused)}
+!$GLC attributes unused :: {join(", ",@argumentsUnused)}
 CODE
     }
     # Iterate over class member implementations.
@@ -404,64 +382,62 @@ CODE
 	    }
 	    # Determine which output buffer type to use.
 	    $code::bufferType = $intrinsicTypeMap{$code::property->{'data'}->{'type'}}->{'label'};
-	    # Construct the output condition string.
-	    $code::condition = exists($code::property->{'output'}->{'condition'}) ? $code::property->{'output'}->{'condition'} : "";
-	    $code::condition =~ s/\[\[([^\]]+)\]\]/$1/g;
 	    # Increment the counters.
 	    if ( &isOutputIntrinsic($code::property->{'data'}->{'type'}) ) {
 		if ( $code::property->{'data'}->{'rank'} == 0 ) {
-		    if ( exists($code::property->{'output'}->{'condition'}) ) {
-			$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-if ({$condition}) then
-CODE
-		    }
 		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 {$bufferType}Property={$bufferType}Property+1
-{$bufferType}Buffer({$bufferType}BufferCount,{$bufferType}Property)=self%{$property->{'name'}}()
+{$bufferType}Properties({$bufferType}Property)%scalar({$bufferType}BufferCount)=self%{$property->{'name'}}()
 CODE
-		    if ( exists($code::property->{'output'}->{'condition'}) ) {
-			$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-end if
-CODE
-		    }
 		} else {
-		    if ( exists($code::property->{'output'}->{'condition'}) ) {
-			$code::condition =~ s/\{i\}/i/g;
-			$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-outputRank1{ucfirst({$bufferType})}=self%{$property->{'name'}}()
-do i=1,{$property->{'output'}->{'count'}}
-  if ({$condition}) then
-    {$bufferType}Property={$bufferType}Property+1
-    {$bufferType}Buffer({$bufferType}BufferCount,{$bufferType}Property)=outputRank1{ucfirst({$bufferType})}(i)
-  end if
+		    if ( $code::bufferType eq "integer" && ! $tmpsAdded{'integer'} ) {
+			$tmpsAdded{'integer'} = 1;
+			push(
+			    @{$function->{'variables'}},
+			    {
+				intrinsic  => "integer",
+				type       => "kind_int8",
+				attributes => [ "allocatable", "dimension(:)" ],
+				variables  => [ "integerOutputTmp" ]
+			    }
+			    );
+		    }
+		    if ( $code::bufferType eq "double" && ! $tmpsAdded{'double'} ) {
+			$tmpsAdded{'double'} = 1;
+			push(
+			    @{$function->{'variables'}},
+			    {
+				intrinsic  => "double precision",
+				attributes => [ "allocatable", "dimension(:)" ],
+				variables  => [ "doubleOutputTmp" ]
+			    }
+			    );
+		    }
+		    if ( ! $tmpsAdded{'index'} ) {
+			$tmpsAdded{'index'} = 1;
+			push(
+			    @{$function->{'variables'}},
+			    {
+				intrinsic => "integer",
+				variables => [ "i" ]
+			    }
+			    );
+		    }
+		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+{$bufferType}OutputTmp=reshape(self%{$property->{'name'}}(),[{$count}])
+do i=1,{$count}
+  {$bufferType}Properties({$bufferType}Property+i)%scalar({$bufferType}BufferCount)={$bufferType}OutputTmp(i)
 end do
-deallocate(outputRank1{ucfirst({$bufferType})})
-CODE
-		    } else {
-			$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-{$bufferType}Buffer({$bufferType}BufferCount,{$bufferType}Property+1:{$bufferType}Property+{$count})=reshape(self%{$property->{'name'}}(),[{$count}])
+deallocate({$bufferType}OutputTmp)
 {$bufferType}Property={$bufferType}Property+{$count}
 CODE
-		    }
 		}
 	    } else {
-		if ( exists($code::property->{'output'}->{'condition'}) ) {
-		    my $condition = $code::property->{'output'}->{'condition'};
-		    $condition =~ s/\[\[([^\]]+)\]\]/$1/g;
-		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-if ({$condition}) then
-CODE
-		}
 		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 output{ucfirst($property->{'data'}->{'type'})}=self%{$property->{'name'}}()
-call output{ucfirst($property->{'data'}->{'type'})}%output(integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount,doubleBuffer,time,outputInstance)
+call output{ucfirst($property->{'data'}->{'type'})}%output(integerProperty,integerBufferCount,integerProperties,doubleProperty,doubleBufferCount,doubleProperties,time,outputInstance)
 if (.not.same_type_as(self,{$class->{'name'}}Class)) call self%{$property->{'name'}}Set(output{ucfirst($property->{'data'}->{'type'})})
 CODE
-		if ( exists($code::property->{'output'}->{'condition'}) ) {
-		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-end if
-CODE
-		}
 	    }
 	}
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
@@ -488,7 +464,7 @@ sub Class_Post_Output {
 	type        => "void",
 	name        => $code::class->{'name'}."PostOutput",
 	description => "Perform post-output processing of a {\\normalfont \\ttfamily ".$code::class->{'name'}."} component.",
-	content     => "!GCC\$ attributes unused :: self, time\n",
+	content     => "!\$GLC attributes unused :: self, time\n",
 	variables   =>
 	    [
 	     {

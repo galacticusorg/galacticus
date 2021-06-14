@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,6 +26,9 @@
 
   !# <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepMulti">
   !#  <description>A merger tree evolution timestepping class which takes the minimum over multiple other timesteppers.</description>
+  !#  <deepCopy>
+  !#   <linkedList type="multiMergerTreeEvolveTimestepList" variable="mergerTreeEvolveTimesteps" next="next" object="mergerTreeEvolveTimestep_" objectType="mergerTreeEvolveTimestepClass"/>
+  !#  </deepCopy>
   !# </mergerTreeEvolveTimestep>
   type, extends(mergerTreeEvolveTimestepClass) :: mergerTreeEvolveTimestepMulti
      !% Implementation of a merger tree evolution timestepping class which takes the minimum over multiple other timesteppers.
@@ -34,7 +37,6 @@
    contains
      final     ::                       multiDestructor
      procedure :: timeEvolveTo       => multiTimeEvolveTo
-     procedure :: deepCopy           => multiDeepCopy
   end type mergerTreeEvolveTimestepMulti
 
   interface mergerTreeEvolveTimestepMulti
@@ -56,7 +58,7 @@ contains
 
     self %mergerTreeEvolveTimesteps => null()
     mergerTreeEvolveTimestep_       => null()
-    do i=1,parameters%copiesCount('mergerTreeEvolveTimestepMethod',zeroIfNotPresent=.true.)
+    do i=1,parameters%copiesCount('mergerTreeEvolveTimestep',zeroIfNotPresent=.true.)
        if (associated(mergerTreeEvolveTimestep_)) then
           allocate(mergerTreeEvolveTimestep_%next)
           mergerTreeEvolveTimestep_ => mergerTreeEvolveTimestep_%next
@@ -103,10 +105,11 @@ contains
     return
   end subroutine multiDestructor
 
-  double precision function multiTimeEvolveTo(self,node,task,taskSelf,report,lockNode,lockType)
+  double precision function multiTimeEvolveTo(self,timeEnd,node,task,taskSelf,report,lockNode,lockType)
     !% Perform all mergerTreeEvolveTimesteps.
     implicit none
     class           (mergerTreeEvolveTimestepMulti    ), intent(inout), target            :: self
+    double precision                                   , intent(in   )                    :: timeEnd
     type            (treeNode                         ), intent(inout), target            :: node
     procedure       (timestepTask                     ), intent(  out), pointer           :: task
     class           (*                                ), intent(  out), pointer           :: taskSelf
@@ -129,7 +132,7 @@ contains
     do while (associated(mergerTreeEvolveTimestep_))
        timeEvolveTo=huge(0.0d0)
        !# <conditionalCall>
-       !#  <call>timeEvolveTo=mergerTreeEvolveTimestep_%mergerTreeEvolveTimestep_%timeEvolveTo(node,task_,taskSelf_,report{conditions})</call>
+       !#  <call>timeEvolveTo=mergerTreeEvolveTimestep_%mergerTreeEvolveTimestep_%timeEvolveTo(timeEnd,node,task_,taskSelf_,report{conditions})</call>
        !#  <argument name="lockNode" value="lockNode_" condition="present(lockNode)"/>
        !#  <argument name="lockType" value="lockType_" condition="present(lockType)"/>
        !# </conditionalCall>
@@ -144,37 +147,3 @@ contains
     end do
     return
   end function multiTimeEvolveTo
-
-  subroutine multiDeepCopy(self,destination)
-    !% Perform a deep copy for the {\normalfont \ttfamily multi} merger tree evolution timestep class.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    implicit none
-    class(mergerTreeEvolveTimestepMulti    ), intent(inout) :: self
-    class(mergerTreeEvolveTimestepClass    ), intent(inout) :: destination
-    type (multiMergerTreeEvolveTimestepList), pointer       :: mergerTreeEvolveTimestep_   , mergerTreeEvolveTimestepDestination_, &
-         &                                                     mergerTreeEvolveTimestepNew_
-
-    call self%mergerTreeEvolveTimestepClass%deepCopy(destination)
-    select type (destination)
-    type is (mergerTreeEvolveTimestepMulti)
-       destination%mergerTreeEvolveTimesteps => null          ()
-       mergerTreeEvolveTimestepDestination_  => null          ()
-       mergerTreeEvolveTimestep_             => self%mergerTreeEvolveTimesteps
-       do while (associated(mergerTreeEvolveTimestep_))
-          allocate(mergerTreeEvolveTimestepNew_)
-          if (associated(mergerTreeEvolveTimestepDestination_)) then
-             mergerTreeEvolveTimestepDestination_%next       => mergerTreeEvolveTimestepNew_
-             mergerTreeEvolveTimestepDestination_            => mergerTreeEvolveTimestepNew_
-          else
-             destination          %mergerTreeEvolveTimesteps => mergerTreeEvolveTimestepNew_
-             mergerTreeEvolveTimestepDestination_            => mergerTreeEvolveTimestepNew_
-          end if
-          allocate(mergerTreeEvolveTimestepNew_%mergerTreeEvolveTimestep_,mold=mergerTreeEvolveTimestep_%mergerTreeEvolveTimestep_)
-          !# <deepCopy source="mergerTreeEvolveTimestep_%mergerTreeEvolveTimestep_" destination="mergerTreeEvolveTimestepNew_%mergerTreeEvolveTimestep_"/>
-          mergerTreeEvolveTimestep_ => mergerTreeEvolveTimestep_%next
-       end do
-    class default
-       call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})
-    end select
-    return
-  end subroutine multiDeepCopy

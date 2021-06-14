@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,13 +23,19 @@
   use :: Dark_Matter_Particles, only : darkMatterParticleClass
 
   !# <transferFunction name="transferFunctionBBKSWDM">
-  !#  <description>Provides a transfer function based on the \gls{wdm} modifier of \cite{bardeen_statistics_1986}.</description>
+  !#  <description>
+  !#   A transfer function class providing the \gls{wdm} transfer function fitting function of \cite{bardeen_statistics_1986}. The
+  !#   free-streaming length is computed from the dark matter particle (which must be of the {\normalfont \ttfamily
+  !#   darkMatterParticleWDMThermal} class) properties, and the resulting modifier of \cite{bardeen_statistics_1986} is applied to
+  !#   the provided \gls{cdm} transfer function.
+  !#  </description>
   !# </transferFunction>
   type, extends(transferFunctionClass) :: transferFunctionBBKSWDM
      !% A transfer function class which modifies another transfer function using the \gls{wdm} modifier of \cite{bardeen_statistics_1986}.
      private
      class           (transferFunctionClass   ), pointer :: transferFunctionCDM  => null()
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
+     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
      class           (darkMatterParticleClass ), pointer :: darkMatterParticle_  => null()
      double precision                                    :: lengthFreeStreaming           , time
    contains
@@ -81,10 +87,10 @@ contains
     type            (transferFunctionBBKSWDM )                        :: self
     class           (transferFunctionClass   ), target, intent(in   ) :: transferFunctionCDM
     class           (cosmologyParametersClass), target, intent(in   ) :: cosmologyParameters_
+    class           (cosmologyFunctionsClass ), target, intent(in   ) :: cosmologyFunctions_
     class           (darkMatterParticleClass ), target, intent(in   ) :: darkMatterParticle_
-    class           (cosmologyFunctionsClass )        , intent(inout) :: cosmologyFunctions_
     double precision                                                  :: degreesOfFreedomEffectiveDecoupling
-    !# <constructorAssign variables="*transferFunctionCDM, *cosmologyParameters_, *darkMatterParticle_"/>
+    !# <constructorAssign variables="*transferFunctionCDM, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterParticle_"/>
 
     ! Get degrees of freedom at the time at which the dark matter particle decoupled.
     select type (particle => self%darkMatterParticle_)
@@ -95,7 +101,7 @@ contains
        call Galacticus_Error_Report('transfer function expects a thermal warm dark matter particle'//{introspection:location})
     end select
     ! Compute the epoch - the transfer function is assumed to be for z=0.
-    self%time=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(0.0d0))
+    self%time=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(0.0d0))
     ! Compute the free-streaming length-like parameter (equation G6 of BBKS).
     self%lengthFreeStreaming=+0.2d0                                                                                     &
          &                                         /(                                                                   &
@@ -118,6 +124,7 @@ contains
     type(transferFunctionBBKSWDM), intent(inout) :: self
 
     !# <objectDestructor name="self%cosmologyParameters_"/>
+    !# <objectDestructor name="self%cosmologyFunctions_" />
     !# <objectDestructor name="self%darkMatterParticle_" />
     !# <objectDestructor name="self%transferFunctionCDM" />
     return

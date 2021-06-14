@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +21,9 @@
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
 
   !# <haloMassFunction name="haloMassFunctionShethTormen">
-  !#  <description>The halo mass function is computed from the function given by \cite{sheth_ellipsoidal_2001}.</description>
+  !#  <description>
+  !#   A dark matter halo mass function class using the function given by \cite{sheth_ellipsoidal_2001}.
+  !#  </description>
   !# </haloMassFunction>
   type, extends(haloMassFunctionClass) :: haloMassFunctionShethTormen
      !% A halo mass function class using the fitting function of \cite{sheth_ellipsoidal_2001}.
@@ -31,27 +33,11 @@
      double precision                                         :: aValue                             , pValue, &
           &                                                      normalizationValue
    contains
-     !@ <objectMethods>
-     !@   <object>haloMassFunctionShethTormen</object>
-     !@   <objectMethod>
-     !@     <method>a</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ time\argin, \doublezero\ mass\argin</arguments>
-     !@     <description>Return the parameter $a$ in the \cite{sheth_ellipsoidal_2001} halo mass function fit.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>p</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ time\argin, \doublezero\ mass\argin</arguments>
-     !@     <description>Return the parameter $p$ in the \cite{sheth_ellipsoidal_2001} halo mass function fit.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>normalization</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ time\argin, \doublezero\ mass\argin</arguments>
-     !@     <description>Return the parameter $A$ in the \cite{sheth_ellipsoidal_2001} halo mass function fit.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return the parameter $a$ in the \cite{sheth_ellipsoidal_2001} halo mass function fit." method="a" />
+     !#   <method description="Return the parameter $p$ in the \cite{sheth_ellipsoidal_2001} halo mass function fit." method="p" />
+     !#   <method description="Return the parameter $A$ in the \cite{sheth_ellipsoidal_2001} halo mass function fit." method="normalization" />
+     !# </methods>
      final     ::                  shethTormenDestructor
      procedure :: differential  => shethTormenDifferential
      procedure :: a             => shethTormenA
@@ -88,31 +74,25 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>0.707d0</defaultValue>
     !#   <description>The parameter $a$ in the \cite{sheth_ellipsoidal_2001} halo mass function fit.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>p</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0.3d0</defaultValue>
     !#   <description>The parameter $p$ in the \cite{sheth_ellipsoidal_2001} halo mass function fit.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>normalization</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0.3221836349d0</defaultValue>
     !#   <description>The normalization parameter $A$ in the \cite{sheth_ellipsoidal_2001} halo mass function fit.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=haloMassFunctionShethTormen(cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,a,p,normalization)
     !# <inputParametersValidate source="parameters"/>
-   !# <objectDestructor name="cosmologyParameters_"     />
-   !# <objectDestructor name="cosmologicalMassVariance_"/>
-   !# <objectDestructor name="criticalOverdensity_"     />
-   return
+    !# <objectDestructor name="cosmologyParameters_"     />
+    !# <objectDestructor name="cosmologicalMassVariance_"/>
+    !# <objectDestructor name="criticalOverdensity_"     />
+    return
   end function shethTormenConstructorParameters
 
   function shethTormenConstructorInternal(cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,a,p,normalization) result(self)
@@ -194,7 +174,7 @@ contains
     implicit none
     class           (haloMassFunctionShethTormen), intent(inout) :: self
     double precision                             , intent(in   ) :: time , mass
-    !GCC$ attributes unused :: time, mass
+    !$GLC attributes unused :: time, mass
 
     shethTormenA=self%aValue
     return
@@ -205,7 +185,7 @@ contains
     implicit none
     class           (haloMassFunctionShethTormen), intent(inout) :: self
     double precision                             , intent(in   ) :: time , mass
-    !GCC$ attributes unused :: time, mass
+    !$GLC attributes unused :: time, mass
 
     shethTormenP=self%pValue
     return
@@ -216,7 +196,7 @@ contains
     implicit none
     class           (haloMassFunctionShethTormen), intent(inout) :: self
     double precision                             , intent(in   ) :: time , mass
-    !GCC$ attributes unused :: time, mass
+    !$GLC attributes unused :: time, mass
 
     shethTormenNormalization=self%normalizationValue
     return

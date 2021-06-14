@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,10 +17,10 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  use            :: Radiative_Transfer_Matters     , only : radiativeTransferMatterClass     , radiativeTransferPropertiesMatter
-  use            :: Radiative_Transfer_Convergences, only : radiativeTransferConvergenceClass
   use, intrinsic :: ISO_C_Binding                  , only : c_size_t
   use            :: Multi_Counters                 , only : multiCounter
+  use            :: Radiative_Transfer_Convergences, only : radiativeTransferConvergenceClass
+  use            :: Radiative_Transfer_Matters     , only : radiativeTransferMatterClass     , radiativeTransferPropertiesMatter
 
   type :: cartesian3DBoundaries
      !% Type used to store boundaries of computational domain cells for 3D Cartesian domains.
@@ -70,15 +70,9 @@
      private
      type(multiCounter) :: counter_
    contains
-     !@ <objectMethods>
-     !@   <object>domainIteratorCartesian3D</object>
-     !@   <objectMethod>
-     !@     <method>next</method>
-     !@     <arguments></arguments>
-     !@     <type>\logicalzero</type>
-     !@     <description>Move to the next cell in the domain.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Move to the next cell in the domain." method="next" />
+     !# </methods>
      procedure :: next => domainIteratorCartesian3DNext
   end type domainIteratorCartesian3D
   
@@ -101,59 +95,45 @@ contains
     
     !# <inputParameter>
     !#   <name>xBoundaries</name>
-    !#   <cardinality>2</cardinality>
     !#   <defaultValue>[-1.0d0,+1.0d0]</defaultValue>
     !#   <description>The $x$-interval spanned by the computational domain.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>yBoundaries</name>
-    !#   <cardinality>2</cardinality>
     !#   <defaultValue>[-1.0d0,+1.0d0]</defaultValue>
     !#   <description>The $y$-interval spanned by the computational domain.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>zBoundaries</name>
-    !#   <cardinality>2</cardinality>
     !#   <defaultValue>[-1.0d0,+1.0d0]</defaultValue>
     !#   <description>The $z$-interval spanned by the computational domain.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>countCells</name>
-    !#   <cardinality>3</cardinality>
     !#   <defaultValue>[3_c_size_t,3_c_size_t,3_c_size_t]</defaultValue>
     !#   <description>The number of cells in the domain in each dimension.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>convergencePercentile</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.99d0</defaultValue>
     !#   <description>The percentile used in the convergence criterion.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>convergenceThreshold</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>2.0d0</defaultValue>
     !#   <description>The threshold for the convergence measure.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>convergenceRatioThreshold</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.1d0</defaultValue>
     !#   <description>The threshold for the change in convergence criterion.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="radiativeTransferMatter"      name="radiativeTransferMatter_"      source="parameters"/>
     !# <objectBuilder class="radiativeTransferConvergence" name="radiativeTransferConvergence_" source="parameters"/>
@@ -205,10 +185,10 @@ contains
   subroutine cartesian3DInitialize(self)
     !% Initialize the computational domain.
     use :: Computational_Domain_Volume_Integrators, only : computationalDomainVolumeIntegratorCartesian3D
-    use :: Galacticus_Display                     , only : Galacticus_Display_Indent                     , Galacticus_Display_Unindent, Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, &
-         &                                                 verbosityStandard                             , verbosityWorking
+    use :: Display                                , only : displayCounter                                , displayCounterClear  , displayIndent, displayUnindent, &
+          &                                                verbosityLevelStandard                        , verbosityLevelWorking
     use :: Galacticus_Error                       , only : Galacticus_Error_Report
-    use :: MPI_Utilities                          , only : mpiSelf                                       , mpiBarrier
+    use :: MPI_Utilities                          , only : mpiBarrier                                    , mpiSelf
     use :: Timers                                 , only : timer
     implicit none
     class           (computationalDomainCartesian3D                ), intent(inout)  :: self
@@ -243,13 +223,13 @@ contains
        end if
     end do
     ! Construct the domain.
-    if (mpiSelf%isMaster()) call Galacticus_Display_Indent('populating computational domain',verbosityStandard)
+    if (mpiSelf%isMaster()) call displayIndent('populating computational domain',verbosityLevelStandard)
     call timer_%start                                 (          )
     call self  %radiativeTransferMatter_%propertyClass(properties)
     allocate(self%properties(self%countCells(1),self%countCells(2),self%countCells(3)),mold=properties)
     deallocate(properties)
     do i    =1,self%countCells(1)
-       if (mpiSelf%isMaster()) call Galacticus_Display_Counter(int(100.0d0*dble(i-1_c_size_t)/dble(self%countCells(1))),isNew=i==1,verbosity=verbosityWorking)
+       if (mpiSelf%isMaster()) call displayCounter(int(100.0d0*dble(i-1_c_size_t)/dble(self%countCells(1))),isNew=i==1,verbosity=verbosityLevelWorking)
        boundariesCell      (1,:)=self%boundariesCells(1)%boundary(i:i+1)
        do j   =1,self%countCells(2)
           boundariesCell   (2,:)=self%boundariesCells(2)%boundary(j:j+1)
@@ -267,14 +247,14 @@ contains
     end do
     call mpiBarrier     ()
     call timer_    %stop()
-    if (mpiSelf%isMaster()) call Galacticus_Display_Counter_Clear(                                   verbosityWorking )
-    if (mpiSelf%isMaster()) call Galacticus_Display_Unindent     ('done ['//timer_%reportText()//']',verbosityStandard)
+    if (mpiSelf%isMaster()) call displayCounterClear(                                   verbosityLevelWorking )
+    if (mpiSelf%isMaster()) call displayUnindent     ('done ['//timer_%reportText()//']',verbosityLevelStandard)
 #ifdef USEMPI
     ! Broadcast populated domain cells.
-    if (mpiSelf%isMaster()) call Galacticus_Display_Indent('broadcasting computational domain',verbosityStandard)
+    if (mpiSelf%isMaster()) call displayIndent('broadcasting computational domain',verbosityLevelStandard)
     call timer_%start                                 (          )
     do p=0,mpiSelf%count()-1
-       if (mpiSelf%isMaster()) call Galacticus_Display_Counter(int(100.0d0*dble(p)/dble(mpiSelf%count())),isNew=p==1,verbosity=verbosityWorking)
+       if (mpiSelf%isMaster()) call displayCounter(int(100.0d0*dble(p)/dble(mpiSelf%count())),isNew=p==1,verbosity=verbosityLevelWorking)
        do k      =self%sliceMinimum(p),self%sliceMaximum(p)
           do j   =1                   ,self%countCells  (2)
              do i=1                   ,self%countCells  (1)
@@ -286,8 +266,8 @@ contains
     end do
     call mpiBarrier()
     call timer_    %stop()
-    if (mpiSelf%isMaster()) call Galacticus_Display_Counter_Clear(                                   verbosityWorking )
-    if (mpiSelf%isMaster()) call Galacticus_Display_Unindent     ('done ['//timer_%reportText()//']',verbosityStandard)
+    if (mpiSelf%isMaster()) call displayCounterClear(                                   verbosityLevelWorking )
+    if (mpiSelf%isMaster()) call displayUnindent     ('done ['//timer_%reportText()//']',verbosityLevelStandard)
 #endif
     return
   end subroutine cartesian3DInitialize
@@ -334,7 +314,7 @@ contains
 
   subroutine cartesian3DIndicesFromPosition(self,position,indices)
     !% Determine the indices of the cell containing the given point.
-    use :: Arrays_Search, only : Search_Array
+    use :: Arrays_Search, only : searchArray
     implicit none
     class           (computationalDomainCartesian3D), intent(inout)                            :: self
     double precision                                             , dimension(3), intent(in   ) :: position
@@ -356,7 +336,7 @@ contains
           indices=-huge(0_c_size_t)
           exit
        else
-          indices(i)=Search_Array(self%boundariesCells(i)%boundary,position(i))
+          indices(i)=searchArray(self%boundariesCells(i)%boundary,position(i))
        end if
     end do
     return
@@ -483,23 +463,27 @@ contains
   
   subroutine cartesian3DStateSolve(self)
     !% Solve for the state of matter in the computational domain.
-    use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Unindent, Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, &
-         &                            verbosityStandard        , verbosityWorking
-    use :: MPI_Utilities     , only : mpiSelf                  , mpiBarrier
-    use :: Timers            , only : timer
+    use :: Display         , only : displayCounter    , displayCounterClear   , displayIndent        , displayMessage, &
+          &                         displayUnindent   , verbosityLevelStandard, verbosityLevelWorking
+    use :: Galacticus_Error, only : errorStatusSuccess
+    use :: MPI_Utilities   , only : mpiBarrier        , mpiSelf
+    use :: Timers          , only : timer
     implicit none
-    class  (computationalDomainCartesian3D), intent(inout) :: self
-    integer(c_size_t                      )                :: i     , j, &
-         &                                                    k
+    class    (computationalDomainCartesian3D), intent(inout) :: self
+    integer  (c_size_t                      )                :: i      , j        , &
+         &                                                      k      , countFail
+    integer                                                  :: status
 #ifdef USEMPI
-    integer                                                :: p
+    integer                                                  :: p
 #endif
-    type   (timer                         )                :: timer_
+    type     (timer                         )                :: timer_
+    type     (varying_string                )                :: message
+    character(len=12                        )                :: label
 
     ! Establish a timer.
     timer_=timer()
 #ifdef USEMPI
-    if (mpiSelf%isMaster()) call Galacticus_Display_Indent  ('accumulating absorptions across processes',verbosityStandard)
+    if (mpiSelf%isMaster()) call displayIndent  ('accumulating absorptions across processes',verbosityLevelStandard)
     call timer_%start()
     ! Reduce accumulated properties across all MPI processes.
     do k=1,self%countCells(3)
@@ -511,29 +495,41 @@ contains
     end do
     call mpiBarrier     ()
     call timer_    %stop()
-    if (mpiSelf%isMaster()) call Galacticus_Display_Unindent('done ['//timer_%reportText()//']'        ,verbosityStandard)
+    if (mpiSelf%isMaster()) call displayUnindent('done ['//timer_%reportText()//']'        ,verbosityLevelStandard)
 #endif
     ! Solve for state in domain cells local to this process.
-    if (mpiSelf%isMaster()) call Galacticus_Display_Indent  ('solving for domain state',verbosityStandard)
+    if (mpiSelf%isMaster()) call displayIndent  ('solving for domain state',verbosityLevelStandard)
     call timer_%start()
+    countFail=0_c_size_t
     do k=self%sliceMinimum(mpiSelf%rank()),self%sliceMaximum(mpiSelf%rank())
-       if (mpiSelf%isMaster()) call Galacticus_Display_Counter(int(100.0d0*dble(k-self%sliceMinimum(mpiSelf%rank()))/dble(self%sliceMaximum(mpiSelf%rank())-self%sliceMinimum(mpiSelf%rank())+1)),isNew=k==self%sliceMinimum(mpiSelf%rank()),verbosity=verbosityWorking)
+       if (mpiSelf%isMaster()) call displayCounter(int(100.0d0*dble(k-self%sliceMinimum(mpiSelf%rank()))/dble(self%sliceMaximum(mpiSelf%rank())-self%sliceMinimum(mpiSelf%rank())+1)),isNew=k==self%sliceMinimum(mpiSelf%rank()),verbosity=verbosityLevelWorking)
        do j=1,self%countCells(2)
           do i=1,self%countCells(1)
-             call self%radiativeTransferMatter_%stateSolve(self%properties(i,j,k))
+             call self%radiativeTransferMatter_%stateSolve(self%properties(i,j,k),status)
+             if (status /= errorStatusSuccess) countFail=countFail+1_c_size_t
           end do
        end do
     end do
     call mpiBarrier     ()
+    countFail=mpiSelf%sum(countFail)
     call timer_    %stop()
-    if (mpiSelf%isMaster()) call Galacticus_Display_Counter_Clear(                                   verbosityWorking )
-    if (mpiSelf%isMaster()) call Galacticus_Display_Unindent     ('done ['//timer_%reportText()//']',verbosityStandard)
+    if (mpiSelf%isMaster()) then
+       call displayCounterClear(                                   verbosityLevelWorking )
+       if (countFail == 0_c_size_t) then
+          message='state solve succeeded for all cells'
+       else
+          write (label,'(i12)') countFail
+          message='state solve failed for '//trim(adjustl(label))//' cells'
+       end if
+       call displayMessage(message,verbosityLevelStandard)
+       call displayUnindent     ('done ['//timer_%reportText()//']',verbosityLevelStandard)
+    end if
     ! Broadcast populated domain cell solutions.
 #ifdef USEMPI
-    if (mpiSelf%isMaster()) call Galacticus_Display_Indent('broadcasting computational domain state',verbosityStandard)
+    if (mpiSelf%isMaster()) call displayIndent('broadcasting computational domain state',verbosityLevelStandard)
     call timer_%start()
     do p=0,mpiSelf%count()-1
-       if (mpiSelf%isMaster()) call Galacticus_Display_Counter(int(100.0d0*dble(p)/dble(mpiSelf%count())),isNew=p==1,verbosity=verbosityWorking)
+       if (mpiSelf%isMaster()) call displayCounter(int(100.0d0*dble(p)/dble(mpiSelf%count())),isNew=p==1,verbosity=verbosityLevelWorking)
        do k      =self%sliceMinimum(p),self%sliceMaximum(p)
           do j   =1                   ,self%countCells  (2)
              do i=1                   ,self%countCells  (1)
@@ -545,20 +541,20 @@ contains
     end do
     call mpiBarrier     ()
     call timer_    %stop()
-    if (mpiSelf%isMaster()) call Galacticus_Display_Counter_Clear(                                   verbosityWorking )
-    if (mpiSelf%isMaster()) call Galacticus_Display_Unindent     ('done ['//timer_%reportText()//']',verbosityStandard)
+    if (mpiSelf%isMaster()) call displayCounterClear(                                   verbosityLevelWorking )
+    if (mpiSelf%isMaster()) call displayUnindent     ('done ['//timer_%reportText()//']',verbosityLevelStandard)
 #endif
     return
   end subroutine cartesian3DStateSolve
 
   logical function cartesian3DConverged(self)
     !% Return the convergence state of the computational domain.
-    use :: Arrays_Search                  , only : Search_Array
+    use :: Arrays_Search                  , only : searchArray
     use :: Disparity_Ratios               , only : Disparity_Ratio
-    use :: Galacticus_Display             , only : Galacticus_Display_Message, Galacticus_Display_Indent, Galacticus_Display_Unindent, Galacticus_Verbosity_Level, &
-         &                                         verbosityStandard         , verbosityInfo
-    use :: MPI_Utilities                  , only : mpiSelf                   , mpiBarrier
-    use :: Radiative_Transfer_Convergences, only : statusCellFirst           , statusCellLast           , statusCellOther
+    use :: Display                        , only : displayIndent     , displayMessage        , displayUnindent, displayVerbosity, &
+          &                                        verbosityLevelInfo, verbosityLevelStandard
+    use :: MPI_Utilities                  , only : mpiBarrier        , mpiSelf
+    use :: Radiative_Transfer_Convergences, only : statusCellFirst   , statusCellLast        , statusCellOther
     use :: Timers                         , only : timer
     implicit none
     class           (computationalDomainCartesian3D), intent(inout)                         :: self
@@ -574,7 +570,7 @@ contains
 
     ! Establish a timer.
     timer_=timer()
-    if (mpiSelf%isMaster()) call Galacticus_Display_Indent('computing convergence state',verbosityStandard)
+    if (mpiSelf%isMaster()) call displayIndent('computing convergence state',verbosityLevelStandard)
     call timer_%start()
     ! Find the top k(=self%countCellsConvergence) convergence measures across all cells.
     do i=1,self%countCellsConvergence
@@ -590,7 +586,7 @@ contains
                 if (convergenceMeasure > convergenceMeasures(self%countCellsConvergence)) then
                    l=self%countCellsConvergence
                 else
-                   l=Search_Array(convergenceMeasures,convergenceMeasure)
+                   l=searchArray(convergenceMeasures,convergenceMeasure)
                 end if
                 if (l > 1) then
                    do m=1,l-1
@@ -615,27 +611,27 @@ contains
          &                   convergedCriteria
     ! Report on convergence.
     if (mpiSelf%isMaster()) then
-       call Galacticus_Display_Indent('computational domain convergence',verbosityStandard)    
+       call displayIndent('computational domain convergence',verbosityLevelStandard)    
        write (message,'(a,f6.3,a,e12.6,a,f5.3,a)') '       disparity ratio at ',100.0d0*self%convergencePercentile,'% percentile = ',convergenceMeasures    (1)," [target = ",self%convergenceThreshold     ,"]"
-       call Galacticus_Display_Message(trim(message),verbosityStandard)
+       call displayMessage(trim(message),verbosityLevelStandard)
        write (message,'(a,f6.3,a,e12.6,a,f5.3,a)') 'change disparity ratio at ',100.0d0*self%convergencePercentile,'% percentile = ',convergenceMeasureRatio   ," [target = ",self%convergenceRatioThreshold,"]"
-       call Galacticus_Display_Message(trim(message),verbosityStandard)
-       if (Galacticus_Verbosity_Level() >= verbosityInfo) then
-          call Galacticus_Display_Indent('convergence measures',verbosityInfo)    
-          call Galacticus_Display_Message('rank measure',verbosityInfo)
-          call Galacticus_Display_Message('―――――――――――――――――',verbosityInfo)
+       call displayMessage(trim(message),verbosityLevelStandard)
+       if (displayVerbosity() >= verbosityLevelInfo) then
+          call displayIndent('convergence measures',verbosityLevelInfo)    
+          call displayMessage('rank measure',verbosityLevelInfo)
+          call displayMessage('―――――――――――――――――',verbosityLevelInfo)
           do i=1,self%countCellsConvergence
              write (message,'(i4,1x,e12.6)') i,convergenceMeasures(i)
-             call Galacticus_Display_Message(trim(message),verbosityInfo)
+             call displayMessage(trim(message),verbosityLevelInfo)
           end do
-          call Galacticus_Display_Unindent('done measures',verbosityInfo)    
+          call displayUnindent('done measures',verbosityLevelInfo)    
        end if
-       call Galacticus_Display_Unindent('done',verbosityStandard)
+       call displayUnindent('done',verbosityLevelStandard)
     end if
     self%convergenceMeasurePrevious=convergenceMeasures(1)
     call mpiBarrier     ()
     call timer_    %stop()
-    if (mpiSelf%isMaster()) call Galacticus_Display_Unindent('done ['//timer_%reportText()//']',verbosityStandard)
+    if (mpiSelf%isMaster()) call displayUnindent('done ['//timer_%reportText()//']',verbosityLevelStandard)
     return
   end function cartesian3DConverged
 

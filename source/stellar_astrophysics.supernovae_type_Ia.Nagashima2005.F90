@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +22,10 @@
   use :: Stellar_Astrophysics, only : stellarAstrophysicsClass
 
   !# <supernovaeTypeIa name="supernovaeTypeIaNagashima2005">
-  !#  <description>A supernovae type Ia class based on \cite{nagashima_metal_2005}.</description>
+  !#  <description>
+  !#   A supernovae type Ia class which uses the prescriptions from \cite{nagashima_metal_2005} to compute the numbers and yields
+  !#   of Type Ia supernovae.
+  !#  </description>
   !# </supernovaeTypeIa>
   type, extends(supernovaeTypeIaClass) :: supernovaeTypeIaNagashima2005
      !% A supernovae type Ia class based on \cite{nagashima_metal_2005}.
@@ -62,10 +65,11 @@ contains
   function nagashima2005ConstructorInternal(stellarAstrophysics_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily nagashima2005} supernovae type Ia class.
     use :: Atomic_Data      , only : Atom_Lookup                   , Atomic_Data_Atoms_Count
-    use :: FoX_dom          , only : destroy                       , extractDataContent               , node                        , parseFile
+    use :: FoX_dom          , only : destroy                       , node
     use :: Galacticus_Error , only : Galacticus_Error_Report
     use :: Galacticus_Paths , only : galacticusPath                , pathTypeDataStatic
-    use :: IO_XML           , only : XML_Count_Elements_By_Tag_Name, XML_Get_First_Element_By_Tag_Name, XML_Get_Elements_By_Tag_Name, xmlNodeList
+    use :: IO_XML           , only : XML_Count_Elements_By_Tag_Name, XML_Get_First_Element_By_Tag_Name                        , XML_Get_Elements_By_Tag_Name, xmlNodeList, &
+         &                           XML_Parse                     , extractDataContent                => extractDataContentTS
     use :: Memory_Management, only : allocateArray
     implicit none
     type            (supernovaeTypeIaNagashima2005)                              :: self
@@ -81,10 +85,11 @@ contains
     ! Allocate an array to store individual element yields.
     call allocateArray(self%elementYield,[Atomic_Data_Atoms_Count()])
     self%elementYield=0.0d0
+    self%totalYield  =0.0d0
     ! Read in Type Ia yields.
     !$omp critical (FoX_DOM_Access)
     ! Open the XML file containing yields.
-    doc => parseFile(char(galacticusPath(pathTypeDataStatic))//'stellarAstrophysics/Supernovae_Type_Ia_Yields.xml',iostat=ioErr)
+    doc => XML_Parse(char(galacticusPath(pathTypeDataStatic))//'stellarAstrophysics/Supernovae_Type_Ia_Yields.xml',iostat=ioErr)
     if (ioErr /= 0) call Galacticus_Error_Report('Unable to parse yields file'//{introspection:location})
     ! Get a list of all isotopes.
     call XML_Get_Elements_By_Tag_Name(doc,"isotope",isotopesList)

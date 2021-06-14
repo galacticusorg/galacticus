@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,9 @@
   !% An implementation of a spectrum postprocessor that suppresses the Lyman continuum.
 
   !# <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorLycSuppress">
-  !#  <description>A stellar population spectrum postprocessor which completely supresses the Lyman continuum.</description>
+  !#  <description>
+  !#   A stellar population spectrum postprocessor class that suppresses all emission in the Lyman continuum.
+  !#  </description>
   !# </stellarPopulationSpectraPostprocessor>
   type, extends(stellarPopulationSpectraPostprocessorClass) :: stellarPopulationSpectraPostprocessorLycSuppress
      !% A stellar population spectrum postprocessor which completely supresses the Lyman continuum.
@@ -43,7 +45,7 @@ contains
     implicit none
     type(stellarPopulationSpectraPostprocessorLycSuppress)                :: self
     type(inputParameters                                 ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=stellarPopulationSpectraPostprocessorLycSuppress()
     return
@@ -55,7 +57,7 @@ contains
     implicit none
     class           (stellarPopulationSpectraPostprocessorLycSuppress), intent(inout) :: self
     double precision                                                  , intent(in   ) :: age , redshift, wavelength
-    !GCC$ attributes unused :: self, age, redshift
+    !$GLC attributes unused :: self, age, redshift
 
     if (wavelength < lymanSeriesLimitWavelengthHydrogen) then
        lycSuppressMultiplier=0.0d0

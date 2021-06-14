@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,7 +23,10 @@
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
 
   !# <satelliteMergingTimescales name="satelliteMergingTimescalesBoylanKolchin2008">
-  !#  <description>Computes the merging timescale using the method of \cite{boylan-kolchin_dynamical_2008}.</description>
+  !#  <description>
+  !#   A satellite merging timescale class which computes merging timescales using the dynamical friction calibration of
+  !#   \cite{boylan-kolchin_dynamical_2008}.
+  !#  </description>
   !# </satelliteMergingTimescales>
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesBoylanKolchin2008
      !% A class implementing the \cite{boylan-kolchin_dynamical_2008} method for satellite merging timescales.
@@ -57,11 +60,9 @@ contains
 
     !# <inputParameter>
     !#   <name>timescaleMultiplier</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.75d0</defaultValue>
     !#   <description>A multiplier for the merging timescale in dynamical friction timescale calculations.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
@@ -114,10 +115,14 @@ contains
          &                                                                          orbitalCircularity                   , radialScale             , &
          &                                                                          velocityScale                        , expArgument
     integer                                                                      :: errorCode
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Find the host node.
-    nodeHost => node%parent
+    if (node%isSatellite()) then
+       nodeHost => node%parent
+    else
+       nodeHost => node%parent%firstChild
+    end if
     ! Get velocity scale.
     velocityScale=self%darkMatterHaloScale_%virialVelocity(nodeHost)
     radialScale  =self%darkMatterHaloScale_%virialRadius  (nodeHost)
@@ -144,10 +149,17 @@ contains
        orbitalCircularity=0.0d0
        call Galacticus_Error_Report('unrecognized error code'//{introspection:location})
     end select
-    ! Compute mass ratio (mass in host [not including satellite] divided by mass in satellite).
-    basic => node%basic()
-    basicHost => nodeHost%basic()
-    massRatio=basicHost%mass()/basic%mass()-1.0d0
+    ! Compute mass ratio (mass in host [not including satellite if the node is already a satellite] divided by mass in satellite).
+    basic     =>  node     %basic()
+    basicHost =>  nodeHost %basic()
+    if (node%isSatellite()) then
+       massRatio=+basicHost%mass () &
+            &    /basic    %mass () &
+            &    -1.0d0
+    else
+       massRatio=+basicHost%mass () &
+            &    /basic    %mass ()
+    end if
     if (massRatio <= 0.0d0) then
        ! Assume zero merging time as the satellite is as massive as the host.
        boylanKolchin2008TimeUntilMerging=0.0d0

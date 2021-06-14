@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -33,15 +33,9 @@
      double precision                                                :: rangeLower                               , rangeUpper, &
           &                                                             rootVariance_
    contains
-     !@ <objectMethods>
-     !@   <object>outputAnalysisWeightOperatorNormal</object>
-     !@   <objectMethod>
-     !@     <method>rootVariance</method>
-     !@     <description>Return the root-variance to use in the weight operator.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} node\arginout, \doublezero\ propertyValue\argin, \doublezero\ propertyValueIntrinsic\argin, \intzero\ propertyType\argin, \intzero\ propertyQuantity\argin, \textcolor{red}{\textless integer(c\_size\_t)\textgreater} outputIndex\argin</arguments>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return the root-variance to use in the weight operator." method="rootVariance" />
+     !# </methods>
      final     ::                 normalDestructor
      procedure :: operate      => normalOperate
      procedure :: rootVariance => normalRootVariance
@@ -71,23 +65,17 @@ contains
     !#   <name>rangeLower</name>
     !#   <source>parameters</source>
     !#   <description>Lower integration limit for the normal distribution weight operator.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>rangeUpper</name>
     !#   <source>parameters</source>
     !#   <description>Upper integration limit for the normal distribution weight operator.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>rootVariance</name>
     !#   <variable>rootVariance_</variable>
     !#   <source>parameters</source>
     !#   <description>Root variance for the normal distribution weight operator.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="nodePropertyExtractor"          name="nodePropertyExtractor_"          source="parameters"/>
     !# <objectBuilder class="outputAnalysisPropertyOperator" name="outputAnalysisPropertyOperator_" source="parameters"/>
@@ -136,7 +124,7 @@ contains
     double precision                                    , intent(in   ) :: propertyValue, propertyValueIntrinsic
     integer                                             , intent(in   ) :: propertyType , propertyQuantity
     integer         (c_size_t                          ), intent(in   ) :: outputIndex
-    !GCC$ attributes unused :: node, propertyValue, propertyValueIntrinsic, propertyType, propertyQuantity, outputIndex
+    !$GLC attributes unused :: node, propertyValue, propertyValueIntrinsic, propertyType, propertyQuantity, outputIndex
 
     normalRootVariance=self%rootVariance_
     return
@@ -156,7 +144,7 @@ contains
     integer         (c_size_t                          ), intent(in   ) :: outputIndex
     double precision                                                    :: normalPropertyValue, rootVariance
     integer                                                             :: normalPropertyType
-    !GCC$ attributes unused :: propertyValue,propertyValueIntrinsic, propertyType, propertyQuantity
+    !$GLC attributes unused :: propertyValue,propertyValueIntrinsic, propertyType, propertyQuantity
 
     ! Extract property and operate on it.
     normalPropertyType    =self%nodePropertyExtractor_          %type   (                                                       )

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,13 @@
 !% Contains a module which implements a polynomial systematic shift output analysis property operator class.
 
   !# <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorSystmtcPolynomial">
-  !#  <description>A polynomial systematic shift output analysis property operator class.</description>
+  !#  <description>
+  !#   A polynomial systematic shift output analysis property operator class. This operator allows for a systematic shift in
+  !#   properties (to account for systematic uncertainties in the observational analysis) using a simple model. Specifically,
+  !#   properties are mapped by this model as follows \begin{equation} \log_\mathrm{10} x \rightarrow \log_{10} x + \sum_{i=0}^N
+  !#   \alpha_i \log^i_{10}(x/x_0), \end{equation} where $x_0=${\normalfont \ttfamily [zeroPoint]} is a zero-point, and the
+  !#   coefficients $\alpha_{i=1\ldots N}=${\normalfont \ttfamily [coefficient]} are specified by input parameters.
+  !#  </description>
   !# </outputAnalysisPropertyOperator>
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorSystmtcPolynomial
      !% A polynomial systematic shift output property operator class.
@@ -55,16 +61,12 @@ contains
     !#   <source>parameters</source>
     !#   <variable>zeroPoint</variable>
     !#   <description>The zero-point of the property value used in the polynomial systematic offset property operator class.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>coefficient</name>
     !#   <source>parameters</source>
     !#   <variable>coefficient</variable>
     !#   <description>The coefficients in the polynomial systematic offset property operator class.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     ! Construct the object.
     self=outputAnalysisPropertyOperatorSystmtcPolynomial(zeroPoint,coefficient)
@@ -93,16 +95,23 @@ contains
     integer                                                          , intent(inout), optional :: propertyType
     integer         (c_size_t                                       ), intent(in   ), optional :: outputIndex
     integer                                                                                    :: i
-    !GCC$ attributes unused :: outputIndex, propertyType, node
+    !$GLC attributes unused :: outputIndex, propertyType, node
 
     systmtcPolynomialOperate=propertyValue
-    do i=1,size(self%coefficient)
-       systmtcPolynomialOperate=+systmtcPolynomialOperate      &
-            &                   +self%coefficient(i)           &
-            &                   *(                             &
-            &                     +     propertyValue          &
-            &                     -self%propertyValueZeroPoint &
-            &                    )**(i-1)
-    end do
+    ! Do not attempt to modify out-of-range values.
+    if     (                              &
+         &   propertyValue > -huge(0.0d0) &
+         &  .and.                         &
+         &   propertyValue < +huge(0.0d0) &
+         & ) then
+       do i=1,size(self%coefficient)
+          systmtcPolynomialOperate=+systmtcPolynomialOperate      &
+               &                   +self%coefficient(i)           &
+               &                   *(                             &
+               &                     +     propertyValue          &
+               &                     -self%propertyValueZeroPoint &
+               &                    )**(i-1)
+       end do
+    end if
     return
   end function systmtcPolynomialOperate

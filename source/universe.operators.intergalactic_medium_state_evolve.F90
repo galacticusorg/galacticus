@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -67,15 +67,9 @@
      double precision                                              , allocatable, dimension(:,:) :: densityHydrogen                                   , densityHelium  , &
           &                                                                                         massFilteringComposite
    contains
-     !@ <objectMethods>
-     !@   <object>universeOperatorIntergalacticMediumStateEvolve</object>
-     !@   <objectMethod>
-     !@     <method>stateSet</method>
-     !@     <type>void</type>
-     !@     <arguments>\textcolor{red}{\textless integer(c\_size\_t) \textgreater} iNow\argin</arguments>
-     !@     <description>Set the state of the IGM state class up to the given time index.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Set the state of the IGM state class up to the given time index." method="stateSet" />
+     !# </methods>
      final     ::             intergalacticMediumStateEvolveDestructor
      procedure :: operate  => intergalacticMediumStateEvolveOperate
      procedure :: stateSet => intergalacticMediumStateEvolveStateSet
@@ -120,43 +114,37 @@ contains
 
     !# <inputParameter>
     !#   <name>timeCountPerDecade</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number of bins per decade of time to use for calculations of the properties of the universe.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>redshiftMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The minimum redshift to use in calculations.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>redshiftMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>400.0d0</defaultValue>
     !#   <description>The maximum redshift to use in calculations.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters"                     name="cosmologyParameters_"                     source="parameters"                                                            />
-    !# <objectBuilder class="cosmologyFunctions"                      name="cosmologyFunctions_"                      source="parameters"                                                            />
-    !# <objectBuilder class="linearGrowth"                            name="linearGrowth_"                            source="parameters"                                                            />
-    !# <objectBuilder class="cosmologicalMassVariance"                name="cosmologicalMassVariance_"                source="parameters"                                                            />
-    !# <objectBuilder class="outputTimes"                             name="outputTimes_"                             source="parameters"                                                            />
-    !# <objectBuilder class="gauntFactor"                             name="gauntFactor_"                             source="parameters"                                                            />
-    !# <objectBuilder class="atomicCrossSectionIonizationPhoto"       name="atomicCrossSectionIonizationPhoto_"       source="parameters"                                                            />
-    !# <objectBuilder class="atomicIonizationPotential"               name="atomicIonizationPotential_"               source="parameters"                                                            />
-    !# <objectBuilder class="atomicRecombinationRateDielectronic"     name="atomicRecombinationRateDielectronic_"     source="parameters"                                                            />
-    !# <objectBuilder class="atomicRecombinationRateRadiative"        name="atomicRecombinationRateRadiative_"        source="parameters"                                                            />
-    !# <objectBuilder class="atomicRecombinationRateRadiativeCooling" name="atomicRecombinationRateRadiativeCooling_" source="parameters"                                                            />
-    !# <objectBuilder class="atomicIonizationRateCollisional"         name="atomicIonizationRateCollisional_"         source="parameters"                                                            />
-    !# <objectBuilder class="atomicExcitationRateCollisional"         name="atomicExcitationRateCollisional_"         source="parameters"                                                            />
-    !# <objectBuilder class="intergalacticMediumState"                name="intergalacticMediumState_"                source="parameters"                                                            />
-    !# <objectBuilder class="radiationField"                          name="radiationField_"                          source="parameters" parameterName="radiationFieldIntergalacticBackgroundMethod"/>
+    !# <objectBuilder class="cosmologyParameters"                     name="cosmologyParameters_"                     source="parameters"                                                      />
+    !# <objectBuilder class="cosmologyFunctions"                      name="cosmologyFunctions_"                      source="parameters"                                                      />
+    !# <objectBuilder class="linearGrowth"                            name="linearGrowth_"                            source="parameters"                                                      />
+    !# <objectBuilder class="cosmologicalMassVariance"                name="cosmologicalMassVariance_"                source="parameters"                                                      />
+    !# <objectBuilder class="outputTimes"                             name="outputTimes_"                             source="parameters"                                                      />
+    !# <objectBuilder class="gauntFactor"                             name="gauntFactor_"                             source="parameters"                                                      />
+    !# <objectBuilder class="atomicCrossSectionIonizationPhoto"       name="atomicCrossSectionIonizationPhoto_"       source="parameters"                                                      />
+    !# <objectBuilder class="atomicIonizationPotential"               name="atomicIonizationPotential_"               source="parameters"                                                      />
+    !# <objectBuilder class="atomicRecombinationRateDielectronic"     name="atomicRecombinationRateDielectronic_"     source="parameters"                                                      />
+    !# <objectBuilder class="atomicRecombinationRateRadiative"        name="atomicRecombinationRateRadiative_"        source="parameters"                                                      />
+    !# <objectBuilder class="atomicRecombinationRateRadiativeCooling" name="atomicRecombinationRateRadiativeCooling_" source="parameters"                                                      />
+    !# <objectBuilder class="atomicIonizationRateCollisional"         name="atomicIonizationRateCollisional_"         source="parameters"                                                      />
+    !# <objectBuilder class="atomicExcitationRateCollisional"         name="atomicExcitationRateCollisional_"         source="parameters"                                                      />
+    !# <objectBuilder class="intergalacticMediumState"                name="intergalacticMediumState_"                source="parameters"                                                      />
+    !# <objectBuilder class="radiationField"                          name="radiationField_"                          source="parameters" parameterName="radiationFieldIntergalacticBackground"/>
     select type (radiationField_)
     class is (radiationFieldIntergalacticBackground)
        ! This is as expected.
@@ -322,7 +310,7 @@ contains
         end do
      end do
      ! Set the composite variables used to solve for filtering mass.
-     intergalacticMediumFilteringMass_=intergalacticMediumFilteringMassGnedin2000(self%cosmologyParameters_,self%cosmologyFunctions_,self%linearGrowth_,self%intergalacticMediumState_)
+     intergalacticMediumFilteringMass_=intergalacticMediumFilteringMassGnedin2000(.true.,self%cosmologyParameters_,self%cosmologyFunctions_,self%linearGrowth_,self%intergalacticMediumState_)
      call intergalacticMediumFilteringMass_%conditionsInitialODEs(self%timeMinimum,massFilteringODEs)
      self%massFilteringComposite(1,:)=massFilteringODEs(1:2)
      self%massFiltering         (1  )=massFilteringODEs(3  )
@@ -378,40 +366,37 @@ contains
 
    logical function intergalacticMediumStateEvolveUpdate(event,universe_) result (success)
      !% Update the properties for a given universe.
-     use            :: Arrays_Search           , only : Search_Array_For_Closest
-     use            :: FODEIV2                 , only : fodeiv2_system           , fodeiv2_driver
-     use            :: Galacticus_Display      , only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent
+     use            :: Arrays_Search           , only : searchArrayClosest
+     use            :: Display                 , only : displayIndent          , displayMessage, displayUnindent
      use            :: Galacticus_Error        , only : Galacticus_Error_Report
      use            :: Galacticus_HDF5         , only : galacticusOutputFile
-     use            :: Galacticus_Nodes        , only : mergerTree               , mergerTreeList            , nodeComponentBasic         , treeNode, &
-          &                                             universe                 , universeEvent
-     use            :: IO_HDF5                 , only : hdf5Access               , hdf5Object
+     use            :: Galacticus_Nodes        , only : mergerTree             , mergerTreeList, nodeComponentBasic, treeNode, &
+          &                                             universe               , universeEvent
+     use            :: IO_HDF5                 , only : hdf5Access             , hdf5Object
      use, intrinsic :: ISO_C_Binding           , only : c_size_t
      use            :: ISO_Varying_String      , only : varying_string
      use            :: Numerical_Constants_Math, only : Pi
-     use            :: ODEIV2_Solver           , only : ODEIV2_Solve             , ODEIV2_Solver_Free
+     use            :: Numerical_ODE_Solvers   , only : odeSolver
      implicit none
      class           (universeEvent     ), intent(in   )            :: event
      type            (universe          ), intent(inout)            :: universe_
      type            (universeEvent     ), pointer                  :: newEvent
-     double precision                    , parameter                :: odeToleranceAbsolute =1.0d-3,                 &
-          &                                                            odeToleranceRelative =1.0d-3,                 &
+     double precision                    , parameter                :: odeToleranceAbsolute =1.0d-3     ,                 &
+          &                                                            odeToleranceRelative =1.0d-3     ,                 &
           &                                                            timeToleranceRelative=1.0d-6
      type            (mergerTree        ), pointer                  :: tree
      type            (mergerTreeList    ), pointer                  :: forest
      type            (treeNode          ), pointer                  :: node
      class           (nodeComponentBasic), pointer                  :: basic
-     type            (fodeiv2_system    ), save                     :: ode2System
-     type            (fodeiv2_driver    ), save                     :: ode2Driver
-     logical                             , save                     :: odeReset
-     integer                             , parameter                :: propertyCount        =10
+     integer         (c_size_t          ), parameter                :: propertyCount        =10_c_size_t
      double precision                    , parameter                :: massFilteringScale   =1.0d+4
-     double precision                    , dimension(propertyCount) :: properties                  , propertyScales
+     double precision                    , dimension(propertyCount) :: properties                       , propertyScales
+     type            (odeSolver         )                           :: solver
      type            (varying_string    )                           :: message
      character       (len=6             )                           :: label
-     type            (hdf5Object        )                           :: igmGroup                    , igmDataset
+     type            (hdf5Object        )                           :: igmGroup                         , igmDataset
      integer         (c_size_t          )                           :: iNow
-     double precision                                               :: treetimeLatest              , timeCurrent    , &
+     double precision                                               :: treetimeLatest                   , timeCurrent    , &
           &                                                            timeMaximum
 
 #ifdef USEMPI
@@ -422,9 +407,9 @@ contains
         ! Display message.
         write (label,'(f6.3)') event%time
         message = "Evolving IGM properties to time "//trim(label)//" Gyr"
-        call Galacticus_Display_Indent(message)
+        call displayIndent(message)
         ! Find the current timestep.
-        iNow = Search_Array_For_Closest(self%time,event%time)
+        iNow = searchArrayClosest(self%time,event%time)
         ! Evolve the properties up to this timestep.
         if (iNow > 1) then
            ! Get required objects.
@@ -458,23 +443,10 @@ contains
            propertyScales( 9  )=self%opticalDepth (iNow-1)
            propertyScales(10  )=self%massFiltering(iNow-1)
            ! Display message
-           call Galacticus_Display_Message('Solving properties evolution')
-           odeReset=.true.
+           call displayMessage('Solving properties evolution')
            timeCurrent=self%time(iNow-1)
-           call ODEIV2_Solve(                                                    &
-                &            ode2Driver                                        , &
-                &            ode2System                                        , &
-                &            timeCurrent                                       , &
-                &            self%time                         (iNow)          , &
-                &            propertyCount                                     , &
-                &            properties                                        , &
-                &            intergalacticMediumStateEvolveODEs                , &
-                &            odeToleranceAbsolute                              , &
-                &            odeToleranceRelative                              , &
-                &            yScale                             =propertyScales, &
-                &            reset                              =odeReset        &
-                &           )
-           call ODEIV2_Solver_Free(ode2Driver,ode2System)
+           solver     =odeSolver(propertyCount,intergalacticMediumStateEvolveODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative,scale=propertyScales)    
+           call solver%solve(timeCurrent,self%time(iNow),properties)
            self%temperature           (iNow    )=max(properties( 1   ),0.0d0)
            self%densityHydrogen       (iNow,1:2)=max(properties( 2: 3),0.0d0)
            self%densityHelium         (iNow,1:3)=max(properties( 4: 6),0.0d0)
@@ -545,7 +517,7 @@ contains
         ! Store the past history to the default IGM state class.
         call self%stateSet(iNow)
         ! Display message.
-        call Galacticus_Display_Unindent('done')
+        call displayUnindent('done')
         class default
         call Galacticus_Error_Report('incorrect class'//{introspection:location})
      end select
@@ -556,16 +528,16 @@ contains
 
    integer function intergalacticMediumStateEvolveODEs(time,properties,propertiesRateOfChange)
      !% Evaluates the ODEs controlling the evolution temperature.
-     use :: FGSL                                 , only : FGSL_Success      , fgsl_function    , fgsl_integration_workspace
+     use :: Interface_GSL                        , only : GSL_Success
      use :: Intergalactic_Medium_Filtering_Masses, only : gnedin2000ODES    , gnedin2000ODEs
      use :: Numerical_Constants_Astronomical     , only : gigaYear
      use :: Numerical_Constants_Atomic           , only : massHeliumAtom    , massHydrogenAtom
      use :: Numerical_Constants_Math             , only : Pi
-     use :: Numerical_Constants_Physical         , only : boltzmannsConstant, electronMass     , electronRadius            , fineStructure      , &
-          &                                               plancksConstant   , radiationConstant, speedLight                , thomsonCrossSection
+     use :: Numerical_Constants_Physical         , only : boltzmannsConstant, electronMass     , electronRadius, fineStructure      , &
+          &                                               plancksConstant   , radiationConstant, speedLight    , thomsonCrossSection
      use :: Numerical_Constants_Prefixes         , only : centi
      use :: Numerical_Constants_Units            , only : angstromsPerMeter , electronVolt
-     use :: Numerical_Integration                , only : Integrate         , Integrate_Done
+     use :: Numerical_Integration                , only : integrator
      implicit none
      double precision                                          , intent(in  )                :: time
      double precision                                          , intent(in   ), dimension(:) :: properties
@@ -575,9 +547,7 @@ contains
      double precision                                                         , dimension(2) :: densityHydrogen_                                  , massFilteringComposite_            , &
           &                                                                                     massFilteringCompositeRateOfChange
      double precision                                                         , dimension(3) :: densityHelium_                                    , massFilteringODEsRateOfChange
-     type            (fgsl_function                           )                              :: integrationFunction
-     type            (fgsl_integration_workspace              )                              :: integrationWorkspace
-     logical                                                                                 :: integrationReset
+     type            (integrator                              )                              :: integratorPhotoionization                         , integratorPhotoheating
      integer                                                                                 :: electronNumber                                    , atomicNumber                       , &
           &                                                                                     ionizationState                                   , shellNumber                        , &
           &                                                                                     photoionizationGroundIonizationState              , photoionizationGroundElectronNumber, &
@@ -638,6 +608,9 @@ contains
      ! Compute the clumping factor.
      clumpingFactor=+1.0d0                                                                                             &
           &         +intergalacticMediumStateEvolveSelf%cosmologicalMassVariance_%rootVariance(massFiltering_,time)**2
+     ! Build integrators.
+     integratorPhotoionization=integrator(integrandPhotoionizationRate       ,toleranceRelative=1.0d-2)
+     integratorPhotoheating   =integrator(integrandPhotoionizationHeatingRate,toleranceRelative=1.0d-3)
      ! Iterate over ionic species.
      iProperty=1 ! Counter for ionic species in properties array.
      do atomicNumber=1,2
@@ -695,18 +668,18 @@ contains
            end if
            ! Compute recombination rates to this ion.
            if (electronNumber  > 0) then
-              recombinationRateTo        =+intergalacticMediumStateEvolveSelf%atomicRecombinationRateRadiative_       %rate(atomicNumber,ionizationState  ,temperature,recombinationCaseB) &
-                   &                      *densityUpperIon                                                                                                                                 &
+              recombinationRateTo        =+intergalacticMediumStateEvolveSelf%atomicRecombinationRateRadiative_       %rate(atomicNumber,ionizationState,temperature,recombinationCaseB) &
+                   &                      *densityUpperIon                                                                                                                               &
                    &                      *densityElectron
-              heatingRate                =+heatingRate                                                                                                                                     &
-                   &                      -intergalacticMediumStateEvolveSelf%atomicRecombinationRateRadiativeCooling_%rate(atomicNumber,ionizationState-1,temperature,recombinationCaseB) &
-                   &                      *densityThisIon                                                                                                                                  &
-                   &                      *densityElectron                                                                                                                                 &
-                   &                      *gigaYear                                                                                                                                        &
-                   &                      *centi**3                                                                                                                                        &
-                   &                      *clumpingFactor                                                                                                                                  &
-                   &                      *0.75d0                                                                                                                                          &
-                   &                      *boltzmannsConstant                                                                                                                              &
+              heatingRate                =+heatingRate                                                                                                                                   &
+                   &                      -intergalacticMediumStateEvolveSelf%atomicRecombinationRateRadiativeCooling_%rate(atomicNumber,ionizationState,temperature,recombinationCaseB) &
+                   &                      *densityThisIon                                                                                                                                &
+                   &                      *densityElectron                                                                                                                               &
+                   &                      *gigaYear                                                                                                                                      &
+                   &                      *centi**3                                                                                                                                      &
+                   &                      *clumpingFactor                                                                                                                                &
+                   &                      *0.75d0                                                                                                                                        &
+                   &                      *boltzmannsConstant                                                                                                                            &
                    &                      *temperature
            else
               recombinationRateTo        =+0.0d0
@@ -751,19 +724,8 @@ contains
                    &            /electronVolt                                                                                         &
                    &            *angstromsPerMeter
               ! Integrate photoionizations over wavelength.
-              integrationReset       =.true.
-              ionizationPhotoRateFrom=-Integrate(                                                 &
-                   &                             wavelengthMinimum                              , &
-                   &                             wavelengthMaximum                              , &
-                   &                             integrandPhotoionizationRate                   , &
-                   &                             integrationFunction                            , &
-                   &                             integrationWorkspace                           , &
-                   &                             toleranceAbsolute             =0.0d+0          , &
-                   &                             toleranceRelative             =1.0d-2          , &
-                   &                             reset                         =integrationReset  &
-                   &                            )                                                 &
+              ionizationPhotoRateFrom=-integratorPhotoionization%integrate(wavelengthMinimum,wavelengthMaximum) &
                    &                  *densityThisIon
-              call Integrate_Done(integrationFunction,integrationWorkspace)
            else
               ionizationPhotoRateFrom =+0.0d0
            end if
@@ -779,34 +741,12 @@ contains
                    &            /electronVolt                                                                                           &
                    &            *angstromsPerMeter
               ! Integrate photoionizations over wavelength.
-              integrationReset     =.true.
-              ionizationPhotoRateTo=+Integrate(                                                 &
-                   &                           wavelengthMinimum                              , &
-                   &                           wavelengthMaximum                              , &
-                   &                           integrandPhotoionizationRate                   , &
-                   &                           integrationFunction                            , &
-                   &                           integrationWorkspace                           , &
-                   &                           toleranceAbsolute             =0.0d+0          , &
-                   &                           toleranceRelative             =1.0d-2          , &
-                   &                           reset                         =integrationReset  &
-                   &                          )                                                 &
-                   &                  *densityLowerIon
-              call Integrate_Done(integrationFunction,integrationWorkspace)
-              integrationReset=.true.
-              heatingRate                      =+heatingRate                                                     &
-                   &                            +Integrate(                                                      &
-                   &                                       wavelengthMinimum                                   , &
-                   &                                       wavelengthMaximum                                   , &
-                   &                                       integrandPhotoionizationHeatingRate                 , &
-                   &                                       integrationFunction                                 , &
-                   &                                       integrationWorkspace                                , &
-                   &                                       toleranceAbsolute                  =0.0d+0          , &
-                   &                                       toleranceRelative                  =1.0d-3          , &
-                   &                                       reset                              =integrationReset  &
-                   &                                      )                                                      &
-                   &                            *densityLowerIon                                                 &
+              ionizationPhotoRateTo            =+integratorPhotoionization%integrate(wavelengthMinimum,wavelengthMaximum) &
+                   &                            *densityLowerIon
+              heatingRate                      =+heatingRate                                                              &
+                   &                            +integratorPhotoheating   %integrate(wavelengthMinimum,wavelengthMaximum) &
+                   &                            *densityLowerIon                                                          &
                    &                            *gigaYear
-              call Integrate_Done(integrationFunction,integrationWorkspace)
            else
               ionizationPhotoRateTo =+0.0d0
            end if
@@ -926,7 +866,7 @@ contains
      propertiesRateOfChange( 9   )=opticalDepthRateOfChange
      propertiesRateOfChange(10   )=massFilteringRateOfChange
      ! Return success.
-     intergalacticMediumStateEvolveODEs=FGSL_Success
+     intergalacticMediumStateEvolveODEs=GSL_Success
 
    contains
 

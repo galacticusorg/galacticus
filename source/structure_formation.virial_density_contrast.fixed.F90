@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,7 +23,11 @@
   use :: Cosmology_Parameters, only : cosmologyParametersClass
 
   !# <virialDensityContrast name="virialDensityContrastFixed">
-  !#  <description>Fixed dark matter halo virial density contrasts.</description>
+  !#  <description>
+  !#   A dark matter halo virial density contrast class which uses a fixed virial density contrast of {\normalfont \ttfamily
+  !#   [densityContrastValue]}, defined relative to {\normalfont \ttfamily critical} or {\normalfont \ttfamily mean} density as
+  !#   specified by {\normalfont \ttfamily [densityType]}.
+  !#  </description>
   !# </virialDensityContrast>
   type, extends(virialDensityContrastClass) :: virialDensityContrastFixed
      !% A dark matter halo virial density contrast class assuming fixed contrast.
@@ -75,24 +79,18 @@ contains
     !#  <source>parameters</source>
     !#  <defaultValue>200.0d0</defaultValue>
     !#  <description>The virial density contrast to use in the fixed value model.</description>
-    !#  <type>float</type>
-    !#  <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#  <name>densityType</name>
     !#  <source>parameters</source>
     !#  <defaultValue>var_str('critical')</defaultValue>
     !#  <description>The reference density to use in the fixed value virial density contrast model. Either of {\normalfont \ttfamily critical} and {\normalfont \ttfamily mean} are allowed.</description>
-    !#  <type>string</type>
-    !#  <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#  <name>turnAroundOverVirialRadius</name>
     !#  <source>parameters</source>
     !#  <defaultValue>2.0d0</defaultValue>
     !#  <description>The ratio of the turnaround to virial radii in the fixed value model.</description>
-    !#  <type>float</type>
-    !#  <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
@@ -136,7 +134,7 @@ contains
     double precision                            , intent(in   )           :: mass
     double precision                            , intent(in   ), optional :: time      , expansionFactor
     logical                                     , intent(in   ), optional :: collapsing
-    !GCC$ attributes unused :: mass
+    !$GLC attributes unused :: mass
 
     ! Set the density contrast.
     fixedDensityContrast=self%densityContrastValue
@@ -170,7 +168,7 @@ contains
     double precision                            , intent(in   ), optional :: time      , expansionFactor
     logical                                     , intent(in   ), optional :: collapsing
     double precision                                                      :: epochTime
-    !GCC$ attributes unused :: mass
+    !$GLC attributes unused :: mass
 
     ! Zero rate of change for fixed density contrast.
     fixedDensityContrastRateOfChange=0.0d0
@@ -196,7 +194,7 @@ contains
     double precision                            , intent(in   )           :: mass
     double precision                            , intent(in   ), optional :: time      , expansionFactor
     logical                                     , intent(in   ), optional :: collapsing
-    !GCC$ attributes unused :: mass, time, expansionFactor, collapsing
+    !$GLC attributes unused :: mass, time, expansionFactor, collapsing
 
     fixedTurnAroundOverVirialRadii=self%turnAroundOverVirialRadius
     return

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -74,56 +74,42 @@ contains
     !#   <source>parameters</source>
     !#   <variable>label</variable>
     !#   <description>A label for the mass function.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>comment</name>
     !#   <source>parameters</source>
     !#   <variable>comment</variable>
     !#   <description>A descriptive comment for the mass function.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>masses</name>
     !#   <source>parameters</source>
     !#   <variable>masses</variable>
     !#   <description>The masses corresponding to bin centers.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>covarianceBinomialBinsPerDecade</name>
     !#   <source>parameters</source>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number of bins per decade of halo mass to use when constructing HI mass function covariance matrices for main branch galaxies.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>covarianceBinomialMassHaloMinimum</name>
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d8</defaultValue>
     !#   <description>The minimum halo mass to consider when constructing HI mass function covariance matrices for main branch galaxies.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>covarianceBinomialMassHaloMaximum</name>
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d16</defaultValue>
     !#   <description>The maximum halo mass to consider when constructing HI mass function covariance matrices for main branch galaxies.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     if (parameters%isPresent('targetLabel')) then
        !# <inputParameter>
        !#   <name>targetLabel</name>
        !#   <source>parameters</source>
        !#   <description>Label for the target dataset.</description>
-       !#   <type>real</type>
-       !#   <cardinality>0..1</cardinality>
        !# </inputParameter>
     end if
     if (parameters%isPresent('functionValueTarget')) then
@@ -132,16 +118,12 @@ contains
           !#   <name>functionValueTarget</name>
           !#   <source>parameters</source>
           !#   <description>The target function for likelihood calculations.</description>
-          !#   <type>real</type>
-          !#   <cardinality>0..1</cardinality>
           !# </inputParameter>
           !# <inputParameter>
           !#   <name>functionCovarianceTarget</name>
           !#   <source>parameters</source>
           !#   <variable>functionCovarianceTarget1D</variable>
           !#   <description>The target function covariance for likelihood calculations.</description>
-          !#   <type>real</type>
-          !#   <cardinality>0..1</cardinality>
           !# </inputParameter>
           if (size(functionCovarianceTarget1D) == size(functionValueTarget)**2) then
              allocate(functionCovarianceTarget(size(functionValueTarget),size(functionValueTarget)))
@@ -260,7 +242,7 @@ contains
     type            (varying_string                                 ), intent(in   ), optional                 :: targetLabel
     double precision                                                 , intent(in   ), optional, dimension(:  ) :: functionValueTarget
     double precision                                                 , intent(in   ), optional, dimension(:,:) :: functionCovarianceTarget
-    type            (nodePropertyExtractorMassISM         )               , pointer                  :: nodePropertyExtractor_
+    type            (nodePropertyExtractorMassISM                   )               , pointer                  :: nodePropertyExtractor_
     type            (outputAnalysisPropertyOperatorHIMass           )               , pointer                  :: outputAnalysisPropertyOperatorHIMass_
     type            (outputAnalysisPropertyOperatorLog10            )               , pointer                  :: outputAnalysisPropertyOperatorLog10_
     type            (outputAnalysisPropertyOperatorAntiLog10        )               , pointer                  :: outputAnalysisPropertyOperatorAntiLog10_
@@ -268,7 +250,9 @@ contains
     type            (outputAnalysisPropertyOperatorSequence         )               , pointer                  :: outputAnalysisPropertyOperatorSequence_
     type            (outputAnalysisWeightOperatorCsmlgyVolume       )               , pointer                  :: outputAnalysisWeightOperator_
     type            (outputAnalysisDistributionNormalizerSequence   )               , pointer                  :: outputAnalysisDistributionNormalizer_
-    type            (normalizerList                                 )               , pointer                  :: normalizerSequence                                    , normalizer_
+    type            (outputAnalysisDistributionNormalizerBinWidth   )               , pointer                  :: outputAnalysisDistributionNormalizerBinWidth_
+    type            (outputAnalysisDistributionNormalizerLog10ToLog )               , pointer                  :: outputAnalysisDistributionNormalizerLog10ToLog_
+    type            (normalizerList                                 )               , pointer                  :: normalizerSequence
     type            (propertyOperatorList                           )               , pointer                  :: propertyOperatorSequence
     double precision                                                 , allocatable            , dimension(:,:) :: outputWeight
     double precision                                                 , parameter                               :: bufferWidthLogarithmic                          =3.0d0
@@ -284,7 +268,7 @@ contains
     end do
     ! Create a HI mass property extractor.
     allocate(nodePropertyExtractor_)
-    !# <referenceConstruct object="nodePropertyExtractor_"                 constructor="nodePropertyExtractorMassISM         (                                                                 )"/>
+    !# <referenceConstruct object="nodePropertyExtractor_"                           constructor="nodePropertyExtractorMassISM                   (                                                                 )"/>
     ! Prepend log10, cosmological luminosity distance, and HI mass property operators.
     allocate(outputAnalysisPropertyOperatorHIMass_           )
     !# <referenceConstruct object="outputAnalysisPropertyOperatorHIMass_"            constructor="outputAnalysisPropertyOperatorHIMass           (outputAnalysisMolecularRatio_                                    )"/>
@@ -318,20 +302,14 @@ contains
     allocate(outputAnalysisWeightOperator_)
     !# <referenceConstruct object="outputAnalysisWeightOperator_" constructor="outputAnalysisWeightOperatorCsmlgyVolume(cosmologyFunctions_,cosmologyFunctionsData,surveyGeometry_)"/>
     ! Create a bin width distribution normalizer.
-    allocate(normalizerSequence)
-    normalizer_ => normalizerSequence
-    allocate(outputAnalysisDistributionNormalizerBinWidth   :: normalizer_%normalizer_)
-    select type (normalizer_ => normalizer_%normalizer_)
-    type is (outputAnalysisDistributionNormalizerBinWidth  )
-       !# <referenceConstruct object="normalizer_" constructor="outputAnalysisDistributionNormalizerBinWidth  ()"/>
-    end select
-    allocate(normalizer_%next)
-    normalizer_ => normalizer_%next
-    allocate(outputAnalysisDistributionNormalizerLog10ToLog :: normalizer_%normalizer_)
-    select type (normalizer_ => normalizer_%normalizer_)
-    type is (outputAnalysisDistributionNormalizerLog10ToLog)
-       !# <referenceConstruct object="normalizer_" constructor="outputAnalysisDistributionNormalizerLog10ToLog()"/>
-    end select
+    allocate(outputAnalysisDistributionNormalizerBinWidth_  )
+    !# <referenceConstruct object="outputAnalysisDistributionNormalizerBinWidth_"   constructor="outputAnalysisDistributionNormalizerBinWidth  ()"/>
+    allocate(outputAnalysisDistributionNormalizerLog10ToLog_)
+    !# <referenceConstruct object="outputAnalysisDistributionNormalizerLog10ToLog_" constructor="outputAnalysisDistributionNormalizerLog10ToLog()"/>
+    allocate(normalizerSequence     )
+    allocate(normalizerSequence%next)
+    normalizerSequence     %normalizer_ => outputAnalysisDistributionNormalizerBinWidth_
+    normalizerSequence%next%normalizer_ => outputAnalysisDistributionNormalizerLog10ToLog_
     allocate(outputAnalysisDistributionNormalizer_)
     !# <referenceConstruct object="outputAnalysisDistributionNormalizer_" constructor="outputAnalysisDistributionNormalizerSequence(normalizerSequence)"/>
     ! Compute the number of buffer bins to add to either side of the mass function - these are needed to ensure that, e.g.,
@@ -375,13 +353,16 @@ contains
          &                                functionCovarianceTarget                                         &
          &                               )
     ! Clean up.
-    !# <objectDestructor name="nodePropertyExtractor_"                />
+    !# <objectDestructor name="nodePropertyExtractor_"                          />
     !# <objectDestructor name="outputAnalysisPropertyOperatorLog10_"            />
     !# <objectDestructor name="outputAnalysisPropertyOperatorAntiLog10_"        />
     !# <objectDestructor name="outputAnalysisPropertyOperatorSequence_"         />
     !# <objectDestructor name="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_"/>
+    !# <objectDestructor name="outputAnalysisPropertyOperatorHIMass_"           />
     !# <objectDestructor name="outputAnalysisDistributionNormalizer_"           />
     !# <objectDestructor name="outputAnalysisWeightOperator_"                   />
+    !# <objectDestructor name="outputAnalysisDistributionNormalizerBinWidth_"   />
+    !# <objectDestructor name="outputAnalysisDistributionNormalizerLog10ToLog_" />
     nullify(propertyOperatorSequence)
     nullify(normalizerSequence      )
     return

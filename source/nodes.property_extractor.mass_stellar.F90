@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -47,7 +47,7 @@ contains
     implicit none
     type(nodePropertyExtractorMassStellar)                :: massStellarConstructorParameters
     type(inputParameters                 ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     massStellarConstructorParameters=nodePropertyExtractorMassStellar()
     return
@@ -61,7 +61,7 @@ contains
     class(nodePropertyExtractorMassStellar), intent(inout)           :: self
     type (treeNode                        ), intent(inout), target   :: node
     type (multiCounter                    ), intent(inout), optional :: instance
-    !GCC$ attributes unused :: self, instance
+    !$GLC attributes unused :: self, instance
 
     massStellarExtract=Galactic_Structure_Enclosed_Mass(node,radiusLarge,massType=massTypeStellar)
     return
@@ -72,7 +72,7 @@ contains
     implicit none
     type (varying_string                            )                :: massStellarName
     class(nodePropertyExtractorMassStellar), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     massStellarName=var_str('massStellarTotal')
     return
@@ -83,7 +83,7 @@ contains
     implicit none
     type (varying_string                  )                :: massStellarDescription
     class(nodePropertyExtractorMassStellar), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     massStellarDescription=var_str('The total mass of stars in this node [M☉].')
     return
@@ -94,7 +94,7 @@ contains
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
     class(nodePropertyExtractorMassStellar), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     massStellarUnitsInSI=massSolar
     return
@@ -105,7 +105,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorMassStellar), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     massStellarType=outputAnalysisPropertyTypeLinear
     return
@@ -116,7 +116,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityMass
     implicit none
     class(nodePropertyExtractorMassStellar), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     massStellarQuantity=outputAnalysisPropertyQuantityMass
     return

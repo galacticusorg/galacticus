@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -68,16 +68,12 @@ contains
     !#   <variable>systematicErrorPolynomialCoefficient</variable>
     !#   <defaultValue>[0.0d0]</defaultValue>
     !#   <description>The coefficients of the systematic error polynomial for HI vs halo mass relation.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>likelihoodBin</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0_c_size_t</defaultValue>
     !#   <description>If $>0$ then use only the mass bin given by this value in the likelihood calculation.</description>
-    !#   <type>integer</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters"          name="cosmologyParameters_"          source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
@@ -369,6 +365,7 @@ contains
          &                                                         massHILogarithmicCovarianceTarget                       &
          &                                                        )
     ! Clean up.
+    !# <objectDestructor name="surveyGeometry_"                                       />
     !# <objectDestructor name="galacticFilterAll_"                                    />
     !# <objectDestructor name="galacticFilterISMMass_"                                />
     !# <objectDestructor name="galacticFilterHaloIsolated_"                           />
@@ -378,7 +375,7 @@ contains
     !# <objectDestructor name="outputAnalysisPropertyUnoperator_"                     />
     !# <objectDestructor name="outputAnalysisWeightPropertyOperator_"                 />
     !# <objectDestructor name="outputAnalysisWeightPropertyExtractor_"                />
-    !# <objectDestructor name="nodePropertyExtractor_"                      />
+    !# <objectDestructor name="nodePropertyExtractor_"                                />
     !# <objectDestructor name="outputAnalysisWeightPropertyOperatorFilterHighPass_"   />
     !# <objectDestructor name="outputAnalysisWeightPropertyOperatorCsmlgyLmnstyDstnc_"/>
     !# <objectDestructor name="outputAnalysisWeightPropertyOperatorSystmtcPolynomial_"/>

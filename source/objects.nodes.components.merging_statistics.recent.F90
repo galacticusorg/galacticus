@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -79,27 +79,21 @@ contains
 
     !# <inputParameter>
     !#   <name>nodeMajorMergerFraction</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.25d0</defaultValue>
     !#   <description>The mass ratio ($M_2/M_1$ where $M_2 &lt; M_1$) of merging halos above which the merger should be considered to be ``major''.</description>
     !#   <source>parameters_</source>
-    !#   <type>double</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>nodeRecentMajorMergerInterval</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>2.0d0</defaultValue>
     !#   <description>The time interval used to define ``recent'' mergers in the {\normalfont \ttfamily recent} merging statistics component. This parameter is in units of Gyr if {\normalfont \ttfamily [nodeRecentMajorMergerIntervalType]}$=${\normalfont \ttfamily absolute}, or in units of the halo dynamical time if {\normalfont \ttfamily [nodeRecentMajorMergerIntervalType]}$=${\normalfont \ttfamily dynmical}.</description>
     !#   <source>parameters_</source>
-    !#   <type>double</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>nodeRecentMajorMergerIntervalType</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('dynamical')</defaultValue>
     !#   <description>Specifies the units for the {\normalfont \ttfamily [nodeRecentMajorMergerInterval]} parameter. If set to {\normalfont \ttfamily absolute} then {\normalfont \ttfamily [nodeRecentMajorMergerInterval]} is given in Gyr, while if set to {\normalfont \ttfamily dynamical} {\normalfont \ttfamily [nodeRecentMajorMergerInterval]} is given in units of the halo dynamical time.</description>
     !#   <source>parameters_</source>
-    !#   <type>double</type>
     !#   <variable>nodeRecentMajorMergerIntervalTypeText</variable>
     !# </inputParameter>
     select case (char(nodeRecentMajorMergerIntervalTypeText))
@@ -112,11 +106,9 @@ contains
     end select
     !# <inputParameter>
     !#   <name>nodeRecentMajorMergerFromInfall</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Specifies whether ``recent'' for satellite galaxies is measured from the current time, or from the time at which they were last isolated.</description>
     !#   <source>parameters_</source>
-    !#   <type>double</type>
     !# </inputParameter>
     return
   end subroutine Node_Component_Merging_Statistics_Recent_Initialize
@@ -196,14 +188,14 @@ contains
     use            :: Galacticus_Nodes, only : defaultMergingStatisticsComponent, nodeComponentBasic, nodeComponentMergingStatistics, treeNode
     use, intrinsic :: ISO_C_Binding   , only : c_size_t
     implicit none
-    type            (treeNode                      ), intent(inout)         , pointer :: node
-    type            (treeNode                      )                        , pointer :: nodeDescendent
-    class           (nodeComponentMergingStatistics)                        , pointer :: mergingStatisticsParent
-    class           (nodeComponentBasic            )                        , pointer :: basicDescendentParent  , basicParent, &
-         &                                                                               basic
-    integer                                         , dimension(outputCount)          :: mergerIncrement
-    integer         (c_size_t                      )                                  :: i
-    double precision                                                                  :: recentTimeInterval     , timeBase
+    type            (treeNode                      ), intent(inout)          :: node
+    type            (treeNode                      ), pointer                :: nodeDescendent
+    class           (nodeComponentMergingStatistics), pointer                :: mergingStatisticsParent
+    class           (nodeComponentBasic            ), pointer                :: basicDescendentParent  , basicParent, &
+         &                                                                      basic
+    integer                                         , dimension(outputCount) :: mergerIncrement
+    integer         (c_size_t                      )                         :: i
+    double precision                                                         :: recentTimeInterval     , timeBase
 
     ! Return immediately if this class is not active.
     if (.not.defaultMergingStatisticsComponent%recentIsActive()) return
@@ -263,7 +255,7 @@ contains
     class(*                             ), intent(inout)          :: self
     type (treeNode                      ), intent(inout), target  :: node
     class(nodeComponentMergingStatistics)               , pointer :: mergingStatisticsParent, mergingStatistics
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
     
     mergingStatisticsParent => node%parent%mergingStatistics()
     mergingStatistics       => node       %mergingStatistics()
@@ -283,25 +275,23 @@ contains
   !#  <unitName>Node_Component_Merging_Statistics_Recent_Output_Names</unitName>
   !#  <sortName>Node_Component_Merging_Statistics_Recent_Output</sortName>
   !# </mergerTreeOutputNames>
-  subroutine Node_Component_Merging_Statistics_Recent_Output_Names(node,integerProperty,integerPropertyNames&
-       &,integerPropertyComments,integerPropertyUnitsSI ,doubleProperty,doublePropertyNames,doublePropertyComments&
-       &,doublePropertyUnitsSI,time)
+  subroutine Node_Component_Merging_Statistics_Recent_Output_Names(node,integerProperty,integerProperties,doubleProperty,doubleProperties,time)
     !% Set names of black hole properties to be written to the \glc\ output file.
-    use :: Galacticus_Nodes, only : treeNode
+    use :: Galacticus_Nodes                  , only : treeNode
+    use :: Merger_Tree_Outputter_Buffer_Types, only : outputPropertyInteger, outputPropertyDouble
     implicit none
-    type            (treeNode)              , intent(inout), pointer :: node
-    double precision                        , intent(in   )          :: time
-    integer                                 , intent(inout)          :: doubleProperty         , integerProperty
-    character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , &
-         &                                                              integerPropertyComments, integerPropertyNames
-    double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
-    !GCC$ attributes unused :: time, doubleProperty, doublePropertyComments, doublePropertyNames, doublePropertyUnitsSI
+    type            (treeNode             )              , intent(inout) :: node
+    double precision                                     , intent(in   ) :: time
+    integer                                              , intent(inout) :: doubleProperty   , integerProperty
+    type            (outputPropertyInteger), dimension(:), intent(inout) :: integerProperties
+    type            (outputPropertyDouble ), dimension(:), intent(inout) :: doubleProperties
+    !$GLC attributes unused :: time, doubleProperty, doubleProperties
 
     if (Node_Component_Merging_Statistics_Recent_Matches(node)) then
        integerProperty=integerProperty+1
-       integerPropertyNames   (integerProperty)='mergingStatisticsRecentMajorMergerCount'
-       integerPropertyComments(integerProperty)='Number of major mergers occuring in a recent time interval.'
-       integerPropertyUnitsSI (integerProperty)=0.0d0
+       integerProperties(integerProperty)%name     ='mergingStatisticsRecentMajorMergerCount'
+       integerProperties(integerProperty)%comment  ='Number of major mergers occuring in a recent time interval.'
+       integerProperties(integerProperty)%unitsInSI=0.0d0
     end if
     return
   end subroutine Node_Component_Merging_Statistics_Recent_Output_Names
@@ -314,10 +304,10 @@ contains
     !% Account for the number of black hole properties to be written to the the \glc\ output file.
     use :: Galacticus_Nodes, only : treeNode
     implicit none
-    type            (treeNode), intent(inout), pointer :: node
-    double precision          , intent(in   )          :: time
-    integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount
-    !GCC$ attributes unused :: doublePropertyCount, time
+    type            (treeNode), intent(inout) :: node
+    double precision          , intent(in   ) :: time
+    integer                   , intent(inout) :: doublePropertyCount, integerPropertyCount
+    !$GLC attributes unused :: doublePropertyCount, time
 
     if (Node_Component_Merging_Statistics_Recent_Matches(node)) integerPropertyCount=integerPropertyCount+1
     return
@@ -327,30 +317,30 @@ contains
   !#  <unitName>Node_Component_Merging_Statistics_Recent_Output</unitName>
   !#  <sortName>Node_Component_Merging_Statistics_Recent_Output</sortName>
   !# </mergerTreeOutputTask>
-  subroutine Node_Component_Merging_Statistics_Recent_Output(node,integerProperty,integerBufferCount,integerBuffer&
-       &,doubleProperty ,doubleBufferCount,doubleBuffer,time,instance)
+  subroutine Node_Component_Merging_Statistics_Recent_Output(node,integerProperty,integerBufferCount,integerProperties,doubleProperty,doubleBufferCount,doubleProperties,time,instance)
     !% Store black hole properties in the \glc\ output file buffers.
-    use :: Galacticus_Nodes, only : nodeComponentMergingStatistics, treeNode
-    use :: Kind_Numbers    , only : kind_int8
-    use :: Multi_Counters  , only : multiCounter
+    use :: Galacticus_Nodes                  , only : nodeComponentMergingStatistics, treeNode
+    use :: Kind_Numbers                      , only : kind_int8
+    use :: Multi_Counters                    , only : multiCounter
+    use :: Merger_Tree_Outputter_Buffer_Types, only : outputPropertyInteger         , outputPropertyDouble
     implicit none
-    double precision                                , intent(in   )                   :: time
-    type            (treeNode                      ), intent(inout)         , pointer :: node
-    integer                                         , intent(inout)                   :: doubleBufferCount         , doubleProperty, integerBufferCount, &
-         &                                                                               integerProperty
-    integer         (kind=kind_int8                ), intent(inout)                   :: integerBuffer        (:,:)
-    double precision                                , intent(inout)                   :: doubleBuffer         (:,:)
-    type            (multiCounter                  ), intent(inout)                   :: instance
-    class           (nodeComponentMergingStatistics)                        , pointer :: mergingStatistics
-    integer                                         , dimension(outputCount)          :: mergerIncrement
-    !GCC$ attributes unused :: doubleBufferCount, doubleProperty, doubleBuffer, instance
+    double precision                                                        , intent(in   ) :: time
+    type            (treeNode                      )                        , intent(inout) :: node
+    integer                                                                 , intent(inout) :: doubleBufferCount , doubleProperty , &
+         &                                                                                     integerBufferCount, integerProperty
+    type            (outputPropertyInteger         ), dimension(:          ), intent(inout) :: integerProperties
+    type            (outputPropertyDouble          ), dimension(:          ), intent(inout) :: doubleProperties
+    type            (multiCounter                  )                        , intent(inout) :: instance
+    class           (nodeComponentMergingStatistics)                        , pointer       :: mergingStatistics
+    integer                                         , dimension(outputCount)                :: mergerIncrement
+    !$GLC attributes unused :: doubleBufferCount, doubleProperty, doubleProperties, instance
 
     if (Node_Component_Merging_Statistics_Recent_Matches(node)) then
        ! Store the properties.
        mergingStatistics => node             %mergingStatistics     ()
        mergerIncrement   =  mergingStatistics%recentMajorMergerCount()
        integerProperty=integerProperty+1
-       integerBuffer(integerBufferCount,integerProperty)=mergerIncrement(outputTimes_%index(time,findClosest=.true.))
+       integerProperties(integerProperty)%scalar(integerBufferCount)=mergerIncrement(outputTimes_%index(time,findClosest=.true.))
     end if
     return
   end subroutine Node_Component_Merging_Statistics_Recent_Output
@@ -359,8 +349,8 @@ contains
     !% Return true if the black hole component of {\normalfont \ttfamily node} is a match to the standard implementation.
     use :: Galacticus_Nodes, only : defaultMergingStatisticsComponent, nodeComponentMergingStatistics, nodeComponentMergingStatisticsRecent, treeNode
     implicit none
-    type (treeNode                      ), intent(inout), pointer :: node
-    class(nodeComponentMergingStatistics)               , pointer :: mergingStatistics
+    type (treeNode                      ), intent(inout) :: node
+    class(nodeComponentMergingStatistics), pointer       :: mergingStatistics
 
     ! Get the merging statistics component.
     mergingStatistics => node%mergingStatistics()

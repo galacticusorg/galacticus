@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -45,7 +45,7 @@ contains
     implicit none
     type(nodePropertyExtractorFinalDescendent)                :: finalDescendentConstructorParameters
     type(inputParameters                     ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     finalDescendentConstructorParameters=nodePropertyExtractorFinalDescendent()
     return
@@ -60,7 +60,7 @@ contains
     double precision                                      , intent(in   )           :: time
     type            (multiCounter                        ), intent(inout), optional :: instance
     type            (treeNode                            ), pointer                 :: nodeDescendent
-    !GCC$ attributes unused :: self, instance, time
+    !$GLC attributes unused :: self, instance, time
 
     nodeDescendent => node
     do while (associated(nodeDescendent%parent))
@@ -79,7 +79,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorFinalDescendent), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     finalDescendentType=outputAnalysisPropertyTypeLinear
     return
@@ -90,7 +90,7 @@ contains
     implicit none
     type (varying_string                      )                :: finalDescendentName
     class(nodePropertyExtractorFinalDescendent), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     finalDescendentName=var_str('finalDescendentIndex')
     return
@@ -101,7 +101,7 @@ contains
     implicit none
     type (varying_string                      )                :: finalDescendentDescription
     class(nodePropertyExtractorFinalDescendent), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     finalDescendentDescription=var_str('ID of the node which this node will have descended into at the base of the tree.')
     return

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -24,7 +24,16 @@
   use :: Hot_Halo_Mass_Distributions, only : hotHaloMassDistributionClass
 
   !# <coolingRate name="coolingRateWhiteFrenk1991">
-  !#  <description>A cooling rate class for the \cite{white_galaxy_1991} cooling rate calculation.</description>
+  !#  <description>
+  !#   A cooling rate class that uses the expression given by \cite{white_galaxy_1991}, namely
+  !#   \begin{equation}
+  !#   \dot{M}_\mathrm{cool} = \left\{ \begin{array}{ll} 4 \pi r_\mathrm{infall}^2 \rho(r_\mathrm{infall})
+  !#   \dot{r}_\mathrm{infall}&amp; \hbox{ if } r_\mathrm{infall} &lt; r_\mathrm{hot, outer} \\ M_\mathrm{hot}/\tau_\mathrm{halo,
+  !#   dynamical} &amp; \hbox{ if } r_\mathrm{infall} \ge r_\mathrm{hot, outer}, \end{array} \right. ,
+  !#   \end{equation}
+  !#   where $r_\mathrm{infall}$ is the infall radius (see \refPhysics{coolingInfallRadius}) in the hot halo and $\rho(r)$ is the
+  !#   density profile of the hot halo.
+  !#  </description>
   !# </coolingRate>
   type, extends(coolingRateClass) :: coolingRateWhiteFrenk1991
      !% Implementation of cooling rate class for the \cite{white_galaxy_1991} cooling rate calculation.
@@ -62,8 +71,6 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d4</defaultValue>
     !#   <description>The halo virial velocity (in km/s) above which cooling rates are forced to zero in the \cite{white_galaxy_1991} cooling rate model.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="darkMatterHaloScale"     name="darkMatterHaloScale_"     source="parameters"/>
     !# <objectBuilder class="coolingInfallRadius"     name="coolingInfallRadius_"     source="parameters"/>

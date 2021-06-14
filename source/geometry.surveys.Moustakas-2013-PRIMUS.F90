@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +22,40 @@
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !# <surveyGeometry name="surveyGeometryMoustakas2013PRIMUS">
-  !#  <description>Implements the geometry of the PRIMUS survey of \cite{moustakas_primus:_2013}.</description>
+  !#  <description>
+  !#   A survey geometry class that describes the survey geometry of \cite{moustakas_primus:_2013}. 
+  !#   
+  !#   For the angular mask, we make use of \gls{mangle} polygon files provided by J.~Moustakas (private communication)
+  !#   corresponding to the give PRIMUS fields. The solid angle of each mask is computed using the \gls{mangle} {\normalfont
+  !#   \ttfamily harmonize} command.
+  !#   
+  !#   To determine the depth as a function of stellar mass, we make use of completeness limits for ``All'' galaxies given in
+  !#   Table~2 of \cite{moustakas_primus:_2013}. These are fit, for each field with a second order polynomial to give the limiting
+  !#   redshift as a function of stellar mass. Figure~\ref{fig:MoustakasPRIMUSDepthFit} shows the resulting relation between
+  !#   stellar mass and the maximum redshift at which such a galaxy would be included in the sample. Points indicate results from
+  !#   \cite{moustakas_primus:_2013}, while the line shows a polynomial fits:
+  !#   \begin{eqnarray}
+  !#   z_\mathrm{max}(M_\star) = +3.51+m(-0.941+m(+0.0651)) &amp; &amp; \hbox{COSMOS} \\
+  !#   z_\mathrm{max}(M_\star) = +2.46+m(-0.730+m(+0.0542)) &amp; &amp; \hbox{XMM-SXDS} \\
+  !#   z_\mathrm{max}(M_\star) = -3.60+m(+0.500+m(-0.0078)) &amp; &amp; \hbox{XMM-CFHTLS} \\
+  !#   z_\mathrm{max}(M_\star) = +5.87+m(-1.528+m(+0.0982)) &amp; &amp; \hbox{CDFS} \\
+  !#   z_\mathrm{max}(M_\star) = +6.87+m(-1.656+m(+0.1003)) &amp; &amp; \hbox{ELAIS-S1}
+  !#    \label{eq:MoustakasDepthPolynomial}
+  !#   \end{eqnarray}
+  !#   where $m= \log_{10}(M_\star/M_\odot)$. We use this polynomial fit to determine the depth of the sample as a function of
+  !#   stellar mass.
+  !#   
+  !#   \begin{figure}
+  !#    \begin{center}
+  !#    \includegraphics[width=85mm,trim=0mm 0mm 0mm 4mm,clip]{Plots/DataAnalysis/MoustakasPRIMUSMassRedshiftRelation.pdf}
+  !#    \end{center}
+  !#    \caption{The maximum distance at which a galaxy of given stellar mass can be detected in the sample of
+  !#    \protect\cite{moustakas_primus:_2013}. Points show the results obtained from completeness limit data taken from Table~2 of
+  !#    \protect\cite{moustakas_primus:_2013}, while the lines shows a polynomial fit to these results (given in
+  !#    eqn.~\ref{eq:MoustakasDepthPolynomial}).}
+  !#    \label{fig:MoustakasPRIMUSDepthFit}
+  !#   \end{figure}
+  !#  </description>
   !# </surveyGeometry>
   type, extends(surveyGeometryMangle) :: surveyGeometryMoustakas2013PRIMUS
      private
@@ -69,8 +102,6 @@ contains
     !#   <name>redshiftBin</name>
     !#   <source>parameters</source>
     !#   <description>The redshift bin (0, 1, 2, 3, 4, 5, or 5) of the \cite{moustakas_primus:_2013} mass function to use.</description>
-    !#   <type>integer</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     self=surveyGeometryMoustakas2013PRIMUS(redshiftBin,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
@@ -142,7 +173,7 @@ contains
     !% Return the number of fields in this sample.
     implicit none
     class(surveyGeometryMoustakas2013PRIMUS), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     moustakas2013PRIMUSFieldCount=moustakas2013PRIMUSFields
     return
@@ -154,7 +185,7 @@ contains
     class           (surveyGeometryMoustakas2013PRIMUS), intent(inout)           :: self
     double precision                                   , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
     integer                                            , intent(in   ), optional :: field
-    !GCC$ attributes unused :: mass, field, magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: mass, field, magnitudeAbsolute, luminosity
 
     moustakas2013PRIMUSDistanceMinimum=self%binDistanceMinimum
     return
@@ -169,7 +200,7 @@ contains
     double precision                                   , intent(in   ), optional :: mass    , magnitudeAbsolute, luminosity
     integer                                            , intent(in   ), optional :: field
     double precision                                                             :: redshift, logarithmicMass
-    !GCC$ attributes unused :: magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: magnitudeAbsolute, luminosity
 
     ! Validate field.
     if (.not.present(field)) call Galacticus_Error_Report('field must be specified'//{introspection:location})
@@ -244,13 +275,13 @@ contains
 
   function moustakas2013PRIMUSMangleDirectory(self)
     !% Return the path to the directory containing \gls{mangle} files.
-    use :: Galacticus_Paths, only : galacticusPath, pathTypeExec
+    use :: Galacticus_Paths, only : galacticusPath, pathTypeDataStatic
     implicit none
     class(surveyGeometryMoustakas2013PRIMUS), intent(inout) :: self
     type (varying_string                   )                :: moustakas2013PRIMUSMangleDirectory
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
-    moustakas2013PRIMUSMangleDirectory=galacticusPath(pathTypeExec)//"constraints/dataAnalysis/stellarMassFunctions_PRIMUS_z0_1/"
+    moustakas2013PRIMUSMangleDirectory=galacticusPath(pathTypeDataStatic)//"surveyGeometry/PRIMUS/"
     return
   end function moustakas2013PRIMUSMangleDirectory
 
@@ -276,7 +307,7 @@ contains
     !% Return the maximum degree for which angular power is computed for the \cite{moustakas_primus:_2013} survey.
     implicit none
     class(surveyGeometryMoustakas2013PRIMUS), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     moustakas2013PRIMUSAngularPowerMaximumDegree=moustaskas2013AngularPowerMaximumL
     return

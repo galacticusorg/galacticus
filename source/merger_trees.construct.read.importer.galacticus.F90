@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -32,7 +32,42 @@
   end type nodeDataGalacticus
 
   !# <mergerTreeImporter name="mergerTreeImporterGalacticus">
-  !#  <description>Importer for \glc\ format merger tree files.</description>
+  !#  <description>
+  !#  A merger tree importer class which imports trees from an HDF5 file. HDF5 file should follow the general purpose format described
+  !#  \href{https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format}{here}. An example of how to construct such a file
+  !#  can be found in the {\normalfont \ttfamily tests/nBodyMergerTrees} folder. In that folder, the {\normalfont \ttfamily
+  !#    getMillenniumTrees.pl} script will retrieve a sample of merger trees from the
+  !#  \href{http://gavo.mpa-garching.mpg.de/Millennium/}{Millennium Simulation database} and use the {\normalfont \ttfamily
+  !#    Merger\_Tree\_File\_Maker.exe} code supplied with \glc\ to convert these into an HDF5 file suitable for reading into \glc. The
+  !#  {\normalfont \ttfamily getMillenniumTrees.pl} script requires you to have a username and password to access the Millennium
+  !#  Simulation database\footnote{If you do not have a username and password for the Millennium Simulation database you can request one
+  !#    from \href{mailto:contact@g-vo.org}{\normalfont \ttfamily contact@g-vo.org}.}. These can be entered manually or stored in a
+  !#  section of the {\normalfont \ttfamily galacticusConfig.xml} file (see \S\ref{sec:ConfigFile}) as follows:
+  !#  \begin{verbatim}
+  !#    <millenniumDB>
+  !#      <host>
+  !#        <name>^myHost$</name>
+  !#        <user>myUserName</user>
+  !#        <passwordFrom>input</passwordFrom>
+  !#        <treePath>/path/to/trees</treePath>
+  !#      </host>
+  !#      <host>
+  !#        <name>default</name>
+  !#        <user>myUserName</user>
+  !#        <password>myPassword</password>
+  !#      </host>
+  !#    </millenniumDB>
+  !#  \end{verbatim}
+  !#  Here, each {\normalfont \ttfamily host} section describes rules for a given computer (with ``default'' being used if no specific
+  !#  match to the regular expression give in {\normalfont \ttfamily name} is found). The {\normalfont \ttfamily user} element gives the
+  !#  user name to use, while the {\normalfont \ttfamily passwordFrom} element specifies how the password should be obtained. Currently
+  !#  the only allowed mechanism is ``input'', in which case the password is read from standard input. Alternatively, you can include a
+  !#  {\normalfont \ttfamily password} element which contains the password itself. Of course, this is insecure\ldots
+  !#  
+  !#  The optional {\normalfont \ttfamily treePath} element gives the location where merger trees from the Millennium Simulation can be
+  !#  stored. Some scripts will make use of this location so that Millennium Simulation merger trees can be shared between multiple
+  !#  scripts.
+  !#  </description>
   !# </mergerTreeImporter>
   type, extends(mergerTreeImporterClass) :: mergerTreeImporterGalacticus
      !% A merger tree importer class for \glc\ format merger tree files.
@@ -125,27 +160,21 @@ contains
 
     !# <inputParameter>
     !#   <name>fatalMismatches</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>Specifies whether mismatches in cosmological parameter values between \glc\ and the merger tree file should be considered fatal.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>reweightTrees</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Specifies whether merger tree weights should be recomputed from the halo mass function.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>validateData</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>If true perform some validation of imported data to identify possible problems.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
     !# <objectBuilder class="haloMassFunction"         name="haloMassFunction_"         source="parameters"/>
@@ -202,8 +231,8 @@ contains
   subroutine galacticusOpen(self,fileName)
     !% Validate a \glc\ format merger tree file.
     use :: Cosmology_Parameters, only : hubbleUnitsLittleH
-    use :: Galacticus_Display  , only : Galacticus_Display_Message, verbosityWarn
-    use :: Galacticus_Error    , only : Galacticus_Error_Report   , Galacticus_Warn
+    use :: Display             , only : displayMessage         , verbosityLevelWarn, displayMagenta, displayReset
+    use :: Galacticus_Error    , only : Galacticus_Error_Report, Galacticus_Warn
     use :: IO_HDF5             , only : hdf5Access
     use :: Numerical_Comparison, only : Values_Differ
     implicit none
@@ -242,7 +271,7 @@ contains
     case (1)
        ! This version will be deprecated.
        !# <expiry version="1.0.0"/>
-       call Galacticus_Warn('WARNING: merger tree file format version is outdated - this format will soon be deprecated')
+       call Galacticus_Warn(displayMagenta()//'WARNING:'//displayReset()//' merger tree file format version is outdated - this format will soon be deprecated')
        self%forestHalosGroupName          ='haloTrees'
        self%forestContainmentAttributeName='treesAreSelfContained'
        self%forestIndexGroupName          ='treeIndex'
@@ -274,7 +303,7 @@ contains
           if (self%fatalMismatches) then
              call Galacticus_Error_Report(message//{introspection:location})
           else
-             call Galacticus_Display_Message(message,verbosityWarn)
+             call displayMessage(message,verbosityLevelWarn)
           end if
        end if
     end if
@@ -289,7 +318,7 @@ contains
           if (self%fatalMismatches) then
              call Galacticus_Error_Report(message//{introspection:location})
           else
-             call Galacticus_Display_Message(message,verbosityWarn)
+             call displayMessage(message,verbosityLevelWarn)
           end if
        end if
     end if
@@ -304,7 +333,7 @@ contains
           if (self%fatalMismatches) then
              call Galacticus_Error_Report(message//{introspection:location})
           else
-             call Galacticus_Display_Message(message,verbosityWarn)
+             call displayMessage(message,verbosityLevelWarn)
           end if
        end if
     end if
@@ -319,7 +348,7 @@ contains
           if (self%fatalMismatches) then
              call Galacticus_Error_Report(message//{introspection:location})
           else
-             call Galacticus_Display_Message(message,verbosityWarn)
+             call displayMessage(message,verbosityLevelWarn)
           end if
        end if
     end if
@@ -331,7 +360,7 @@ contains
           message=message//trim(valueString)//'] differs from the internal value ['
           write (valueString,'(e14.8)') localSigma8
           message=message//trim(valueString)//'] - may not matter if sigma_8 is not used in other functions'
-          call Galacticus_Display_Message(message)
+          call displayMessage(message)
        end if
     end if
     call cosmologicalParametersGroup%close()
@@ -432,7 +461,7 @@ contains
     !% Return true since this format does permit reading of arbitrary subsets of halos from a forest.
     implicit none
     class(mergerTreeImporterGalacticus), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     galacticusCanReadSubsets=.true.
     return
@@ -656,7 +685,7 @@ contains
     use :: HDF5                            , only : HSIZE_T
     use :: IO_HDF5                         , only : hdf5Access
     use :: Numerical_Constants_Astronomical, only : gigaYear
-    use :: Sort                            , only : Sort_Index_Do
+    use :: Sorting                         , only : sortIndex
     implicit none
     class           (mergerTreeImporterGalacticus), intent(inout)             :: self
     type            (hdf5Object                  )                            :: treeIndexGroup
@@ -724,7 +753,7 @@ contains
        end do
        !$ call hdf5Access%unset()
        ! Sort the trees into mass order.
-       sortOrder=Sort_Index_Do(treeMass)
+       sortOrder=sortIndex(treeMass)
        ! Abort if there is only one tree.
        if (size(self%firstNodes) <= 1) call Galacticus_Error_Report('reweighting trees requires there to be at least two forests'//{introspection:location})
        ! Compute the weight for each tree.
@@ -948,7 +977,7 @@ contains
     integer(c_size_t                    )                :: galacticusSubhaloTraceCount
     class  (mergerTreeImporterGalacticus), intent(inout) :: self
     class  (nodeData                    ), intent(in   ) :: node
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     select type (node)
     type is (nodeDataGalacticus)
@@ -1326,8 +1355,8 @@ contains
              nodes(iNode)%position=position(:,iNode)
              nodes(iNode)%velocity=velocity(:,iNode)
           end forall
-       call deallocateArray(position)
-       call deallocateArray(velocity)
+          call deallocateArray(position)
+          call deallocateArray(velocity)
        end if
     end select
     return

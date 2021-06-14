@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -25,7 +25,36 @@
   use :: Intergalactic_Medium_Filtering_Masses, only : intergalacticMediumFilteringMass, intergalacticMediumFilteringMassClass
 
   !# <accretionHalo name="accretionHaloNaozBarkana2007">
-  !#  <description>Accretion onto halos using filtering mass of the \gls{igm} calculated from an equation from \cite{naoz_formation_2007}.</description>
+  !#  <description>
+  !#   Accretion of baryonic onto halos is compute using the filtering mass prescription of
+  !#   \cite{naoz_formation_2007}. Specifically, \cite{naoz_formation_2007} assume that the gas mass content of halos is given by
+  !#   $M_\mathrm{g}(M_\mathrm{200b},M_\mathrm{F}) = (\Omega_\mathrm{b} / \Omega_\mathrm{M}) f(M_\mathrm{200b}/M_\mathrm{F})
+  !#   M_\mathrm{200b}$ where $M_\mathrm{F}$ is the filtering mass, as first introduced by \cite{gnedin_effect_2000} but defined
+  !#   following \cite{naoz_formation_2007}, $M_\mathrm{200b}$ is the halo mass defined by a density threshold of 200 times the
+  !#   mean background, and
+  !#   \begin{equation}
+  !#     f(x) = [1-(2^{1/3}-1) x^{-1}]^{-3}.
+  !#   \end{equation}
+  !#   The accretion rate onto the halo is therefore assumed to be
+  !#   \begin{equation}
+  !#     \dot{M}_\mathrm{g} = {\Omega_\mathrm{b} \over \Omega_\mathrm{M}} {\mathrm{d} \over \mathrm{d} M_\mathrm{200b}} \left[
+  !#     f(M_\mathrm{200b}/M_\mathrm{F}) M_\mathrm{200b} \right] \dot{M}_\mathrm{total}.
+  !#   \end{equation}
+  !#   This would result in a precise match to the \cite{naoz_formation_2007} assumption if:
+  !#   \begin{enumerate}
+  !#   \item The filtering mass is constant in time;
+  !#   \item $M_\mathrm{total}$ corresponds to $M_\mathrm{200b}$; and
+  !#   \item The growth of halos occurs through smooth accretion, not through merging of smaller halos.
+  !#   \end{enumerate}
+  !#   In practice all three assumptions are violated. As such, the mass fraction in the halo will differ from
+  !#   $f(M_\mathrm{200b}/M_\mathrm{F})$. To address this issue, mass is additionally assumed to flow from the hot halo reservoir
+  !#   to the unaccreted mass reservoir at a rate:
+  !#   \begin{equation}
+  !#   \dot{M}_\mathrm{hot} = - {\alpha_\mathrm{adjust} \over \tau_\mathrm{dyn}} [M_\mathrm{hot}+M_\mathrm{unaccreted}]
+  !#   [f_\mathrm{accreted}-f(M_\mathrm{200b}/M_\mathrm{F})],
+  !#   \end{equation}
+  !#   where $\alpha_\mathrm{adjust} = $[{\normalfont \ttfamily accretionHaloNaozBarkana2007RateAdjust}].
+  !#  </description>
   !# </accretionHalo>
   type, extends(accretionHaloSimple) :: accretionHaloNaozBarkana2007
      !% A halo accretion class using filtering mass of the \gls{igm} calculated from an equation from \cite{naoz_formation_2007}.
@@ -36,33 +65,12 @@
      integer         (kind=kind_int8                       )          :: lastUniqueID
      class           (intergalacticMediumFilteringMassClass), pointer :: intergalacticMediumFilteringMass_ => null()
    contains
-     !@ <objectMethods>
-     !@   <object>accretionHaloNaozBarkana2007</object>
-     !@   <objectMethod>
-     !@     <method>calculationReset</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(table)\textgreater} node\arginout</arguments>
-     !@     <description>Reset memoized calculations.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>filteredFraction</method>
-     !@     <type>double precision</type>
-     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} *node\arginout</arguments>
-     !@     <description>Returns the fraction of potential accretion onto a halo from the \gls{igm} which succeeded.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>filteredFractionRate</method>
-     !@     <type>double precision</type>
-     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} *node\arginout</arguments>
-     !@     <description>Returns the fraction of potential accretion rate onto a halo from the \gls{igm} which succeeds.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>filteredFractionCompute</method>
-     !@     <type>double precision</type>
-     !@     <arguments>\doublezero\ massHalo\argin, \doublezero\ massFiltering\argin</arguments>
-     !@     <description>Returns the fraction of potential accretion onto a halo from the \gls{igm} which succeeded given the halo and filtering masses.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Reset memoized calculations." method="calculationReset" />
+     !#   <method description="Returns the fraction of potential accretion onto a halo from the \gls{igm} which succeeded." method="filteredFraction" />
+     !#   <method description="Returns the fraction of potential accretion rate onto a halo from the \gls{igm} which succeeds." method="filteredFractionRate" />
+     !#   <method description="Returns the fraction of potential accretion onto a halo from the \gls{igm} which succeeded given the halo and filtering masses." method="filteredFractionCompute" />
+     !# </methods>
      final     ::                            naozBarkana2007Destructor
      procedure :: autoHook                => naozBarkana2007AutoHook
      procedure :: calculationReset        => naozBarkana2007CalculationReset
@@ -97,20 +105,16 @@ contains
     self%accretionHaloSimple=accretionHaloSimple(parameters)
     !# <inputParameter>
     !#   <name>rateAdjust</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.3d0</defaultValue>
     !#   <description>The dimensionless multiplier for the rate at which the halo gas content adjusts to changes in the filtering mass.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !#   <variable>self%rateAdjust</variable>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The minimum mass of gas accreted into a halo below which the mass is truncated to zero.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !#   <variable>self%massMinimum</variable>
     !# </inputParameter>
     !# <objectBuilder class="intergalacticMediumFilteringMass" name="self%intergalacticMediumFilteringMass_" source="parameters"/>
@@ -275,7 +279,7 @@ contains
     implicit none
     double precision                               , intent(in   ) :: massHalo, massFiltering
     class           (accretionHaloNaozBarkana2007 ), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     naozBarkana2007FilteredFractionCompute=+1.0d0                     &
          &                                 /(                         &

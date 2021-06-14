@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Default parameters for Galacticus v0.9.4 -->
+<!-- 30-October-2011                          -->
+<parameters>
+  <!-- Parameters for tutorial on constraining Galacticus parameters - https://github.com/galacticusorg/galacticus/wiki/Tutorial%3A-Constraining-Galacticus-Parameters -->
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+
+  <!-- Task and work control -->
+  <task                   value="evolveForests"/>
+  <evolveForestsWorkShare value="cyclic"       />
+
+  <!-- Cosmological parameters and options -->
+  <cosmologyFunctions  value="matterLambda"/>
+  <cosmologyParameters value="simple"       >
+    <HubbleConstant  value="67.36000"/>
+    <OmegaMatter     value=" 0.31530"/>
+    <OmegaDarkEnergy value=" 0.68470"/>
+    <OmegaBaryon     value=" 0.04930"/>
+    <temperatureCMB  value=" 2.72548"/>
+  </cosmologyParameters>
+
+  <!-- Power spectrum options -->
+  <cosmologicalMassVariance           value="filteredPower"   >
+    <sigma_8                 value="0.8111"/>
+  </cosmologicalMassVariance>
+  <transferFunction                   value="eisensteinHu1999">
+    <neutrinoNumberEffective value="3.046"/>
+    <neutrinoMassSummed      value="0.000"/>
+  </transferFunction>
+  <powerSpectrumPrimordial            value="powerLaw"        >
+    <index                   value="0.9649"/>
+    <wavenumberReference     value="1.0000"/>
+    <running                 value="0.0000"/>
+  </powerSpectrumPrimordial>
+  <powerSpectrumPrimordialTransferred value="simple"/>
+
+  <!-- Merger tree building options -->
+  <mergerTreeConstructor           value="build"                      >
+    <redshiftBase value="0.32"/>
+  </mergerTreeConstructor>
+  <mergerTreeBuilder               value="cole2000"                   >
+    <accretionLimit           value="0.1"   />
+    <mergeProbability         value="0.1"   />
+  </mergerTreeBuilder>
+  <mergerTreeBranchingProbability  value="parkinsonColeHelly"         >
+    <G0                       value="+0.57" />
+    <gamma1                   value="+0.38" />
+    <gamma2                   value="-0.01" />
+    <accuracyFirstOrder       value="+0.10" />
+  </mergerTreeBranchingProbability>
+  <mergerTreeBuildMassDistribution value="powerLaw"                  />
+  <mergerTreeBuildMasses           value="fixedMass"                  >
+    <massTree          value="1.0e12"/>
+    <treeCount         value="4"     />
+  </mergerTreeBuildMasses>
+  <mergerTreeMassResolution        value="fixed"                      >
+    <massResolution    value="1.0e+9"/>
+  </mergerTreeMassResolution>
+
+  <!-- Node evolution and physics -->
+  <nodeOperator value="multi">
+    <!-- Star formation options -->
+    <nodeOperator value="starFormationDisks"    >
+      <luminositiesStellarInactive value="true"/>
+    </nodeOperator>
+    <nodeOperator value="starFormationSpheroids">
+      <luminositiesStellarInactive value="true"/>
+    </nodeOperator>
+    <!--Stellar feedback outflows-->
+    <nodeOperator value="stellarFeedbackDisks">
+      <stellarFeedbackOutflows value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflows value="powerLaw">
+          <velocityCharacteristic value="175.0"/>
+          <exponent               value="  3.5"/>
+        </stellarFeedbackOutflows>
+      </stellarFeedbackOutflows>
+    </nodeOperator>
+    <nodeOperator value="stellarFeedbackSpheroids">
+      <stellarFeedbackOutflows value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflows value="powerLaw">
+          <velocityCharacteristic value=" 50.0"/>
+          <exponent               value="  3.5"/>
+        </stellarFeedbackOutflows>
+      </stellarFeedbackOutflows>
+    </nodeOperator>
+  </nodeOperator>
+  
+  <!-- Numerical tolerances -->
+  <mergerTreeEvolver value="standard">
+    <timestepHostAbsolute             value="1.0e+0"/>
+    <timestepHostRelative             value="1.0e-1"/>
+    <fractionTimestepSatelliteMinimum value="0.75"  />
+    <backtrackToSatellites            value="true"  />
+  </mergerTreeEvolver>
+  <mergerTreeNodeEvolver value="standard">
+    <odeToleranceAbsolute                value="0.01"              />
+    <odeToleranceRelative                value="0.01"              />
+    <odeJacobianStepSizeRelative         value="0.01"              />
+    <odeAlgorithm                        value="bdf"               />
+    <odeAlgorithmNonJacobian             value="rungeKuttaCashKarp"/>
+    <odeLatentIntegratorType             value="trapezoidal"       />
+    <odeLatentIntegratorIntervalsMaximum value="1000"              />
+    <reuseODEStepSize                    value="true"              />
+  </mergerTreeNodeEvolver>
+ 
+  <!-- Output options -->
+  <mergerTreeOutputter  value="analyzer"/>
+  <outputTimes          value="list"     >
+    <redshifts value="0.32"/>
+  </outputTimes>
+
+  <!-- Analyses -->
+  <outputAnalysis value="stellarVsHaloMassRelationLeauthaud2012" >
+    <redshiftInterval                     value="1"      />
+    <computeScatter                       value="false"  />
+    <systematicErrorPolynomialCoefficient value="0.0 0.0"/>
+    <likelihoodBin                        value="11"     />
+  </outputAnalysis>
+
+</parameters>

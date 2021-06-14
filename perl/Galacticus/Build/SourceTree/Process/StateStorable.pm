@@ -8,9 +8,11 @@ use Cwd;
 use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use Data::Dumper;
 use Text::Template 'fill_in_string';
+use Galacticus::Build::SourceTree::Process::Utils qw(performIO);
 
 # Insert hooks for our functions.
-$Galacticus::Build::SourceTree::Hooks::processHooks{'stateStorable'} = \&Process_StateStorable;
+$Galacticus::Build::SourceTree::Hooks::processHooks       {'stateStorable'} = \&Process_StateStorable;
+$Galacticus::Build::SourceTree::Hooks::processDependencies{'stateStorable'} = [ "generics" ];
 
 sub Process_StateStorable {
     # Get the tree.
@@ -80,11 +82,6 @@ sub Process_StateStorable {
 	}
     }
     
-    # Specify types that are storable via direct transfer.
-    my @transferrables =
-	(
-	 "fgsl_interp_type"
-	);
     # Record whether we need class functions.
     my $classFunctionsRequired = defined($moduleNode);
     # Process any stateStorable directives.
@@ -98,61 +95,56 @@ sub Process_StateStorable {
 	my $classIdentifier = -1;
 	my %classIdentifiers;
 	my $outputCodeOpener = fill_in_string(<<'CODE', PACKAGE => 'code');
-subroutine {$className}StateStore(self,stateFile,fgslStateFile,storeIdentifier)
+subroutine {$className}StateStore(self,stateFile,gslStateFile,storeIdentifier)
  !% Store the state of this object to file.
- use, intrinsic :: ISO_C_Binding
- use            :: FGSL              , only : fgsl_file
- use            :: Galacticus_Display
+ use, intrinsic :: ISO_C_Binding     , only : c_size_t, c_ptr
+ use            :: Display
  implicit none
  class    ({$className}), intent(inout)              :: self
  integer                , intent(in   )              :: stateFile
- type     (fgsl_file   ), intent(in   )              :: fgslStateFile
+ type     (c_ptr       ), intent(in   )              :: gslStateFile
  logical                , intent(in   ), optional    :: storeIdentifier
  character(len=16      )                             :: label
- integer  (kind=1      ), dimension(:) , allocatable :: transferred
- integer  (c_size_t    )                             :: transferredSize
 CODE
 	my $inputCodeOpener  = fill_in_string(<<'CODE', PACKAGE => 'code');
-subroutine {$className}StateRestore(self,stateFile,fgslStateFile)
+subroutine {$className}StateRestore(self,stateFile,gslStateFile)
  !% Store the state of this object to file.
- use, intrinsic :: ISO_C_Binding
- use            :: FGSL              , only : fgsl_file
- use            :: Galacticus_Display
+ use, intrinsic :: ISO_C_Binding     , only : c_size_t, c_ptr
+ use            :: Display
  implicit none
  class  ({$className}), intent(inout)               :: self
  integer              , intent(in   )               :: stateFile
- type   (fgsl_file   ), intent(in   )               :: fgslStateFile
+ type   (c_ptr       ), intent(in   )               :: gslStateFile
  integer(c_size_t    ), allocatable  , dimension(:) :: storedShape
  logical                                            :: wasAllocated
- integer(kind=1      ), dimension(:) , allocatable  :: transferred
- integer(c_size_t    )                              :: transferredSize
 CODE
 	# Close function.
 	my $outputCodeCloser = fill_in_string(<<'CODE', PACKAGE => 'code');
  end select
- call Galacticus_Display_Unindent('done',verbosity=verbosityWorking)
+ call displayUnindent('done',verbosity=verbosityLevelWorking)
  return
 end subroutine {$className}StateStore
 CODE
 	my $inputCodeCloser  = fill_in_string(<<'CODE', PACKAGE => 'code');
  end select
- call Galacticus_Display_Unindent('done',verbosity=verbosityWorking)
+ call displayUnindent('done',verbosity=verbosityLevelWorking)
  return
 end subroutine {$className}StateRestore
 CODE
 	my $outputCode = fill_in_string(<<'CODE', PACKAGE => 'code');
- call Galacticus_Display_Indent('storing state for "{$className}"',verbosity=verbosityWorking)
+ call displayIndent('storing state for "{$className}"',verbosity=verbosityLevelWorking)
  select type (self)
 CODE
 	my $inputCode  = fill_in_string(<<'CODE', PACKAGE => 'code');
- call Galacticus_Display_Indent('restoring state for "{$className}"',verbosity=verbosityWorking)
+ call displayIndent('restoring state for "{$className}"',verbosity=verbosityLevelWorking)
  select type (self)
 CODE
 	my @outputUnusedVariables;
 	my @inputUnusedVariables;
-	my $fgslStateFileUsed = 0;
-	my $labelUsed         = 0;
-	my $transferUsed      = 0;
+	my $gslStateFileUsed = 0;
+	my $labelUsed        = 0;
+	my $transferUsed     = 0;
+	my $rankMaximum      = 0;
 	# Scan all known classes, finding all which derive from the base class.
 	foreach my $className ( sort(keys(%classes)) ) {
 	    my $matches = 0;
@@ -170,9 +162,10 @@ CODE
 		$classIdentifiers{$className} = $classIdentifier;
 		$outputCode .= " type is (".$className.")\n";
 		$inputCode  .= " type is (".$className.")\n";
-		$outputCode .= "  if (present(storeIdentifier).and.storeIdentifier) write (stateFile) ".$classIdentifier."\n";
+		$outputCode .= &performIO("  if (present(storeIdentifier).and.storeIdentifier) write (stateFile) ".$classIdentifier."\n");
 		# Search the class node for declarations.
 		my @staticVariables;
+		my @methodCalls;
 		my $parentClassName = $className;
 		while ( defined($parentClassName) ) {
 		    # Find any variables to be excluded from state store/restore.
@@ -192,59 +185,78 @@ CODE
 			                (! grep {$_           eq "pointer"} @{$declaration   ->{'attributes'     }})				       
 					){
 					# This is a non-pointer object which is explicitly stateStorable.
+					my $dimensionDeclarator = join(",",map {/^dimension\s*\(([:,]+)\)/} @{$declaration->{'attributes'}});
+					my $rank                = ($dimensionDeclarator =~ tr/://);
+					$rankMaximum            = $rank
+					    if ( $rank > $rankMaximum );
+					my $allocatable         =  grep {$_ eq "allocatable"} @{$declaration->{'attributes'}};
 					foreach ( @{$declaration->{'variables'}} ) {
 					    (my $variableName = $_) =~ s/\s*=.*$//;
 					    next
 						if ( grep {lc($_) eq lc($variableName)} @excludes );
 					    $labelUsed   = 1;
-					    $outputCode .= " if (Galacticus_Verbosity_Level() >= verbosityWorking) then\n";
+					    if ( $allocatable ) {
+						$outputCode .= "  if (allocated(self%".$variableName.")) then\n";
+						$outputCode .= &performIO("   write (stateFile) .true.\n"
+							    .             "   write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n");
+					    }
+					    $outputCode .= " if (displayVerbosity() >= verbosityLevelWorking) then\n";
 					    if ( $declaration->{'intrinsic'} eq "class" ) {
 						$outputCode .= "  select type (c__ => self%".$variableName.")\n";
 						$outputCode .= "  class is (".$declaration->{'type'}.")\n";
-						$outputCode .= "   write (label,'(i16)') sizeof(c__)\n";
+						$outputCode .= &performIO("   write (label,'(i16)') sizeof(c__)\n");
 						$outputCode .= "  end select\n";
 					    } else {
-						$outputCode .= "   write (label,'(i16)') sizeof(self%".$variableName.")\n";
+						$outputCode .= &performIO("   write (label,'(i16)') sizeof(self%".$variableName.")\n");
 					    }
-					    $outputCode .= "  call Galacticus_Display_Message('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
+					    $outputCode .= "  call displayMessage('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
 					    $outputCode .= " end if\n";
-					    $inputCode  .= " call Galacticus_Display_Message('restoring \"".$variableName."\"',verbosity=verbosityWorking)\n";
+					    if ( $rank > 0 ) {
+						for(my $i=1;$i<=$rank;++$i) {
+						    $outputCode .= (" " x $i)."do i".$i."=1,size(self%".$variableName.",dim=".$i.")\n";
+						}
+					    }					    
+					    $outputCode .= " call self%".$variableName.($rank > 0 ? "(".join(",",map {"i".$_} 1..$rank).")" : "")."%stateStore  (stateFile,gslStateFile,storeIdentifier=".($declaration->{'intrinsic'} eq "class" ? ".true." : ".false.").")\n";
+					    if ( $rank > 0 ) {
+						for(my $i=$rank;$i>0;--$i) {
+						    $outputCode .= (" " x $i)."end do\n";
+						}
+					    }					    
+					    if ( $allocatable ) {
+						$outputCode .= "  else\n";
+						$outputCode .= &performIO("   write (stateFile) .false.\n");
+						$outputCode .= "  end if\n";
+					    }
+					    if ( $allocatable ) {
+						$inputCode  .= &performIO(" read (stateFile) wasAllocated\n");
+						$inputCode  .= " if (allocated(self%".$variableName.")) deallocate(self%".$variableName.")\n";
+						$inputCode  .= " if (wasAllocated) then\n";
+					    }
+					    $inputCode  .= "  call displayMessage('restoring \"".$variableName."\"',verbosity=verbosityLevelWorking)\n";
+					    if ( $allocatable ) {
+						$inputCode  .= "  allocate(storedShape(".$rank."))\n";
+						$inputCode  .= &performIO("  read (stateFile) storedShape\n");
+						$inputCode  .= "  allocate(self%".$variableName."(".join(",",map {"storedShape(".$_.")"} 1..$rank)."))\n";
+						$inputCode  .= "  deallocate(storedShape)\n";
+					    }
 					    if ( $declaration->{'intrinsic'} eq "class" ) {
 						$inputCode  .= " call ".$type."ClassRestore(self%".$variableName.",stateFile)\n";
 						$classFunctionsRequired = 1;
 					    }
-					    $inputCode  .= " call self%".$variableName."%stateRestore(stateFile,fgslStateFile)\n";
-					    $outputCode .= " call self%".$variableName."%stateStore  (stateFile,fgslStateFile,storeIdentifier=".($declaration->{'intrinsic'} eq "class" ? ".true." : ".false.").")\n";
-					}
-				    } elsif (
-					$declaration->{'intrinsic'} eq "type"
-					&&
-					(! grep {$_ eq "dimension"} @{$declaration->{'attributes'}})	
-					&&
-					(  grep {$_ eq $type      } @transferrables                )
-					) {
-					# Type storable via direct transfer.
-					$transferUsed = 1;
-					foreach ( @{$declaration->{'variables'}} ) {
-					    (my $variableName = $_) =~ s/\s*=.*$//;
-					    next
-						if ( grep {lc($_) eq lc($variableName)} @excludes );
-					    $outputCode .= "transferredSize=sizeof(self%".$variableName.")\n";
-					    $outputCode .= "if (Galacticus_Verbosity_Level() >= verbosityWorking) then\n";
-					    $outputCode .= " write (label,'(i16)') transferredSize\n";
-					    $outputCode .= " call Galacticus_Display_Message('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
-					    $outputCode .= "end if\n";
-					    $outputCode .= "allocate(transferred(transferredSize))\n";
-					    $outputCode .= "transferred=transfer(self%".$variableName.",transferred)\n";
-					    $outputCode .= "write (stateFile) transferredSize\n";
-					    $outputCode .= "write (stateFile) transferred\n";
-					    $outputCode .= "deallocate(transferred)\n";
-					    $inputCode  .= "call Galacticus_Display_Message('restoring \"".$variableName."\"',verbosity=verbosityWorking)\n";
-					    $inputCode  .= "read (stateFile) transferredSize\n";
-					    $inputCode  .= "allocate(transferred(transferredSize))\n";
-					    $inputCode  .= "read (stateFile) transferred\n";
-					    $inputCode  .= "self%".$variableName."=transfer(transferred,self%".$variableName.")\n";
-					    $inputCode  .= "deallocate(transferred)\n";
+					    if ( $rank > 0 ) {
+						for(my $i=1;$i<=$rank;++$i) {
+						    $inputCode .= (" " x $i)."do i".$i."=1,size(self%".$variableName.",dim=".$i.")\n";
+						}
+					    }					    
+					    $inputCode  .= " call self%".$variableName.($rank > 0 ? "(".join(",",map {"i".$_} 1..$rank).")" : "")."%stateRestore(stateFile,gslStateFile)\n";
+					    if ( $rank > 0 ) {
+						for(my $i=$rank;$i>0;--$i) {
+						    $inputCode .= (" " x $i)."end do\n";
+						}
+					    }					    
+					    if ( $allocatable ) {
+						$inputCode  .= " end if\n";
+					    }
 					}
 				    }
 				} else {
@@ -262,25 +274,25 @@ CODE
 						if ( grep {lc($_) eq lc($variableName)} @excludes );
 					    $labelUsed   = 1;
 					    $outputCode .= "  if (allocated(self%".$variableName.")) then\n";
-					    $outputCode .= "   if (Galacticus_Verbosity_Level() >= verbosityWorking) then\n";
-					    $outputCode .= "    write (label,'(i16)') sizeof(self%".$variableName.")\n";
-					    $outputCode .= "    call Galacticus_Display_Message('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
+					    $outputCode .= "   if (displayVerbosity() >= verbosityLevelWorking) then\n";
+					    $outputCode .= &performIO("    write (label,'(i16)') sizeof(self%".$variableName.")\n");
+					    $outputCode .= "    call displayMessage('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
 					    $outputCode .= "   end if\n";
-					    $outputCode .= "   write (stateFile) .true.\n";
-					    $outputCode .= "   write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n";
-					    $outputCode .= "   write (stateFile) self%".$variableName."\n";
+					    $outputCode .= &performIO("   write (stateFile) .true.\n"
+					                .  "   write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n"
+					                .  "   write (stateFile) self%".$variableName."\n");
 					    $outputCode .= "  else\n";
-					    $outputCode .= "   write (stateFile) .false.\n";
+					    $outputCode .= &performIO("   write (stateFile) .false.\n");
 					    $outputCode .= "  end if\n";
-		    			    $inputCode  .= " read (stateFile) wasAllocated\n";
+		    			    $inputCode  .= &performIO(" read (stateFile) wasAllocated\n");
 					    $inputCode  .= " if (allocated(self%".$variableName.")) deallocate(self%".$variableName.")\n";
 					    $inputCode  .= " if (wasAllocated) then\n";
-					    $inputCode  .= "  call Galacticus_Display_Message('restoring \"".$variableName."\"',verbosity=verbosityWorking)\n";
+					    $inputCode  .= "  call displayMessage('restoring \"".$variableName."\"',verbosity=verbosityLevelWorking)\n";
 					    $inputCode  .= "  allocate(storedShape(".$rank."))\n";
-		    			    $inputCode  .= "  read (stateFile) storedShape\n";
+		    			    $inputCode  .= &performIO("  read (stateFile) storedShape\n");
 					    $inputCode  .= "  allocate(self%".$variableName."(".join(",",map {"storedShape(".$_.")"} 1..$rank)."))\n";
 		    			    $inputCode  .= "  deallocate(storedShape)\n";
-		    			    $inputCode  .= "  read (stateFile) self%".$variableName."\n";
+		    			    $inputCode  .= &performIO("  read (stateFile) self%".$variableName."\n");
 		    			    $inputCode  .= " end if\n";
 					}
 				    } else {
@@ -308,41 +320,38 @@ CODE
 			}
 			$classNode = $classNode->{'sibling'};
 		    }
+		    # Add any explicit method calls.
+		    if ( exists($directive->{$parentClassName}) && exists($directive->{$parentClassName}->{'methodCall'}) ) {
+			foreach ( &List::ExtraUtils::as_array($directive->{$parentClassName}->{'methodCall'}) ) {
+			    push(@methodCalls,"  call self%".$_->{'method'}."(".(exists($_->{'arguments'}) ? $_->{'arguments'} : "").")");
+			}
+		    }
 		    $parentClassName = $classes{$parentClassName}->{'extends'};
 		}
 		foreach ( @staticVariables ) {
 		    $labelUsed   = 1;
-		    $outputCode .= " if (Galacticus_Verbosity_Level() >= verbosityWorking) then\n";
-		    $outputCode .= "  write (label,'(i16)') sizeof(self%".$_.")\n";
-		    $outputCode .= "  call Galacticus_Display_Message('storing \"".$_."\" with size '//trim(adjustl(label))//' bytes')\n";
+		    $outputCode .= " if (displayVerbosity() >= verbosityLevelWorking) then\n";
+		    $outputCode .= &performIO("  write (label,'(i16)') sizeof(self%".$_.")\n");
+		    $outputCode .= "  call displayMessage('storing \"".$_."\" with size '//trim(adjustl(label))//' bytes')\n";
 		    $outputCode .= " end if\n";
 		}
 		foreach ( @staticVariables ) {
-		    $inputCode .= " call Galacticus_Display_Message('restoring \"".$_."\"',verbosity=verbosityWorking)\n";
+		    $inputCode .= " call displayMessage('restoring \"".$_."\"',verbosity=verbosityLevelWorking)\n";
 		}
-		$outputCode .= "  write (stateFile) ".join(", &\n  & ",map {"self%".$_} @staticVariables)."\n"
+		$outputCode .= &performIO("  write (stateFile) ".join(", &\n  & ",map {"self%".$_} @staticVariables)."\n")
 		    if ( scalar(@staticVariables) > 0 );
-		$inputCode  .= "  read  (stateFile) ".join(", &\n  & ",map {"self%".$_} @staticVariables)."\n"
+		$inputCode  .= &performIO("  read  (stateFile) ".join(", &\n  & ",map {"self%".$_} @staticVariables)."\n")
 		    if ( scalar(@staticVariables) > 0 );
+		$inputCode  .= join("\n",@methodCalls)."\n"
+		    if ( @methodCalls );
 	    }
 	}
 	# Insert type-bindings.
 	my $content = fill_in_string(<<'CODE', PACKAGE => 'code');
-    !@  <objectMethods>
-    !@   <object>{$className}</object>
-    !@   <objectMethod>
-    !@     <method>stateStore</method>
-    !@     <type>void</type>
-    !@     <arguments>\textcolor\{red\}\{\textless integer\textgreater\} stateFile\argin,\textcolor\{red\}\{\textless type((fgsl\_file))\textgreater\} fgslStateFile\argin,\textcolor\{red\}\{\textless integer\textgreater\} stateOperationID\argin</arguments>
-    !@     <description>Store the state of this object to file.</description>
-    !@   </objectMethod>
-    !@   <objectMethod>
-    !@     <method>stateRestore</method>
-    !@     <type>void</type>
-    !@     <arguments>\textcolor\{red\}\{\textless integer\textgreater\} stateFile\argin,\textcolor\{red\}\{\textless type((fgsl\_file))\textgreater\} fgslStateFile\argin,\textcolor\{red\}\{\textless integer\textgreater\} stateOperationID\argin</arguments>
-    !@     <description>Restore the state of this object from file.</description>
-    !@   </objectMethod>
-    !@  </objectMethods>
+    !#  <methods>
+    !#   <method method="stateStore"   description="Store the state of this object to file."    />
+    !#   <method method="stateRestore" description="Restore the state of this object from file."/>
+    !#  </methods>
     procedure :: stateStore   => {$className}StateStore
     procedure :: stateRestore => {$className}StateRestore
 CODE
@@ -350,25 +359,35 @@ CODE
 	my @bindingNodes = &Galacticus::Build::SourceTree::Children($bindingTree);
 	&Galacticus::Build::SourceTree::InsertPostContains($classes{$directive->{'class'}}->{'node'},\@bindingNodes);
 	# Record unused variables.
-	push(@outputUnusedVariables,"fgslStateFile"                    )
-	    unless ( $fgslStateFileUsed );
-	push(@inputUnusedVariables ,"fgslStateFile"                    )
-	    unless ( $fgslStateFileUsed );
-	push(@outputUnusedVariables,"label"                            )
-	    unless ( $labelUsed         );
-	push(@outputUnusedVariables,"transferred"  , "transferredSize" )
-	    unless ( $transferUsed      );
-	push(@inputUnusedVariables ,"transferred"  , "transferredSize" )
-	    unless ( $transferUsed      );
+	push(@outputUnusedVariables,"gslStateFile"                    )
+	    unless ( $gslStateFileUsed );
+	push(@inputUnusedVariables ,"gslStateFile"                    )
+	    unless ( $gslStateFileUsed );
+	push(@outputUnusedVariables,"label"                           )
+	    unless ( $labelUsed        );
+	if ( $transferUsed     ) {
+	    $outputCodeOpener .= fill_in_string(<<'CODE', PACKAGE => 'code');
+ integer  (kind=1      ), dimension(:) , allocatable :: transferred
+ integer  (c_size_t    )                             :: transferredSize
+CODE
+	    $inputCodeOpener .= fill_in_string(<<'CODE', PACKAGE => 'code');
+ integer  (kind=1      ), dimension(:) , allocatable :: transferred
+ integer  (c_size_t    )                             :: transferredSize
+CODE
+	}
+	if ( $rankMaximum > 0  ) {
+	    $outputCodeOpener .= " integer  (c_size_t    )                             :: ".join(", ",map {"i".$_} 1..$rankMaximum)."\n";
+	    $inputCodeOpener  .= " integer  (c_size_t    )                             :: ".join(", ",map {"i".$_} 1..$rankMaximum)."\n";
+	}
 	# Join code fragments.
 	my $functionCode = 
 	    $outputCodeOpener.
-	    (@outputUnusedVariables ? " !GCC\$ attributes unused :: ".join(", ",@outputUnusedVariables)."\n" : "").
+	    (@outputUnusedVariables ? " !\$GLC attributes unused :: ".join(", ",@outputUnusedVariables)."\n" : "").
 	    $outputCode      .
 	    $outputCodeCloser.
 	    "\n"             .
 	    $inputCodeOpener .
-	    (@inputUnusedVariables ? " !GCC\$ attributes unused :: ".join(", ",@inputUnusedVariables )."\n" : "").
+	    (@inputUnusedVariables ? " !\$GLC attributes unused :: ".join(", ",@inputUnusedVariables )."\n" : "").
 	    $inputCode       .
 	    $inputCodeCloser .
 	    "\n"             ;
@@ -391,10 +410,8 @@ subroutine {$parentClassName}ClassRestore{$rankSuffix}(self,stateFile{$storedSha
 CODE
 		    $classRestoreCode .= "integer(c_size_t), intent(in   ), dimension(".join(",",map {":"} 1..$rank).") :: storedShape\n"
 			if ( $rank > 0 );
-		    $classRestoreCode .= fill_in_string(<<'CODE', PACKAGE => 'code');
- read (stateFile) classIdentifier
- select case (classIdentifier)
-CODE
+		    $classRestoreCode .= &performIO(" read (stateFile) classIdentifier\n");
+		    $classRestoreCode .= " select case (classIdentifier)\n";
 		    foreach my $childClassName( sort(keys(%classIdentifiers)) ) {
 			my $parentClassName = $childClassName;
 			while ( defined($parentClassName) ) {

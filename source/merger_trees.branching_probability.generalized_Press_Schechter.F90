@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,55 +23,69 @@
   use :: Cosmology_Functions            , only : cosmologyFunctionsClass
   use :: Excursion_Sets_First_Crossings , only : excursionSetFirstCrossingClass
   use :: Merger_Tree_Branching_Modifiers, only : mergerTreeBranchingProbabilityModifierClass
+  use :: Root_Finder                    , only : rootFinder
 
   !# <mergerTreeBranchingProbability name="mergerTreeBranchingProbabilityGnrlzdPrssSchchtr">
-  !#  <description>Merger tree branching probabilities using a generalized Press-Schechter approach.</description>
+  !#  <description>
+  !#   A merger tree branching probability class using a generalized Press-Schechter approach. Branching probabilities are
+  !#   computed from solutions to the excursion set barrier first crossing rate problem. Specifically, the branching probability
+  !#   per unit time is:
+  !#   \begin{equation}
+  !#    {\d f \over \d t} = {\mathrm{d} t \over \mathrm{d}\omega} \int_{M_\mathrm{min}}^{M/2} {M \over M^\prime} {\d f \over \d t}
+  !#    {\d S \over \d M^\prime} \left| {\d t \over \d \omega}\right| G[\omega,\sigma(M),\sigma(M^\prime)] \d M^\prime,
+  !#   \end{equation}
+  !#   where $\omega = \delta_\mathrm{c,0}/D(t)$. The rate of accretion of mass in halos below the resolution limit of the merger
+  !#   tree is
+  !#   \begin{equation}
+  !#    {\d R \over \d t} = {\mathrm{d} t \over \mathrm{d}\omega} \int_0^{M_\mathrm{min}} {\d f \over \d t} {\d S \over \d
+  !#    M^\prime} \left| {\d t \over \d \omega}\right| G[\omega,\sigma(M),\sigma(M^\prime)] \d M^\prime.
+  !#   \end{equation}
+  !#   In the above, $G[\omega,\sigma(M),\sigma(M^\prime)]$ is a modification to the merger rate as computed by the selected
+  !#   \refClass{mergerTreeBranchingProbabilityModifierClass}. If {\normalfont \ttfamily [smoothAccretion]}$=${\normalfont \ttfamily true}
+  !#   then smooth accretion (i.e. accretion of matter not in dark matter halos) is accounted for at the rate:
+  !#   \begin{equation}
+  !#    {\d R_\mathrm{s} \over \d t} = {\mathrm{d} t \over \mathrm{d}\omega} G[\omega,\sigma_\mathrm{max},\sigma(M^\prime)] {\d
+  !#    \stackrel{\sim}{f} \over \d t},
+  !#   \end{equation}
+  !#   where $\sigma_\mathrm{max}$ is the peak value of $\sigma(M)$ (for the lowest mass halos) and $\d \stackrel{\sim}{f}/\d t$
+  !#   is the rate at which excursion set trajectories \emph{fail} to cross the barrier on any mass scale.
+  !#  </description>
   !# </mergerTreeBranchingProbability>
   type, extends(mergerTreeBranchingProbabilityClass) :: mergerTreeBranchingProbabilityGnrlzdPrssSchchtr
      !% A merger tree branching probability class using a generalized Press-Schechter approach.
      private
-     class           (cosmologicalMassVarianceClass              ), pointer :: cosmologicalMassVariance_               => null()
-     class           (criticalOverdensityClass                   ), pointer :: criticalOverdensity_                    => null()
-     class           (cosmologyFunctionsClass                    ), pointer :: cosmologyFunctions_                     => null()
-     class           (excursionSetFirstCrossingClass             ), pointer :: excursionSetFirstCrossing_              => null()
-     class           (mergerTreeBranchingProbabilityModifierClass), pointer :: mergerTreeBranchingProbabilityModifier_ => null()
+     class           (cosmologicalMassVarianceClass              ), pointer :: cosmologicalMassVariance_                  => null()
+     class           (criticalOverdensityClass                   ), pointer :: criticalOverdensity_                       => null()
+     class           (cosmologyFunctionsClass                    ), pointer :: cosmologyFunctions_                        => null()
+     class           (excursionSetFirstCrossingClass             ), pointer :: excursionSetFirstCrossing_                 => null()
+     class           (mergerTreeBranchingProbabilityModifierClass), pointer :: mergerTreeBranchingProbabilityModifier_    => null()
+     type            (rootFinder                                 )          :: finder
      ! Parent halo shared variables.
-     double precision                                          :: parentDTimeDDeltaCritical                  , parentDelta           , &
-          &                                                       parentHaloMass                             , parentSigma           , &
-          &                                                       parentSigmaSquared                         , parentTime            , &
-          &                                                       probabilityMinimumMass                     , probabilitySeek
+     double precision                                                       :: parentDTimeDDeltaCritical                           , parentDelta           , &
+          &                                                                    parentHaloMass                                      , parentSigma           , &
+          &                                                                    parentSigmaSquared                                  , parentTime            , &
+          &                                                                    probabilityMinimumMass                              , probabilitySeek
      ! Record of mass resolution.
-     double precision                                          :: resolutionSigma                            , massResolutionPrevious
+     double precision                                                       :: resolutionSigma                                     , massResolutionPrevious
      ! Accuracy parameter to ensure that steps in critical overdensity do not become too large.
-     double precision                                          :: deltaStepMaximum
+     double precision                                                       :: deltaStepMaximum
      ! The maximum sigma that we expect to find.
-     double precision                                          :: sigmaMaximum
+     double precision                                                       :: sigmaMaximum
      ! Record of whether we have tested the excursion set routines.
-     logical                                                   :: excursionSetsTested
+     logical                                                                :: excursionSetsTested
      ! Control for inclusion of smooth accretion rates.
-     logical                                                   :: smoothAccretion
+     logical                                                                :: smoothAccretion
      ! Record of issued warnings.
-     logical                                                   :: subresolutionFractionIntegrandFailureWarned
+     logical                                                                :: subresolutionFractionIntegrandFailureWarned
      ! Minimum mass to which subresolution fractions will be integrated.
-     double precision                                          :: massMinimum
+     double precision                                                       :: massMinimum
      ! Current epoch.
-     double precision                                          :: timeNow
+     double precision                                                       :: timeNow
    contains
-     !@ <objectMethods>
-     !@   <object>mergerTreeBranchingProbabilityGnrlzdPrssSchchtr</object>
-     !@   <objectMethod>
-     !@     <method>computeCommonFactors</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ deltaParent\argin, \doublezero\ massHaloParent\argin</arguments>
-     !@     <description>Compute common factors needed for the calculations.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>excursionSetTest</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} *node\arginout</arguments>
-     !@     <description>Compute common factors needed for the calculations.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Compute common factors needed for the calculations." method="computeCommonFactors"/>
+     !#   <method description="Compute common factors needed for the calculations." method="excursionSetTest"    />
+     !# </methods>
      final     ::                          generalizedPressSchechterDestructor
      procedure :: probability           => generalizedPressSchechterProbability
      procedure :: probabilityBound      => generalizedPressSchechterProbabilityBound
@@ -117,27 +131,21 @@ contains
 
     !# <inputParameter>
     !#   <name>deltaStepMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.1d0</defaultValue>
     !#   <description>Limits the step in $\delta_\mathrm{crit}$ when constructing merger trees using the generalized Press-Schechter branching algorithm.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d6</defaultValue>
     !#   <description>The minimum mass to use in computing subresolution accretion rates when constructing merger trees using the generalized Press-Schechter branching algorithm.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>smoothAccretion</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>Specifies whether or not to include smooth accretion in subresolution accretion rates when constructing merger trees using the generalized Press-Schechter branching algorithm.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <objectBuilder class="criticalOverdensity"                    name="criticalOverdensity_"                    source="parameters"/>
     !# <objectBuilder class="cosmologicalMassVariance"               name="cosmologicalMassVariance_"               source="parameters"/>
@@ -164,15 +172,21 @@ contains
     class           (cosmologyFunctionsClass                        ), intent(in   ), target :: cosmologyFunctions_
     class           (excursionSetFirstCrossingClass                 ), intent(in   ), target :: excursionSetFirstCrossing_
     class           (mergerTreeBranchingProbabilityModifierClass    ), intent(in   ), target :: mergerTreeBranchingProbabilityModifier_
-    double precision                                                 , intent(in   )         :: deltaStepMaximum                       , massMinimum
+    double precision                                                 , intent(in   )         :: deltaStepMaximum                              , massMinimum
     logical                                                          , intent(in   )         :: smoothAccretion
+    double precision                                                 , parameter             :: toleranceAbsolute                      =0.0d+0, toleranceRelative=1.0d-9
     !# <constructorAssign variables="deltaStepMaximum, massMinimum, smoothAccretion, *criticalOverdensity_, *cosmologicalMassVariance_, *cosmologyFunctions_, *excursionSetFirstCrossing_, *mergerTreeBranchingProbabilityModifier_"/>
 
     self%excursionSetsTested                        =.false.
     self%subresolutionFractionIntegrandFailureWarned=.false.
     self%massResolutionPrevious                     =-1.0d0
     self%timeNow                                    =self%cosmologyFunctions_%cosmicTime(1.0d0)
-  return
+    self%finder                                     =rootFinder(                                                           &
+         &                                                      rootFunction     =generalizedPressSchechterMassBranchRoot, &
+         &                                                      toleranceAbsolute=toleranceAbsolute                      , &
+         &                                                      toleranceRelative=toleranceRelative                        &
+         &                                                     )
+    return
   end function generalizedPressSchechterConstructorInternal
 
   subroutine generalizedPressSchechterDestructor(self)
@@ -212,24 +226,20 @@ contains
     !% \ttfamily probabilityFraction}. Typically, {\normalfont \ttfamily probabilityFraction} is found by multiplying {\normalfont \ttfamily
     !% Generalized\_Press\_Schechter\_Branching\_Probability()} by a random variable drawn in the interval 0--1 if a halo
     !% branches. This routine then finds the progenitor mass corresponding to this value.
-    use :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityWarn
+    use :: Display           , only : displayMessage         , displayVerbosity, verbosityLevelWarn
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: ISO_Varying_String, only : varying_string
-    use :: Root_Finder       , only : rootFinder
     implicit none
     class           (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout), target :: self
-    double precision                                                 , intent(in   )         :: deltaCritical                  , haloMass                , &
-         &                                                                                      massResolution                 , probabilityFraction     , &
+    double precision                                                 , intent(in   )         :: deltaCritical                  , haloMass           , &
+         &                                                                                      massResolution                 , probabilityFraction, &
          &                                                                                      time
     class           (randomNumberGeneratorClass                     ), intent(inout)         :: randomNumberGenerator_
     type            (treeNode                                       ), intent(inout), target :: node
-    double precision                                                 , parameter             :: toleranceAbsolute       =0.0d+0, toleranceRelative=1.0d-9
     double precision                                                 , parameter             :: smallProbabilityFraction=1.0d-3
     type            (varying_string                                 )                        :: message
     character       (len=26                                         )                        :: label
-    type            (rootFinder                                     ), save                  :: finder
-    !$omp threadprivate(finder)
-    !GCC$ attributes unused :: randomNumberGenerator_
+    !$GLC attributes unused :: randomNumberGenerator_
 
     ! Ensure excursion set calculations have sufficient range in sigma.
     call self%excursionSetTest(node)
@@ -238,11 +248,6 @@ contains
     self%probabilityMinimumMass   =  massResolution
     self%probabilitySeek          =  probabilityFraction
     call self%computeCommonFactors(node,haloMass,deltaCritical,time)
-    ! Initialize our root finder.
-    if (.not.finder%isInitialized()) then
-       call finder%rootFunction(generalizedPressSchechterMassBranchRoot)
-       call finder%tolerance   (toleranceAbsolute,toleranceRelative    )
-    end if
     ! Check that the root is bracketed.
     if     (                                                           &
          &     generalizedPressSchechterMassBranchRoot(massResolution) &
@@ -251,18 +256,18 @@ contains
          &    0.0d0                                                    &
          & ) then
        ! Warn about this situation.
-       if (Galacticus_Verbosity_Level() >= verbosityWarn) then
+       if (displayVerbosity() >= verbosityLevelWarn) then
           message="halo branching mass root is not bracketed in generalizedPressSchechterMassBranch()"
-          call Galacticus_Display_Message(message,verbosityWarn)
+          call displayMessage(message,verbosityLevelWarn)
           write (label,'(e12.6,a1,e12.6)') massResolution,":",generalizedPressSchechterMassBranchRoot(massResolution)
           message=" => massMinimum:rootFunction(massMinimum) = "//trim(label)
-          call Galacticus_Display_Message(message,verbosityWarn)
+          call displayMessage(message,verbosityLevelWarn)
           write (label,'(e12.6,a1,e12.6)') 0.5d0*haloMass,":",generalizedPressSchechterMassBranchRoot(0.5d0*haloMass)
           message=" => massMaximum:rootFunction(massMaximum) = "//trim(label)
-          call Galacticus_Display_Message(message,verbosityWarn)
+          call displayMessage(message,verbosityLevelWarn)
           write (label,'(e12.6)') probabilityFraction
           message=" =>                           probability = "//trim(label)
-          call Galacticus_Display_Message(message,verbosityWarn)
+          call displayMessage(message,verbosityLevelWarn)
        end if
        ! If the root function is positive at half of the parent halo mass then we have a binary split.
        if (generalizedPressSchechterMassBranchRoot(0.5d0*haloMass) >= 0.0d0) then
@@ -281,31 +286,27 @@ contains
        end if
     end if
     ! Find the branch mass.
-    generalizedPressSchechterMassBranch=finder%find(rootRange=[massResolution,0.5d0*haloMass])
+    generalizedPressSchechterMassBranch=self%finder%find(rootRange=[massResolution,0.5d0*haloMass])
     return
   end function generalizedPressSchechterMassBranch
 
   double precision function generalizedPressSchechterMassBranchRoot(massMaximum)
     !% Root function used in solving for the branch mass.
-    use :: FGSL                 , only : FGSL_Integ_Gauss15, fgsl_function , fgsl_integration_workspace
-    use :: Numerical_Integration, only : Integrate         , Integrate_Done
+    use :: Numerical_Integration, only : GSL_Integ_Gauss15, integrator
     implicit none
-    double precision                            , intent(in   ) :: massMaximum
-    type            (fgsl_function             )                :: integrandFunction
-    type            (fgsl_integration_workspace)                :: integrationWorkspace
+    double precision            , intent(in   ) :: massMaximum
+    type            (integrator)                :: integrator_
 
-    generalizedPressSchechterMassBranchRoot=+generalizedPressSchechterSelf%probabilitySeek                                     &
-         &                                  -Integrate(                                                                        &
-         &                                                               generalizedPressSchechterSelf%probabilityMinimumMass, &
-         &                                                               massMaximum                                         , &
-         &                                                               generalizedPressSchechterProbabilityIntegrand       , &
-         &                                                               integrandFunction                                   , &
-         &                                                               integrationWorkspace                                , &
-         &                                             toleranceAbsolute=0.0d0                                               , &
-         &                                             toleranceRelative=generalizedPressSchechterIntegrandToleranceRelative , &
-         &                                             integrationRule  =FGSL_Integ_Gauss15                                    &
-         &                                            )
-    call Integrate_Done(integrandFunction,integrationWorkspace)
+    integrator_                            = integrator           (                                                                        &
+         &                                                                           generalizedPressSchechterProbabilityIntegrand       , &
+         &                                                         toleranceRelative=generalizedPressSchechterIntegrandToleranceRelative , &
+         &                                                         integrationRule  =GSL_Integ_Gauss15                                     &
+         &                                                        )
+    generalizedPressSchechterMassBranchRoot=+                                        generalizedPressSchechterSelf%probabilitySeek         &
+         &                                  -integrator_%integrate(                                                                        &
+         &                                                                           generalizedPressSchechterSelf%probabilityMinimumMass, &
+         &                                                                                                                    massMaximum  &
+         &                                                        )
     return
   end function generalizedPressSchechterMassBranchRoot
 
@@ -316,7 +317,7 @@ contains
     class           (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout) :: self
     double precision                                                 , intent(in   ) :: deltaCritical , haloMass, &
          &                                                                              massResolution, time
-    !GCC$ attributes unused :: deltaCritical, haloMass, massResolution, time
+    !$GLC attributes unused :: deltaCritical, haloMass, massResolution, time
 
     generalizedPressSchechterStepMaximum=self%deltaStepMaximum
     return
@@ -332,7 +333,7 @@ contains
          &                                                                                     massResolution, time
     integer                                                         , intent(in   )         :: bound
     type            (treeNode                                      ), intent(inout), target :: node
-    !GCC$ attributes unused :: bound
+    !$GLC attributes unused :: bound
 
     generalizedPressSchechterProbabilityBound=self%probability(haloMass,deltaCritical,time,massResolution,node)
     return
@@ -342,16 +343,14 @@ contains
     !% Return the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at
     !% time {\normalfont \ttfamily deltaCritical} will undergo a branching to progenitors with mass greater than {\normalfont
     !% \ttfamily massResolution}.
-    use :: FGSL                 , only : FGSL_Integ_Gauss15, fgsl_function , fgsl_integration_workspace
-    use :: Numerical_Integration, only : Integrate         , Integrate_Done
+    use :: Numerical_Integration, only : GSL_Integ_Gauss15, integrator
     implicit none
     class           (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout), target :: self
-    double precision                                                 , intent(in   )         :: deltaCritical       , haloMass   , &
-         &                                                                                      massResolution      , time
+    double precision                                                 , intent(in   )         :: deltaCritical , haloMass   , &
+         &                                                                                      massResolution, time
     type            (treeNode                                       ), intent(inout), target :: node
-    type            (fgsl_function                                  )                        :: integrandFunction
-    type            (fgsl_integration_workspace                     )                        :: integrationWorkspace
-    double precision                                                                         :: massMaximum         , massMinimum
+    type            (integrator                                     )                        :: integrator_
+    double precision                                                                         :: massMaximum   , massMinimum
 
     call self%excursionSetTest(node)
     ! Get sigma and delta_critical for the parent halo.
@@ -360,17 +359,15 @@ contains
        massMinimum                          =             massResolution
        massMaximum                          =  0.5d0*self%parentHaloMass
        generalizedPressSchechterSelf        => self
-       generalizedPressSchechterProbability =  Integrate(                                                                       &
-            &                                                              massMinimum                                        , &
-            &                                                              massMaximum                                        , &
-            &                                                              generalizedPressSchechterProbabilityIntegrand      , &
-            &                                                              integrandFunction                                  , &
-            &                                                              integrationWorkspace                               , &
-            &                                            toleranceAbsolute=0.0d0                                              , &
-            &                                            toleranceRelative=generalizedPressSchechterIntegrandToleranceRelative, &
-            &                                            integrationRule  =FGSL_Integ_Gauss15                                   &
-            &                                           )
-       call Integrate_Done(integrandFunction,integrationWorkspace)
+       integrator_                          =  integrator           (                                                                       &
+            &                                                                          generalizedPressSchechterProbabilityIntegrand      , &
+            &                                                        toleranceRelative=generalizedPressSchechterIntegrandToleranceRelative, &
+            &                                                        integrationRule  =GSL_Integ_Gauss15                                    &
+            &                                                       )
+       generalizedPressSchechterProbability =  integrator_%integrate(                                                                       &
+            &                                                                          massMinimum                                        , &
+            &                                                                          massMaximum                                          &
+            &                                                       )
     else
        generalizedPressSchechterProbability=0.0d0
     end if
@@ -379,11 +376,11 @@ contains
 
   double precision function generalizedPressSchechterFractionSubresolution(self,haloMass,deltaCritical,time,massResolution,node)
     !% Return the fraction of mass accreted in subresolution halos, i.e. those below {\normalfont \ttfamily massResolution}, per unit change in
-    !% $\delta_\mathrm{crit}$ for a halo of mass {\normalfont \ttfamily haloMass} at time {\normalfont \ttfamily deltaCritical}. The integral is computed numerically.
-    use :: FGSL                 , only : FGSL_Integ_Gauss15, fgsl_function     , fgsl_integration_workspace
-    use :: Galacticus_Error     , only : Galacticus_Warn   , errorStatusSuccess
+ !% $\delta_\mathrm{crit}$ for a halo of mass {\normalfont \ttfamily haloMass} at time {\normalfont \ttfamily deltaCritical}. The integral is computed numerically.
+    use :: Display              , only : displayMagenta   , displayReset
+    use :: Galacticus_Error     , only : Galacticus_Warn  , errorStatusSuccess
     use :: ISO_Varying_String   , only : varying_string
-    use :: Numerical_Integration, only : Integrate         , Integrate_Done
+    use :: Numerical_Integration, only : GSL_Integ_Gauss15, integrator
     implicit none
     class           (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout), target :: self
     double precision                                                 , intent(in   )         :: deltaCritical                                 , haloMass   , &
@@ -392,8 +389,7 @@ contains
     double precision                                                 , parameter             :: resolutionSigmaOverParentSigmaTolerance=1.0d-3
     double precision                                                                         :: massMaximum                                   , massMinimum, &
          &                                                                                      resolutionSigmaOverParentSigma
-    type            (fgsl_function                                  )                        :: integrandFunction
-    type            (fgsl_integration_workspace                     )                        :: integrationWorkspace
+    type            (integrator                                     )                        :: integrator_
     integer                                                                                  :: errorStatus
     type            (varying_string                                 )                        :: message
 
@@ -415,45 +411,36 @@ contains
     end if
     resolutionSigmaOverParentSigma=self%resolutionSigma/self%parentSigma
     if (resolutionSigmaOverParentSigma >= 1.0d0) then
-       generalizedPressSchechterSelf => self
-       massMinimum                   =  self%massMinimum
-       massMaximum                   =       massResolution
-       generalizedPressSchechterFractionSubresolution=+generalizedPressSchechterFractionSubresolution                                       &
-            &                                         +Integrate(                                                                           &
-            &                                                                      massMinimum                                            , &
-            &                                                                      massMaximum                                            , &
-            &                                                                      generalizedPressSchechterFractionSubresolutionIntegrand, &
-            &                                                                      integrandFunction                                      , &
-            &                                                                      integrationWorkspace                                   , &
-            &                                                    toleranceAbsolute=0.0d+0                                                 , &
-            &                                                    toleranceRelative=1.0d-3                                                 , &
-            &                                                    integrationRule  =FGSL_Integ_Gauss15                                     , &
-            &                                                    errorStatus      =errorStatus                                              &
-            &                                                   )
-       call Integrate_Done(integrandFunction,integrationWorkspace)
+       generalizedPressSchechterSelf                 =>  self
+       massMinimum                                   =   self%massMinimum
+       massMaximum                                   =        massResolution
+       integrator_                                   =   integrator           (                                                                           &
+            &                                                                                    generalizedPressSchechterFractionSubresolutionIntegrand, &
+            &                                                                  toleranceRelative=1.0d-3                                                 , &
+            &                                                                  integrationRule  =GSL_Integ_Gauss15                                        &
+            &                                                                 )
+       generalizedPressSchechterFractionSubresolution=  +generalizedPressSchechterFractionSubresolution                                                   &
+            &                                           +integrator_%integrate(                                                                           &
+            &                                                                                    massMinimum                                            , &
+            &                                                                                    massMaximum                                            , &
+            &                                                                  status           =errorStatus                                              &
+            &                                                                 )
        if (errorStatus /= errorStatusSuccess) then
           if (resolutionSigmaOverParentSigma < 1.0d0+resolutionSigmaOverParentSigmaTolerance) then
              generalizedPressSchechterFractionSubresolution=-1.0d0
           else
              ! Attempt the integral again with lower tolerance. Issue a warnings if this is the first time this has happened.
              if (.not.self%subresolutionFractionIntegrandFailureWarned) then
-                message='WARNING: Integration of the subresolution fraction in the generalized Press-Schechter branching probability module failed.'//char(10)// &
-                &       'Will try again with lower tolerance. This warning will not be issued again.'                                                         // &
-                &       {introspection:location}
+                message=displayMagenta()//'WARNING:'                                                                                                          //displayReset(  )// &
+                     &                    ' Integration of the subresolution fraction in the generalized Press-Schechter branching probability module failed.'//char        (10)// &
+                     &                    'Will try again with lower tolerance. This warning will not be issued again.'                                                         // &
+                     &                    {introspection:location}
                 call Galacticus_Warn(message)
                 self%subresolutionFractionIntegrandFailureWarned=.true.
              end if
-             generalizedPressSchechterFractionSubresolution=+generalizedPressSchechterFractionSubresolution                                       &
-                  &                                         +Integrate(                                                                           &
-                  &                                                                      massMinimum                                            , &
-                  &                                                                      massMaximum                                            , &
-                  &                                                                      generalizedPressSchechterFractionSubresolutionIntegrand, &
-                  &                                                                      integrandFunction                                      , &
-                  &                                                                      integrationWorkspace                                   , &
-                  &                                                    toleranceAbsolute=0.0d0                                                  , &
-                  &                                                    toleranceRelative=1.0d-2                                                 , &
-                  &                                                    integrationRule  =FGSL_Integ_Gauss15                                       &
-                  &                                                   )
+             call integrator_%toleranceSet(toleranceRelative=1.0d-2)
+             generalizedPressSchechterFractionSubresolution=+generalizedPressSchechterFractionSubresolution &
+                  &                                         +integrator_%integrate(massMinimum,massMaximum)
           end if
        end if
     else

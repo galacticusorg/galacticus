@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,11 +17,18 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a top-hat power spectrum window function class.
+  !% Contains a module which implements a top-hat power spectrum window function class.
+
   use :: Cosmology_Parameters, only : cosmologyParametersClass
 
   !# <powerSpectrumWindowFunction name="powerSpectrumWindowFunctionTopHat">
-  !#  <description>A top-hat in real space window function for filtering of power spectra.</description>
+  !#  <description>
+  !#   A top-hat in real space window function for filtering of power spectra. The window function is given by:
+  !#   \begin{equation}
+  !#    W(k) = {3 (\sin(x)-x \cos(x)) \over x^3},
+  !#   \end{equation}
+  !#   where $x = k R$ and $R=(3M/4\pi\bar{\rho})^{1/3}$ for a smoothing scale $M$ and mean matter density $\bar{\rho}$.
+  !#  </description>
   !# </powerSpectrumWindowFunction>
   type, extends(powerSpectrumWindowFunctionClass) :: powerSpectrumWindowFunctionTopHat
      !% A top-hat power spectrum window function class.
@@ -122,7 +129,7 @@ contains
     class           (powerSpectrumWindowFunctionTopHat), intent(inout) :: self
     double precision                                   , intent(in   ) :: smoothingMass
     double precision                                   , parameter     :: wavenumberLarge=huge(1.0d0) ! Effective infinity.
-    !GCC$ attributes unused :: self, smoothingMass
+    !$GLC attributes unused :: self, smoothingMass
 
     topHatWavenumberMaximum=wavenumberLarge
     return

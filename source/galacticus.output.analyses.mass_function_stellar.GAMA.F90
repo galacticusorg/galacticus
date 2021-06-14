@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,9 +19,30 @@
 
 !% Contains a module which implements an output analysis class for the \cite{baldry_galaxy_2012} stellar mass function.
 
-
   !# <outputAnalysis name="outputAnalysisMassFunctionStellarBaldry2012GAMA">
-  !#  <description>A \cite{baldry_galaxy_2012} stellar mass function output analysis class.</description>
+  !#  <description>
+  !#   A GAMA stellar mass function output analysis class, for $z&lt; 0.06$ galaxies measured by \cite{baldry_galaxy_2012}.
+  !#   
+  !#   Given a \glc\ model, total stellar masses of model galaxies are adjusted using:
+  !#   \begin{equation}
+  !#    M_\star \rightarrow \mathbf{C} \mathbf{L} \mathbf{G} \mathbf{S} M_\star,
+  !#   \end{equation}
+  !#   where the $\mathbf{S}$ operator is a multiplicative factor accounting for systematic errors in stellar mass determination and is
+  !#   equal to \citep{behroozi_comprehensive_2010}
+  !#   \begin{equation}
+  !#    \log_\mathrm{10} S = \sum_{i=0}^N s_i \log_\mathrm{10}^i \left({M_\star \over 10^{11.3}M_\odot}\right),
+  !#   \end{equation}
+  !#   where $s=${\normalfont \ttfamily [systematicErrorPolynomialCoefficient]}, the {\normalfont \bfseries G} operator is a
+  !#   multiplicative factor drawn from a log-normal distribution of width $\sigma(M)$~dex for each galaxy to mimic the effects of random
+  !#   errors on stellar masses (motivated by the discussion of \cite{behroozi_comprehensive_2010}), the {\normalfont \bfseries L}
+  !#   operator accounts for gravitational lensing, and the {\normalfont \bfseries C} operator accounts for the difference between model
+  !#   and observed cosmologies. The random error model is given by:
+  !#   \begin{equation}
+  !#    \sigma(M) = \hbox{min}\left[\sigma_\mathrm{max},\hbox{max}\left[\sigma_\mathrm{min},\sum_{i=0}^N r_i \log_\mathrm{10}^i \left({M_\star \over 10^{11.3}M_\odot}\right)\right]\right],
+  !#   \end{equation}
+  !#   where $r=${\normalfont \ttfamily [randomErrorPolynomialCoefficient]}, $\sigma_\mathrm{min}$={\normalfont \ttfamily
+  !#     [randomErrorMinimum]}, and $\sigma_\mathrm{max}$={\normalfont \ttfamily [randomErrorMaximum]}.
+  !#  </description>
   !# </outputAnalysis>
   type, extends(outputAnalysisMassFunctionStellar) :: outputAnalysisMassFunctionStellarBaldry2012GAMA
      !% A \cite{baldry_galaxy_2012} stellar mass function output analysis class.
@@ -45,6 +66,7 @@ contains
     class           (cosmologyFunctionsClass                        ), pointer                     :: cosmologyFunctions_
     class           (outputTimesClass                               ), pointer                     :: outputTimes_
     class           (gravitationalLensingClass                      ), pointer                     :: gravitationalLensing_
+    class           (massFunctionIncompletenessClass                ), pointer                     :: massFunctionIncompleteness_
     double precision                                                 , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient , systematicErrorPolynomialCoefficient
     integer                                                                                        :: covarianceBinomialBinsPerDecade
     double precision                                                                               :: covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum   , &
@@ -68,8 +90,6 @@ contains
     !#   <variable>randomErrorMinimum</variable>
     !#   <defaultValue>0.07d0</defaultValue>
     !#   <description>The minimum random error for \cite{baldry_galaxy_2012} GAMA stellar masses.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>randomErrorMaximum</name>
@@ -77,8 +97,6 @@ contains
     !#   <variable>randomErrorMaximum</variable>
     !#   <defaultValue>0.07d0</defaultValue>
     !#   <description>The minimum random error for \cite{baldry_galaxy_2012} GAMA stellar masses.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>randomErrorPolynomialCoefficient</name>
@@ -86,8 +104,6 @@ contains
     !#   <variable>randomErrorPolynomialCoefficient</variable>
     !#   <defaultValue>[0.07d0]</defaultValue>
     !#   <description>The coefficients of the random error polynomial for \cite{baldry_galaxy_2012} GAMA stellar masses.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>systematicErrorPolynomialCoefficient</name>
@@ -95,8 +111,6 @@ contains
     !#   <variable>systematicErrorPolynomialCoefficient</variable>
     !#   <defaultValue>[0.0d0]</defaultValue>
     !#   <description>The coefficients of the systematic error polynomial for \cite{baldry_galaxy_2012} GAMA stellar masses.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>sizeSourceLensing</name>
@@ -104,8 +118,6 @@ contains
     !#   <variable>sizeSourceLensing</variable>
     !#   <defaultValue>2.0d-3</defaultValue>
     !#   <description>The characteristic source size for gravitational lensing calculations.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>covarianceBinomialBinsPerDecade</name>
@@ -113,8 +125,6 @@ contains
     !#   <variable>covarianceBinomialBinsPerDecade</variable>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number of bins per decade of halo mass to use when constructing \cite{baldry_galaxy_2012} GAMA stellar mass function covariance matrices for main branch galaxies.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>covarianceBinomialMassHaloMinimum</name>
@@ -122,8 +132,6 @@ contains
     !#   <variable>covarianceBinomialMassHaloMinimum</variable>
     !#   <defaultValue>1.0d8</defaultValue>
     !#   <description>The minimum halo mass to consider when constructing \cite{baldry_galaxy_2012} GAMA stellar mass function covariance matrices for main branch galaxies.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>covarianceBinomialMassHaloMaximum</name>
@@ -131,51 +139,55 @@ contains
     !#   <variable>covarianceBinomialMassHaloMaximum</variable>
     !#   <defaultValue>1.0d16</defaultValue>
     !#   <description>The maximum halo mass to consider when constructing \cite{baldry_galaxy_2012} GAMA stellar mass function covariance matrices for main branch galaxies.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
-    !# <objectBuilder class="outputTimes"          name="outputTimes_"          source="parameters"/>
-    !# <objectBuilder class="gravitationalLensing" name="gravitationalLensing_" source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"         name="cosmologyFunctions_"         source="parameters"/>
+    !# <objectBuilder class="outputTimes"                name="outputTimes_"                source="parameters"/>
+    !# <objectBuilder class="gravitationalLensing"       name="gravitationalLensing_"       source="parameters"/>
+    !# <objectBuilder class="massFunctionIncompleteness" name="massFunctionIncompleteness_" source="parameters"/>
     ! Build the object.
-    self=outputAnalysisMassFunctionStellarBaldry2012GAMA(cosmologyFunctions_,gravitationalLensing_,outputTimes_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing)
+    self=outputAnalysisMassFunctionStellarBaldry2012GAMA(cosmologyFunctions_,gravitationalLensing_,massFunctionIncompleteness_,outputTimes_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing)
     !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"  />
-    !# <objectDestructor name="outputTimes_"         />
-    !# <objectDestructor name="gravitationalLensing_"/>
+    !# <objectDestructor name="cosmologyFunctions_"        />
+    !# <objectDestructor name="outputTimes_"               />
+    !# <objectDestructor name="gravitationalLensing_"      />
+    !# <objectDestructor name="massFunctionIncompleteness_"/>
     return
   end function massFunctionStellarBaldry2012GAMAConstructorParameters
 
-  function massFunctionStellarBaldry2012GAMAConstructorInternal(cosmologyFunctions_,gravitationalLensing_,outputTimes_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
+  function massFunctionStellarBaldry2012GAMAConstructorInternal(cosmologyFunctions_,gravitationalLensing_,massFunctionIncompleteness_,outputTimes_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
     !% Constructor for the ``massFunctionStellarBaldry2012GAMA'' output analysis class for internal use.
-    use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                        , cosmologyFunctionsMatterLambda
+    use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                             , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
     use :: Galactic_Filters                      , only : galacticFilterStellarMass
-    use :: Galacticus_Paths                      , only : galacticusPath                                 , pathTypeDataStatic
+    use :: Galacticus_Paths                      , only : galacticusPath                                      , pathTypeDataStatic
     use :: Geometry_Surveys                      , only : surveyGeometryBaldry2012GAMA
     use :: Gravitational_Lensing                 , only : gravitationalLensingClass
-    use :: Output_Analysis_Distribution_Operators, only : distributionOperatorList                       , outputAnalysisDistributionOperatorGrvtnlLnsng, outputAnalysisDistributionOperatorRandomErrorPlynml, outputAnalysisDistributionOperatorSequence
+    use :: Output_Analysis_Distribution_Operators, only : distributionOperatorList                            , outputAnalysisDistributionOperatorGrvtnlLnsng, outputAnalysisDistributionOperatorRandomErrorPlynml, outputAnalysisDistributionOperatorSequence, &
+         &                                                outputAnalysisDistributionOperatorMassIncompleteness
     use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorSystmtcPolynomial
+    use :: Mass_Function_Incompletenesses        , only : massFunctionIncompletenessClass
     implicit none
-    type            (outputAnalysisMassFunctionStellarBaldry2012GAMA    )                              :: self
-    class           (cosmologyFunctionsClass                            ), intent(in   ), target       :: cosmologyFunctions_
-    class           (outputTimesClass                                   ), intent(in   ), target       :: outputTimes_
-    class           (gravitationalLensingClass                          ), intent(in   ), target       :: gravitationalLensing_
-    double precision                                                     , intent(in   )               :: randomErrorMinimum                                         , randomErrorMaximum                  , &
+    type            (outputAnalysisMassFunctionStellarBaldry2012GAMA     )                              :: self
+    class           (cosmologyFunctionsClass                             ), intent(in   ), target       :: cosmologyFunctions_
+    class           (outputTimesClass                                    ), intent(inout), target       :: outputTimes_
+    class           (gravitationalLensingClass                           ), intent(in   ), target       :: gravitationalLensing_
+    class           (massFunctionIncompletenessClass                     ), intent(in   ), target       :: massFunctionIncompleteness_
+    double precision                                                      , intent(in   )               :: randomErrorMinimum                                          , randomErrorMaximum                  , &
          &                                                                                                sizeSourceLensing
-    double precision                                                     , intent(in   ), dimension(:) :: randomErrorPolynomialCoefficient                           , systematicErrorPolynomialCoefficient
-    integer                                                              , intent(in   )               :: covarianceBinomialBinsPerDecade
-    double precision                                                     , intent(in   )               :: covarianceBinomialMassHaloMinimum                          , covarianceBinomialMassHaloMaximum
-    type            (galacticFilterStellarMass                          )               , pointer      :: galacticFilter_
-    type            (surveyGeometryBaldry2012GAMA                       )               , pointer      :: surveyGeometry_
-    type            (outputAnalysisPropertyOperatorSystmtcPolynomial    )               , pointer      :: outputAnalysisPropertyOperator_
-    type            (outputAnalysisDistributionOperatorRandomErrorPlynml)               , pointer      :: outputAnalysisDistributionOperatorRandomErrorPlynml_
-    type            (outputAnalysisDistributionOperatorGrvtnlLnsng      )               , pointer      :: outputAnalysisDistributionOperatorGrvtnlLnsng_
-    type            (outputAnalysisDistributionOperatorSequence         )               , pointer      :: outputAnalysisDistributionOperator_
-    type            (cosmologyParametersSimple                          )               , pointer      :: cosmologyParametersData
-    type            (cosmologyFunctionsMatterLambda                     )               , pointer      :: cosmologyFunctionsData
-    type            (distributionOperatorList                           )               , pointer      :: distributionOperatorSequence
-    double precision                                                     , parameter                   :: errorPolynomialZeroPoint                            =11.3d+0
+    double precision                                                      , intent(in   ), dimension(:) :: randomErrorPolynomialCoefficient                            , systematicErrorPolynomialCoefficient
+    integer                                                               , intent(in   )               :: covarianceBinomialBinsPerDecade
+    double precision                                                      , intent(in   )               :: covarianceBinomialMassHaloMinimum                           , covarianceBinomialMassHaloMaximum
+    type            (galacticFilterStellarMass                           )               , pointer      :: galacticFilter_
+    type            (surveyGeometryBaldry2012GAMA                        )               , pointer      :: surveyGeometry_
+    type            (outputAnalysisPropertyOperatorSystmtcPolynomial     )               , pointer      :: outputAnalysisPropertyOperator_
+    type            (outputAnalysisDistributionOperatorRandomErrorPlynml )               , pointer      :: outputAnalysisDistributionOperatorRandomErrorPlynml_
+    type            (outputAnalysisDistributionOperatorGrvtnlLnsng       )               , pointer      :: outputAnalysisDistributionOperatorGrvtnlLnsng_
+    type            (outputAnalysisDistributionOperatorMassIncompleteness)               , pointer      :: outputAnalysisDistributionOperatorMassIncompleteness_
+    type            (outputAnalysisDistributionOperatorSequence          )               , pointer      :: outputAnalysisDistributionOperator_
+    type            (cosmologyParametersSimple                           )               , pointer      :: cosmologyParametersData
+    type            (cosmologyFunctionsMatterLambda                      )               , pointer      :: cosmologyFunctionsData
+    type            (distributionOperatorList                            )               , pointer      :: distributionOperatorSequence
+    double precision                                                      , parameter                   :: errorPolynomialZeroPoint                             =11.3d+0
 
     ! Build a filter which select galaxies with stellar mass 10⁸M☉ or greater.
     allocate(galacticFilter_)
@@ -220,6 +232,15 @@ contains
     !#     &amp;                                            )
     !#  </constructor>
     !# </referenceConstruct>
+    ! Build a mass incompleteness distribution operator.
+    allocate(outputAnalysisDistributionOperatorMassIncompleteness_)
+    !# <referenceConstruct object="outputAnalysisDistributionOperatorMassIncompleteness_">
+    !#  <constructor>
+    !#   outputAnalysisDistributionOperatorMassIncompleteness(                            &amp;
+    !#     &amp;                                              massFunctionIncompleteness_ &amp;
+    !#     &amp;                                             )
+    !#  </constructor>
+    !# </referenceConstruct>
     ! Build a gravitational lensing distribution operator.
     allocate(outputAnalysisDistributionOperatorGrvtnlLnsng_)
     !# <referenceConstruct object="outputAnalysisDistributionOperatorGrvtnlLnsng_">
@@ -232,11 +253,13 @@ contains
     !#  </constructor>
     !# </referenceConstruct>
     ! Construct sequence distribution operator.
-    allocate(distributionOperatorSequence                )
-    allocate(distributionOperatorSequence           %next)
-    allocate(outputAnalysisDistributionOperator_     )
-    distributionOperatorSequence            %operator_   => outputAnalysisDistributionOperatorRandomErrorPlynml_
-    distributionOperatorSequence       %next%operator_   => outputAnalysisDistributionOperatorGrvtnlLnsng_
+    allocate(distributionOperatorSequence                 )
+    allocate(distributionOperatorSequence       %next     )
+    allocate(distributionOperatorSequence       %next%next)
+    allocate(outputAnalysisDistributionOperator_          )
+    distributionOperatorSequence          %operator_ => outputAnalysisDistributionOperatorRandomErrorPlynml_
+    distributionOperatorSequence     %next%operator_ => outputAnalysisDistributionOperatorMassIncompleteness_
+    distributionOperatorSequence%next%next%operator_ => outputAnalysisDistributionOperatorGrvtnlLnsng_
     !# <referenceConstruct object="outputAnalysisDistributionOperator_">
     !#  <constructor>
     !#   outputAnalysisDistributionOperatorSequence(                             &amp;
@@ -262,13 +285,15 @@ contains
          &                                   covarianceBinomialMassHaloMaximum                                                                                    &
          &                                  )
     ! Clean up.
-    !# <objectDestructor name="surveyGeometry_"                                     />
-    !# <objectDestructor name="galacticFilter_"                                     />
-    !# <objectDestructor name="cosmologyParametersData"                             />
-    !# <objectDestructor name="cosmologyFunctionsData"                              />
-    !# <objectDestructor name="outputAnalysisDistributionOperator_"                 />
-    !# <objectDestructor name="outputAnalysisDistributionOperatorGrvtnlLnsng_"      />
-    !# <objectDestructor name="outputAnalysisDistributionOperatorRandomErrorPlynml_"/>
-    nullify(distributionOperatorSequence                        )
+    !# <objectDestructor name="surveyGeometry_"                                      />
+    !# <objectDestructor name="galacticFilter_"                                      />
+    !# <objectDestructor name="cosmologyParametersData"                              />
+    !# <objectDestructor name="cosmologyFunctionsData"                               />
+    !# <objectDestructor name="outputAnalysisPropertyOperator_"                      />
+    !# <objectDestructor name="outputAnalysisDistributionOperator_"                  />
+    !# <objectDestructor name="outputAnalysisDistributionOperatorGrvtnlLnsng_"       />
+    !# <objectDestructor name="outputAnalysisDistributionOperatorRandomErrorPlynml_" />
+    !# <objectDestructor name="outputAnalysisDistributionOperatorMassIncompleteness_"/>
+    nullify(distributionOperatorSequence)
     return
   end function massFunctionStellarBaldry2012GAMAConstructorInternal

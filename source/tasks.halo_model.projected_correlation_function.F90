@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -51,6 +51,8 @@
      integer                                                                        :: countSeparations
      logical                                                                        :: halfIntegral
      type            (varying_string                   )                            :: outputGroup
+     ! Pointer to the parameters for this task.
+     type            (inputParameters                  )                            :: parameters
    contains
      final     ::                       haloModelProjectedCorrelationFunctionDestructor
      procedure :: perform            => haloModelProjectedCorrelationFunctionPerform
@@ -69,27 +71,27 @@ contains
     !% Constructor for the {\normalfont \ttfamily haloModelProjectedCorrelationFunction} task class which takes a parameter set as input.
     use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize
     use :: Input_Parameters, only : inputParameter              , inputParameters
-    use :: Node_Components , only : Node_Components_Initialize  , Node_Components_Thread_Initialize
+    use :: Node_Components , only : Node_Components_Initialize
     implicit none
-    type            (taskHaloModelProjectedCorrelationFunction)                :: self
-    type            (inputParameters                          ), intent(inout) :: parameters
-    class           (conditionalMassFunctionClass             ), pointer       :: conditionalMassFunction_
-    class           (powerSpectrumClass                       ), pointer       :: powerSpectrum_
-    class           (cosmologyFunctionsClass                  ), pointer       :: cosmologyFunctions_
-    class           (surveyGeometryClass                      ), pointer       :: surveyGeometry_
-    class           (darkMatterHaloScaleClass                 ), pointer       :: darkMatterHaloScale_
-    class           (haloMassFunctionClass                    ), pointer       :: haloMassFunction_
-    class           (darkMatterProfileDMOClass                ), pointer       :: darkMatterProfileDMO_
-    class           (darkMatterHaloBiasClass                  ), pointer       :: darkMatterHaloBias_
-    class           (darkMatterProfileScaleRadiusClass        ), pointer       :: darkMatterProfileScaleRadius_
-    type            (inputParameters                          ), pointer       :: parametersRoot
-    double precision                                                           :: separationMinimum            , separationMaximum, &
-         &                                                                        massMinimum                  , massMaximum      , &
-         &                                                                        massHaloMinimum              , massHaloMaximum  , &
-         &                                                                        depthLineOfSight
-    integer                                                                    :: countSeparations
-    logical                                                                    :: halfIntegral
-    type            (varying_string                           )                :: outputGroup
+    type            (taskHaloModelProjectedCorrelationFunction)                        :: self
+    type            (inputParameters                          ), intent(inout), target :: parameters
+    class           (conditionalMassFunctionClass             ), pointer               :: conditionalMassFunction_
+    class           (powerSpectrumClass                       ), pointer               :: powerSpectrum_
+    class           (cosmologyFunctionsClass                  ), pointer               :: cosmologyFunctions_
+    class           (surveyGeometryClass                      ), pointer               :: surveyGeometry_
+    class           (darkMatterHaloScaleClass                 ), pointer               :: darkMatterHaloScale_
+    class           (haloMassFunctionClass                    ), pointer               :: haloMassFunction_
+    class           (darkMatterProfileDMOClass                ), pointer               :: darkMatterProfileDMO_
+    class           (darkMatterHaloBiasClass                  ), pointer               :: darkMatterHaloBias_
+    class           (darkMatterProfileScaleRadiusClass        ), pointer               :: darkMatterProfileScaleRadius_
+    type            (inputParameters                          ), pointer               :: parametersRoot
+    double precision                                                                   :: separationMinimum            , separationMaximum, &
+         &                                                                                massMinimum                  , massMaximum      , &
+         &                                                                                massHaloMinimum              , massHaloMaximum  , &
+         &                                                                                depthLineOfSight
+    integer                                                                            :: countSeparations
+    logical                                                                            :: halfIntegral
+    type            (varying_string                           )                        :: outputGroup
 
     ! Ensure the nodes objects are initialized.
     if (associated(parameters%parent)) then
@@ -97,90 +99,68 @@ contains
        do while (associated(parametersRoot%parent))
           parametersRoot => parametersRoot%parent
        end do
-       call nodeClassHierarchyInitialize     (parametersRoot)
-       call Node_Components_Initialize       (parametersRoot)
-       call Node_Components_Thread_Initialize(parametersRoot)
+       call nodeClassHierarchyInitialize(parametersRoot)
+       call Node_Components_Initialize  (parametersRoot)
     else
-       parametersRoot => null()
-       call nodeClassHierarchyInitialize     (parameters    )
-       call Node_Components_Initialize       (parameters    )
-       call Node_Components_Thread_Initialize(parameters    )
+       parametersRoot => parameters
+       call nodeClassHierarchyInitialize(parameters    )
+       call Node_Components_Initialize  (parameters    )
     end if
     !# <inputParameter>
     !#   <name>separationMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The minimum separation at which to compute the projected correlation function.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>separationMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The maximum separation at which to compute the projected correlation function.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>countSeparations</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The number of separations at which to compute the projected correlation function.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>depthLineOfSight</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The maximum line of sight depth to which to integrate when computing the projected correlation function.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>halfIntegral</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Set to {\normalfont \ttfamily true} if the projected correlation function is computed as $w_\mathrm{p}(r_\mathrm{p})=\int_0^{+\pi_\mathrm{max}} \xi(r_\mathrm{p},\pi) \mathrm{d} \pi$, instead of the usual $w_\mathrm{p}(r_\mathrm{p})=\int_{-\pi_\mathrm{max}}^{+\pi_\mathrm{max}} \xi(r_\mathrm{p},\pi) \mathrm{d} \pi$.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d8</defaultValue>
     !#   <description>The minimum mass of galaxies to include in the projected correlation function calculation.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d12</defaultValue>
     !#   <description>The maximum mass of galaxies to include in the projected correlation function calculation.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massHaloMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d6</defaultValue>
     !#   <description>The minimum halo mass to use when integrating over the halo mass function.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massHaloMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d16</defaultValue>
     !#   <description>The maximum halo mass to use when integrating over the halo mass function.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>outputGroup</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('projectedCorrelationFunction')</defaultValue>
     !#   <description>The HDF5 output group within which to write the projected correlation function.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <objectBuilder class="conditionalMassFunction"      name="conditionalMassFunction_"      source="parameters"/>
     !# <objectBuilder class="powerSpectrum"                name="powerSpectrum_"                source="parameters"/>
@@ -191,7 +171,7 @@ contains
     !# <objectBuilder class="darkMatterProfileDMO"         name="darkMatterProfileDMO_"         source="parameters"/>
     !# <objectBuilder class="darkMatterHaloBias"           name="darkMatterHaloBias_"           source="parameters"/>
     !# <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
-    self=taskHaloModelProjectedCorrelationFunction(separationMinimum,separationMaximum,countSeparations,massMinimum,massMaximum,massHaloMinimum,massHaloMaximum,depthLineOfSight,halfIntegral,outputGroup,conditionalMassFunction_,powerSpectrum_,cosmologyFunctions_,surveyGeometry_,darkMatterHaloScale_,haloMassFunction_,darkMatterProfileDMO_,darkMatterHaloBias_,darkMatterProfileScaleRadius_)
+    self=taskHaloModelProjectedCorrelationFunction(separationMinimum,separationMaximum,countSeparations,massMinimum,massMaximum,massHaloMinimum,massHaloMaximum,depthLineOfSight,halfIntegral,outputGroup,conditionalMassFunction_,powerSpectrum_,cosmologyFunctions_,surveyGeometry_,darkMatterHaloScale_,haloMassFunction_,darkMatterProfileDMO_,darkMatterHaloBias_,darkMatterProfileScaleRadius_,parametersRoot)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="conditionalMassFunction_"     />
     !# <objectDestructor name="powerSpectrum_"               />
@@ -205,7 +185,7 @@ contains
     return
   end function haloModelProjectedCorrelationFunctionConstructorParameters
 
-  function haloModelProjectedCorrelationFunctionConstructorInternal(separationMinimum,separationMaximum,countSeparations,massMinimum,massMaximum,massHaloMinimum,massHaloMaximum,depthLineOfSight,halfIntegral,outputGroup,conditionalMassFunction_,powerSpectrum_,cosmologyFunctions_,surveyGeometry_,darkMatterHaloScale_,haloMassFunction_,darkMatterProfileDMO_,darkMatterHaloBias_,darkMatterProfileScaleRadius_) result(self)
+  function haloModelProjectedCorrelationFunctionConstructorInternal(separationMinimum,separationMaximum,countSeparations,massMinimum,massMaximum,massHaloMinimum,massHaloMaximum,depthLineOfSight,halfIntegral,outputGroup,conditionalMassFunction_,powerSpectrum_,cosmologyFunctions_,surveyGeometry_,darkMatterHaloScale_,haloMassFunction_,darkMatterProfileDMO_,darkMatterHaloBias_,darkMatterProfileScaleRadius_,parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily haloModelProjectedCorrelationFunction} task class which takes a parameter set as input.
     use :: Memory_Management, only : allocateArray
     use :: Numerical_Ranges , only : Make_Range   , rangeTypeLogarithmic
@@ -227,8 +207,11 @@ contains
     class           (darkMatterProfileDMOClass                ), intent(in   ), target :: darkMatterProfileDMO_
     class           (darkMatterHaloBiasClass                  ), intent(in   ), target :: darkMatterHaloBias_
     class           (darkMatterProfileScaleRadiusClass        ), intent(in   ), target :: darkMatterProfileScaleRadius_
-     !# <constructorAssign variables="separationMinimum, separationMaximum, massMinimum, massMaximum, massHaloMinimum, massHaloMaximum, depthLineOfSight, countSeparations, halfIntegral, outputGroup, *conditionalMassFunction_, *powerSpectrum_, *cosmologyFunctions_, *surveyGeometry_, *darkMatterHaloScale_, *haloMassFunction_, *darkMatterProfileDMO_, *darkMatterHaloBias_, *darkMatterProfileScaleRadius_"/>
+    type            (inputParameters                          ), intent(in   ), target :: parameters
+    !# <constructorAssign variables="separationMinimum, separationMaximum, massMinimum, massMaximum, massHaloMinimum, massHaloMaximum, depthLineOfSight, countSeparations, halfIntegral, outputGroup, *conditionalMassFunction_, *powerSpectrum_, *cosmologyFunctions_, *surveyGeometry_, *darkMatterHaloScale_, *haloMassFunction_, *darkMatterProfileDMO_, *darkMatterHaloBias_, *darkMatterProfileScaleRadius_"/>
 
+    self%parameters=inputParameters(parameters)
+    call self%parameters%parametersGroupCopy(parameters)
     call allocateArray(self%separationProjectedBinned ,[self%countSeparations])
     call allocateArray(self%correlationProjectedBinned,[self%countSeparations])
     self%separationProjectedBinned=Make_Range(self%separationMinimum,self%separationMaximum,self%countSeparations,rangeTypeLogarithmic)
@@ -237,7 +220,7 @@ contains
 
   subroutine haloModelProjectedCorrelationFunctionDestructor(self)
     !% Destructor for the {\normalfont \ttfamily haloModelProjectedCorrelationFunction} task class.
-    use :: Node_Components, only : Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
+    use :: Node_Components, only : Node_Components_Uninitialize
     implicit none
     type(taskHaloModelProjectedCorrelationFunction), intent(inout) :: self
 
@@ -250,24 +233,26 @@ contains
     !# <objectDestructor name="self%darkMatterProfileDMO_"        />
     !# <objectDestructor name="self%darkMatterHaloBias_"          />
     !# <objectDestructor name="self%darkMatterProfileScaleRadius_"/>
-    call Node_Components_Uninitialize       ()
-    call Node_Components_Thread_Uninitialize()
+    call Node_Components_Uninitialize()
     return
   end subroutine haloModelProjectedCorrelationFunctionDestructor
 
   subroutine haloModelProjectedCorrelationFunctionPerform(self,status)
     !% Generate a mock galaxy catalog using a simple halo model approach.
-    use :: Galacticus_Display               , only : Galacticus_Display_Indent       , Galacticus_Display_Unindent
+    use :: Display                          , only : displayIndent                    , displayUnindent
     use :: Galacticus_Error                 , only : errorStatusSuccess
     use :: Galacticus_HDF5                  , only : galacticusOutputFile
     use :: Halo_Model_Projected_Correlations, only : Halo_Model_Projected_Correlation
     use :: IO_HDF5                          , only : hdf5Object
+    use :: Node_Components                  , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
     implicit none
     class  (taskHaloModelProjectedCorrelationFunction), intent(inout), target   :: self
     integer                                           , intent(  out), optional :: status
     type   (hdf5Object                               )                          :: outputGroup
 
-    call Galacticus_Display_Indent('Begin task: halo model projected correlation function')
+    call displayIndent('Begin task: halo model projected correlation function')
+    ! Call routines to perform initializations which must occur for all threads if run in parallel.
+    call Node_Components_Thread_Initialize(self%parameters)
     call Halo_Model_Projected_Correlation(                                    &
          &                                self%conditionalMassFunction_     , &
          &                                self%powerSpectrum_               , &
@@ -291,15 +276,16 @@ contains
     call outputGroup%writeDataset(self%separationProjectedBinned ,"separation"          ,commentText="Projected separation [Mpc]." )
     call outputGroup%writeDataset(self%correlationProjectedBinned,"projectedCorrelation",commentText="Projected correlation [Mpc].")
     call outputGroup%close       (                                                                                                 )
+    call Node_Components_Thread_Uninitialize()
     if (present(status)) status=errorStatusSuccess
-    call Galacticus_Display_Unindent('Done task: halo model projected correlation function' )
+    call displayUnindent('Done task: halo model projected correlation function' )
   end subroutine haloModelProjectedCorrelationFunctionPerform
 
   logical function haloModelProjectedCorrelationFunctionRequiresOutputFile(self)
     !% Specifies that this task does not requires the main output file.
     implicit none
     class(taskHaloModelProjectedCorrelationFunction), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     haloModelProjectedCorrelationFunctionRequiresOutputFile=.true.
     return

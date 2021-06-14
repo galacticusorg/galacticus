@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -41,7 +41,7 @@ contains
     implicit none
     type(taskReport     )                :: self
     type(inputParameters), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=taskReport()
     return
@@ -49,19 +49,19 @@ contains
 
   subroutine reportPerform(self,status)
     !% Builds the tabulation.
+    use :: Display              , only : displayIndent            , displayMessage, displayUnindent
     use :: Galacticus_Build     , only : Galacticus_Build_String
-    use :: Galacticus_Display   , only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent
     use :: Galacticus_Error     , only : errorStatusSuccess
     use :: Galacticus_Versioning, only : Galacticus_Version_String
     implicit none
     class  (taskReport), intent(inout), target   :: self
     integer            , intent(  out), optional :: status
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
-    call Galacticus_Display_Indent  ('Begin task: report'                               )
-    call Galacticus_Display_Message ('This is Galacticus: '//Galacticus_Version_String())
-    call Galacticus_Display_Message ('Built with: '        //Galacticus_Build_String  ())
-    call Galacticus_Display_Unindent('Done task: report'                                )
+    call displayIndent  ('Begin task: report'                               )
+    call displayMessage ('This is Galacticus: '//Galacticus_Version_String())
+    call displayMessage ('Built with: '        //Galacticus_Build_String  ())
+    call displayUnindent('Done task: report'                                )
     if (present(status)) status=errorStatusSuccess
     return
   end subroutine reportPerform
@@ -70,7 +70,7 @@ contains
     !% Specifies that this task does not requires the main output file.
     implicit none
     class(taskReport), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     reportRequiresOutputFile=.false.
     return

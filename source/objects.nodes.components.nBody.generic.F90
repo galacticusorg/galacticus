@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -97,7 +97,7 @@ contains
     implicit none
     type(inputParameters             ), intent(inout) :: parameters_
     type(nodeComponentNBodyGeneric   )                :: nbodyComponent
-    !GCC$ attributes unused :: parameters_
+    !$GLC attributes unused :: parameters_
 
     ! Initialize the module if necessary.
     if (defaultNBodyComponent%genericIsActive()) then
@@ -119,7 +119,7 @@ contains
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
-    !GCC$ attributes unused :: parameters_
+    !$GLC attributes unused :: parameters_
 
     if (defaultNBodyComponent%genericIsActive()) &
          call nodePromotionEvent%attach(defaultNBodyComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentNBodyGeneric')
@@ -149,7 +149,7 @@ contains
     type (treeNode          ), intent(inout), target  :: node
     type (treeNode          )               , pointer :: nodeParent
     class(nodeComponentNBody)               , pointer :: nBodyParent, nBody
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
     
     nBody       => node      %nBody ()
     nodeParent  => node      %parent
@@ -170,7 +170,7 @@ contains
     type     (varying_string           ), allocatable, dimension(:) :: propertyNamesTmp
     logical                                                         :: nameExists
     integer                                                         :: i
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Check for prior existance of the property.
     !$omp critical(nbodyGenericAccess)
@@ -212,7 +212,7 @@ contains
     type     (varying_string           ), allocatable, dimension(:) :: propertyNamesTmp
     logical                                                         :: nameExists
     integer                                                         :: i
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Check for prior existance of the property.
     !$omp critical(nbodyGenericAccess)
@@ -286,39 +286,36 @@ contains
   !#  <unitName>Node_Component_NBody_Generic_Output_Names</unitName>
   !#  <sortName>Node_Component_NBody_Generic_Output</sortName>
   !# </mergerTreeOutputNames>
-  subroutine Node_Component_NBody_Generic_Output_Names(node,integerProperty,integerPropertyNames&
-       &,integerPropertyComments,integerPropertyUnitsSI ,doubleProperty,doublePropertyNames,doublePropertyComments&
-       &,doublePropertyUnitsSI,time)
+  subroutine Node_Component_NBody_Generic_Output_Names(node,integerProperty,integerProperties,doubleProperty,doubleProperties,time)
     !% Set names of black hole properties to be written to the \glc\ output file.
-    use :: Galacticus_Nodes  , only : treeNode
-    use :: ISO_Varying_String, only : char
-    use :: String_Handling   , only : String_Upper_Case_First, char
+    use :: Galacticus_Nodes                  , only : treeNode
+    use :: ISO_Varying_String                , only : char
+    use :: String_Handling                   , only : String_Upper_Case_First, char
+    use :: Merger_Tree_Outputter_Buffer_Types, only : outputPropertyInteger  , outputPropertyDouble
     implicit none
-    type            (treeNode)              , intent(inout), pointer :: node
-    double precision                        , intent(in   )          :: time
-    integer                                 , intent(inout)          :: doubleProperty         , integerProperty
-    character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , &
-         &                                                              integerPropertyComments, integerPropertyNames
-    double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
-    integer                                                          :: i
-    !GCC$ attributes unused :: node, time
-
+    type            (treeNode             )              , intent(inout) :: node
+    double precision                                     , intent(in   ) :: time
+    integer                                              , intent(inout) :: doubleProperty   , integerProperty
+    type            (outputPropertyInteger), dimension(:), intent(inout) :: integerProperties
+    type            (outputPropertyDouble ), dimension(:), intent(inout) :: doubleProperties
+    integer                                                              :: i
+    !$GLC attributes unused :: node, time
 
     !$omp critical(nbodyGenericAccess)
     if (allocated(propertyNamesInteger)) then
        do i=1,size(propertyNamesInteger)
-          integerProperty                         =integerProperty+1
-          integerPropertyNames   (integerProperty)='nBody'//String_Upper_Case_First(char(propertyNamesInteger(i)))
-          integerPropertyComments(integerProperty)=''
-          integerPropertyUnitsSI (integerProperty)=0.0d0
+          integerProperty                             =integerProperty+1
+          integerProperties(integerProperty)%name     ='nBody'//String_Upper_Case_First(char(propertyNamesInteger(i)))
+          integerProperties(integerProperty)%comment  =''
+          integerProperties(integerProperty)%unitsInSI=0.0d0
        end do
     end if
-    if (allocated(propertyNamesReal)) then
-       do i=1,size(propertyNamesReal)
-          doubleProperty                        =doubleProperty+1
-          doublePropertyNames   (doubleProperty)='nBody'//String_Upper_Case_First(char(propertyNamesReal(i)))
-          doublePropertyComments(doubleProperty)=''
-          doublePropertyUnitsSI (doubleProperty)=0.0d0
+    if (allocated(propertyNamesReal   )) then
+       do i=1,size(propertyNamesReal   )
+          doubleProperty                              =doubleProperty +1
+          doubleProperties (doubleProperty )%name     ='nBody'//String_Upper_Case_First(char(propertyNamesReal   (i)))
+          doubleProperties (doubleProperty )%comment  =''
+          doubleProperties (doubleProperty )%unitsInSI=0.0d0
        end do
     end if
     !$omp end critical(nbodyGenericAccess)
@@ -333,10 +330,10 @@ contains
     !% Account for the number of black hole properties to be written to the the \glc\ output file.
     use :: Galacticus_Nodes, only : treeNode
     implicit none
-    type            (treeNode), intent(inout), pointer :: node
-    double precision          , intent(in   )          :: time
-    integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount
-    !GCC$ attributes unused :: node, time
+    type            (treeNode), intent(inout) :: node
+    double precision          , intent(in   ) :: time
+    integer                   , intent(inout) :: doublePropertyCount, integerPropertyCount
+    !$GLC attributes unused :: node, time
 
     !$omp critical(nbodyGenericAccess)
     if (allocated(propertyNamesInteger)) integerPropertyCount=integerPropertyCount+size(propertyNamesInteger)
@@ -349,25 +346,25 @@ contains
   !#  <unitName>Node_Component_NBody_Generic_Output</unitName>
   !#  <sortName>Node_Component_NBody_Generic_Output</sortName>
   !# </mergerTreeOutputTask>
-  subroutine Node_Component_NBody_Generic_Output(node,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
-       &,doubleBufferCount,doubleBuffer,time,instance)
+  subroutine Node_Component_NBody_Generic_Output(node,integerProperty,integerBufferCount,integerProperties,doubleProperty,doubleBufferCount,doubleProperties,time,instance)
     !% Store black hole properties in the \glc\ output file buffers.
-    use :: Galacticus_Nodes, only : nodeComponentNBody, treeNode
-    use :: Kind_Numbers    , only : kind_int8
-    use :: Multi_Counters  , only : multiCounter
+    use :: Galacticus_Nodes                  , only : nodeComponentNBody   , treeNode
+    use :: Kind_Numbers                      , only : kind_int8
+    use :: Multi_Counters                    , only : multiCounter
+    use :: Merger_Tree_Outputter_Buffer_Types, only : outputPropertyInteger, outputPropertyDouble
     implicit none
-    double precision                    , intent(in   )               :: time
-    type            (treeNode          ), intent(inout), pointer      :: node
-    integer                             , intent(inout)               :: doubleBufferCount          , doubleProperty, integerBufferCount, &
-         &                                                               integerProperty
-    integer         (kind=kind_int8    ), intent(inout)               :: integerBuffer         (:,:)
-    double precision                    , intent(inout)               :: doubleBuffer          (:,:)
-    type            (multiCounter      ), intent(inout )              :: instance
-    class           (nodeComponentNBody)               , pointer      :: nBody
-    integer         (kind=kind_int8    ), allocatable  , dimension(:) :: propertyValuesInteger
-    double precision                    , allocatable  , dimension(:) :: propertyValuesReal
-    integer                                                           :: i
-    !GCC$ attributes unused :: time, instance
+    double precision                       , intent(in   )               :: time
+    type            (treeNode             ), intent(inout)               :: node
+    integer                                , intent(inout)               :: doubleBufferCount    , doubleProperty , &
+         &                                                                  integerBufferCount   , integerProperty
+    type            (outputPropertyInteger), intent(inout), dimension(:) :: integerProperties
+    type            (outputPropertyDouble ), intent(inout), dimension(:) :: doubleProperties
+    type            (multiCounter         ), intent(inout )              :: instance
+    class           (nodeComponentNBody   )               , pointer      :: nBody
+    integer         (kind=kind_int8       ), allocatable  , dimension(:) :: propertyValuesInteger
+    double precision                       , allocatable  , dimension(:) :: propertyValuesReal
+    integer                                                              :: i
+    !$GLC attributes unused :: time, instance
 
     nBody => node%nBody()
     !$omp critical(nbodyGenericAccess)
@@ -376,20 +373,20 @@ contains
        do i=1,size(propertyNamesInteger)
           integerProperty=integerProperty+1
           if (i > size(propertyValuesInteger)) then
-             integerBuffer(integerBufferCount,integerProperty)=0_kind_int8
+             integerProperties(integerProperty)%scalar(integerBufferCount)=0_kind_int8
           else
-             integerBuffer(integerBufferCount,integerProperty)=propertyValuesInteger(i)
+             integerProperties(integerProperty)%scalar(integerBufferCount)=propertyValuesInteger(i)
           end if
        end do
     end if
-    if (allocated(propertyNamesReal)) then
-       propertyValuesReal=nBody%reals()
-       do i=1,size(propertyNamesReal)
-          doubleProperty=doubleProperty+1
-          if (i > size(propertyValuesReal)) then
-             doubleBuffer(doubleBufferCount,doubleProperty)=0.0d0
+    if (allocated(propertyNamesReal   )) then
+       propertyValuesReal   =nBody%reals   ()
+       do i=1,size(propertyNamesReal   )
+          doubleProperty =doubleProperty +1
+          if (i > size(propertyValuesReal   )) then
+             doubleProperties (doubleProperty )%scalar(doubleBufferCount )=0.0d0
           else
-             doubleBuffer(doubleBufferCount,doubleProperty)=propertyValuesReal(i)
+             doubleProperties (doubleProperty )%scalar(doubleBufferCount )=propertyValuesReal   (i)
           end if
        end do
     end if

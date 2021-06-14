@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,23 +21,23 @@
 
 program Tests_Regular_Expressions
   !% Tests regular expression functionality.
-  use :: Galacticus_Display , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: Display            , only : displayVerbositySet, verbosityLevelStandard
   use :: Regular_Expressions, only : regEx
-  use :: Unit_Tests         , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Unit_Tests         , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
-  type(regEx) :: thisRegEx
+  type(regEx) :: regEx_
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Regular expressions")
 
   ! Test reg-ex matching.
-  thisRegEx=regEx("stellarPopulationFileFor[a-zA-Z0-9]+IMF")
-  call Assert("Matches",thisRegEx%matches('nothingToSeeHereMoveAlong'          ),.false.)
-  call Assert("Matches",thisRegEx%matches('stellarPopulationFileForSalpeterIMF'),.true. )
-  call thisRegEx%destroy()
+  regEx_=regEx("stellarPopulationFileFor[a-zA-Z0-9]+IMF")
+  call Assert("Matches",regEx_%matches('nothingToSeeHereMoveAlong'          ),.false.)
+  call Assert("Matches",regEx_%matches('stellarPopulationFileForSalpeterIMF'),.true. )
+  call regEx_%destroy()
 
   ! End unit tests.
   call Unit_Tests_End_Group()

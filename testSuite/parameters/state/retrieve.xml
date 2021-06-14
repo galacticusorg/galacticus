@@ -3,26 +3,57 @@
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
   <errorWaitTime value="0"/>
-    <!-- Use the "cyclic" work share method here - the alternative, "first-come-first-served", requires remote memory access under MPI, which currently seems to cause segfaults over Infinband -->
-  <evolveForestsWorkShareMethod value="cyclic"/>
+  <!-- Use the "cyclic" work share method here - the alternative, "first-come-first-served", requires remote memory access under MPI, which currently seems to cause segfaults over Infinband -->
+  <evolveForestsWorkShare value="cyclic"/>
   <stateRetrieveFileRoot value="testSuite/outputs/state"/>
   <galacticusOutputFileName value="testSuite/outputs/stateRetrieve.hdf5"/>
-  <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
+  <mergerTreeBuildMasses value="sampledDistributionUniform">
     <massTreeMaximum value="1.0e13"/>
     <massTreeMinimum value="1.0e10"/>
     <treesPerDecade value="5"/>
-    <mergerTreeBuildMassDistributionMethod value="powerLaw"/>
-  </mergerTreeBuildMassesMethod>
-  <mergerTreeConstructorMethod value="build">
+    <mergerTreeBuildMassDistribution value="powerLaw"/>
+  </mergerTreeBuildMasses>
+  <mergerTreeConstructor value="build">
     <redshiftBase value="0.0"/>
     <processDescending value="false"/>
-  </mergerTreeConstructorMethod>
-  <luminosityFilter value="SDSS_r"/> 
-  <luminosityType value="rest"/> 
-  <luminosityRedshift value="0.0"/> 
-  <satelliteMergingTimescalesMethod value="jiang2008">
-    <timescaleMultiplier value="5.4"/>
-  </satelliteMergingTimescalesMethod>
+  </mergerTreeConstructor>
+  <luminosityFilter value="SDSS_r"/>
 
-  <verbosityLevel value="1"/>
+  <luminosityType value="rest"/>
+
+  <luminosityRedshift value="0.0"/>
+
+  <satelliteMergingTimescales value="jiang2008">
+    <timescaleMultiplier value="5.4"/>
+  </satelliteMergingTimescales>
+
+  <!-- Node evolution and physics -->
+  <nodeOperator value="multi">
+    <nodeOperator value="haloSpinRandom">
+      <factorReset value="2.0"/>
+    </nodeOperator>
+    <nodeOperator value="starFormationDisks"/>
+    <nodeOperator value="starFormationSpheroids"/>
+    <!--Stellar feedback outflows-->
+    <nodeOperator value="stellarFeedbackDisks">
+      <stellarFeedbackOutflows value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflows value="powerLaw">
+          <velocityCharacteristic value="250.0"/>
+          <exponent value="3.5"/>
+        </stellarFeedbackOutflows>
+      </stellarFeedbackOutflows>
+    </nodeOperator>
+    <nodeOperator value="stellarFeedbackSpheroids">
+      <stellarFeedbackOutflows value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflows value="powerLaw">
+          <velocityCharacteristic value="250.0"/>
+          <exponent value="3.5"/>
+        </stellarFeedbackOutflows>
+      </stellarFeedbackOutflows>
+    </nodeOperator>
+  </nodeOperator>
+
+  <verbosityLevel value="standard"/>
 </parameters>

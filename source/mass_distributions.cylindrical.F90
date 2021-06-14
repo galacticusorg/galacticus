@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,39 +26,13 @@
      !% Implementation of an abstract mass distribution class for cylindrically symmetric distributions.
      private
    contains
-     !@ <objectMethods>
-     !@   <object>massDistributionCylindrical</object>
-     !@   <objectMethod>
-     !@     <method>radiusHalfMass</method>
-     !@     <description>Returns the cylindrical radius enclosing half of the mass of the mass distribution.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>surfaceDensityRadialMoment</method>
-     !@     <description>Returns the $n^\mathrm{th}$ moment of the integral of the surface density over radius, $\int_0^\infty \Sigma(\mathbf{x}) |x|^n \mathrm{d} \mathbf{x}$.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ moment\argin, \doublezero\ radiusMinimum\argin, \doublezero\ radiusMaximum\argin, \logicalzero\ [isInfinite]\argout</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>rotationCurve</method>
-     !@     <description>Returns the circular velocity at the given {\normalfont \ttfamily radius}.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ radius\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>rotationCurveGradient</method>
-     !@     <description>Returns the gradient of the circular velocity at the given {\normalfont \ttfamily radius}.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ radius\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>surfaceDensity</method>
-     !@     <description>Returns the surface density at the given {\normalfont \ttfamily coordinates}.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\textcolor{red}{\textless class(coordinate)\textgreater} coordinates\argin</arguments>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Returns the cylindrical radius enclosing half of the mass of the mass distribution." method="radiusHalfMass" />
+     !#   <method description="Returns the $n^\mathrm{th}$ moment of the integral of the surface density over radius, $\int_0^\infty \Sigma(\mathbf{x}) |x|^n \mathrm{d} \mathbf{x}$." method="surfaceDensityRadialMoment" />
+     !#   <method description="Returns the circular velocity at the given {\normalfont \ttfamily radius}." method="rotationCurve" />
+     !#   <method description="Returns the gradient of the circular velocity at the given {\normalfont \ttfamily radius}." method="rotationCurveGradient" />
+     !#   <method description="Returns the surface density at the given {\normalfont \ttfamily coordinates}." method="surfaceDensity" />
+     !# </methods>
      procedure                                                  :: symmetry                   => cylindricalSymmetry
      procedure(cylindricalRadiusHalfMass            ), deferred :: radiusHalfMass
      procedure(cylindricalSurfaceDensity            ), deferred :: surfaceDensity
@@ -113,7 +87,7 @@ contains
     !% Returns symmetry label for mass dsitributions with cylindrical symmetry.
     implicit none
     class(massDistributionCylindrical), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     cylindricalSymmetry=massDistributionSymmetryCylindrical
     return

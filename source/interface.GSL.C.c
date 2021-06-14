@@ -20,7 +20,31 @@
 //% Implements Fortran-callable wrappers around GSL functions.
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <gsl/gsl_math.h>
+#include <gsl/gsl_rng.h>
+#include <errno.h>
+
+void gslRngDefault() {
+  gsl_rng_env_setup();
+}
+
+FILE *gslFileOpenC(const char *fileName, const char *access) {
+  /* Open a file to be used for GSL state. */
+  FILE *stream;
+  stream = fopen(fileName,access);
+  if ( stream == NULL ) {
+    int errnum;
+    errnum = errno;
+    printf("error %d\n",errnum);
+  }  
+  return stream;
+}
+
+int gslFileCloseC(FILE *stream) {
+  /* Close a file used for GSL state. */
+  return fclose(stream);
+}
 
 gsl_function *gslFunctionConstructor(double (*f) (double x, void * params)) {
   /* Construct a gsl_function object. */
@@ -28,6 +52,17 @@ gsl_function *gslFunctionConstructor(double (*f) (double x, void * params)) {
   fGSL           = (gsl_function *) malloc(sizeof(gsl_function));
   fGSL->function = f;
   fGSL->params   = NULL;
+  return fGSL;
+}
+
+gsl_function_fdf *gslFunctionFdFConstructor(double (*f) (double x, void * params), double (*df) (double x, void * params), void (*fdf) (double x, void * params, double * f, double * df)) {
+  /* Construct a gsl_function_fdf object. */
+  gsl_function_fdf *fGSL;
+  fGSL           = (gsl_function_fdf *) malloc(sizeof(gsl_function_fdf));
+  fGSL->f      = f;
+  fGSL->df     = df;
+  fGSL->fdf    = fdf;
+  fGSL->params = NULL;
   return fGSL;
 }
 

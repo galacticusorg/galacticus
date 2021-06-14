@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -24,7 +24,7 @@ module Events_Hooks
   use :: Locks              , only : ompReadWriteLock
   use :: Regular_Expressions, only : regEx
   private
-  public :: hook, hookUnspecified, dependencyExact, dependencyRegEx
+  public :: hook                 , hookUnspecified, dependencyExact, dependencyRegEx
 
   type :: dependency
      !% Base class for event hook dependencies.
@@ -88,46 +88,18 @@ module Events_Hooks
      !$ type   (ompReadWriteLock)          :: lock_
      !$ logical                            :: initialized_ =  .false.
      class     (hook            ), pointer :: first_       => null()
+#ifdef OMPPROFILE
+     !$ double precision                   :: waitTimeRead = 0.0d0   , waitTimeWrite=0.0d0
+#endif
    contains
-     !@ <objectMethods>
-     !@   <object>eventHook</object>
-     !@   <objectMethod>
-     !@     <method>count</method>
-     !@     <type>\intzero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return a count of the number of hooks into this event.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>first</method>
-     !@     <type></type>
-     !@     <arguments>\textcolor{red}{\textless *type(hook)\textgreater}</arguments>
-     !@     <description>Return a pointer to the first hook into this event.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>initialize</method>
-     !@     <type></type>
-     !@     <arguments></arguments>
-     !@     <description>Initialize the event.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>lock</method>
-     !@     <type>void</type>
-     !@     <arguments></arguments>
-     !@     <description>Lock the event.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>unlock</method>
-     !@     <type>void</type>
-     !@     <arguments></arguments>
-     !@     <description>Unlock the event.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>resolveDependencies</method>
-     !@     <type>void</type>
-     !@     <arguments></arguments>
-     !@     <description>Reorder hooked functions to resolved any dependencies.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return a count of the number of hooks into this event." method="count" />
+     !#   <method description="Return a pointer to the first hook into this event." method="first" />
+     !#   <method description="Initialize the event." method="initialize" />
+     !#   <method description="Lock the event." method="lock" />
+     !#   <method description="Unlock the event." method="unlock" />
+     !#   <method description="Reorder hooked functions to resolved any dependencies." method="resolveDependencies" />
+     !# </methods>
      procedure :: count               => eventHookCount
      procedure :: first               => eventHookFirst
      procedure :: initialize          => eventHookInitialize
@@ -140,27 +112,11 @@ module Events_Hooks
      !% Class used to define a set of hooked function calls for a given event.
      private
    contains
-     !@ <objectMethods>
-     !@   <object>eventHookUnspecified</object>
-     !@   <objectMethod>
-     !@     <method>attach</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless class(*)\textgreater} *object\_\argin, \textcolor{red}{\textless procedure()\textgreater} *function\_\argin</arguments>
-     !@     <description>Attach a hook to the event.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>isAttached</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments>\textcolor{red}{\textless class(*)\textgreater} *object\_\argin, \textcolor{red}{\textless procedure()\textgreater} *function\_\argin</arguments>
-     !@     <description>Return true if the object is attached to this event.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>detach</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless class(*)\textgreater} *object\_\argin, \textcolor{red}{\textless procedure()\textgreater} *function\_\argin</arguments>
-     !@     <description>Detach a hook from the event.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Attach a hook to the event." method="attach" />
+     !#   <method description="Return true if the object is attached to this event." method="isAttached" />
+     !#   <method description="Detach a hook from the event." method="detach" />
+     !# </methods>
      procedure :: attach     => eventHookUnspecifiedAttach
      procedure :: isAttached => eventHookUnspecifiedIsAttached
      procedure :: detach     => eventHookUnspecifiedDetach
@@ -209,15 +165,39 @@ contains
 
   subroutine eventHookLock(self,writeLock)
     !% Lock the event to avoid race conditions between OpenMP threads.
+#ifdef OMPPROFILE
+    !$ use :: OMP_Lib, only : OMP_Get_WTime
+#endif
     implicit none
+#ifdef OMPPROFILE
+    double precision                            :: ompProfileTimeWaitStart, ompProfileTimeWaitEnd
+#endif
     class  (eventHook), intent(inout)           :: self
     logical           , intent(in   ), optional :: writeLock
     !# <optionalArgument name="writeLock" defaultsTo=".true."/>
 
     if (writeLock_) then
+#ifdef OMPPROFILE
+       !$ ompProfileTimeWaitStart=OMP_Get_WTime()
+#endif
        !$ call self%lock_%setWrite(haveReadLock=.false.)
+#ifdef OMPPROFILE
+       !$ ompProfileTimeWaitEnd=OMP_Get_WTime()
+       !$ ompProfileTimeWaitEnd=ompProfileTimeWaitEnd-ompProfileTimeWaitStart
+       !$omp atomic
+       !$ self%waitTimeWrite=self%waitTimeWrite+ompProfileTimeWaitEnd
+#endif
     else
+#ifdef OMPPROFILE
+       !$ ompProfileTimeWaitStart=OMP_Get_WTime()
+#endif
        !$ call self%lock_%setRead (                    )
+#ifdef OMPPROFILE
+       !$ ompProfileTimeWaitEnd=OMP_Get_WTime()
+       !$ ompProfileTimeWaitEnd=ompProfileTimeWaitEnd-ompProfileTimeWaitStart
+       !$omp atomic
+       !$ self%waitTimeRead =self%waitTimeRead +ompProfileTimeWaitEnd
+#endif
     end if
     return
   end subroutine eventHookLock
@@ -242,14 +222,15 @@ contains
     use    :: Galacticus_Error, only : Galacticus_Error_Report
     !$ use :: OMP_Lib         , only : OMP_Get_Ancestor_Thread_Num, OMP_Get_Level
     implicit none
-    class    (eventHookUnspecified), intent(inout)                         :: self
-    class    (*                   ), intent(in   ), target                 :: object_
-    integer                        , intent(in   ), optional               :: openMPThreadBinding
-    character(len=*               ), intent(in   ), optional               :: label
-    class    (dependency          ), intent(in   ), optional, dimension(:) :: dependencies
-    procedure(                    )                                        :: function_
-    class    (hook                )                         , pointer      :: hook_
-     !# <optionalArgument name="openMPThreadBinding" defaultsTo="openMPThreadBindingNone" />
+    class     (eventHookUnspecified), intent(inout)                         :: self
+    class     (*                   ), intent(in   ), target                 :: object_
+    integer                         , intent(in   ), optional               :: openMPThreadBinding
+    character (len=*               ), intent(in   ), optional               :: label
+    class     (dependency          ), intent(in   ), optional, dimension(:) :: dependencies
+    procedure (                    )                                        :: function_
+    class     (hook                )                         , pointer      :: hook_
+    !$ integer                                                              :: i
+    !# <optionalArgument name="openMPThreadBinding" defaultsTo="openMPThreadBindingNone" />
 
     ! Lock the object.
     !$ if (.not.self%initialized_) call Galacticus_Error_Report('event has not been initialized'//{introspection:location})
@@ -519,5 +500,9 @@ contains
     self%regEx_=regEx(label)
     return
   end function dependencyRegExConstructor
+
+  !# <hdfPreCloseTask>
+  !#  <unitName>eventsHooksWaitTimes</unitName>
+  !# </hdfPreCloseTask>
 
 end module Events_Hooks

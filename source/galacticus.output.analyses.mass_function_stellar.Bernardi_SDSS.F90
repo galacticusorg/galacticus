@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -68,8 +68,6 @@ contains
     !#   <variable>randomErrorMinimum</variable>
     !#   <defaultValue>0.07d0</defaultValue>
     !#   <description>The minimum random error for \cite{bernardi_massive_2013} SDSS stellar masses.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>randomErrorMaximum</name>
@@ -77,8 +75,6 @@ contains
     !#   <variable>randomErrorMaximum</variable>
     !#   <defaultValue>0.07d0</defaultValue>
     !#   <description>The minimum random error for \cite{bernardi_massive_2013} SDSS stellar masses.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>randomErrorPolynomialCoefficient</name>
@@ -86,8 +82,6 @@ contains
     !#   <variable>randomErrorPolynomialCoefficient</variable>
     !#   <defaultValue>[0.07d0]</defaultValue>
     !#   <description>The coefficients of the random error polynomial for \cite{bernardi_massive_2013} SDSS stellar masses.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>systematicErrorPolynomialCoefficient</name>
@@ -95,8 +89,6 @@ contains
     !#   <variable>systematicErrorPolynomialCoefficient</variable>
     !#   <defaultValue>[0.0d0]</defaultValue>
     !#   <description>The coefficients of the systematic error polynomial for \cite{bernardi_massive_2013} SDSS stellar masses.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>sizeSourceLensing</name>
@@ -104,8 +96,6 @@ contains
     !#   <variable>sizeSourceLensing</variable>
     !#   <defaultValue>2.0d-3</defaultValue>
     !#   <description>The characteristic source size for gravitational lensing calculations.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>covarianceBinomialBinsPerDecade</name>
@@ -113,8 +103,6 @@ contains
     !#   <variable>covarianceBinomialBinsPerDecade</variable>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number of bins per decade of halo mass to use when constructing \cite{bernardi_massive_2013} SDSS stellar mass function covariance matrices for main branch galaxies.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>covarianceBinomialMassHaloMinimum</name>
@@ -122,8 +110,6 @@ contains
     !#   <variable>covarianceBinomialMassHaloMinimum</variable>
     !#   <defaultValue>1.0d8</defaultValue>
     !#   <description>The minimum halo mass to consider when constructing \cite{bernardi_massive_2013} SDSS stellar mass function covariance matrices for main branch galaxies.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>covarianceBinomialMassHaloMaximum</name>
@@ -131,8 +117,6 @@ contains
     !#   <variable>covarianceBinomialMassHaloMaximum</variable>
     !#   <defaultValue>1.0d16</defaultValue>
     !#   <description>The maximum halo mass to consider when constructing \cite{bernardi_massive_2013} SDSS stellar mass function covariance matrices for main branch galaxies.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
     !# <objectBuilder class="outputTimes"          name="outputTimes_"          source="parameters"/>
@@ -159,7 +143,7 @@ contains
     implicit none
     type            (outputAnalysisMassFunctionStellarBernardi2013SDSS  )                              :: self
     class           (cosmologyFunctionsClass                            ), intent(in   ), target       :: cosmologyFunctions_
-    class           (outputTimesClass                                   ), intent(in   ), target       :: outputTimes_
+    class           (outputTimesClass                                   ), intent(inout), target       :: outputTimes_
     class           (gravitationalLensingClass                          ), intent(in   ), target       :: gravitationalLensing_
     double precision                                                     , intent(in   )               :: randomErrorMinimum                                         , randomErrorMaximum                  , &
          &                                                                                                sizeSourceLensing

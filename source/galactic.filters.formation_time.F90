@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -55,8 +55,6 @@ contains
     !#   <source>parameters</source>
     !#   <variable>timeRecent</variable>
     !#   <description>The parameter $\Delta t$ (in units of Gyr) appearing in the formation time galactic filter class.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=galacticFilterFormationTime(timeRecent)
     !# <inputParametersValidate source="parameters"/>
@@ -77,10 +75,10 @@ contains
     !% Implement a filter which rejects halos that formed too recently.
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentFormationTime, treeNode
     implicit none
-    class(galacticFilterFormationTime), intent(inout) :: self
-    type (treeNode                   ), intent(inout) :: node
-    class(nodeComponentBasic         ), pointer       :: basic
-    class(nodeComponentFormationTime ), pointer       :: formationTime
+    class(galacticFilterFormationTime), intent(inout)         :: self
+    type (treeNode                   ), intent(inout), target :: node
+    class(nodeComponentBasic         ), pointer               :: basic
+    class(nodeComponentFormationTime ), pointer               :: formationTime
 
     basic               =>   node         %basic        ()
     formationTime       =>   node         %formationTime()

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -25,15 +25,16 @@
 
   !# <mergerTreeOperator name="mergerTreeOperatorMassAccretionHistory">
   !#  <description>
-  !#   A merger tree operator which outputs mass accretion histories. Histories are written into the \glc\ output file in a group
-  !#   with name given by {\normalfont \ttfamily [outputGroupName]}. Within that group, each merger tree has its own group named
-  !#   {\normalfont \ttfamily mergerTree\textless\ N\textgreater} where {\normalfont \ttfamily \textless\ N\textgreater} is the
-  !#   tree index. Within each such merger tree group datasets giving the node index (``{\normalfont \ttfamily nodeIndex}''), time
-  !#   (``{\normalfont \ttfamily nodeTime}''), basic mass (``{\normalfont \ttfamily nodeMass}''), expansion factor (``{\normalfont
-  !#   \ttfamily nodeExpansionFactor}'') are written. Optionally, datasets giving the spin parameter (``{\normalfont \ttfamily
-  !#   nodeSpin}'') and its vector components (``{\normalfont \ttfamily nodeSpinVector}'') are included if {\normalfont \ttfamily
+  !#   A merger tree operator class which outputs mass accretion histories (i.e. the mass of the \gls{node} on the primary branch
+  !#   as a function of time). Histories are written into the \glc\ output file in a group with name given by {\normalfont
+  !#   \ttfamily [outputGroupName]}. Within that group, each merger tree has its own group named {\normalfont \ttfamily
+  !#   mergerTree\textless\ N\textgreater} where {\normalfont \ttfamily \textless\ N\textgreater} is the tree index. Within each
+  !#   such merger tree group datasets giving the node index (``{\normalfont \ttfamily nodeIndex}''), time (``{\normalfont
+  !#   \ttfamily nodeTime}''), basic mass (``{\normalfont \ttfamily nodeMass}''), expansion factor (``{\normalfont \ttfamily
+  !#   nodeExpansionFactor}'') are written. Optionally, datasets giving the spin parameter (``{\normalfont \ttfamily nodeSpin}'')
+  !#   and its vector components (``{\normalfont \ttfamily nodeSpinVector}'') are included if {\normalfont \ttfamily
   !#   [includeSpin]} and {\normalfont \ttfamily [includeSpinVector]} respectively are set to {\normalfont \ttfamily true}.
-  !# </description>
+  !#  </description>
   !# </mergerTreeOperator>
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorMassAccretionHistory
      !% A merger tree operator class which outputs mass accretion histories.
@@ -71,27 +72,18 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>var_str('massAccretionHistories')</defaultValue>
     !#   <description>The name of the \gls{hdf5} group to output mass accretion histories to.</description>
-    !#   <type>string</type>
-    !#   <cardinality>1</cardinality>
-    !#   <group>output</group>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>includeSpin</name>
     !#   <source>parameters</source>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>If true, include the spin of the halo in the output.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>1</cardinality>
-    !#   <group>output</group>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>includeSpinVector</name>
     !#   <source>parameters</source>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>If true, include the spin vector of the halo in the output.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>1</cardinality>
-    !#   <group>output</group>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     self=mergerTreeOperatorMassAccretionHistory(char(outputGroupName),includeSpin,includeSpinVector,cosmologyFunctions_)
@@ -145,6 +137,7 @@ contains
 
   subroutine massAccretionHistoryOperatePreEvolution(self,tree)
     !% Output the mass accretion history for a merger tree.
+    use            :: Display                         , only : displayGreen           , displayReset
     use            :: Galacticus_Error                , only : Galacticus_Error_Report
     use            :: Galacticus_HDF5                 , only : galacticusOutputFile
     use            :: Galacticus_Nodes                , only : mergerTree             , nodeComponentBasic, nodeComponentSpin, treeNode
@@ -214,7 +207,7 @@ contains
        groupName='mergerTree'
        groupName=groupName//treeCurrent%index
        call hdf5Access%set()
-       if (self%outputGroup%hasGroup(char(groupName))) call Galacticus_Error_Report('duplicate tree index detected - mass accretion history can not be output'//char(10)//{introspection:location}//'  HELP: This can happen if reading merger trees which contain multiple root nodes from file. To avoid this problem, force tree indices to be reset to the index of the root node by adding the following to your input parameter file:'//char(10)//'  <mergerTreeReadTreeIndexToRootNodeIndex value="true" />>')
+       if (self%outputGroup%hasGroup(char(groupName))) call Galacticus_Error_Report('duplicate tree index detected - mass accretion history can not be output'//char(10)//{introspection:location}//displayGreen()//'  HELP:'//displayReset()//' This can happen if reading merger trees which contain multiple root nodes from file. To avoid this problem, force tree indices to be reset to the index of the root node by adding the following to your input parameter file:'//char(10)//'  <mergerTreeReadTreeIndexToRootNodeIndex value="true" />>')
        treeGroup=self%outputGroup%openGroup(char(groupName),'Mass accretion history for main branch of merger tree.')
        call                             treeGroup       %writeDataset  (nodeIndex          ,'nodeIndex'          ,'Index of the node.'                                            )
        call                             treeGroup       %writeDataset  (nodeTime           ,'nodeTime'           ,'Time at node [Gyr].'          ,datasetReturned=accretionDataset)

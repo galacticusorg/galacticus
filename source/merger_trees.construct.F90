@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -28,13 +28,17 @@ module Merger_Tree_Construction
   !# <functionClass>
   !#  <name>mergerTreeConstructor</name>
   !#  <descriptiveName>Merger Tree Constructors</descriptiveName>
-  !#  <description>Class providing merger tree constructors.</description>
+  !#  <description>
+  !#   Class providing merger tree constructors. Here, ``construct'' means any process of creating a representation of a merger
+  !#   tree within \glc.
+  !#  </description>
   !#  <default>build</default>
   !#  <method name="construct" >
   !#   <description>Construct the merger tree corresponding to the given {\normalfont \ttfamily treeNumber}.</description>
   !#   <type>type(mergerTree), pointer</type>
   !#   <pass>yes</pass>
   !#   <argument>integer(c_size_t), intent(in   ) :: treeNumber</argument>
+  !#   <argument>logical          , intent(  out) :: finished</argument>
   !#  </method>
   !# </functionClass>
 

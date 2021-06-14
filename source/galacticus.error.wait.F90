@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -38,11 +38,9 @@ contains
     ! Get the verbosity level parameter.
     !# <inputParameter>
     !#   <name>errorWaitTime</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>86400</defaultValue>
     !#   <description>The time, in seconds, for which \glc\ should sleep after a fatal error when running under MPI.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     call Galacticus_Error_Wait_Set(errorWaitTime)
     return

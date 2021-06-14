@@ -85,11 +85,11 @@ while ( my $fileName = readdir($testSuite) ) {
     	my $xml = new XML::Simple();
     	my $parameters = $xml->XMLin($fileName);
     	if ( $options{'calibrate'} eq "yes" ) {
-    	    $parameters->{'galacticusOutputFileName'}->{'value'} = "testSuite/outputs/test-model-integration/".$modelName.$i."/galacticus.hdf5";
-    	    $parameters->{'randomSeed'              }->{'value'} = $randomSeed+$i;
+    	    $parameters->{'galacticusOutputFileName'}          ->{'value'} = "testSuite/outputs/test-model-integration/".$modelName.$i."/galacticus.hdf5";
+    	    $parameters->{'randomNumberGenerator'   }->{'seed'}->{'value'} = $randomSeed+$i;
     	} else {
-    	    $parameters->{'galacticusOutputFileName'}->{'value'} = "testSuite/outputs/test-model-integration/".$modelName   ."/galacticus.hdf5";
-    	    $parameters->{'randomSeed'              }->{'value'} = $randomSeed;
+    	    $parameters->{'galacticusOutputFileName'}          ->{'value'} = "testSuite/outputs/test-model-integration/".$modelName   ."/galacticus.hdf5";
+    	    $parameters->{'randomNumberGenerator'   }->{'seed'}->{'value'} = $randomSeed+$i;
     	}
     	open(my $parameterFile,">outputs/test-model-integration/".$modelName.($options{'calibrate'} eq "yes" ? $i : "")."/parameters.xml");
     	print $parameterFile $xml->XMLout($parameters, RootName => "parameters");

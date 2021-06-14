@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -44,7 +44,7 @@ contains
     implicit none
     type(operatorUnaryInverse)                :: self
     type(inputParameters     ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=operatorUnaryInverse()
     return
@@ -55,7 +55,7 @@ contains
     implicit none
     class           (operatorUnaryInverse), intent(inout) :: self
     double precision                      , intent(in   ) :: x
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     inverseOperate=1.0d0/x
     return
@@ -66,7 +66,7 @@ contains
     implicit none
     class           (operatorUnaryInverse), intent(inout) :: self
     double precision                       , intent(in   ) :: f
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     inverseUnoperate=1.0d0/f
     return

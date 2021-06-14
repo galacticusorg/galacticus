@@ -5,56 +5,77 @@
   <version>0.9.4</version>
 
   <!-- Task -->
-  <taskMethod value="haloMassFunction">
+  <task value="haloMassFunction">
     <haloMassMinimum value="5.61018340369020e08"/>
     <haloMassMaximum value="8.91236460596131e15"/>
-    <pointsPerDecade value="10"                 />
-  </taskMethod>
+    <pointsPerDecade value="10"/>
+  </task>
   <galacticusOutputFileName value="testSuite/outputs/constrainHaloMassFunction.hdf5"/>
-  
+
   <!-- Cosmological parameters and options -->
-  <cosmologyFunctionsMethod value="matterLambda"/>
-  <cosmologyParametersMethod value="simple">
-    <HubbleConstant  value="67.770000"/>
-    <OmegaMatter     value=" 0.307115"/>
+  <cosmologyFunctions value="matterLambda"/>
+  <cosmologyParameters value="simple">
+    <HubbleConstant value="67.770000"/>
+    <OmegaMatter value=" 0.307115"/>
     <OmegaDarkEnergy value=" 0.692885"/>
-    <OmegaBaryon     value=" 0.048206"/>
-    <temperatureCMB  value=" 2.725480"/>
-  </cosmologyParametersMethod>
+    <OmegaBaryon value=" 0.048206"/>
+    <temperatureCMB value=" 2.725480"/>
+  </cosmologyParameters>
 
   <!-- Power spectrum options -->
-  <cosmologicalMassVarianceMethod value="filteredPower">
-    <sigma_8         value="0.8228"/>
-    <tolerance       value="4.0e-4"/>
+  <cosmologicalMassVariance value="filteredPower">
+    <sigma_8 value="0.8228"/>
+    <tolerance value="4.0e-4"/>
     <toleranceTopHat value="2.0e-4"/>
-  </cosmologicalMassVarianceMethod>
-  <transferFunctionMethod value="CAMB"/>
-  <powerSpectrumPrimordialMethod value="powerLaw">
-    <index               value="0.960"/>
+  </cosmologicalMassVariance>
+  <transferFunction value="CAMB"/>
+  <powerSpectrumPrimordial value="powerLaw">
+    <index value="0.960"/>
     <wavenumberReference value="1.000"/>
-    <running             value="0.000"/>
-  </powerSpectrumPrimordialMethod>
-  <powerSpectrumPrimordialTransferredMethod value="simple"/>
+    <running value="0.000"/>
+  </powerSpectrumPrimordial>
+  <powerSpectrumPrimordialTransferred value="simple"/>
 
   <!-- Structure formation options -->
-  <linearGrowthMethod          value="collisionlessMatter"                       />
-  <criticalOverdensityMethod   value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
-  <virialDensityContrastMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <linearGrowth value="collisionlessMatter"/>
+  <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
 
   <!-- Halo mass function -->
-  <nbodyHaloMassErrorMethod value="trenti2010">
-    <massParticle                value="2.2281245e9"/>
-    <correlationNormalization    value="1.0000000e0"/>
-    <correlationMassExponent     value="1.0000000e0"/>
+  <nbodyHaloMassError value="trenti2010">
+    <massParticle value="2.2281245e9"/>
+    <correlationNormalization value="1.0000000e0"/>
+    <correlationMassExponent value="1.0000000e0"/>
     <correlationRedshiftExponent value="0.0000000e0"/>
-  </nbodyHaloMassErrorMethod>
-  <haloMassFunctionMethod value="errorConvolved">
-    <errorFractionalMaximum  value="1.0"        />
-    <haloMassFunctionMethod  value="shethTormen" >
-      <a             value="+0.8745"/> <!-- Best fit values from Benson (2017; MNRAS; 467; 3454). -->
+  </nbodyHaloMassError>
+  <haloMassFunction value="errorConvolved">
+    <errorFractionalMaximum value="1.0"/>
+    <haloMassFunction value="shethTormen">
+      <a value="+0.8745"/>
+      <!-- Best fit values from Benson (2017; MNRAS; 467; 3454). -->
       <normalization value="+0.3318"/>
-      <p             value="-0.0306"/>
-    </haloMassFunctionMethod>
-  </haloMassFunctionMethod>
- 
+      <p value="-0.0306"/>
+    </haloMassFunction>
+  </haloMassFunction>
+
+  <nodeOperator value="multi"><!--Stellar feedback outflows-->
+    <nodeOperator value="stellarFeedbackDisks">
+      <stellarFeedbackOutflows value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflows value="powerLaw">
+          <velocityCharacteristic value="250.0"/>
+          <exponent value="3.5"/>
+        </stellarFeedbackOutflows>
+      </stellarFeedbackOutflows>
+    </nodeOperator>
+    <nodeOperator value="stellarFeedbackSpheroids">
+      <stellarFeedbackOutflows value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflows value="powerLaw">
+          <velocityCharacteristic value="250.0"/>
+          <exponent value="3.5"/>
+        </stellarFeedbackOutflows>
+      </stellarFeedbackOutflows>
+    </nodeOperator>
+  </nodeOperator>
 </parameters>

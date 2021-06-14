@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -46,9 +46,9 @@
      type            (darkMatterProfileDMONFW      ), pointer :: darkMatterProfileDMODefinition_  => null()
      double precision                                         :: A
    contains
-     final     ::                                correa2015Destructor
-     procedure :: concentration               => correa2015Concentration
-     procedure :: densityContrastDefinition   => correa2015DensityContrastDefinition
+     final     ::                                   correa2015Destructor
+     procedure :: concentration                  => correa2015Concentration
+     procedure :: densityContrastDefinition      => correa2015DensityContrastDefinition
      procedure :: darkMatterProfileDMODefinition => correa2015DarkMatterProfileDefinition
   end type darkMatterProfileConcentrationCorrea2015
 
@@ -78,8 +78,6 @@ contains
     !#   <defaultValue>887.0d0</defaultValue>
     !#   <defaultSource>\cite{correa_accretion_2015}</defaultSource>
     !#   <description>The parameter $A$ appearin in eqn.~(17) of \cite{correa_accretion_2015}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
@@ -111,10 +109,35 @@ contains
     allocate(self%virialDensityContrastDefinition_)
     allocate(self%darkMatterProfileDMODefinition_ )
     allocate(     darkMatterHaloScaleDefinition_  )
-    !# <referenceConstruct owner="self" object="virialDensityContrastDefinition_" constructor="virialDensityContrastFixed                        (200.0d0,fixedDensityTypeCritical,2.0d0,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
-    !# <referenceConstruct              object="darkMatterHaloScaleDefinition_"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,self%virialDensityContrastDefinition_ )"/>
-    !# <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_"  constructor="darkMatterProfileDMONFW                           (darkMatterHaloScaleDefinition_                                                           )"/>
-    !# <objectDestructor                name  ="darkMatterHaloScaleDefinition_"                                                                                                                                                              />
+    !# <referenceConstruct owner="self" object="virialDensityContrastDefinition_">
+    !#  <constructor>
+    !#   virialDensityContrastFixed                        (                                                                            &amp;
+    !#    &amp;                                             densityContrastValue                =200.0d0                              , &amp;
+    !#    &amp;                                             densityType                         =fixedDensityTypeCritical             , &amp;
+    !#    &amp;                                             turnAroundOverVirialRadius          =2.0d0                                , &amp;
+    !#    &amp;                                             cosmologyParameters_                =self%cosmologyParameters_            , &amp;
+    !#    &amp;                                             cosmologyFunctions_                 =self%cosmologyFunctions_               &amp;
+    !#    &amp;                                            )
+    !#  </constructor>
+    !# </referenceConstruct>
+    !# <referenceConstruct              object="darkMatterHaloScaleDefinition_"  >
+    !#  <constructor>
+    !#   darkMatterHaloScaleVirialDensityContrastDefinition(                                                                            &amp;
+    !#    &amp;                                             cosmologyParameters_                =self%cosmologyParameters_            , &amp;
+    !#    &amp;                                             cosmologyFunctions_                 =self%cosmologyFunctions_             , &amp;
+    !#    &amp;                                             virialDensityContrast_              =self%virialDensityContrastDefinition_  &amp;
+    !#    &amp;                                            )
+    !#  </constructor>
+    !# </referenceConstruct>
+    !# <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_" >
+    !#  <constructor>
+    !#   darkMatterProfileDMONFW                           (                                                                            &amp;
+    !#    &amp;                                             velocityDispersionUseSeriesExpansion=.true.                               , &amp;
+    !#    &amp;                                             darkMatterHaloScale_                =darkMatterHaloScaleDefinition_         &amp;
+    !#    &amp;                                            )
+    !#  </constructor>
+    !# </referenceConstruct>
+    !# <objectDestructor                name  ="darkMatterHaloScaleDefinition_" />
     return
   end function correa2015ConstructorInternal
 
@@ -145,10 +168,11 @@ contains
     double precision                                          , parameter              :: toleranceRelative=1.0d-6
     double precision                                          , parameter              :: toleranceAbsolute=0.0d+0
     type            (rootFinder                              ), save                   :: finder
+    logical                                                   , save                   :: finderConstructed=.false.
     !$omp threadprivate(finder)
-    double precision                                                                   :: mass                    , time           , &
-         &                                                                                aTilde                  , bTilde         , &
-         &                                                                                redshift                , expansionFactor
+    double precision                                                                   :: mass                     , time           , &
+         &                                                                                aTilde                   , bTilde         , &
+         &                                                                                redshift                 , expansionFactor
 
     ! Get properties of the node.
     basic => node %basic()
@@ -160,14 +184,16 @@ contains
     ! Find the a~ and b~ parameters.
     call Dark_Matter_Halo_Correa2015_Fit_Parameters(mass,expansionFactor,self%cosmologyFunctions_,self%linearGrowth_,self%cosmologicalMassVariance_,aTilde,bTilde)
     ! Solve for the redshift corresponding to this mass.
-    if (.not.finder%isInitialized()) then
-       call finder%rootFunction(concentrationSolver                  )
-       call finder%tolerance   (toleranceAbsolute  ,toleranceRelative)
-       call finder%rangeExpand (                                                   &
-            &                   rangeExpandDownward=0.5d0                        , &
-            &                   rangeExpandUpward  =2.0d0                        , &
-            &                   rangeExpandType    =rangeExpandMultiplicative      &
-            &                  )
+    if (.not.finderConstructed) then
+       finder=rootFinder(                                               &
+            &            rootFunction       =concentrationSolver      , &
+            &            toleranceAbsolute  =toleranceAbsolute        , &
+            &            toleranceRelative  =toleranceRelative        , &
+            &            rangeExpandDownward=0.5d0                    , &
+            &            rangeExpandUpward  =2.0d0                    , &
+            &            rangeExpandType    =rangeExpandMultiplicative  &
+            &           )
+       finderConstructed=.true.
     end if
     correa2015Concentration=finder%find(rootGuess=6.0d0)
     return
@@ -235,7 +261,7 @@ contains
     implicit none
     class(virialDensityContrastClass              ), pointer       :: correa2015DensityContrastDefinition
     class(darkMatterProfileConcentrationCorrea2015), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
    correa2015DensityContrastDefinition => self%virialDensityContrastDefinition_
     return

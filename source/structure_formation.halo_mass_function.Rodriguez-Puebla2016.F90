@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -108,7 +108,7 @@ contains
     double precision                                     , parameter     :: chi0    =+0.144d0,      &
          &                                                                  chi1    =-0.011d0,      &
          &                                                                  chi2    =+0.003d0
-    !GCC$ attributes unused :: mass
+    !$GLC attributes unused :: mass
 
     redshift                        =self%cosmologyFunctions_%redshiftFromExpansionFactor(      &
          &                           self%cosmologyFunctions_%expansionFactor             (     &
@@ -130,7 +130,7 @@ contains
     double precision                                     , parameter     :: chi0    =+1.351d0,      &
          &                                                                  chi1    =+0.068d0,      &
          &                                                                  chi2    =+0.006d0
-    !GCC$ attributes unused :: mass
+    !$GLC attributes unused :: mass
 
     redshift                        =self%cosmologyFunctions_%redshiftFromExpansionFactor(      &
          &                           self%cosmologyFunctions_%expansionFactor             (     &
@@ -153,7 +153,7 @@ contains
     double precision                                     , parameter     :: chi0    =+3.113d0,      &
          &                                                                  chi1    =-0.077d0,      &
          &                                                                  chi2    =-0.013d0
-    !GCC$ attributes unused :: mass
+    !$GLC attributes unused :: mass
 
     redshift                        =self%cosmologyFunctions_%redshiftFromExpansionFactor(      &
          &                           self%cosmologyFunctions_%expansionFactor             (     &
@@ -176,7 +176,7 @@ contains
     double precision                                     , parameter     :: chi0    =+1.187d0,      &
          &                                                                  chi1    =+0.000d0,      &
          &                                                                  chi2    =+0.000d0
-    !GCC$ attributes unused :: mass
+    !$GLC attributes unused :: mass
 
     redshift                        =self%cosmologyFunctions_%redshiftFromExpansionFactor(      &
          &                           self%cosmologyFunctions_%expansionFactor             (     &

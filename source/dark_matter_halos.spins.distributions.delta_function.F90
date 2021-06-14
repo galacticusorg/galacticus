@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +21,11 @@
   !% $\delta$-function distribution.
 
   !# <haloSpinDistribution name="haloSpinDistributionDeltaFunction">
-  !#  <description>A $\delta$-function halo spin distribution.</description>
+  !#  <description>
+  !#   A halo spin distribution class in which the spin is drawn from a $\delta$-function distribution, $P(\lambda) =
+  !#   \delta(\lambda-\lambda_0)$, where $\lambda_0=${\normalfont \ttfamily [spin]}, i.e. a fixed value of spin equal to
+  !#   $\lambda_0$ is returned.
+  !#  </description>
   !# </haloSpinDistribution>
   type, extends(haloSpinDistributionClass) :: haloSpinDistributionDeltaFunction
      !% A dark matter halo spin distribution concentration class which assumes a
@@ -59,8 +63,6 @@ contains
     !#   <defaultValue>0.03687d0</defaultValue>
     !#   <defaultSource>\citep{bett_spin_2007}</defaultSource>
     !#   <description>The fixed value of spin in a $\delta$-function spin distribution.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParametersValidate source="parameters"/>
     return
@@ -82,7 +84,7 @@ contains
     !% distribution class.
     implicit none
     type(haloSpinDistributionDeltaFunction), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Nothing to do.
     return
@@ -94,7 +96,7 @@ contains
     implicit none
     class(haloSpinDistributionDeltaFunction), intent(inout) :: self
     type (treeNode                         ), intent(inout) :: node
-    !GCC$ attributes unused :: node
+    !$GLC attributes unused :: node
 
     deltaFunctionSample=self%spin
     return
@@ -106,7 +108,7 @@ contains
     implicit none
     class(haloSpinDistributionDeltaFunction), intent(inout) :: self
     type (treeNode                         ), intent(inout) :: node
-    !GCC$ attributes unused :: self, node
+    !$GLC attributes unused :: self, node
 
     deltaFunctionDistribution=0.0d0
     call Galacticus_Error_Report('distribution function can not be evaluated'//{introspection:location})

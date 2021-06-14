@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -64,11 +64,9 @@ contains
 
     !# <inputParameter>
     !#   <name>name</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The name of the parameter.</description>
     !#   <defaultValue>var_str('')</defaultValue>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <objectBuilder class="distributionFunction1D" parameterName="distributionFunction1DPrior"     name="prior"     source="parameters"/>
     !# <objectBuilder class="distributionFunction1D" parameterName="distributionFunction1DPerturber" name="perturber" source="parameters"/>

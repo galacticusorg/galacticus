@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,7 +26,7 @@
      !% A peak-background split critical overdensity class.
      private
      class(criticalOverdensityClass), pointer :: criticalOverdensity_ => null()
-     class(haloEnvironmentClass    ), pointer :: haloEnvironment_ => null()
+     class(haloEnvironmentClass    ), pointer :: haloEnvironment_     => null()
     contains
      final     ::                    peakBackgroundSplitDestructor
      procedure :: value           => peakBackgroundSplitValue
@@ -159,7 +159,7 @@ contains
     !% Return whether the critical overdensity is node dependent.
     implicit none
     class(criticalOverdensityPeakBackgroundSplit), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     peakBackgroundSplitIsNodeDependent=.true.
     return

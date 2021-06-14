@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +22,28 @@
   use :: Posterior_Sampling_Prop_Size_Temp_Exp, only : posteriorSampleDffrntlEvltnPrpslSzTmpExpClass
 
   !# <posteriorSampleSimulation name="posteriorSampleSimulationTemperedDffrntlEvltn">
-  !#  <description>A posterior sampling simulation class which implements a tempered differential evolution algorithm.</description>
+  !#  <description>
+  !#   This class extends the {\normalfont \ttfamily differentialEvolution} option to include tempering during which the likelihood
+  !#   function is heated up and cooled down to allow chains to more easily walk through the likelihood landscape. In addition to the
+  !#   options for the {\normalfont \ttfamily differentialEvolution} algorithm, the details of the algorithm are controlled by the
+  !#   following sub-parameters:
+  !#   \begin{description}
+  !#   \item[{\normalfont \ttfamily [untemperedStepCount]}] The number of untempered (i.e. $T=1$) steps to take between tempering cycles.
+  !#   \item[{\normalfont \ttfamily [temperatureMaximum]}] The maximum temperature to use when tempering.
+  !#   \item[{\normalfont \ttfamily [temperedLevels]}] The number of tempered levels to use.
+  !#   \item[{\normalfont \ttfamily [stepsPerLevel]}] The number of differential evolution steps to take at each tempering level.
+  !#   \item[{\normalfont \ttfamily [logFlushCount]}] The number of steps after which the log file will be flushed to disk.
+  !#   \end{description}
+  !#   
+  !#   In each tempering cycle, the temperature is raised through levels $1$\ldots$N$ (where $N=${\normalfont \ttfamily temperedLevels}),
+  !#   and then back down through levels $N-1$\ldots$1$. The temperature at level $i$ is given by:
+  !#   \begin{equation}
+  !#   \log T_i = {i \over N} \log T_\mathrm{max},
+  !#   \end{equation}
+  !#   where $T_\mathrm{max}=${\normalfont \ttfamily temperatureMaximum}. During tempered steps, the $\gamma$ parameter of the
+  !#   differential evolution algorithm is increased by a factor $T^\alpha$, where $\alpha$ is provided by the {\normalfont \ttfamily
+  !#   proposalSizeTemperatureExponent} class. A value of $\alpha=1/2$ is optimal for a Gaussian likelihood.
+  !#  </description>
   !# </posteriorSampleSimulation>
   type, extends(posteriorSampleSimulationDifferentialEvolution) :: posteriorSampleSimulationTemperedDffrntlEvltn
      !% Implementation of a posterior sampling simulation class which implements a tempered differential evolution algorithm.
@@ -35,21 +56,10 @@
      double precision                                               , allocatable, dimension(:) :: temperatures
      class           (posteriorSampleStateClass                    ), allocatable, dimension(:) :: temperedStates
    contains
-     !@ <objectMethods>
-     !@   <object>posteriorSampleSimulationTemperedDffrntlEvltn</object>
-     !@   <objectMethod>
-     !@     <method>initialize</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless class(posteriorSampleDffrntlEvltnPrpslSzTmpExpClass)\textgreater} posteriorSampleDffrntlEvltnPrpslSzTmpExp_\argin</arguments>
-     !@     <description>Return the current tempering level.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>level</method>
-     !@     <type>\intzero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return the current tempering level.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return the current tempering level." method="initialize" />
+     !#   <method description="Return the current tempering level." method="level" />
+     !# </methods>
      final     ::                   temperedDifferentialEvolutionDestructor
      procedure :: logging        => temperedDifferentialEvolutionLogging
      procedure :: acceptProposal => temperedDifferentialEvolutionAcceptProposal
@@ -83,34 +93,26 @@ contains
     self%posteriorSampleSimulationDifferentialEvolution=posteriorSampleSimulationDifferentialEvolution(parameters)
     !# <inputParameter>
     !#   <name>untemperedStepCount</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number of untempered steps to take.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>stepsPerLevel</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number of steps to take at each tempering level.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>temperingLevelCount</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number tempering levels to use.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>temperatureMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The maximum temperature to reach.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <objectBuilder class="posteriorSampleDffrntlEvltnPrpslSzTmpExp" name="posteriorSampleDffrntlEvltnPrpslSzTmpExp_" source="parameters"/>
     call self%initialize(posteriorSampleDffrntlEvltnPrpslSzTmpExp_,temperingLevelCount,untemperedStepCount,stepsPerLevel,temperatureMaximum)
@@ -202,8 +204,8 @@ contains
 
   subroutine temperedDifferentialEvolutionUpdate(self,stateVector)
     !% Update the differential evolution simulator state.
-    use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent, Galacticus_Verbosity_Level, &
-          &                           verbosityInfo
+    use :: Display           , only : displayIndent     , displayMessage, displayUnindent, displayVerbosity, &
+          &                           verbosityLevelInfo
     use :: ISO_Varying_String, only : varying_string
     use :: MPI_Utilities     , only : mpiSelf
     use :: String_Handling   , only : operator(//)
@@ -251,19 +253,19 @@ contains
     end if
     ! Check for change in level.
     if (levelChanged) then
-       if (mpiSelf%isMaster().and.Galacticus_Verbosity_Level() >= verbosityInfo) then
+       if (mpiSelf%isMaster().and.displayVerbosity() >= verbosityLevelInfo) then
           write (label,'(f8.1)') self%temperature()
           message='Tempering state: level='
           message=message//self%level()//'; temperature='//trim(label)
-          call Galacticus_Display_Message(message)
+          call displayMessage(message)
        end if
        if (self%temperingLevelMonotonic == 0) then
           ! We've just returned to the untempered level. Report on acceptance rates in tempered levels.
-          if (Galacticus_Verbosity_Level() >= verbosityInfo) then
+          if (displayVerbosity() >= verbosityLevelInfo) then
              if (mpiSelf%isMaster()) then
-                call Galacticus_Display_Indent('Acceptance rates in tempered levels')
-                call Galacticus_Display_Message('Level Temperature  Gamma  Rate')
-                call Galacticus_Display_Message('------------------------------')
+                call displayIndent('Acceptance rates in tempered levels')
+                call displayMessage('Level Temperature  Gamma  Rate')
+                call displayMessage('------------------------------')
              end if
              ! Store the current tempering level so that we can restore it below.
              temperingLevelSaved=self%temperingLevelMonotonic
@@ -275,10 +277,10 @@ contains
                 stepSize       =                self                  %stepSize      (forceAcceptance)
                 if (mpiSelf%isMaster())  then
                    write (label,'(2x,i3,4x,f8.1,1x,f6.3,1x,f5.3)') i,temperature,stepSize,acceptanceRate
-                   call Galacticus_Display_Message(label)
+                   call displayMessage(label)
                 end if
              end do
-             if (mpiSelf%isMaster()) call Galacticus_Display_Unindent('done')
+             if (mpiSelf%isMaster()) call displayUnindent('done')
              ! Restore the tempering level to the original.
              self%temperingLevelMonotonic=temperingLevelSaved
           end if
@@ -344,7 +346,7 @@ contains
     double precision                                               , intent(in   ) :: logPosterior         , logPosteriorProposed         , &
          &                                                                            logLikelihoodVariance, logLikelihoodVarianceProposed
     double precision                                                               :: x
-    !GCC$ attributes unused :: logLikelihoodVariance, logLikelihoodVarianceProposed
+    !$GLC attributes unused :: logLikelihoodVariance, logLikelihoodVarianceProposed
 
     ! Decide whether to take step.
     x=self%randomNumberGenerator_%uniformSample()

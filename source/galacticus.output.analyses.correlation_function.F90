@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -34,7 +34,30 @@
   use               :: Power_Spectra                         , only : powerSpectrum                     , powerSpectrumClass
 
   !# <outputAnalysis name="outputAnalysisCorrelationFunction">
-  !#  <description>A generic two-point correlation function output analysis class.</description>
+  !#  <description>
+  !#   A generic two-point correlation function output analysis class.
+  !# 
+  !#   For constraints corresponding to (possibly, projected) correlation functions, the model expectation is computed using the
+  !#   halo model \cite{cooray_halo_2002}. For each model halo, each galaxy (satellite and central) is assessed to see if it meets
+  !#   the criteria for inclusion in the sample. Where the sample includes mass limits (either just a lower limit, or lower and
+  !#   upper limits) each galaxy is assigned a probability of inclusion in the sample based on its mass and the random error in
+  !#   mass. Thus, each halo is characterized by the probability of having a central galaxy in the sample, $p^\mathrm{(c)}$, and
+  !#   $N$ probabilities, $p_i^\mathrm{(s)}$, of each satellite galaxy being in the sample. We assume binomial statistics for each
+  !#   galaxy's probability of inclusion, and further assume that these probabilities are uncorrelated. Therefore, the
+  !#   contribution of the halo to the one- and two-halo terms of the power spectrum in the halo model are:
+  !#   \begin{equation}
+  !#    \Delta P^\mathrm{1h}(k) = {w \over n_\mathrm{gal}^2} \left[ p^\mathrm{(c)} \sum_{i=1}^N p^\mathrm{(s)} u(k|M) + \sum_{k=0}^N k(k-1) P\left(p_i^\mathrm{(s)},\ldots,p_N^{(s)}\right) u(k|M)^2 \right]
+  !#   \end{equation}
+  !#   and
+  !#   \begin{equation}
+  !#    \Delta \sqrt{P^\mathrm{2h}}(k) = {w \over n_\mathrm{gal}} \sqrt{P^\mathrm{lin}}(k) b(M) u(k|M) \left[ p^\mathrm{(c)} + \sum_{i=1}^N p_i^\mathrm{(s)} \right],
+  !#   \end{equation}
+  !#   respectively, where $w$ is the weight of the halo (i.e. the number of such model halos expected per unit volume), $b(M)$ is
+  !#   the bias of halos of mass $M$, $u(k|M)$ is the Fourier-transform of the halo density profile, and $P_\mathrm{lin}(k)$ is
+  !#   the linear theory power spectrum, and $P(p_1,\ldots,p_N)$ is the Poisson binomial distribution for $N$ events with
+  !#   probabities $p_1,\ldots,p_N$. The contribution of the halo to the galaxy density, $n_\mathrm{gal}$, is simply $\Delta
+  !#   n_\mathrm{gal} = w \left[ p^\mathrm{(c)} + \sum_{i=1}^N p_i^\mathrm{(s)} \right]$.
+  !#  </description>
   !# </outputAnalysis>
   type, extends(outputAnalysisClass) :: outputAnalysisCorrelationFunction
      !% A generic two-point correlation function output analysis class.
@@ -75,21 +98,10 @@
      double precision                                         , allocatable, dimension(:,:  ) :: probabilitySatellite
      integer                                                                                  :: countSatellites
    contains
-     !@ <objectMethods>
-     !@   <object>outputAnalysisCorrelationFunction</object>
-     !@   <objectMethod>
-     !@     <method>accumulateNode</method>
-     !@     <arguments>\doublezero\ mass\argin, \intzero\ massType\argin, \intzero\ indexOutput\argin, \textcolor{red}{\textless type(treeNode)\textgreater} node\arginout</arguments>
-     !@     <type>\void</type>
-     !@     <description>Accumulate a node to the correlation function.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>accumulateHalo</method>
-     !@     <arguments>\intzero\ indexOutput\argin, \textcolor{red}{\textless type(treeNode)\textgreater} node\arginout</arguments>
-     !@     <type>\void</type>
-     !@     <description>Accumulate a halo to the correlation function.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Accumulate a node to the correlation function." method="accumulateNode" />
+     !#   <method description="Accumulate a halo to the correlation function." method="accumulateHalo" />
+     !# </methods>
      final     ::                   correlationFunctionDestructor
      procedure :: analyze        => correlationFunctionAnalyze
      procedure :: finalize       => correlationFunctionFinalize
@@ -144,114 +156,77 @@ contains
     !#   <name>label</name>
     !#   <source>parameters</source>
     !#   <description>A label for the mass function.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>comment</name>
     !#   <source>parameters</source>
     !#   <description>A descriptive comment for the mass function.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>separations</name>
     !#   <source>parameters</source>
     !#   <description>The separations corresponding to bin centers.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massMinima</name>
     !#   <source>parameters</source>
     !#   <description>The minimum mass of each mass sample.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massMaxima</name>
     !#   <source>parameters</source>
     !#   <description>The maximum mass of each mass sample.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massHaloBinsPerDecade</name>
-    !#   <cardinality>0..1</cardinality>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number of bins per decade of halo mass to use when constructing the mass function covariance matrix for main branch galaxies.</description>
-    !#   <group>output</group>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massHaloMinimum</name>
-    !#   <cardinality>0..1</cardinality>
     !#   <defaultValue>1.0d8</defaultValue>
     !#   <description>The minimum halo mass to consider when constructing the mass function covariance matrix for main branch galaxies.</description>
-    !#   <group>output</group>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massHaloMaximum</name>
-    !#   <cardinality>0..1</cardinality>
     !#   <defaultValue>1.0d16</defaultValue>
     !#   <description>The maximum halo mass to consider when constructing the mass function covariance matrix for main branch galaxies.</description>
-    !#   <group>output</group>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>wavenumberCount</name>
-    !#   <cardinality>0..1</cardinality>
     !#   <defaultValue>60_c_size_t</defaultValue>
     !#   <description>The number of bins in wavenumber to use in computing the correlation function.</description>
-    !#   <group>output</group>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>wavenumberMinimum</name>
-    !#   <cardinality>0..1</cardinality>
     !#   <defaultValue>1.0d-3</defaultValue>
     !#   <description>The minimum wavenumber to use when computing the correlation function.</description>
-    !#   <group>output</group>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>wavenumberMaximum</name>
-    !#   <cardinality>0..1</cardinality>
     !#   <defaultValue>1.0d4</defaultValue>
     !#   <description>The maximum wavenumber to use when computing the correlation function.</description>
-    !#   <group>output</group>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>integralConstraint</name>
-    !#   <cardinality>0..1</cardinality>
     !#   <description>The integral constraint for these correlation functions.</description>
-    !#   <group>output</group>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>depthLineOfSight</name>
-    !#   <cardinality>0..1</cardinality>
     !#   <description>The line-of-sight depth over which the correlation function was projected.</description>
-    !#   <group>output</group>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>halfIntegral</name>
-    !#   <cardinality>0..1</cardinality>
     !#   <description>Set to true if the projection integrand should be over line-of-sight depths greater than zero.</description>
-    !#   <group>output</group>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     if (parameters%isPresent('binnedProjectedCorrelationTarget')) then
        if (parameters%isPresent('binnedProjectedCorrelationCovarianceTarget')) then
@@ -260,16 +235,12 @@ contains
           !#   <source>parameters</source>
           !#   <description>The target function for likelihood calculations.</description>
           !#   <variable>binnedProjectedCorrelationTarget1D</variable>
-          !#   <type>real</type>
-          !#   <cardinality>0..1</cardinality>
           !# </inputParameter>
           !# <inputParameter>
           !#   <name>binnedProjectedCorrelationCovarianceTarget</name>
           !#   <source>parameters</source>
           !#   <variable>binnedProjectedCorrelationCovarianceTarget1D</variable>
           !#   <description>The target function covariance for likelihood calculations.</description>
-          !#   <type>real</type>
-          !#   <cardinality>0..1</cardinality>
           !# </inputParameter>
           if (size(binnedProjectedCorrelationCovarianceTarget1D) == size(binnedProjectedCorrelationTarget1D)**2) then
              allocate(binnedProjectedCorrelationTarget          (size(separations                       ),size(massMinima                        )))
@@ -290,8 +261,6 @@ contains
     !#   <source>parameters</source>
     !#   <description>A label for the target dataset in a plot of this analysis.</description>
     !#   <defaultValue>var_str('')</defaultValue>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="galacticFilter"                     name="galacticFilter_"                                                            source="parameters"/>
     !# <objectBuilder class="outputTimes"                        name="outputTimes_"                                                               source="parameters"/>
@@ -923,7 +892,7 @@ contains
 
   subroutine correlationFunctionFinalizeAnalysis(self)
     !% Compute final covariances and normalize.
-    use :: FFTLogs                 , only : FFTLog                             , fftLogForward                  , fftLogSine
+    use :: FFTLogs                 , only : FFTLogSineTransform                , fftLogForward
 #ifdef USEMPI
     use :: MPI_Utilities           , only : mpiSelf
 #endif
@@ -1126,17 +1095,16 @@ contains
     call allocateArray(separation ,[self%wavenumberCount])
     ! Fourier transform the power spectrum to get the correlation function.
     do n=1,self%massCount
-       call FFTLog(                          &
-            &      self%wavenumber         , &
-            &      separation              , &
-            &      +powerSpectrumValue(:,n)  &
-            &      *self%wavenumber          &
-            &      * 4.0d0*Pi                &
-            &      /(2.0d0*Pi)**3          , &
-            &      correlation(:,n)        , &
-            &      fftLogSine              , &
-            &      fftLogForward             &
-            &     )
+       call FFTLogSineTransform(                          &
+            &                    self%wavenumber        , &
+            &                    separation             , &
+            &                   +powerSpectrumValue(:,n)  &
+            &                   *self%wavenumber          &
+            &                   * 4.0d0*Pi                &
+            &                   /(2.0d0*Pi)**3          , &
+            &                    correlation       (:,n), &
+            &                    fftLogForward            &
+            &                  )
        correlation(:,n)=correlation(:,n)/separation
     end do
     ! Compute the covariance of the correlation function.
@@ -1164,28 +1132,26 @@ contains
     do n=1,self%massCount
        do m=1,self%massCount
           do i=1,self%wavenumberCount
-             call FFTlog(                                                                                                           &
-                  &      self%wavenumber                                                                                          , &
-                  &      separation                                                                                               , &
-                  &      powerSpectrumCovariance((n-1)*self%wavenumberCount+i,(m-1)*self%wavenumberCount+1:m*self%wavenumberCount), &
-                  &      covarianceTmp          ((n-1)*self%wavenumberCount+i,(m-1)*self%wavenumberCount+1:m*self%wavenumberCount), &
-                  &      fftLogSine                                                                                               , &
-                  &      fftLogForward                                                                                              &
-                  )
+             call FFTLogSineTransform(                                                                                                           &
+                  &                   self%wavenumber                                                                                          , &
+                  &                   separation                                                                                               , &
+                  &                   powerSpectrumCovariance((n-1)*self%wavenumberCount+i,(m-1)*self%wavenumberCount+1:m*self%wavenumberCount), &
+                  &                   covarianceTmp          ((n-1)*self%wavenumberCount+i,(m-1)*self%wavenumberCount+1:m*self%wavenumberCount), &
+                  &                   fftLogForward                                                                                              &
+                  &                  )
           end do
        end do
     end do
     do n=1,self%massCount
        do m=1,self%massCount
           do i=1,self%wavenumberCount
-             call FFTlog(                                                                                                           &
-                  &      self%wavenumber                                                                                          , &
-                  &      separation                                                                                               , &
-                  &      covarianceTmp          ((n-1)*self%wavenumberCount+1:n*self%wavenumberCount,(m-1)*self%wavenumberCount+i), &
-                  &      correlationCovariance  ((n-1)*self%wavenumberCount+1:n*self%wavenumberCount,(m-1)*self%wavenumberCount+i), &
-                  &      fftLogSine                                                                                               , &
-                  &      fftLogForward                                                                                              &
-                  )
+             call FFTLogSineTransform(                                                                                                           &
+                  &                   self%wavenumber                                                                                          , &
+                  &                   separation                                                                                               , &
+                  &                   covarianceTmp          ((n-1)*self%wavenumberCount+1:n*self%wavenumberCount,(m-1)*self%wavenumberCount+i), &
+                  &                   correlationCovariance  ((n-1)*self%wavenumberCount+1:n*self%wavenumberCount,(m-1)*self%wavenumberCount+i), &
+                  &                   fftLogForward                                                                                              &
+                  &                  )
           end do
        end do
     end do
@@ -1297,15 +1263,18 @@ contains
 
   double precision function correlationFunctionLogLikelihood(self)
     !% Return the log-likelihood of a correlationFunction output analysis.
-    use Linear_Algebra          , only : vector                 , matrix, assignment(=), operator(*)
-    use :: Galacticus_Error        , only : Galacticus_Error_Report
-    use :: Numerical_Constants_Math, only : Pi
+    use :: Linear_Algebra              , only : vector                 , matrix, assignment(=), operator(*)
+    use :: Galacticus_Error            , only : Galacticus_Error_Report
+    use :: Numerical_Constants_Math    , only : Pi
+    use :: Interface_GSL               , only : GSL_Success
+    use :: Models_Likelihoods_Constants, only : logImprobable
     implicit none
     class           (outputAnalysisCorrelationFunction), intent(inout)                 :: self
     double precision                                   , allocatable  , dimension(:,:) :: functionCovarianceCombined
     double precision                                   , allocatable  , dimension(:  ) :: functionValueDifference
     type            (vector                           )                                :: residual
     type            (matrix                           )                                :: covariance
+    integer                                                                            :: status
 
     ! Check for existance of a target distribution.
     if (allocated(self%binnedProjectedCorrelationTarget)) then
@@ -1325,12 +1294,13 @@ contains
             &                            )
        functionCovarianceCombined=         +self%binnedProjectedCorrelationCovariance        &
             &                              +self%binnedProjectedCorrelationCovarianceTarget
-       residual                  =functionValueDifference
-       covariance                =functionCovarianceCombined
+       residual                  =vector(functionValueDifference   )
+       covariance                =matrix(functionCovarianceCombined)
        ! Compute the log-likelihood.
-       correlationFunctionLogLikelihood=-0.5d0*covariance%covarianceProduct(residual) &
-            &                           -0.5d0*covariance%determinant()               &
+       correlationFunctionLogLikelihood=-0.5d0*covariance%covarianceProduct(residual,status) &
+            &                           -0.5d0*covariance%determinant()                      &
             &                           -0.5d0*dble(self%binCount)*log(2.0d0*Pi)
+       if (status /= GSL_Success) correlationFunctionLogLikelihood=logImprobable
     else
        correlationFunctionLogLikelihood=0.0d0
        call Galacticus_Error_Report('no target distribution was provided for likelihood calculation'//{introspection:location})

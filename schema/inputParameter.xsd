@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <!-- Schema used to validate inputParameter directives -->
+
+  <!-- Type definition for parameter types -->
+  <xs:simpleType name="parameterType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="real"   />
+      <xs:enumeration value="integer"/>
+      <xs:enumeration value="boolean"/>
+      <xs:enumeration value="string" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!-- Type definition for cardinalities -->
+  <xs:simpleType name="cardinality">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="0"   />
+      <xs:enumeration value="1"   />
+      <xs:enumeration value="2"   />
+      <xs:enumeration value="3"   />
+      <xs:enumeration value="0..1"/>
+      <xs:enumeration value="0..*"/>
+      <xs:enumeration value="1..*"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:element name="inputParameter" type="xs:string">
+    <xs:complexType>
+      <xs:all>
+	<xs:element name="name"          type="xs:string"        minOccurs="1" maxOccurs="1"/>
+	<xs:element name="source"        type="xs:string"        minOccurs="1" maxOccurs="1"/>
+	<xs:element name="variable"      type="xs:string"        minOccurs="0" maxOccurs="1"/>
+	<xs:element name="type"          type="xs:parameterType" minOccurs="0" maxOccurs="1"/>
+	<xs:element name="description"   type="xs:string"        minOccurs="1" maxOccurs="1"/>
+	<xs:element name="cardinality"   type="xs:cardinality"   minOccurs="0" maxOccurs="1"/>
+	<xs:element name="defaultValue"  type="xs:string"        minOccurs="0" maxOccurs="1"/>
+	<xs:element name="defaultSource" type="xs:string"        minOccurs="0" maxOccurs="1"/>
+      </xs:all>
+    </xs:complexType>
+  </xs:element>
+  
+</xs:schema>

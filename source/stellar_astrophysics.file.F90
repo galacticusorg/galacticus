@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +22,40 @@
   use :: Numerical_Interpolation_2D_Irregular, only : interp2dIrregularObject
 
   !# <stellarAstrophysics name="stellarAstrophysicsFile">
-  !#  <description>A stellar astrophysics class in which the stellar properties are read from file and interpolated.</description>
+  !#  <description>
+  !#   A stellar astrophysics class which reads properties of individual stars of different initial mass and metallicity from an
+  !#   XML file and interpolates in them. The stars can be irregularly spaced in the plane of initial mass and metallicity. The
+  !#   XML file should have the following structure:
+  !#   \begin{verbatim}
+  !#    &lt;stars&gt;
+  !#     &lt;star&gt;
+  !#       &lt;initialMass&gt;0.6&lt;/initialMass&gt;
+  !#       &lt;lifetime&gt;28.19&lt;/lifetime&gt;
+  !#       &lt;metallicity&gt;0.0000&lt;/metallicity&gt;
+  !#       &lt;ejectedMass&gt;7.65&lt;/ejectedMass&gt;
+  !#       &lt;metalYieldMass&gt;0.44435954&lt;/metalYieldMass&gt;
+  !#       &lt;elementYieldMassFe&gt;2.2017e-13&lt;/elementYieldMassFe&gt;
+  !#       &lt;source&gt;Table 2 of Tumlinson, Shull &amp; Venkatesan (2003, ApJ, 584, 608)&lt;/source&gt;
+  !#       &lt;url&gt;http://adsabs.harvard.edu/abs/2003ApJ...584..608T&lt;/url&gt;
+  !#     &lt;/star&gt;
+  !#     &lt;star&gt;
+  !#       .
+  !#       .
+  !#       .
+  !#     &lt;/star&gt;
+  !#     .
+  !#     .
+  !#     .
+  !#    &lt;/stars&gt;
+  !#   \end{verbatim}
+  !#   Each {\normalfont \ttfamily star} element must contain the {\normalfont \ttfamily initialMass} (given in $M_\odot$) and
+  !#   {\normalfont \ttfamily metallicity} tags. Other tags are optional. {\normalfont \ttfamily lifetime} gives the lifetime of
+  !#   such a star (in Gyr), {\normalfont \ttfamily ejectedMass} gives the total mass (in $M_\odot$) ejected by such a star during
+  !#   its lifetime, {\normalfont \ttfamily metalYieldMass} gives the total mass of metals yielded by the star during its lifetime
+  !#   while {\normalfont \ttfamily elementYieldMassX} gives the mass of element {\normalfont \ttfamily X} yielded by the star
+  !#   during its lifetime. The {\normalfont \ttfamily source} and {\normalfont \ttfamily url} tags are not used, but are strongly
+  !#   recommended to provide a reference to the origin of the stellar data.
+  !#  </description>
   !# </stellarAstrophysics>
   type, extends(stellarAstrophysicsClass) :: stellarAstrophysicsFile
      !% A stellar astrophysics class in which the stellar properties are read from file and interpolated.
@@ -44,15 +77,9 @@
           &                                                                    interpolationResetMassEjected    , interpolationResetMassYield    , &
           &                                                                    readDone
   contains
-     !@ <objectMethods>
-     !@   <object>stellarAstrophysicsFile</object>
-     !@   <objectMethod>
-     !@     <method>read</method>
-     !@     <arguments></arguments>
-     !@     <type>\void</type>
-     !@     <description>Read stellar astrophysics data from file.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Read stellar astrophysics data from file." method="read" />
+     !# </methods>
      procedure :: massInitial => fileMassInitial
      procedure :: massEjected => fileMassEjected
      procedure :: massYield   => fileMassYield
@@ -84,8 +111,6 @@ contains
     !#   <name>fileName</name>
     !#   <defaultValue>galacticusPath(pathTypeDataStatic)//'stellarAstrophysics/Stellar_Properties_Compilation.xml'</defaultValue>
     !#   <description>The name of the XML file from which to read stellar properties (ejected masses, yields, etc.).</description>
-    !#   <type>string</type>
-    !#   <cardinality>1</cardinality>
     !#   <source>parameters</source>
     !# </inputParameter>
     self=stellarAstrophysicsFile(char(fileName))
@@ -116,9 +141,10 @@ contains
   subroutine fileRead(self)
     !% Read stellar astrophysics data. This is not done during object construction since it can be slow---we only perform the read if the data is actually needed.
     use :: Atomic_Data      , only : Atomic_Short_Label
-    use :: FoX_DOM          , only : destroy                          , extractDataContent          , node       , parseFile
+    use :: FoX_DOM          , only : destroy                          , node
     use :: Galacticus_Error , only : Galacticus_Error_Report
-    use :: IO_XML           , only : XML_Get_First_Element_By_Tag_Name, XML_Get_Elements_By_Tag_Name, xmlNodeList
+    use :: IO_XML           , only : XML_Get_First_Element_By_Tag_Name, XML_Get_Elements_By_Tag_Name, xmlNodeList, extractDataContent => extractDataContentTS, &
+         &                           XML_Parse
     use :: Memory_Management, only : allocateArray
     implicit none
     class           (stellarAstrophysicsFile), intent(inout)               :: self
@@ -136,7 +162,7 @@ contains
     if (self%readDone) return
     !$omp critical (FoX_DOM_Access)
     ! Open the XML file containing stellar properties.
-    doc => parseFile(char(self%fileName),iostat=ioErr)
+    doc => XML_Parse(char(self%fileName),iostat=ioErr)
     if (ioErr /= 0) call Galacticus_Error_Report('Unable to parse stellar properties file'//{introspection:location})
     ! Check the file format version of the file.
     datum => XML_Get_First_Element_By_Tag_Name(doc,"fileFormat")

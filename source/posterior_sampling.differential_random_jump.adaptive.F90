@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +21,12 @@
   !% distribution which scales with the range spanned by the sample states.
 
   !# <posteriorSampleDffrntlEvltnRandomJump name="posteriorSampleDffrntlEvltnRandomJumpAdaptive">
-  !#  <description>A posterior sampling differential evolution random jump class in which the jump is drawn from an adaptive distribution which scales with the range spanned by the sample states..</description>
+  !#  <description>
+  !#   The random jumps are drawn from the distributions specified in the {\normalfont \ttfamily random} element of each
+  !#   \refClass{modelParameterClass} object and then multiplied by the currently occupied range of each parameter (i.e. the maximum
+  !#   value of the parameter over all current chain states minus the minimum value of each parameter over all current chain
+  !#   states).
+  !#  </description>
   !# </posteriorSampleDffrntlEvltnRandomJump>
   type, extends(posteriorSampleDffrntlEvltnRandomJumpClass) :: posteriorSampleDffrntlEvltnRandomJumpAdaptive
      !% Implementation of a posterior sampling differential evolution random jump class in which the jump is drawn from an
@@ -45,7 +50,7 @@ contains
     implicit none
     type(posteriorSampleDffrntlEvltnRandomJumpAdaptive)                 :: self
     type(inputParameters                              ), intent(inout)  :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=posteriorSampleDffrntlEvltnRandomJumpAdaptive()
     return
@@ -61,7 +66,7 @@ contains
     double precision                                               , dimension(size(modelParameters_))                :: adaptiveSample
     double precision                                               , dimension(size(modelParameters_))                :: parameterRange
     integer                                                                                                           :: i
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Find the current range of each parameter.
     parameterRange=mpiSelf%maxval(simulationState%get())-mpiSelf%minval(simulationState%get())

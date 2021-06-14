@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,10 @@
 !% A null implementation of the hot halo mass distribution class.
 
   !# <hotHaloMassDistribution name="hotHaloMassDistributionNull">
-  !#  <description>Provides a null implementation of the hot halo mass distribution class.</description>
+  !#  <description>
+  !#   A hot halo mass distribution class that assumes no hot halo mass distribution. It is useful, for example, when performing
+  !#   dark matter-only calculations.
+  !#  </description>
   !# </hotHaloMassDistribution>
   type, extends(hotHaloMassDistributionClass) :: hotHaloMassDistributionNull
      !% A null implementation of the hot halo mass distribution class.
@@ -46,7 +49,7 @@ contains
     implicit none
     type(hotHaloMassDistributionNull)                :: self
     type(inputParameters            ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=hotHaloMassDistributionNull()
     return
@@ -58,7 +61,7 @@ contains
     class           (hotHaloMassDistributionNull), intent(inout) :: self
     type            (treeNode                   ), intent(inout) :: node
     double precision                             , intent(in   ) :: radius
-    !GCC$ attributes unused :: self, node, radius
+    !$GLC attributes unused :: self, node, radius
 
     nullDensity=0.0d0
     return
@@ -70,7 +73,7 @@ contains
     class           (hotHaloMassDistributionNull), intent(inout) :: self
     type            (treeNode                   ), intent(inout) :: node
     double precision                             , intent(in   ) :: radius
-    !GCC$ attributes unused :: self, node, radius
+    !$GLC attributes unused :: self, node, radius
 
     nullDensityLogSlope=0.0d0
     return
@@ -82,7 +85,7 @@ contains
     class           (hotHaloMassDistributionNull), intent(inout)         :: self
     type            (treeNode                   ), intent(inout), target :: node
     double precision                             , intent(in   )         :: radius
-    !GCC$ attributes unused :: self, node, radius
+    !$GLC attributes unused :: self, node, radius
 
     nullEnclosedMass=0.0d0
     return
@@ -94,7 +97,7 @@ contains
     class           (hotHaloMassDistributionNull), intent(inout) :: self
     type            (treeNode                   ), intent(inout) :: node
     double precision                             , intent(in   ) :: moment, radius
-    !GCC$ attributes unused :: self, node, radius, moment
+    !$GLC attributes unused :: self, node, radius, moment
 
     nullRadialMoment=0.0d0
     return
@@ -107,7 +110,7 @@ contains
     implicit none
     class(hotHaloMassDistributionNull), intent(inout) :: self
     type (treeNode                   ), intent(inout) :: node
-    !GCC$ attributes unused :: self, node
+    !$GLC attributes unused :: self, node
 
     nullRotationNormalization=0.0d0
   return

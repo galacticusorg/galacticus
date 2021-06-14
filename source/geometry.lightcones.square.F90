@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,6 +20,7 @@
   !% An implementation of the lightcone geometry class which assumes a square field of view.
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
+  use :: Output_Times       , only : outputTimesClass
 
   !# <geometryLightcone name="geometryLightconeSquare">
   !#  <description>
@@ -47,7 +48,7 @@
   !#   \end{eqnarray}
   !#   where $a=\tan(\psi/2)$ and $x=\tan^{-1}[\sqrt{2}\tan (\psi/2)]$.
   !#
-  !#   Various sub-parameters specify the details of the light geometry. The {\normalfont \ttfamily lengthReplication} parameter
+  !#   Various sub-parameters specify the details of the lightcone geometry. The {\normalfont \ttfamily lengthReplication} parameter
   !#   should give the length of the simulation box (the box will be replicated to span the volume covered by the lightcone),
   !#   with the {\normalfont \ttfamily lengthUnitsInSI} parameter giving the length unit in SI units and {\normalfont \ttfamily
   !#   lengthHubbleExponent} giving the exponent of $h$ that appears in the length unit. The {\normalfont \ttfamily angularSize}
@@ -62,46 +63,57 @@
   type, extends(geometryLightconeClass) :: geometryLightconeSquare
      !% A lightcone geometry class which assumes a square field of view.
      private
-     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_ => null()
+     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_       => null()
+     class           (outputTimesClass       ), pointer                   :: outputTimes_              => null()
      double precision                         , dimension(3,3)            :: unitVector
-     double precision                         , dimension(3  )            :: origin
-     double precision                         , dimension(:), allocatable :: outputTimes              , distanceMinimum        , &
+     double precision                         , dimension(3  )            :: origin                             , nodePositionCrossing   , &
+          &                                                                  nodeVelocityCrossing
+     double precision                         , dimension(:), allocatable :: outputTimes                        , distanceMinimum        , &
           &                                                                  distanceMaximum
-     double precision                                                     :: lengthReplication        , angularSize            , &
+     double precision                                                     :: lengthReplication                  , angularSize            , &
           &                                                                  solidAngleSubtended
-     logical                                                              :: timeEvolvesAlongLightcone, positionGettableChecked, &
+     logical                                                              :: timeEvolvesAlongLightcone          , positionGettableChecked, &
           &                                                                  mergeTimeGettableChecked
+     integer         (kind_int8              )                            :: nodeUniqueIDCrossing
    contains
-     !@ <objectMethods>
-     !@   <object>geometryLightconeSquare</object>
-     !@   <objectMethod>
-     !@     <method>positionAtOutput</method>
-     !@     <type>\textcolor{red}{\textless double(3)\textgreater}</type>
-     !@     <arguments>\intzero\ output\argin, \textcolor{red}{\textless double(3)\textgreater} nodePosition\argin, \logicalzero\ [positionFound]\argout</arguments>
-     !@     <description>Returns the position of a point, {\normalfont \ttfamily nodePosition} (given in physical coordinates within the primary replicant volume), in comoving coordinates in the replicant volume in which it appears in the lightcone. If the point is \emph{not} in the lightcone the returned position is set to the largest possible negative number in each coordinate. If the optional {\normalfont \ttfamily positionFound} argument is given it will be set to true or false to indicate whether or not the point was found in the lightcone volume.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>replicants</method>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ output\argin, \textcolor{red}{\textless double(3)\textgreater} nodePosition\argin, \enumReplicantAction\ action\argin, \intzero\ [count]\argout, \logicalzero\ [isInLightcone],\intzero\ [instance]\argin, \textcolor{red}{\textless double(3)\textgreater} [position]\argout</arguments>
-     !@     <description>
-     !@      Performs various actions related to replicants of nodes appearing in lightcone output, depending on the value of the {\normalfont \ttfamily action} argument:
-     !@      \begin{description}
-     !@      \item[{\normalfont \ttfamily replicantActionCount}] returns in {\normalfont \ttfamily count} the number of replicants in which the node appears in the lightcone;
-     !@      \item[{\normalfont \ttfamily replicantActionAny}] returns true in {\normalfont \ttfamily isInLightcone} if the given position appears in \emph{any} replicant in the lightcone;
-     !@      \item[{\normalfont \ttfamily replicantActionInstance}] returns in {\normalfont \ttfamily position} the position in the {\normalfont \ttfamily instance}$^\mathrm{th}$ replicant in which this position appears in the lightcone.
-     !@      \end{description}
-     !@     </description>
-     !@   </objectMethod>
-     !@ </objectMethods>
-     final     ::                     squareDestructor
-     procedure :: isInLightcone    => squareIsInLightcone
-     procedure :: replicationCount => squareReplicationCount
-     procedure :: solidAngle       => squareSolidAngle
-     procedure :: position         => squarePosition
-     procedure :: velocity         => squareVelocity
-     procedure :: positionAtOutput => squarePositionAtOutput
-     procedure :: replicants       => squareReplicants
+     !# <methods>
+     !#  <method method="positionAtOutput">
+     !#   <description>Returns the position of a point, {\normalfont \ttfamily nodePosition} (given in physical coordinates within the primary replicant volume), in comoving coordinates in the replicant volume in which it appears in the lightcone. If the point is \emph{not} in the lightcone the returned position is set to the largest possible negative number in each coordinate. If the optional {\normalfont \ttfamily positionFound} argument is given it will be set to true or false to indicate whether or not the point was found in the lightcone volume.</description>
+     !#  </method>
+     !#  <method method="replicants">
+     !#   <description>
+     !#    Performs various actions related to replicants of nodes appearing in lightcone output, depending on the value of the {\normalfont \ttfamily action} argument:
+     !#    \begin{description}
+     !#    \item[{\normalfont \ttfamily replicantActionCount}] returns in {\normalfont \ttfamily count} the number of replicants in which the node appears in the lightcone;
+     !#    \item[{\normalfont \ttfamily replicantActionAny}] returns true in {\normalfont \ttfamily isInLightcone} if the given position appears in \emph{any} replicant in the lightcone;
+     !#    \item[{\normalfont \ttfamily replicantActionInstance}] returns in {\normalfont \ttfamily position} the position in the {\normalfont \ttfamily instance}$^\mathrm{th}$ replicant in which this position appears in the lightcone.
+     !#    \end{description}
+     !#   </description>
+     !#  </method>
+     !#  <method method="periodicRange">
+     !#   <description>Computes the range of periodic replicants which could contribute to the lightcone in the given interval.</description>
+     !#  </method>
+     !#  <method method="nodePositionReplicant">
+     !#   <description>Computes the comoving position of a node in the specified replicant.</description>
+     !#  </method>
+     !#  <method method="nodeVelocityReplicant">
+     !#   <description>Computes the physical velocity of a node in the specified replicant.</description>
+     !#  </method>
+     !# </methods>
+     final     ::                              squareDestructor
+     procedure :: isInLightcone             => squareIsInLightcone
+     procedure :: replicationCount          => squareReplicationCount
+     procedure :: solidAngle                => squareSolidAngle
+     procedure :: position                  => squarePosition
+     procedure :: velocity                  => squareVelocity
+     procedure :: timeLightconeCrossing     => squareTimeLightconeCrossing
+     procedure :: positionLightconeCrossing => squarePositionLightconeCrossing
+     procedure :: velocityLightconeCrossing => squareVelocityLightconeCrossing
+     procedure :: positionAtOutput          => squarePositionAtOutput
+     procedure :: replicants                => squareReplicants
+     procedure :: periodicRange             => squarePeriodicRange
+     procedure :: nodePositionReplicant     => squareNodePositionReplicant
+     procedure :: nodeVelocityReplicant     => squareNodeVelocityReplicant
   end type geometryLightconeSquare
 
   interface geometryLightconeSquare
@@ -122,7 +134,7 @@
 
 contains
 
-  function squareConstructorParameters(parameters)
+  function squareConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily square} lightcone geometry distribution class which takes a parameter list as
     !% input.
     use :: Cosmology_Parameters            , only : cosmologyParameters    , cosmologyParametersClass, hubbleUnitsLittleH
@@ -130,96 +142,66 @@ contains
     use :: Input_Parameters                , only : inputParameter         , inputParameters
     use :: Numerical_Constants_Astronomical, only : degreesToRadians       , megaParsec
     implicit none
-    type            (geometryLightconeSquare )                            :: squareConstructorParameters
-    type            (inputParameters         ), intent(inout)             :: parameters
-    double precision                          , dimension(3,3)            :: unitVector
-    double precision                          , dimension(3)              :: origin
-    double precision                          , dimension(:), allocatable :: redshift                   , outputTimes
-    class           (cosmologyParametersClass), pointer                   :: cosmologyParameters_
-    class           (cosmologyFunctionsClass ), pointer                   :: cosmologyFunctions_
-    double precision                                                      :: lengthReplication          , angularSize         , &
-         &                                                                   lengthUnitsInSI            , unitConversionLength
-    integer                                                               :: lengthHubbleExponent       , iOutput
-    logical                                                               :: timeEvolvesAlongLightcone
+    type            (geometryLightconeSquare )                 :: self
+    type            (inputParameters         ), intent(inout)  :: parameters
+    double precision                          , dimension(3,3) :: unitVector
+    double precision                          , dimension(3)   :: origin                     , unitVector1         , &
+         &                                                        unitVector2                , unitVector3
+    class           (cosmologyParametersClass), pointer        :: cosmologyParameters_
+    class           (cosmologyFunctionsClass ), pointer        :: cosmologyFunctions_
+    class           (outputTimesClass        ), pointer        :: outputTimes_
+    double precision                                           :: lengthReplication          , angularSize         , &
+         &                                                        lengthUnitsInSI            , unitConversionLength
+    integer                                                    :: lengthHubbleExponent
+    logical                                                    :: timeEvolvesAlongLightcone
 
-    ! Check and read parameters.
-    if (parameters%isPresent('redshift')) then
-       allocate(redshift   (parameters%count('redshift')))
-       allocate(outputTimes(parameters%count('redshift')))
-    else
-       call Galacticus_Error_Report('list of output redshifts to use must be supplied'//{introspection:location})
-    end if
     !# <inputParameter>
     !#   <name>origin</name>
     !#   <source>parameters</source>
     !#   <variable>origin</variable>
     !#   <description>The origin for the lightcone.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>unitVector1</name>
     !#   <source>parameters</source>
-    !#   <variable>unitVector(:,1)</variable>
     !#   <description>The first (radial) unit vector defining the lightcone geometry.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
+    unitVector(:,1)=unitVector1
     !# <inputParameter>
     !#   <name>unitVector2</name>
     !#   <source>parameters</source>
-    !#   <variable>unitVector(:,2)</variable>
     !#   <description>The second (angular) unit vector defining the lightcone geometry.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
+    unitVector(:,2)=unitVector2
     !# <inputParameter>
     !#   <name>unitVector3</name>
     !#   <source>parameters</source>
-    !#   <variable>unitVector(:,3)</variable>
     !#   <description>The third (angular) unit vector defining the lightcone geometry.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
+    unitVector(:,3)=unitVector3
     !# <inputParameter>
     !#   <name>lengthReplication</name>
     !#   <source>parameters</source>
     !#   <variable>lengthReplication</variable>
     !#   <description>The length of the simulation box being used to construct the lightcone.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>lengthUnitsInSI</name>
     !#   <source>parameters</source>
     !#   <variable>lengthUnitsInSI</variable>
     !#   <description>The units of the box length in the SI system.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>lengthHubbleExponent</name>
     !#   <source>parameters</source>
     !#   <variable>lengthHubbleExponent</variable>
     !#   <description>The exponent of the ``little-$h$'' parameter used in the definition of the box length.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>angularSize</name>
     !#   <source>parameters</source>
     !#   <variable>angularSize</variable>
     !#   <description>The angular size (i.e. side length) of the square field of view of the lightcone (in units of degrees).</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>redshift</name>
-    !#   <source>parameters</source>
-    !#   <variable>redshift</variable>
-    !#   <description>The redshifts of output times to be used in the lightcone.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>timeEvolvesAlongLightcone</name>
@@ -227,19 +209,10 @@ contains
     !#   <defaultValue>.true.</defaultValue>
     !#   <variable>timeEvolvesAlongLightcone</variable>
     !#   <description>If {\normalfont \ttfamily true}, cosmic time evolves along the lightcone as expected. Otherwise, time is fixed at the present epoch throughout the lightone. This allows construction of lightcones with no evolution.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    ! Convert redshifts to times.
-    do iOutput=1,size(redshift)
-       outputTimes(iOutput)=cosmologyFunctions_ %cosmicTime                 (                   &
-            &                cosmologyFunctions_%expansionFactorFromRedshift (                  &
-            &                                                                 redshift(iOutput) &
-            &                                                                )                  &
-            &                                                               )
-    end do
+    !# <objectBuilder class="outputTimes"         name="outputTimes_"         source="parameters"/>
     ! Convert angle to radians.
     angularSize=angularSize*degreesToRadians
     ! Convert lengths units internal units.
@@ -249,70 +222,73 @@ contains
     origin              =origin           *unitConversionLength
     lengthReplication   =lengthReplication*unitConversionLength
     ! Construct the object.
-    squareConstructorParameters=geometryLightconeSquare(origin,unitVector,angularSize,outputTimes,lengthReplication,timeEvolvesAlongLightcone,cosmologyFunctions_)
+    self=geometryLightconeSquare(origin,unitVector,angularSize,lengthReplication,timeEvolvesAlongLightcone,cosmologyFunctions_,outputTimes_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyParameters_"/>
-    !# <objectDestructor name="cosmologyFunctions_"/>
+    !# <objectDestructor name="cosmologyFunctions_" />
+    !# <objectDestructor name="outputTimes_"        />
     return
   end function squareConstructorParameters
 
-  function squareConstructorInternal(origin,unitVector,angularSize,outputTimes,lengthReplication,timeEvolvesAlongLightcone,cosmologyFunctions_)
+  function squareConstructorInternal(origin,unitVector,angularSize,lengthReplication,timeEvolvesAlongLightcone,cosmologyFunctions_,outputTimes_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily square} lightcone geometry distribution class.
     use :: Galacticus_Error        , only : Galacticus_Error_Report
     use :: ISO_Varying_String      , only : var_str                , varying_string
     use :: Memory_Management       , only : allocateArray          , deallocateArray
     use :: Numerical_Constants_Math, only : Pi                     , e
-    use :: Sort                    , only : Sort_Do
     use :: String_Handling         , only : operator(//)
     use :: Vectors                 , only : Vector_Magnitude
     implicit none
-    type            (geometryLightconeSquare)                                 :: squareConstructorInternal
-    double precision                          , dimension(3,3), intent(in   ) :: unitVector
-    double precision                          , dimension(3)  , intent(in   ) :: origin
-    double precision                          , dimension(:)  , intent(in   ) :: outputTimes
-    class           (cosmologyFunctionsClass ), target        , intent(in   ) :: cosmologyFunctions_
-    double precision                                          , intent(in   ) :: lengthReplication                 , angularSize
-    logical                                                   , intent(in   ) :: timeEvolvesAlongLightcone
-    double precision                          , parameter                     :: orthogonalityTolerance   =1.000d-6
-    double precision                          , parameter                     :: angularSizeSmall         =0.017d+0
-    integer                                                                   :: iOutput                           , i              , &
-         &                                                                       j
-    double precision                                                          :: timeMinimum                       , timeMaximum    , &
-         &                                                                       tanHalfAngle                      , outputTime     , &
-         &                                                                       distanceMinimum                   , distanceMaximum, &
-         &                                                                       magnitude
-    character       (len=12                 )                                 :: label
-    type            (varying_string         )                                 :: message
-    !# <constructorAssign variables="origin,unitVector,angularSize,outputTimes,lengthReplication,timeEvolvesAlongLightcone,*cosmologyFunctions_"/>
+    type            (geometryLightconeSquare)                                :: self
+    double precision                         , dimension(3,3), intent(in   ) :: unitVector
+    double precision                         , dimension(3)  , intent(in   ) :: origin
+    class           (cosmologyFunctionsClass), target        , intent(in   ) :: cosmologyFunctions_
+    class           (outputTimesClass       ), target        , intent(in   ) :: outputTimes_
+    double precision                                         , intent(in   ) :: lengthReplication                 , angularSize
+    logical                                                  , intent(in   ) :: timeEvolvesAlongLightcone
+    double precision                         , parameter                     :: orthogonalityTolerance   =1.000d-6
+    double precision                         , parameter                     :: angularSizeSmall         =0.017d+0
+    integer                                                                  :: i                                 , j
+    integer         (c_size_t               )                                :: iOutput
+    double precision                                                         :: timeMinimum                       , timeMaximum    , &
+         &                                                                      tanHalfAngle                      , outputTime     , &
+         &                                                                      distanceMinimum                   , distanceMaximum, &
+         &                                                                      magnitude
+    character       (len=12                 )                                :: label
+    type            (varying_string         )                                :: message
+    !# <constructorAssign variables="origin, unitVector, angularSize, lengthReplication, timeEvolvesAlongLightcone, *cosmologyFunctions_, *outputTimes_"/>
 
-    ! Ensures times are sorted.
-    call Sort_Do(squareConstructorInternal%outputTimes)
+    ! Extract times from the outputTimes object.
+    allocate(self%outputTimes(self%outputTimes_%count()))
+    do iOutput=1_c_size_t,self%outputTimes_%count()
+       self%outputTimes(iOutput)=self%outputTimes_%time(iOutput)
+    end do
     ! Find the minimum and maximum distance associated with each output time.
-    call allocateArray(squareConstructorInternal%distanceMinimum,shape(squareConstructorInternal%outputTimes))
-    call allocateArray(squareConstructorInternal%distanceMaximum,shape(squareConstructorInternal%outputTimes))
-    do iOutput=1,size(squareConstructorInternal%outputTimes)
-       if (iOutput == 1                                          ) then
-          timeMinimum=                                                      squareConstructorInternal%outputTimes(iOutput)
+    call allocateArray(self%distanceMinimum,shape(self%outputTimes))
+    call allocateArray(self%distanceMaximum,shape(self%outputTimes))
+    do iOutput=1,size(self%outputTimes)
+       if (iOutput == 1                     ) then
+          timeMinimum=                                 self%outputTimes(iOutput)
        else
-          timeMinimum=sqrt(squareConstructorInternal%outputTimes(iOutput-1)*squareConstructorInternal%outputTimes(iOutput))
+          timeMinimum=sqrt(self%outputTimes(iOutput-1)*self%outputTimes(iOutput))
        end if
-       if (iOutput == size(squareConstructorInternal%outputTimes)) then
-          timeMaximum=                                                      squareConstructorInternal%outputTimes(iOutput)
+       if (iOutput == size(self%outputTimes)) then
+          timeMaximum=                                 self%outputTimes(iOutput)
        else
-          timeMaximum=sqrt(squareConstructorInternal%outputTimes(iOutput+1)*squareConstructorInternal%outputTimes(iOutput))
+          timeMaximum=sqrt(self%outputTimes(iOutput+1)*self%outputTimes(iOutput))
        end if
-       squareConstructorInternal%distanceMinimum(iOutput)=squareConstructorInternal%cosmologyFunctions_%distanceComoving(timeMaximum)
-       squareConstructorInternal%distanceMaximum(iOutput)=squareConstructorInternal%cosmologyFunctions_%distanceComoving(timeMinimum)
+       self%distanceMinimum(iOutput)=self%cosmologyFunctions_%distanceComoving(timeMaximum)
+       self%distanceMaximum(iOutput)=self%cosmologyFunctions_%distanceComoving(timeMinimum)
     end do
     ! Normalize unit vectors.
     do i=1,3
-       squareConstructorInternal%unitVector(:,i)=+                 squareConstructorInternal%unitVector(:,i)  &
-            &                                    /Vector_Magnitude(squareConstructorInternal%unitVector(:,i))
+       self%unitVector(:,i)=+                 self%unitVector(:,i)  &
+            &               /Vector_Magnitude(self%unitVector(:,i))
     end do
     ! Test for orthogonality.
     do i=1,2
        do j=i+1,3
-          magnitude=abs(Dot_Product(squareConstructorInternal%unitVector(:,i),squareConstructorInternal%unitVector(:,j)))
+          magnitude=abs(Dot_Product(self%unitVector(:,i),self%unitVector(:,j)))
           if (magnitude > orthogonalityTolerance) then
              write (label,'(e12.6)') magnitude
              message=var_str('unit vectors ')//i//' and '//j//' are not orthogonal (|êᵢ⨯êⱼ|='//label//')'
@@ -323,47 +299,51 @@ contains
     ! If requested, reduce the list of lightcone output times to the final time, and have it incorporate the full radial length of
     ! the lightcone. This allows the construction of lightcones with no evolution along the cone.
     if (.not.timeEvolvesAlongLightcone) then
-       outputTime     =squareConstructorInternal%outputTimes    (size(squareConstructorInternal%outputTimes))
-       distanceMinimum=squareConstructorInternal%distanceMinimum(size(squareConstructorInternal%outputTimes))
-       distanceMaximum=squareConstructorInternal%distanceMaximum(                                         1 )
-       call deallocateArray(squareConstructorInternal%outputTimes        )
-       call deallocateArray(squareConstructorInternal%distanceMinimum    )
-       call deallocateArray(squareConstructorInternal%distanceMaximum    )
-       call   allocateArray(squareConstructorInternal%outputTimes    ,[1])
-       call   allocateArray(squareConstructorInternal%distanceMinimum,[1])
-       call   allocateArray(squareConstructorInternal%distanceMaximum,[1])
-       squareConstructorInternal%outputTimes    =outputTime
-       squareConstructorInternal%distanceMinimum=distanceMinimum
-       squareConstructorInternal%distanceMaximum=distanceMaximum
+       outputTime     =self%outputTimes    (size(self%outputTimes))
+       distanceMinimum=self%distanceMinimum(size(self%outputTimes))
+       distanceMaximum=self%distanceMaximum(                    1 )
+       call deallocateArray(self%outputTimes        )
+       call deallocateArray(self%distanceMinimum    )
+       call deallocateArray(self%distanceMaximum    )
+       call   allocateArray(self%outputTimes    ,[1])
+       call   allocateArray(self%distanceMinimum,[1])
+       call   allocateArray(self%distanceMaximum,[1])
+       self%outputTimes    =outputTime
+       self%distanceMinimum=distanceMinimum
+       self%distanceMaximum=distanceMaximum
     end if
     ! Compute the solid angle of the lightcone.
     if (angularSize < angularSizeSmall) then
-       squareConstructorInternal%solidAngleSubtended=angularSize**2
+       self%solidAngleSubtended=angularSize**2
     else
        tanHalfAngle=tan(angularSize/2.0d0)
-       squareConstructorInternal%solidAngleSubtended=+2.0d0                                     &
-            &                                        *Pi                                        &
-            &                                        *(                                         &
-            &                                          +3.0d0                                   &
-            &                                          -cos(                                    &
-            &                                               atan(                               &
-            &                                                     sqrt(2.0d0)                   &
-            &                                                    *tanHalfAngle                  &
-            &                                                   )                               &
-            &                                              )                                    &
-            &                                         )                                         &
-            &                                        -8.0d0                                     &
-            &                                        *inverseCosineIntegral(                    &
-            &                                                               tanHalfAngle      , &
-            &                                                               atan(               &
-            &                                                                     sqrt(2.0d0)   &
-            &                                                                    *tanHalfAngle  &
-            &                                                                   )               &
-            &                                                              )
+       self%solidAngleSubtended=+2.0d0                                     &
+            &                   *Pi                                        &
+            &                   *(                                         &
+            &                     +3.0d0                                   &
+            &                     -cos(                                    &
+            &                          atan(                               &
+            &                                sqrt(2.0d0)                   &
+            &                               *tanHalfAngle                  &
+            &                              )                               &
+            &                         )                                    &
+            &                    )                                         &
+            &                   -8.0d0                                     &
+            &                   *inverseCosineIntegral(                    &
+            &                                          tanHalfAngle      , &
+            &                                          atan(               &
+            &                                                sqrt(2.0d0)   &
+            &                                               *tanHalfAngle  &
+            &                                              )               &
+            &                                         )
     end if
     ! Set property attribute check status.
-    squareConstructorInternal%positionGettableChecked =.false.
-    squareConstructorInternal%mergeTimeGettableChecked=.false.
+    self%positionGettableChecked =.false.
+    self%mergeTimeGettableChecked=.false.
+    ! Initialize lightcone crossing state.
+    self%nodeUniqueIDCrossing=-1_kind_int8
+    self%nodePositionCrossing=0.0d0
+    self%nodeVelocityCrossing=0.0d0
     return
 
   contains
@@ -401,13 +381,14 @@ contains
     type(geometryLightconeSquare), intent(inout) :: self
 
     !# <objectDestructor name="self%cosmologyFunctions_" />
+    !# <objectDestructor name="self%outputTimes_"        />
     return
   end subroutine squareDestructor
 
   function squareReplicationCount(self,node)
     !% Determine the number of times {\normalfont \ttfamily node} appears in the lightcone.
-    use            :: Arrays_Search   , only : Search_Array_For_Closest
-    use            :: Galacticus_Nodes, only : nodeComponentBasic      , nodeComponentPosition, treeNode
+    use            :: Arrays_Search   , only : searchArrayClosest
+    use            :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentPosition, treeNode
     use, intrinsic :: ISO_C_Binding   , only : c_size_t
     implicit none
     integer(c_size_t               )                :: squareReplicationCount
@@ -419,14 +400,18 @@ contains
 
     basic    => node%basic   ()
     position => node%position()
-    output=Search_Array_For_Closest(self%outputTimes,basic%time())
+    output   =  searchArrayClosest(self%outputTimes,basic%time())
     call self%replicants(output,position%position(),replicantActionCount,count=squareReplicationCount)
     return
   end function squareReplicationCount
 
   logical function squareIsInLightcone(self,node,atPresentEpoch,radiusBuffer)
-    !% Determine if the given {\normalfont \ttfamily node} lies within the lightcone.
-    use            :: Arrays_Search       , only : Search_Array_For_Closest
+    !% Determine if the given {\normalfont \ttfamily node} lies within the lightcone. Note that, when called with {\normalfont
+    !% \ttfamily atPresentEpoch=false} this function returns true if the node is in the lightcone at any point during its
+    !% existance. However, this check is made assuming that each node remains at fixed comoving coordinates between each output
+    !% time---there is no consideration of movement between output times. It is therefore recommended that some buffer is added to
+    !% catch any nodes which may briefly enter the lightcone between output times.
+    use            :: Arrays_Search       , only : searchArrayClosest
     use            :: Galacticus_Error    , only : Galacticus_Component_List, Galacticus_Error_Report
     use            :: Galacticus_Nodes    , only : defaultPositionComponent , defaultSatelliteComponent, nodeComponentBasic, nodeComponentPosition, &
           &                                        nodeComponentSatellite   , treeNode
@@ -475,7 +460,7 @@ contains
             &      )
     end if
     ! Determine to which output this galaxy corresponds.
-    outputMinimum=Search_Array_For_Closest(self%outputTimes,basic%time())
+    outputMinimum=searchArrayClosest(self%outputTimes,basic%time())
     if (atPresentEpoch_) then
        ! We want to check only the current time for this node. Check that the node exists precisely at a lightcone snapshot time,
        ! and then set the maximum output to check to equal to minimum, such that we test only the current time.
@@ -537,7 +522,7 @@ contains
           else
              timeFinal   =  basic      %time ()
           end if
-          outputMaximum=Search_Array_For_Closest(self%outputTimes,timeFinal)
+          outputMaximum=searchArrayClosest(self%outputTimes,timeFinal)
           ! Ensure maximum output is before the final time.
           if (self%outputTimes(outputMaximum) > timeFinal) then
              if (outputMaximum > 1) then
@@ -558,7 +543,7 @@ contains
           satellite => node     %satellite    ()
           timeMerge =  satellite%timeOfMerging()
           if (timeMerge < basic%time()) call Galacticus_Error_Report('can not determine if satellite is in lightcone without knowledge of its time of merging'//{introspection:location})
-          outputMaximum=Search_Array_For_Closest(self%outputTimes,timeMerge)
+          outputMaximum=searchArrayClosest(self%outputTimes,timeMerge)
           ! Ensure maximum output is before the parent time.
           if (self%outputTimes(outputMaximum) > timeMerge) then
              if (outputMaximum > 1) then
@@ -580,7 +565,7 @@ contains
     end if
     ! Iterate over possible output times.
     do output=outputMinimum,outputMaximum
-       ! Get position of galaxy in comoving coordinates.
+       ! Get position of galaxy in physical coordinates.
        if (atPresentEpoch_) then
           position     => node    %position()
           nodePosition =  position%position()
@@ -606,7 +591,7 @@ contains
 
   function squarePosition(self,node,instance)
     !% Return the position of the node in lightcone coordinates.
-    use            :: Arrays_Search       , only : Search_Array_For_Closest
+    use            :: Arrays_Search       , only : searchArrayClosest
     use            :: Galacticus_Error    , only : Galacticus_Error_Report
     use            :: Galacticus_Nodes    , only : nodeComponentBasic      , nodeComponentPosition, treeNode
     use, intrinsic :: ISO_C_Binding       , only : c_size_t
@@ -614,22 +599,22 @@ contains
     use            :: Numerical_Comparison, only : Values_Agree
     use            :: String_Handling     , only : operator(//)
     implicit none
-    double precision                         , dimension(3)  :: squarePosition
-    class           (geometryLightconeSquare), intent(inout) :: self
-    type            (treeNode               ), intent(inout) :: node
-    integer         (c_size_t               ), intent(in   ) :: instance
-    class           (nodeComponentBasic     ), pointer       :: basic
-    class           (nodeComponentPosition  ), pointer       :: position
-    double precision                         , parameter     :: timeTolerance =1.0d-3
-    integer         (c_size_t               )                :: output
-    character       (len=10                 )                :: label
-    type            (varying_string         )                :: message
+    double precision                         , dimension(3)          :: squarePosition
+    class           (geometryLightconeSquare), intent(inout)         :: self
+    type            (treeNode               ), intent(inout), target :: node
+    integer         (c_size_t               ), intent(in   )         :: instance
+    class           (nodeComponentBasic     ), pointer               :: basic
+    class           (nodeComponentPosition  ), pointer               :: position
+    double precision                         , parameter             :: timeTolerance =1.0d-3
+    integer         (c_size_t               )                        :: output
+    character       (len=10                 )                        :: label
+    type            (varying_string         )                        :: message
 
     ! Get the basic component.
     basic    => node%basic   ()
     position => node%position()
     ! Determine to which output this node corresponds.
-    output=Search_Array_For_Closest(self%outputTimes,basic%time())
+    output=searchArrayClosest(self%outputTimes,basic%time())
     if (.not.Values_Agree(self%outputTimes(output),basic%time(),relTol=timeTolerance)) then
        message=         'failed to find matching time in lightcone'                       //char(10)
        write (label,'(f6.3)') basic%time()
@@ -652,7 +637,7 @@ contains
     integer         (c_size_t               ), intent(in   ) :: instance
     class           (nodeComponentPosition  ), pointer       :: position
     integer                                                  :: i
-    !GCC$ attributes unused :: instance
+    !$GLC attributes unused :: instance
 
     ! Get the position component.
     position => node%position()
@@ -685,8 +670,8 @@ contains
          &                                                                                k                   , iAxis                , &
          &                                                                                replicantCount
     logical                                                                            :: isInFieldOfView     , found
-    double precision                                                                   :: distanceRadial      , lengthOffsetOrigin   , &
-         &                                                                                distanceMinimum     , distanceMaximum
+    double precision                                                                   :: distanceMinimum     , distanceMaximum      , &
+         &                                                                                distanceRadial
 
     ! Validate input.
     select case (action)
@@ -700,66 +685,8 @@ contains
     case default
        call Galacticus_Error_Report('unknown action'//{introspection:location})
     end select
-    ! If a buffer radius (i.e. a point is to be considered to be inside the lightcone if it is within that distance from an edge
-    ! of the cone) is being specified then adjust origin. We shift the origin backward along the lightcone principal axis such
-    ! that the cone is effectively broadened by the desired radius. In the diagram below, the inner cone is the true lightcone
-    ! geometry, the outer cone is shifted back by a distance L, such that the edge of the outer cone is offset from the inner cone
-    ! by the desired buffer radius, R. From the geometry it is clear that L=R/sin(θ/2):
-    !
-    !  \ \         / /
-    !   \ \       /R/
-    !    \ \     /⤡/
-    !     \ \ ∡θ/ /      L=R/sin(θ/2)
-    !      \ \ / /
-    !       \ ↑L/
-    !        \↓/
-    !
-    ! The minimum and maximum distances for this section of the cone must then be offset by +L to counteract the shift in
-    ! origin. Finally, the minimum/maximum distance is decreased/increased by R such that the caps of the cone section are
-    ! buffered by a distance R also.
-    if (present(radiusBuffer).and.radiusBuffer > 0.0d0) then
-       lengthOffsetOrigin=+radiusBuffer               &
-            &             /sin(                       &
-            &                  +0.5d0                 &
-            &                  *self%angularSize      &
-            &                 )
-       origin            =+self%origin                &
-            &             -self%unitVector      (:,1) &
-            &             *lengthOffsetOrigin
-       distanceMinimum   =+self%distanceMinimum(output)+lengthOffsetOrigin-radiusBuffer
-       distanceMaximum   =+self%distanceMaximum(output)+lengthOffsetOrigin+radiusBuffer
-    else
-       origin            =+self%origin
-       distanceMinimum   =+self%distanceMinimum(output)
-       distanceMaximum   =+self%distanceMaximum(output)
-    end if
     ! Determine range of possible replicants of this galaxy which could be in the lightcone.
-    periodicRange(:,1)=+floor  (                                                                                      &
-         &                      +(                                                                                    &
-         &                        +origin                                                                             &
-         &                        +cos(0.5d0*self%angularSize)*    self%distanceMinimum(output)*self%unitVector(:,1)  &
-         &                        -sin(0.5d0*self%angularSize)                                                        &
-         &                        *(                                                                                  &
-         &                          +                          abs(self%distanceMaximum(output)*self%unitVector(:,2)) &
-         &                          +                          abs(self%distanceMaximum(output)*self%unitVector(:,3)) &
-         &                         )                                                                                  &
-         &                       )                                                                                    &
-         &                      /self%lengthReplication                                                               &
-         &                    )                                                                                       &
-         &             -1
-    periodicRange(:,2)=+ceiling(                                                                                      &
-         &                      +(                                                                                    &
-         &                        +origin                                                                             &
-         &                        +                                self%distanceMaximum(output)*self%unitVector(:,1)  &
-         &                        +sin(0.5d0*self%angularSize)                                                        &
-         &                        *(                                                                                  &
-         &                          +                          abs(self%distanceMaximum(output)*self%unitVector(:,2)) &
-         &                          +                          abs(self%distanceMaximum(output)*self%unitVector(:,3)) &
-         &                         )                                                                                  &
-         &                       )                                                                                    &
-         &                      /self%lengthReplication                                                               &
-         &                    )                                                                                       &
-         &             +0
+    periodicRange=self%periodicRange(self%distanceMinimum(output),self%distanceMaximum(output),radiusBuffer,origin,distanceMinimum,distanceMaximum)
     ! Get comoving position.
     nodePositionComoving=nodePosition/self%cosmologyFunctions_%expansionFactor(self%outputTimes(output))
     ! Iterate over all replicants.
@@ -770,7 +697,7 @@ contains
           do k=periodicRange(3,1),periodicRange(3,2)
              ! Compute position of node in lightcone coordinate system.
              forall(iAxis=1:3)
-                nodePositionReplicant(iAxis)=Dot_Product(nodePositionComoving-self%origin+self%lengthReplication*dble([i,j,k]),self%unitVector(:,iAxis))
+                nodePositionReplicant(iAxis)=Dot_Product(nodePositionComoving-origin+self%lengthReplication*dble([i,j,k]),self%unitVector(:,iAxis))
              end forall
              ! Test if node lies within the correct angular window.
              isInFieldOfView=                                                                              &
@@ -779,9 +706,9 @@ contains
                   & abs(atan2(nodePositionReplicant(3),nodePositionReplicant(1))) < 0.5d0*self%angularsize
              ! Test if node lies within appropriate radial range.
              distanceRadial=Vector_Magnitude(nodePositionReplicant)
-             found  =      isInFieldOfView                          &
-                  &  .and. distanceRadial >  distanceMinimum        &
-                  &  .and. distanceRadial <= distanceMaximum
+             found         =      isInFieldOfView                           &
+                  &         .and. distanceRadial  >  distanceMinimum        &
+                  &         .and. distanceRadial  <= distanceMaximum
              if (found) then
                 if (action == replicantActionAny) then
                    ! If we are just testing for presence in the lightcone, then we can return right now.
@@ -824,3 +751,306 @@ contains
     call self%replicants(output,nodePosition,replicantActionInstance,instance=instance,position=squarePositionAtOutput)
     return
   end function squarePositionAtOutput
+
+  double precision function squareTimeLightconeCrossing(self,node,timeEnd)
+    !% Return the time of the next lightcone crossing for this node.
+    use :: Galacticus_Nodes                , only : nodeComponentBasic     , nodeComponentPosition
+    use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr, gigaYear             , megaParsec
+    use :: Numerical_Constants_Physical    , only : speedLight
+    use :: Vectors                         , only : Vector_Magnitude
+    use :: Root_Finder                     , only : rootFinder
+    implicit none
+    class           (geometryLightconeSquare), intent(inout)  :: self
+    type            (treeNode               ), intent(inout)  :: node
+    double precision                         , intent(in   )  :: timeEnd
+    integer                                  , dimension(3,2) :: periodicRange
+    class           (nodeComponentBasic     ), pointer        :: basic
+    class           (nodeComponentPosition  ), pointer        :: position
+    double precision                         , dimension(3  ) :: positionReference           , nodePositionStart , &
+         &                                                       nodePositionEnd
+    double precision                         , parameter      :: speedMaximum         =2000.0 ! Maximum plausible physical speed for any node.
+    double precision                         , parameter      :: toleranceTimeRelative=1.0d-6
+    double precision                                          :: distanceMinimum             , distanceMaximum   , &
+         &                                                       distanceNodeStart           , distanceNodeEnd   , &
+         &                                                       radiusBuffer                , timeCrossing      , &
+         &                                                       timeTolerance
+    logical                                                   :: isInFieldOfViewStart        , isInFieldOfViewEnd
+    integer                                                   :: i                           , j                 , &
+         &                                                       k
+    type            (rootFinder             )                 :: finder
+ 
+    basic                       => node    %basic                               (               )
+    position                    => node    %position                            (               )
+    positionReference           =  position%position                            (               )
+    distanceMinimum             =  self    %cosmologyFunctions_%distanceComoving(      timeEnd  )
+    distanceMaximum             =  self    %cosmologyFunctions_%distanceComoving(basic%time   ())
+    radiusBuffer                =  +(                       &
+         &                           +      timeEnd         &
+         &                           -basic%time   ()       &
+         &                          )                       &
+         &                         *speedMaximum            &
+         &                         /Mpc_per_km_per_s_To_Gyr
+    ! Find the range of replicants in which this node might cross the lightcone.
+    periodicRange=self%periodicRange(distanceMinimum,distanceMaximum,radiusBuffer)
+    ! Iterate over replicants of interest.
+    squareTimeLightconeCrossing=huge(0.0d0)
+    finder                     =rootFinder(rootFunction=timeCrossingRoot,toleranceRelative=1.0d-6)
+    do i=periodicRange(1,1),periodicRange(1,2)
+       do j=periodicRange(2,1),periodicRange(2,2)
+          do k=periodicRange(3,1),periodicRange(3,2)
+             ! Compute position of node in lightcone coordinate system.
+             nodePositionStart=self%nodePositionReplicant(node,basic%time   (),self%origin,[i,j,k],setTime=.true.,positionPeriodicReference=positionReference)
+             nodePositionEnd  =self%nodePositionReplicant(node,      timeEnd  ,self%origin,[i,j,k],setTime=.true.,positionPeriodicReference=positionReference)
+             isInFieldOfViewStart=                                                                                &
+                  &                abs(atan2(nodePositionStart(2),nodePositionStart(1))) < 0.5d0*self%angularsize &
+                  &               .and.                                                                           &
+                  &                abs(atan2(nodePositionStart(3),nodePositionStart(1))) < 0.5d0*self%angularsize
+             isInFieldOfViewEnd  =                                                                                &
+                  &                abs(atan2(nodePositionEnd  (2),nodePositionEnd  (1))) < 0.5d0*self%angularsize &
+                  &               .and.                                                                           &
+                  &                abs(atan2(nodePositionEnd  (3),nodePositionEnd  (1))) < 0.5d0*self%angularsize
+             distanceNodeStart   =Vector_Magnitude(nodePositionStart)
+             distanceNodeEnd     =Vector_Magnitude(nodePositionEnd  )
+             if     (                                      &
+                  &   distanceNodeStart <  distanceMaximum &
+                  &  .and.                                 &
+                  &   distanceNodeEnd   >= distanceMinimum &
+                  &  .and.                                 &
+                  &   (                                    &
+                  &     isInFieldOfViewStart               &
+                  &    .or.                                &
+                  &     isInFieldOfViewEnd                 &
+                  &   )                                    &
+                  & ) then
+                ! Find the precise time of lightcone crossing.
+                timeCrossing=finder%find(rootRange=[basic%time(),timeEnd])
+                ! Check that the node is in the field of view at this time, that this is the earliest crossing, and that the
+                ! crossing occurs at least some small time after the current time of the node. (This last condition is to ensure
+                ! that a node which was stopped at precisely the time of lightcone crossing is not marked to be crossing the
+                ! lightcone again at that same time.)
+                nodePositionStart   =self%nodePositionReplicant(node,timeCrossing,self%origin,[i,j,k],setTime=.true.,positionPeriodicReference=positionReference)
+                isInFieldOfViewStart=                                                                                &
+                     &                abs(atan2(nodePositionStart(2),nodePositionStart(1))) < 0.5d0*self%angularsize &
+                     &               .and.                                                                           &
+                     &                abs(atan2(nodePositionStart(3),nodePositionStart(1))) < 0.5d0*self%angularsize
+                timeTolerance       =+toleranceTimeRelative                                                          &
+                     &               *self%cosmologyFunctions_%expansionFactor(basic%time())                         &
+                     &               *self%lengthReplication                                                         &
+                     &               *megaParsec                                                                     &
+                     &               /speedLight                                                                     &
+                     &               /gigaYear
+                if   (                                            &
+                   &   timeCrossing < squareTimeLightconeCrossing &
+                   &  .and.                                       &
+                   &   timeCrossing > basic%time()+timeTolerance  &
+                   &  .and.                                       &
+                   &   isInFieldOfViewStart                       &
+                   & ) then
+                   squareTimeLightconeCrossing                     =timeCrossing
+                   self                       %nodeUniqueIDCrossing=node%uniqueID()
+                   self                       %nodePositionCrossing=self%nodePositionReplicant(node,timeCrossing,self%origin,[i,j,k],setTime=.true.,positionPeriodicReference=positionReference)
+                   self                       %nodeVelocityCrossing=self%nodeVelocityReplicant(node,timeCrossing            ,[i,j,k],setTime=.true.                                            )
+                end if
+             end if
+          end do
+       end do
+    end do
+    return
+
+  contains
+
+    double precision function timeCrossingRoot(time)
+      !% Function used to find the time at which a node crosses the lightcone.
+      implicit none
+      double precision, intent(in   ) :: time
+      double precision, dimension(3)  :: positionNode
+      double precision                :: distanceNode
+      
+      positionNode    =self%nodePositionReplicant(node,time,self%origin,[i,j,k],setTime=.true.,positionPeriodicReference=positionReference)
+      distanceNode    =Vector_Magnitude(positionNode)
+      timeCrossingRoot=+                         distanceNode           &
+           &           -self%cosmologyFunctions_%distanceComoving(time)
+      return
+    end function timeCrossingRoot
+      
+  end function squareTimeLightconeCrossing
+
+  function squarePositionLightconeCrossing(self,node)
+    !% Return the position at the next lightcone crossing for this node.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
+    double precision                         , dimension(3)  :: squarePositionLightconeCrossing
+    class           (geometryLightconeSquare), intent(inout) :: self
+    type            (treeNode               ), intent(inout) :: node
+
+    if (node%uniqueID() /= self%nodeUniqueIDCrossing) call Galacticus_Error_Report('incorrect node'//{introspection:location})
+    squarePositionLightconeCrossing=self%nodePositionCrossing
+    return
+  end function squarePositionLightconeCrossing
+  
+  function squareVelocityLightconeCrossing(self,node)
+    !% Return the velocity at the next lightcone crossing for this node.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
+    double precision                         , dimension(3)  :: squareVelocityLightconeCrossing
+    class           (geometryLightconeSquare), intent(inout) :: self
+    type            (treeNode               ), intent(inout) :: node
+
+    if (node%uniqueID() /= self%nodeUniqueIDCrossing) call Galacticus_Error_Report('incorrect node'//{introspection:location})
+    squareVelocityLightconeCrossing=self%nodeVelocityCrossing
+    return
+  end function squareVelocityLightconeCrossing
+  
+  function squarePeriodicRange(self,distanceMinimum,distanceMaximum,radiusBuffer,originBuffered,distanceMinimumBuffered,distanceMaximumBuffered)
+    !% Compute the range of possible replicants of the volume which could be in the lightcone in the given interval.
+    implicit none
+    integer                                                 , dimension(3,2)           :: squarePeriodicRange
+    class           (geometryLightconeSquare), intent(inout)                           :: self
+    double precision                         , intent(in   )                           :: distanceMinimum        , distanceMaximum
+    double precision                         , intent(in   )                , optional :: radiusBuffer
+    double precision                         , intent(  out)                , optional :: distanceMinimumBuffered, distanceMaximumBuffered
+    double precision                         , intent(  out), dimension(3  ), optional :: originBuffered
+    double precision                                        , dimension(3  )           :: origin
+    double precision                                                                   :: distanceMinimum_       , distanceMaximum_       , &
+         &                                                                                lengthOffsetOrigin
+    !# <optionalArgument name="radiusBuffer" defaultsTo="0.0d0" />
+
+    ! If a buffer radius (i.e. a point is to be considered to be inside the lightcone if it is within that distance from an edge
+    ! of the cone) is being specified then adjust origin. We shift the origin backward along the lightcone principal axis such
+    ! that the cone is effectively broadened by the desired radius. In the diagram below, the inner cone is the true lightcone
+    ! geometry, the outer cone is shifted back by a distance L, such that the edge of the outer cone is offset from the inner cone
+    ! by the desired buffer radius, R. From the geometry it is clear that L=R/sin(θ/2):
+    !
+    !  \ \         / /
+    !   \ \       /R/
+    !    \ \     /⤡/
+    !     \ \ ∡θ/ /      L=R/sin(θ/2)
+    !      \ \ / /
+    !       \ ↑L/
+    !        \↓/
+    !
+    ! The minimum and maximum distances for this section of the cone must then be offset by +L to counteract the shift in
+    ! origin. Finally, the minimum/maximum distance is decreased/increased by R such that the caps of the cone section are
+    ! buffered by a distance R also.
+    if (radiusBuffer_ > 0.0d0) then
+       lengthOffsetOrigin=+radiusBuffer_           &
+            &             /sin(                    &
+            &                  +0.5d0              &
+            &                  *self%angularSize   &
+            &                 )
+       origin            =+self%origin             &
+            &             -self%unitVector   (:,1) &
+            &             *lengthOffsetOrigin
+       distanceMinimum_  =+distanceMinimum+lengthOffsetOrigin-radiusBuffer_
+       distanceMaximum_  =+distanceMaximum+lengthOffsetOrigin+radiusBuffer_
+    else
+       origin             =+self%origin
+       distanceMinimum_   =+distanceMinimum
+       distanceMaximum_   =+distanceMaximum
+    end if
+    if (present(originBuffered         )) originBuffered         =origin
+    if (present(distanceMinimumBuffered)) distanceMinimumBuffered=distanceMinimum_
+    if (present(distanceMaximumBuffered)) distanceMaximumBuffered=distanceMaximum_
+    ! Determine range of possible replicants of this galaxy which could be in the lightcone.
+    squarePeriodicRange(:,1)=+floor  (                                                                          &
+         &                            +(                                                                        &
+         &                              +origin                                                                 &
+         &                              +cos(0.5d0*self%angularSize)*    distanceMinimum_*self%unitVector(:,1)  &
+         &                              -sin(0.5d0*self%angularSize)                                            &
+         &                              *(                                                                      &
+         &                                +                          abs(distanceMaximum_*self%unitVector(:,2)) &
+         &                                +                          abs(distanceMaximum_*self%unitVector(:,3)) &
+         &                               )                                                                      &
+         &                             )                                                                        &
+         &                            /self%lengthReplication                                                   &
+         &                          )                                                                           &
+         &                   -1
+    squarePeriodicRange(:,2)=+ceiling(                                                                          &
+         &                            +(                                                                        &
+         &                              +origin                                                                 &
+         &                              +                                distanceMaximum_*self%unitVector(:,1)  &
+         &                              +sin(0.5d0*self%angularSize)                                            &
+         &                              *(                                                                      &
+         &                                +                          abs(distanceMaximum_*self%unitVector(:,2)) &
+         &                                +                          abs(distanceMaximum_*self%unitVector(:,3)) &
+         &                               )                                                                      &
+         &                             )                                                                        &
+         &                            /self%lengthReplication                                                   &
+         &                          )                                                                           &
+         &                   +0
+    return
+  end function squarePeriodicRange
+
+  function squareNodePositionReplicant(self,node,time,origin,replicant,setTime,positionPeriodicReference)
+    !% Compute the comoving position of the given node in the given replicant.
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentPosition
+    implicit none
+    double precision                                        , dimension(3)           :: squareNodePositionReplicant
+    class           (geometryLightconeSquare), intent(inout)                         :: self
+    type            (treeNode               ), intent(inout)                         :: node
+    double precision                         , intent(in   )                         :: time
+    double precision                         , intent(in   ), dimension(3)           :: origin
+    double precision                         , intent(in   ), dimension(3), optional :: positionPeriodicReference
+    integer                                  , intent(in   ), dimension(3)           :: replicant
+    logical                                  , intent(in   )              , optional :: setTime
+    class           (nodeComponentBasic     ), pointer                               :: basic
+    class           (nodeComponentPosition  ), pointer                               :: position
+    double precision                                        , dimension(3)           :: positionComovingNode       , positionComovingReference
+    integer                                                                          :: i
+    double precision                                                                 :: timeOriginal               , expansionFactor
+    !# <optionalArgument name="setTime" defaultsTo=".false." />
+
+    if (setTime_) then
+       basic        => node %basic()
+       timeOriginal =  basic%time ()
+       call basic%timeSet(time)
+    end if
+    position             =>  node    %position                           (    )
+    expansionFactor      =  +self    %cosmologyFunctions_%expansionFactor(time)
+    positionComovingNode =  +position%position                           (    ) &
+         &                  /                             expansionFactor
+    if (present(positionPeriodicReference)) then
+       positionComovingReference=+positionPeriodicReference &
+            &                    /expansionFactor
+       do i=1,3
+          if (positionComovingNode(i) > positionComovingReference(i)+0.5d0*self%lengthReplication) positionComovingNode(i)=positionComovingNode(i)-self%lengthReplication
+          if (positionComovingNode(i) < positionComovingReference(i)-0.5d0*self%lengthReplication) positionComovingNode(i)=positionComovingNode(i)+self%lengthReplication
+       end do
+    end if
+    do i=1,3
+       squareNodePositionReplicant(i)=Dot_Product(positionComovingNode-origin+self%lengthReplication*dble(replicant),self%unitVector(:,i))
+    end do     
+    if (setTime_) call basic%timeSet(timeOriginal)
+    return
+  end function squareNodePositionReplicant
+
+  function squareNodeVelocityReplicant(self,node,time,replicant,setTime)
+    !% Compute the physical velocity of the given node in the given replicant.
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentPosition
+    implicit none
+    double precision                                        , dimension(3)           :: squareNodeVelocityReplicant
+    class           (geometryLightconeSquare), intent(inout)                         :: self
+    type            (treeNode               ), intent(inout)                         :: node
+    double precision                         , intent(in   )                         :: time
+    integer                                  , intent(in   ), dimension(3)           :: replicant
+    logical                                  , intent(in   )              , optional :: setTime
+    class           (nodeComponentBasic     ), pointer                               :: basic
+    class           (nodeComponentPosition  ), pointer                               :: position
+    double precision                                        , dimension(3)           :: velocity
+    integer                                                                          :: i
+    double precision                                                                 :: timeOriginal
+    !# <optionalArgument name="setTime" defaultsTo=".false." />
+
+    if (setTime_) then
+       basic        => node %basic()
+       timeOriginal =  basic%time ()
+       call basic%timeSet(time)
+    end if
+    position => node    %position()
+    velocity =  position%velocity()
+    do i=1,3
+       squareNodeVelocityReplicant(i)=Dot_Product(velocity,self%unitVector(:,i))
+    end do     
+    if (setTime_) call basic%timeSet(timeOriginal)
+    return
+  end function squareNodeVelocityReplicant

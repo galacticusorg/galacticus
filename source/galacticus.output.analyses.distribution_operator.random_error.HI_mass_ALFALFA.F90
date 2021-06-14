@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,7 +23,31 @@
   use :: Output_Analysis_Molecular_Ratios, only : outputAnalysisMolecularRatioClass
 
   !# <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorRandomErrorALFLF">
-  !#  <description>A random error output analysis distribution operator class providing errors in HI mass for the ALFALFA survey. Specifically, $\sigma_\mathrm{obs} = a + \exp\left(-{\log_{10}(M_\mathrm{HI}/M_\odot)-b\over c}\right)$.</description>
+  !#  <description>
+  !#   A random error output analysis distribution operator class providing errors in HI mass for the ALFALFA survey. To account for
+  !#   both observational errors and scatter in $R_\mathrm{mol}$, the HI mass of each galaxy is modeled as a Gaussian in
+  !#   $\log_{10}M_\mathrm{HI}$ when constructing the mass function. Observational random errors on HI mass, including those arising
+  !#   from flux density uncertainties and errors in the assumed distance to each source, are taken from Fig.~19 of
+  !#   \cite{haynes_arecibo_2011}. The magnitude of the error as a function of HI mass is fit using a functional form:
+  !#   \begin{equation}
+  !#    \sigma_\mathrm{obs} = a + \exp\left(-{\log_{10}(M_\mathrm{HI}/M_\odot)-b\over c}\right),
+  !#   \end{equation}
+  !#    where $\sigma_\mathrm{obs}$ is the error on $\log_{10}(M_\mathrm{HI}/M_\odot)$. We find a reasonable fit using
+  !#    values\footnote{This should not be regarded as a formal good fit. Error estimates are approximate---we have simply found a
+  !#    functional form that roughly describes them, along with conservative errors on the parameters of this function which are
+  !#    included in the priors.} of $a=${\normalfont \ttfamily a}$=0.100 \pm 0.010$, $b=${\normalfont \ttfamily b}$=5.885 \pm
+  !#    0.100$, and $c=${\normalfont \ttfamily c}$=0.505 \pm 0.020$ as shown in Fig.~\ref{fig:ALFALFAErrorModel}. The total random
+  !#    error on the logarithm of each galaxy mass is given by $\sigma^2 = \sigma_{R_\mathrm{mol}}^2+\sigma_\mathrm{obs}^2$, and is
+  !#    used as the width of the Gaussian kernal when applying each galaxy to the mass function histogram (as described above).
+  !#
+  !#   \begin{figure}
+  !#    \begin{center}
+  !#    \includegraphics[width=85mm,trim=0mm 0mm 0mm 4mm,clip]{Plots/DataAnalysis/alfalfaHIMassErrorModel.pdf}
+  !#    \caption{The observational random error in galaxy HI mass as a function of HI mass for the ALFALFA survey. Points show the errors reported by \protect\cite{haynes_arecibo_2011}, while the line shows a simple functional form fit to these errors.}
+  !#    \end{center}
+  !#    \label{fig:ALFALFAErrorModel}
+  !#   \end{figure}
+  !#  </description>
   !# </outputAnalysisDistributionOperator>
   type, extends(outputAnalysisDistributionOperatorRandomError) :: outputAnalysisDistributionOperatorRandomErrorALFLF
      !% A random error output distribution operator class providing errors in HI mass for the ALFALFA survey.
@@ -61,8 +85,6 @@ contains
     !#   <defaultValue>0.1d0</defaultValue>
     !#   <variable>a</variable>
     !#   <description>Parameter $a$ in the ALFALFA HI mass error model.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>b</name>
@@ -70,8 +92,6 @@ contains
     !#   <defaultValue>5.885d0</defaultValue>
     !#   <variable>b</variable>
     !#   <description>Parameter $b$ in the ALFALFA HI mass error model.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>c</name>
@@ -79,8 +99,6 @@ contains
     !#   <defaultValue>0.505d0</defaultValue>
     !#   <variable>c</variable>
     !#   <description>Parameter $c$ in the ALFALFA HI mass error model.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="outputAnalysisMolecularRatio" name="outputAnalysisMolecularRatio_" source="parameters"/>
     ! Construct the object.

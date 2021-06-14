@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -54,31 +54,23 @@ contains
 
     !# <inputParameter>
     !#   <name>mean</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The mean of the log-normal distribution.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>variance</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The variance of the log-normal distribution.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>limitLower</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The lower limit of the normal distribution.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>limitUpper</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The upper limit of the normal distribution.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     self=distributionFunction1DLogNormal(mean,variance,limitLower,limitUpper,randomNumberGenerator_)

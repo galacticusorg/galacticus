@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -29,9 +29,12 @@ module Accretion_Halos
   !# <functionClass>
   !#  <name>accretionHalo</name>
   !#  <descriptiveName>Accretion Onto Halos</descriptiveName>
-  !#  <description>Class providing rates of accretion of gas from the \gls{igm} onto halos.</description>
+  !#  <description>
+  !#   Class providing rates of accretion of gas from the \gls{igm} onto halos. This is expected to depend on (at least) the rate
+  !#   at which that halo mass is growing, the depth of its potential well and the thermodynamical properties of the accreting
+  !#   gas.
+  !#  </description>
   !#  <default>simple</default>
-  !#  <calculationReset>yes</calculationReset>
   !#  <method name="branchHasBaryons" >
   !#   <description>Returns {\normalfont \ttfamily true} if this tree branch may accrete baryons, and {\normalfont \ttfamily false} otherwise.</description>
   !#   <type>logical</type>

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,6 +23,8 @@ module Node_Component_Inter_Output_Standard
   !% Implements the standard indices component.
   use :: Output_Times                    , only : outputTimesClass
   use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
+  use :: Star_Formation_Rates_Disks      , only : starFormationRateDisksClass
+  use :: Star_Formation_Rates_Spheroids  , only : starFormationRateSpheroidsClass
   implicit none
   private
   public :: Node_Component_Inter_Output_Standard_Rate_Compute      , Node_Component_Inter_Output_Standard_Reset    , &
@@ -54,9 +56,11 @@ module Node_Component_Inter_Output_Standard
   !# </component>
 
   ! Objects used by this component.
-  class(outputTimesClass        ), pointer :: outputTimes_
-  class(mergerMassMovementsClass), pointer :: mergerMassMovements_
-  !$omp threadprivate(outputTimes_,mergerMassMovements_)
+  class(outputTimesClass               ), pointer :: outputTimes_
+  class(mergerMassMovementsClass       ), pointer :: mergerMassMovements_
+  class(starFormationRateDisksClass    ), pointer :: starFormationRateDisks_
+  class(starFormationRateSpheroidsClass), pointer :: starFormationRateSpheroids_
+  !$omp threadprivate(outputTimes_,mergerMassMovements_,starFormationRateDisks_,starFormationRateSpheroids_)
 
 contains
 
@@ -75,8 +79,10 @@ contains
     if (defaultInteroutputComponent%standardIsActive()) then
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
        call satelliteMergerEvent%attach(defaultInteroutputComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentInteroutputStandard',dependencies=dependencies)
-       !# <objectBuilder class="outputTimes"         name="outputTimes_"         source="parameters_"/>
-       !# <objectBuilder class="mergerMassMovements" name="mergerMassMovements_" source="parameters_"/>
+       !# <objectBuilder class="outputTimes"                name="outputTimes_"                source="parameters_"/>
+       !# <objectBuilder class="mergerMassMovements"        name="mergerMassMovements_"        source="parameters_"/>
+       !# <objectBuilder class="starFormationRateDisks"     name="starFormationRateDisks_"     source="parameters_"/>
+       !# <objectBuilder class="starFormationRateSpheroids" name="starFormationRateSpheroids_" source="parameters_"/>
     end if
     return
   end subroutine Node_Component_Interoutput_Standard_Thread_Initialize
@@ -92,8 +98,10 @@ contains
 
     if (defaultInteroutputComponent%standardIsActive()) then
        call satelliteMergerEvent%detach(defaultInteroutputComponent,satelliteMerger)
-       !# <objectDestructor name="outputTimes_"        />
-       !# <objectDestructor name="mergerMassMovements_"/>
+       !# <objectDestructor name="outputTimes_"               />
+       !# <objectDestructor name="mergerMassMovements_"       />
+       !# <objectDestructor name="starFormationRateDisks_"    />
+       !# <objectDestructor name="starFormationRateSpheroids_"/>
     end if
     return
   end subroutine Node_Component_Interoutput_Standard_Thread_Uninitialize
@@ -136,13 +144,12 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Inter_Output_Standard_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Inter_Output_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
+  subroutine Node_Component_Inter_Output_Standard_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
     !% Compute the exponential disk node mass rate of change.
     use :: Galacticus_Nodes, only : defaultInteroutputComponent, interruptTask        , nodeComponentBasic  , nodeComponentDisk, &
           &                         nodeComponentInterOutput   , nodeComponentSpheroid, propertyTypeInactive, treeNode
     implicit none
-    type            (treeNode                    ), intent(inout), pointer :: node
-    logical                                       , intent(in   )          :: odeConverged
+    type            (treeNode                    ), intent(inout)          :: node
     logical                                       , intent(inout)          :: interrupt
     procedure       (interruptTask               ), intent(inout), pointer :: interruptProcedure
     integer                                       , intent(in   )          :: propertyType
@@ -153,7 +160,6 @@ contains
     double precision                                                       :: diskStarFormationRate, spheroidStarFormationRate, &
          &                                                                    timeCurrent          , timeOutputNext           , &
          &                                                                    timeOutputPrevious
-    !GCC$ attributes unused :: odeConverged
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
@@ -162,10 +168,10 @@ contains
     ! Get the disk and check that it is of our class.
     interOutput => node%interOutput()
     ! Get disk and spheroid star formation rates.
-    disk                      => node    %disk             ()
-    spheroid                  => node    %spheroid         ()
-    diskStarFormationRate     =  disk    %starFormationRate()
-    spheroidStarFormationRate =  spheroid%starFormationRate()
+    disk                      => node                       %disk    (    )
+    spheroid                  => node                       %spheroid(    )
+    diskStarFormationRate     =  starFormationRateDisks_    %rate    (node)
+    spheroidStarFormationRate =  starFormationRateSpheroids_%rate    (node)
     ! Find the time interval between previous and next outputs.
     basic              => node %basic()
     timeCurrent        =  basic%time ()
@@ -195,7 +201,7 @@ contains
     integer(kind=kind_int8          ), intent(in   )          :: treeIndex
     logical                          , intent(in   )          :: nodePassesFilter
     class  (nodeComponentInterOutput)               , pointer :: interOutput
-    !GCC$ attributes unused :: iOutput, nodePassesFilter, treeIndex
+    !$GLC attributes unused :: iOutput, nodePassesFilter, treeIndex
     
     ! Check if we are the default method.
     if (.not.defaultInterOutputComponent%standardIsActive()) return
@@ -222,7 +228,7 @@ contains
     integer                                          :: destinationGasSatellite, destinationGasHost       , &
          &                                              destinationStarsHost   , destinationStarsSatellite
     logical                                          :: mergerIsMajor
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Get the inter-output component.
     interOutput => node%interOutput()

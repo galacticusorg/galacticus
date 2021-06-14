@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -30,27 +30,11 @@
      private
      type(distributionFunction1DNormal) :: normalDistribution
    contains
-     !@ <objectMethods>
-     !@   <object>satelliteOrphanDistributionRandomIsotropic</object>
-     !@   <objectMethod>
-     !@     <method>inverseCumulativeMassFunctionRadial</method>
-     !@     <description>Return the radius enclosing the given fraction of the orphan satellite population.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} node\arginout, \doublezero\ fraction\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>velocityDispersion</method>
-     !@     <description>Return the 1-D velocity dispersion of the orphan satellite population.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} node\arginout</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>initialize</method>
-     !@     <description>Initialize the class.</description>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return the radius enclosing the given fraction of the orphan satellite population." method="inverseCumulativeMassFunctionRadial" />
+     !#   <method description="Return the 1-D velocity dispersion of the orphan satellite population." method="velocityDispersion" />
+     !#   <method description="Initialize the class." method="initialize" />
+     !# </methods>
      procedure                                              :: position                            => randomIsotropicPosition
      procedure                                              :: velocity                            => randomIsotropicVelocity
      procedure                                              :: initialize                          => randomIsotropicInitialize

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -86,15 +86,20 @@ contains
     type            (treeNode                            ), intent(inout), optional :: node
     integer                                               , intent(inout), optional :: propertyType
     integer         (c_size_t                            ), intent(in   ), optional :: outputIndex
-    !GCC$ attributes unused :: propertyType, outputIndex
-
+    double precision                                                                :: ratioHydrogenMolecularHydrogenNeutral
+    !$GLC attributes unused :: propertyType, outputIndex
+    
     if (.not.present(node)) call Galacticus_Error_Report('node must be provided'//{introspection:location})
-    hiMassOperate=+propertyValue                                                                                                &
-         &        *          self%outputAnalysisMolecularRatio_                       %ratio               (propertyValue,node) &
-         &        *10.0d0**(                                                                                                    &
-         &                  +node%hostTree                     %randomNumberGenerator_%standardNormalSample(                  ) &
-         &                  *self%outputAnalysisMolecularRatio_                       %ratioScatter        (propertyValue,node) &
-         &                 )
+    ratioHydrogenMolecularHydrogenNeutral=+self%outputAnalysisMolecularRatio_                                 %ratio               (propertyValue,node) &
+         &                                *10.0d0**(                                                                                                    &
+         &                                          +node%hostTree                     %randomNumberGenerator_%standardNormalSample(                  ) &
+         &                                          *self%outputAnalysisMolecularRatio_                       %ratioScatter        (propertyValue,node) &
+         &                                         )
+    hiMassOperate                        =+propertyValue                                                                                                &
+         &                                /(                                                                                                            &
+         &                                  +1.0d0                                                                                                      &
+         &                                  +ratioHydrogenMolecularHydrogenNeutral                                                                      &
+         &                                 )
     return
   end function hiMassOperate
 

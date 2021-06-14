@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -54,8 +54,6 @@ contains
     !#   <source>parameters</source>
     !#   <variable>ismMassConstructorParameters%massThreshold</variable>
     !#   <description>The parameter $M_0$ (in units of $M_\odot$) appearing in the ISM mass threshold for the ISM mass galactic filter class.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParametersValidate source="parameters"/>
     return
@@ -74,11 +72,11 @@ contains
     !% Implement an ismMass-pass galactic filter.
     use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid, treeNode
     implicit none
-    class           (galacticFilterISMMass), intent(inout) :: self
-    type            (treeNode             ), intent(inout) :: node
-    class           (nodeComponentDisk    ), pointer       :: disk
-    class           (nodeComponentSpheroid), pointer       :: spheroid
-    double precision                                       :: ismMass
+    class           (galacticFilterISMMass), intent(inout)         :: self
+    type            (treeNode             ), intent(inout), target :: node
+    class           (nodeComponentDisk    ), pointer               :: disk
+    class           (nodeComponentSpheroid), pointer               :: spheroid
+    double precision                                               :: ismMass
 
     disk          => node    %disk    ()
     spheroid      => node    %spheroid()

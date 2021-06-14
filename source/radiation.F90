@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -65,40 +65,33 @@ contains
     !% {4 \pi \over \mathrm{h}} \int_{\lambda_1}^{\lambda_2} \sigma(\lambda) j_{\nu}(\lambda) {\mathrm{d}\lambda \over \lambda},
     !% \end{equation}
     !% where $j_{\nu}$ is the flux of energy per unit area per unit solid angle and per unit frequency.
-    use :: FGSL                        , only : FGSL_Integ_Gauss15, fgsl_function , fgsl_integration_workspace
     use :: Numerical_Constants_Math    , only : Pi
     use :: Numerical_Constants_Physical, only : plancksConstant
     use :: Numerical_Constants_Units   , only : ergs
-    use :: Numerical_Integration       , only : Integrate         , Integrate_Done
+    use :: Numerical_Integration2      , only : integratorAdaptiveCompositeTrapezoidal1D
+    use :: Timers
     implicit none
-    class           (radiationFieldClass       ), target      , intent(inout) :: self
-    double precision                            , dimension(2), intent(in   ) :: wavelengthRange
-    double precision                            , external                    :: crossSectionFunction
-    type            (treeNode                  ), target      , intent(inout) :: node
-    type            (fgsl_function             )                              :: integrandFunction
-    type            (fgsl_integration_workspace)                              :: integrationWorkspace
-
+    class           (radiationFieldClass                     ), target      , intent(inout) :: self
+    double precision                                          , dimension(2), intent(in   ) :: wavelengthRange
+    double precision                                          , external                    :: crossSectionFunction
+    type            (treeNode                                ), target      , intent(inout) :: node
+    type            (integratorAdaptiveCompositeTrapezoidal1D)                              :: integrator_
+    
     ! Set module-scope pointers to self and the cross-section function for use in the integrand routine.
     selfGlobal                 => self
     nodeGlobal                 => node
     crossSectionFunctionGlobal => crossSectionFunction
-    ! Perform the integration.
-    radiationFieldIntegrateOverCrossSection_=Integrate(                                         &
-         &                                                               wavelengthRange(1)   , &
-         &                                                               wavelengthRange(2)   , &
-         &                                                               crossSectionIntegrand, &
-         &                                                               integrandFunction    , &
-         &                                                               integrationWorkspace , &
-         &                                             toleranceAbsolute=0.0d+0               , &
-         &                                             toleranceRelative=1.0d-3               , &
-         &                                             integrationRule  =FGSL_Integ_Gauss15     &
-         &                                            )
-    call Integrate_Done(integrandFunction,integrationWorkspace)
+    ! Perform the integration. An adapative, composite trapezoidal integrator is used here - this is efficient since typically
+    ! these integrands can involve cross-sections with sharp edges, and the radiation field can also have sharp edges (and is
+    ! often approximated using a tabulated function).
+    call integrator_%integrandSet(integrand        =crossSectionIntegrand)
+    call integrator_%toleranceSet(toleranceRelative=1.0d-3               )
+    radiationFieldIntegrateOverCrossSection_=integrator_%evaluate(wavelengthRange(1),wavelengthRange(2))    
     ! Scale result by multiplicative prefactors to give answer in units of inverse seconds.
     radiationFieldIntegrateOverCrossSection_=+radiationFieldIntegrateOverCrossSection_ &
-         &                                   *4.0d0                               &
-         &                                   *Pi                                  &
-         &                                   *ergs                                &
+         &                                   *4.0d0                                    &
+         &                                   *Pi                                       &
+         &                                   *ergs                                     &
          &                                   /plancksConstant
     return
   end function radiationFieldIntegrateOverCrossSection_

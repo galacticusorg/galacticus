@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -24,63 +24,65 @@ program Test_Biases
   use :: Cosmological_Density_Field          , only : cosmologicalMassVarianceFilteredPower   , criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt
   use :: Cosmology_Functions                 , only : cosmologyFunctionsMatterLambda
   use :: Cosmology_Parameters                , only : cosmologyParametersSimple
-  use :: Dark_Matter_Halo_Biases             , only : darkMatterHaloBiasClass                 , darkMatterHaloBiasPressSchechter                             , darkMatterHaloBiasSheth2001        , darkMatterHaloBiasTinker2010
+  use :: Dark_Matter_Halo_Biases             , only : darkMatterHaloBiasClass                 , darkMatterHaloBiasPressSchechter                            , darkMatterHaloBiasSheth2001        , darkMatterHaloBiasTinker2010
   use :: Dark_Matter_Particles               , only : darkMatterParticleCDM
+  use :: Display                             , only : displayVerbositySet                     , verbosityLevelStandard
   use :: Events_Hooks                        , only : eventsHooksInitialize
   use :: File_Utilities                      , only : Count_Lines_in_File
+  use :: Functions_Global_Utilities          , only : Functions_Global_Set
   use :: Galacticus_Calculations_Resets      , only : Galacticus_Calculations_Reset
-  use :: Galacticus_Display                  , only : Galacticus_Verbosity_Level_Set          , verbosityStandard
   use :: Galacticus_Function_Classes_Destroys, only : Galacticus_Function_Classes_Destroy
-  use :: Galacticus_Nodes                    , only : nodeClassHierarchyInitialize            , nodeComponentBasic                                           , treeNode
+  use :: Galacticus_Nodes                    , only : nodeClassHierarchyInitialize            , nodeComponentBasic                                          , treeNode
   use :: Galacticus_Paths                    , only : galacticusPath                          , pathTypeExec
-  use :: ISO_Varying_String                  , only : assignment(=)                           , char                                                         , operator(//)                       , operator(==)                , &
+  use :: ISO_Varying_String                  , only : assignment(=)                           , char                                                        , operator(//)                       , operator(==)                , &
           &                                           varying_string
   use :: Input_Parameters                    , only : inputParameters
   use :: Linear_Growth                       , only : linearGrowthCollisionlessMatter
-  use :: Node_Components                     , only : Node_Components_Initialize              , Node_Components_Thread_Initialize                            , Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
+  use :: Node_Components                     , only : Node_Components_Initialize              , Node_Components_Thread_Initialize                           , Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
   use :: Power_Spectra_Primordial            , only : powerSpectrumPrimordialPowerLaw
   use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredSimple
   use :: Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionTopHat
   use :: String_Handling                     , only : String_Split_Words
   use :: Transfer_Functions                  , only : transferFunctionEisensteinHu1999
-  use :: Unit_Tests                          , only : Assert                                  , Unit_Tests_Begin_Group                                       , Unit_Tests_End_Group               , Unit_Tests_Finish
-  use :: Virial_Density_Contrast             , only : virialDensityContrast                   , virialDensityContrastClass
+  use :: Unit_Tests                          , only : Assert                                  , Unit_Tests_Begin_Group                                      , Unit_Tests_End_Group               , Unit_Tests_Finish
+  use :: Virial_Density_Contrast             , only : virialDensityContrastFixed              , fixedDensityTypeCritical
   implicit none
-  type            (treeNode                                                     ), pointer                             :: node
-  class           (nodeComponentBasic                                           ), pointer                             :: basic
-  class           (darkMatterHaloBiasClass                                      ), pointer                             :: darkMatterHaloBias_
-  class           (virialDensityContrastClass                                   ), pointer                             :: virialDensityContrast_
-  type            (cosmologyParametersSimple                                    )                                      :: cosmologyParametersSimple_
-  type            (cosmologyFunctionsMatterLambda                               )                                      :: cosmologyFunctionsMatterLambda_
-  type            (linearGrowthCollisionlessMatter                              )                                      :: linearGrowthCollisionlessMatter_
-  type            (cosmologicalMassVarianceFilteredPower                        )                                      :: cosmologicalMassVarianceFilteredPower_
-  type            (powerSpectrumWindowFunctionTopHat                            )                                      :: powerSpectrumWindowFunctionTopHat_
-  type            (powerSpectrumPrimordialPowerLaw                              )                                      :: powerSpectrumPrimordialPowerLaw_
-  type            (transferFunctionEisensteinHu1999                             )                                      :: transferFunctionEisensteinHu1999_
-  type            (powerSpectrumPrimordialTransferredSimple                     )                                      :: powerSpectrumPrimordialTransferredSimple_
-  type            (darkMatterParticleCDM                                        )                                      :: darkMatterParticleCDM_
+  type            (treeNode                                                    ), pointer                             :: node
+  class           (nodeComponentBasic                                          ), pointer                             :: basic
+  class           (darkMatterHaloBiasClass                                     ), pointer                             :: darkMatterHaloBias_
+  type            (virialDensityContrastFixed                                  )                                      :: virialDensityContrast_
+  type            (cosmologyParametersSimple                                   )                                      :: cosmologyParametersSimple_
+  type            (cosmologyFunctionsMatterLambda                              )                                      :: cosmologyFunctionsMatterLambda_
+  type            (linearGrowthCollisionlessMatter                             )                                      :: linearGrowthCollisionlessMatter_
+  type            (cosmologicalMassVarianceFilteredPower                       )                                      :: cosmologicalMassVarianceFilteredPower_
+  type            (powerSpectrumWindowFunctionTopHat                           )                                      :: powerSpectrumWindowFunctionTopHat_
+  type            (powerSpectrumPrimordialPowerLaw                             )                                      :: powerSpectrumPrimordialPowerLaw_
+  type            (transferFunctionEisensteinHu1999                            )                                      :: transferFunctionEisensteinHu1999_
+  type            (powerSpectrumPrimordialTransferredSimple                    )                                      :: powerSpectrumPrimordialTransferredSimple_
+  type            (darkMatterParticleCDM                                       )                                      :: darkMatterParticleCDM_
   type            (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt)                                      :: criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_
-  type            (varying_string                                               )                                      :: parameterFile
-  integer                                                                        , parameter                           :: countModels                                      =3
-  type            (varying_string                                               ), dimension(countModels)              :: modelName                                          , modelLabel    , &
-       &                                                                                                                  modelDensityContrast
-  double precision                                                               , dimension(countModels)              :: modelTolerance
-  type            (inputParameters                                              ), pointer                             :: parameters
-  character       (len= 128                                                     ), dimension(4          )              :: columns
-  double precision                                                               , dimension(:          ), allocatable :: mass                                               , biasTarget    , &
-       &                                                                                                                  bias                                               , redshift
-  character       (len=1024                                                     )                                      :: line
-  double precision                                                                                                     :: OmegaMatter                                        , OmegaBaryon   , &
-       &                                                                                                                  OmegaDarkEnergy                                    , temperatureCMB, &
-       &                                                                                                                  powerSpectrumIndex                                 , HubbleConstant, &
-       &                                                                                                                  neutrinoNumberEffective                            , sigma8
-  integer                                                                                                              :: colossusFile                                       , status        , &
-       &                                                                                                                  countMasses                                        , i             , &
-       &                                                                                                                  iModel
+  type            (varying_string                                              )                                      :: parameterFile
+  integer                                                                       , parameter                           :: countModels                                                  =3
+  type            (varying_string                                              ), dimension(countModels)              :: modelName                                                      , modelLabel    , &
+       &                                                                                                                 modelDensityContrast
+  double precision                                                              , dimension(countModels)              :: modelTolerance
+  type            (inputParameters                                             ), pointer                             :: parameters
+  character       (len= 128                                                    ), dimension(4          )              :: columns
+  double precision                                                              , dimension(:          ), allocatable :: mass                                                           , biasTarget    , &
+       &                                                                                                                 bias                                                           , redshift
+  character       (len=1024                                                    )                                      :: line
+  double precision                                                                                                    :: OmegaMatter                                                    , OmegaBaryon   , &
+       &                                                                                                                 OmegaDarkEnergy                                                , temperatureCMB, &
+       &                                                                                                                 powerSpectrumIndex                                             , HubbleConstant, &
+       &                                                                                                                 neutrinoNumberEffective                                        , sigma8
+  integer                                                                                                             :: colossusFile                                                   , status        , &
+       &                                                                                                                 countMasses                                                    , i             , &
+       &                                                                                                                 iModel
 
   ! Initialize.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
   call eventsHooksInitialize()
+  call Functions_Global_Set ()
   ! Specify all models to run.
   modelName           (1)='Press-Schechter'
   modelLabel          (1)='cole89_NA'
@@ -100,7 +102,6 @@ program Test_Biases
      allocate(parameters)
      parameterFile=galacticusPath(pathTypeExec)//'testSuite/parameters/haloBias_'//modelDensityContrast(iModel)//'.xml'
      parameters   =inputParameters(parameterFile)
-     call parameters%markGlobal()
      call nodeClassHierarchyInitialize     (parameters)
      call Node_Components_Initialize       (parameters)
      call Node_Components_Thread_Initialize(parameters)
@@ -181,8 +182,9 @@ program Test_Biases
      !# <referenceConstruct object="powerSpectrumPrimordialPowerLaw_"                              >
      !#  <constructor>
      !#   powerSpectrumPrimordialPowerLaw                              (                                                                               &amp;
-     !#    &amp;                                                        index                              =powerSpectrumIndex                       , &amp;
+     !#    &amp;                                                        index_                             =powerSpectrumIndex                       , &amp;
      !#    &amp;                                                        running                            =+0.0d0                                   , &amp;
+     !#    &amp;                                                        runningRunning                     =+0.0d0                                   , &amp;
      !#    &amp;                                                        wavenumberReference                =+1.0d0                                     &amp;
      !#    &amp;                                                       )
      !#  </constructor>
@@ -222,6 +224,7 @@ program Test_Biases
      !#    &amp;                                                        toleranceTopHat                    =1.0d-4                                   , &amp;
      !#    &amp;                                                        nonMonotonicIsFatal                =.true.                                   , &amp;
      !#    &amp;                                                        monotonicInterpolation             =.false.                                  , &amp;
+     !#    &amp;                                                        truncateAtParticleHorizon          =.false.                                  , &amp;
      !#    &amp;                                                        cosmologyParameters_               =cosmologyParametersSimple_               , &amp;
      !#    &amp;                                                        cosmologyFunctions_                =cosmologyFunctionsMatterLambda_          , &amp;
      !#    &amp;                                                        linearGrowth_                      =linearGrowthCollisionlessMatter_         , &amp;
@@ -241,6 +244,17 @@ program Test_Biases
      !#    &amp;                                                       )
      !#  </constructor>
      !# </referenceConstruct>
+     !# <referenceConstruct object="virialDensityContrast_">
+     !#  <constructor>
+     !#   virialDensityContrastFixed                                   (                                                                               &amp;
+     !#    &amp;                                                        densityContrastValue               =200.0d0                                  , &amp;
+     !#    &amp;                                                        densityType                        =fixedDensityTypeCritical                 , &amp;
+     !#    &amp;                                                        turnAroundOverVirialRadius         =  2.0d0                                  , &amp;
+     !#    &amp;                                                        cosmologyParameters_               =cosmologyParametersSimple_               , &amp;
+     !#    &amp;                                                        cosmologyFunctions_                =cosmologyFunctionsMatterLambda_            &amp;
+     !#    &amp;                                                       )
+     !#  </constructor>
+     !# </referenceConstruct>
      ! Construct the concentration object for this test.
      select case (char(modelName(iModel)))
      case ('Press-Schechter')
@@ -254,29 +268,28 @@ program Test_Biases
      type is (darkMatterHaloBiasPressSchechter)
         !# <referenceConstruct object="darkMatterHaloBias_">
         !#  <constructor>
-        !#   darkMatterHaloBiasPressSchechter(                                                                                          &amp;
+        !#   darkMatterHaloBiasPressSchechter(                                                                                         &amp;
         !#    &amp;                           criticalOverdensity_     =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_, &amp;
-        !#    &amp;                           cosmologicalMassVariance_=cosmologicalMassVarianceFilteredPower_                          &amp;
+        !#    &amp;                           cosmologicalMassVariance_=cosmologicalMassVarianceFilteredPower_                         &amp;
         !#    &amp;                          )
         !#  </constructor>
         !# </referenceConstruct>
      type is (darkMatterHaloBiasSheth2001)
         !# <referenceConstruct object="darkMatterHaloBias_">
         !#  <constructor>
-        !#   darkMatterHaloBiasSheth2001     (                                                                                          &amp;
+        !#   darkMatterHaloBiasSheth2001     (                                                                                         &amp;
         !#       &amp;                        criticalOverdensity_     =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_, &amp;
-        !#       &amp;                        cosmologicalMassVariance_=cosmologicalMassVarianceFilteredPower_                          &amp;
+        !#       &amp;                        cosmologicalMassVariance_=cosmologicalMassVarianceFilteredPower_                         &amp;
         !#    &amp;                          )
         !#  </constructor>
         !# </referenceConstruct>
      type is (darkMatterHaloBiasTinker2010)
-        virialDensityContrast_ => virialDensityContrast()
         !# <referenceConstruct object="darkMatterHaloBias_">
         !#  <constructor>
-        !#   darkMatterHaloBiasTinker2010    (                                                                                          &amp;
+        !#   darkMatterHaloBiasTinker2010    (                                                                                         &amp;
         !#    &amp;                           criticalOverdensity_     =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_, &amp;
-        !#    &amp;                           cosmologicalMassVariance_=cosmologicalMassVarianceFilteredPower_                        , &amp;
-        !#    &amp;                           virialDensityContrast_   =virialDensityContrast_                                          &amp;
+        !#    &amp;                           cosmologicalMassVariance_=cosmologicalMassVarianceFilteredPower_                       , &amp;
+        !#    &amp;                           virialDensityContrast_   =virialDensityContrast_                                         &amp;
         !#    &amp;                          )
         !#  </constructor>
         !# </referenceConstruct>

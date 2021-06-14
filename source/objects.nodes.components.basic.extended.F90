@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -107,12 +107,9 @@ contains
 
     !# <inputParameter>
     !#   <name>nodeComponentBasicExtendedSphericalCollapseType</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('matterLambda')</defaultValue>
     !#   <description>The type of spherical collapse model to assume in the extended basic node component class.</description>
-    !#   <group>cosmology</group>
     !#   <source>parameters_</source>
-    !#   <type>string</type>
     !#   <variable>nodeComponentBasicExtendedSphericalCollapseTypeText</variable>
     !# </inputParameter>
     select case (char(nodeComponentBasicExtendedSphericalCollapseTypeText))
@@ -122,14 +119,11 @@ contains
        nodeComponentBasicExtendedSphericalCollapseType=nodeComponentBasicExtendedSphericalCollapseTypeDE
        !# <inputParameter>
        !#   <name>nodeComponentBasicExtendedSphericalCollapseEnergyFixedAt</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>var_str('turnaround')</defaultValue>
        !#   <description>Selects the epoch at which the energy of a spherical top hat perturbation in a dark energy cosmology should be
        !#     ``fixed'' for the purposes of computing virial density contrasts. (See the discussion in
        !#     \citealt{percival_cosmological_2005}; \S8.).</description>
-       !#   <group>cosmology</group>
        !#   <source>parameters_</source>
-       !#   <type>string</type>
        !#   <variable>nodeComponentBasicExtendedSphericalCollapseEnergyFixedAtText</variable>
        !# </inputParameter>
        nodeComponentBasicExtendedSphericalCollapseEnergyFixedAt=enumerationCllsnlssMttrDarkEnergyFixedAtEncode(char(nodeComponentBasicExtendedSphericalCollapseEnergyFixedAtText),includesPrefix=.false.)
@@ -350,17 +344,16 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Basic_Standard_Extended_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Basic_Standard_Extended_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
+  subroutine Node_Component_Basic_Standard_Extended_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
     !% Compute rates of change of properties in the standard implementation of the basic component.
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentBasicStandardExtended, propertyTypeInactive, treeNode
     implicit none
-    type     (treeNode          ), intent(inout), pointer :: node
-    logical                      , intent(in   )          :: odeConverged
+    type     (treeNode          ), intent(inout)          :: node
     logical                      , intent(inout)          :: interrupt
     procedure(                  ), intent(inout), pointer :: interruptProcedure
     integer                      , intent(in   )          :: propertyType
     class    (nodeComponentBasic)               , pointer :: basic
-    !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
+    !$GLC attributes unused :: interrupt, interruptProcedure
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
@@ -409,8 +402,8 @@ contains
     !% Switch off accretion of new mass onto this node once it becomes a satellite.
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentBasicStandardExtended, treeNode
     implicit none
-    type (treeNode          ), intent(inout), pointer :: node
-    class(nodeComponentBasic)               , pointer :: basic
+    type (treeNode          ), intent(inout) :: node
+    class(nodeComponentBasic), pointer       :: basic
 
     ! Get the basic component.
     basic => node%basic()
@@ -434,7 +427,7 @@ contains
     type (treeNode          ), intent(inout) :: node
     type (treeNode          ), pointer       :: nodeParent
     class(nodeComponentBasic), pointer       :: basicParent, basic
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
     
     basic       => node      %basic ()
     nodeParent  => node      %parent

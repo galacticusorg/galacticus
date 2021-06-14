@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -33,7 +33,7 @@ module NBody_Operators
   !#   <description>Operate on the provided N-body simulation.</description>
   !#   <type>void</type>
   !#   <pass>yes</pass>
-  !#   <argument>type(nBodyData), intent(inout) :: simulation</argument>
+  !#   <argument>type(nBodyData), intent(inout), dimension(:) :: simulations</argument>
   !#  </method>
   !# </functionClass>
 

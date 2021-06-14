@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +21,16 @@
   use :: Cosmology_Parameters, only : cosmologyParametersClass
 
   !# <powerSpectrumWindowFunction name="powerSpectrumWindowFunctionSharpKSpace">
-  !#  <description>A sharp $k$-space window function for filtering of power spectra.</description>
+  !#  <description>
+  !#   A sharp $k$-space window function for filtering of power spectra. The window function is given by:
+  !#   \begin{equation}
+  !#    W(k) = \left\{ \begin{array}{ll} 1 &amp; \hbox{if } k &lt; k_\mathrm{s} \\ 0 &amp; \hbox{if } k &gt; k_\mathrm{s}, \end{array} \right.
+  !#   \end{equation}
+  !#   where if {\normalfont \ttfamily [normalization]}$=${\normalfont \ttfamily natural} then $k_\mathrm{s} = (6 \Pi^2 \bar{\rho}
+  !#   / M)^{1/3}$ for a smoothing scale $M$ and mean matter density $\bar{\rho}$. Otherwise, {\normalfont \ttfamily
+  !#   [normalization]} must be set to a numerical value, $\alpha$, in which case $k_\mathrm{s} = \alpha / R_\mathrm{th}$ with
+  !#   $R_\mathrm{th}=3M/4\pi\bar{\rho}$ for a smoothing scale $M$ and mean matter density $\bar{\rho}$.
+  !#  </description>
   !# </powerSpectrumWindowFunction>
   type, extends(powerSpectrumWindowFunctionClass) :: powerSpectrumWindowFunctionSharpKSpace
      !% A sharp $k$-space power spectrum window function class.
@@ -67,8 +76,6 @@ contains
     !#     requested smoothing mass. Alternatively, a value of {\normalfont \ttfamily natural} will be supplied in which case the normalization
     !#     is chosen such that, in real-space, $W(r=0)=1$. This results in a contained mass of $M=6 \pi^2 \bar{\rho} k_\mathrm{s}^{-3}$.
     !#   </description>
-    !#   <type>string</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     if (normalization == 'natural') then
@@ -162,7 +169,7 @@ contains
     !% Indicate the the sharp $k$-space power spectrum window function has constant amplitude below the maximum wavenumber.
     implicit none
     class(powerSpectrumWindowFunctionSharpKSpace), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     sharpKSpaceAmplitudeIsMassIndependent=.true.
     return

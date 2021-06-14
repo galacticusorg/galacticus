@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,7 +23,20 @@
   use :: Halo_Mass_Functions       , only : haloMassFunctionClass
 
   !# <mergerTreeBuildMassDistribution name="mergerTreeBuildMassDistributionHaloMassFunction">
-  !#  <description>A merger tree halo mass function sampling class in which the sampling rate is proportional to the halo mass function.</description>
+  !#  <description>
+  !#   A merger tree build mass distribution class in which the sampling density function equal to the halo mass function,
+  !#   \begin{equation}
+  !#   \gamma(M) = \hbox{minmax}(\phi_\mathrm{min},\phi_\mathrm{max},\mathrm{d} n(M)/\mathrm{d}\log M [1 + p_1
+  !#   \log_{10}(M/10^{13}M_\odot) + p_2 \log_{10}^2(M/10^{13}M_\odot)),
+  !#   \end{equation}
+  !#    where $\phi_\mathrm{min}=${\normalfont \ttfamily [abundanceMinimum]}, $\phi_\mathrm{max}=${\normalfont \ttfamily
+  !#    [abundanceMaximum]}, $p_1=${\normalfont \ttfamily [modifier1]}, $p_2=${\normalfont \ttfamily [modifier2]}, and
+  !#   \begin{equation}
+  !#    \hbox{minmax}(a,b,x) = \left\{\begin{array}{ll}a &amp; \hbox{ if } x &lt; a \\ x &amp; \hbox{ if } a \leq x \leq b\\ b &amp; \hbox{ if }
+  !#    x &gt; b,\end{array}\right.
+  !#   \end{equation}
+  !#   resulting in a sample of halos representative of a volume of space.
+  !#  </description>
   !# </mergerTreeBuildMassDistribution>
   type, extends(mergerTreeBuildMassDistributionClass) :: mergerTreeBuildMassDistributionHaloMassFunction
      !% Implementation of merger tree halo mass function sampling class in which the sampling rate is proportional to the halo mass function.
@@ -58,35 +71,27 @@ contains
 
     !# <inputParameter>
     !#   <name>abundanceMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>-1.0d0</defaultValue>
     !#   <description>The abundance (in units of Mpc$^{-3}$) below which to truncate the halo mass function when sampling halo masses for tree construction. A negative value indicates no truncation.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>abundanceMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>-1.0d0</defaultValue>
     !#   <description>The abundance (in units of Mpc$^{-3}$) above which to truncate the halo mass function when sampling halo masses for tree construction. A negative value indicates no truncation.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>modifier1</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>Coefficient of the polynomial modifier applied to the halo mass function when sampling halo masses for tree construction.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>modifier2</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>Coefficient of the polynomial modifier applied to the halo mass function when sampling halo masses for tree construction.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <objectBuilder class="haloMassFunction" name="haloMassFunction_" source="parameters"/>
     !# <objectBuilder class="haloEnvironment" name="haloEnvironment_"   source="parameters"/>
@@ -131,7 +136,7 @@ contains
     double precision                                                 , parameter     :: massZeroPoint=1.0d13
     class           (nodeComponentBasic                             ), pointer       :: basic
     type            (mergerTree                                     ), target        :: tree
-    !GCC$ attributes unused :: massMinimum, massMaximum
+    !$GLC attributes unused :: massMinimum, massMaximum
 
     ! Create a work node.
     tree %baseNode          => treeNode               (-1_kind_int8,tree)

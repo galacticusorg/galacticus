@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,15 +21,15 @@
 
 program Test_Hashes_Cryptographic
   !% Contains a program to test features of cryptographic hashes.
-  use :: Galacticus_Display  , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  use :: Display             , only : displayVerbositySet, verbosityLevelStandard
   use :: Hashes_Cryptographic, only : Hash_MD5
-  use :: ISO_Varying_String  , only : varying_string                , assignment(=)         , char
-  use :: Unit_Tests          , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: ISO_Varying_String  , only : assignment(=)      , char                  , varying_string
+  use :: Unit_Tests          , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type(varying_string) :: myHash, myText
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Cryptographic hashes")
 
@@ -37,7 +37,7 @@ program Test_Hashes_Cryptographic
   ! module.
   myText="dolphin monkey badger marmoset"
   myHash=Hash_MD5(myText)
-  call Assert("MD5 hash [c.f. Perl Crypt::PasswdMD5]",char(myHash),"aSgEiNBQlbr73RsSHQZjK.")
+  call Assert("MD5 hash [c.f. Perl Crypt::PasswdMD5]",char(myHash),"4ZAhhB6m4Wn7TCccmTKAc@")
 
   ! End unit tests.
   call Unit_Tests_End_Group()

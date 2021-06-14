@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -28,7 +28,10 @@ module Stellar_Populations_Initial_Mass_Functions
   !# <functionClass>
   !#  <name>initialMassFunction</name>
   !#  <descriptiveName>Initial Mass Functions</descriptiveName>
-  !#  <description>Class providing stellar initial mass functions.</description>
+  !#  <description>
+  !#   Class providing stellar initial mass functions. All IMFs are assumed to be continuous in $M$, unless otherwise noted and
+  !#   normalized to unit mass.
+  !#  </description>
   !#  <default>chabrier2001</default>
   !#  <method name="massMinimum" >
   !#   <description>Return the minimum mass in the initial mass function.</description>

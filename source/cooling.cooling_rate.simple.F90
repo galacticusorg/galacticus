@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,13 @@
   !% Implementation of a simple cooling rate class.
 
   !# <coolingRate name="coolingRateSimple">
-  !#  <description>A cooling rate class in which the cooling rate equals the mass of hot gas divided by a fixed timescale.</description>
+  !#  <description>
+  !#   A cooling rate class in which the cooling rate equals the mass of hot gas divided by a fixed timescale. Specifically,
+  !#   \begin{equation}
+  !#   \dot{M}_\mathrm{cool} = M_\mathrm{hot}/\tau_\mathrm{cool} ,
+  !#   \end{equation}
+  !#   where $\tau_\mathrm{cool}=${\normalfont \ttfamily [timeScale]}.
+  !#  </description>
   !# </coolingRate>
   type, extends(coolingRateClass) :: coolingRateSimple
      !% Implementation of cooling rate class in which the cooling rate equals the mass of hot gas divided by a fixed timescale.
@@ -51,10 +57,7 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The timescale (in Gyr) for cooling in the simple cooling rate model.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    !# <inputParametersValidate label="allowedParameterNames_"/>
     self=coolingRateSimple(timeScale)
     !# <inputParametersValidate source="parameters"/>
     return

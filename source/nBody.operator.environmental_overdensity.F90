@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -52,45 +52,35 @@ contains
     double precision                                                       :: radiusSphere, densityParticleMean, &
          &                                                                    lengthBox
     integer         (c_size_t                             )                :: sampleRate
-    logical                                                                   periodic
+    logical                                                                :: periodic
 
     !# <inputParameter>
     !#   <name>radiusSphere</name>
     !#   <source>parameters</source>
     !#   <description>The radius of the sphere within which to measure environmental overdensity.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>densityParticleMean</name>
     !#   <source>parameters</source>
     !#   <description>The mean density of particles in the simulation.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>sampleRate</name>
     !#   <source>parameters</source>
     !#   <description>One in {\normalfont \ttfamily [sampleRate]} particles will be sampled when computed environmental overdensities.</description>
     !#   <defaultValue>1_c_size_t</defaultValue>
-    !#   <type>integer</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>lengthBox</name>
     !#   <source>parameters</source>
     !#   <description>The length of the periodic box.</description>
     !#   <defaultValue>0.0d0</defaultValue>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>periodic</name>
     !#   <source>parameters</source>
     !#   <description>If true, periodic boundary conditions will be used.</description>
     !#   <defaultValue>.false.</defaultValue>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=nbodyOperatorEnvironmentalOverdensity(radiusSphere,densityParticleMean,sampleRate,lengthBox,periodic)
     !# <inputParametersValidate source="parameters"/>
@@ -117,111 +107,115 @@ contains
     return
   end function environmentalOverdensityConstructorInternal
 
-  subroutine environmentalOverdensityOperate(self,simulation)
+  subroutine environmentalOverdensityOperate(self,simulations)
     !% Determine the mean position and velocity of N-body particles.
-    use    :: Galacticus_Display, only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear
-    use    :: Memory_Management , only : allocateArray             , deallocateArray
-    use    :: Nearest_Neighbors , only : nearestNeighbors
-    !$ use :: OMP_Lib           , only : omp_get_thread_num
+    use    :: Display          , only : displayCounter    , displayCounterClear
+    use    :: Memory_Management, only : allocateArray     , deallocateArray
+    use    :: Nearest_Neighbors, only : nearestNeighbors
+    !$ use :: OMP_Lib          , only : omp_get_thread_num
     implicit none
     class           (nbodyOperatorEnvironmentalOverdensity), intent(inout)                 :: self
-    type            (nBodyData                            ), intent(inout)                 :: simulation
+    type            (nBodyData                            ), intent(inout), dimension(:  ) :: simulations
     double precision                                       , parameter                     :: toleranceZero          =0.0d0
     integer                                                , allocatable  , dimension(:  ) :: neighborIndex
     double precision                                       , allocatable  , dimension(:  ) :: neighborDistance             , overdensity
     double precision                                       , allocatable  , dimension(:,:) :: position
+    double precision                                       , pointer      , dimension(:,:) :: position_
     logical                                                , allocatable  , dimension(:  ) :: particleMask
     type            (nearestNeighbors                     )                                :: neighborFinder
     integer                                                                                :: neighborCount
     integer                                                               , dimension(3  ) :: i
     integer                                                                                :: l                            , m                     , &
-         &                                                                                    n
+         &                                                                                    n                            , iSimulation
     integer         (c_size_t                             )                                :: particleCount                , particleCountReplicant, &
          &                                                                                    j                            , k
 
-    if (self%periodic) then
-       ! Periodic boundary conditions - add buffers of periodically replicated particles.
-       ! First count how many particles total we have including the replicated buffers.
-       particleCount=0_c_size_t
-       do l=-1,+1
-          i(1)=l
-          do m=-1,+1
-             i(2)=m
-             do n=-1,+1
-                i(3)=n
-                particleCount=+particleCount                                        &
-                     &        +count(                                               &
-                     &                simulation%position(1,:) >= boundLower(i(1))  &
-                     &               .and.                                          &
-                     &                simulation%position(1,:) <  boundUpper(i(1))  &
-                     &               .and.                                          &
-                     &                simulation%position(2,:) >= boundLower(i(2))  &
-                     &               .and.                                          &
-                     &                simulation%position(2,:) <  boundUpper(i(2))  &
-                     &               .and.                                          &
-                     &                simulation%position(3,:) >= boundLower(i(3))  &
-                     &               .and.                                          &
-                     &                simulation%position(3,:) <  boundUpper(i(3)), &
-                     &               kind=c_size_t                                  &
-                     &              )
-             end do
-          end do
-       end do
-       call allocateArray(position    ,[3_c_size_t,particleCount                                ])
-       call allocateArray(particleMask,[           size(simulation%position,dim=2,kind=c_size_t)])
-       particleCount=0_c_size_t
-       do l=-1,+1
-          i(1)=l
-          do m=-1,+1
-             i(2)=m
-             do n=-1,+1
-                i(3)=n
-                particleMask= simulation%position(1,:) >= boundLower(i(1)) &
-                     &       .and.                                         &
-                     &        simulation%position(1,:) <  boundUpper(i(1)) &
-                     &       .and.                                         &
-                     &        simulation%position(2,:) >= boundLower(i(2)) &
-                     &       .and.                                         &
-                     &        simulation%position(2,:) <  boundUpper(i(2)) &
-                     &       .and.                                         &
-                     &        simulation%position(3,:) >= boundLower(i(3)) &
-                     &       .and.                                         &
-                     &        simulation%position(3,:) <  boundUpper(i(3))
-                particleCountReplicant=count(particleMask,kind=c_size_t)
-                do j=1,3
-                   position(j,particleCount+1_c_size_t:particleCount+particleCountReplicant)=pack(simulation%position(j,:),particleMask)+float(i(j))*self%lengthBox
+    do iSimulation=1,size(simulations)
+       position_ => simulations(iSimulation)%propertiesRealRank1%value('position')
+       if (self%periodic) then
+          ! Periodic boundary conditions - add buffers of periodically replicated particles.
+          ! First count how many particles total we have including the replicated buffers.
+          particleCount=0_c_size_t
+          do l=-1,+1
+             i(1)=l
+             do m=-1,+1
+                i(2)=m
+                do n=-1,+1
+                   i(3)=n
+                   particleCount=+particleCount                              &
+                        &        +count(                                     &
+                        &                position_(1,:) >= boundLower(i(1))  &
+                        &               .and.                                &
+                        &                position_(1,:) <  boundUpper(i(1))  &
+                        &               .and.                                &
+                        &                position_(2,:) >= boundLower(i(2))  &
+                        &               .and.                                &
+                        &                position_(2,:) <  boundUpper(i(2))  &
+                        &               .and.                                &
+                        &                position_(3,:) >= boundLower(i(3))  &
+                        &               .and.                                &
+                        &                position_(3,:) <  boundUpper(i(3)), &
+                        &               kind=c_size_t                        &
+                        &              )
                 end do
-                particleCount=particleCount+particleCountReplicant
              end do
           end do
+          call allocateArray(position    ,[3_c_size_t,particleCount                      ])
+          call allocateArray(particleMask,[           size(position_,dim=2,kind=c_size_t)])
+          particleCount=0_c_size_t
+          do l=-1,+1
+             i(1)=l
+             do m=-1,+1
+                i(2)=m
+                do n=-1,+1
+                   i(3)=n
+                   particleMask= position_(1,:) >= boundLower(i(1)) &
+                        &       .and.                               &
+                        &        position_(1,:) <  boundUpper(i(1)) &
+                        &       .and.                               &
+                        &        position_(2,:) >= boundLower(i(2)) &
+                        &       .and.                               &
+                        &        position_(2,:) <  boundUpper(i(2)) &
+                        &       .and.                               &
+                        &        position_(3,:) >= boundLower(i(3)) &
+                        &       .and.                               &
+                        &        position_(3,:) <  boundUpper(i(3))
+                   particleCountReplicant=count(particleMask,kind=c_size_t)
+                   do j=1,3
+                      position(j,particleCount+1_c_size_t:particleCount+particleCountReplicant)=pack(position_(j,:),particleMask)+float(i(j))*self%lengthBox
+                   end do
+                   particleCount=particleCount+particleCountReplicant
+                end do
+             end do
+          end do
+          call deallocateArray(particleMask)
+       else
+          ! Non-periodic boundaries - no need to replicate particles.
+          call allocateArray(position,shape(position_))
+          position=position_
+       end if
+       neighborFinder=nearestNeighbors(transpose(position))
+       call allocateArray(overdensity,[size(position_,dim=2,kind=c_size_t)])
+       overdensity=-2.0d0
+       ! Iterate over particles.
+       call displayCounter(0,.true.)
+       j=0_c_size_t
+       !$omp parallel do private(neighborCount,neighborIndex,neighborDistance) schedule(dynamic)
+       do k=1_c_size_t,size(position_,dim=2,kind=c_size_t),self%sampleRate
+          ! Locate particles nearby.
+          call neighborFinder%searchFixedRadius(position_(:,k),self%radiusSphere,toleranceZero,neighborCount,neighborIndex,neighborDistance)
+          overdensity(k)=float(neighborCount)/self%particleCountMean-1.0d0
+          !$omp atomic
+          j=j+self%sampleRate
+          !$ if (omp_get_thread_num() == 0) then
+          call displayCounter(int(100.0d0*float(j)/float(size(position_,dim=2,kind=c_size_t))),.false.)
+          !$ end if
        end do
-      call deallocateArray(particleMask)
-     else
-       ! Non-periodic boundaries - no need to replicate particles.
-       call allocateArray(position,shape(simulation%position))
-       position=simulation%position
-    end if
-    neighborFinder=nearestNeighbors(transpose(position))
-    call allocateArray(overdensity,[size(simulation%position,dim=2,kind=c_size_t)])
-    overdensity=-2.0d0
-    ! Iterate over particles.
-    call Galacticus_Display_Counter(0,.true.)
-    j=0_c_size_t
-    !$omp parallel do private(neighborCount,neighborIndex,neighborDistance) schedule(dynamic)
-    do k=1_c_size_t,size(simulation%position,dim=2,kind=c_size_t),self%sampleRate
-       ! Locate particles nearby.
-       call neighborFinder%searchFixedRadius(simulation%position(:,k),self%radiusSphere,toleranceZero,neighborCount,neighborIndex,neighborDistance)
-       overdensity(k)=float(neighborCount)/self%particleCountMean-1.0d0
-       !$omp atomic
-       j=j+self%sampleRate
-       !$ if (omp_get_thread_num() == 0) then
-          call Galacticus_Display_Counter(int(100.0d0*float(j)/float(size(simulation%position,dim=2,kind=c_size_t))),.false.)
-       !$ end if
+       !$omp end parallel do
+       call displayCounterClear()
+       call deallocateArray(position)
+       call simulations(iSimulation)%analysis%writeDataset(overdensity,'overdensityEnvironmental')
     end do
-    !$omp end parallel do
-    call Galacticus_Display_Counter_Clear()
-    call deallocateArray(position)
-    call simulation%analysis%writeDataset(overdensity,'overdensityEnvironmental')
     return
 
   contains

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,7 +23,19 @@
   use :: Hot_Halo_Temperature_Profiles         , only : hotHaloTemperatureProfile             , hotHaloTemperatureProfileClass
 
   !# <hotHaloMassDistribution name="hotHaloMassDistributionEnzoHydrostatic">
-  !#  <description>Provides an implementation of the hot halo mass distribution class which uses the ``hydrostatic'' profile used by the Enzo simulation code.</description>
+  !#  <description>
+  !#   A hot halo mass distribution class which adopts a spherically symmetric density profile for the hot halo motivated by the
+  !#   ``hydrostatic'' profile available in the \gls{enzo} code. Specifically,
+  !#   \begin{equation}
+  !#    \rho_\mathrm{hot halo}(r) \propto \left\{ \begin{array}{ll} T^{-1} r^{-1} &amp; \hbox{ if } r &gt; r_\mathrm{core} \\ T^{-1}
+  !#    r_\mathrm{core}^{-1} &amp; \hbox{ if } r \le r_\mathrm{core}, \end{array} \right.
+  !#   \end{equation}
+  !#   where the core radius, $r_\mathrm{core}$, is set using the selected cored profile core radius method (see
+  !#   \refPhysics{hotHaloMassDistributionCoreRadius}). The profile is normalized such that the current mass in the
+  !#   hot gas profile is contained within the outer radius of the hot halo, $r_\mathrm{hot, outer}$. Note that the \gls{enzo}
+  !#   hydrostatic profile does not include this core, but without introducing this the profile mass can be divergent at small
+  !#   radii.
+  !#  </description>
   !# </hotHaloMassDistribution>
   type, extends(hotHaloMassDistributionClass) :: hotHaloMassDistributionEnzoHydrostatic
      !% An implementation of the hot halo mass distribution class which uses the ``hydrostatic'' profile used by the Enzo simulation code.
@@ -31,15 +43,9 @@
      class(hotHaloTemperatureProfileClass        ), pointer :: hotHaloTemperatureProfile_ => null()
      class(hotHaloMassDistributionCoreRadiusClass), pointer :: hotHaloMassDistributionCoreRadius_ => null()
    contains
-     !@ <objectMethods>
-     !@   <object>hotHaloMassDistributionEnzoHydrostatic</object>
-     !@   <objectMethod>
-     !@     <method>densityNormalization</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\textcolor{red}{\textless *type(treeNode)\textgreater} node\arginout</arguments>
-     !@     <description>Return the normalization of the density profile.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return the normalization of the density profile." method="densityNormalization" />
+     !# </methods>
      final     ::                          enzoHydrostaticDestructor
      procedure :: densityNormalization  => enzoHydrostaticDensityNormalization
      procedure :: density               => enzoHydrostaticDensity
@@ -104,18 +110,15 @@ contains
 
   double precision function enzoHydrostaticDensityNormalization(self,node)
     !% Return the density normalization in a {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution.
-    use :: FGSL                 , only : fgsl_function       , fgsl_integration_workspace
     use :: Galacticus_Nodes     , only : nodeComponentHotHalo, treeNode
-    use :: Numerical_Integration, only : Integrate           , Integrate_Done
+    use :: Numerical_Integration, only : integrator
     implicit none
     class           (hotHaloMassDistributionEnzoHydrostatic), intent(inout)          :: self
     type            (treeNode                              ), intent(inout), target  :: node
     class           (nodeComponentHotHalo                  )               , pointer :: hotHalo
-    double precision                                        , parameter              :: toleranceRelative    =1.0d-3
-    type            (fgsl_function                         )                         :: integrandFunction
-    type            (fgsl_integration_workspace            )                         :: integrationWorkspace
-    logical                                                                          :: integrationReset
-    double precision                                                                 :: radiusInner                 , radiusOuter
+    double precision                                        , parameter              :: toleranceRelative=1.0d-3
+    type            (integrator                            )                         :: integrator_
+    double precision                                                                 :: radiusInner             , radiusOuter
 
     enzoHydrostaticRadiusScale                   =  self%hotHaloMassDistributionCoreRadius_%radius                    (node)
     enzoHydrostaticNodeHotHaloTemperatureProfile => self                                   %hotHaloTemperatureProfile_
@@ -128,21 +131,11 @@ contains
          & ) then
        enzoHydrostaticDensityNormalization=0.0d0
     else
+       integrator_                        =integrator              (enzoHydrostaticEnclosedMassIntegrand,toleranceRelative=toleranceRelative)
        radiusInner                        =+0.0d0
-       radiusOuter                        =+hotHalo%outerRadius()
-       integrationReset                   =.true.
-       enzoHydrostaticDensityNormalization=+hotHalo%mass       ()                                             &
-            &                              /Integrate(                                                        &
-            &                                                           radiusInner                         , &
-            &                                                           radiusOuter                         , &
-            &                                                           enzoHydrostaticEnclosedMassIntegrand, &
-            &                                                           integrandFunction                   , &
-            &                                                           integrationWorkspace                , &
-            &                                         reset            =integrationReset                    , &
-            &                                         toleranceAbsolute=0.0d+0                              , &
-            &                                         toleranceRelative=toleranceRelative                     &
-            &                                        )
-       call Integrate_Done(integrandFunction,integrationWorkspace)
+       radiusOuter                        =+hotHalo    %outerRadius(                                                                        )
+       enzoHydrostaticDensityNormalization=+hotHalo    %mass       (                                                                        ) &
+            &                              /integrator_%integrate  (radiusInner                         ,radiusOuter                        )
     end if
     return
   end function enzoHydrostaticDensityNormalization
@@ -207,83 +200,57 @@ contains
 
   double precision function enzoHydrostaticEnclosedMass(self,node,radius)
     !% Return the enclosed mass in a {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution.
-    use :: FGSL                 , only : fgsl_function       , fgsl_integration_workspace
     use :: Galacticus_Nodes     , only : nodeComponentHotHalo, treeNode
-    use :: Numerical_Integration, only : Integrate           , Integrate_Done
+    use :: Numerical_Integration, only : integrator
     implicit none
     class           (hotHaloMassDistributionEnzoHydrostatic), intent(inout)          :: self
     type            (treeNode                              ), intent(inout), target  :: node
     double precision                                        , intent(in   )          :: radius
-    double precision                                        , parameter              :: toleranceRelative   =1.0d-3
+    double precision                                        , parameter              :: toleranceRelative=1.0d-3
     class           (nodeComponentHotHalo                  )               , pointer :: hotHalo
-    type            (fgsl_function                         )                         :: integrandFunction
-    type            (fgsl_integration_workspace            )                         :: integrationWorkspace
-    logical                                                                          :: integrationReset
-    double precision                                                                 :: radiusInner                , radiusOuter
+    type            (integrator                            )                         :: integrator_
+    double precision                                                                 :: radiusInner             , radiusOuter
 
     hotHalo => node%hotHalo()
     if (radius > hotHalo%outerRadius()) then
        enzoHydrostaticEnclosedMass=hotHalo%mass()
     else
-       enzoHydrostaticRadiusScale                   =  self%hotHaloMassDistributionCoreRadius_%radius(node)
-       enzoHydrostaticNodeHotHaloTemperatureProfile => self%hotHaloTemperatureProfile_
-       enzoHydrostaticNode                          => node
-       radiusInner                                  =  0.0d0
-       radiusOuter                                  =  radius
-       integrationReset                             =  .true.
-       enzoHydrostaticEnclosedMass=+self%densityNormalization(node)                                    &
-            &                      *Integrate(                                                         &
-            &                                 radiusInner                                            , &
-            &                                 radiusOuter                                            , &
-            &                                 enzoHydrostaticEnclosedMassIntegrand                   , &
-            &                                 integrandFunction                                      , &
-            &                                 integrationWorkspace                                   , &
-            &                                 reset                               =integrationReset  , &
-            &                                 toleranceAbsolute                   =0.0d+0            , &
-            &                                 toleranceRelative                   =toleranceRelative   &
-            &                                )
-       call Integrate_Done(integrandFunction,integrationWorkspace)
+       enzoHydrostaticRadiusScale                   =   self%hotHaloMassDistributionCoreRadius_%radius(node)
+       enzoHydrostaticNodeHotHaloTemperatureProfile =>  self%hotHaloTemperatureProfile_
+       enzoHydrostaticNode                          =>  node
+       radiusInner                                  =  +0.0d0
+       radiusOuter                                  =  +radius
+       integrator_                                  =   integrator                      (enzoHydrostaticEnclosedMassIntegrand,toleranceRelative=toleranceRelative)
+       enzoHydrostaticEnclosedMass                  =  +self       %densityNormalization(node                                                                    ) &
+            &                                          *integrator_%integrate           (radiusInner                         ,radiusOuter                        )
     end if
     return
   end function enzoHydrostaticEnclosedMass
 
   double precision function enzoHydrostaticRadialMoment(self,node,moment,radius)
     !% Return a radial moment of an {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution.
-    use :: FGSL                 , only : fgsl_function       , fgsl_integration_workspace
     use :: Galacticus_Nodes     , only : nodeComponentHotHalo, treeNode
-    use :: Numerical_Integration, only : Integrate           , Integrate_Done
+    use :: Numerical_Integration, only : integrator
     implicit none
     class           (hotHaloMassDistributionEnzoHydrostatic), intent(inout) :: self
     type            (treeNode                              ), intent(inout) :: node
-    double precision                                        , intent(in   ) :: moment                                   , radius
+    double precision                                        , intent(in   ) :: moment                  , radius
     class           (nodeComponentHotHalo                  ), pointer       :: hotHalo
-    double precision                                        , parameter     :: toleranceRelative                 =1.0d-3
-    type            (fgsl_function                         )                :: integrandFunction
-    type            (fgsl_integration_workspace            )                :: integrationWorkspace
-    logical                                                                 :: integrationReset
-    double precision                                                        :: radiusInner                              , radiusOuter, &
+    double precision                                        , parameter     :: toleranceRelative=1.0d-3
+    type            (integrator                            )                :: integrator_
+    double precision                                                        :: radiusInner             , radiusOuter, &
          &                                                                     radiusScale
 
-    radiusScale                        =  self%hotHaloMassDistributionCoreRadius_%radius (node)
-    hotHalo                            => node                                   %hotHalo(    )
-    radiusInner                        =  0.0d0
-    radiusOuter                        =  min(                       &
-         &                                    radius               , &
-         &                                    hotHalo%outerRadius()  &
-         &                                   )
-    integrationReset                   =  .true.
-    enzoHydrostaticRadialMoment=+self%densityNormalization(node)                                    &
-         &                      *Integrate(                                                         &
-         &                                 radiusInner                                            , &
-         &                                 radiusOuter                                            , &
-         &                                 enzoHydrostaticRadialMomentIntegrand                   , &
-         &                                 integrandFunction                                      , &
-         &                                 integrationWorkspace                                   , &
-         &                                 reset                               =integrationReset  , &
-         &                                 toleranceAbsolute                   =0.0d+0            , &
-         &                                 toleranceRelative                   =toleranceRelative   &
-         &                                )
-    call Integrate_Done(integrandFunction,integrationWorkspace)
+    radiusScale                        =   self%hotHaloMassDistributionCoreRadius_%radius (node)
+    hotHalo                            =>  node                                   %hotHalo(    )
+    radiusInner                        =   0.0d0
+    radiusOuter                        =   min(                       &
+         &                                     radius               , &
+         &                                     hotHalo%outerRadius()  &
+         &                                    )
+    integrator_                        =   integrator                      (enzoHydrostaticRadialMomentIntegrand,toleranceRelative=toleranceRelative)
+    enzoHydrostaticRadialMoment        =  +self       %densityNormalization(node                                                                    ) &
+         &                                *integrator_%integrate           (radiusInner                         ,radiusOuter                        )
     return
 
   contains

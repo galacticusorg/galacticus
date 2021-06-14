@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -54,8 +54,6 @@ contains
     !#   <name>massThreshold</name>
     !#   <source>parameters</source>
     !#   <description>The parameter $M_0$ (in units of $M_\odot$) appearing in the stellar mass threshold for the spheroid stellar mass galactic filter class.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=galacticFilterSpheroidStellarMass(massThreshold)
     !# <inputParametersValidate source="parameters"/>
@@ -76,10 +74,10 @@ contains
     !% Implement a  stellar mass high-pass galactic filter.
     use :: Galacticus_Nodes, only : nodeComponentSpheroid, treeNode
     implicit none
-    class           (galacticFilterSpheroidStellarMass), intent(inout) :: self
-    type            (treeNode                         ), intent(inout) :: node
-    class           (nodeComponentSpheroid            ), pointer       :: spheroid
-    double precision                                                   :: spheroidStellarMass
+    class           (galacticFilterSpheroidStellarMass), intent(inout)         :: self
+    type            (treeNode                         ), intent(inout), target :: node
+    class           (nodeComponentSpheroid            ), pointer               :: spheroid
+    double precision                                                           :: spheroidStellarMass
 
     spheroid                  =>  node    %spheroid   ()
     spheroidStellarMass       =  +spheroid%massStellar()

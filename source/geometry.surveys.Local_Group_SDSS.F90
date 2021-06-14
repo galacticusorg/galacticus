@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -50,8 +50,6 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>300.0d-3</defaultValue>
     !#   <description>The maximum distance at which galaxies are to be included in the survey.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=surveyGeometryLocalGroupSDSS(distanceMaximumSurvey)
     !# <inputParametersValidate source="parameters"/>
@@ -76,7 +74,7 @@ contains
     class           (surveyGeometryLocalGroupSDSS), intent(inout)           :: self
     double precision                              , intent(in   ), optional :: mass           , magnitudeAbsolute, luminosity
     integer                                       , intent(in   ), optional :: field
-    !GCC$ attributes unused :: self, field, magnitudeAbsolute, luminosity
+    !$GLC attributes unused :: self, field, magnitudeAbsolute, luminosity
 
     ! Find the limiting distance for this mass completeness limits. We adopt the model of Kim, Peter & Hargis (2018,
     ! Phys. Rev. Lett. 121, 211302; https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.121.211302), assuming a

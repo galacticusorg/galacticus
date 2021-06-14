@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -34,33 +34,12 @@ module Function_Classes
      logical :: isDefaultOfClass=.false.
      integer :: referenceCount  =0
    contains
-     !@ <objectMethods>
-     !@   <object>functionClass</object>
-     !@   <objectMethod>
-     !@     <method>referenceCountReset</method>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@     <description>Reset the reference count to this object to 0.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>referenceCountIncrement</method>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@     <description>Increment the reference count to this object.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>referenceCountDecrement</method>
-     !@     <type>\intzero</type>
-     !@     <arguments></arguments>
-     !@     <description>Decrement the reference count to this object and return the new reference count.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>isDefault</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return true if this is the default object of this class.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Reset the reference count to this object to 0." method="referenceCountReset" />
+     !#   <method description="Increment the reference count to this object." method="referenceCountIncrement" />
+     !#   <method description="Decrement the reference count to this object and return the new reference count." method="referenceCountDecrement" />
+     !#   <method description="Return true if this is the default object of this class." method="isDefault" />
+     !# </methods>
      procedure :: isDefault               => functionClassIsDefault
      procedure :: referenceCountReset     => functionClassReferenceCountReset
      procedure :: referenceCountIncrement => functionClassReferenceCountIncrement

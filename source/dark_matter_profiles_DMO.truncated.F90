@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -37,21 +37,10 @@
           &                                                  enclosingMassRadiusPrevious                               , radialVelocityDispersionTruncateMinimumPrevious, &
           &                                                  radialVelocityDispersionTruncateMinimumUntruncatedPrevious
    contains
-     !@ <objectMethods>
-     !@   <object>darkMatterProfileDMOTruncated</object>
-     !@   <objectMethod>
-     !@     <method>calculationReset</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(table)\textgreater} node\arginout</arguments>
-     !@     <description>Reset memoized calculations.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>truncationFunction</method>
-     !@     <type>void</type>
-     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} node\arginout, \doublezero\ radius\argin, \doublezero\ [x]\argout, \doublezero\ [multiplier]\argout, \doublezero\ [multiplierGradient]\argout</arguments>
-     !@     <description>Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc).</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Reset memoized calculations." method="calculationReset" />
+     !#   <method description="Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc)." method="truncationFunction" />
+     !# </methods>
      final     ::                                      truncatedDestructor
      procedure :: autoHook                          => truncatedAutoHook
      procedure :: calculationReset                  => truncatedCalculationReset
@@ -99,24 +88,18 @@ contains
     !#   <defaultValue>var_str('fallThrough')</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Selects how solutions are computed when no analytic solution is available. If set to ``{\normalfont \ttfamily fallThrough}'' then the solution ignoring heating is used, while if set to ``{\normalfont \ttfamily numerical}'' then numerical solvers are used to find solutions.</description>
-    !#   <type>string</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>radiusFractionalTruncateMinimum</name>
     !#   <defaultValue>2.0d0</defaultValue>
     !#   <source>parameters</source>
     !#   <description>The minimum radius (in units of the virial radius) to begin truncating the density profile.</description>
-    !#   <type>float</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>radiusFractionalTruncateMaximum</name>
     !#   <defaultValue>4.0d0</defaultValue>
     !#   <source>parameters</source>
     !#   <description>The maximum radius (in units of the virial radius) to finish truncating the density profile.</description>
-    !#   <type>float</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="darkMatterProfileDMO"   name="darkMatterProfileDMO_"   source="parameters"/>
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
@@ -140,7 +123,8 @@ contains
 
     ! Validate.
     if (.not.enumerationNonAnalyticSolversIsValid(nonAnalyticSolver)) call Galacticus_Error_Report('invalid non-analytic solver type'//{introspection:location})
-    self%lastUniqueID=-1_kind_int8
+    self%lastUniqueID       =-1_kind_int8
+    self%genericLastUniqueID=-1_kind_int8
     return
   end function truncatedConstructorInternal
 
@@ -173,11 +157,16 @@ contains
     type (treeNode                     ), intent(inout) :: node
 
     self%lastUniqueID                                              =node%uniqueID()
+    self%genericLastUniqueID                                       =node%uniqueID()
     self%enclosingMassRadiusPrevious                               =-1.0d0
     self%enclosedMassTruncateMinimumPrevious                       =-1.0d0
     self%enclosedMassTruncateMaximumPrevious                       =-1.0d0
     self%radialVelocityDispersionTruncateMinimumPrevious           =-1.0d0
     self%radialVelocityDispersionTruncateMinimumUntruncatedPrevious=-1.0d0
+    if (allocated(self%genericVelocityDispersionRadialVelocity)) deallocate(self%genericVelocityDispersionRadialVelocity)
+    if (allocated(self%genericVelocityDispersionRadialRadius  )) deallocate(self%genericVelocityDispersionRadialRadius  )
+    if (allocated(self%genericEnclosedMassMass                )) deallocate(self%genericEnclosedMassMass                )
+    if (allocated(self%genericEnclosedMassRadius              )) deallocate(self%genericEnclosedMassRadius              )
     return
   end subroutine truncatedCalculationReset
 
@@ -418,9 +407,9 @@ contains
     !% Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentum} (given
     !% in units of km s$^{-1}$ Mpc).
     implicit none
-    class           (darkMatterProfileDMOTruncated), intent(inout)          :: self
-    type            (treeNode                     ), intent(inout), pointer :: node
-    double precision                               , intent(in   )          :: specificAngularMomentum
+    class           (darkMatterProfileDMOTruncated), intent(inout) :: self
+    type            (treeNode                     ), intent(inout) :: node
+    double precision                               , intent(in   ) :: specificAngularMomentum
 
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        truncatedRadiusFromSpecificAngularMomentum=self%darkMatterProfileDMO_%radiusFromSpecificAngularMomentum         (node,specificAngularMomentum)
@@ -492,9 +481,9 @@ contains
     !% Returns the freefall radius in the truncated density profile at the specified {\normalfont \ttfamily time} (given in
     !% Gyr).
     implicit none
-    class           (darkMatterProfileDMOTruncated), intent(inout) :: self
-    type            (treeNode                     ), intent(inout) :: node
-    double precision                               , intent(in   ) :: time
+    class           (darkMatterProfileDMOTruncated), intent(inout), target :: self
+    type            (treeNode                     ), intent(inout), target :: node
+    double precision                               , intent(in   )         :: time
 
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        truncatedFreefallRadius=self%darkMatterProfileDMO_%freefallRadius         (node,time)
@@ -508,9 +497,9 @@ contains
     !% Returns the rate of increase of the freefall radius in the truncated density profile at the specified {\normalfont
     !% \ttfamily time} (given in Gyr).
     implicit none
-    class           (darkMatterProfileDMOTruncated), intent(inout) :: self
-    type            (treeNode                     ), intent(inout) :: node
-    double precision                               , intent(in   ) :: time
+    class           (darkMatterProfileDMOTruncated), intent(inout), target :: self
+    type            (treeNode                     ), intent(inout), target :: node
+    double precision                               , intent(in   )         :: time
 
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        truncatedFreefallRadiusIncreaseRate=self%darkMatterProfileDMO_%freefallRadiusIncreaseRate         (node,time)

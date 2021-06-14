@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -28,13 +28,15 @@
   use :: Hot_Halo_Temperature_Profiles, only : hotHaloTemperatureProfileClass
   use :: Kind_Numbers                 , only : kind_int8
   use :: Radiation_Fields             , only : radiationFieldCosmicMicrowaveBackground
+  use :: Root_Finder                  , only : rootFinder
 
   !# <coolingRadius name="coolingRadiusSimple">
   !#  <description>
-  !#   A cooling radius class computes the cooling radius by seeking the radius at which the time available for cooling equals the
-  !#   cooling time. The growth rate is determined consistently based on the slope of the density profile, the density dependence
-  !#   of the cooling function and the rate at which the time available for cooling is increasing. This method assumes that the
-  !#   cooling time is a monotonic function of radius.
+  !#   A cooling radius class that computes the cooling radius by seeking the radius at which the time available for cooling (see
+  !#   \refPhysics{coolingTimeAvailable}) equals the cooling time (see \refPhysics{coolingTime}). The growth rate is determined
+  !#   consistently based on the slope of the density profile, the density dependence of the cooling function and the rate at
+  !#   which the time available for cooling is increasing. This method assumes that the cooling time is a monotonic function of
+  !#   radius.
   !#  </description>
   !#  <deepCopy>
   !#   <functionClass variables="radiation"/>
@@ -53,21 +55,16 @@
      class           (hotHaloMassDistributionClass           ), pointer :: hotHaloMassDistribution_   => null()
      class           (hotHaloTemperatureProfileClass         ), pointer :: hotHaloTemperatureProfile_ => null()
      type            (radiationFieldCosmicMicrowaveBackground), pointer :: radiation                  => null()
+     type            (rootFinder                             )          :: finder
      integer         (kind=kind_int8                         )          :: lastUniqueID               =  -1
      integer                                                            :: abundancesCount                     , chemicalsCount
      ! Stored values of cooling radius.
      logical                                                            :: radiusComputed                      , radiusGrowthRateComputed
      double precision                                                   :: radiusGrowthRateStored              , radiusStored
    contains
-     !@ <objectMethods>
-     !@   <object>coolingRadiusSimple</object>
-     !@   <objectMethod>
-     !@     <method>calculationReset</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(table)\textgreater} node\arginout</arguments>
-     !@     <description>Reset memoized calculations.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Reset memoized calculations." method="calculationReset" />
+     !# </methods>
      final     ::                     simpleDestructor
      procedure :: autoHook         => simpleAutoHook
      procedure :: radius           => simpleRadius
@@ -126,12 +123,13 @@ contains
     use :: Galacticus_Error             , only : Galacticus_Component_List, Galacticus_Error_Report
     use :: Galacticus_Nodes             , only : defaultHotHaloComponent
     implicit none
-    type (coolingRadiusSimple           )                        :: self
-    class(cosmologyFunctionsClass       ), intent(in   ), target :: cosmologyFunctions_
-    class(coolingTimeAvailableClass     ), intent(in   ), target :: coolingTimeAvailable_
-    class(coolingTimeClass              ), intent(in   ), target :: coolingTime_
-    class(hotHaloTemperatureProfileClass), intent(in   ), target :: hotHaloTemperatureProfile_
-    class(hotHaloMassDistributionClass  ), intent(in   ), target :: hotHaloMassDistribution_
+    type            (coolingRadiusSimple           )                        :: self
+    class           (cosmologyFunctionsClass       ), intent(in   ), target :: cosmologyFunctions_
+    class           (coolingTimeAvailableClass     ), intent(in   ), target :: coolingTimeAvailable_
+    class           (coolingTimeClass              ), intent(in   ), target :: coolingTime_
+    class           (hotHaloTemperatureProfileClass), intent(in   ), target :: hotHaloTemperatureProfile_
+    class           (hotHaloMassDistributionClass  ), intent(in   ), target :: hotHaloMassDistribution_
+    double precision                                , parameter             :: toleranceAbsolute         =0.0d0, toleranceRelative=1.0d-6
     !# <constructorAssign variables="*cosmologyFunctions_, *coolingTimeAvailable_, *coolingTime_, *hotHaloTemperatureProfile_, *hotHaloMassDistribution_"/>
 
     ! Initial state of stored solutions.
@@ -167,6 +165,12 @@ contains
          &                           )                                                                                           // &
          &  {introspection:location}                                                                                                &
          & )
+    ! Initialize a root finder.
+    self%finder=rootFinder(                                     &
+         &                 rootFunction     =coolingRadiusRoot, &
+         &                 toleranceAbsolute=toleranceAbsolute, &
+         &                 toleranceRelative=toleranceRelative  &
+         &                )
     return
   end function simpleConstructorInternal
 
@@ -250,8 +254,8 @@ contains
           coolingTimeAvailable            =self%coolingTimeAvailable_%timeAvailable            (node)
           coolingTimeAvailableIncreaseRate=self%coolingTimeAvailable_%timeAvailableIncreaseRate(node)
           ! Get gradients of cooling time with density and temperature.
-          coolingTimeDensityLogSlope    =self%coolingTime_%gradientDensityLogarithmic    (temperature,density,simpleGasAbundances_,simpleChemicalDensities_,self%radiation)
-          coolingTimeTemperatureLogSlope=self%coolingTime_%gradientTemperatureLogarithmic(temperature,density,simpleGasAbundances_,simpleChemicalDensities_,self%radiation)
+          coolingTimeDensityLogSlope    =self%coolingTime_%gradientDensityLogarithmic    (node,temperature,density,simpleGasAbundances_,simpleChemicalDensities_,self%radiation)
+          coolingTimeTemperatureLogSlope=self%coolingTime_%gradientTemperatureLogarithmic(node,temperature,density,simpleGasAbundances_,simpleChemicalDensities_,self%radiation)
           ! Compute rate at which cooling radius grows.
           if (coolingRadius > 0.0d0) then
              self%radiusGrowthRateStored=+coolingRadius                                        &
@@ -275,18 +279,14 @@ contains
     !% Return the cooling radius in the simple model.
     use :: Chemical_Reaction_Rates_Utilities, only : Chemicals_Mass_To_Density_Conversion
     use :: Galacticus_Nodes                 , only : nodeComponentBasic                  , nodeComponentHotHalo, treeNode
-    use :: Root_Finder                      , only : rootFinder
     implicit none
     class           (coolingRadiusSimple ), intent(inout), target :: self
     type            (treeNode            ), intent(inout), target :: node
     class           (nodeComponentBasic  ), pointer               :: basic
     class           (nodeComponentHotHalo), pointer               :: hotHalo
-    double precision                      , parameter             :: zeroRadius       =0.0d0
-    double precision                      , parameter             :: toleranceAbsolute=0.0d0, toleranceRelative      =1.0d-6
-    type            (rootFinder          ), save                  :: finder
-    !$omp threadprivate(finder)
+    double precision                      , parameter             :: zeroRadius    =0.0d0
     type            (chemicalAbundances  )                        :: chemicalMasses
-    double precision                                              :: outerRadius            , massToDensityConversion
+    double precision                                              :: outerRadius         , massToDensityConversion
 
     ! Check if node differs from previous one for which we performed calculations.
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
@@ -337,14 +337,10 @@ contains
           return
        end if
        ! Cooling radius is between zero and outer radii. Search for the cooling radius.
-       if (.not.finder%isInitialized()) then
-          call finder%rootFunction(coolingRadiusRoot                  )
-          call finder%tolerance   (toleranceAbsolute,toleranceRelative)
-       end if
-       self%radiusStored =  finder%find(rootRange=[zeroRadius,outerRadius])
-       simpleRadius      =  self%radiusStored
+       self%radiusStored=self%finder      %find(rootRange=[zeroRadius,outerRadius])
+       simpleRadius     =self%radiusStored
     else
-       simpleRadius      =  self%radiusStored
+       simpleRadius     =self%radiusStored
     end if
     return
   end function simpleRadius
@@ -359,7 +355,7 @@ contains
     density    =simpleSelf_%hotHaloMassDistribution_  %density    (simpleNode_,radius)
     temperature=simpleSelf_%hotHaloTemperatureProfile_%temperature(simpleNode_,radius)
     ! Compute the cooling time at the specified radius.
-    coolingTime=simpleSelf_%coolingTime_              %time       (temperature,density,simpleGasAbundances_,simpleChemicalDensities_,simpleSelf_%radiation)
+    coolingTime=simpleSelf_%coolingTime_              %time       (simpleNode_,temperature,density,simpleGasAbundances_,simpleChemicalDensities_,simpleSelf_%radiation)
     ! Return the difference between cooling time and time available.
     coolingRadiusRoot=coolingTime-simpleCoolingTimeAvailable_
     return

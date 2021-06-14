@@ -8,8 +8,7 @@ use PDL;
 use PDL::NiceSlice;
 use PDL::LinearAlgebra;
 use PDL::MatrixOps;
-use UNIVERSAL;
-use Data::Dumper;
+use UNIVERSAL qw(isa);
 
 # Generate sets of cosmological parameters drawn at random from the WMAP-9 constraints using the full covariance matrix.
 # Andrew Benson (15-September-2010)
@@ -61,19 +60,22 @@ my $H_0                = $parameters(($parameterMap{'H_0'}));
 my $powerSpectrumIndex = $parameters(($parameterMap{'n_s'}));
 
 # Construct data for XML output.
-my $parameterData;
-push(
-    @{$parameterData->{'parameter'}},
-    { name => "Omega_M"           , value => $Omega_M           ->list},
-    { name => "Omega_DE"          , value => $Omega_DE          ->list},
-    { name => "Omega_b"           , value => $Omega_b           ->list},
-    { name => "sigma_8"           , value => $sigma_8           ->list},
-    { name => "H_0"               , value => $H_0               ->list},
-    { name => "powerSpectrumIndex", value => $powerSpectrumIndex->list}
-    );
+my $parameterData =
+{
+    cosmologyParameters =>
+    {
+	value => "simple",
+	"Omega_M"            => {value => $Omega_M           ->sclr()},
+	"Omega_DE"           => {value => $Omega_DE          ->sclr()},
+	"Omega_b"            => {value => $Omega_b           ->sclr()},
+	"sigma_8"            => {value => $sigma_8           ->sclr()},
+	"H_0"                => {value => $H_0               ->sclr()},
+	"powerSpectrumIndex" => {value => $powerSpectrumIndex->sclr()}
+    }
+};
 
 # Output data as XML.
-my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"parameters");
+my $xmlOutput = new XML::Simple (RootName=>"parameters");
 print $xmlOutput->XMLout($parameterData);
 
 exit;

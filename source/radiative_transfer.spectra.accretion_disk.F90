@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -16,7 +16,7 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-  
+
   use :: Accretion_Disk_Spectra, only : accretionDiskSpectraClass
 
   !# <radiativeTransferSpectrum name="radiativeTransferSpectrumAccretionDisk">
@@ -54,23 +54,19 @@ contains
     
     !# <inputParameter>
     !#   <name>massBlackHole</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d6</defaultValue>
     !#   <description>The mass of the black hole at the center of the accretion disk.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>accretionRateEddington</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d-1</defaultValue>
     !#   <description>Accretion rate onto the black hole in units of the Eddington rate.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="accretionDiskSpectra" name="accretionDiskSpectra_" source="parameters"/>
     self=radiativeTransferSpectrumAccretionDisk(massBlackHole,accretionRateEddington,accretionDiskSpectra_)
-    !# <inputParametersValidate spectrum="parameters"/>
+    !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="accretionDiskSpectra_"/>
     return
   end function accretionDiskConstructorParameters
@@ -110,24 +106,14 @@ contains
 
   double precision function accretionDiskLuminosity(self,wavelengthMinimum,wavelengthMaximum)
     !% Compute the luminosity in the given wavelength range for an accretion disk.
-    use :: FGSL                 , only : fgsl_function, fgsl_integration_workspace
-    use :: Numerical_Integration, only : Integrate    , Integrate_Done
+    use :: Numerical_Integration, only : integrator
     implicit none
     class           (radiativeTransferSpectrumAccretionDisk), intent(inout) :: self
-    double precision                                        , intent(in   ) :: wavelengthMinimum    , wavelengthMaximum
-    type            (fgsl_function                         )                :: integrandFunction
-    type            (fgsl_integration_workspace            )                :: integrationWorkspace
+    double precision                                        , intent(in   ) :: wavelengthMinimum, wavelengthMaximum
+    type            (integrator                            )                :: integrator_
 
-    accretionDiskLuminosity=+Integrate(                                        &
-         &                                               wavelengthMinimum   , &
-         &                                               wavelengthMaximum   , &
-         &                                               integrand           , &
-         &                                               integrandFunction   , &
-         &                                               integrationWorkspace, &
-         &                             toleranceAbsolute=0.0d+0              , &
-         &                             toleranceRelative=1.0d-2                &
-         &                            )
-    call Integrate_Done(integrandFunction,integrationWorkspace)
+    integrator_            =integrator           (integrand        ,toleranceRelative=1.0d-2)
+    accretionDiskLuminosity=integrator_%integrate(wavelengthMinimum,wavelengthMaximum       )
     return
     
   contains

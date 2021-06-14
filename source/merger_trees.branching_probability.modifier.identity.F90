@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,9 @@
 !% Implements a merger tree branching probability rate modifier which always returns the identity modifier.
 
   !# <mergerTreeBranchingProbabilityModifier name="mergerTreeBranchingProbabilityModifierIdentity">
-  !#  <description>Provides a merger tree branching probability rate modifier which always returns the identity modifier.</description>
+  !#  <description>
+  !#   A merger tree branching probability modifier class which always applies the identity modifier.
+  !#  </description>
   !# </mergerTreeBranchingProbabilityModifier>
   type, extends(mergerTreeBranchingProbabilityModifierClass) :: mergerTreeBranchingProbabilityModifierIdentity
      !% A merger tree branching probability rate modifier which always returns the identity modifier.
@@ -43,7 +45,7 @@ contains
     implicit none
     type(mergerTreeBranchingProbabilityModifierIdentity)                :: self
     type(inputParameters                               ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=mergerTreeBranchingProbabilityModifierIdentity()
     return
@@ -57,7 +59,7 @@ contains
     type            (treeNode                                      ), intent(inout) :: nodeParent
     double precision                                                , intent(in   ) :: sigmaChild , timeParent, &
          &                                                                             sigmaParent, massParent
-    !GCC$ attributes unused :: self, nodeParent, massParent, sigmaParent, sigmaChild, timeParent
+    !$GLC attributes unused :: self, nodeParent, massParent, sigmaParent, sigmaChild, timeParent
 
     identityRateModifier=1.0d0
     return

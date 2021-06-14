@@ -1,0 +1,374 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Parameters for HugeMDPL progenitor mass function constraints -->
+<!-- 23-November-2020                                           -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+  
+  <!-- Task control -->
+  <evolveForestsWorkShare value="cyclic"/>
+  
+  <!-- Component selection -->
+  <componentBasic              value="standard"  />
+  <componentBlackHole          value="null"      />
+  <componentDarkMatterProfile  value="scale"     />
+  <componentDisk               value="null"      />
+  <componentHotHalo            value="null"      />
+  <componentSatellite          value="verySimple"/>
+  <componentSpheroid           value="null"      />
+  <componentMergingStatistics  value="standard"  />
+  <satelliteMergingTimescales value="zero"      />
+  <componentSpin               value="null"      />
+
+  <!-- Cosmological parameters matched to MDPL -->
+  <cosmologyFunctions value="matterLambda"/>
+  <cosmologyParameters value="simple">
+    <HubbleConstant  value="67.77000"/>
+    <OmegaMatter     value=" 0.307115"/>
+    <OmegaDarkEnergy value=" 0.692885"/>
+    <OmegaBaryon     value=" 0.048206"/>
+    <temperatureCMB  value=" 2.725480"/>
+  </cosmologyParameters>
+
+  <!-- Power spectrum options matched to MDPL2 -->
+  <transferFunction        value="CAMB"    />
+  <powerSpectrumPrimordial value="powerLaw" >
+    <index               value="0.96"/>
+    <wavenumberReference value="1.00"/>
+    <running             value="0.00"/>
+  </powerSpectrumPrimordial>
+  <powerSpectrumPrimordialTransferred value="simple"       />
+  <cosmologicalMassVariance           value="filteredPower" >
+    <sigma_8 value="0.8228"/>
+  </cosmologicalMassVariance>
+  
+  <!-- Structure formation options -->
+  <linearGrowth          value="collisionlessMatter"                       />
+  <haloMassFunction      value="shethTormen"                                >
+    <a             value="+0.8745"/> <!-- Best fit values for z=0 from Benson (2017) -->
+    <p             value="-0.0306"/>
+    <normalization value="+0.3318"/>
+  </haloMassFunction>
+  <criticalOverdensity   value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/> <!-- Matches halo mass definition in Benson (2017) -->
+  <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+
+  <!-- Merger tree building options -->
+  <mergerTreeConstructor value="build"/>
+  <mergerTreeBuilder value="cole2000">
+    <accretionLimit     value="0.01"/>
+    <mergeProbability   value="0.10"/>
+    <branchIntervalStep value="true"/>
+    <redshiftMaximum    value="10.0"/>
+  </mergerTreeBuilder>
+  <mergerTreeBranchingProbability value="PCHPlus">
+    <!-- Best fit values from PCH -->
+    <G0     value="+0.5700"/>
+    <gamma1 value="+0.3800"/>
+    <gamma2 value="-0.0100"/>
+    <gamma3 value="+0.0000"/>
+    <accuracyFirstOrder value="+0.10"/>
+    <cdmAssumptions value="true"/>
+  </mergerTreeBranchingProbability>
+  <mergerTreeBuildMasses value="sampledDistributionUniform">
+    <!-- Minimum is larger of 300 times the HugeMDPL mass resolution and the minimum parent mass bin -->
+    <massTreeMinimum value="1.00e14"/>
+    <massTreeMaximum value="1.00e16"/>
+    <treesPerDecade  value="42000"  />
+  </mergerTreeBuildMasses>
+  <mergerTreeMassResolution value="fixed">
+    <!-- 1/5th of 300 times the HugeMDPL particle mass - such that our resolution is well below any mass scale that we care about -->
+    <massResolution value="6.99e12"/>
+  </mergerTreeMassResolution>
+  
+  <!-- Substructure hierarchy options -->
+  <mergerTreeNodeMerger value="singleLevelHierarchy"/>
+
+  <!-- Dark matter halo structure options -->
+  <darkMatterProfileDMO            value="isothermal"/>
+  <darkMatterProfileConcentration  value="gao2008"   />
+  <darkMatterProfileMinimumConcentration value="4"         />
+  <galacticStructureSolver         value="null"      />
+  <haloSpinDistribution value="bett2007">
+    <alpha   value="2.50900"/>
+    <lambda0 value="0.04326"/>
+  </haloSpinDistribution>
+  <randomSpinResetMassFactor value="2.0"/>
+
+  <!-- Merger tree evolution -->
+  <mergerTreeEvolver value="standard">
+    <timestepHostAbsolute value="1.0"/>
+    <timestepHostRelative value="0.1"/>
+  </mergerTreeEvolver>
+  <mergerTreeNodeEvolver value="standard">
+    <odeToleranceAbsolute value="0.01"/>
+    <odeToleranceRelative value="0.01"/>
+  </mergerTreeNodeEvolver>
+
+  <!-- Output options -->
+  <galacticusOutputFileName  value="HugeMDPL.hdf5"/>
+  <mergerTreeOutputter value="analyzer">
+  </mergerTreeOutputter>
+  <outputTimes value="list">
+    <!-- Matched to HugeMDPL snapshots -->
+    <redshifts value="0.489868891537545 0.987281399046105 2.02755071147442 4.03778337531486 7.96057347670251"/>
+  </outputTimes>
+  <mergerTreeOperator value="regridTimes">
+    <!-- Regrid the trees to massively speed up searching for parents etc. -->
+    <regridCount       value="7"                        />
+    <snapshotSpacing   value="list"                     />
+    <!-- Include one higher redshift here since otherwise the regridded halos at the earliest time may not exist precisely at the output time -->
+    <!-- Matched to HugeMDPL snapshots -->
+    <snapshotRedshifts value="0.0 0.489868891537545 0.987281399046105 2.02755071147442 4.03778337531486 7.96057347670251 9.0"/>
+  </mergerTreeOperator>
+  <outputAnalysis value="multi">
+    <!-- Minimum mass ratio for likelihood is the ratio of the HugeMDPL 300 particle mass limit (1.17e11) to the minimum parent
+         mass in the sample. -->
+    <outputAnalysis value="progenitorMassFunction">
+      <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_HugeMDPL.hdf5"/>
+      <indexParent                  value="0"                                                                                        />
+      <indexRedshift                value="0"                                                                                        />
+      <massRatioLikelihoodMinimum   value="3.51e-01"                                                                                 />
+      <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
+      <covarianceDiagonalize        value="true"                                                                                     />
+      <covarianceTargetOnly         value="true"                                                                                     />
+      <likelihoodInLog              value="true"                                                                                     />
+      <rootVarianceTargetFractional value="0.1"                                                                                      />
+      <alwaysIsolatedOnly           value="true"                                                                                     />
+      <redshiftParent               value="0.0"                                                                                      />
+      <comment                      value="$14.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 14.50$; $z=0.49$; HugeMDPL halos"/>
+      <label                        value="HugeMDPLM0Z0"                                                                               />
+      <targetLabel                  value="Klypin et al. (2015)"                                                                     />
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
+      <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_HugeMDPL.hdf5"/>
+      <indexParent                  value="0"                                                                                        />
+      <indexRedshift                value="1"                                                                                        />
+      <massRatioLikelihoodMinimum   value="3.51e-01"                                                                                 />
+      <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
+      <covarianceDiagonalize        value="true"                                                                                     />
+      <covarianceTargetOnly         value="true"                                                                                     />
+      <likelihoodInLog              value="true"                                                                                     />
+      <rootVarianceTargetFractional value="0.1"                                                                                      />
+      <alwaysIsolatedOnly           value="true"                                                                                     />
+      <redshiftParent               value="0.0"                                                                                      />
+      <comment                      value="$14.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 14.50$; $z=0.99$; HugeMDPL halos"/>
+      <label                        value="HugeMDPLM0Z1"                                                                               />
+      <targetLabel                  value="Klypin et al. (2015)"                                                                     />
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
+      <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_HugeMDPL.hdf5"/>
+      <indexParent                  value="0"                                                                                        />
+      <indexRedshift                value="2"                                                                                        />
+      <massRatioLikelihoodMinimum   value="3.51e-01"                                                                                 />
+      <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
+      <covarianceDiagonalize        value="true"                                                                                     />
+      <covarianceTargetOnly         value="true"                                                                                     />
+      <likelihoodInLog              value="true"                                                                                     />
+      <rootVarianceTargetFractional value="0.1"                                                                                      />
+      <alwaysIsolatedOnly           value="true"                                                                                     />
+      <redshiftParent               value="0.0"                                                                                      />
+      <comment                      value="$14.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 14.50$; $z=2.03$; HugeMDPL halos"/>
+      <label                        value="HugeMDPLM0Z2"                                                                               />
+      <targetLabel                  value="Klypin et al. (2015)"                                                                     />
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
+      <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_HugeMDPL.hdf5"/>
+      <indexParent                  value="1"                                                                                        />
+      <indexRedshift                value="0"                                                                                        />
+      <massRatioLikelihoodMinimum   value="1.11e-01"                                                                                 />
+      <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
+      <covarianceDiagonalize        value="true"                                                                                     />
+      <covarianceTargetOnly         value="true"                                                                                     />
+      <likelihoodInLog              value="true"                                                                                     />
+      <rootVarianceTargetFractional value="0.1"                                                                                      />
+      <alwaysIsolatedOnly           value="true"                                                                                     />
+      <redshiftParent               value="0.0"                                                                                      />
+      <comment                      value="$14.50 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 15.00$; $z=0.49$; HugeMDPL halos"/>
+      <label                        value="HugeMDPLM1Z0"                                                                               />
+      <targetLabel                  value="Klypin et al. (2015)"                                                                     />
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
+      <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_HugeMDPL.hdf5"/>
+      <indexParent                  value="1"                                                                                        />
+      <indexRedshift                value="1"                                                                                        />
+      <massRatioLikelihoodMinimum   value="1.11e-01"                                                                                 />
+      <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
+      <covarianceDiagonalize        value="true"                                                                                     />
+      <covarianceTargetOnly         value="true"                                                                                     />
+      <likelihoodInLog              value="true"                                                                                     />
+      <rootVarianceTargetFractional value="0.1"                                                                                      />
+      <alwaysIsolatedOnly           value="true"                                                                                     />
+      <redshiftParent               value="0.0"                                                                                      />
+      <comment                      value="$14.50 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 15.00$; $z=0.99$; HugeMDPL halos"/>
+      <label                        value="HugeMDPLM1Z1"                                                                               />
+      <targetLabel                  value="Klypin et al. (2015)"                                                                     />
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
+      <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_HugeMDPL.hdf5"/>
+      <indexParent                  value="1"                                                                                        />
+      <indexRedshift                value="2"                                                                                        />
+      <massRatioLikelihoodMinimum   value="1.11e-01"                                                                                 />
+      <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
+      <covarianceDiagonalize        value="true"                                                                                     />
+      <covarianceTargetOnly         value="true"                                                                                     />
+      <likelihoodInLog              value="true"                                                                                     />
+      <rootVarianceTargetFractional value="0.1"                                                                                      />
+      <alwaysIsolatedOnly           value="true"                                                                                     />
+      <redshiftParent               value="0.0"                                                                                      />
+      <comment                      value="$14.50 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 15.00$; $z=2.03$; HugeMDPL halos"/>
+      <label                        value="HugeMDPLM1Z2"                                                                               />
+      <targetLabel                  value="Klypin et al. (2015)"                                                                     />
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
+      <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_HugeMDPL.hdf5"/>
+      <indexParent                  value="1"                                                                                        />
+      <indexRedshift                value="3"                                                                                        />
+      <massRatioLikelihoodMinimum   value="1.11e-01"                                                                                 />
+      <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
+      <covarianceDiagonalize        value="true"                                                                                     />
+      <covarianceTargetOnly         value="true"                                                                                     />
+      <likelihoodInLog              value="true"                                                                                     />
+      <rootVarianceTargetFractional value="0.1"                                                                                      />
+      <alwaysIsolatedOnly           value="true"                                                                                     />
+      <redshiftParent               value="0.0"                                                                                      />
+      <comment                      value="$14.50 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 15.00$; $z=4.04$; HugeMDPL halos"/>
+      <label                        value="HugeMDPLM1Z3"                                                                               />
+      <targetLabel                  value="Klypin et al. (2015)"                                                                     />
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
+      <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_HugeMDPL.hdf5"/>
+      <indexParent                  value="2"                                                                                        />
+      <indexRedshift                value="0"                                                                                        />
+      <massRatioLikelihoodMinimum   value="3.51e-02"                                                                                 />
+      <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
+      <covarianceDiagonalize        value="true"                                                                                     />
+      <covarianceTargetOnly         value="true"                                                                                     />
+      <likelihoodInLog              value="true"                                                                                     />
+      <rootVarianceTargetFractional value="0.1"                                                                                      />
+      <alwaysIsolatedOnly           value="true"                                                                                     />
+      <redshiftParent               value="0.0"                                                                                      />
+      <comment                      value="$15.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 15.50$; $z=0.49$; HugeMDPL halos"/>
+      <label                        value="HugeMDPLM2Z0"                                                                               />
+      <targetLabel                  value="Klypin et al. (2015)"                                                                     />
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
+      <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_HugeMDPL.hdf5"/>
+      <indexParent                  value="2"                                                                                        />
+      <indexRedshift                value="1"                                                                                        />
+      <massRatioLikelihoodMinimum   value="3.51e-02"                                                                                 />
+      <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
+      <covarianceDiagonalize        value="true"                                                                                     />
+      <covarianceTargetOnly         value="true"                                                                                     />
+      <likelihoodInLog              value="true"                                                                                     />
+      <rootVarianceTargetFractional value="0.1"                                                                                      />
+      <alwaysIsolatedOnly           value="true"                                                                                     />
+      <redshiftParent               value="0.0"                                                                                      />
+      <comment                      value="$15.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 15.50$; $z=0.99$; HugeMDPL halos"/>
+      <label                        value="HugeMDPLM2Z1"                                                                               />
+      <targetLabel                  value="Klypin et al. (2015)"                                                                     />
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
+      <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_HugeMDPL.hdf5"/>
+      <indexParent                  value="2"                                                                                        />
+      <indexRedshift                value="2"                                                                                        />
+      <massRatioLikelihoodMinimum   value="3.51e-02"                                                                                 />
+      <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
+      <covarianceDiagonalize        value="true"                                                                                     />
+      <covarianceTargetOnly         value="true"                                                                                     />
+      <likelihoodInLog              value="true"                                                                                     />
+      <rootVarianceTargetFractional value="0.1"                                                                                      />
+      <alwaysIsolatedOnly           value="true"                                                                                     />
+      <redshiftParent               value="0.0"                                                                                      />
+      <comment                      value="$15.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 15.50$; $z=2.03$; HugeMDPL halos"/>
+      <label                        value="HugeMDPLM2Z2"                                                                               />
+      <targetLabel                  value="Klypin et al. (2015)"                                                                     />
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
+      <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_HugeMDPL.hdf5"/>
+      <indexParent                  value="2"                                                                                        />
+      <indexRedshift                value="3"                                                                                        />
+      <massRatioLikelihoodMinimum   value="3.51e-02"                                                                                 />
+      <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
+      <covarianceDiagonalize        value="true"                                                                                     />
+      <covarianceTargetOnly         value="true"                                                                                     />
+      <likelihoodInLog              value="true"                                                                                     />
+      <rootVarianceTargetFractional value="0.1"                                                                                      />
+      <alwaysIsolatedOnly           value="true"                                                                                     />
+      <redshiftParent               value="0.0"                                                                                      />
+      <comment                      value="$15.00 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 15.50$; $z=4.04$; HugeMDPL halos"/>
+      <label                        value="HugeMDPLM2Z3"                                                                               />
+      <targetLabel                  value="Klypin et al. (2015)"                                                                     />
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
+      <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_HugeMDPL.hdf5"/>
+      <indexParent                  value="3"                                                                                        />
+      <indexRedshift                value="0"                                                                                        />
+      <massRatioLikelihoodMinimum   value="1.11e-02"                                                                                 />
+      <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
+      <covarianceDiagonalize        value="true"                                                                                     />
+      <covarianceTargetOnly         value="true"                                                                                     />
+      <likelihoodInLog              value="true"                                                                                     />
+      <rootVarianceTargetFractional value="0.1"                                                                                      />
+      <alwaysIsolatedOnly           value="true"                                                                                     />
+      <redshiftParent               value="0.0"                                                                                      />
+      <comment                      value="$15.50 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 16.00$; $z=0.49$; HugeMDPL halos"/>
+      <label                        value="HugeMDPLM3Z0"                                                                               />
+      <targetLabel                  value="Klypin et al. (2015)"                                                                     />
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
+      <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_HugeMDPL.hdf5"/>
+      <indexParent                  value="3"                                                                                        />
+      <indexRedshift                value="1"                                                                                        />
+      <massRatioLikelihoodMinimum   value="1.11e-02"                                                                                 />
+      <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
+      <covarianceDiagonalize        value="true"                                                                                     />
+      <covarianceTargetOnly         value="true"                                                                                     />
+      <likelihoodInLog              value="true"                                                                                     />
+      <rootVarianceTargetFractional value="0.1"                                                                                      />
+      <alwaysIsolatedOnly           value="true"                                                                                     />
+      <redshiftParent               value="0.0"                                                                                      />
+      <comment                      value="$15.50 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 16.00$; $z=0.99$; HugeMDPL halos"/>
+      <label                        value="HugeMDPLM3Z1"                                                                               />
+      <targetLabel                  value="Klypin et al. (2015)"                                                                     />
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
+      <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_HugeMDPL.hdf5"/>
+      <indexParent                  value="3"                                                                                        />
+      <indexRedshift                value="2"                                                                                        />
+      <massRatioLikelihoodMinimum   value="1.11e-02"                                                                                 />
+      <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
+      <covarianceDiagonalize        value="true"                                                                                     />
+      <covarianceTargetOnly         value="true"                                                                                     />
+      <likelihoodInLog              value="true"                                                                                     />
+      <rootVarianceTargetFractional value="0.1"                                                                                      />
+      <alwaysIsolatedOnly           value="true"                                                                                     />
+      <redshiftParent               value="0.0"                                                                                      />
+      <comment                      value="$15.50 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 16.00$; $z=2.03$; HugeMDPL halos"/>
+      <label                        value="HugeMDPLM3Z2"                                                                               />
+      <targetLabel                  value="Klypin et al. (2015)"                                                                     />
+    </outputAnalysis>    
+    <outputAnalysis value="progenitorMassFunction">
+      <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_HugeMDPL.hdf5"/>
+      <indexParent                  value="3"                                                                                        />
+      <indexRedshift                value="3"                                                                                        />
+      <massRatioLikelihoodMinimum   value="1.11e-02"                                                                                 />
+      <massRatioLikelihoodMaximum   value="1.00"                                                                                     />
+      <covarianceDiagonalize        value="true"                                                                                     />
+      <covarianceTargetOnly         value="true"                                                                                     />
+      <likelihoodInLog              value="true"                                                                                     />
+      <rootVarianceTargetFractional value="0.1"                                                                                      />
+      <alwaysIsolatedOnly           value="true"                                                                                     />
+      <redshiftParent               value="0.0"                                                                                      />
+      <comment                      value="$15.50 &lt; \log_{10}(M_\mathrm{parent}/\mathrm{M}_\odot) \le 16.00$; $z=4.04$; HugeMDPL halos"/>
+      <label                        value="HugeMDPLM3Z3"                                                                               />
+      <targetLabel                  value="Klypin et al. (2015)"                                                                     />
+    </outputAnalysis>    
+  </outputAnalysis>
+  <nbodyHaloMassError value="trenti2010">
+    <massParticle                value="1.17e11"/> <!-- Particle mass in HugeMDPL -->
+    <correlationNormalization    value="1.0"    />
+    <correlationMassExponent     value="1.0"    />
+    <correlationRedshiftExponent value="0.0"    />
+  </nbodyHaloMassError>
+  
+</parameters>

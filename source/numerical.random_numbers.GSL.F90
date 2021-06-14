@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,7 +19,10 @@
 
   !% Implements a random number generator class which utilizes the \gls{gsl} random number generators.
 
-  use :: FGSL, only : FGSL_RNG
+  ! Add dependency on GSL library.
+  !; gsl
+
+  use, intrinsic :: ISO_C_Binding, only : c_long, c_ptr
   
   !# <randomNumberGenerator name="randomNumberGeneratorGSL">
   !#  <description>A random number generator class which utilizes the \gls{gsl} random number generators.</description>
@@ -27,9 +30,9 @@
   type, extends(randomNumberGeneratorClass) :: randomNumberGeneratorGSL
      !% A random number generator class which utilizes the \gls{gsl} random number generators.
      private
-     integer(FGSL_Long) :: seed
-     logical            :: ompThreadOffset         , mpiRankOffset
-     type   (FGSL_RNG ) :: gslRandomNumberGenerator
+     integer(c_long) :: seed
+     logical         :: ompThreadOffset         , mpiRankOffset
+     type   (c_ptr ) :: gslRandomNumberGenerator
    contains
      final     ::                         gslDestructor
      procedure :: mpiIndependent       => gslMPIIndependent
@@ -48,6 +51,82 @@
      module procedure gslConstructorInternal
   end interface randomNumberGeneratorGSL
 
+  ! GSL RNG initialization status.
+  logical                                         :: gslRNGInitialized=.false.
+  
+  ! RNG types.
+  type   (c_ptr), bind(C, name="gsl_rng_default") :: gsl_rng_default
+
+  interface
+     function gsl_rng_alloc(T) bind(c,name='gsl_rng_alloc')
+       !% Template for the GSL random number generator allocate function.
+       import c_ptr
+       type(c_ptr)        :: gsl_rng_alloc
+       type(c_ptr), value :: T
+     end function gsl_rng_alloc
+     
+     subroutine gsl_rng_set(r,s) bind(c,name='gsl_rng_set')
+       !% Template for the GSL random number generator set function.
+       import c_ptr, c_long
+       type   (c_ptr ), value :: r
+       integer(c_long), value :: s
+     end subroutine gsl_rng_set
+
+     subroutine gsl_rng_free(r) bind(c,name='gsl_rng_free')
+       !% Template for the GSL random number generator free function.
+       import c_ptr
+       type(c_ptr), value :: r
+     end subroutine gsl_rng_free
+
+     function gsl_rng_uniform(r) bind(c,name='gsl_rng_uniform')
+       !% Template for the GSL random number generator uniform sampling function.
+       import c_ptr, c_double
+       real(c_double)        :: gsl_rng_uniform
+       type(c_ptr   ), value :: r
+     end function gsl_rng_uniform
+
+     function gsl_ran_poisson(r,mu) bind(c,name='gsl_ran_poisson')
+       !% Template for the GSL random number generator Poisson sampling function.
+       import c_ptr, c_int, c_double
+       integer(c_int   )        :: gsl_ran_poisson
+       type   (c_ptr   ), value :: r
+       real   (c_double), value :: mu
+     end function gsl_ran_poisson
+
+     function gsl_ran_gaussian(r,sigma) bind(c,name='gsl_ran_gaussian')
+       !% Template for the GSL random number generator Gaussian sampling function.
+       import c_ptr, c_double
+       real(c_double)        :: gsl_ran_gaussian
+       type(c_ptr   ), value :: r
+       real(c_double), value :: sigma
+     end function gsl_ran_gaussian
+
+     function gsl_rng_clone(r) bind(c,name='gsl_rng_clone')
+       !% Template for the GSL random number generator state clone function.
+       import c_ptr
+       type(c_ptr)        :: gsl_rng_clone
+       type(c_ptr), value :: r
+     end function gsl_rng_clone
+
+     function gsl_rng_fwrite(stream,r) bind(c,name='gsl_rng_fwrite')
+       !% Template for the GSL random number generator state write function.
+       import c_ptr, c_int
+       integer(c_int)        :: gsl_rng_fwrite
+       type   (c_ptr), value :: stream        , r
+     end function gsl_rng_fwrite
+
+     function gsl_rng_fread(stream,r) bind(c,name='gsl_rng_fread')
+       !% Template for the GSL random number generator state read function.
+       import c_ptr, c_int
+       integer(c_int)        :: gsl_rng_fread
+       type   (c_ptr), value :: stream       , r
+     end function gsl_rng_fread
+
+     subroutine gsl_rng_env_setup() bind(c,name='gsl_rng_env_setup')
+       !% Template for function used to set up default GSL random number generator.
+     end subroutine gsl_rng_env_setup
+  end interface
+  
 contains
   
   function gslConstructorParameters(parameters) result(self)
@@ -56,32 +135,26 @@ contains
     implicit none
     type   (randomNumberGeneratorGSL)                :: self
     type   (inputParameters         ), intent(inout) :: parameters
-    integer(FGSL_Long               )                :: seed
+    integer(c_long                  )                :: seed
     logical                                          :: ompThreadOffset, mpiRankOffset
 
     !# <inputParameter>
     !#   <name>seed</name>
-    !#   <cardinality>1</cardinality>
-    !#   <defaultValue>219_FGSL_Long</defaultValue>
+    !#   <defaultValue>219_c_long</defaultValue>
     !#   <description>A seed value for the random number generator.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>ompThreadOffset</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>If true, offset the seed by the OpenMP thread number.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>mpiRankOffset</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>If true, offset the seed by the MPI process rank.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     self=randomNumberGeneratorGSL(seed,ompThreadOffset,mpiRankOffset)
     !# <inputParametersValidate source="parameters"/>
@@ -90,7 +163,6 @@ contains
 
   function gslConstructorInternal(seed,ompThreadOffset,mpiRankOffset) result(self)
     !% Internal constructor for the {\normalfont \ttfamily gsl} random number generator class.
-    use    :: FGSL   , only : FGSL_RNG_Alloc    , FGSL_RNG_Default, FGSL_RNG_Set
 #ifdef USEMPI
     use    :: MPI    , only : MPI_Comm_Rank     , MPI_Comm_World
 #endif
@@ -100,16 +172,24 @@ contains
 #ifdef USEMPI
     integer                                                    :: mpiRank        , iError
 #endif
-    integer(FGSL_Long               ), intent(in   )           :: seed
+    integer(c_long                  ), intent(in   )           :: seed
     logical                          , intent(in   ), optional :: ompThreadOffset, mpiRankOffset
-    integer(FGSL_Long               )                          :: seed_
+    integer(c_long                  )                          :: seed_
     !# <constructorAssign variables="seed"/>
     !# <optionalArgument name="ompThreadOffset" defaultsTo=".false."/>
     !# <optionalArgument name="mpiRankOffset"   defaultsTo=".false."/>
 
     self%ompThreadOffset         =ompThreadOffset_
     self%mpiRankOffset           =mpiRankOffset_
-    self%gslRandomNumberGenerator=FGSL_RNG_Alloc(FGSL_RNG_Default)
+    if (.not.gslRNGInitialized) then
+       !$omp critical(GSL_RNG_Initialize)
+       if (.not.gslRNGInitialized) then
+          call gsl_rng_env_setup()
+          gslRNGInitialized=.true.
+       end if
+       !$omp end critical(GSL_RNG_Initialize)
+    end if
+    self%gslRandomNumberGenerator=GSL_RNG_Alloc(GSL_Rng_Default)
     seed_                        =seed
     !$ if (ompThreadOffset_) seed_=seed_+OMP_Get_Thread_Num()
     if (mpiRankOffset_) then
@@ -118,17 +198,16 @@ contains
        seed_=seed_+mpiRank
 #endif
     end if
-    call FGSL_RNG_Set(self%gslRandomNumberGenerator,seed_)
+    call GSL_RNG_Set(self%gslRandomNumberGenerator,seed_)
     return
   end function gslConstructorInternal
   
   subroutine gslDestructor(self)
     !% Destructor for the {\normalfont \ttfamily gsl} random number generator class.
-    use :: FGSL, only : FGSL_RNG_Free
     implicit none
     type(randomNumberGeneratorGSL), intent(inout) :: self
 
-    call FGSL_RNG_Free(self%gslRandomNumberGenerator)
+    call GSL_RNG_Free(self%gslRandomNumberGenerator)
     return
   end subroutine gslDestructor
 
@@ -143,53 +222,48 @@ contains
 
   double precision function gslUniformSample(self)
     !% Sample from a uniform distribution on the interval [0,1).
-    use :: FGSL, only : FGSL_RNG_Uniform
     implicit none
     class(randomNumberGeneratorGSL), intent(inout) :: self
     
-    gslUniformSample=FGSL_RNG_Uniform(self%gslRandomNumberGenerator)
+    gslUniformSample=GSL_RNG_Uniform(self%gslRandomNumberGenerator)
     return
   end function gslUniformSample
 
   integer function gslPoissonSample(self,mean)
     !% Sample from a Poisson distribution with the given mean.
-    use :: FGSL, only : FGSL_Ran_Poisson
     implicit none
     class           (randomNumberGeneratorGSL), intent(inout) :: self
     double precision                          , intent(in   ) :: mean
 
-    gslPoissonSample=FGSL_Ran_Poisson(self%gslRandomNumberGenerator,mean)
+    gslPoissonSample=GSL_Ran_Poisson(self%gslRandomNumberGenerator,mean)
     return
   end function gslPoissonSample
 
   double precision function gslStandardNormalSample(self)
     !% Sample from a standard normal distribution.
-    use :: FGSL, only : FGSL_Ran_Gaussian
     implicit none
     class(randomNumberGeneratorGSL), intent(inout) :: self
 
-    gslStandardNormalSample=FGSL_Ran_Gaussian(self%gslRandomNumberGenerator,sigma=1.0d0)
+    gslStandardNormalSample=GSL_Ran_Gaussian(self%gslRandomNumberGenerator,sigma=1.0d0)
     return
   end function gslStandardNormalSample
 
   subroutine gslSeedSet(self,seed,offset)
     !% Reset the seed for this random number generator.
-    use :: FGSL, only : FGSL_RNG_Set
     implicit none
     class  (randomNumberGeneratorGSL), intent(inout) :: self
-    integer(FGSL_Long               ), intent(in   ) :: seed
+    integer(c_long                  ), intent(in   ) :: seed
     logical                          , intent(in   ) :: offset
-    integer(FGSL_Long               )                :: seed_
+    integer(c_long                  )                :: seed_
 
     seed_=seed
     if (offset) seed_=seed_+self%seed
-    call FGSL_RNG_Set(self%gslRandomNumberGenerator,seed_)
+    call GSL_RNG_Set(self%gslRandomNumberGenerator,seed_)
     return
   end subroutine gslSeedSet
 
   subroutine gslDeepCopy(self,destination)
     !% Perform a deep copy for the {\normalfont \ttfamily GSL} random number generator class.
-    use :: FGSL            , only : FGSL_Rng_Clone
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(randomNumberGeneratorGSL  ), intent(inout) :: self
@@ -198,88 +272,88 @@ contains
     call self%randomNumberGeneratorClass%deepCopy(destination)
     select type (destination)
     type is (randomNumberGeneratorGSL)
-       destination%seed                    =               self%seed
-       destination%ompThreadOffset         =               self%ompThreadOffset
-       destination%mpiRankOffset           =               self%mpiRankOffset
-       destination%gslRandomNumberGenerator=FGSL_Rng_Clone(self%gslRandomNumberGenerator)
+       destination%seed                    =              self%seed
+       destination%ompThreadOffset         =              self%ompThreadOffset
+       destination%mpiRankOffset           =              self%mpiRankOffset
+       destination%gslRandomNumberGenerator=GSL_Rng_Clone(self%gslRandomNumberGenerator)
     class default
        call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})
     end select
     return
   end subroutine gslDeepCopy
   
-  subroutine gslStateStore(self,stateFile,fgslStateFile,stateOperationID)
+  subroutine gslStateStore(self,stateFile,gslStateFile,stateOperationID)
     !% Store the state of this object to file.
-    use, intrinsic :: ISO_C_Binding     , only : c_size_t
-    use            :: String_Handling   , only : operator(//)
-    use            :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Unindent, Galacticus_Display_Message, Galacticus_Verbosity_Level, &
-         &                                       verbosityWorking
+    use            :: Display           , only : displayIndent          , displayMessage, displayUnindent, displayVerbosity, &
+          &                                      verbosityLevelWorking
     use            :: Galacticus_Error  , only : Galacticus_Error_Report
-    use            :: FGSL              , only : FGSL_File                , FGSL_Rng_FWrite            , FGSL_Success
+    use, intrinsic :: ISO_C_Binding     , only : c_size_t
     use            :: ISO_Varying_String, only : var_str
+    use            :: Interface_GSL     , only : gsl_success
+    use            :: String_Handling   , only : operator(//)
     implicit none
     class    (randomNumberGeneratorGSL), intent(inout) :: self
     integer                            , intent(in   ) :: stateFile
-    type     (FGSL_file               ), intent(in   ) :: fgslStateFile
+    type     (c_ptr                   ), intent(in   ) :: gslStateFile
     integer  (c_size_t                ), intent(in   ) :: stateOperationID
     character(len=16                  )                :: label
     integer                                            :: status
 
-    call Galacticus_Display_Indent(var_str('storing state for "randomNumberGenerator" [position: ')//FTell(stateFile)//']',verbosity=verbosityWorking)
+    call displayIndent(var_str('storing state for "randomNumberGenerator" [position: ')//FTell(stateFile)//']',verbosity=verbosityLevelWorking)
     if (self%stateOperationID == stateOperationID) then
-       call Galacticus_Display_Unindent('skipping - already stored',verbosity=verbosityWorking)
+       call displayUnindent('skipping - already stored',verbosity=verbosityLevelWorking)
        return
     end if
     self%stateOperationID=stateOperationID
-    call Galacticus_Display_Message('object type "randomNumberGeneratorGSL"',verbosity=verbosityWorking)
-    if (Galacticus_Verbosity_Level() >= verbosityWorking) then
+    call displayMessage('object type "randomNumberGeneratorGSL"',verbosity=verbosityLevelWorking)
+    if (displayVerbosity() >= verbosityLevelWorking) then
        write (label,'(i16)') sizeof(self%seed)
-       call Galacticus_Display_Message('storing "seed" with size '//trim(adjustl(label))//' bytes')
+       call displayMessage('storing "seed" with size '//trim(adjustl(label))//' bytes')
     end if
-    if (Galacticus_Verbosity_Level() >= verbosityWorking) then
+    if (displayVerbosity() >= verbosityLevelWorking) then
        write (label,'(i16)') sizeof(self%ompthreadoffset)
-       call Galacticus_Display_Message('storing "ompthreadoffset" with size '//trim(adjustl(label))//' bytes')
+       call displayMessage('storing "ompthreadoffset" with size '//trim(adjustl(label))//' bytes')
     end if
-    if (Galacticus_Verbosity_Level() >= verbosityWorking) then
+    if (displayVerbosity() >= verbosityLevelWorking) then
        write (label,'(i16)') sizeof(self%mpirankoffset)
-       call Galacticus_Display_Message('storing "mpirankoffset" with size '//trim(adjustl(label))//' bytes')
+       call displayMessage('storing "mpirankoffset" with size '//trim(adjustl(label))//' bytes')
     end if
     write (stateFile) self%seed,self%ompThreadOffset,self%mpiRankOffset
-    status=FGSL_Rng_FWrite(fgslStateFile,self%gslRandomNumberGenerator)
-    if (status /= FGSL_Success) call Galacticus_Error_Report('failed to store GSL random number generator state'//{introspection:location})
-    call Galacticus_Display_Unindent('done',verbosity=verbosityWorking)
+    status=GSL_Rng_FWrite(gslStateFile,self%gslRandomNumberGenerator)
+    if (status /= GSL_Success) call Galacticus_Error_Report('failed to store GSL random number generator state'//{introspection:location})
+    call displayUnindent('done',verbosity=verbosityLevelWorking)
     return
   end subroutine gslStateStore
-  
-  subroutine gslStateRestore(self,stateFile,fgslStateFile,stateOperationID)
+
+  subroutine gslStateRestore(self,stateFile,gslStateFile,stateOperationID)
     !% Restore the state of this object from file.
-    use, intrinsic :: ISO_C_Binding     , only : c_size_t
-    use            :: String_Handling   , only : operator(//)
-    use            :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Unindent, Galacticus_Display_Message, Galacticus_Verbosity_Level, &
-         &                                       verbosityWorking
+    use            :: Display           , only : displayIndent          , displayMessage, displayUnindent, displayVerbosity, &
+          &                                      verbosityLevelWorking
     use            :: Galacticus_Error  , only : Galacticus_Error_Report
-    use            :: FGSL              , only : FGSL_File                , FGSL_Rng_FRead             , FGSL_Success
+    use, intrinsic :: ISO_C_Binding     , only : c_size_t
     use            :: ISO_Varying_String, only : var_str
+    use            :: Interface_GSL     , only : gsl_success
+    use            :: String_Handling   , only : operator(//)
     implicit none
     class  (randomNumberGeneratorGSL), intent(inout) :: self
     integer                          , intent(in   ) :: stateFile
-    type   (fgsl_file               ), intent(in   ) :: fgslStateFile
+    type   (c_ptr                   ), intent(in   ) :: gslStateFile
     integer(c_size_t                ), intent(in   ) :: stateOperationID
     integer                                          :: status
 
-    call Galacticus_Display_Indent(var_str('restoring state for "randomNumberGenerator" [position: ')//FTell(stateFile)//']',verbosity=verbosityWorking)
+    call displayIndent(var_str('restoring state for "randomNumberGenerator" [position: ')//FTell(stateFile)//']',verbosity=verbosityLevelWorking)
     if (self%stateOperationID == stateOperationID) then
-       call Galacticus_Display_Unindent('skipping - already restored',verbosity=verbosityWorking)
+       call displayUnindent('skipping - already restored',verbosity=verbosityLevelWorking)
        return
     end if
     self%stateOperationID=stateOperationID
-    call Galacticus_Display_Message('object type "randomNumberGeneratorGSL"',verbosity=verbosityWorking)
-    call Galacticus_Display_Message('restoring "seed"'                      ,verbosity=verbosityWorking)
-    call Galacticus_Display_Message('restoring "ompthreadoffset"'           ,verbosity=verbosityWorking)
-    call Galacticus_Display_Message('restoring "mpirankoffset"'             ,verbosity=verbosityWorking)
+    call displayMessage('object type "randomNumberGeneratorGSL"',verbosity=verbosityLevelWorking)
+    call displayMessage('restoring "seed"'                      ,verbosity=verbosityLevelWorking)
+    call displayMessage('restoring "ompthreadoffset"'           ,verbosity=verbosityLevelWorking)
+    call displayMessage('restoring "mpirankoffset"'             ,verbosity=verbosityLevelWorking)
     read (stateFile) self%seed,self%ompThreadOffset,self%mpiRankOffset
-    status=FGSL_Rng_FRead(fgslStateFile,self%gslRandomNumberGenerator)
-    if (status /= FGSL_Success) call Galacticus_Error_Report('failed to store GSL random number generator state'//{introspection:location})
-    call Galacticus_Display_Unindent('done',verbosity=verbosityWorking)
+    status=GSL_Rng_FRead(gslStateFile,self%gslRandomNumberGenerator)
+    if (status /= GSL_Success) call Galacticus_Error_Report('failed to store GSL random number generator state'//{introspection:location})
+    call displayUnindent('done',verbosity=verbosityLevelWorking)
     return
   end subroutine gslStateRestore

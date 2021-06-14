@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -48,6 +48,7 @@ contains
 
   function simpleConstructorParameters(parameters)
     !% Constructor for the simple cosmological parameters class which takes a parameter set as input.
+    use :: Display         , only : displayMagenta , displayReset
     use :: Galacticus_Error, only : Galacticus_Warn
     implicit none
     type(cosmologyParametersSimple)                :: simpleConstructorParameters
@@ -60,8 +61,6 @@ contains
     !#   <defaultValue>0.3153d0</defaultValue>
     !#   <defaultSource>(\citealt{planck_collaboration_planck_2018}; TT,TE,EE$+$lowE$+$lensing)</defaultSource>
     !#   <description>The density of matter in the Universe in units of the critical density.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>OmegaBaryon</name>
@@ -70,8 +69,6 @@ contains
     !#   <defaultValue>0.04930d0</defaultValue>
     !#   <defaultSource>(\citealt{planck_collaboration_planck_2018}; TT,TE,EE$+$lowE$+$lensing)</defaultSource>
     !#   <description>The density of baryons in the Universe in units of the critical density.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>OmegaDarkEnergy</name>
@@ -80,8 +77,6 @@ contains
     !#   <defaultValue>0.6847d0</defaultValue>
     !#   <defaultSource>(\citealt{planck_collaboration_planck_2018}; TT,TE,EE$+$lowE$+$lensing)</defaultSource>
     !#   <description>The density of dark energy in the Universe in units of the critical density.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>temperatureCMB</name>
@@ -90,8 +85,6 @@ contains
     !#   <defaultValue>2.72548d0</defaultValue>
     !#   <defaultSource>\citep{fixsen_temperature_2009}</defaultSource>
     !#   <description>The present day temperature of the \gls{cmb} in units of Kelvin.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>HubbleConstant</name>
@@ -100,12 +93,10 @@ contains
     !#   <defaultValue>67.36d0</defaultValue>
     !#   <defaultSource>(\citealt{planck_collaboration_planck_2018}; TT,TE,EE$+$lowE$+$lensing)</defaultSource>
     !#   <description>The present day value of the Hubble parameter in units of km/s/Mpc.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     ! Validate the input.
     if (simpleConstructorParameters%HubbleConstantValue <= 0.0d0)                                                                                    &
-         & call Galacticus_Warn("WARNING [cosmologyParametersSimple::simpleConstructorParameters]: H_0 ≤ 0 - are you sure this is what you wanted? "//{introspection:location})
+         & call Galacticus_Warn(displayMagenta()//"WARNING:"//displayReset()//" [cosmologyParametersSimple::simpleConstructorParameters]: H_0 ≤ 0 - are you sure this is what you wanted? "//{introspection:location})
     !# <inputParametersValidate source="parameters"/>
     return
   end function simpleConstructorParameters
@@ -224,7 +215,7 @@ contains
   double precision function simpleDensityCritical(self)
     !% Return the present day critical density of the Universe in units of $M_\odot$/Mpc$^3$.
     use :: Numerical_Constants_Math    , only : Pi
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class(cosmologyParametersSimple), intent(inout) :: self
 

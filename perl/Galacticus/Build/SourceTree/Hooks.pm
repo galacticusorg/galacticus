@@ -8,6 +8,7 @@ use utf8;
 # Define a hash into which modules can insert their hooks.
 our %parseHooks;
 our %processHooks;
+our %processDependencies;
 our %analyzeHooks;
 
 1;

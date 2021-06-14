@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -52,8 +52,8 @@
   end interface outputAnalysisDistributionOperatorGrvtnlLnsng
 
   ! Module scope lensing object used in parallel evaluation of the lensing matrix.
-  integer(c_size_t                 )              :: grvtnLnsngK
-  class  (gravitationalLensingClass), allocatable :: grvtnlLnsngGravitationalLensing_
+  integer(c_size_t                 )          :: grvtnLnsngK
+  class  (gravitationalLensingClass), pointer :: grvtnlLnsngGravitationalLensing_
   !$omp threadprivate(grvtnLnsngK,grvtnlLnsngGravitationalLensing_)
 
   !# <enumeration>
@@ -84,16 +84,12 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>var_str('luminosity')</defaultValue>
     !#   <description>The property (luminosity, or size) to be affected by gravitational lensing.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>sizeSource</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0.001d0</defaultValue>
     !#   <description>The source size to assume for gravitational lensing calculations.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="gravitationalLensing" name="gravitationalLensing_" source="parameters"/>
     !# <objectBuilder class="outputTimes"          name="outputTimes_"          source="parameters"/>
@@ -151,7 +147,7 @@ contains
     integer         (c_size_t                                     ), intent(in   )                                        :: outputIndex
     type            (treeNode                                     ), intent(inout)                                        :: node
     double precision                                                              , dimension(size(propertyValueMinimum)) :: distributionNew
-    !GCC$ attributes unused :: self, propertyValue, propertyType, propertyValueMinimum, propertyValueMaximum, outputIndex, node
+    !$GLC attributes unused :: self, propertyValue, propertyType, propertyValueMinimum, propertyValueMaximum, outputIndex, node
 
     distributionNew=0.0d0
     call Galacticus_Error_Report('not implemented'//{introspection:location})
@@ -160,9 +156,8 @@ contains
 
   function grvtnlLnsngOperateDistribution(self,distribution,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node) result(distributionNew)
     !% Implement a gravitational lensing output analysis distribution operator.
-    use :: FGSL                 , only : fgsl_function, fgsl_integration_workspace
     use :: Memory_Management    , only : allocateArray
-    use :: Numerical_Integration, only : Integrate    , Integrate_Done
+    use :: Numerical_Integration, only : integrator
     implicit none
     class           (outputAnalysisDistributionOperatorGrvtnlLnsng), intent(inout)                                        :: self
     double precision                                               , intent(in   ), dimension(:)                          :: distribution
@@ -174,10 +169,8 @@ contains
     double precision                                                                                                      :: redshift
     integer         (c_size_t                                     )                                                       :: j                    , k                   , &
          &                                                                                                                   i                    , l
-    type            (fgsl_function                                )                                                       :: integrandFunction
-    type            (fgsl_integration_workspace                   )                                                       :: integrationWorkspace
-    logical                                                                                                               :: integrationReset
-    !GCC$ attributes unused :: node
+    type            (integrator                                   )               , allocatable                           :: integrator_
+    !$GLC attributes unused :: node
 
     ! Construct the lensing transfer matrix if not already done.
     !$ call self%tabulateLock(outputIndex)%setRead()
@@ -186,9 +179,15 @@ contains
        if (.not.allocated(self%transfer_(outputIndex)%matrix)) then
           redshift=self%outputTimes_%redshift(outputIndex)
           call allocateArray(self%transfer_(outputIndex)%matrix,[size(propertyValueMinimum),size(propertyValueMinimum)])
-          !$omp parallel private (i,j,k,l,integrationReset,integrandFunction,integrationWorkspace)
+          !$omp parallel private (i,j,k,l,integrator_)
           allocate(grvtnlLnsngGravitationalLensing_,mold=self%gravitationalLensing_)
+          !$omp critical(analysesGravitationalLensingDeepCopy)
+          !# <deepCopyReset variables="self%gravitationalLensing_"/>
           !# <deepCopy source="self%gravitationalLensing_" destination="grvtnlLnsngGravitationalLensing_"/>
+          !# <deepCopyFinalize variables="grvtnlLnsngGravitationalLensing_"/>
+          !$omp end critical(analysesGravitationalLensingDeepCopy)
+          allocate(integrator_)
+          integrator_=integrator(magnificationCDFIntegrand,toleranceRelative=1.0d-3)
           !$omp do schedule(dynamic)
           do l=1,size(propertyValueMinimum)
              do i=1,2
@@ -197,26 +196,13 @@ contains
                 else
                    j=1; grvtnLnsngK=l
                 end if
-                integrationReset=.true.
-                self       %transfer_(outputIndex)%matrix(j,grvtnLnsngK)=          &
-                     & +Integrate(                                                 &
-                     &                               propertyValueMinimum     (j), &
-                     &                               propertyValueMaximum     (j), &
-                     &                               magnificationCDFIntegrand   , &
-                     &                               integrandFunction           , &
-                     &                               integrationWorkspace        , &
-                     &             toleranceRelative=1.0d-3                      , &
-                     &             reset            =integrationReset              &
-                     &            )                                                &
-                     & /(                                                          &
-                     &   +propertyValueMaximum(j)                                  &
-                     &   -propertyValueMinimum(j)                                  &
-                     &  )
-                call Integrate_Done(integrandFunction,integrationWorkspace)
+                self%transfer_(outputIndex)%matrix(j,grvtnLnsngK)=+integrator_%integrate( propertyValueMinimum(j),propertyValueMaximum(j)) &
+                     &                                            /                     (+propertyValueMaximum(j)-propertyValueMinimum(j))
              end do
           end do
           !$omp end do
-          deallocate(grvtnlLnsngGravitationalLensing_)
+          !# <objectDestructor name="grvtnlLnsngGravitationalLensing_"/>
+          deallocate(integrator_)
           !$omp end parallel
           do j=2,size(propertyValueMinimum)
              do k=2,size(propertyValueMinimum)

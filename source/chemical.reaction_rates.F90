@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -29,7 +29,9 @@ module Chemical_Reaction_Rates
   !# <functionClass>
   !#  <name>chemicalReactionRate</name>
   !#  <descriptiveName>Chemical Reaction Rates</descriptiveName>
-  !#  <description>Class providing chemical reaction rates.</description>
+  !#  <description>
+  !#   Class providing chemical reaction rates.
+  !#  </description>
   !#  <default>zero</default>
   !#  <method name="rates" >
   !#   <description>Return the collisional excitation cooling rate , in units of J/m$^3$/s, for ion of given {\normalfont \ttfamily atomicNumber} and {\normalfont \ttfamily electronNumber} at temperature {\normalfont \ttfamily T} (in Kelvin).</description>

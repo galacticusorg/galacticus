@@ -5,102 +5,121 @@
   <version>0.9.4</version>
 
   <!-- Specify tasks to perform -->
-  <taskMethod value="evolveForests"/>
-  
+  <task value="evolveForests"/>
+
   <!-- Component selection -->
-  <treeNodeMethodBasic             value="standard"/>
-  <treeNodeMethodBlackHole         value="null"    />
-  <treeNodeMethodDarkMatterProfile value="scale"   />
-  <treeNodeMethodDisk              value="null"    />
-  <treeNodeMethodHotHalo           value="null"    />
-  <treeNodeMethodSatellite         value="standard"/>
-  <treeNodeMethodSpheroid          value="null"    />
-  <treeNodeMethodSpin              value="null"    />
+  <componentBasic value="standard"/>
+  <componentBlackHole value="null"/>
+  <componentDarkMatterProfile value="scale"/>
+  <componentDisk value="null"/>
+  <componentHotHalo value="null"/>
+  <componentSatellite value="standard"/>
+  <componentSpheroid value="null"/>
+  <componentSpin value="null"/>
 
   <!-- Cosmological parameters and options -->
-  <cosmologyFunctionsMethod  value="matterLambda"/>
-  <cosmologyParametersMethod value="simple">
-    <HubbleConstant  value="70.20000"/>
-    <OmegaMatter     value=" 0.27250"/>
+  <cosmologyFunctions value="matterLambda"/>
+  <cosmologyParameters value="simple">
+    <HubbleConstant value="70.20000"/>
+    <OmegaMatter value=" 0.27250"/>
     <OmegaDarkEnergy value=" 0.72750"/>
-    <OmegaBaryon     value=" 0.00000"/>
-    <temperatureCMB  value=" 2.72548"/>
-  </cosmologyParametersMethod>
+    <OmegaBaryon value=" 0.00000"/>
+    <temperatureCMB value=" 2.72548"/>
+  </cosmologyParameters>
 
   <!-- Power spectrum options -->
-  <transferFunctionMethod value="eisensteinHu1999">
+  <transferFunction value="eisensteinHu1999">
     <neutrinoNumberEffective value="3.046"/>
-    <neutrinoMassSummed      value="0.000"/>
-    <cosmologyParametersMethod value="simple">
-      <HubbleConstant  value="70.20000"/>
-      <OmegaMatter     value=" 0.27250"/>
+    <neutrinoMassSummed value="0.000"/>
+    <cosmologyParameters value="simple">
+      <HubbleConstant value="70.20000"/>
+      <OmegaMatter value=" 0.27250"/>
       <OmegaDarkEnergy value=" 0.72750"/>
-      <OmegaBaryon     value=" 0.04550"/>
-      <temperatureCMB  value=" 2.72548"/>
-    </cosmologyParametersMethod>
-  </transferFunctionMethod>
-  <powerSpectrumPrimordialMethod value="powerLaw">
-    <index               value="0.961"/>
+      <OmegaBaryon value=" 0.04550"/>
+      <temperatureCMB value=" 2.72548"/>
+    </cosmologyParameters>
+  </transferFunction>
+  <powerSpectrumPrimordial value="powerLaw">
+    <index value="0.961"/>
     <wavenumberReference value="1.000"/>
-    <running             value="0.000"/>
-  </powerSpectrumPrimordialMethod>
-  <powerSpectrumPrimordialTransferredMethod value="simple"/>
-  <cosmologicalMassVarianceMethod value="filteredPower">
-      <sigma_8 value="0.807"/>
-  </cosmologicalMassVarianceMethod>
-  
+    <running value="0.000"/>
+  </powerSpectrumPrimordial>
+  <powerSpectrumPrimordialTransferred value="simple"/>
+  <cosmologicalMassVariance value="filteredPower">
+    <sigma_8 value="0.807"/>
+  </cosmologicalMassVariance>
+
   <!-- Structure formation options -->
-  <linearGrowthMethod          value="collisionlessMatter"                      />
-  <haloMassFunctionMethod      value="tinker2008"                               />
-  <criticalOverdensityMethod   value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
-  <virialDensityContrastMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <linearGrowth value="collisionlessMatter"/>
+  <haloMassFunction value="tinker2008"/>
+  <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
 
   <!-- Merger tree building options -->
-  <mergerTreeConstructorMethod value="build"   />
-  <mergerTreeBuilderMethod     value="cole2000" >
-    <accretionLimit   value="0.1"/>
+  <mergerTreeConstructor value="build"/>
+  <mergerTreeBuilder value="cole2000">
+    <accretionLimit value="0.1"/>
     <mergeProbability value="0.1"/>
-  </mergerTreeBuilderMethod>
-  <mergerTreeBranchingProbabilityMethod value="parkinsonColeHelly">
-    <G0                 value="+0.57"/>
-    <gamma1             value="+0.38"/>
-    <gamma2             value="-0.01"/>
+  </mergerTreeBuilder>
+  <mergerTreeBranchingProbability value="parkinsonColeHelly">
+    <G0 value="+0.57"/>
+    <gamma1 value="+0.38"/>
+    <gamma2 value="-0.01"/>
     <accuracyFirstOrder value="+0.10"/>
-  </mergerTreeBranchingProbabilityMethod>
-  <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
+  </mergerTreeBranchingProbability>
+  <mergerTreeBuildMasses value="sampledDistributionUniform">
     <massTreeMinimum value="1.0e10"/>
     <massTreeMaximum value="1.0e13"/>
-    <treesPerDecade  value="2"     />
-  </mergerTreeBuildMassesMethod>
+    <treesPerDecade value="2"/>
+  </mergerTreeBuildMasses>
 
   <!-- Substructure hierarchy options -->
-  <mergerTreeNodeMergerMethod value="singleLevelHierarchy"/>
+  <mergerTreeNodeMerger value="singleLevelHierarchy"/>
 
   <!-- Dark matter halo structure options -->
-  <darkMatterProfileDMOMethod            value="NFW"    />
-  <darkMatterProfileConcentrationMethod  value="gao2008"/>
-  <darkMatterProfileMinimumConcentration value="4"      />
+  <darkMatterProfileDMO value="NFW"/>
+  <darkMatterProfileConcentration value="gao2008"/>
+  <darkMatterProfileMinimumConcentration value="4"/>
 
   <!-- Switch off baryonic physics -->
-  <hotHaloMassDistributionMethod value="null"/>
+  <hotHaloMassDistribution value="null"/>
 
   <!-- Tree evolution -->
-  <mergerTreeNodeEvolverMethod value="standard">
+  <mergerTreeNodeEvolver value="standard">
     <odeToleranceAbsolute value="0.01"/>
     <odeToleranceRelative value="0.01"/>
-  </mergerTreeNodeEvolverMethod>
-  <mergerTreeEvolverMethod value="standard">
+  </mergerTreeNodeEvolver>
+  <mergerTreeEvolver value="standard">
     <timestepHostAbsolute value="1.0"/>
     <timestepHostRelative value="0.1"/>
-  </mergerTreeEvolverMethod>
+  </mergerTreeEvolver>
 
   <!-- Output options -->
   <galacticusOutputFileName value="darkMatterOnlyMergerTrees.hdf5"/>
-  <outputTimesMethod value="list">
+  <outputTimes value="list">
     <redshifts value="0.0 1.0"/>
-  </outputTimesMethod>
-  <mergerTreeOutputterMethod value="standard">
+  </outputTimes>
+  <mergerTreeOutputter value="standard">
     <outputReferences value="false"/>
-  </mergerTreeOutputterMethod>
+  </mergerTreeOutputter>
 
+  <!--Stellar feedback outflows-->
+  <nodeOperator value="stellarFeedbackDisks">
+    <stellarFeedbackOutflows value="rateLimit">
+      <timescaleOutflowFractionalMinimum value="0.001"/>
+      <stellarFeedbackOutflows value="powerLaw">
+        <velocityCharacteristic value="250.0"/>
+        <exponent value="3.5"/>
+      </stellarFeedbackOutflows>
+    </stellarFeedbackOutflows>
+  </nodeOperator>
+  <nodeOperator value="stellarFeedbackSpheroids">
+    <stellarFeedbackOutflows value="rateLimit">
+      <timescaleOutflowFractionalMinimum value="0.001"/>
+      <stellarFeedbackOutflows value="powerLaw">
+        <velocityCharacteristic value="250.0"/>
+        <exponent value="3.5"/>
+      </stellarFeedbackOutflows>
+    </stellarFeedbackOutflows>
+  </nodeOperator>
 </parameters>

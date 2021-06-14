@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -110,7 +110,7 @@ contains
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
-    !GCC$ attributes unused :: parameters_
+    !$GLC attributes unused :: parameters_
 
     if (defaultSatelliteComponent%presetIsActive()) &
          call nodePromotionEvent%attach(defaultSatelliteComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentSatellitePreset')
@@ -138,7 +138,7 @@ contains
     implicit none
     class(*       ), intent(inout)         :: self
     type (treeNode), intent(inout), target :: node
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
     
     ! Move the satellite orbit from the parent node.
     call node%parent%satelliteMove(node,overwrite=.true.)
@@ -263,9 +263,9 @@ contains
   subroutine Node_Component_Satellite_Preset_Inter_Tree_Postprocess(node)
     !% For inter-tree node transfers, ensure that any orphaned mergees of the transferred node are transferred over to the new
     !% branch.
-    use :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityInfo
-    use :: Galacticus_Nodes  , only : nodeComponentSatellite    , treeNode                  , treeNodeLinkedList
-    use :: ISO_Varying_String, only : var_str                   , varying_string            , operator(//)
+    use :: Display           , only : displayMessage        , displayVerbosity, verbosityLevelInfo
+    use :: Galacticus_Nodes  , only : nodeComponentSatellite, treeNode        , treeNodeLinkedList
+    use :: ISO_Varying_String, only : operator(//)          , var_str         , varying_string
     use :: String_Handling   , only : operator(//)
     implicit none
     type (treeNode              ), intent(inout), pointer :: node
@@ -280,9 +280,9 @@ contains
     do while (associated(mergee))
        satelliteMergee => mergee%satellite()
        if (satelliteMergee%isOrphan()) then
-          if (Galacticus_Verbosity_Level() >= verbosityInfo) then
+          if (displayVerbosity() >= verbosityLevelInfo) then
              message=var_str('Satellite node [')//mergee%index()//'] will be orphanized due to event'
-             call Galacticus_Display_Message(message)
+             call displayMessage(message)
           end if
           allocate(nodeNew)
           nodeNew  %node => mergee
@@ -323,12 +323,12 @@ contains
   subroutine Node_Component_Satellite_Preset_Satellite_Host_Change(node)
     !% For satellite host changes, if the satellite is an orphan with a merge target ensure it remains in the branch of its merge
     !% target.
-    use :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityInfo
-    use :: Galacticus_Nodes  , only : nodeComponentSatellite    , treeNode                  , treeNodeLinkedList
-    use :: ISO_Varying_String, only : var_str                   , varying_string            , operator(//)
+    use :: Display           , only : displayMessage        , displayVerbosity, verbosityLevelInfo
+    use :: Galacticus_Nodes  , only : nodeComponentSatellite, treeNode        , treeNodeLinkedList
+    use :: ISO_Varying_String, only : operator(//)          , var_str         , varying_string
     use :: String_Handling   , only : operator(//)
     implicit none
-    type (treeNode              ), intent(inout), pointer :: node
+    type (treeNode              ), intent(inout), target  :: node
     class(nodeComponentSatellite)               , pointer :: satellite
     type (treeNodeLinkedList    )               , pointer :: nodeStack, nodeNext, &
          &                                                   nodeNew
@@ -337,9 +337,9 @@ contains
 
     satellite => node%satellite()
     if (satellite%isOrphan().and.associated(node%mergeTarget)) then
-       if (Galacticus_Verbosity_Level() >= verbosityInfo) then
+       if (displayVerbosity() >= verbosityLevelInfo) then
           message=var_str('Satellite node [')//node%index()//'] will be orphanized due to host change'
-          call Galacticus_Display_Message(message)
+          call displayMessage(message)
        end if
        ! Initialize a stack of nodes to allow us to process all mergees.
        allocate(nodeStack)
@@ -375,14 +375,13 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Satellite_Preset_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Satellite_Preset_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
+  subroutine Node_Component_Satellite_Preset_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
     !% Interrupt differential evolution when a preset satellite becomes an orphan.
-    use :: Galacticus_Nodes, only : interruptTask, nodeComponentBasic       , nodeComponentSatellite, propertyTypeInactive, &
-          &                         treeNode     , defaultSatelliteComponent
+    use :: Galacticus_Nodes, only : defaultSatelliteComponent, interruptTask, nodeComponentBasic, nodeComponentSatellite, &
+          &                         propertyTypeInactive     , treeNode
     use :: Histories       , only : history
     implicit none
-    type     (treeNode              ), intent(inout), pointer :: node
-    logical                          , intent(in   )          :: odeConverged
+    type     (treeNode              ), intent(inout)          :: node
     logical                          , intent(inout)          :: interrupt
     procedure(interruptTask         ), intent(inout), pointer :: interruptProcedure
     integer                          , intent(in   )          :: propertyType
@@ -390,7 +389,6 @@ contains
     class    (nodeComponentSatellite)               , pointer :: satellite
     type     (history               )                         :: historyBoundMass
     logical                                                   :: exceedsHistoryTime
-    !GCC$ attributes unused :: odeConverged
     
     ! Return immediately if the preset satellite implementation is not active.
     if (.not.defaultSatelliteComponent%presetIsActive()) return
@@ -415,9 +413,9 @@ contains
 
   subroutine Node_Component_Satellite_Preset_Orphanize(node)
     !% Handle orphanization of a preset satellite component. The satellite should be moved to the branch of its target node.
-    use :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityInfo
-    use :: Galacticus_Nodes  , only : nodeComponentBasic        , nodeComponentSatellite    , treeNode
-    use :: ISO_Varying_String, only : var_str                   , varying_string            , operator(//)
+    use :: Display           , only : displayMessage    , displayVerbosity      , verbosityLevelInfo
+    use :: Galacticus_Nodes  , only : nodeComponentBasic, nodeComponentSatellite, treeNode
+    use :: ISO_Varying_String, only : operator(//)      , var_str               , varying_string
     use :: String_Handling   , only : operator(//)
     implicit none
     type (treeNode              ), intent(inout), target  :: node
@@ -451,14 +449,14 @@ contains
        end if
     end do
     ! Report.
-    if (Galacticus_Verbosity_Level() >= verbosityInfo) then
+    if (displayVerbosity() >= verbosityLevelInfo) then
        message=var_str('Satellite node [')//node%index()//'] is being orphanized'
        if (associated(node%parent,nodeHost)) then
           message=message//' - remains in same host ['//nodeHost%index()//']'
        else
           message=message//' - moves from host ['//node%parent%index()//'] to host ['//nodeHost%index()//']'
        end if
-       call Galacticus_Display_Message(message)
+       call displayMessage(message)
     end if
     ! Move to the new host. (If the new host is the same as the current host, do nothing.)
     if (.not.associated(node%parent,nodeHost)) then

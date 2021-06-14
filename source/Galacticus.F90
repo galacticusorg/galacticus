@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,18 +22,20 @@
 
 program Galacticus
   !% The main {\normalfont \scshape Galacticus} program.
+  use    :: Display_Verbosity                   , only : displayVerbositySetFromParameters
   use    :: Events_Hooks                        , only : eventsHooksInitialize
   use    :: Functions_Global_Utilities          , only : Functions_Global_Set
   use    :: Galacticus_Banner                   , only : Galacticus_Banner_Show
-  use    :: Galacticus_Display_Verbosity        , only : Galacticus_Verbosity_Set_From_Parameters
   use    :: Galacticus_Error                    , only : Galacticus_Error_Handler_Register        , Galacticus_Error_Report
   use    :: Galacticus_Error_Wait               , only : Galacticus_Error_Wait_Set_From_Parameters
   use    :: Galacticus_Function_Classes_Destroys, only : Galacticus_Function_Classes_Destroy
   use    :: Galacticus_Output_Open              , only : Galacticus_Output_Close_File             , Galacticus_Output_Open_File
-  use    :: ISO_Varying_String                  , only : varying_string                           , assignment(=)
+  use    :: ISO_Varying_String                  , only : assignment(=)                            , varying_string
   use    :: Input_Parameters                    , only : inputParameter                           , inputParameters
 #ifdef USEMPI
-  use    :: MPI                                 , only : MPI_Thread_Single                        , MPI_Thread_Multiple        , MPI_Comm_World
+  use    :: MPI                                 , only : MPI_Comm_World                           , MPI_Thread_Multiple        , MPI_Thread_Single
+#endif
+#ifdef USEMPI
   use    :: MPI_Utilities                       , only : mpiFinalize                              , mpiInitialize
 #endif
   !$ use :: OMP_Lib                             , only : OMP_Get_Max_Threads                      , OMP_Set_Nested
@@ -73,11 +75,11 @@ program Galacticus
   ! Establish global functions.
   call Functions_Global_Set()
   ! Set verbosity.
-  call Galacticus_Verbosity_Set_From_Parameters (parameters)
+  call displayVerbositySetFromParameters        (parameters)
   ! Set error wait times.
   call Galacticus_Error_Wait_Set_From_Parameters(parameters)
   ! Set resource limits.
-  Call System_Limits_Set                        (parameters)
+  call System_Limits_Set                        (parameters)
   ! Show the Galacticus banner.
   call Galacticus_Banner_Show()
   ! Perform task.

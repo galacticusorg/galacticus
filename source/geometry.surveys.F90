@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,14 +27,16 @@ module Geometry_Surveys
   !# <functionClass>
   !#  <name>surveyGeometry</name>
   !#  <descriptiveName>Survey Geometry</descriptiveName>
-  !#  <description>Object providing galaxy surveys geometries and related functions.</description>
+  !#  <description>
+  !#   Class providing galaxy survey geometries and related functions.
+  !#  </description>
   !#  <default>liWhite2009SDSS</default>
   !#  <method name="fieldCount" >
   !#   <description>Returns the number of distinct fields included in the survey.</description>
   !#   <type>integer</type>
   !#   <pass>yes</pass>
   !#   <code>
-  !#    !GCC$ attributes unused :: self
+  !#    !$GLC attributes unused :: self
   !#    surveyGeometryFieldCount=1
   !#   </code>
   !#  </method>
@@ -45,7 +47,7 @@ module Geometry_Surveys
   !#   <argument>double precision, intent(in   ), optional :: mass , magnitudeAbsolute, luminosity</argument>
   !#   <argument>integer         , intent(in   ), optional :: field</argument>
   !#   <code>
-  !#    !GCC$ attributes unused :: self, mass, field, magnitudeAbsolute, luminosity
+  !#    !$GLC attributes unused :: self, mass, field, magnitudeAbsolute, luminosity
   !#    surveyGeometryDistanceMinimum=0.0d0
   !#   </code>
   !#  </method>
@@ -100,7 +102,7 @@ module Geometry_Surveys
   !#   <type>integer</type>
   !#   <pass>yes</pass>
   !#   <code>
-  !#    !GCC$ attributes unused :: self
+  !#    !$GLC attributes unused :: self
   !#    surveyGeometryAngularPowerMaximumDegree=-1
   !#   </code>
   !#  </method>

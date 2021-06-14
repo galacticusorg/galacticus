@@ -5,23 +5,23 @@
        deadlock occur in a non-primary progenitor. -->
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
-  <cosmologyParametersMethod value="simple">
+  <cosmologyParameters value="simple">
     <HubbleConstant value="67.77"/>
     <OmegaDarkEnergy value="0.692885"/>
     <OmegaMatter value="0.307115"/>
     <OmegaBaryon value="0.048206"/>
     <temperatureCMB value="2.72548"/>
-  </cosmologyParametersMethod>
-  <cosmologicalMassVarianceMethod value="filteredPower">
+  </cosmologyParameters>
+  <cosmologicalMassVariance value="filteredPower">
     <sigma_8 value="0.8228"/>
-  </cosmologicalMassVarianceMethod>
+  </cosmologicalMassVariance>
 
-  <accretionHaloMethod value="zero"/>
-  <mergerTreeOutputterMethod value="standard">
+  <accretionHalo value="zero"/>
+  <mergerTreeOutputter value="standard">
     <outputReferences value="false"/>
-  </mergerTreeOutputterMethod>
-  <mergerTreeConstructorMethod value="read">
-  <presetMergerNodes value="true"/>
+  </mergerTreeOutputter>
+  <mergerTreeConstructor value="read">
+    <presetMergerNodes value="true"/>
     <presetMergerTimes value="true"/>
     <presetOrbits value="true"/>
     <presetOrbitsAssertAllSet value="true"/>
@@ -34,37 +34,75 @@
     <presetSubhaloIndices value="true"/>
     <presetSubhaloMasses value="true"/>
     <presetUnphysicalSpins value="true"/>
-    <satelliteMergingTimescalesSubresolutionMethod value="boylanKolchin2008"/>
+    <satelliteMergingTimescalesSubresolution value="boylanKolchin2008"/>
     <fileNames value="testSuite/data/mergerTrees/deadlockMergeTargetInDescendentOfMergee2.hdf5"/>
-  </mergerTreeConstructorMethod>
-  <mergerTreeNodeMergerMethod value="singleLevelHierarchy"/>
-  <mergerTreeNodeEvolverMethod value="standard">
+  </mergerTreeConstructor>
+  <mergerTreeNodeMerger value="singleLevelHierarchy"/>
+  <mergerTreeNodeEvolver value="standard">
     <odeToleranceAbsolute value="0.01"/>
     <odeToleranceRelative value="0.01"/>
-  </mergerTreeNodeEvolverMethod>
+  </mergerTreeNodeEvolver>
 
-  <outputTimesMethod value="list">
+  <outputTimes value="list">
     <redshifts value="0.0"/>
-  </outputTimesMethod>
+  </outputTimes>
 
-  <powerSpectrumPrimordialMethod value="powerLaw">
-  <index value="0.96"/>
+  <powerSpectrumPrimordial value="powerLaw">
+    <index value="0.96"/>
     <wavenumberReference value="1.0"/>
     <running value="0.0"/>
-  </powerSpectrumPrimordialMethod>
+  </powerSpectrumPrimordial>
   <satelliteOrbitStoreOrbitalParameters value="true"/>
-  <treeNodeMethodBasic value="standard"/>
-  <treeNodeMethodBlackHole value="standard"/>
-  <treeNodeMethodDarkMatterProfile value="scale"/>
-  <treeNodeMethodDisk value="standard"/>
+  <componentBasic value="standard"/>
+  <componentBlackHole value="standard"/>
+  <componentDarkMatterProfile value="scale"/>
+  <componentDisk value="standard"/>
   <diskMassDistribution value="exponentialDisk">
     <dimensionless value="true"/>
   </diskMassDistribution>
-  <treeNodeMethodHotHalo value="standard"/>
-  <treeNodeMethodPosition value="preset"/>
-  <treeNodeMethodSatellite value="preset"/>
-  <treeNodeMethodSpheroid value="standard"/>
-  <treeNodeMethodSpin value="preset3D"/>
-  <verbosityLevel value="1"/>
+  <componentHotHalo value="standard"/>
+  <componentPosition value="preset"/>
+  <componentSatellite value="preset"/>
+  <componentSpheroid value="standard"/>
+  <componentSpin value="vector"/>
+  <verbosityLevel value="standard"/>
   <galacticusOutputFileName value="testSuite/outputs/deadlockMergeTargetInDescendentOfMergee2.hdf5"/>
+
+  <!-- Node evolution and physics -->
+  <nodeOperator value="multi">
+    <!-- Halo spin -->
+    <nodeOperator value="haloSpinInterpolate">
+      <factorReset value="2.0"/>
+    </nodeOperator>
+    <!-- Star formation -->
+    <nodeOperator value="starFormationDisks"/>
+    <nodeOperator value="starFormationSpheroids"/>
+    <!--Stellar feedback outflows-->
+    <nodeOperator value="stellarFeedbackDisks">
+      <stellarFeedbackOutflows value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflows value="powerLaw">
+          <velocityCharacteristic value="250.0"/>
+          <exponent value="3.5"/>
+        </stellarFeedbackOutflows>
+      </stellarFeedbackOutflows>
+    </nodeOperator>
+    <nodeOperator value="stellarFeedbackSpheroids">
+      <stellarFeedbackOutflows value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflows value="powerLaw">
+          <velocityCharacteristic value="250.0"/>
+          <exponent value="3.5"/>
+        </stellarFeedbackOutflows>
+      </stellarFeedbackOutflows>
+    </nodeOperator>
+    <!-- Bar instability in galactic disks -->
+    <nodeOperator value="barInstability">
+      <galacticDynamicsBarInstability value="efstathiou1982">
+	<stabilityThresholdGaseous value="0.7"/>
+	<stabilityThresholdStellar value="1.1"/>
+      </galacticDynamicsBarInstability>
+    </nodeOperator>
+  </nodeOperator>
+
 </parameters>

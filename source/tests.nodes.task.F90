@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -30,33 +30,33 @@ module Test_Nodes_Tasks
 
 contains
 
-  subroutine Test_Node_Task(thisNode)
+  subroutine Test_Node_Task(node)
     !% Implements simple tests of mapping functions over all components in a \gls{node}.
-    use :: Galacticus_Display, only : Galacticus_Verbosity_Level_Set, verbosityStandard
-    use :: Galacticus_Nodes  , only : nodeComponent                 , nodeComponentBlackHole, reductionSummation, treeNode
-    use :: Unit_Tests        , only : Assert
+    use :: Display         , only : displayVerbositySet, verbosityLevelStandard
+    use :: Galacticus_Nodes, only : nodeComponent      , nodeComponentBlackHole, reductionSummation, treeNode
+    use :: Unit_Tests      , only : Assert
     implicit none
-    type            (treeNode       ), intent(inout) :: thisNode
+    type            (treeNode       ), intent(inout) :: node
     procedure       (testVoidFunc   ), pointer       :: myFuncVoid    => testVoidFunc
     procedure       (testFuncDouble0), pointer       :: myFuncDouble0 => testFuncDouble0
-    class           (nodeComponent  ), pointer       :: thisComponent
+    class           (nodeComponent  ), pointer       :: component
     double precision                                 :: mapResult
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
 
     ! Create a black hole component.
-    thisComponent => thisNode%blackHole(autoCreate=.true.)
+    component => node%blackHole(autoCreate=.true.)
 
     ! Map a void function (subroutine) over all components.
-    call thisNode%mapVoid(myFuncVoid)
+    call node%mapVoid(myFuncVoid)
     call Assert('Map void function over all components',all([componentBasicStandardSeen,componentBlackHoleStandardSeen]),.true.)
 
     ! Map a scalar double function over all components, with summation reduction
-    mapResult=thisNode%mapDouble0(myFuncDouble0,reduction=reductionSummation)
-    select type (thisComponent)
+    mapResult=node%mapDouble0(myFuncDouble0,reduction=reductionSummation)
+    select type (component)
     class is (nodeComponentBlackHole)
-       call Assert('Summation reduction map over all components',thisComponent%mass(),mapResult)
+       call Assert('Summation reduction map over all components',component%mass(),mapResult)
     end select
     return
   end subroutine Test_Node_Task

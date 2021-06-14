@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,10 @@
   !% Implementation of a posterior sampling state class which stores history.
 
   !# <posteriorSampleState name="posteriorSampleStateHistory">
-  !#  <description>A posterior sampling state class which stores history.</description>
+  !#  <description>
+  !#   An extension of the {\normalfont \ttfamily simple} state, this class also records the mean and variance of each parameter over the
+  !#   history of the simulation.
+  !#  </description>
   !# </posteriorSampleState>
   type, extends(posteriorSampleStateSimple) :: posteriorSampleStateHistory
      !% Implementation of a posterior sampling state class which stores history.
@@ -54,11 +57,9 @@ contains
 
     !# <inputParameter>
     !#   <name>acceptedStateCount</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The number of states to use in acceptance rate statistics.</description>
     !#   <defaultValue>100</defaultValue>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     self=posteriorSampleStateHistory(acceptedStateCount)
     !# <inputParametersValidate source="parameters"/>

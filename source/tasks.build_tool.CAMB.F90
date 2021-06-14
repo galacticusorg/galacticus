@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -41,7 +41,7 @@ contains
     implicit none
     type(taskBuildToolCAMB)                :: self
     type(inputParameters  ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=taskBuildToolCAMB()
     return
@@ -49,20 +49,20 @@ contains
 
   subroutine buildToolCAMBPerform(self,status)
     !% Builds the tabulation.
-    use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent
-    use :: Galacticus_Error  , only : errorStatusSuccess
-    use :: Interfaces_CAMB   , only : Interface_CAMB_Initialize
+    use :: Display         , only : displayIndent            , displayMessage, displayUnindent
+    use :: Galacticus_Error, only : errorStatusSuccess
+    use :: Interfaces_CAMB , only : Interface_CAMB_Initialize
     implicit none
     class  (taskBuildToolCAMB), intent(inout), target   :: self
     integer                   , intent(  out), optional :: status
     type   (varying_string   )                          :: cambPath, cambVersion
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
-    call Galacticus_Display_Indent  ('Begin task: CAMB tool build')
+    call displayIndent  ('Begin task: CAMB tool build')
     call Interface_CAMB_Initialize(cambPath,cambVersion,static=.true.)
-    call Galacticus_Display_Message('CAMB version '//cambVersion//' successfully built in: '//cambPath)
+    call displayMessage('CAMB version '//cambVersion//' successfully built in: '//cambPath)
     if (present(status)) status=errorStatusSuccess
-    call Galacticus_Display_Unindent('Done task: CAMB tool build')
+    call displayUnindent('Done task: CAMB tool build')
     return
   end subroutine buildToolCAMBPerform
 
@@ -70,7 +70,7 @@ contains
     !% Specifies that this task does not requires the main output file.
     implicit none
     class(taskBuildToolCAMB), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     buildToolCAMBRequiresOutputFile=.false.
     return

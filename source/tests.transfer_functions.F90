@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -24,7 +24,7 @@ program Tests_Transfer_Functions
   use :: Cosmology_Functions  , only : cosmologyFunctionsMatterLambda
   use :: Cosmology_Parameters , only : cosmologyParametersSimple
   use :: Dark_Matter_Particles, only : darkMatterParticleCDM
-  use :: Galacticus_Display   , only : Galacticus_Verbosity_Level_Set  , verbosityStandard
+  use :: Display              , only : displayVerbositySet             , verbosityLevelStandard
   use :: Transfer_Functions   , only : transferFunctionEisensteinHu1999
   use :: Unit_Tests           , only : Assert                          , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
@@ -40,7 +40,7 @@ program Tests_Transfer_Functions
   character       (len=9                          )                :: label
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Transfer functions")
   ! Construct required objects.

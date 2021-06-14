@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,9 +23,11 @@ module String_Handling
   !% Implements various useful functionality for manipulating character strings.
   implicit none
   private
-  public :: operator(//), char, String_Split_Words, String_Count_Words, String_Upper_Case, String_Lower_Case, String_Upper_Case_First,&
-       & Convert_VarString_To_Char, String_C_to_Fortran, String_Subscript, String_Superscript, String_Levenshtein_Distance,&
-       & String_Join, String_Strip, String_Lower_Case_First
+  public :: operator(//)              , char                        , String_Split_Words                 , String_Count_Words         , &
+       &    String_Upper_Case         , String_Lower_Case           , String_Upper_Case_First            , Convert_VarString_To_Char  , &
+       &    String_C_to_Fortran       , String_Subscript            , String_Superscript                 , String_Levenshtein_Distance, &
+       &    String_Join               , String_Strip                , String_Lower_Case_First            , String_Value_Type          , &
+       &    String_Value_Extract_Float, String_Value_Extract_Integer, String_Value_Extract_Integer_Size_T
 
   interface operator(//)
      module procedure Concatenate_VarStr_Integer
@@ -51,11 +53,15 @@ module String_Handling
 
   ! Character strings used in whitespace detection.
   character(len=*), parameter :: charactersWhiteSpace=' '//char(0)//char(9)//char(10)//char(13)
-
-  ! Character strings used in converting to subscripts and superscripts.
-  character(len=*), parameter :: charactersScript     ='0123456789+-=()'
-  character(len=*), parameter :: charactersSubscript  ='₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎'
-  character(len=*), parameter :: charactersSuperscript='⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁼⁽⁾'
+  
+  !# <enumeration>
+  !#  <name>valueType</name>
+  !#  <description>Enumerates possible value types for strings.</description>
+  !#  <visibility>public</visibility>
+  !#  <entry label="floating"/>
+  !#  <entry label="integer" />
+  !#  <entry label="other"   />
+  !# </enumeration>
 
 contains
 
@@ -207,7 +213,16 @@ contains
     type     (varying_string    )                :: Concatenate_VarStr_Integer
     character(len=maxIntegerSize)                :: intString
 
+    !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+    !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
+    !# </workaround>
+#ifdef THREADSAFEIO
+    !$omp critical(gfortranInternalIO)
+#endif
     write (intString,maxIntegerFormat) intVariable
+#ifdef THREADSAFEIO
+    !$omp end critical(gfortranInternalIO)
+#endif
     Concatenate_VarStr_Integer=varStrVariable//trim(adjustl(intString))
     return
   end function Concatenate_VarStr_Integer
@@ -222,7 +237,16 @@ contains
     type     (varying_string    )                :: Concatenate_VarStr_Integer8
     character(len=maxIntegerSize)                :: intString
 
+    !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+    !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
+    !# </workaround>
+#ifdef THREADSAFEIO
+    !$omp critical(gfortranInternalIO)
+#endif
     write (intString,maxIntegerFormat) intVariable
+#ifdef THREADSAFEIO
+    !$omp end critical(gfortranInternalIO)
+#endif
     Concatenate_VarStr_Integer8=varStrVariable//trim(adjustl(intString))
     return
   end function Concatenate_VarStr_Integer8
@@ -309,52 +333,112 @@ contains
 
   function String_C_to_Fortran(charArray)
     !% Convert a C-style character array into a Fortran varying string variable.
-    use, intrinsic :: ISO_C_Binding     , only : c_char
+    use, intrinsic :: ISO_C_Binding     , only : c_char, c_null_char
     use            :: ISO_Varying_String, only : varying_string, assignment(=), operator(//)
     implicit none
     type     (varying_string)                :: String_C_to_Fortran
-    character(kind=c_char   ), intent(in   ) :: charArray          (:)
+    character(kind=c_char   ), intent(in   ), dimension(*) :: charArray
     integer                                  :: i
 
     String_C_to_Fortran=""
-    do i=1,size(charArray)
+    i=1
+    do while (charArray(i) /= c_null_char)
        String_C_to_Fortran=String_C_to_Fortran//charArray(i)
+       i=i+1
     end do
     return
   end function String_C_to_Fortran
 
   function String_Subscript(stringInput) result (stringOutput)
     !% Converts an input string to Unicode subscripts.
-    character(len=*               ), intent(in   ) :: stringInput
-    character(len=len(stringInput))                :: stringOutput
-    integer                                        :: iCharacter  , iString
-
-    ! Transfer input string to output string.
-    stringOutput=stringInput
-    ! Loop through each character in the string.
-    do iString=1,len(stringOutput)
-       ! Find position of current character in string in list of upper case characters.
-       iCharacter=index(charactersScript,stringOutput(iString:iString))
-       ! If a match is found, repace with the lower case equivalent.
-       if (iCharacter /= 0) stringOutput(iString:iString)=charactersSubscript(iCharacter:iCharacter)
+    use :: ISO_Varying_String, only : varying_string, assignment(=), operator(//)
+    character(len=*         ), intent(in   ) :: stringInput
+    type     (varying_string)                :: stringOutput
+    integer                                  :: iString
+    
+    stringOutput=""
+    do iString=1,len(stringInput)      
+       select case (stringInput(iString:iString))
+       case ("0")
+          stringOutput=stringOutput//"₀"
+       case ("1")
+          stringOutput=stringOutput//"₁"
+       case ("2")
+          stringOutput=stringOutput//"₂"
+       case ("3")
+          stringOutput=stringOutput//"₃"
+       case ("4")
+          stringOutput=stringOutput//"₄"
+       case ("5")
+          stringOutput=stringOutput//"₅"
+       case ("6")
+          stringOutput=stringOutput//"₆"
+       case ("7")
+          stringOutput=stringOutput//"₇"
+       case ("8")
+          stringOutput=stringOutput//"₈"
+       case ("9")
+          stringOutput=stringOutput//"₉"
+       case ("+")
+          stringOutput=stringOutput//"₊"
+       case ("-")
+          stringOutput=stringOutput//"₋"
+       case ("=")
+          stringOutput=stringOutput//"₌"
+       case ("(")
+          stringOutput=stringOutput//"₍"
+       case (")")
+          stringOutput=stringOutput//"₎"
+       case default
+          stringOutput=stringOutput//stringInput(iString:iString)
+       end select
     end do
     return
   end function String_Subscript
 
   function String_Superscript(stringInput) result (stringOutput)
     !% Converts an input string to Unicode superscripts.
-    character(len=*               ), intent(in   ) :: stringInput
-    character(len=len(stringInput))                :: stringOutput
-    integer                                        :: iCharacter  , iString
-
-    ! Transfer input string to output string.
-    stringOutput=stringInput
-    ! Loop through each character in the string.
-    do iString=1,len(stringOutput)
-       ! Find position of current character in string in list of upper case characters.
-       iCharacter=index(charactersScript,stringOutput(iString:iString))
-       ! If a match is found, repace with the lower case equivalent.
-       if (iCharacter /= 0) stringOutput(iString:iString)=charactersSuperscript(iCharacter:iCharacter)
+    use :: ISO_Varying_String, only : varying_string, assignment(=), operator(//)
+    character(len=*         ), intent(in   ) :: stringInput
+    type     (varying_string)                :: stringOutput
+    integer                                  :: iString
+    
+    stringOutput=""
+    do iString=1,len(stringInput)      
+       select case (stringInput(iString:iString))
+       case ("0")
+          stringOutput=stringOutput//"⁰"
+       case ("1")
+          stringOutput=stringOutput//"¹"
+       case ("2")
+          stringOutput=stringOutput//"²"
+       case ("3")
+          stringOutput=stringOutput//"³"
+       case ("4")
+          stringOutput=stringOutput//"⁴"
+       case ("5")
+          stringOutput=stringOutput//"⁵"
+       case ("6")
+          stringOutput=stringOutput//"⁶"
+       case ("7")
+          stringOutput=stringOutput//"⁷"
+       case ("8")
+          stringOutput=stringOutput//"⁸"
+       case ("9")
+          stringOutput=stringOutput//"⁹"
+       case ("+")
+          stringOutput=stringOutput//"⁺"
+       case ("-")
+          stringOutput=stringOutput//"⁻"
+       case ("=")
+          stringOutput=stringOutput//"⁼"
+       case ("(")
+          stringOutput=stringOutput//"⁽"
+       case (")")
+          stringOutput=stringOutput//"⁾"
+       case default
+          stringOutput=stringOutput//stringInput(iString:iString)
+       end select
     end do
     return
   end function String_Superscript
@@ -453,5 +537,64 @@ contains
     end if
     return
   end function Char_Logical
+
+  integer function String_Value_Type(input) result(valueType)
+    !% Attempt to detect whether a string corresponds to a floating point number, integer, or other.
+    implicit none
+    character       (len=*), intent(in   ) :: input
+    double precision                       :: valueFloating
+    integer                                :: valueInteger , status
+
+    read (input,*,ioStat=status) valueInteger
+    if (status == 0) then
+       valueType=valueTypeInteger
+       return
+    end if
+    read (input,*,ioStat=status) valueFloating
+    if (status == 0) then
+       valueType=valueTypeFloating
+       return
+    end if
+    valueType=valueTypeOther
+    return
+  end function String_Value_Type
+
+  double precision function String_Value_Extract_Float(input,status) result(valueFloat)
+    !% Extract a floating-point value from a string.
+    implicit none
+    character(len=*), intent(in   )           :: input
+    integer         , intent(  out), optional :: status
+    integer                                   :: status_
+
+    read (input,*,ioStat=status_) valueFloat
+    if (present(status)) status=status_
+    return
+  end function String_Value_Extract_Float
+  
+  integer function String_Value_Extract_Integer(input,status) result(valueInteger)
+    !% Extract an integer value from a string.
+    implicit none
+    character(len=*), intent(in   )           :: input
+    integer         , intent(  out), optional :: status
+    integer                                   :: status_
+
+    read (input,*,ioStat=status_) valueInteger
+    if (present(status)) status=status_
+    return
+  end function String_Value_Extract_Integer
+
+  function String_Value_Extract_Integer_Size_T(input,status) result(valueInteger)
+    !% Extract a {\normalfont \ttfamily size\_t} integer value from a string.
+    use, intrinsic :: ISO_C_Binding   , only : c_size_t
+    implicit none
+    integer  (c_size_t)                          :: valueInteger
+    character(len=*   ), intent(in   )           :: input
+    integer            , intent(  out), optional :: status
+    integer                                      :: status_
+    
+    read (input,*,ioStat=status_) valueInteger
+    if (present(status)) status=status_
+    return
+  end function String_Value_Extract_Integer_Size_T
 
 end module String_Handling

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,10 @@
   !% An implementation of a spectrum postprocessor that applies the \cite{inoue_updated_2014} calculation of the attenuation of spectra by the intergalactic medium.
 
   !# <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorInoue2014">
-  !#  <description>Apply the \cite{inoue_updated_2014} calculation of the attenuation of spectra by the intergalactic medium.</description>
+  !#  <description>
+  !#   A stellar population postprocesing class that postprocesses spectra through absorption by the \gls{igm} using the results
+  !#   of \cite{inoue_updated_2014}.
+  !#  </description>
   !# </stellarPopulationSpectraPostprocessor>
   type, extends(stellarPopulationSpectraPostprocessorClass) :: stellarPopulationSpectraPostprocessorInoue2014
      !% A spectrum postprocessor applying the \cite{inoue_updated_2014} calculation of the attenuation of spectra by the intergalactic medium.
@@ -134,7 +137,7 @@ contains
     implicit none
     type(stellarPopulationSpectraPostprocessorInoue2014)                :: self
     type(inputParameters                               ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=stellarPopulationSpectraPostprocessorInoue2014()
     return
@@ -151,7 +154,7 @@ contains
     integer                                                                         :: i
     double precision                                                                :: opticalDepth             , wavelengthObservedLymanContinuum, &
          &                                                                             wavelengthLymanLine      , wavelengthScaled
-    !GCC$ attributes unused :: self, age
+    !$GLC attributes unused :: self, age
 
     ! Return if this is a zero redshift case.
     inoue2014Multiplier=1.0d0

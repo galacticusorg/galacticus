@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -60,19 +60,15 @@ contains
 
     !# <inputParameter>
     !#   <name>gamma</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.15d0</defaultValue>
     !#   <description>The parameter $\Gamma$ in the \cite{patej_simple_2015} hot halo gas mass distribution model.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>radiusShock</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The shock radius, $s$, (in units of the halo virial radius) in the \cite{patej_simple_2015} hot halo gas mass distribution model.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
     !# <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>

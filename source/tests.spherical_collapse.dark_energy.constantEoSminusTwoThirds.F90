@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,46 +20,149 @@
 !% Contains a program which tests spherical collapse calculations for a dark energy Universe, specifically using a flat,
 !% $\omega=-2/3$ cosmology.
 
-program Tests_Spherical_Collapse_Dark_Energy_Omega_Two_Thirds
+program Tests_Spherical_Collapse_Dark_Energy_Omega_Half
   !% Tests spherical collapse calculations for a dark energy Universe, specifically using a flat, $\omega=-2/3$
   !% cosmology. Compares results to the fitting function of
   !% \citeauthor{weinberg_constraining_2003}~(\citeyear{weinberg_constraining_2003}; eqn.~18).
-  use :: Cosmological_Density_Field, only : criticalOverdensity           , criticalOverdensityClass
-  use :: Cosmology_Functions       , only : cosmologyFunctions            , cosmologyFunctionsClass
-  use :: Events_Hooks              , only : eventsHooksInitialize
-  use :: Galacticus_Display        , only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use :: ISO_Varying_String        , only : varying_string                , assignment(=)
-  use :: Input_Parameters          , only : inputParameters
-  use :: Linear_Growth             , only : linearGrowth                  , linearGrowthClass
-  use :: Numerical_Constants_Math  , only : Pi
-  use :: Unit_Tests                , only : Assert                        , Unit_Tests_Begin_Group  , Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Cosmology_Functions                 , only : cosmologyFunctionsMatterDarkEnergy
+  use :: Cosmology_Parameters                , only : cosmologyParametersSimple
+  use :: Cosmological_Density_Field          , only : criticalOverdensitySphericalCollapseClsnlssMttrDrkEnrgy, cosmologicalMassVarianceFilteredPower
+  use :: Dark_Matter_Particles               , only : darkMatterParticleCDM
+  use :: Display                             , only : displayVerbositySet                                    , verbosityLevelStandard
+  use :: Events_Hooks                        , only : eventsHooksInitialize
+  use :: Linear_Growth                       , only : linearGrowthCollisionlessMatter
+  use :: Numerical_Constants_Math            , only : Pi
+  use :: Power_Spectra_Primordial            , only : powerSpectrumPrimordialPowerLaw
+  use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredSimple
+  use :: Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionTopHat
+  use :: Spherical_Collapse_Solvers          , only : cllsnlssMttrDarkEnergyFixedAtTurnaround
+  use :: Transfer_Functions                  , only : transferFunctionEisensteinHu1999
+  use :: Unit_Tests                          , only : Assert                                                 , Unit_Tests_Begin_Group  , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
-  double precision                          , dimension(7) :: redshift                 =[0.0d0,1.0d0,3.0d0,7.0d0,15.0d0,31.0d0,63.0d0]
-  class           (cosmologyFunctionsClass ), pointer      :: cosmologyFunctions_
-  class           (criticalOverdensityClass), pointer      :: criticalOverdensity_
-  type            (varying_string          )               :: parameterFile
-  character       (len=1024                )               :: message
-  integer                                                  :: iExpansion
-  double precision                                         :: age                                                                     , alpha                      , &
-       &                                                      criticalOverdensityValue                                                , criticalOverdensityExpected, &
-       &                                                      expansionFactor                                                         , omega
-  type            (inputParameters         )               :: parameters
+  double precision                                                         , dimension(7) :: redshift                           =[0.0d0,1.0d0,3.0d0,7.0d0,15.0d0,31.0d0,63.0d0]
+  type            (cosmologyParametersSimple                              )               :: cosmologyParameters_
+  type            (cosmologyFunctionsMatterDarkEnergy                     )               :: cosmologyFunctions_
+  type            (linearGrowthCollisionlessMatter                        )               :: linearGrowth_
+  type            (cosmologicalMassVarianceFilteredPower                  )               :: cosmologicalMassVariance_
+  type            (powerSpectrumWindowFunctionTopHat                      )               :: powerSpectrumWindowFunction_
+  type            (powerSpectrumPrimordialPowerLaw                        )               :: powerSpectrumPrimordial_
+  type            (transferFunctionEisensteinHu1999                       )               :: transferFunction_
+  type            (powerSpectrumPrimordialTransferredSimple               )               :: powerSpectrumPrimordialTransferred_
+  type            (darkMatterParticleCDM                                  )               :: darkMatterParticle_
+  type            (criticalOverdensitySphericalCollapseClsnlssMttrDrkEnrgy)               :: criticalOverdensity_
+  character       (len=1024                                               )               :: message
+  integer                                                                                 :: iExpansion
+  double precision                                                                        :: age                                                                               , alpha                      , &
+       &                                                                                     criticalOverdensityValue                                                          , criticalOverdensityExpected, &
+       &                                                                                     expansionFactor                                                                   , omega
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
   ! Initialize event hooks.
   call eventsHooksInitialize()
-
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Spherical collapse: dark energy solver (ω=-⅔ cosmology)")
-
   ! Test spherical collapse in a flat universe.
-  parameterFile='testSuite/parameters/sphericalCollapse/darkEnergy.constantEoSminusTwoThirds.xml'
-  parameters=inputParameters(parameterFile)
-  call parameters%markGlobal()
-  ! Get the default cosmology functions object.
-  cosmologyFunctions_  => cosmologyFunctions ()
-  criticalOverdensity_ => criticalOverdensity()
+  !# <referenceConstruct object="darkMatterParticle_"                >
+  !#  <constructor>
+  !#   darkMatterParticleCDM                                  (                                                                             &amp;
+  !#    &amp;                                                 )
+  !#  </constructor>
+  !# </referenceConstruct>
+  !# <referenceConstruct object="cosmologyParameters_"               >
+  !#  <constructor>
+  !#   cosmologyParametersSimple                               (                                                                             &amp;
+  !#    &amp;                                                   OmegaMatter                        = 0.3d0                                 , &amp;
+  !#    &amp;                                                   OmegaBaryon                        = 0.0d0                                 , &amp;
+  !#    &amp;                                                   OmegaDarkEnergy                    = 0.7d0                                 , &amp;
+  !#    &amp;                                                   temperatureCMB                     = 2.7d0                                 , &amp;
+  !#    &amp;                                                   HubbleConstant                     =70.0d0                                   &amp;
+  !#    &amp;                                                  )
+  !#  </constructor>
+  !# </referenceConstruct>
+  !# <referenceConstruct object="cosmologyFunctions_"                >
+  !#  <constructor>
+  !#   cosmologyFunctionsMatterDarkEnergy                     (                                                                             &amp;
+  !#    &amp;                                                  cosmologyParameters_               =cosmologyParameters_                  ,  &amp;
+  !#    &amp;                                                  darkEnergyEquationOfStateW0        =-2.0d0/3.0d0                          ,  &amp;
+  !#    &amp;                                                  darkEnergyEquationOfStateW1        =+0.0d0                                   &amp;
+  !#    &amp;                                                 )
+  !#  </constructor>
+  !# </referenceConstruct>
+  !# <referenceConstruct object="linearGrowth_"                      >
+  !#  <constructor>
+  !#   linearGrowthCollisionlessMatter                        (                                                                             &amp;
+  !#    &amp;                                                  cosmologyParameters_               =cosmologyParameters_                   , &amp;
+  !#    &amp;                                                  cosmologyFunctions_                =cosmologyFunctions_                      &amp;
+  !#    &amp;                                                 )
+  !#  </constructor>
+  !# </referenceConstruct>
+  !# <referenceConstruct object="powerSpectrumPrimordial_"           >
+  !#  <constructor>
+  !#   powerSpectrumPrimordialPowerLaw                        (                                                                             &amp;
+  !#    &amp;                                                  index_                             =+1.0d0                                 , &amp;
+  !#    &amp;                                                  running                            =+0.0d0                                 , &amp;
+  !#    &amp;                                                  runningRunning                     =+0.0d0                                 , &amp;
+  !#    &amp;                                                  wavenumberReference                =+1.0d0                                   &amp;
+  !#    &amp;                                                 )
+  !#  </constructor>
+  !# </referenceConstruct>
+  !# <referenceConstruct object="transferFunction_"                  >
+  !#  <constructor>
+  !#   transferFunctionEisensteinHu1999                       (                                                                             &amp;
+  !#    &amp;                                                  neutrinoNumberEffective            =3.046d0                                , &amp;
+  !#    &amp;                                                  neutrinoMassSummed                 =0.0d0                                  , &amp;
+  !#    &amp;                                                  darkMatterParticle_                =darkMatterParticle_                    , &amp;
+  !#    &amp;                                                  cosmologyParameters_               =cosmologyParameters_                   , &amp;
+  !#    &amp;                                                  cosmologyFunctions_                =cosmologyFunctions_                      &amp;
+  !#    &amp;                                                 )
+  !#  </constructor>
+  !# </referenceConstruct>
+  !# <referenceConstruct object="powerSpectrumPrimordialTransferred_">
+  !#  <constructor>
+  !#   powerSpectrumPrimordialTransferredSimple               (                                                                             &amp;
+  !#    &amp;                                                  powerSpectrumPrimordial_           =powerSpectrumPrimordial_               , &amp;
+  !#    &amp;                                                  transferFunction_                  =transferFunction_                      , &amp;
+  !#    &amp;                                                  linearGrowth_                      =linearGrowth_                            &amp;
+  !#    &amp;                                                 )
+  !#  </constructor>
+  !# </referenceConstruct>
+  !# <referenceConstruct object="powerSpectrumWindowFunction_"       >
+  !#  <constructor>
+  !#   powerSpectrumWindowFunctionTopHat                      (                                                                             &amp;
+  !#    &amp;                                                  cosmologyParameters_               =cosmologyParameters_                     &amp;
+  !#    &amp;                                                 )
+  !#  </constructor>
+  !# </referenceConstruct>
+  !# <referenceConstruct object="cosmologicalMassVariance_"          >
+  !#  <constructor>
+  !#   cosmologicalMassVarianceFilteredPower                  (                                                                             &amp;
+  !#    &amp;                                                  sigma8                             =0.8d0                                  , &amp;
+  !#    &amp;                                                  tolerance                          =1.0d-4                                 , &amp;
+  !#    &amp;                                                  toleranceTopHat                    =1.0d-4                                 , &amp;
+  !#    &amp;                                                  nonMonotonicIsFatal                =.true.                                 , &amp;
+  !#    &amp;                                                  monotonicInterpolation             =.false.                                , &amp;
+  !#    &amp;                                                  truncateAtParticleHorizon          =.false.                                , &amp;
+  !#    &amp;                                                  cosmologyParameters_               =cosmologyParameters_                   , &amp;
+  !#    &amp;                                                  cosmologyFunctions_                =cosmologyFunctions_                    , &amp;
+  !#    &amp;                                                  linearGrowth_                      =linearGrowth_                          , &amp;
+  !#    &amp;                                                  powerSpectrumPrimordialTransferred_=powerSpectrumPrimordialTransferred_    , &amp;
+  !#    &amp;                                                  powerSpectrumWindowFunction_       =powerSpectrumWindowFunction_             &amp;
+  !#    &amp;                                                 )
+  !#  </constructor>
+  !# </referenceConstruct>
+  !# <referenceConstruct object="criticalOverdensity_"               >
+  !#  <constructor>
+  !#   criticalOverdensitySphericalCollapseClsnlssMttrDrkEnrgy(                                                                             &amp;
+  !#    &amp;                                                  cosmologyFunctions_                =cosmologyFunctions_                    , &amp;
+  !#    &amp;                                                  linearGrowth_                      =linearGrowth_                          , &amp;
+  !#    &amp;                                                  cosmologicalMassVariance_          =cosmologicalMassVariance_              , &amp;
+  !#    &amp;                                                  darkMatterParticle_                =darkMatterParticle_                    , &amp;
+  !#    &amp;                                                  normalization                      =1.0d0,                                   &amp;
+  !#    &amp;                                                  tableStore                         =.true.                                   &amp;
+  !#    &amp;                                                 )
+  !#  </constructor>
+  !# </referenceConstruct>
   do iExpansion=1,size(redshift)
      expansionFactor            =cosmologyFunctions_ %expansionFactorFromRedshift(redshift       (iExpansion))
      age                        =cosmologyFunctions_ %cosmicTime                 (expansionFactor            )
@@ -73,4 +176,4 @@ program Tests_Spherical_Collapse_Dark_Energy_Omega_Two_Thirds
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()
-end program Tests_Spherical_Collapse_Dark_Energy_Omega_Two_Thirds
+end program Tests_Spherical_Collapse_Dark_Energy_Omega_Half

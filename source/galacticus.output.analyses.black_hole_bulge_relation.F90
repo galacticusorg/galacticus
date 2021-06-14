@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -57,8 +57,6 @@ contains
     !#   <variable>systematicErrorPolynomialCoefficient</variable>
     !#   <defaultValue>[0.0d0]</defaultValue>
     !#   <description>The coefficients of the systematic error polynomial.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>randomErrorPolynomialCoefficient</name>
@@ -66,8 +64,6 @@ contains
     !#   <variable>randomErrorPolynomialCoefficient</variable>
     !#   <defaultValue>[0.09d0]</defaultValue>
     !#   <description>The coefficients of the random error polynomial.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>randomErrorMinimum</name>
@@ -75,8 +71,6 @@ contains
     !#   <variable>randomErrorMinimum</variable>
     !#   <defaultValue>0.09d0</defaultValue>
     !#   <description>The minimum random error for stellar masses.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>randomErrorMaximum</name>
@@ -84,8 +78,6 @@ contains
     !#   <variable>randomErrorMaximum</variable>
     !#   <defaultValue>0.09d0</defaultValue>
     !#   <description>The minimum random error for stellar masses.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     !# <objectBuilder class="outputTimes"        name="outputTimes_"        source="parameters"/>
@@ -283,13 +275,15 @@ contains
     !# <objectDestructor name="outputAnalysisDistributionOperator_"             />
     !# <objectDestructor name="outputAnalysisWeightOperator_"                   />
     !# <objectDestructor name="outputAnalysisPropertyOperator_"                 />
+    !# <objectDestructor name="outputAnalysisWeightPropertyOperatorMinMax_"     />
+    !# <objectDestructor name="outputAnalysisWeightPropertyOperatorLog10_"      />
     !# <objectDestructor name="outputAnalysisPropertyOperatorLog10_"            />
     !# <objectDestructor name="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_"/>
     !# <objectDestructor name="outputAnalysisPropertyOperatorSystmtcPolynomial_"/>
     !# <objectDestructor name="outputAnalysisPropertyUnoperator_"               />
     !# <objectDestructor name="outputAnalysisWeightPropertyOperator_"           />
     !# <objectDestructor name="outputAnalysisWeightPropertyExtractor_"          />
-    !# <objectDestructor name="nodePropertyExtractor_"                />
+    !# <objectDestructor name="nodePropertyExtractor_"                          />
     !# <objectDestructor name="cosmologyParametersData"                         />
     !# <objectDestructor name="cosmologyFunctionsData"                          />
     nullify(propertyOperators_      )

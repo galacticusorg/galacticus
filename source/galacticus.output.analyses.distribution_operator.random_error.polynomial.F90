@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -59,32 +59,24 @@ contains
     !#   <source>parameters</source>
     !#   <variable>zeroPoint</variable>
     !#   <description>The zero-point of the property value used in the polynomial random error distribution class.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>coefficient</name>
     !#   <source>parameters</source>
     !#   <variable>coefficient</variable>
     !#   <description>The coefficients in the polynomial random error distribution class.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>errorMinimum</name>
     !#   <source>parameters</source>
     !#   <variable>errorMinimum</variable>
     !#   <description>The minimum error in the polynomial random error distribution class.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>errorMaximum</name>
     !#   <source>parameters</source>
     !#   <variable>errorMaximum</variable>
     !#   <description>The maximum error in the polynomial random error distribution class.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     ! Construct the object.
     self=outputAnalysisDistributionOperatorRandomErrorPlynml(errorMinimum,errorMaximum,zeroPoint,coefficient)
@@ -111,7 +103,7 @@ contains
     double precision                                                     , intent(in   ) :: propertyValue
     type            (treeNode                                           ), intent(inout) :: node
     integer                                                                              :: i
-    !GCC$ attributes unused :: node
+    !$GLC attributes unused :: node
 
     randomErrorPolynomialRootVariance=0.0d0
     do i=1,size(self%coefficient)

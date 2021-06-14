@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,17 +19,93 @@
 
 !% Contains a module which performs numerical integration.
 
+! Add dependency on GSL library.
+!; gsl
+
 module Numerical_Integration
   !% Implements numerical integration.
-  use :: FGSL, only : FGSL_Error_Handler_Init, FGSL_Function_Free   , FGSL_Function_Init              , FGSL_Integ_Gauss61             , &
-          &           FGSL_Integration_QAG   , FGSL_Integration_QAGS, FGSL_Integration_Workspace_Alloc, FGSL_Integration_Workspace_Free, &
-          &           FGSL_Set_Error_Handler , fgsl_error_handler_t , fgsl_function                   , fgsl_integration_workspace
+  use, intrinsic :: ISO_C_Binding, only : c_ptr      , c_size_t, c_int, c_double
+  use            :: Interface_GSL, only : gslFunction
   implicit none
   private
-  public :: Integrate_Done, Integrate
+  public :: integrator
 
-  ! Module scope error status.
-  integer :: errorStatusGlobal
+  ! Integrator types.
+  !# <gslConstant variable="GSL_Integ_Gauss15" gslSymbol="GSL_INTEG_GAUSS15" gslHeader="gsl_integration" type="integer"/>
+  !# <gslConstant variable="GSL_Integ_Gauss21" gslSymbol="GSL_INTEG_GAUSS21" gslHeader="gsl_integration" type="integer"/>
+  !# <gslConstant variable="GSL_Integ_Gauss31" gslSymbol="GSL_INTEG_GAUSS31" gslHeader="gsl_integration" type="integer"/>
+  !# <gslConstant variable="GSL_Integ_Gauss41" gslSymbol="GSL_INTEG_GAUSS41" gslHeader="gsl_integration" type="integer"/>
+  !# <gslConstant variable="GSL_Integ_Gauss51" gslSymbol="GSL_INTEG_GAUSS51" gslHeader="gsl_integration" type="integer"/>
+  !# <gslConstant variable="GSL_Integ_Gauss61" gslSymbol="GSL_INTEG_GAUSS61" gslHeader="gsl_integration" type="integer"/>
+
+  type :: integrator
+     !% Class for performing numerical integrations.
+     private
+     type            (c_ptr            )        , allocatable :: integrandFunction, integrationWorkspace
+     procedure       (integrandTemplate), nopass, pointer     :: integrand
+     integer                                                  :: integrationRule
+     integer         (c_size_t         )                      :: intervalsMaximum
+     double precision                                         :: toleranceAbsolute, toleranceRelative
+     logical                                                  :: hasSingularities
+   contains
+     !# <methods>
+     !#   <method description="Evaluate the integral." method="integrate" />
+     !#   <method description="Set tolerances to use in this integrator." method="toleranceSet" />
+     !# </methods>
+     final     ::                 integratorDestructor
+     procedure :: integrate    => integratorIntegrate
+     procedure :: toleranceSet => integratorToleranceSet
+  end type integrator
+
+  interface integrator
+     !% Interface to constructor for integrators.
+     module procedure :: integratorConstructor
+  end interface integrator
+  
+  interface
+     !% Interfaces to GSL integration functions.
+     function gsl_integration_qag(f,a,b,epsabs,epsrel,limit,key,workspace,result,abserr) bind(c,name='gsl_integration_qag')
+       !% Template for the GSL QAG integration function.
+       import c_ptr, c_size_t, c_int, c_double
+       integer(c_int   )                       :: gsl_integration_qag
+       type   (c_ptr   )               , value :: f
+       real   (c_double), intent(in   ), value :: a                  , b     , &
+            &                                     epsabs             , epsrel
+       integer(c_size_t), intent(in   ), value :: limit
+       integer(c_int   ), intent(in   ), value :: key
+       type   (c_ptr   ), intent(in   ), value :: workspace
+       real   (c_double), intent(  out)        :: result             , abserr
+     end function gsl_integration_qag
+
+     function gsl_integration_qags(f,a,b,epsabs,epsrel,limit,workspace,result,abserr) bind(c,name='gsl_integration_qags')
+       !% Template for the GSL QAGS integration function.
+       import c_ptr, c_size_t, c_int, c_double
+       integer(c_int   )                       :: gsl_integration_qags
+       type   (c_ptr   )               , value :: f
+       real   (c_double), intent(in   ), value :: a                   , b     , &
+            &                                     epsabs              , epsrel
+       integer(c_size_t), intent(in   ), value :: limit
+       type   (c_ptr   ), intent(in   ), value :: workspace
+       real   (c_double), intent(  out)        :: result              , abserr
+     end function gsl_integration_qags
+
+     function gsl_integration_workspace_alloc(n) bind(c,name='gsl_integration_workspace_alloc')
+       !% Templare for GSL integration workspace allocation function.
+       import c_ptr, c_size_t
+       type   (c_ptr   )                       :: gsl_integration_workspace_alloc
+       integer(c_size_t), intent(in   ), value :: n
+     end function gsl_integration_workspace_alloc
+
+     subroutine gsl_integration_workspace_free(w) bind(c,name='gsl_integration_workspace_free')
+       !% Template for GSL integration workspace deallocation function.
+       import c_ptr
+       type(c_ptr), intent(in   ), value :: w
+     end subroutine gsl_integration_workspace_free
+  end interface
+  
+  ! Module-scope error status.
+  integer :: statusGlobal
+  !$omp threadprivate(statusGlobal)
 
   ! Integrand interface.
   abstract interface
@@ -44,135 +120,161 @@ module Numerical_Integration
 
 contains
 
-  recursive double precision function Integrate(lowerLimit,upperLimit,integrand,integrandFunction&
-       &,integrationWorkspace,maxIntervals,toleranceAbsolute,toleranceRelative,hasSingularities,integrationRule,reset,errorStatus)
-    !% Integrates the supplied {\normalfont \ttfamily integrand} function.
-    use            :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail, errorStatusSuccess
-    use, intrinsic :: ISO_C_Binding   , only : c_ptr                  , c_size_t
+  function integratorConstructor(integrand,toleranceAbsolute,toleranceRelative,intervalsMaximum,hasSingularities,integrationRule) result(self)
+    !% Constructor for {\normalfont \ttfamily integrator} objects.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    double precision                                       , intent(in   )           :: lowerLimit                      , upperLimit
-    procedure       (integrandTemplate         )                                     :: integrand
-    type            (fgsl_function             )           , intent(inout)           :: integrandFunction
-    type            (fgsl_integration_workspace)           , intent(inout)           :: integrationWorkspace
-    type            (fgsl_error_handler_t      )                                     :: integrationErrorHandler         , standardGslErrorHandler
-    integer                                                , intent(in   ), optional :: integrationRule                 , maxIntervals
-    double precision                                       , intent(in   ), optional :: toleranceAbsolute               , toleranceRelative
-    logical                                                , intent(in   ), optional :: hasSingularities
-    logical                                                , intent(inout), optional :: reset
-    integer                                                , intent(  out), optional :: errorStatus
-    integer                                     , parameter                          :: maxIntervalsDefault     =1000
-    double precision                            , parameter                          :: toleranceAbsoluteDefault=1.0d-10, toleranceRelativeDefault=1.0d-10
-    type            (c_ptr                     )                                     :: parameterPointer
-    integer                                                                          :: integrationRuleActual           , status
-    integer         (kind=c_size_t             )                                     :: maxIntervalsActual
-    double precision                                                                 :: integrationError                , integrationValue                , &
-         &                                                                              toleranceAbsoluteActual         , toleranceRelativeActual
-    logical                                                                          :: hasSingularitiesActual          , resetActual
-    procedure       (integrandTemplate         ), pointer                            :: previousIntegrand
+    type            (integrator       )                          :: self
+    procedure       (integrandTemplate)                          :: integrand
+    integer                            , intent(in   ), optional :: integrationRule
+    integer         (c_size_t         ), intent(in   ), optional :: intervalsMaximum
+    double precision                   , intent(in   ), optional :: toleranceAbsolute, toleranceRelative
+    logical                            , intent(in   ), optional :: hasSingularities
+    !# <optionalArgument name="integrationRule"   defaultsTo="GSL_Integ_Gauss61"/>
+    !# <optionalArgument name="intervalsMaximum"  defaultsTo="1000_c_size_t"    />
+    !# <optionalArgument name="hasSingularities"  defaultsTo=".false."          />
+    !# <optionalArgument name="toleranceAbsolute" defaultsTo="0.0d0"            />
+    !# <optionalArgument name="toleranceRelative" defaultsTo="0.0d0"            />
 
-    ! Store the current integrand function so that we can restore it on exit. This allows the integration function to be called recursively.
+    ! Validate input.
+    if     (                             &
+         &   toleranceAbsolute_ <= 0.0d0 &
+         &  .and.                        &
+         &   toleranceRelative_ <= 0.0d0 &
+         & ) call Galacticus_Error_Report('at least one of absolute or relative tolerance must be greater than zero'//{introspection:location})
+    allocate(self%integrationWorkspace)
+    allocate(self%integrandFunction   )
+    self%integrand            =>                                 integrand
+    self%intervalsMaximum     =                                  intervalsMaximum_
+    self%hasSingularities     =                                  hasSingularities_
+    self%integrationRule      =                                  integrationRule_
+    self%toleranceAbsolute    =                                  toleranceAbsolute_
+    self%toleranceRelative    =                                  toleranceRelative_
+    self%integrationWorkspace =  gsl_integration_workspace_alloc(intervalsMaximum_ )
+    self%integrandFunction    =  gslFunction                    (integrandWrapper  )
+    return
+  end function integratorConstructor
+  
+  subroutine integratorDestructor(self)
+    !% Destructor for {\normalfont \ttfamily integrator} objects.
+    use :: Interface_GSL, only : gslFunctionDestroy
+    implicit none
+    type(integrator), intent(inout) :: self
+
+    if (allocated(self%integrandFunction   )) then
+       call gslFunctionDestroy            (self%integrandFunction   )
+       deallocate(self%integrandFunction   )
+    end if
+    if (allocated(self%integrationWorkspace)) then
+       call gsl_integration_workspace_free(self%integrationWorkspace)
+       deallocate(self%integrationWorkspace)
+    end if
+    return
+  end subroutine integratorDestructor
+  
+  subroutine integratorToleranceSet(self,toleranceAbsolute,toleranceRelative)
+    !% Reset tolerance for {\normalfont \ttfamily integrator} objects.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
+    class           (integrator)                          :: self
+    double precision            , intent(in   ), optional :: toleranceAbsolute, toleranceRelative
+    !# <optionalArgument name="toleranceAbsolute" defaultsTo="0.0d0"/>
+    !# <optionalArgument name="toleranceRelative" defaultsTo="0.0d0"/>
+
+    ! Validate input.
+    if     (                             &
+         &   toleranceAbsolute_ <= 0.0d0 &
+         &  .and.                        &
+         &   toleranceRelative_ <= 0.0d0 &
+         & ) call Galacticus_Error_Report('at least one of absolute or relative tolerance must be greater than zero'//{introspection:location})
+    self%toleranceAbsolute=toleranceAbsolute_
+    self%toleranceRelative=toleranceRelative_    
+    return
+  end subroutine integratorToleranceSet
+  
+  recursive double precision function integratorIntegrate(self,limitLower,limitUpper,status)
+    !% Perform a numerical integration.
+    use, intrinsic :: ISO_C_Binding   , only : c_funptr
+    use            :: Galacticus_Error, only : errorStatusSuccess
+    use            :: Interface_GSL   , only : gslSetErrorHandler
+    implicit none
+    class           (integrator       ), intent(inout)           :: self
+    double precision                   , intent(in   )           :: limitLower             , limitUpper
+    integer                            , intent(  out), optional :: status
+    procedure       (integrandTemplate), pointer                 :: previousIntegrand
+    integer                                                      :: status_
+    double precision                                             :: errorAbsolute
+    type            (c_funptr         )                          :: standardGslErrorHandler
+
+    ! Store a pointer to the current integrand (so that we can restore it later), and set the current integrand to our integrand.
     previousIntegrand => currentIntegrand
-    currentIntegrand  => integrand
-    ! Set optional parameters to specified or default values.
-    if (present(maxIntervals)) then
-       maxIntervalsActual=maxIntervals
-    else
-       maxIntervalsActual=maxIntervalsDefault
-    end if
-    if (present(toleranceAbsolute)) then
-       toleranceAbsoluteActual=toleranceAbsolute
-    else
-       toleranceAbsoluteActual=toleranceAbsoluteDefault
-    end if
-    if (present(toleranceRelative)) then
-       toleranceRelativeActual=toleranceRelative
-    else
-       toleranceRelativeActual=toleranceRelativeDefault
-    end if
-    if (present(hasSingularities)) then
-       hasSingularitiesActual=hasSingularities
-    else
-       hasSingularitiesActual=.false.
-    end if
-    if (present(integrationRule)) then
-       integrationRuleActual=integrationRule
-    else
-       integrationRuleActual=FGSL_Integ_Gauss61
-    end if
-    if (present(reset)) then
-       resetActual=reset
-       reset=.false.
-    else
-       resetActual=.true.
-    end if
-
-    ! Initialize the integration variables if necessary.
-    if (resetActual) then
-       integrationWorkspace=FGSL_Integration_Workspace_Alloc(maxIntervalsActual)
-       integrandFunction   =FGSL_Function_Init(integrandWrapper,parameterPointer)
-    end if
-
+    currentIntegrand  => self            %integrand
     ! Set error handler if necessary.
-    if (present(errorStatus)) then
-       integrationErrorHandler=FGSL_Error_Handler_Init(Integration_GSL_Error_Handler)
-       standardGslErrorHandler=FGSL_Set_Error_Handler (integrationErrorHandler      )
-       errorStatusGlobal=errorStatusSuccess
+    if (present(status)) then
+       !$omp critical(gslErrorHandler)
+       standardGslErrorHandler=gslSetErrorHandler(integratorGSLErrorHandler)
+       !$omp end critical(gslErrorHandler)
+       statusGlobal=errorStatusSuccess
     end if
-
     ! Do the integration
-    select case (hasSingularitiesActual)
-    case (.false.)
-       status=FGSL_Integration_QAG(integrandFunction,lowerLimit,upperLimit,toleranceAbsoluteActual,toleranceRelativeActual &
-            &,maxIntervalsActual,integrationRuleActual,integrationWorkspace,integrationValue,integrationError)
-    case (.true.)
-       status=FGSL_Integration_QAGS(integrandFunction,lowerLimit,upperLimit,toleranceAbsoluteActual,toleranceRelativeActual &
-            &,maxIntervalsActual,integrationWorkspace,integrationValue,integrationError)
-    end select
-    Integrate=integrationValue
-
+    if (self%hasSingularities) then
+       status_=gsl_integration_qags(                           &
+            &                       self%integrandFunction   , &
+            &                            limitLower          , &
+            &                            limitUpper          , &
+            &                       self%toleranceAbsolute   , &
+            &                       self%toleranceRelative   , &
+            &                       self%intervalsMaximum    , &
+            &                       self%integrationWorkspace, &
+            &                            integratorIntegrate , &
+            &                            errorAbsolute         &
+            &                      )
+    else
+       status_=gsl_integration_qag (                           &
+            &                       self%integrandFunction   , &
+            &                            limitLower          , &
+            &                            limitUpper          , &
+            &                       self%toleranceAbsolute   , &
+            &                       self%toleranceRelative   , &
+            &                       self%intervalsMaximum    , &
+            &                       self%integrationRule     , &
+            &                       self%integrationWorkspace, &
+            &                            integratorIntegrate , &
+            &                            errorAbsolute         &
+            &                      )
+    end if
     ! Reset error handler.
-    if (present(errorStatus)) then
-       errorStatus            =errorStatusGlobal
-       standardGslErrorHandler=FGSL_Set_Error_Handler (standardGslErrorHandler)
+    if (present(status)) then
+       status                 =statusGlobal
+       !$omp critical(gslErrorHandler)
+       standardGslErrorHandler=gslSetErrorHandler(standardGslErrorHandler)
+       !$omp end critical(gslErrorHandler)
     end if
     ! Restore the previous integrand.
     currentIntegrand => previousIntegrand
     return
-  end function Integrate
+  end function integratorIntegrate
 
-  function integrandWrapper(x,parameterPointer) bind(c)
+  function integrandWrapper(x) bind(c)
     !% Wrapper function used for \gls{gsl} integration functions.
-    use, intrinsic :: ISO_C_Binding, only : c_double, c_ptr
     implicit none
-    real(c_double)        :: integrandWrapper
-    real(c_double), value :: x
-    type(c_ptr   ), value :: parameterPointer
-    !GCC$ attributes unused :: parameterPointer
+    real(c_double)                       :: integrandWrapper
+    real(c_double), intent(in   ), value :: x
 
     integrandWrapper=currentIntegrand(x)
     return
   end function integrandWrapper
 
-  subroutine Integrate_Done(integrandFunction,integrationWorkspace)
-    !% Frees up integration objects that are no longer required.
-    implicit none
-    type(fgsl_function             ), intent(inout) :: integrandFunction
-    type(fgsl_integration_workspace), intent(inout) :: integrationWorkspace
-
-    call FGSL_Function_Free(integrandFunction)
-    call FGSL_Integration_Workspace_Free(integrationWorkspace)
-    return
-  end subroutine Integrate_Done
-
-  subroutine Integration_GSL_Error_Handler(reason,file,line,errorNumber) bind(c)
+  subroutine integratorGSLErrorHandler(reason,file,line,errorNumber) bind(c)
     !% Handle errors from the GSL library during integration.
-    use, intrinsic :: ISO_C_Binding, only : c_int, c_ptr
-    type   (c_ptr     ), value :: file       , reason
-    integer(kind=c_int), value :: errorNumber, line
-    !GCC$ attributes unused :: reason, file, line
-
-    errorStatusGlobal=errorNumber
+    use, intrinsic :: ISO_C_Binding, only : c_char
+    implicit none
+    character(c_char), dimension(*) :: file       , reason
+    integer  (c_int ), value        :: errorNumber, line
+    !$GLC attributes unused :: reason, file, line
+    
+    statusGlobal=errorNumber
     return
-  end subroutine Integration_GSL_Error_Handler
+  end subroutine integratorGSLErrorHandler
 
 end module Numerical_Integration

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,7 +23,13 @@
   use :: Dark_Matter_Particles, only : darkMatterParticleClass
 
   !# <criticalOverdensity name="criticalOverdensityKitayamaSuto1996">
-  !#  <description>Provides a critical overdensity class based on the fitting functions of \cite{kitayama_semianalytic_1996}, and is therefore valid only for flat cosmological models.</description>
+  !#  <description>
+  !#   A critical overdensity class based on the fitting functions of \cite{kitayama_semianalytic_1996}, which is therefore valid
+  !#   only for flat cosmological models (an error will be reported in non-flat models). Specifically,
+  !#   \begin{equation}
+  !#    \delta_\mathrm{crit} (t) = {3 (12 \pi)^{2/3} \over 20} [1 + 0.0123 \log_{10}\left\{\Omega_\mathrm{matter}(t)\right\}]/D(t).
+  !#   \end{equation}
+  !#  </description>
   !# </criticalOverdensity>
   type, extends(criticalOverdensityClass) :: criticalOverdensityKitayamaSuto1996
      !% A critical overdensity class based on the fitting functions of \cite{kitayama_semianalytic_1996}.
@@ -118,7 +124,7 @@ contains
     double precision                                     , intent(in   ), optional :: mass
     type            (treeNode                           ), intent(inout), optional :: node
     double precision                                                               :: time_
-    !GCC$ attributes unused :: mass, node
+    !$GLC attributes unused :: mass, node
 
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
     if (time_ /= self%timePrevious)                                                                       &
@@ -138,7 +144,7 @@ contains
     double precision                                     , intent(in   ), optional :: mass
     type            (treeNode                           ), intent(inout), optional :: node
     double precision                                                               :: time_     , expansionFactor_
-    !GCC$ attributes unused :: mass, node
+    !$GLC attributes unused :: mass, node
 
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_,expansionFactorOut=expansionFactor_)
     kitayamaSuto1996GradientTime=+(3.0d0*(12.0d0*Pi)**(2.0d0/3.0d0)/20.0d0)                          &
@@ -158,7 +164,7 @@ contains
     logical                                              , intent(in   ), optional :: collapsing
     double precision                                     , intent(in   ), optional :: mass
     type            (treeNode                           ), intent(inout), optional :: node
-    !GCC$ attributes unused :: self, time, expansionFactor, collapsing, mass, node
+    !$GLC attributes unused :: self, time, expansionFactor, collapsing, mass, node
 
     kitayamaSuto1996GradientMass=0.0d0
     return
@@ -168,7 +174,7 @@ contains
     !% Return whether the critical overdensity is mass dependent.
     implicit none
     class(criticalOverdensityKitayamaSuto1996), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     kitayamaSuto1996IsMassDependent=.false.
     return
@@ -178,7 +184,7 @@ contains
     !% Return whether the critical overdensity is node dependent.
     implicit none
     class(criticalOverdensityKitayamaSuto1996), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     kitayamaSuto1996IsNodeDependent=.false.
     return

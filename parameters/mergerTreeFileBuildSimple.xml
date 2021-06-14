@@ -1,56 +1,77 @@
+<?xml version="1.0"?>
 <!-- Parameter file for building merger tree files from a simple CSV file. -->
 <parameters>
-  <taskMethod value="mergerTreeFileBuilder">
+  <task value="mergerTreeFileBuilder">
 
-    <inputFileName             value="forests.csv" />
-    <outputFileName            value="forests.hdf5"/>
-    <outputFormat              value="galacticus"  />
-    <haloMassesIncludeSubhalos value="true"        />
-    
+    <inputFileName value="forests.csv"/>
+    <outputFileName value="forests.hdf5"/>
+    <outputFormat value="galacticus"/>
+    <haloMassesIncludeSubhalos value="true"/>
+
     <unitsMass>
-      <unitsInSI           value="1.989e30"    />
-      <hubbleExponent      value="0"           />
-      <scaleFactorExponent value="0"           />
-      <name                value="Msolar"      />
+      <unitsInSI value="1.989e30"/>
+      <hubbleExponent value="0"/>
+      <scaleFactorExponent value="0"/>
+      <name value="Msolar"/>
     </unitsMass>
-    
+
     <unitsLength>
-      <unitsInSI           value="3.0856769e22"/>
-      <hubbleExponent      value="0"           />
-      <scaleFactorExponent value="0"           />
-      <name                value="Mpc"         />
+      <unitsInSI value="3.0856769e22"/>
+      <hubbleExponent value="0"/>
+      <scaleFactorExponent value="0"/>
+      <name value="Mpc"/>
     </unitsLength>
-    
+
     <unitsVelocity>
-      <unitsInSI           value="1.0e3"       />
-      <hubbleExponent      value=" 0"          />
-      <scaleFactorExponent value=" 0"          />
-      <name                value="km/s"        />
+      <unitsInSI value="1.0e3"/>
+      <hubbleExponent value=" 0"/>
+      <scaleFactorExponent value=" 0"/>
+      <name value="km/s"/>
     </unitsVelocity>
-    
+
     <property>
-      <name   value="treeIndex"      />
-      <column value="1"              />
+      <name value="treeIndex"/>
+      <column value="1"/>
     </property>
     <property>
-      <name   value="nodeIndex"      />
-      <column value="2"              />
+      <name value="nodeIndex"/>
+      <column value="2"/>
     </property>
     <property>
-      <name   value="hostIndex"      />
-      <column value="3"              />
+      <name value="hostIndex"/>
+      <column value="3"/>
     </property>
     <property>
-      <name   value="descendentIndex"/>
-      <column value="4"              />
+      <name value="descendentIndex"/>
+      <column value="4"/>
     </property>
     <property>
-      <name   value="nodeMass"       />
-      <column value="5"              />
+      <name value="nodeMass"/>
+      <column value="5"/>
     </property>
     <property>
-      <name   value="redshift"       />
-      <column value="6"              />
+      <name value="redshift"/>
+      <column value="6"/>
     </property>
-  </taskMethod>
+  </task>
+  <nodeOperator value="multi"><!--Stellar feedback outflows-->
+    <nodeOperator value="stellarFeedbackDisks">
+      <stellarFeedbackOutflows value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflows value="powerLaw">
+          <velocityCharacteristic value="250.0"/>
+          <exponent value="3.5"/>
+        </stellarFeedbackOutflows>
+      </stellarFeedbackOutflows>
+    </nodeOperator>
+    <nodeOperator value="stellarFeedbackSpheroids">
+      <stellarFeedbackOutflows value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflows value="powerLaw">
+          <velocityCharacteristic value="250.0"/>
+          <exponent value="3.5"/>
+        </stellarFeedbackOutflows>
+      </stellarFeedbackOutflows>
+    </nodeOperator>
+  </nodeOperator>
 </parameters>

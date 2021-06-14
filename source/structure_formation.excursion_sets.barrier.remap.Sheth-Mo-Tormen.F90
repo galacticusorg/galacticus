@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,14 @@
   !% Contains a module which implements an excursion set barrier class which remaps another class using the \cite{sheth_ellipsoidal_2001} ellipsoidal collapse parameterization.
 
   !# <excursionSetBarrier name="excursionSetBarrierRemapShethMoTormen">
-  !#  <description>An excursion set barrier class which remaps another class using the \cite{sheth_ellipsoidal_2001} ellipsoidal collapse parameterization.</description>
+  !#  <description>
+  !#   An excursion set barrier class which remaps another class using the \cite{sheth_ellipsoidal_2001} ellipsoidal collapse
+  !#   parameterization:
+  !#   \begin{equation}
+  !#    B(S) \rightarrow \sqrt{A} B(S) \left(1 + b \left[ {S \over A B^2(S)}\right]^c\right),
+  !#   \end{equation}
+  !#   where $A=0.707$, $b=0.5$, and $c=0.6$.
+  !#  </description>
   !# </excursionSetBarrier>
   type, extends(excursionSetBarrierClass) :: excursionSetBarrierRemapShethMoTormen
      !% An excursion set barrier class which remaps another class using the \cite{sheth_ellipsoidal_2001} ellipsoidal collapse parameterization.
@@ -61,8 +68,6 @@ contains
     !#   <variable>a</variable>
     !#   <defaultValue>0.707d0</defaultValue>
     !#   <description>The parameter $a$ in the \cite{sheth_ellipsoidal_2001} ellipsoidal collapse excursion set barrier remapping.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>b</name>
@@ -70,8 +75,6 @@ contains
     !#   <variable>b</variable>
     !#   <defaultValue>0.500d0</defaultValue>
     !#   <description>The parameter $b$ in the \cite{sheth_ellipsoidal_2001} ellipsoidal collapse excursion set barrier remapping.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>c</name>
@@ -79,8 +82,6 @@ contains
     !#   <variable>c</variable>
     !#   <defaultValue>0.600d0</defaultValue>
     !#   <description>The parameter $c$ in the \cite{sheth_ellipsoidal_2001} ellipsoidal collapse excursion set barrier remapping.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>applyTo</name>
@@ -88,8 +89,6 @@ contains
     !#   <variable>self%applyToText</variable>
     !#   <defaultValue>var_str('nonRates')</defaultValue>
     !#   <description>Specifies whether rescaling is to be applied to the barrier when used for rate calculation, for other calculations, or both.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="excursionSetBarrier" name="excursionSetBarrier_" source="parameters"/>
     self=excursionSetBarrierRemapShethMoTormen(a,b,c,enumerationExcursionSetRemapEncode(char(self%applyToText),includesPrefix=.false.),excursionSetBarrier_)

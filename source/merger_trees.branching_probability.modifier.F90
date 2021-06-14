@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,7 +27,9 @@ module Merger_Tree_Branching_Modifiers
   !# <functionClass>
   !#  <name>mergerTreeBranchingProbabilityModifier</name>
   !#  <descriptiveName>Modifiers for merger tree branching probabilities</descriptiveName>
-  !#  <description>Class implementing modifiers for merger tree branching probabilities.</description>
+  !#  <description>
+  !#   Class implementing modifiers for merger tree branching probabilities.
+  !#  </description>
   !#  <default>identity</default>
   !#  <method name="rateModifier" >
   !#   <description>Return the multiplicative modifier to the tree branch probability rate.</description>

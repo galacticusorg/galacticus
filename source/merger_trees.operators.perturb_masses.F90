@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -152,7 +152,7 @@ contains
           end do
           ! Get Cholesky decomposition of the covariance matrix.
           cholesky=covariance
-          call cholesky%choleskyDecompose()
+          call cholesky%choleskyDecomposition()
           ! Construct realization of fractional mass perturbations.
           deviateVector     =deviates
           perturbationVector=cholesky          *deviateVector

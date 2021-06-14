@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -78,43 +78,33 @@ contains
 
     !# <inputParameter>
     !#   <name>wavenumberMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d-3</defaultValue>
     !#   <description>The minimum wavenumber at which to tabulate power spectra.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>wavenumberMaximum</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d+3</defaultValue>
     !#   <description>The maximum wavenumber at which to tabulate power spectra.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>pointsPerDecade</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number of points per decade of wavenumber at which to tabulate power spectra.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>includeNonLinear</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>If true the nonlinear power spectrum is also computed and output.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>outputGroup</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('.')</defaultValue>
     !#   <description>The HDF5 output group within which to write power spectrum data.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters"         name="cosmologyParameters_"         source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"          name="cosmologyFunctions_"          source="parameters"/>
@@ -204,17 +194,16 @@ contains
 
   subroutine powerSpectraPerform(self,status)
     !% Compute and output the halo mass function.
-    use            :: FGSL                            , only : FGSL_Integ_Gauss15       , fgsl_function              , fgsl_integration_workspace
-    use            :: Galacticus_Display              , only : Galacticus_Display_Indent, Galacticus_Display_Unindent
+    use            :: Display                         , only : displayIndent       , displayUnindent
     use            :: Galacticus_Error                , only : errorStatusSuccess
     use            :: Galacticus_HDF5                 , only : galacticusOutputFile
     use            :: IO_HDF5                         , only : hdf5Object
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Memory_Management               , only : allocateArray
-    use            :: Numerical_Constants_Astronomical, only : massSolar                , megaParsec
+    use            :: Numerical_Constants_Astronomical, only : massSolar           , megaParsec
     use            :: Numerical_Constants_Math        , only : Pi
-    use            :: Numerical_Integration           , only : Integrate                , Integrate_Done
-    use            :: Numerical_Ranges                , only : Make_Range               , rangeTypeLogarithmic
+    use            :: Numerical_Integration           , only : GSL_Integ_Gauss15   , integrator
+    use            :: Numerical_Ranges                , only : Make_Range          , rangeTypeLogarithmic
     use            :: String_Handling                 , only : operator(//)
     implicit none
     class           (taskPowerSpectra          ), intent(inout), target         :: self
@@ -228,13 +217,12 @@ contains
          &                                                                         powerSpectrumLinear      , growthFactor       , &
          &                                                                         growthFactorLogDerivative
     double precision                                                            :: wavenumberMinimum        , wavenumberMaximum
-    type            (fgsl_function             )                                :: integrandFunction
-    type            (fgsl_integration_workspace)                                :: integrationWorkspace
+    type            (integrator                )                                :: integrator_
     type            (hdf5Object                )                                :: outputsGroup             , outputGroup        , &
          &                                                                         containerGroup           , dataset
     type            (varying_string            )                                :: groupName                , commentText
 
-    call Galacticus_Display_Indent('Begin task: power spectrum')
+    call displayIndent('Begin task: power spectrum')
     ! Get the requested output redshifts.
     outputCount      =self%outputTimes_%count()
     ! Compute number of tabulation points.
@@ -256,6 +244,7 @@ contains
     ! Build a range of wavenumbers.
     wavenumber(:)=Make_Range(self%wavenumberMinimum,self%wavenumberMaximum,int(wavenumberCount),rangeTypeLogarithmic)
     ! Iterate over outputs.
+    integrator_=integrator(varianceIntegrand,toleranceRelative=1.0d-2,integrationRule=GSL_Integ_Gauss15)
     do iOutput=1,outputCount
        epochTime                (iOutput)=                                                                     self%outputTimes_%time(iOutput)
        epochRedshift            (iOutput)=self%cosmologyFunctions_ %redshiftFromExpansionFactor         (                                       &
@@ -287,21 +276,11 @@ contains
              ! Compute the variance in the non-linear power spectrum.
              wavenumberMinimum=    0.0d0
              wavenumberMaximum=min(1.0d3*wavenumber(iWavenumber),self%powerSpectrumWindowFunction_%wavenumberMaximum(massScale(iWavenumber)))
-             sigmaNonLinear(iWavenumber,iOutput)=+sqrt(                                                   &
-                  &                                    +Integrate(                                        &
-                  &                                                                 wavenumberMinimum   , &
-                  &                                                                 wavenumberMaximum   , &
-                  &                                                                 varianceIntegrand   , &
-                  &                                                                 integrandFunction   , &
-                  &                                                                 integrationWorkspace, &
-                  &                                               toleranceAbsolute=0.0d0               , &
-                  &                                               toleranceRelative=1.0d-2              , &
-                  &                                               integrationRule  =FGSL_Integ_Gauss15    &
-                  &                                              )                                        &
-                  &                                    /2.0d0                                             &
-                  &                                    /Pi**2                                             &
+             sigmaNonLinear(iWavenumber,iOutput)=+sqrt(                                                            &
+                  &                                    +integrator_%integrate(wavenumberMinimum,wavenumberMaximum) &
+                  &                                    /2.0d0                                                      &
+                  &                                    /Pi**2                                                      &
                   &                                   )
-             call Integrate_Done(integrandFunction,integrationWorkspace)
           end if
        end do
     end do
@@ -345,7 +324,7 @@ contains
     call outputsGroup%close()
     if (self%outputGroup /= ".") call containerGroup%close()
     if (present(status)) status=errorStatusSuccess
-    call Galacticus_Display_Unindent('Done task: power spectrum' )
+    call displayUnindent('Done task: power spectrum' )
     return
 
   contains

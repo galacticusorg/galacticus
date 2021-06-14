@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -51,8 +51,6 @@ contains
     !#   <source>parameters</source>
     !#   <variable>rootVariance_</variable>
     !#   <description>The root variance of the random error distribution.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     ! Construct the object.
     self=outputAnalysisDistributionOperatorRandomErrorFixed(rootVariance_)
@@ -76,7 +74,7 @@ contains
     class           (outputAnalysisDistributionOperatorRandomErrorFixed), intent(inout) :: self
     double precision                                                    , intent(in   ) :: propertyValue
     type            (treeNode                                          ), intent(inout) :: node
-    !GCC$ attributes unused :: propertyValue, node
+    !$GLC attributes unused :: propertyValue, node
 
     randomErrorFixedRootVariance=self%rootVariance_
     return

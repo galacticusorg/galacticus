@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -30,27 +30,11 @@
      type   (treeNode  ), pointer :: node      , nodePrevious
      logical                      :: spanForest, nodesRemain_
    contains
-     !@ <objectMethods>
-     !@  <object>mergerTreeWalkerAllNodes</object>
-     !@  <objectMethod>
-     !@   <method>previous</method>
-     !@   <type>\void</type>
-     !@   <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} *node\arginout</arguments>
-     !@   <description>Step back to the previously visited node (if possible).</description>
-     !@  </objectMethod>
-     !@  <objectMethod>
-     !@   <method>setNode</method>
-     !@   <type>\void</type>
-     !@   <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} node\argin</arguments>
-     !@   <description>Set the walker to the given node.</description>
-     !@  </objectMethod>
-     !@  <objectMethod>
-     !@   <method>descend</method>
-     !@   <type>\void</type>
-     !@   <arguments></arguments>
-     !@   <description>Descend through the hierarchy to the deepest node along the current branch.</description>
-     !@  </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Step back to the previously visited node (if possible)." method="previous" />
+     !#   <method description="Set the walker to the given node." method="setNode" />
+     !#   <method description="Descend through the hierarchy to the deepest node along the current branch." method="descend" />
+     !# </methods>
      procedure :: next        => allNodesNext
      procedure :: previous    => allNodesPrevious
      procedure :: setNode     => allNodesSetNode
@@ -73,7 +57,7 @@ contains
     implicit none
     type(mergerTreeWalkerAllNodes)                :: self
     type(inputParameters         ), intent(inout) :: parameters
-    !GCC$ attributes unused :: self, parameters
+    !$GLC attributes unused :: self, parameters
 
     call Galacticus_Error_Report('this class can not be built from parameters'//{introspection:location})
     return

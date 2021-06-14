@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -50,7 +50,7 @@ contains
     implicit none
     type(accretionHaloZero)                :: self
     type(inputParameters  ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=accretionHaloZero()
     return
@@ -61,7 +61,7 @@ contains
     implicit none
     class(accretionHaloZero), intent(inout)         :: self
     type (treeNode         ), intent(inout), target :: node
-    !GCC$ attributes unused :: self, node
+    !$GLC attributes unused :: self, node
 
     zeroBranchHasBaryons=.false.
     return
@@ -73,7 +73,7 @@ contains
     class  (accretionHaloZero), intent(inout) :: self
     type   (treeNode         ), intent(inout) :: node
     integer                   , intent(in   ) :: accretionMode
-    !GCC$ attributes unused :: self, node, accretionMode
+    !$GLC attributes unused :: self, node, accretionMode
 
     zeroAccretionRate=0.0d0
     return
@@ -85,7 +85,7 @@ contains
     class  (accretionHaloZero), intent(inout) :: self
     type   (treeNode         ), intent(inout) :: node
     integer                   , intent(in   ) :: accretionMode
-    !GCC$ attributes unused :: self, node, accretionMode
+    !$GLC attributes unused :: self, node, accretionMode
 
     zeroAccretedMass=0.0d0
     return
@@ -97,7 +97,7 @@ contains
     class  (accretionHaloZero), intent(inout) :: self
     type   (treeNode         ), intent(inout) :: node
     integer                   , intent(in   ) :: accretionMode
-    !GCC$ attributes unused :: self, node, accretionMode
+    !$GLC attributes unused :: self, node, accretionMode
 
     zeroFailedAccretionRate=0.0d0
     return
@@ -109,7 +109,7 @@ contains
     class  (accretionHaloZero), intent(inout) :: self
     type   (treeNode         ), intent(inout) :: node
     integer                   , intent(in   ) :: accretionMode
-    !GCC$ attributes unused :: self, node, accretionMode
+    !$GLC attributes unused :: self, node, accretionMode
 
     zeroFailedAccretedMass=0.0d0
     return
@@ -123,7 +123,7 @@ contains
     class  (accretionHaloZero), intent(inout) :: self
     type   (treeNode         ), intent(inout) :: node
     integer                   , intent(in   ) :: accretionMode
-    !GCC$ attributes unused :: self, node, accretionMode
+    !$GLC attributes unused :: self, node, accretionMode
 
     zeroAccretionRateMetals=zeroAbundances
     return
@@ -137,7 +137,7 @@ contains
     class  (accretionHaloZero), intent(inout) :: self
     type   (treeNode         ), intent(inout) :: node
     integer                   , intent(in   ) :: accretionMode
-    !GCC$ attributes unused :: self, node, accretionMode
+    !$GLC attributes unused :: self, node, accretionMode
 
     zeroAccretedMassMetals=zeroAbundances
     return
@@ -151,7 +151,7 @@ contains
     class  (accretionHaloZero ), intent(inout) :: self
     type   (treeNode          ), intent(inout) :: node
     integer                    , intent(in   ) :: accretionMode
-    !GCC$ attributes unused :: self, node, accretionMode
+    !$GLC attributes unused :: self, node, accretionMode
 
     zeroAccretionRateChemicals=zeroChemicalAbundances
     return
@@ -165,7 +165,7 @@ contains
     class  (accretionHaloZero ), intent(inout) :: self
     type   (treeNode          ), intent(inout) :: node
     integer                    , intent(in   ) :: accretionMode
-    !GCC$ attributes unused :: self, node, accretionMode
+    !$GLC attributes unused :: self, node, accretionMode
 
     zeroAccretedMassChemicals=zeroChemicalAbundances
     return

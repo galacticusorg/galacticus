@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,7 +26,7 @@
      !% Implementation of an output times class which reads a list of output times from a parameter.
      private
      class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_ => null()
-     double precision                         , allocatable, dimension(:) :: times              , redshifts
+     double precision                         , allocatable, dimension(:) :: times                        , redshifts
    contains
      final     ::                 listDestructor
      procedure :: count        => listCount
@@ -50,7 +50,7 @@ contains
     use :: Array_Utilities  , only : Array_Reverse
     use :: Input_Parameters , only : inputParameter, inputParameters
     use :: Memory_Management, only : allocateArray
-    use :: Sort             , only : Sort_Do
+    use :: Sorting          , only : sort
     implicit none
     type            (outputTimesList        )                            :: self
     type            (inputParameters        ), intent(inout)             :: parameters
@@ -70,25 +70,19 @@ contains
     if (parameters%isPresent('times')) then
        !# <inputParameter>
        !#   <name>times</name>
-       !#   <cardinality>1..*</cardinality>
        !#   <description>A list of (space-separated) times at which \glc\ results should be output. Times need not be in any particular order.</description>
-       !#   <group>output</group>
        !#   <source>parameters</source>
-       !#   <type>real</type>
        !# </inputParameter>
-       call Sort_Do(times)
+       call sort(times)
     else
        !# <inputParameter>
        !#   <name>redshifts</name>
        !#   <defaultValue>[0.0d0]</defaultValue>
        !#   <variable>times</variable>
        !#   <description>A list of (space-separated) redshifts at which \glc\ results should be output. Redshifts need not be in any particular order.</description>
-       !#   <type>real</type>
-       !#   <cardinality>1..*</cardinality>
        !#   <source>parameters</source>
-       !#   <group>output</group>
        !# </inputParameter>
-       call Sort_Do(times)
+       call sort(times)
        times=Array_Reverse(times)
        do i=1,outputCount
           times(i)=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(times(i)))
@@ -122,7 +116,7 @@ contains
     implicit none
     type(outputTimesList), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"          />
+    !# <objectDestructor name="self%cosmologyFunctions_"/>
     return
   end subroutine listDestructor
 
@@ -166,7 +160,7 @@ contains
 
   function listIndex(self,time,findClosest)
     !% Returns the index of the output given the corresponding time.
-    use :: Arrays_Search       , only : Search_Array           , Search_Array_For_Closest
+    use :: Arrays_Search       , only : searchArray           , searchArrayClosest
     use :: Galacticus_Error    , only : Galacticus_Error_Report
     use :: Numerical_Comparison, only : Values_Differ
     implicit none
@@ -176,9 +170,9 @@ contains
     logical                          , intent(in   ), optional :: findClosest
 
     if (present(findClosest).and.findClosest) then
-       listIndex=Search_Array_For_Closest(self%times,time)
+       listIndex=searchArrayClosest(self%times,time)
     else
-       listIndex=Search_Array            (self%times,time)
+       listIndex=searchArray            (self%times,time)
        if (Values_Differ(time,self%times(listIndex),relTol=1.0d-6)) &
             & call Galacticus_Error_Report('time does not correspond to an output'//{introspection:location})
     end if
@@ -187,7 +181,7 @@ contains
 
   double precision function listTimeNext(self,timeCurrent,indexOutput)
     !% Returns the time of the next output after {\normalfont \ttfamily currentTime}.
-    use :: Arrays_Search, only : Search_Array
+    use :: Arrays_Search, only : searchArray
     implicit none
     class           (outputTimesList), intent(inout)           :: self
     double precision                 , intent(in   )           :: timeCurrent
@@ -202,7 +196,7 @@ contains
        listTimeNext=self%times(1)
        if (present(indexOutput)) indexOutput=+1
     else
-       i=min(Search_Array(self%times,timeCurrent)+1,size(self%times))
+       i=min(searchArray(self%times,timeCurrent)+1,size(self%times))
        listTimeNext=self%times(i)
        if (present(indexOutput)) indexOutput=i
     end if
@@ -211,7 +205,7 @@ contains
 
   double precision function listTimePrevious(self,timeCurrent)
     !% Returns the time of the previous output prior to {\normalfont \ttfamily timeCurrent}.
-    use :: Arrays_Search, only : Search_Array
+    use :: Arrays_Search, only : searchArray
     implicit none
     class           (outputTimesList), intent(inout) :: self
     double precision                 , intent(in   ) :: timeCurrent
@@ -223,7 +217,7 @@ contains
        ! If the current time preceeds the first output, return an unphysical value.
        listTimePrevious=-1.0d0
     else
-       listTimePrevious=self%times(Search_Array(self%times,timeCurrent))
+       listTimePrevious=self%times(searchArray(self%times,timeCurrent))
     end if
     return
   end function listTimePrevious

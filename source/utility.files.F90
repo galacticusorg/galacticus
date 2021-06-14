@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -247,15 +247,44 @@ contains
     implicit none
     type   (lockDescriptor), intent(inout)           :: lock
     logical                , intent(in   ), optional :: sync
-    integer                                          :: fileUnit, errorStatus
+    integer                                          :: fileUnit      , errorStatus, &
+         &                                              fileDescriptor
     !# <optionalArgument name="sync" defaultsTo=".true." />
 
     if (sync_) then
+       !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+       !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
+       !# </workaround>
+#ifdef THREADSAFEIO
+       !$omp critical(gfortranInternalIO)
+#endif
        open(newUnit=fileUnit,file=char(lock%fileName),status='unknown',iostat=errorStatus)
+#ifdef THREADSAFEIO
+       !$omp end critical(gfortranInternalIO)
+#endif
        if (errorStatus == 0) then
-          if (fsync(fnum(fileUnit)) /= 0) call Galacticus_Error_Report('error syncing file at unlock'//{introspection:location})
+          !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+          !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
+          !# </workaround>
+#ifdef THREADSAFEIO
+          !$omp critical(gfortranInternalIO)
+#endif
+          fileDescriptor=fnum(fileUnit)
+#ifdef THREADSAFEIO
+          !$omp end critical(gfortranInternalIO)
+#endif
+          if (fsync(fileDescriptor) /= 0) call Galacticus_Error_Report('error syncing file at unlock'//{introspection:location})
+          !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+          !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
+          !# </workaround>
+#ifdef THREADSAFEIO
+          !$omp critical(gfortranInternalIO)
+#endif
           close(fileUnit)
-       end if
+#ifdef THREADSAFEIO
+          !$omp end critical(gfortranInternalIO)
+#endif
+      end if
     end if
     ! First unlock the file.
     call funlock_C(lock%lockDescriptorC)
@@ -444,14 +473,17 @@ contains
     return
   end subroutine File_Remove_Char
 
-  subroutine File_Rename(nameOld,nameNew)
+  subroutine File_Rename(nameOld,nameNew,overwrite)
     !% Remove a file.
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: ISO_Varying_String, only : trim                   , operator(//), char
     implicit none
-    type   (varying_string), intent(in   ) :: nameOld, nameNew
-    integer(c_int         )                :: status
+    type   (varying_string), intent(in   )           :: nameOld  , nameNew
+    logical                , intent(in   ), optional :: overwrite
+    integer(c_int         )                          :: status
+    !# <optionalArgument name="overwrite" defaultsTo=".false."/>
 
+    if (overwrite_ .and. File_Exists(nameNew)) call File_Remove(nameNew)
     status=rename_C(char(nameOld)//char(0),char(nameNew)//char(0))
     if (status /= 0) call Galacticus_Error_Report('failed to rename file "'//trim(nameOld)//'" to "'//trim(nameNew)//'"'//{introspection:location})
     return

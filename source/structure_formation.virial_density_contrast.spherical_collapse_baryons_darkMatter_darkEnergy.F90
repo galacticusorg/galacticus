@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -51,21 +51,10 @@
      class           (intergalacticMediumFilteringMassClass             ), pointer     :: intergalacticMediumFilteringMass_ => null()
      type            (sphericalCollapseSolverBaryonsDarkMatterDarkEnergy), pointer     :: sphericalCollapseSolverClustered_ => null(), sphericalCollapseSolverUnclustered_ => null()
    contains
-     !@ <objectMethods>
-     !@   <object>virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy</object>
-     !@   <objectMethod>
-     !@     <method>retabulate</method>
-     !@     <type>void</type>
-     !@     <arguments>\doublezero\ time\argin</arguments>
-     !@     <description>Tabulate spherical collapse virial density contrast.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>retabulateTurnaround</method>
-     !@     <type>void</type>
-     !@     <arguments>\doublezero\ time\argin</arguments>
-     !@     <description>Tabulate spherical collapse turnaround radius.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Tabulate spherical collapse virial density contrast." method="retabulate" />
+     !#   <method description="Tabulate spherical collapse turnaround radius." method="retabulateTurnaround" />
+     !# </methods>
      final     ::                                sphericalCollapseBrynsDrkMttrDrkEnrgyDestructor
      procedure :: densityContrast             => sphericalCollapseBrynsDrkMttrDrkEnrgyDensityContrast
      procedure :: densityContrastRateOfChange => sphericalCollapseBrynsDrkMttrDrkEnrgyDensityContrastRtChng
@@ -100,18 +89,14 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>If true, store/restore the tabulated solution to/from file when possible.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>energyFixedAt</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('turnaround')</defaultValue>
     !#   <description>Selects the epoch at which the energy of a spherical top hat perturbation in a dark energy cosmology should be
     !#     ``fixed'' for the purposes of computing virial density contrasts. (See the discussion in
     !#     \citealt{percival_cosmological_2005}; \S8.)</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters"              name="cosmologyParameters_"              source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"               name="cosmologyFunctions_"               source="parameters"/>

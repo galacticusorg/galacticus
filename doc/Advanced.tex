@@ -1,0 +1,549 @@
+\chapter{Advanced Usage}
+
+In this chapter we cover in more detail several aspects of \glc, including the structure of parameter files, the strucure of output files, and how to perform various types of analysis.
+
+\section{Parameter Files}\label{sec:ParameterFiles}
+
+As described above, \glc\ requires a file of parameters to be given as a command line argument. The parameter file is an \gls{xml} file (which makes it easy to manipulate and construct these files from within many languages, e.g. Python) with the following structure:
+\begin{verbatim}
+ <parameters>
+   <version>0.9.4</version>
+   <formatVersion>2</formatVersion>
+   <parameter1Name value= "parameter1Value" />
+   <parameter2Name>
+     <value>parameter2Value</value>
+   </parameter2Name>
+   <parameter3Name value= "parameter3Value" >
+      <subParameter1Name value= "subParameter1Value" />
+      <subParameter2Name value= "subParameter2Value" />
+      .
+      .
+      .
+   </parameter3Name>
+   .
+   .
+   .
+   <parameter4Name value= "parameter4Value" id="myRefParam" >
+      <subParameter1Name value= "subParameter1Value" />
+      <subParameter2Name value= "subParameter2Value" />
+      .
+      .
+      .
+   </parameter3Name>
+   .
+   .
+   .
+   <parameter4Name idRef="myRefParam"/>
+   .
+   .
+   .
+   <parameter5Name value="=10.0*[parameter4Name::subParameter1Name]"/>
+ </parameters>
+\end{verbatim}
+Each named element must have a {\normalfont \ttfamily value} attribute (preferred), or else contains a value element, which contains the desired value. The value can be a number, word or an array of space-separated numbers or words. Parameters are used to control the values of numerical parameters and also to select methods and other options. In many cases, if a parameter is not specified in the file a default value (hard coded into \glc) will be used instead. The default values have been chosen to produce a realistic model of galaxy formation, but may change as \glc\ evolves. Parameters may have sub-parameters embedded within them, as in the example above.
+
+Sub-parameters are used in object composition within \glc. For example, the following would specify that linear growth of cosmological large scale structure should be modeled using the {\normalfont \ttfamily collisionlessMatter} method:
+\begin{verbatim}
+  <linearGrowth value="collisionlessMatter">
+    <cosmologyParameters value="simple">
+      <HubbleConstant   value="70.0" />
+      <OmegaMatter      value="0.31"  />
+      <OmegaDarkEnergy  value="0.69"  />
+      <OmegaBaryon      value="0.045"/>
+      <temperatureCMB   value="2.725"/>
+    </cosmologyParameters>
+    <cosmologyFunctions value="matterLambda"/>
+  </linearGrowth>
+\end{verbatim}
+The linear growth function object requires knowledge about the cosmological parameters and model. In the above, we specify this explicitly by including a definition of the cosmological parameter object and cosmological functions object that our linear growth function object should use. Note that the cosmological functions object also requires knowledge of the cosmological parameters. When the {\normalfont \ttfamily cosmologyFunctions} object is built from the above definition it will first check for a cosmological parameters object defined in its own subparameters. Since it does not find one in this instance it will check for a cosmological parameters definition in its parent object (the {\normalfont \ttfamily linearGrowth} element) and, in this case, will use that definition. If no definition were to be found in any parent element, a default set of cosmological parameters would be used instead\footnote{This approach allows a direct connection to be made between the structure of the input parameter XML file and the internal object hierarchy used by \glc, allowing very fine-grained control over the composition of \glc\ functionality. In particular it permits easy construction of objects which work by modifying results from other objects, such as the \protect\refPhysics{darkMatterProfileConcentrationSchneider2015} model for dark matter halo concentrations.}.
+
+Parameters can also be defined with an ``{\normalfont \ttfamily id}'' attribute. Such parameters are targets for pointers elsewhere in the file, and as such are inactive (i.e. they will be ignored by \glc\ except as targets for pointers). A pointer to a target is created by specifying an element with the same parameter name and an ``{\normalfont \ttfamily idRef}'' element with a value equal to that of the {\normalfont \ttfamily id} element of the target. The pointer then acts as a regular parameter, adopting the value and subparameters of the target. Targets can be targetted by multiple pointers. This allows for a single object to be shared between multiple other objects.
+
+Lastly, a parameter value can be given by a math expression\footnote{This functionality requires that {\normalfont \ttfamily libmatheval} is installed.}. In the above example {\normalfont \ttfamily parameter5Name} has a value of ``{\normalfont \ttfamily =10.0*[parameter4Name::subParameter1Name]}''. The initial ``{\normalfont \ttfamily =}'' indicates that this is a math expression which should be evaluated. In this case, the expression is ten times value value of ``{\normalfont \ttfamily [parameter4Name::subParameter1Name]}'', which refers to the value of the sub-parameter {\normalfont \ttfamily subParameter1Name} of parameter {\normalfont \ttfamily parameter4Name}. In this way the values of parameters can be derived from those of other parameters.
+
+The optional {\normalfont \ttfamily version} element specifies which version of \glc\ this parameter file is intended for. The optional {\normalfont \ttfamily formatVersion} element specifies the parameter file version number (the current standard for parameter files is version 2). While optional, these elements can be useful when migrating parameter files between versions of \glc.
+
+All parameter values (both those specified in this file and those set to default) used during a \glc\ run are output to the {\normalfont \ttfamily Parameters} group within the \glc\ output file. If parameters are present in the parameter file which do not match any known parameter in \glc\ then a warning message, listing all unknown parameters, will be given when \glc\ is run. Note that this will \emph{not} prevent \glc\ from running---sometimes it is convenient to include parameters which are not used by \glc, but which might be used by some other code.
+
+\subsection{Validating Parameter Files}\index{parameters!validating}
+
+A script, {\normalfont \ttfamily scripts/aux/validateParameters.pl}, is provided to validate parameter files and thereby ensure that they are consistent with \glc's expectations and requirements. To use simply execute:
+\begin{verbatim}
+ scripts/aux/validateParameters.pl myParameters.xml
+\end{verbatim}
+No output (and an exit value of 0) indicates a valid parameter file. Invalid parameter files will result in an exit value other than 0 and will produce error messages that should help to track down the problem with the file.
+
+\subsection{Generating Parameter Files}\index{parameters!generating}
+
+Some scripts are provided which assist in the generation of parameter files. These are located in the {\normalfont \ttfamily scripts/parameters/} folder and are detailed below:
+\begin{description}
+\item [{\normalfont \ttfamily cosmologicalParametersMonteCarlo.pl}] This script will generate a set of cosmological parameters drawn at random from the WMAP-9 constraints \citep{hinshaw_nine-year_2012}. It uses the covariance matrix (currently defined in {\normalfont \ttfamily data/Cosmological\_Parameters\_WMAP-9.xml}) to produce correlated random variables\footnote{Note that this does not capture the full details of the correlations between parameters, since it uses just the covariance matrix. For a more accurate calculation the full Monte Carlo Markov Chains used in the WMAP-9 parameter fitting should be used instead.}. The generated parameters are printed to standard output as \glc-compatible XML.
+\end{description}
+
+\section{General Structure of Output File}\label{sec:outputFile}
+
+Figure~\ref{fig:glcOutputFileStructure} shows the structure of a typical \glc\ output file. \glc\ can perform many different tasks, and output a wide variety of different data. The following describes the structure of an output file resulting from the ``{\normalfont \ttfamily evolveForests}'' \refClass{taskClass} (i.e. the usal mode of running \glc\ where it is asked to form and evolve a population of galaxies within a set of merger trees) using the ``{\normalfont \ttfamily standard}'' \refClass{mergerTreeOutputterClass}.
+
+The various groups and subgroups are described below.
+
+\begin{figure}
+\begin{center}
+\begin{verbatim}
+galacticus.hdf5
+ |
+ +-> UUID                                     Attribute {1}
+ |
+ +-> Build                                    Group
+ |    |
+ |    +-> FoX_library_version                 Attribute {1}
+ |    +-> GSL_library_version                 Attribute {1}
+ |    +-> HDF5_library_version                Attribute {1}
+ |    +-> make_CCOMPILER                      Attribute {1}
+ |    +-> make_CCOMPILER_VERSION              Attribute {1}
+ |    +-> make_CFLAGS                         Attribute {1}
+ |    +-> make_CPPCOMPILER                    Attribute {1}
+ |    +-> make_CPPCOMPILER_VERSION            Attribute {1}
+ |    +-> make_CPPFLAGS                       Attribute {1}
+ |    +-> make_FCCOMPILER                     Attribute {1}
+ |    +-> make_FCCOMPILER_VERSION             Attribute {1}
+ |    +-> make_FCFLAGS                        Attribute {1}
+ |    +-> make_FCFLAGS_NOOPT                  Attribute {1}
+ |    +-> make_MODULETYPE                     Attribute {1}
+ |    +-> make_PREPROCESSOR                   Attribute {1}
+ |    +-> sourceChangeSetBundle               Dataset   {1}
+ |    +-> sourceChangeSetMerge                Dataset   {1}
+ |
+ +-> Outputs                                  Group
+ |    |
+ |    +-> Output1                             Group
+ |    |    |
+ |    |    +-> nodeData                       Group
+ |    |    |     |
+ |    |    |     +-> nodeProperty1            Dataset {<nodeCount>}
+ |    |    |     +-> ...                      Dataset {<nodeCount>}
+ |    |    |     +-> ...                      Dataset {<nodeCount>}
+ |    |    |     +-> ...                      Dataset {<nodeCount>}
+ |    |    |     +-> nodePropertyN            Dataset {<nodeCount>}
+ |    |    |
+ |    |    +-> mergerTreeCount                Dataset {<treeCount>}
+ |    |    |
+ |    |    +-> mergerTreeIndex                Dataset {<treeCount>}
+ |    |    |
+ |    |    +-> mergerTreeStartIndex           Dataset {<treeCount>}
+ |    |    |
+ |    |    +-> mergerTreeWeight               Dataset {<treeCount>}
+ |    |    |
+ |    |    +-> mergerTree1                    Group              [optional]
+ |    |    |     |
+ |    |    |     +-> nodeProperty1            Reference
+ |    |    |     +-> ...                      Reference
+ |    |    |     +-> ...                      Reference
+ |    |    |     +-> ...                      Reference
+ |    |    |     +-> nodePropertyN            Reference
+ |    |    |
+ |    |    x-> ...                            Group              [optional]
+ |    |    x-> ...                            Group              [optional]
+ |    |    x-> ...                            Group              [optional]
+ |    |    x-> mergerTree<treeCount>          Group              [optional]
+ |    |    |
+ |    |    +-> outputExpansionFactor          Attribute {1}
+ |    |    +-> outputTime                     Attribute {1}
+ |    |
+ |    x-> Output2                             Group
+ |
+ +-> Filters                                  Group
+ |    |
+ |    +-> name                                Dataset   {<filterCount>}
+ |    +-> wavelengthEffective                 Dataset   {<filterCount>}
+ |
+ +-> Parameters                               Group
+ |    |
+ |    +-> inputParameter1                     Attribute {}
+ |    +-> ...                                 Attribute {}
+ |    +-> ...                                 Attribute {}
+ |    +-> ...                                 Attribute {}
+ |    +-> inputParameterN                     Attribute {}
+ |    +-> inputParameter1                     Group
+ |         |
+ |         +-> subInputParameter1             Attribute {}
+ |         +-> ...                            Attribute {}
+ |         +-> subInputParameterN             Attribute {}
+ |    x-> ...                                 Attribute {}
+ |    x-> ...                                 Attribute {}
+ |    x-> ...                                 Attribute {}
+ |    x-> inputParameterN                     Group
+ |
+ +-> Version                                  Group
+      |
+      +-> buildTime                           Attribute {1}
+      +-> runTime                             Attribute {1}
+      +-> gitBranch                           Attribute {1}
+      +-> gitHash                             Attribute {1}
+      +-> runByName                           Attribute {1}
+      +-> runByEmail                          Attribute {1}
+\end{verbatim}
+\end{center}
+\caption{Structure of a \glc\ HDF5 output file. {\normalfont \ttfamily <treeCount>} is the total number of merger trees present in a given output, and {\normalfont \ttfamily <nodeCount} is the total number of nodes (in all trees) present in an output.}
+\label{fig:glcOutputFileStructure}
+\end{figure}
+
+\subsection{UUID}\label{sec:UUID}
+
+The UUID (\href{https://secure.wikimedia.org/wikipedia/en/wiki/Universally_unique_identifier}{Universally Unique Identifier}) is a unique identifier assigned to each \glc\ model that is run. It allows identification of a given model and can be referenced from, for example, an external database.
+
+\subsection{Build Information}\label{sec:BuildInformation}
+
+\glc\ automatically stores various information about how it was built in the {\normalfont \ttfamily Build} group attributes. Currently, included attributes consist of:
+\begin{description}
+\item[{\normalfont \ttfamily FoX\_library\_version}] The version number of the FoX library;
+\item[{\normalfont \ttfamily GSL\_library\_version}] The version number of the GSL library;
+\item[{\normalfont \ttfamily HDF5\_library\_version}] The version number of the HDF5 library;
+\item[{\normalfont \ttfamily make\_CCOMPILER}] The C compiler command used;
+\item[{\normalfont \ttfamily make\_CCOMPILER\_VERSION}] The C compiler version information;
+\item[{\normalfont \ttfamily make\_CFLAGS}] The flags passed to the C compiler;
+\item[{\normalfont \ttfamily make\_CPPCOMPILER}] The C++ compiler command used;
+\item[{\normalfont \ttfamily make\_CPPCOMPILER\_VERSION}] The C++ compiler version information;
+\item[{\normalfont \ttfamily make\_CPPFLAGS}] The flags passed to the C++ compiler;
+\item[{\normalfont \ttfamily make\_FCCOMPILER}] The Fortran compiler command used;
+\item[{\normalfont \ttfamily make\_FCCOMPILER\_VERSION}] The Fortran compiler version information;
+\item[{\normalfont \ttfamily make\_FCFLAGS}] The flags passed to the Fortran compiler;
+\item[{\normalfont \ttfamily make\_FCFLAGS\_NOOPT}] The flags passed to the Fortran compiler for unoptimized compiles;
+\item[{\normalfont \ttfamily make\_MODULETYPE}] The Fortran module type identifier string;
+\item[{\normalfont \ttfamily make\_PREPROCESSOR}] The preprocessor command used.
+\end{description}
+
+Additionally, two datasets are included which store details of the \glc\ source changeset. {\normalfont \ttfamily sourceChangeSetBundle} contains the output of ``{\normalfont \ttfamily git bundle create HEAD \^origin}'', that is, it contains a Git archive that incorporates any changes made to the current branch relative to the main \glc\ branch. {\normalfont \ttfamily sourceChangeSetDiff} contains the output of ``{\normalfont \ttfamily git diff}'', that is, all differences between the source code in the working directory and that which has been committed to Git. Used together, these two datasets allow the precise source code used to run the model to be recovered from the main branch \glc\ source.
+
+\subsection{Filters}
+
+For each broadband filter used in the \glc\ model run an entry is added to the datasets in this group. Currently, two datasets are generated:
+\begin{description}
+\item[{\normalfont \ttfamily name}] The name of each filter used.
+\item[{\normalfont \ttfamily wavelengthEffective}] The effective wavelength, $\lambda_\mathrm{eff}$ (defined as $\lambda_\mathrm{eff}=\left. \int_0^\infty \lambda R(\lambda) \mathrm{d}\lambda \right/ \int_0^\infty R(\lambda) \mathrm{d}\lambda$, where $R(\lambda)$ is the filter response) of the filter in \AA.
+\end{description}
+
+\subsection{Parameters}
+
+The {\normalfont \ttfamily Parameters} group contains a record of all parameter values (either input or default) that were used for this \glc\ run. The group contains a long list of attributes, each attribute named for the corresponding parameter and with a single entry giving the value of that parameter. If a parameter has subparameters, a group is created having the same name as the parameter, which will contain attributes corresponding to each subparameter. In cases where a parameter appears more than once in a given node of the parameter tree,it will be output with ``{\normalfont \ttfamily [N]}'' appended to its name, where ``{\normalfont \ttfamily N}'' is an integer indicating the instance of the parameter.
+
+\subsection{Version}
+
+The {\normalfont \ttfamily Version} group contains a record of the \glc\ version used for this model, storing the major and minor version numbers, the revision number and the {\normalfont \scshape Git} branch and hash (if the code is being maintained using {\normalfont \scshape Git}, otherwise a value of ``{\normalfont \ttfamily unknown}'' is entered). Additionally, the time at which the model was run is stored and, if the {\normalfont \ttfamily galacticusConfig.xml} file (see \S\ref{sec:ConfigFile}) is present and contains contact details, the name and e-mail address of the person who ran the model.
+
+\subsection{Outputs}
+
+The {\normalfont \ttfamily Outputs} group contains one or more sub-groups corresponding to the output times requested from \glc. Each sub-group contains the following information:
+\begin{description}
+ \item[{\normalfont \ttfamily outputTime} \emph{(attribute)}] The cosmic time (in Gyr) at this output;
+ \item[{\normalfont \ttfamily outputExpansionFactor} \emph{(attribute)}] The expansion factor at this output;
+ \item[{\normalfont \ttfamily nodeData}] A group of node properties as described below.
+ \item[{\normalfont \ttfamily mergerTree} subgroups \emph{(optional)}] A set of {\normalfont \ttfamily mergerTree} groups as described below.
+\end{description}
+
+Output is controlled by parameters given within the {\normalfont \ttfamily mergerTreeOutput} section of the parameter file. Current options are:
+\begin{description}
+\item[{\normalfont \ttfamily outputMergerTrees}] If {\normalfont \ttfamily true} then each merger tree is output to the relevant sub-group at each output time (see \S\ref{sec:nodeDataGroup}). Otherwise merger trees are not output. [Default: {\normalfont \ttfamily true}.]
+\item[{\normalfont \ttfamily outputReferences}] If {\normalfont \ttfamily true} then an HDF5 reference dataset is written for each merger tree subgroup (see \S\ref{sec:mergerTreeSubgroups}). [Default: {\normalfont \ttfamily false}.]
+\item[{\normalfont \ttfamily galacticFilter}] A \refClass{galacticFilterClass} which is applied to each node in the tree to determine whether or not it should be output. By combining multiple filters it is possible to construct arbitrarily complex criteria for output. [Default: {\normalfont \ttfamily always}.]
+\end{description}
+
+\subsubsection{nodeData group}\label{sec:nodeDataGroup}\hyperdef{sec}{nodeDataGroup}{}
+
+The {\normalfont \ttfamily nodeData} group contains all data from nodes in all merger trees. The group consists of a collection of datasets each of which lists a property of all nodes in the trees which exist at the output time. Where relevant, each dataset contains an attribute, {\normalfont \ttfamily unitsInSI}, which gives the units\index{units} of the dataset in the SI system.
+
+\subsubsection{mergerTree datasets}\label{sec:mergerTreeDatasets}
+
+To allow locating of nodes belonging to a given merger tree in the datasets in the {\normalfont \ttfamily nodeData} group, the {\normalfont \ttfamily mergerTreeStartIndex} and {\normalfont \ttfamily mergerTreeCount} datasets list the starting index of each tree's nodes in the {\normalfont \ttfamily nodeData} datasets, and the number of nodes belonging to each tree respectively. Additionally, the {\normalfont \ttfamily mergerTreeWeight} dataset lists the {\normalfont \ttfamily volumeWeight} property for each tree (see \S\ref{sec:mergerTreeSubgroups}) which gives the weight (in Mpc$^{-3}$) which should be assigned to this tree (and all nodes in it) to create a volume-averaged sample (see \S\ref{sec:volumeLimitedSamples}). Finally, the {\normalfont \ttfamily mergerTreeIndex} dataset gives the index of each tree stored in the {\normalfont \ttfamily nodeData} datasets.
+
+\subsubsection{mergerTree subgroups}\label{sec:mergerTreeSubgroups}
+
+These subgroups will be present if the {\normalfont \ttfamily [mergerTreeOutputReferences]} parameter is set to true. Each {\normalfont \ttfamily mergerTree} subgroup contains HDF5 references to all data on a single merger tree. The group consists of a collection of scalar references each of which points to the appropriate region of the corresponding dataset in the {\normalfont \ttfamily nodeData} group. Additionally, the {\normalfont \ttfamily volumeWeight} attribute of this group gives the weight (in Mpc$^{-3}$) which should be assigned to this tree (and all nodes in it) to create a volume-averaged sample. (A second attribute, {\normalfont \ttfamily volumeWeightUnitsInSI}, gives the units of {\normalfont \ttfamily volumeWeight} in the SI system.)
+
+\section{On-the-fly Analyses}\label{sec:onTheFlyAnalyses}\index{analyis!on-the-fly}
+
+In addition to simply outputting the properties of every galaxy formed, \glc\ can perform various analyses as it runs, and output the resulting quantities. For example, it can construct a galaxy stellar mass function matched in terms of binning, redshift range, survey geometry, and stellar mass uncertainties to an observed stellar mass function---outputting the resulting model expectation, along with the observed result, and the likelihood of the model given the data. 
+
+To perform such on-the-fly analysis, simply use the ``{\normalfont \ttfamily analyzer}'' \refClass{mergerTreeOutputterClass}, by including the following in your parameter file:
+\begin{verbatim}
+ <mergerTreeOutputter value="analyzer"/>
+\end{verbatim}
+If you want to also keep the standard output of all galaxy properties, simply combine the ``{\normalfont \ttfamily standard}'' and ``{\normalfont \ttfamily analyzer}'' \refClass{mergerTreeOutputterClass}es:
+\begin{verbatim}
+ <mergerTreeOutputter value="multi">
+  <mergerTreeOutputter value="standard"/>
+  <mergerTreeOutputter value="analyzer"/>
+ </mergerTreeOutputter>
+\end{verbatim}
+
+The analysis to be performed is determined by the \refClass{outputAnalysisClass}. For example, to compute the GAMA stellar mass function \citep{baldry_galaxy_2012} you would include in your parameter file:
+\begin{verbatim}
+ <outputAnalysis value="massFunctionStellarBaldry2012GAMA"/>
+\end{verbatim}
+The resulting mass function is written to the output file in a group named ``{\normalfont \ttfamily analyses/massFunctionStellarBaldry2012GAMA}'', which will contain the following datasets:
+\begin{description}
+\item [{\normalfont \ttfamily massStellar}] The stellar mass corresponding to each bin in the mass function;
+\item [{\normalfont \ttfamily massFunction}] The mass function expectation from \glc;
+\item [{\normalfont \ttfamily massFunctionCovariance}] The covariance matrix for the mass function expectation from \glc;
+\item [{\normalfont \ttfamily massFunctionTarget}] The observed mass function from \cite{baldry_galaxy_2012};
+\item [{\normalfont \ttfamily massFunctionCovarianceTarget}] The covariance matrix for the observed mass function from \cite{baldry_galaxy_2012}.
+\end{description}
+The output group also contains a ``{\normalfont \ttfamily logLikelihood}'' attribute which gives the log-likelihood of the model given this data. Additional attributes provide a description of the analysis that allows a simple plot comparing the \glc\ and observed mass functions to be made using:
+\begin{verbatim}
+./scripts/analysis/analysesPlot.pl <outputFileName>
+\end{verbatim}
+(which utilizes \glc's \href{https://github.com/galacticusorg/analysis-perl}{\normalfont \ttfamily analysis-perl} tools).
+
+Multiple on-the-fly analyses can be performed, by simply grouping them inside a ``{\normalfont \ttfamily multi}'' \refClass{outputAnalysisClass}, e.g.:
+\begin{verbatim}
+ <outputAnalysis value="multi">
+  <outputAnalysis value="massFunctionStellarBaldry2012GAMA"/>
+  <outputAnalysis value="massFunctionHIALFALFAMartin2010"  />
+ </outputAnalysis>
+\end{verbatim}
+which would then compute both the stellar mass function of \cite{baldry_galaxy_2012} and the HI mass function of \cite{martin_arecibo_2010}.
+
+\section{Building Volume Limited Samples}\label{sec:volumeLimitedSamples}\index{samples!volume limited}\index{galaxies!weighting}\index{{\normalfont \ttfamily mergerTreeWeight}@mergerTreeWeight}
+
+The {\normalfont \ttfamily mergerTreeWeight} property (see \S\ref{sec:mergerTreeDatasets}) property specifies the weight to be assigned to each merger tree in a model to construct a representative (i.e. volume limited) sample of galaxies. \glc\ does not typically generate every merger tree in a fixed volume of the Universe (as an N-body simulation might for example) as it's generally a waste of time to simulate millions of low mass halos and only a small number of high mass halos. The {\normalfont \ttfamily mergerTreeWeight} factors correct for this sampling. If merger trees are being built, then the {\normalfont \ttfamily mergerTreeWeight}, $w_i$, for each tree of mass $M_i$ (where the trees are ranked in order of increasing mass) is given by
+\begin{equation}
+ w_i = \int_{M_\mathrm{min}}^{M_\mathrm{max}} n(M) \mathrm{d}M,
+\end{equation}
+where $n(M)$ is the dark matter halo mass function and
+\begin{eqnarray}
+ M_\mathrm{min} &=& \sqrt{M_{i-1}M_i}, \\
+ M_\mathrm{min} &=& \sqrt{M_i M_{i+1}}.
+\end{eqnarray}
+
+Suppose, for example, that we wish to construct a luminosity function of galaxies. In particular, we consider a luminosity bin $k$ which extends from $L_k-\Delta k/2$ to $L_k+\Delta k/2$. If tree $i$ contains $N_i$ galaxies with luminosities $l_{i,j}$, where $j$ runs from $1$ to $N_i$, then the luminosity function in this bin is given by:
+\begin{equation}
+ \phi_k = \sum_i \sum_{j=1}^{N_i} \left\{ \begin{array}{ll} w_i & \hbox{ if  } L_k-\Delta k/2 < l_{i,j} \le L_k+\Delta k/2 \\ 0 & \hbox{ otherwise.} \end{array} \right.
+\end{equation}
+
+\section{Running Grids of Models}\label{sec:RunningGrids}
+
+You can easily write your own scripts to generate parameter files and run \glc\ on these files. An example of such a script is {\normalfont \ttfamily scripts/aux/launch.pl}. This script will loop over a sequence of parameter values, generate appropriate parameter files, run \glc\ using those parameters and analyze the results. This script currently supports running of \glc\ on a local machine, via a PBS queue (as multiple jobs or a single job), or on a \href{http://www.cs.wisc.edu/condor/}{{\normalfont \scshape Condor}}\index{Condor} cluster. To run the script simply enter:
+\begin{verbatim}
+ ./scripts/aux/launch.pl <runFile>
+\end{verbatim}
+This will launch a single instance of the script. Multiple instances can be launched and will share the work load (i.e. they will not attempt to run a model which another instance is already running or has finished). If multiple instances are to be launched on multiple machines a command line option to {\normalfont \ttfamily launch.pl} can be used to ensure that they do not duplicate work. Adding {\normalfont \ttfamily -{}-instance 2:4} for example will tell the script to run only the second model from each block of four models it finds. Launching for {\normalfont \ttfamily launch.pl} scripts on four different machines with {\normalfont \ttfamily -{}-instance 1:4}, {\normalfont \ttfamily -{}-instance 2:4}, {\normalfont \ttfamily -{}-instance 3:4} and {\normalfont \ttfamily -{}-instance 4:4} will then divide the models between those machines.
+
+The {\normalfont \ttfamily runFile} is an XML file with the following structure:
+\begin{verbatim}
+<parameterGrid>
+ <modelRootDirectory>models.new</modelRootDirectory>
+ <baseParameters>newBestParametersQuick.xml</baseParameters>
+ <compressModels>no</compressModels>
+ <splitModels>4</splitModels>
+
+ <launchMethod>pbs</launchMethod>
+
+  <local>
+   <threadCount>3</threadCount>
+   <ompThreads>4</ompThreads>
+  </local>
+
+ <condor>
+  <galacticusDirectory>/home/condor/Galacticus/v0.9.3</galacticusDirectory>
+  <universe>vanilla</universe>
+  <environment>LD_LIBRARY_PATH=/usr/lib:/usr/lib64:/usr/local/lib</environment>
+  <requirement>Memory &gt;= 1000 &amp;&amp; Memory &lt; 2000</requirement>
+  <transferFile>{PWD}/myFile.data</transferFile>
+  <wholeMachine>true</wholeMachine>
+  <postSubmitSleepDuration>5</postSubmitSleepDuration>
+  <jobWaitSleepDuration>10</jobWaitSleepDuration>
+ </condor>
+
+ <pbs>
+  <scratchPath>/scratch/me</scratchPath>
+  <wallTime>48:00:00</wallTime>
+  <memory>3gb</memory>
+  <ompThreads>8</ompThreads>
+  <queue>standard</queue>
+  <maxJobsInQueue>10</maxJobsInQueue>
+  <mpiLaunch>yes</mpiLaunch>
+  <mpiRun>/opt/openmpi/bin/mpirun</mpiRun>
+  <environment>LD_LIBRARY_PATH=/home/me/software/Galacticus/Tools/lib64:$LD_LIBRARY_PATH</environment>
+  <postSubmitSleepDuration>10</postSubmitSleepDuration>
+  <jobWaitSleepDuration>60</jobWaitSleepDuration>
+ </pbs>
+
+ <monolithicPBS>
+  <mpiLaunch>yes</mpiLaunch>
+  <nodes>1</nodes>
+  <threadsPerNode>12</threadsPerNode>
+  <ompThreads>6</ompThreads>
+  <jobWaitSleepDuration>60</jobWaitSleepDuration>
+  <analyze>no</analyze>
+  <environment>LD_LIBRARY_PATH=/home/me/software/Galacticus/Tools/lib64:$LD_LIBRARY_PATH</environment>
+  <includePath>/my/include/path</includePath>
+  <libraryPath>/opt/sgi/mpt/mpt-2.04/lib</libraryPath>
+  <shell>csh</shell>
+  <pbsCommand>source /usr/share/modules/init/csh</pbsCommand>
+  <pbsCommand>module load mpi-sgi/2.04_64</pbsCommand>
+ </monolithicPBS>
+                  
+ <parameters>
+  <label>modelLabel</label>
+  <stabilityThresholdStellar value="1.1"/>
+  <stabilityThresholdStellar value="0.9"/>
+ </parameters>
+
+ <parameters>
+  <starFormationFeedbackDisks value="powerLaw">
+   <exponent value="2.5"/>
+   <exponent value="3.0"/>
+  </starFormationFeedbackDisks>
+  <starFormationFeedbackDisks value="creasey2012"/>
+ </parameters>
+
+ <parameters>
+  <imfSelection value="fixed">
+    <imfSelectionFixed value="Chabrier" parameterLevel="top"/>
+    <imfSelectionFixed value="Salpeter" parameterLevel="top"/>
+  </imfSelection>
+  <imfSelection value="diskSpheroid">
+    <imfSelectionDisk     value="Chabrier"  parameterLevel="top"/>
+    <imfSelectionSpheroid value="Kennicutt" parameterLevel="top"/>
+  </imfSelection>
+ </parameters>
+
+ <parameters>
+   <coolingFunction value="summation">
+     <coolingFunction value="atomicCIECloudy"             iterable="no"/>
+     <coolingFunction value="CMBCompton"                  iterable="no"/>
+     <coolingFunction value="molecularHydrogenGalliPalla" iterable="no"/>
+   </coolingFunction>
+ </parameters>
+
+</parameterGrid>
+\end{verbatim}
+Each {\normalfont \ttfamily parameters} block contains a list of parameters following the format used in standard \glc\ parameter files, with the difference that each parameter can appear multiple times, each time with a different {\normalfont \ttfamily value} attribute, as is the case for {\normalfont \ttfamily stabilityThresholdStellar} in the first {\normalfont \ttfamily parameters} element in the above. A model will be run for all possible combinations of these values. For nested parameters with multiple values, all possible values of these parameters will be looped over when, and only when, the appropriate value of the containing parameter is being used. For example, in the second {\normalfont \ttfamily parameters} element in the above example, models will be run with subparameter {\normalfont \ttfamily [exponent]}$=${\normalfont \ttfamily 2.5} and {\normalfont \ttfamily 3.5} for the {\normalfont \ttfamily starFormationFeedbackDisks} element only when {\normalfont \ttfamily [starFormationFeedbackDisks]}$=${\normalfont \ttfamily powerLaw} and not when {\normalfont \ttfamily [starFormationFeedbackDisks]}$=${\normalfont \ttfamily creasey2012}. It is also possible to specify that subparameter should be promoted to the top-level of the parameter file. In the third {\normalfont \ttfamily parameters} element in the above example, {\normalfont \ttfamily imfSelectionFixed} will take on values of {\normalfont \ttfamily Chabrier} and {\normalfont \ttfamily Salpeter} only when {\normalfont \ttfamily imfSelection}$=${\normalfont \ttfamily fixed}, and the {\normalfont \ttfamily imfSelectionFixed} element will be promoted from a sub-parameter of {\normalfont \ttfamily imfSelection} to the top-level of the parameter file due to the presence of the \verb|parameterLevel="top"| attribute. Finally in some cases a parameter which appears multiple times is not to be iterated over. In the fourth {\normalfont \ttfamily parameters} element in the above example, this is the case for the {\normalfont \ttfamily coolingFunction} subparameters. The addition of an \verb|iterable="no"| attribute specifies that these parameters are not to be iterated over, but simply left as they are.
+
+Some variables, which are expanded at run time, are available. These include:
+\begin{description}
+\item [{\normalfont \ttfamily \%\%galacticusOutputPath\%\%}] This will be expanded to the output path of a model. Useful for specifying paths for any additional output.
+\end{description}
+
+By default, each model is output into a sequentially numbered directory within the {\normalfont \ttfamily ./models} directory. By default, these directories have the prefix {\normalfont \ttfamily galacticus}. This can be changed by including a {\normalfont \ttfamily label} element inside a {\normalfont \ttfamily parameters} block, in which case the content of the {\normalfont \ttfamily label} element will be used as the prefix. This root directory can be modfified by the optional {\normalfont \ttfamily modelRootDirectory} element. Additionally, a set of base parameters can be read from a file specified by the {\normalfont \ttfamily baseParameters} file---these will be read before each model is run and before any variations in parameters for the specific model are applied. As such, it defines the default model around which parameter variations occur. Additional options that may be present in the file (as elements within the {\normalfont \ttfamily parameterGrid} element) are:
+\begin{description}
+\item[{\normalfont \ttfamily doAnalysis}]If set to ``no'' then no analysis scripts will be run on completed models, otherwise, they will be. Optionally, the analysis script to run can be specified via the {\normalfont \ttfamily analysisScript} element;
+\item[{\normalfont \ttfamily emailReport}] If set to ``yes'' a report will be e-mailed to the address specified in {\normalfont \ttfamily galacticusConfig.xml} when a model fails. Otherwise, the report will be written to standard output instead.
+\item[{\normalfont \ttfamily compressModels}] If ``no'' then models are not compressed after being run. Otherwise, the contents of the model output directory will be compressed using {\normalfont \ttfamily bzip2}.
+\item[{\normalfont \ttfamily splitModels}] If set to an integer larger than $1$, each \glc\ model will be split into that number of jobs, and those jobs will be launched (using the selected method) independently. Once finished, the outputs from these split models will be merged back into a single model. This allows, for example, effectively distributing a single \glc\ model over multiple nodes of a PBS cluster.
+\end{description}
+
+The method by which to launch jobs must be specified in the {\normalfont \ttfamily launchMethod} element. Currently available options are:
+\begin{description}
+\item[{\normalfont \ttfamily local}] The models will be run on the local machine. Two additional options can be specified within a {\normalfont \ttfamily local} XML block:
+\begin{description}
+\item[{\normalfont \ttfamily threadCount}] The number of individual model threads to be launched.
+\item[{\normalfont \ttfamily ompThreads}] The number of OpenMP threads to be used by each model.
+\end{description}
+
+\item[{\normalfont \ttfamily pbs}] Jobs will be submitted to a {\normalfont \ttfamily PBS} batch queue system. The following options are available and can be specified within a {\normalfont \ttfamily pbs} XML block:
+\begin{description}
+\item[{\normalfont \ttfamily scratchPath}] An optional path to which the model output will be written at run time. At the completion of each run, the data will be transferred to the usual output location. This is useful to avoid network I/O during run time;
+\item[{\normalfont \ttfamily wallTime}] A limit on the wall time allowed for each model (optional);
+\item[{\normalfont \ttfamily memory}] A limit on the memory allowed for each model (optional);
+\item[{\normalfont \ttfamily ompThreads}] The number of OpenMP threads to use for each model (optional). This is used to request an appropriate number of processors per node;
+\item[{\normalfont \ttfamily queue}] The name of the queue to submit the jobs to (optional);
+\item[{\normalfont \ttfamily maxJobsInQueue}] The maximum number of jobs to place in the queue. Additional jobs will be held and submitted once the number of jobs in the queue drops below this value (optional);
+\item[{\normalfont \ttfamily mpiLaunch}] If set to ``{\normalfont \ttfamily yes}'' then the {\normalfont \ttfamily mpirun} command will be used to launch a single copy of \glc\ (which may then spawn multiple OpenMP threads). If instead set to ``{\normalfont \ttfamily no}'' then \glc\ is launch without the use of the {\normalfont \ttfamily mpirun} command. Some systems will limit a code launched with {\normalfont \ttfamily mpirun} to using just a single CPU (even if multiple OpenMP threads are spawned). In such cases, setting this option to ``{\normalfont \ttfamily no}'' should permit multiple CPUs to be utilized.
+\item[{\normalfont \ttfamily mpiRun}] The path to the {\normalfont \ttfamily mpirun} executable (optional---if not present, {\normalfont \ttfamily mpirun} must be in {\normalfont \ttfamily PATH});
+\item[{\normalfont \ttfamily environment}] Any settings here are set in each {\normalfont \scshape PBS} job in order to set appropriate environment variables on the machine where a job is executed;
+\item[{\normalfont \ttfamily analyze}] If set to ``{\normalfont \ttfamily yes}'' then analysis (if any) will be performed as part of the PBS job. Otherwise, analysis is performed by the submitting machine.
+\item[{\normalfont \ttfamily postSubmitSleepDuration}] The time (in seconds) to wait after submitting each job. This prevents flooding the PBS queue manager with a large number of jobs in rapid succession.
+\item[{\normalfont \ttfamily jobWaitSleepDuration}] The time (in seconds) to sleep between successive checks of the PBS queue to see if any of the submitted jobs have finished.
+\end{description}
+
+\item[{\normalfont \ttfamily monolithicPBS}] A single job will be submitted to a {\normalfont \ttfamily PBS} batch queue system. This job will internally run multiple copies of \glc\ each with a different set of parameters. The following options are available and can be specified within a {\normalfont \ttfamily monolithicPBS} XML block:
+\begin{description}
+\item[{\normalfont \ttfamily nodes}] The total number of nodes to use for the PBS job.
+\item[{\normalfont \ttfamily threadsPerNode}] The number of threads per node to use for the PBS job.
+\item[{\normalfont \ttfamily ompThreads}] The number of OpenMP threads to use for each model (optional). This is used to request an appropriate number of processors per node, and must be an factor of {\normalfont \ttfamily threadsPerNode};
+\item[{\normalfont \ttfamily scratchPath}] An optional path to which the model output will be written at run time. At the completion of each run, the data will be transferred to the usual output location. This is useful to avoid network I/O during run time;
+\item[{\normalfont \ttfamily wallTime}] A limit on the wall time allowed for each model (optional);
+\item[{\normalfont \ttfamily memory}] A limit on the memory allowed for each model (optional);
+\item[{\normalfont \ttfamily queue}] The name of the queue to submit the jobs to (optional);
+\item[{\normalfont \ttfamily mpiRun}] The path to the {\normalfont \ttfamily mpirun} executable (optional---if not present, {\normalfont \ttfamily mpirun} must be in {\normalfont \ttfamily PATH});
+\item[{\normalfont \ttfamily environment}] Any settings here are set in each {\normalfont \scshape PBS} job in order to set appropriate environment variables on the machine where a job is executed;
+\item[{\normalfont \ttfamily analyze}] If set to ``{\normalfont \ttfamily yes}'' then analysis (if any) will be performed as part of the PBS job. Otherwise, analysis is performed by the submitting machine.
+\item[{\normalfont \ttfamily postSubmitSleepDuration}] The time (in seconds) to wait after submitting each job. This prevents flooding the PBS queue manager with a large number of jobs in rapid succession.
+\item[{\normalfont \ttfamily jobWaitSleepDuration}] The time (in seconds) to sleep between successive checks of the PBS queue to see if any of the submitted jobs have finished.
+\end{description}
+
+\item[{\normalfont \ttfamily condor}] Jobs will be submitted to a {\normalfont \ttfamily Condor} cluster. The following options are available and can be specified within a {\normalfont \ttfamily condor} XML block:
+\begin{description}
+\item[{\normalfont \ttfamily galacticusDirectory}] When a \glc\ job is submitted to a {\normalfont \scshape Condor} cluster the \glc\ executable and the input parameter file are transferred to the machine where the job runs. Other files, such as data files, are not transferred. Therefore, they must be already present on any remote machine on which the job can run. This option specifies where a complete \glc\ installation can be found on the remote machine. If not present, it defaults to {\normalfont \ttfamily /home/condor/Galacticus/v0.9.0};
+\item[{\normalfont \ttfamily universe}] Specifies to which {\normalfont \scshape Condor} universe jobs should be submitted. Allowed options are ``vanilla'' and ``standard''. If the standard universe is to be used then \glc\ must have been linked with {\normalfont \ttfamily condor\_compile}---the {\normalfont \ttfamily Makefile} allows this if the relevant lines are uncommented;
+\item[{\normalfont \ttfamily environment}] Any settings here are passed to {\normalfont \scshape Condor}'s {\normalfont \ttfamily environment} option in order to set appropriate environment variables on the machine where a job is executed;
+\item[{\normalfont \ttfamily requirement}] Any setting here is passed to {\normalfont \scshape Condor}'s {\normalfont \ttfamily requirements} option to specify requirements for each job. Multiple {\normalfont \ttfamily requirement} entries will be combined (using logical and).
+\item[{\normalfont \ttfamily transferFile}] Any files listed here will be transferred the Condor worker (and so will be accessible from the path in which \glc\ is running). The macro {\normalfont \ttfamily \{PWD\}} will be automatically expanded to the present working directory. Multiple {\normalfont \ttfamily transferFile} entries can be given.
+\item [{\normalfont \ttfamily wholeFile}] Setting this option to {\normalfont \ttfamily true} will add {\normalfont \ttfamily +RequiresWholeMachine = True} to the Condor submit file. If Condor has been configured to allow jobs to take over a whole machine\footnote{As described \protect\href{https://www-auth.cs.wisc.edu/lists/condor-users/2009-January/msg00086.shtml}{here} for example.}, this will cause jobs to do so. This is useful if you want to run OpenMP \glc\ on a Condor cluster.
+\item[{\normalfont \ttfamily postSubmitSleepDuration}] The time (in seconds) to wait after submitting each job. This prevents flooding the Condor queue manager with a large number of jobs in rapid succession.
+\item[{\normalfont \ttfamily jobWaitSleepDuration}] The time (in seconds) to sleep between successive checks of the Condor queue to see if any of the submitted jobs have finished.
+\end{description}
+
+\end{description}
+
+In addition to the {\normalfont \ttfamily galacticus.hdf5} output file, each model directory will contain a file {\normalfont \ttfamily parameters.xml} which contains the parameters used to run the model and {\normalfont \ttfamily galacticus.log} which contains any output from \glc\ during the run.
+
+If present, the file {\normalfont \ttfamily galacticusConfig.xml}, described in \S\ref{sec:ConfigFile}, is parsed for configuration options. If the {\normalfont \ttfamily contact} element is present, the listed name and e-mail address will be used to determine who should receive error reports should a model crash. The error report will contain the host name of the computer running the model, the location of the model output and the log file (which may be incomplete if output is being buffered). Additionally, any core file produced will be stored in the model directory for later perusal, and the state files (see \S\ref{sec:Restarting}) for the run can also be found in the model directory.
+
+\section{Configuration File}\label{sec:ConfigFile}\index{galacticusConfig.xml@{\normalfont \ttfamily galacticusConfig.xml}}\index{configuration}
+
+The file {\normalfont \ttfamily galacticusConfig.xml}, is present, is used to configure \glc\ and provide useful information. It should have the following structure:
+\begin{verbatim}
+<config>
+  <contact>
+    <name>My Name</name>
+    <email>me@ivory.towers.edu</email>
+  </contact>
+  <email>
+    <host>
+      <name>myComputerHostName</name>
+      <method>smtp</method>
+      <host>smtp-server.ivory.towers.edu</host>
+      <user>myUserName</user>
+      <passwordFrom>kdewallet</passwordFrom>
+    </host>
+    <host>
+      <name>default</name>
+      <method>sendmail</method>
+    </host>
+  </email>
+</config>
+\end{verbatim}
+The name and e-mail address in the {\normalfont \ttfamily contact} section will be stored in any \glc\ models run---this helps track the provenance of the model. The {\normalfont \ttfamily email} section determines how e-mail will be sent. Within this section, you can place one or more {\normalfont \ttfamily host} elements, the {\normalfont \ttfamily name} element of which specifies the host name of the computer to which these rules apply (the {\normalfont \ttfamily default} host is used if no other match is found). For each host, the {\normalfont \ttfamily method} element specifies how e-mail should be sent, either by {\normalfont \ttfamily sendmail} or via {\normalfont \ttfamily smtp}. For SMTP transport (which currently supports SSL connections only), you must specify the {\normalfont \ttfamily host} SMTP server, {\normalfont \ttfamily user} name. The {\normalfont \ttfamily passwordFrom} element specifies how the password for the SMTP log in should be obtained. If set to {\normalfont \ttfamily input} then the user will be prompted for the password as needed. Alternatively, if you use the \href{http://www.kde.org/}{KDE} desktop and the \href{http://utils.kde.org/projects/kwalletmanager/}{KDEWallet} password manager, 
+setting {\normalfont \ttfamily passwordFrom} to {\normalfont \ttfamily kdewallet} will cause the password to be stored in the KDE wallet and retrieved from there subsequently.
+
+\section{Writing Data To a Temporary File}\index{output!temporary}
+
+When running \glc\ on a compute cluster it is often advantageous to have output written to a local scratch disk during run time and only moved to networked storage after the run is complete. (Otherwise, \glc\ will perform many small writes to networked storage which can result in extremely slow run times.) To do this, simply set the parameter {\normalfont \ttfamily [galacticusOutputScratchFileName]} to the full path of a file to write to on local scratch space. During the run, data will be written to this file. After the run is finished, \glc\ will move this file to its permanent location as specified by the parameter {\normalfont \ttfamily [galacticusOutputFileName]}.
+
+\section{Restarting A Crashed Run}\label{sec:Restarting}\hyperdef{sec}{Restarting}{}
+
+If \glc\ crashes, it can be useful to restart the calculation from just prior to the crash to speed the debugging process. \glc\ has functionality to store and retrieve the internal state of any modules and to recover this to permit such restarting. Currently, this is implemented with the {\normalfont \ttfamily build} and {\normalfont \ttfamily read} methods of merger tree construction, such that the internal state is stored prior to commencing the building or reading of each tree, thereby allowing a calculation to be restarted with the tree that crashed. More general store/retrieve behavior is planned for future releases.
+
+To cause \glc\ to periodically store its internal state include the following input parameter:
+\begin{verbatim}
+  <stateFileRoot value="galacticusState" />
+\end{verbatim}
+This will cause the internal state to be stored to files {\normalfont \ttfamily galacticusState.state} prior to commencing building each merger tree. Should a tree crash then replace this input parameter with:
+\begin{verbatim}
+  <stateRetrieveFileRoot       value="galacticusState"/>
+  <mergerTreeConstructor value="build"           >
+   <treeBeginAt value="N"/>
+  </mergerTreeConstructor>
+\end{verbatim}
+where {\normalfont \ttfamily N} is the number of the tree that crashed. This will cause calculations to begin with tree {\normalfont \ttfamily N} and for the internal state to be recovered from the above mentioned files. The resulting tree and all galaxy formation calculations should therefore proceed just as in the original run (and so create the same crash condition).
+
+\subsection{OpenMP}\index{debugging!OpenMP}\index{OpenMP!debugging}
+
+When running a model in parallel using OpenMP, a separate state file will be written for each thread, with the thread number appended to the end of each state file name. For debugging purposes, it is suggested that a crashed OpenMP run be restarted using just a single thread. To do this, change the appended thread number on the state files corresponding to the thread which crashed to 0 such that they will be used by the single thread when the run is restarted.
+
+\section{Processing Individual Merger Trees In Parallel}
+
+By default, \glc\ utilizes the available parallel threads to process multiple merger trees simulataneously, with one tree processed by each thread. When the total number of trees to be processed is large, and there are not a small number of outlier trees with masses very much larger than the other trees, this approach generally results in good parallel efficiency.
+
+However, in cases where a small number of trees are much more massive than any other (or are just slow to process for some other reason) it may be more efficient to have multiple parallel threads process each tree. To achieve this, set {\normalfont \ttfamily [treeEvolveSingleForest]}$=${\normalfont \ttfamily true}. In this case, trees are processed sequentially, with multiple threads assigned to each tree. To do this, a tree is broken up into a set of time slices, or ``sections''. The number of sections between each successive output (or between the earliest node in the tree and the first output) is specified by the {\normalfont \ttfamily [treeEvolveSingleForestSections]} parameter. Individual branches of the tree within each section are assigned to parallel threads. \emph{Note that this results in valid evolution only if the evolution of disjoint tree branches are independent of each other.}

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -31,11 +31,14 @@
      class           (radiativeTransferSpectrumClass), pointer      :: radiativeTransferSpectrum_ => null()
      class           (randomNumberGeneratorClass    ), pointer      :: randomNumberGenerator_     => null()
      double precision                                , dimension(3) :: position
+     type            (varying_string                )               :: label
    contains
      final     ::                           distributedDestructor
      procedure :: initializePhotonPacket => distributedInitializePhotonPacket
      procedure :: luminosity             => distributedLuminosity
      procedure :: spectrum               => distributedSpectrum
+     procedure :: sourceTypeCount        => distributedSourceTypeCount
+     procedure :: sourceTypeName         => distributedSourceTypeName
   end type radiativeTransferSourceDistributed
 
   interface radiativeTransferSourceDistributed
@@ -57,19 +60,24 @@ contains
     class           (massDistributionClass             ), pointer       :: massDistribution_
     class           (radiativeTransferSpectrumClass    ), pointer       :: radiativeTransferSpectrum_
     class           (randomNumberGeneratorClass        ), pointer       :: randomNumberGenerator_
+    type            (varying_string                    )                :: label
 
     !# <inputParameter>
     !#   <name>position</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>[0.0d0,0.0d0,0.0d0]</defaultValue>
     !#   <description>The position of the distributed source.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>label</name>
+    !#   <defaultValue>var_str('unknown')</defaultValue>
+    !#   <description>A descriptive label for the source.</description>
+    !#   <source>parameters</source>
     !# </inputParameter>
     !# <objectBuilder class="radiativeTransferSpectrum" name="radiativeTransferSpectrum_" source="parameters"/>
     !# <objectBuilder class="randomNumberGenerator"     name="randomNumberGenerator_"     source="parameters"/>
     !# <objectBuilder class="massDistribution"          name="massDistribution_"          source="parameters"/>
-    self=radiativeTransferSourceDistributed(position,massDistribution_,radiativeTransferSpectrum_,randomNumberGenerator_)
+    self=radiativeTransferSourceDistributed(position,label,massDistribution_,radiativeTransferSpectrum_,randomNumberGenerator_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="radiativeTransferSpectrum_"/>
     !# <objectDestructor name="randomNumberGenerator_"    />
@@ -77,15 +85,16 @@ contains
     return
   end function distributedConstructorParameters
 
-  function distributedConstructorInternal(position,massDistribution_,radiativeTransferSpectrum_,randomNumberGenerator_) result(self)
+  function distributedConstructorInternal(position,label,massDistribution_,radiativeTransferSpectrum_,randomNumberGenerator_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily distributed} radiative transfer source class.
     implicit none
     type            (radiativeTransferSourceDistributed)                              :: self
     double precision                                    , intent(in   ), dimension(3) :: position
+    type            (varying_string                    ), intent(in   )               :: label
     class           (massDistributionClass             ), intent(in   ), target       :: massDistribution_
     class           (radiativeTransferSpectrumClass    ), intent(in   ), target       :: radiativeTransferSpectrum_
     class           (randomNumberGeneratorClass        ), intent(in   ), target       :: randomNumberGenerator_
-    !# <constructorAssign variables="position, *massDistribution_, *radiativeTransferSpectrum_, *randomNumberGenerator_"/>
+    !# <constructorAssign variables="position, label, *massDistribution_, *radiativeTransferSpectrum_, *randomNumberGenerator_"/>
  
     return
   end function distributedConstructorInternal
@@ -125,25 +134,60 @@ contains
          &                         ]                     &
          &                        )
     call photonPacket%luminositySet(self%luminosity(photonPacket%wavelengthMinimum(),photonPacket%wavelengthMaximum()))
+    ! Set a source type.
+    call photonPacket%sourceTypeSet(1)
     return
   end subroutine distributedInitializePhotonPacket
 
-  double precision function distributedSpectrum(self,wavelength)
+  double precision function distributedSpectrum(self,wavelength,sourceType)
     !% Return the spectrum of the distributed source.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    class           (radiativeTransferSourceDistributed), intent(inout) :: self
-    double precision                                    , intent(in   ) :: wavelength
+    class           (radiativeTransferSourceDistributed), intent(inout)           :: self
+    double precision                                    , intent(in   )           :: wavelength
+    integer                                             , intent(in   ), optional :: sourceType
 
+    if (present(sourceType)) then
+       if (sourceType /= 0 .and. sourceType /= 1) call Galacticus_Error_Report('sourceType is out of range'//{introspection:location})
+    end if
     distributedSpectrum=self%radiativeTransferSpectrum_%spectrum(wavelength)
     return
   end function distributedSpectrum
 
-  double precision function distributedLuminosity(self,wavelengthMinimum,wavelengthMaximum)
+  double precision function distributedLuminosity(self,wavelengthMinimum,wavelengthMaximum,sourceType)
     !% Return the luminosity of the distributed source.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    class           (radiativeTransferSourceDistributed), intent(inout) :: self
-    double precision                                    , intent(in   ) :: wavelengthMinimum, wavelengthMaximum
+    class           (radiativeTransferSourceDistributed), intent(inout)           :: self
+    double precision                                    , intent(in   )           :: wavelengthMinimum, wavelengthMaximum
+    integer                                             , intent(in   ), optional :: sourceType
 
+    if (present(sourceType)) then
+       if (sourceType /= 0 .and. sourceType /= 1) call Galacticus_Error_Report('sourceType is out of range'//{introspection:location})
+    end if
     distributedLuminosity=self%radiativeTransferSpectrum_%luminosity(wavelengthMinimum,wavelengthMaximum)
     return
   end function distributedLuminosity
+
+  integer function distributedSourceTypeCount(self)
+    !% Return the number of source types provided.
+    implicit none
+    class(radiativeTransferSourceDistributed), intent(inout) :: self
+    !$GLC attributes unused :: self
+    
+    distributedSourceTypeCount=1
+    return
+  end function distributedSourceTypeCount
+
+  function distributedSourceTypeName(self,sourceType)
+    !% Return the name of the source type.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
+    type   (varying_string                    )                :: distributedSourceTypeName
+    class  (radiativeTransferSourceDistributed), intent(inout) :: self
+    integer                                    , intent(in   ) :: sourceType
+
+    if (sourceType /= 1) call Galacticus_Error_Report('sourceType is out of range'//{introspection:location})
+    distributedSourceTypeName=self%label
+    return
+  end function distributedSourceTypeName

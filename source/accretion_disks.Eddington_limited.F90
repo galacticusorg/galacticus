@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,13 @@
   !% Implementation of an Eddington-limited accretion disk.
 
   !# <accretionDisks name="accretionDisksEddingtonLimited">
-  !#  <description>An accretion disk class in which accretion is always Eddington-limited.</description>
+  !#  <description>
+  !#   A circumnuclear accretion disk class in which accretion is always Eddington-limited. This class does not assume any
+  !#   physical model for the accretion disk, but merely assumes that jets are powered at a fixed fraction {\normalfont \ttfamily
+  !#   [efficiencyJet]} of the Eddington luminosity. The radiative efficiency is similarly set at a fixed value of {\normalfont
+  !#   \ttfamily [efficiencyRadiation]}. Since no physical model for the disk is assumed, the black hole spin up rate is always
+  !#   set to zero.
+  !#  </description>
   !# </accretionDisks>
   type, extends(accretionDisksClass) :: accretionDisksEddingtonLimited
      !% Implementation of an accretion disk class in which accretion is always Eddington-limited.
@@ -54,16 +60,12 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>0.1d0</defaultValue>
     !#   <description>The radiative efficiency of the Eddington-limited accretion disk.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>efficiencyJet</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0.1d0</defaultValue>
     !#   <description>The jet efficiency of the Eddington-limited accretion disk.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=accretionDisksEddingtonLimited(efficiencyRadiation,efficiencyJet)
     !# <inputParametersValidate source="parameters"/>
@@ -86,7 +88,7 @@ contains
     class           (accretionDisksEddingtonLimited), intent(inout) :: self
     class           (nodeComponentBlackHole        ), intent(inout) :: blackHole
     double precision                                , intent(in   ) :: accretionRateMass
-    !GCC$ attributes unused :: blackHole, accretionRateMass
+    !$GLC attributes unused :: blackHole, accretionRateMass
 
     eddingtonLimitedEfficiencyRadiative=self%efficiencyRadiation
     return
@@ -129,13 +131,13 @@ contains
   end function eddingtonLimitedPowerJet
 
   double precision function eddingtonLimitedRateSpinUp(self,blackHole,accretionRateMass)
-    !% Computes the spin up rate of the black hole in {\normalfont \ttfamily thisNode} due to accretion from an Eddington-limited
-    !% accretion disk.  disk. This is always zero, as no physical model is specified for this accretion disk method.
+    !% Computes the spin up rate of the given {\normalfont \ttfamily blackHole} due to accretion from an Eddington-limited
+    !% accretion disk. This is always zero, as no physical model is specified for this accretion disk method.
     implicit none
     class           (accretionDisksEddingtonLimited), intent(inout) :: self
     class           (nodeComponentBlackHole        ), intent(inout) :: blackHole
     double precision                                , intent(in   ) :: accretionRateMass
-    !GCC$ attributes unused :: self, blackHole, accretionRateMass
+    !$GLC attributes unused :: self, blackHole, accretionRateMass
 
     eddingtonLimitedRateSpinUp=0.0d0
     return

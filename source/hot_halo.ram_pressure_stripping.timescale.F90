@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,7 +27,9 @@ module Hot_Halo_Ram_Pressure_Stripping_Timescales
   !# <functionClass>
   !#  <name>hotHaloRamPressureTimescale</name>
   !#  <descriptiveName>Models of ram pressure stripping timescales due to the hot halo.</descriptiveName>
-  !#  <description>Class providing models of ram pressure stripping timescales due to the hot halo.</description>
+  !#  <description>
+  !#   Class providing models of ram pressure stripping timescales due to the hot halo.
+  !#  </description>
   !#  <default>ramPressureAcceleration</default>
   !#  <method name="timescale" >
   !#   <description>Return the ram pressure stripping timescale for {\normalfont \ttfamily node} (in units of Gyr).</description>

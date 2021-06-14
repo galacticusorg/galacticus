@@ -14,7 +14,7 @@ The {\normalfont \ttfamily basic} component (see \S\ref{sec:ComponentBasicProper
 
 \subsection{Dark Matter Profiles}
 
-The dark matter profile functions (see \S\ref{phys:darkMatterProfile}) return masses and densities etc. which are normalized to match the mass of the {\normalfont \ttfamily basic} component at the virial radius of the halo. As such, their returned values should be considered to represent the case where baryonic matter behaves as dark matter. This is a convention, and is useful for calculations of large scale structure for example.
+The dark matter profile functions (see \refPhysics{darkMatterProfileDMO}) return masses and densities etc. which are normalized to match the mass of the {\normalfont \ttfamily basic} component at the virial radius of the halo. As such, their returned values should be considered to represent the case where baryonic matter behaves as dark matter. This is a convention, and is useful for calculations of large scale structure for example.
 
 \subsection{Galactic Structure Functions}
 
@@ -22,27 +22,27 @@ The various galactic structure functions assume that the masses/densities/etc. r
 
 \subsection{Satellite Virial Orbits}
 
-These functions (see \S\ref{sec:SatelliteVirialOrbits}) typically use the {\normalfont \ttfamily basic} component mass in determining parameters of an orbit, since they are typically calibrated to simulations of collisionless matter only.
+These functions (see \refPhysics{virialOrbit}) typically use the {\normalfont \ttfamily basic} component mass in determining parameters of an orbit, since they are typically calibrated to simulations of collisionless matter only.
 
 \subsection{Satellite Merging Timescales}
 
-These functions (see \S\ref{sec:SatelliteMergingTimescales}) typically use the {\normalfont \ttfamily basic} component mass in determining parameters of an orbit, since they are typically calibrated to simulations of collisionless matter only.
+These functions (see \refPhysics{satelliteMergingTimescales}) typically use the {\normalfont \ttfamily basic} component mass in determining parameters of an orbit, since they are typically calibrated to simulations of collisionless matter only.
 
 \subsection{Dynamical Friction}
 
-These functions (see \S\ref{sec:satelliteDynamicalFrictionMethod}) evaluate densities through the relevant galactic structure function, and so correctly account for the fraction of the {\normalfont \ttfamily basic} component mass which is in the form of dark matter.
+These functions (see \refPhysics{satelliteDynamicalFriction}) evaluate densities through the relevant galactic structure function, and so correctly account for the fraction of the {\normalfont \ttfamily basic} component mass which is in the form of dark matter.
 
 \subsection{Galactic Structure Radius Solvers}
 
-These functions \S\ref{phys:galacticStructureRadiusSolver}) determine the radii of galactic components (such as disk and spheroid), typically by iteratively seeking a solution in which their angular momenta and radii are consistent (assuming rotational support) with the net gravitational potential of the entire system (galaxy plus dark matter halo).
+These functions \refPhysics{galacticStructureSolver}) determine the radii of galactic components (such as disk and spheroid), typically by iteratively seeking a solution in which their angular momenta and radii are consistent (assuming rotational support) with the net gravitational potential of the entire system (galaxy plus dark matter halo).
 
 \section{Luminosity Units}
 
 Galaxy luminosities are output in the \gls{ABmagnitude} system, such that a luminosity of $1$ corresponds to an object of $0^\mathrm{th}$ absolute magnitude in the \gls{ABmagnitude} system. This implies that the luminosities are in units of $4.4659\times 10^{13}$~W/Hz.
 
-\section{Peculiar Velocities}\label{sec:GalacticusVelocityDefinitions}
+\section{Peculiar Velocities}\label{sec:GalacticusVelocityDefinitions}\hyperdef{sec}{peculiarVelocities}{}
 
-Velocities in \glc\ are always \emph{physical} velocities. When reading merger tree properties (including velocities) from file it is often convenient to store velocities without the Hubble flow contribution, as ``peculiar velocities'', in the file---see \S\ref{sec:ForestHalosGroup} for how to specify whether or not  the velocities included in the file include the Hubble flow or not.
+Velocities in \glc\ are always \emph{physical} velocities. When reading merger tree properties (including velocities) from file it is often convenient to store velocities without the Hubble flow contribution, as ``peculiar velocities'', in the file---see \href{https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format#forest-halos-group}{here} for how to specify whether or not  the velocities included in the file include the Hubble flow or not.
 
 If peculiar velocities are stored it is important to use the same definition of pecular velocity as is used by \glc. Defining $t$ to be physical time and $\mathbf{x}$ to be comoving position, \glc\ uses the conventional definition of peculiar velocity in a cosmological context, namely that it is the deviation of the physical velocity from the Hubble flow. Physical coordinates are given by $\mathbf{r} = a\mathbf{x}$, so the peculiar velocity is
 \begin{equation}
@@ -58,3 +58,20 @@ Gravitational potentials are measured in velocity units (i.e. km$^2$/s$^2$), and
 \item this choice is consistent with the potential at the virial radius of the halo considered as a point mass as is used in Keplerian orbit calculations.
 \end{enumerate}
 Note that the choice of constant offset for the potential of any mass distribution or galactic component is irrelevant---the galactic structure function which computes potential will ensure that the potential is always offset to match the definition given above.
+
+\section{Radius Specifiers}\label{sec:radiusSpecifiers}\index{radii!specifiers}\hyperdef{sec}{radiusSpecifiers}{}
+
+Several \refClass{nodePropertyExtractorClass}s extract properties at one or more radii in a node. \glc\ provides a flexible way of specifying such radii as fractions of physical quantities such as the virial radius, disk half-mass radius, etc.
+
+Each radius specifier should take the form:
+\begin{verbatim}
+  radiusType:componentType:massType:radius
+\end{verbatim}
+The elements of this colon-separated specifier determine the radius at which a property is computed, which components/mass types should be counted, and whether baryonic loading of the halo should be accounted for. The elements have the following meaning:
+\begin{description}
+ \item [{\normalfont \ttfamily radius}] the numerical value of the radius at which to compute the property (with units specified by the {\normalfont \ttfamily radiusType} element);
+ \item [{\normalfont \ttfamily radiusType}] specifies the units of the {\normalfont \ttfamily radius} element---valid options are {\normalfont \ttfamily diskRadius}, {\normalfont \ttfamily diskHalfMassRadius}, {\normalfont \ttfamily spheroidRadius}, {\normalfont \ttfamily spheroidHalfMassRadius}, {\normalfont \ttfamily darkMatterScaleRadius}, {\normalfont \ttfamily virialRadius}, just {\normalfont \ttfamily radius} (which implies radii are given in units of Mpc), {\normalfont \ttfamily galacticMassFraction\{\textless fraction\textgreater\}}, or \newline {\normalfont \ttfamily galacticLightFraction\{\textless fraction\textgreater\}\{\textless luminosity\textgreater\}}, where the final two form specify a radius containing a fixed {\normalfont \ttfamily \textless fraction\textgreater} of the galactic mass or light respectively (for the case of galactic light, {\normalfont \ttfamily \textless luminosity\textgreater} specifies the band, e.g. {\normalfont \ttfamily SDSS\_r:rest:z0.0000});
+ \item [{\normalfont \ttfamily componentType}] specifies which components of the node should be counted---allowed values are {\normalfont \ttfamily all}, {\normalfont \ttfamily disk}, {\normalfont \ttfamily spheroid}, {\normalfont \ttfamily hotHalo}, {\normalfont \ttfamily darkHalo}, and {\normalfont \ttfamily blackHole};
+ \item [{\normalfont \ttfamily massType}] specifies which types of mass should be counted---allowed values are {\normalfont \ttfamily all}, {\normalfont \ttfamily dark}, {\normalfont \ttfamily baryonic}, {\normalfont \ttfamily galactic}, {\normalfont \ttfamily gaseous}, {\normalfont \ttfamily stellar}, and {\normalfont \ttfamily blackHole}.
+\end{description}
+

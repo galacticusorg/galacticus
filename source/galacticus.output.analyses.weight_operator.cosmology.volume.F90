@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,7 +23,15 @@
   use :: Geometry_Surveys   , only : surveyGeometryClass
 
   !# <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorCsmlgyVolume">
-  !#  <description>A cosmological volume corrector analysis weight operator class.</description>
+  !#  <description>
+  !#   An output analysis weight operator class which corrects weights for the difference in cosmological volume between true and
+  !#   assumed (i.e. in the observational analysis) cosmologies. Typically the observational data will have been analyzed assuming
+  !#   some specific set of cosmological parameters which will differ from that in the current model. Therefore, the comoving volume
+  !#   occupued by a population of galaxies must be adjusted to match what would be inferred if they were assessed using the same
+  !#   cosmological parameters as were used for the observational data. Typically, this will mean that weights are scaled in
+  !#   proportion to $V_\mathrm{max} / V^\prime_\mathrm{max}$, where $V_\mathrm{max}$ and $V^\prime_\mathrm{max}$ are the maximum
+  !#   volumes within which the galaxy would have been detected in the true and assumed cosmologies respectively.
+  !#  </description>
   !# </outputAnalysisWeightOperator>
   type, extends(outputAnalysisWeightOperatorClass) :: outputAnalysisWeightOperatorCsmlgyVolume
      !% A cosmological volume corrector analysis weight operator class.
@@ -108,7 +116,7 @@ contains
          &                                                                       volumeData            , volumeModel           , &
          &                                                                       correctionFactor
     integer                                                                      field
-    !GCC$ attributes unused :: outputIndex, propertyValue, propertyType, node
+    !$GLC attributes unused :: outputIndex, propertyValue, propertyType, node
 
     ! Compute the correction factor - the assumption here is that the volume density was derived from a 1/Vₘₐₓ type approach. To
     ! correct for the distance in model and data cosmological models, we therefore first multiply the weight by Vₘₐₓ for the model

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -29,11 +29,14 @@
      class           (radiativeTransferSpectrumClass), pointer      :: radiativeTransferSpectrum_ => null()
      class           (randomNumberGeneratorClass    ), pointer      :: randomNumberGenerator_     => null()
      double precision                                , dimension(3) :: position
+     type            (varying_string                )               :: label
    contains
      final     ::                           pointDestructor
      procedure :: initializePhotonPacket => pointInitializePhotonPacket
      procedure :: luminosity             => pointLuminosity
      procedure :: spectrum               => pointSpectrum
+     procedure :: sourceTypeCount        => pointSourceTypeCount
+     procedure :: sourceTypeName         => pointSourceTypeName
   end type radiativeTransferSourcePoint
 
   interface radiativeTransferSourcePoint
@@ -53,32 +56,38 @@ contains
     double precision                                , dimension(3)  :: position
     class           (radiativeTransferSpectrumClass), pointer       :: radiativeTransferSpectrum_
     class           (randomNumberGeneratorClass    ), pointer       :: randomNumberGenerator_
+    type            (varying_string                )                :: label
 
     !# <inputParameter>
     !#   <name>position</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>[0.0d0,0.0d0,0.0d0]</defaultValue>
     !#   <description>The position of the point source.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>label</name>
+    !#   <defaultValue>var_str('unknown')</defaultValue>
+    !#   <description>A descriptive label for the source.</description>
+    !#   <source>parameters</source>
     !# </inputParameter>
     !# <objectBuilder class="radiativeTransferSpectrum" name="radiativeTransferSpectrum_" source="parameters"/>
     !# <objectBuilder class="randomNumberGenerator"     name="randomNumberGenerator_"     source="parameters"/>
-    self=radiativeTransferSourcePoint(position,radiativeTransferSpectrum_,randomNumberGenerator_)
+    self=radiativeTransferSourcePoint(position,label,radiativeTransferSpectrum_,randomNumberGenerator_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="radiativeTransferSpectrum_"/>
     !# <objectDestructor name="randomNumberGenerator_"    />
     return
   end function pointConstructorParameters
 
-  function pointConstructorInternal(position,radiativeTransferSpectrum_,randomNumberGenerator_) result(self)
+  function pointConstructorInternal(position,label,radiativeTransferSpectrum_,randomNumberGenerator_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily point} radiative transfer source class.
     implicit none
     type            (radiativeTransferSourcePoint  )                              :: self
     double precision                                , intent(in   ), dimension(3) :: position
+    type            (varying_string                ), intent(in   )               :: label
     class           (radiativeTransferSpectrumClass), intent(in   ), target       :: radiativeTransferSpectrum_
     class           (randomNumberGeneratorClass    ), intent(in   ), target       :: randomNumberGenerator_
-    !# <constructorAssign variables="position, *radiativeTransferSpectrum_, *randomNumberGenerator_"/>
+    !# <constructorAssign variables="position, label, *radiativeTransferSpectrum_, *randomNumberGenerator_"/>
     
     return
   end function pointConstructorInternal
@@ -114,25 +123,60 @@ contains
          &                          ]                     &
          &                         )
     call photonPacket%luminositySet(self%luminosity(photonPacket%wavelengthMinimum(),photonPacket%wavelengthMaximum()))
+    ! Set a source type.
+    call photonPacket%sourceTypeSet(1)
     return
   end subroutine pointInitializePhotonPacket
 
-  double precision function pointSpectrum(self,wavelength)
+  double precision function pointSpectrum(self,wavelength,sourceType)
     !% Return the spectrum of the point source.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    class           (radiativeTransferSourcePoint), intent(inout) :: self
-    double precision                              , intent(in   ) :: wavelength
+    class           (radiativeTransferSourcePoint), intent(inout)           :: self
+    double precision                              , intent(in   )           :: wavelength
+    integer                                       , intent(in   ), optional :: sourceType
 
+    if (present(sourceType)) then
+       if (sourceType /= 0 .and. sourceType /= 1) call Galacticus_Error_Report('sourceType is out of range'//{introspection:location})
+    end if
     pointSpectrum=self%radiativeTransferSpectrum_%spectrum(wavelength)
     return
   end function pointSpectrum
 
-  double precision function pointLuminosity(self,wavelengthMinimum,wavelengthMaximum)
+  double precision function pointLuminosity(self,wavelengthMinimum,wavelengthMaximum,sourceType)
     !% Return the luminosity of the point source.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    class           (radiativeTransferSourcePoint), intent(inout) :: self
-    double precision                              , intent(in   ) :: wavelengthMinimum, wavelengthMaximum
+    class           (radiativeTransferSourcePoint), intent(inout)           :: self
+    double precision                              , intent(in   )           :: wavelengthMinimum, wavelengthMaximum
+    integer                                       , intent(in   ), optional :: sourceType
 
+    if (present(sourceType)) then
+       if (sourceType /= 0 .and. sourceType /= 1) call Galacticus_Error_Report('sourceType is out of range'//{introspection:location})
+    end if
     pointLuminosity=self%radiativeTransferSpectrum_%luminosity(wavelengthMinimum,wavelengthMaximum)
     return
   end function pointLuminosity
+
+  integer function pointSourceTypeCount(self)
+    !% Return the number of source types provided.
+    implicit none
+    class(radiativeTransferSourcePoint), intent(inout) :: self
+    !$GLC attributes unused :: self
+    
+    pointSourceTypeCount=1
+    return
+  end function pointSourceTypeCount
+
+  function pointSourceTypeName(self,sourceType)
+    !% Return the name of the source type.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
+    type   (varying_string              )                :: pointSourceTypeName
+    class  (radiativeTransferSourcePoint), intent(inout) :: self
+    integer                              , intent(in   ) :: sourceType
+
+    if (sourceType /= 1) call Galacticus_Error_Report('sourceType is out of range'//{introspection:location})
+    pointSourceTypeName=self%label
+    return
+  end function pointSourceTypeName

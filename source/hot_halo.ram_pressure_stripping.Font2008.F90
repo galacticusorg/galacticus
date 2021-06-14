@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,19 +23,32 @@
   use :: Hot_Halo_Mass_Distributions , only : hotHaloMassDistributionClass
   use :: Hot_Halo_Ram_Pressure_Forces, only : hotHaloRamPressureForce     , hotHaloRamPressureForceClass
   use :: Kind_Numbers                , only : kind_int8
+  use :: Root_Finder                 , only : rootFinder
 
   !# <hotHaloRamPressureStripping name="hotHaloRamPressureStrippingFont2008">
-  !#  <description>A hot halo ram pressure stripping class based on the methods of \cite{font_colours_2008}.</description>
+  !#  <description>
+  !#   A hot halo ram pressure stripping class based on the methods of \cite{font_colours_2008}. Specifically, the radius,
+  !#   $r_\mathrm{rp}$, is computed as the solution of
+  !#   \begin{equation}
+  !#   \alpha_\mathrm{rp} {\mathrm{G} M_\mathrm{satellite}(r_\mathrm{rp}) \rho_\mathrm{hot, satellite}(r_\mathrm{rp}) \over
+  !#   r_\mathrm{rp} } = \mathcal{F}_\mathrm{ram, hot, host},
+  !#   \end{equation}
+  !#   where $M_\mathrm{satellite}(r)$ is the total mass of the satellite within radius $r$, $\mathcal{F}_\mathrm{ram, hot, host}$
+  !#   is the ram pressure force due to the hot halo (computed using the selected hot halo ram pressure force method; see
+  !#   \refPhysics{hotHaloRamPressureForce}). The parameter $\alpha_\mathrm{rp}=${\normalfont \ttfamily
+  !#   [formFactor]} is a geometric factor of order unity.
+  !#  </description>
   !# </hotHaloRamPressureStripping>
   type, extends(hotHaloRamPressureStrippingClass) :: hotHaloRamPressureStrippingFont2008
      !% Implementation of a hot halo ram pressure stripping class based on the methods of \cite{font_colours_2008}.
      private
-     class           (darkMatterHaloScaleClass    ), pointer :: darkMatterHaloScale_ => null()
+     class           (darkMatterHaloScaleClass    ), pointer :: darkMatterHaloScale_     => null()
      class           (hotHaloRamPressureForceClass), pointer :: hotHaloRamPressureForce_ => null()
      class           (hotHaloMassDistributionClass), pointer :: hotHaloMassDistribution_ => null()
      double precision                                        :: formFactor
-     integer         (kind_int8                   )          :: uniqueIDLast            =-1
-     double precision                                        :: radiusLast              =-1.0d0
+     integer         (kind_int8                   )          :: uniqueIDLast             =  -1
+     double precision                                        :: radiusLast               =  -1.0d0
+     type            (rootFinder                  )          :: finder
    contains
      final     ::                   font2008Destructor
      procedure :: radiusStripped => font2008RadiusStripped
@@ -68,12 +81,10 @@ contains
 
     !# <inputParameter>
     !#   <name>formFactor</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>2.0d0</defaultValue>
     !#   <description>The form factor appearing in the gravitational binding force (per unit area) in the ram pressure stripping model
     !#      of \citeauthor{font_colours_2008}~(\citeyear{font_colours_2008}; their eqn.~4).</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="darkMatterHaloScale"     name="darkMatterHaloScale_"     source="parameters"/>
     !# <objectBuilder class="hotHaloRamPressureForce" name="hotHaloRamPressureForce_" source="parameters"/>
@@ -94,8 +105,15 @@ contains
     class           (hotHaloRamPressureForceClass       ), intent(in   ), target :: hotHaloRamPressureForce_
     class           (hotHaloMassDistributionClass       ), intent(in   ), target :: hotHaloMassDistribution_
     double precision                                     , intent(in   )         :: formFactor
+    double precision                                     , parameter             :: toleranceAbsolute       =0.0d+0, toleranceRelative=1.0d-3
     !# <constructorAssign variables="formFactor, *darkMatterHaloScale_, *hotHaloRamPressureForce_, *hotHaloMassDistribution_"/>
 
+    ! Solver for the ram pressure stripping radius.
+    self%finder=rootFinder(                                        &
+         &                 rootFunction     =font2008RadiusSolver, &
+         &                 toleranceAbsolute=toleranceAbsolute   , &
+         &                 toleranceRelative=toleranceRelative     &
+         &                )
     return
   end function font2008ConstructorInternal
 
@@ -112,16 +130,13 @@ contains
 
   double precision function font2008RadiusStripped(self,node)
     !% Return the ram pressure stripping radius due to the hot halo using the model of \cite{font_colours_2008}.
-    use :: Galacticus_Display, only : Galacticus_Display_Message, verbositySilent
-    use :: Galacticus_Error  , only : Galacticus_Error_Report   , errorStatusSuccess
-    use :: Root_Finder       , only : rangeExpandMultiplicative , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
+    use :: Display         , only : displayMessage           , verbosityLevelSilent
+    use :: Galacticus_Error, only : Galacticus_Error_Report  , errorStatusSuccess
+    use :: Root_Finder     , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
     implicit none
     class           (hotHaloRamPressureStrippingFont2008), intent(inout), target :: self
     type            (treeNode                           ), intent(inout), target :: node
-    double precision                                     , parameter             :: toleranceAbsolute             =0.0d+0, toleranceRelative=1.0d-3
     double precision                                     , parameter             :: radiusSmallestOverRadiusVirial=1.0d-6
-    type            (rootFinder                         ), save                  :: finder
-    !$omp threadprivate(finder)
     double precision                                                             :: radiusVirial                         , radiusVirialRoot        , &
          &                                                                          radiusSmallRoot
     integer                                                                      :: status
@@ -149,36 +164,31 @@ contains
              ! The ram pressure force can strip to (essentially) arbitrarily small radii.
              font2008RadiusStripped=0.0d0
           else
-             ! Solver for the ram pressure stripping radius.
-             if (.not.finder%isInitialized()) then
-                call finder%rootFunction(font2008RadiusSolver)
-                call finder%tolerance   (toleranceAbsolute,toleranceRelative)
-             end if
              ! If we have a previously found radius, and if the node is the same as the previous node for which this function was
              ! called, then use that previous radius as a guess for the new solution. Note that we do not reset the previous
              ! radius between ODE steps (i.e. we do not make use of "calculationReset" events to reset the radius) as we
              ! specifically want to retain knowledge from the previous step.
              if (self%radiusLast > 0.0d0 .and. node%uniqueID() == self%uniqueIDLast) then
-                call finder%rangeExpand(                                                                           &
-                     &                  rangeExpandDownward          =0.9d0                                      , &
-                     &                  rangeExpandUpward            =1.1d0                                      , &
-                     &                  rangeExpandType              =rangeExpandMultiplicative                  , &
-                     &                  rangeDownwardLimit           =radiusSmallestOverRadiusVirial*radiusVirial, &
-                     &                  rangeUpwardLimit             =                               radiusVirial, &
-                     &                  rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive              , &
-                     &                  rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative                &
-                     &                 )
+                call self%finder%rangeExpand(                                                                           &
+                     &                       rangeExpandDownward          =0.9d0                                      , &
+                     &                       rangeExpandUpward            =1.1d0                                      , &
+                     &                       rangeExpandType              =rangeExpandMultiplicative                  , &
+                     &                       rangeDownwardLimit           =radiusSmallestOverRadiusVirial*radiusVirial, &
+                     &                       rangeUpwardLimit             =                               radiusVirial, &
+                     &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive              , &
+                     &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative                &
+                     &                      )
              else
-                call finder%rangeExpand(                                                                           &
-                     &                  rangeExpandDownward          =0.5d0                                      , &
-                     &                  rangeExpandType              =rangeExpandMultiplicative                  , &
-                     &                  rangeDownwardLimit           =radiusSmallestOverRadiusVirial*radiusVirial, &
-                     &                  rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive                &
-                     &                 )
+                call self%finder%rangeExpand(                                                                           &
+                     &                       rangeExpandDownward          =0.5d0                                      , &
+                     &                       rangeExpandType              =rangeExpandMultiplicative                  , &
+                     &                       rangeDownwardLimit           =radiusSmallestOverRadiusVirial*radiusVirial, &
+                     &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive                &
+                     &                      )
                 self%radiusLast  =radiusVirial
                 self%uniqueIDLast=node%uniqueID()
              end if
-             font2008RadiusStripped=finder%find(rootGuess=min(self%radiusLast,radiusVirial),status=status)
+             font2008RadiusStripped=self%finder%find(rootGuess=min(self%radiusLast,radiusVirial),status=status)
              if (status /= errorStatusSuccess) then
                 message='virial radius / root function at virial radius = '
                 write (label,'(e12.6)') radiusVirial
@@ -187,7 +197,7 @@ contains
                 message=message//" / "//trim(adjustl(label))
                 write (label,'(e12.6)') font2008RadiusSolver(radiusVirial)
                 message=message//" : "//trim(adjustl(label))
-                call Galacticus_Display_Message(message,verbositySilent)
+                call displayMessage(message,verbosityLevelSilent)
                 message='small radius / root function at small radius = '
                 write (label,'(e12.6)') radiusSmallestOverRadiusVirial*radiusVirial
                 message=message//trim(adjustl(label))
@@ -195,7 +205,7 @@ contains
                 message=message//" / "//trim(adjustl(label))
                 write (label,'(e12.6)') font2008RadiusSolver(radiusSmallestOverRadiusVirial*radiusVirial)
                 message=message//" : "//trim(adjustl(label))
-                call Galacticus_Display_Message(message,verbositySilent)
+                call displayMessage(message,verbosityLevelSilent)
                 call Galacticus_Error_Report('root finding failed'//{introspection:location})
              end if
              self%radiusLast=font2008RadiusStripped
@@ -212,7 +222,7 @@ contains
     !% Root function used in finding the ram pressure stripping radius.
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
     use :: Galactic_Structure_Options        , only : componentTypeAll                , massTypeAll
-    use :: Numerical_Constants_Physical      , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical  , only : gravitationalConstantGalacticus
     implicit none
     double precision, intent(in   ) :: radius
     double precision                :: massEnclosed  , forceBindingGravitational, &

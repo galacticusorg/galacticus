@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,21 +26,10 @@
      !% Implementation of an abstract mass distribution class for spherically symmetric distributions.
      private
    contains
-     !@ <objectMethods>
-     !@   <object>massDistributionSpherical</object>
-     !@   <objectMethod>
-     !@     <method>radiusHalfMass</method>
-     !@     <description>Returns the radius enclosing half of the mass of the mass distribution.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>radiusEnclosingMass</method>
-     !@     <description>Returns the radius enclosing the given mass.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ mass\argin</arguments>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Returns the radius enclosing half of the mass of the mass distribution." method="radiusHalfMass" />
+     !#   <method description="Returns the radius enclosing the given mass." method="radiusEnclosingMass" />
+     !# </methods>
      procedure :: symmetry             => sphericalSymmetry
      procedure :: massEnclosedBySphere => sphericalMassEnclosedBySphere
      procedure :: radiusHalfMass       => sphericalRadiusHalfMass
@@ -61,7 +50,7 @@ contains
     !% Returns symmetry label for mass dsitributions with spherical symmetry.
     implicit none
     class(massDistributionSpherical), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     sphericalSymmetry=massDistributionSymmetrySpherical
     return
@@ -70,31 +59,18 @@ contains
   double precision function sphericalMassEnclosedBySphere(self,radius)
     !% Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for spherically-symmetric mass
     !% distributions using numerical integration.
-    use :: FGSL                    , only : fgsl_function, fgsl_integration_workspace
     use :: Numerical_Constants_Math, only : Pi
-    use :: Numerical_Integration   , only : Integrate    , Integrate_Done
+    use :: Numerical_Integration   , only : integrator
     implicit none
-    class           (massDistributionSpherical ), intent(inout), target :: self
-    double precision                            , intent(in   )         :: radius
-    type            (fgsl_function             )                        :: integrandFunction
-    type            (fgsl_integration_workspace)                        :: integrationWorkspace
-    logical                                                             :: integrationReset
+    class           (massDistributionSpherical), intent(inout), target :: self
+    double precision                           , intent(in   )         :: radius
+    type            (integrator               )                        :: integrator_
 
-    sphericalActive  => self
-    integrationReset =  .true.
-    sphericalMassEnclosedBySphere=+4.0d0                                                               &
-         &                        *Pi                                                                  &
-         &                        *Integrate(                                                          &
-         &                                                     0.0d0                                 , &
-         &                                                     radius                                , &
-         &                                                     sphericalMassEnclosedBySphereIntegrand, &
-         &                                                     integrandFunction                     , &
-         &                                                     integrationWorkspace                  , &
-         &                                   reset            =integrationReset                      , &
-         &                                   toleranceAbsolute=0.0d+0                                , &
-         &                                   toleranceRelative=1.0d-6                                  &
-         &                       )
-    call Integrate_Done(integrandFunction,integrationWorkspace)
+    sphericalActive               =>  self
+    integrator_                   =   integrator(sphericalMassEnclosedBySphereIntegrand,toleranceRelative=1.0d-6)
+    sphericalMassEnclosedBySphere =  +4.0d0                              &
+         &                           *Pi                                 &
+         &                           *integrator_%integrate(0.0d0,radius)
     return
   end function sphericalMassEnclosedBySphere
 
@@ -113,33 +89,33 @@ contains
 
   double precision function sphericalRadiusEnclosingMass(self,mass)
     !% Computes the radius enclosing a given mass in a spherically symmetric mass distribution using numerical root finding.
-    use :: FGSL       , only : FGSL_Root_fSolver_Brent
-    use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
+    use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder, &
+         &                     GSL_Root_fSolver_Brent
     implicit none
     class           (massDistributionSpherical), intent(inout), target :: self
     double precision                           , intent(in   )         :: mass
     type            (rootFinder               ), save                  :: finder
-    !$omp threadprivate(finder)
-    double precision                           , parameter             :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
+    logical                                    , save                  :: finderConstructed=.false.
+    !$omp threadprivate(finder,finderConstructed)
+    double precision                           , parameter             :: toleranceAbsolute=0.0d0  , toleranceRelative=1.0d-6
 
-    if (.not.finder%isInitialized()) then
-       call finder%rootFunction(                                                             &
-            &                                                 sphericalMassRoot              &
-            &                  )
-       call finder%tolerance   (                                                             &
-            &                                                 toleranceAbsolute            , &
-            &                                                 toleranceRelative              &
-            &                  )
-       call finder%type        (                                                             &
-            &                                                 FGSL_Root_fSolver_Brent        &
-            &                  )
-       call finder%rangeExpand (                                                             &
-            &                   rangeExpandUpward            =2.0d0                        , &
-            &                   rangeExpandDownward          =0.5d0                        , &
-            &                   rangeExpandType              =rangeExpandMultiplicative    , &
-            &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
-            &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive  &
-            &                  )
+    if (mass <= 0.0d0) then
+       sphericalRadiusEnclosingMass=0.0d0
+       return
+    end if
+    if (.not.finderConstructed) then
+       finder           =rootFinder(                                                             &
+            &                       rootFunction                 =sphericalMassRoot            , &
+            &                       toleranceAbsolute            =toleranceAbsolute            , &
+            &                       toleranceRelative            =toleranceRelative            , &
+            &                       solverType                   =GSL_Root_fSolver_Brent       , &
+            &                       rangeExpandUpward            =2.0d0                        , &
+            &                       rangeExpandDownward          =0.5d0                        , &
+            &                       rangeExpandType              =rangeExpandMultiplicative    , &
+            &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+            &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive  &
+            &                      )
+       finderConstructed=.true.
     end if
     sphericalActive              => self
     sphericalMassTarget          =  mass
@@ -169,9 +145,8 @@ contains
   function sphericalAcceleration(self,coordinates)
     !% Computes the gravitational acceleration at {\normalfont \ttfamily coordinates} for spherically-symmetric mass
     !% distributions.
-    use :: Coordinates                     , only : assignment(=)                  , coordinateSpherical, coordinateCartesian
-    use :: Numerical_Constants_Astronomical, only : gigaYear                       , megaParsec
-    use :: Numerical_Constants_Physical    , only : gravitationalConstantGalacticus
+    use :: Coordinates                     , only : assignment(=), coordinateSpherical, coordinateCartesian
+    use :: Numerical_Constants_Astronomical, only : gigaYear     , megaParsec         , gravitationalConstantGalacticus
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     double precision                           , dimension(3)  :: sphericalAcceleration
@@ -203,11 +178,11 @@ contains
   function sphericalTidalTensor(self,coordinates)
     !% Computes the gravitational tidal tensor at {\normalfont \ttfamily coordinates} for spherically-symmetric mass
     !% distributions.
-    use :: Coordinates                 , only : assignment(=)                  , coordinateSpherical, coordinateCartesian
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
-    use :: Numerical_Constants_Math    , only : Pi
-    use :: Tensors                     , only : tensorIdentityR2D3Sym          , assignment(=)      , operator(*)
-    use :: Vectors                     , only : Vector_Outer_Product
+    use :: Coordinates                     , only : assignment(=)                  , coordinateSpherical, coordinateCartesian
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Math        , only : Pi
+    use :: Tensors                         , only : tensorIdentityR2D3Sym          , assignment(=)      , operator(*)
+    use :: Vectors                         , only : Vector_Outer_Product
     implicit none
     type            (tensorRank2Dimension3Symmetric)                :: sphericalTidalTensor
     class           (massDistributionSpherical     ), intent(inout) :: self

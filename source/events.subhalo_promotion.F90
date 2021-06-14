@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -29,9 +29,9 @@ contains
 
   logical function nodeSubhaloPromotionPerform(event,node,deadlockStatus)
     !% Promotes a subhalo to be an isolated node.
-    use :: Galacticus_Display                 , only : Galacticus_Display_Message   , Galacticus_Verbosity_Level    , verbosityInfo
-    use :: Galacticus_Nodes                   , only : nodeComponentBasic           , nodeEvent    , treeNode
-    use :: ISO_Varying_String                 , only : varying_string               , assignment(=)                 , operator(//)
+    use :: Display                            , only : displayMessage               , displayVerbosity, verbosityLevelInfo
+    use :: Galacticus_Nodes                   , only : nodeComponentBasic           , nodeEvent       , treeNode
+    use :: ISO_Varying_String                 , only : assignment(=)                , operator(//)    , varying_string
     use :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsNotDeadlocked
     use :: String_Handling                    , only : operator(//)
     implicit none
@@ -51,11 +51,11 @@ contains
        return
     end if
     ! Report.
-    if (Galacticus_Verbosity_Level() >= verbosityInfo) then
+    if (displayVerbosity() >= verbosityLevelInfo) then
        write (label,'(f12.6)') event%time
        message='Satellite node ['
        message=message//node%index()//'] promoting to isolated node ['//event%node%index()//'] at time '//trim(label)//' Gyr'
-       call Galacticus_Display_Message(message)
+       call displayMessage(message)
     end if
     ! Remove the subhalo from its host.
     call node%removeFromHost  ()

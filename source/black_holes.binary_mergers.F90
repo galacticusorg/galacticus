@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,7 +27,9 @@ module Black_Hole_Binary_Mergers
   !# <functionClass>
   !#  <name>blackHoleBinaryMerger</name>
   !#  <descriptiveName>Black Hole Binaries Merger</descriptiveName>
-  !#  <description>Class providing models of black hole binary mergers.</description>
+  !#  <description>
+  !#   Class providing models of black hole binary mergers.
+  !#  </description>
   !#  <default>rezzolla2008</default>
   !#  <method name="merge" >
   !#   <description>The the properties of the black hole resulting from a binary merger.</description>

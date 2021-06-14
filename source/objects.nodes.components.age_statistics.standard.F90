@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,6 +22,8 @@
 module Node_Component_Age_Statistics_Standard
   !% Implements the standard galaxy age statistics component.
   use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
+  use :: Star_Formation_Rates_Disks      , only : starFormationRateDisksClass
+  use :: Star_Formation_Rates_Spheroids  , only : starFormationRateSpheroidsClass
   implicit none
   private
   public :: Node_Component_Age_Statistics_Standard_Scale_Set          , Node_Component_Age_Statistics_Standard_Rate_Compute     , &
@@ -69,11 +71,13 @@ module Node_Component_Age_Statistics_Standard
   !# </component>
   
   ! Objects used by this component.
-  class  (mergerMassMovementsClass), pointer :: mergerMassMovements_
-  !$omp threadprivate(mergerMassMovements_)
+  class  (mergerMassMovementsClass       ), pointer :: mergerMassMovements_
+  class  (starFormationRateDisksClass    ), pointer :: starFormationRateDisks_
+  class  (starFormationRateSpheroidsClass), pointer :: starFormationRateSpheroids_
+  !$omp threadprivate(mergerMassMovements_,starFormationRateDisks_,starFormationRateSpheroids_)
   
   ! Record of whether variables in this component are inactive.
-  logical                                    :: ageStatisticsStandardIsInactive
+  logical                                           :: ageStatisticsStandardIsInactive
 
 contains
 
@@ -90,11 +94,9 @@ contains
     if (defaultAgeStatisticsComponent%standardIsActive()) then
        !# <inputParameter>
        !#   <name>ageStatisticsStandardIsInactive</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>Specifies whether or not the variables of the standard age statistics component are inactive (i.e. do not appear in any ODE being solved).</description>
        !#   <source>parameters_</source>
-       !#   <type>boolean</type>
        !# </inputParameter>
     end if
     return
@@ -116,7 +118,9 @@ contains
     if (defaultAgeStatisticsComponent%standardIsActive()) then
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
        call satelliteMergerEvent%attach(defaultAgeStatisticsComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentAgeStatisticsStandard',dependencies=dependencies)
-       !# <objectBuilder class="mergerMassMovements" name="mergerMassMovements_" source="parameters_"/>
+       !# <objectBuilder class="mergerMassMovements"        name="mergerMassMovements_"        source="parameters_"/>
+       !# <objectBuilder class="starFormationRateDisks"     name="starFormationRateDisks_"     source="parameters_"/>
+       !# <objectBuilder class="starFormationRateSpheroids" name="starFormationRateSpheroids_" source="parameters_"/>
     end if
     return
   end subroutine Node_Component_Age_Statistics_Standard_Thread_Initialize
@@ -132,7 +136,9 @@ contains
 
     if (defaultAgeStatisticsComponent%standardIsActive()) then
        call satelliteMergerEvent%detach(defaultAgeStatisticsComponent,satelliteMerger)
-       !# <objectDestructor name="mergerMassMovements_"/>
+       !# <objectDestructor name="mergerMassMovements_"       />
+       !# <objectDestructor name="starFormationRateDisks_"    />
+       !# <objectDestructor name="starFormationRateSpheroids_"/>
     end if
     return
   end subroutine Node_Component_Age_Statistics_Standard_Thread_Uninitialize
@@ -202,14 +208,13 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Age_Statistics_Standard_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Age_Statistics_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
+  subroutine Node_Component_Age_Statistics_Standard_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
     !% Compute the exponential disk node mass rate of change.
     use :: Galacticus_Nodes, only : defaultAgeStatisticsComponent, interruptTask       , nodeComponentAgeStatistics, nodeComponentAgeStatisticsStandard, &
           &                         nodeComponentBasic           , nodeComponentDisk   , nodeComponentSpheroid     , propertyTypeActive                , &
           &                         propertyTypeAll              , propertyTypeInactive, treeNode
     implicit none
-    type            (treeNode                    ), intent(inout), pointer :: node
-    logical                                       , intent(in   )          :: odeConverged
+    type            (treeNode                    ), intent(inout)          :: node
     logical                                       , intent(inout)          :: interrupt
     procedure       (interruptTask               ), intent(inout), pointer :: interruptProcedure
     integer                                       , intent(in   )          :: propertyType
@@ -220,7 +225,6 @@ contains
     double precision                                                       :: time                     , diskStarFormationRate, &
          &                                                                    spheroidStarFormationRate
     logical                                                                :: isGeneric
-    !GCC$ attributes unused :: odeConverged
 
     ! Return immediately if the standard age statistics component is not active.
     if (.not.defaultAgeStatisticsComponent%standardIsActive()) return
@@ -245,10 +249,10 @@ contains
          &                                                 .not.isGeneric                        &
          & ) return
     ! Get the star formation rates.
-    disk                      => node    %disk             ()
-    spheroid                  => node    %spheroid         ()
-    diskStarFormationRate     =  disk    %starFormationRate()
-    spheroidStarFormationRate =  spheroid%starFormationRate()
+    disk                      => node                       %disk    (    )
+    spheroid                  => node                       %spheroid(    )
+    diskStarFormationRate     =  starFormationRateDisks_    %rate    (node)
+    spheroidStarFormationRate =  starFormationRateSpheroids_%rate    (node)
     ! Find the current cosmic time.
     basic => node %basic()
     time  =  basic%time ()
@@ -273,7 +277,7 @@ contains
     integer                                            :: destinationGasSatellite, destinationGasHost       , &
          &                                                destinationStarsHost   , destinationStarsSatellite
     logical                                            :: mergerIsMajor
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Get the age statistics component.
     ageStatistics => node%ageStatistics()

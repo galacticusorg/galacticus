@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,10 +23,9 @@ module Black_Hole_Fundamentals
   !% Implements fundamental properties of black holes.
   implicit none
   private
-  public :: Black_Hole_ISCO_Radius, Black_Hole_ISCO_Specific_Energy, Black_Hole_Gravitational_Radius,&
-       & Black_Hole_Frame_Dragging_Frequency, Black_Hole_Metric_A_Factor, Black_Hole_Metric_D_Factor, Black_Hole_Horizon_Radius,&
-       & Black_Hole_Static_Radius, Black_Hole_ISCO_Specific_Angular_Momentum, Black_Hole_Rotational_Energy_Spin_Down,&
-       & Black_Hole_Eddington_Accretion_Rate
+  public :: Black_Hole_ISCO_Radius                   , Black_Hole_ISCO_Specific_Energy       , Black_Hole_Gravitational_Radius    , Black_Hole_Frame_Dragging_Frequency, &
+       &    Black_Hole_Metric_A_Factor               , Black_Hole_Metric_D_Factor            , Black_Hole_Horizon_Radius          , Black_Hole_Static_Radius           , &
+       &    Black_Hole_ISCO_Specific_Angular_Momentum, Black_Hole_Rotational_Energy_Spin_Down, Black_Hole_Eddington_Accretion_Rate
 
   ! Identifiers for unit system options.
   integer, parameter, public :: unitsGravitational=0
@@ -116,27 +115,27 @@ contains
     return
   end function Black_Hole_ISCO_Radius_Spin
 
-  double precision function Black_Hole_Eddington_Accretion_Rate(thisBlackHole)
-    !% Return the Eddington accretion rate (in $M_\odot$ Gyr$^{-1}$) for the black hole in {\normalfont \ttfamily thisBlackHole}.
+  double precision function Black_Hole_Eddington_Accretion_Rate(blackHole)
+    !% Return the Eddington accretion rate (in $M_\odot$ Gyr$^{-1}$) for the black hole in {\normalfont \ttfamily blackHole}.
     use :: Galacticus_Nodes                , only : nodeComponentBlackHole
     use :: Numerical_Constants_Astronomical, only : gigaYear
     use :: Numerical_Constants_Atomic      , only : massHydrogenAtom
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Physical    , only : gravitationalConstant , speedLight, thomsonCrossSection
     implicit none
-    class(nodeComponentBlackHole), intent(inout) :: thisBlackHole
+    class(nodeComponentBlackHole), intent(inout) :: blackHole
 
-    Black_Hole_Eddington_Accretion_Rate=4.0d0*Pi*gravitationalConstant*thisBlackHole%mass()*massHydrogenAtom&
+    Black_Hole_Eddington_Accretion_Rate=4.0d0*Pi*gravitationalConstant*blackHole%mass()*massHydrogenAtom&
          &*gigaYear/thomsonCrossSection/speedLight
     return
   end function Black_Hole_Eddington_Accretion_Rate
 
-  double precision function Black_Hole_ISCO_Radius_Node(thisBlackHole,units,orbit)
+  double precision function Black_Hole_ISCO_Radius_Node(blackHole,units,orbit)
     !% Returns the radius (in physical or gravitational units and for a prograde or retorgrade orbit) of the innermost stable
-    !% circular orbit for the black hole in {\normalfont \ttfamily thisBlackHole}.
+    !% circular orbit for the black hole in {\normalfont \ttfamily blackHole}.
     use :: Galacticus_Nodes, only : nodeComponentBlackHole
     implicit none
-    class           (nodeComponentBlackHole), intent(inout)           :: thisBlackHole
+    class           (nodeComponentBlackHole), intent(inout)           :: blackHole
     integer                                 , intent(in   ), optional :: orbit        , units
     integer                                                           :: orbitActual  , unitsActual
     double precision                                                  :: blackHoleSpin
@@ -156,23 +155,23 @@ contains
     end if
 
     ! Get the black hole spin.
-    blackHoleSpin=thisBlackHole%spin()
+    blackHoleSpin=blackHole%spin()
 
     ! Compute the radius of the innermost stable circular orbit in units of the gravitational radius.
     Black_Hole_ISCO_Radius_Node=Black_Hole_ISCO_Radius_Spin(blackHoleSpin,orbitActual)
 
     ! Convert to physical units if necessary.
-    if (unitsActual == unitsPhysical) Black_Hole_ISCO_Radius_Node=Black_Hole_ISCO_Radius_Node*Black_Hole_Gravitational_Radius(thisBlackHole)
+    if (unitsActual == unitsPhysical) Black_Hole_ISCO_Radius_Node=Black_Hole_ISCO_Radius_Node*Black_Hole_Gravitational_Radius(blackHole)
     return
   end function Black_Hole_ISCO_Radius_Node
 
-  double precision function Black_Hole_ISCO_Specific_Energy_Node(thisBlackHole,units,orbit)
+  double precision function Black_Hole_ISCO_Specific_Energy_Node(blackHole,units,orbit)
     !% Returns the specific energy (in physical or gravitational units and for a prograde or retorgrade orbit) of the innermost
-    !% stable circular orbit for the black hole in {\normalfont \ttfamily thisNode}.
-    use :: Galacticus_Nodes            , only : nodeComponentBlackHole
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    !% stable circular orbit for the given {\normalfont \ttfamily blackHole}.
+    use :: Galacticus_Nodes                , only : nodeComponentBlackHole
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    class           (nodeComponentBlackHole), intent(inout)           :: thisBlackHole
+    class           (nodeComponentBlackHole), intent(inout)           :: blackHole
     integer                                 , intent(in   ), optional :: orbit        , units
     integer                                                           :: unitsActual
     double precision                                                  :: blackHoleSpin
@@ -185,14 +184,14 @@ contains
     end if
 
     ! Get the black hole spin.
-    blackHoleSpin=thisBlackHole%spin()
+    blackHoleSpin=blackHole%spin()
 
     ! Get the dimensionless ISCO energy.
     Black_Hole_ISCO_Specific_Energy_Node=Black_Hole_ISCO_Specific_Energy_Spin(blackHoleSpin,orbit)
 
     ! Convert to physical units if necessary.
     if (unitsActual == unitsPhysical) Black_Hole_ISCO_Specific_Energy_Node=Black_Hole_ISCO_Specific_Energy_Node&
-         &*gravitationalConstantGalacticus*thisBlackHole%mass()**2/Black_Hole_Gravitational_Radius(thisBlackHole)
+         &*gravitationalConstantGalacticus*blackHole%mass()**2/Black_Hole_Gravitational_Radius(blackHole)
     return
   end function Black_Hole_ISCO_Specific_Energy_Node
 
@@ -223,13 +222,13 @@ contains
     return
   end function Black_Hole_ISCO_Specific_Energy_Spin
 
-  double precision function Black_Hole_ISCO_Specific_Angular_Momentum(thisBlackHole,units,orbit)
+  double precision function Black_Hole_ISCO_Specific_Angular_Momentum(blackHole,units,orbit)
     !% Returns the specific angular momentum (in physical or gravitational units and for a prograde or retorgrade orbit) of the
-    !% innermost stable circular orbit for the black hole in {\normalfont \ttfamily thisBlackHole}.
-    use :: Galacticus_Nodes            , only : nodeComponentBlackHole
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    !% innermost stable circular orbit for the black hole in {\normalfont \ttfamily blackHole}.
+    use :: Galacticus_Nodes                , only : nodeComponentBlackHole
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    class           (nodeComponentBlackHole)           , intent(inout)           :: thisBlackHole
+    class           (nodeComponentBlackHole)           , intent(inout)           :: blackHole
     integer                                            , intent(in   ), optional :: orbit                            , units
     ! Maximum spin above which we use series solution.
     double precision                        , parameter                          :: maximumSpin        =0.99999d0
@@ -253,8 +252,8 @@ contains
     end if
 
     ! Get black hole spin and ISCO radius.
-    blackHoleSpin      =thisBlackHole%spin()
-    blackHoleIscoRadius=Black_Hole_ISCO_Radius(thisBlackHole,units=unitsGravitational,orbit=orbitActual)
+    blackHoleSpin      =blackHole%spin()
+    blackHoleIscoRadius=Black_Hole_ISCO_Radius(blackHole,units=unitsGravitational,orbit=orbitActual)
 
     ! Compute the specific angular momentum in gravitational units.
     if (blackHoleSpin > maximumSpin) then
@@ -267,28 +266,29 @@ contains
 
     ! Convert to physical units if necessary.
     if (unitsActual == unitsPhysical) Black_Hole_ISCO_Specific_Angular_Momentum=Black_Hole_ISCO_Specific_Angular_Momentum &
-         &*sqrt(gravitationalConstantGalacticus*thisBlackHole%mass()*Black_Hole_Gravitational_Radius(thisBlackHole))
+         &*sqrt(gravitationalConstantGalacticus*blackHole%mass()*Black_Hole_Gravitational_Radius(blackHole))
     return
   end function Black_Hole_ISCO_Specific_Angular_Momentum
 
-  double precision function Black_Hole_Gravitational_Radius(thisBlackHole)
-    !% Computes the gravitational radius (in Mpc) for the {\normalfont \ttfamily thisBlackHole}.
-    use :: Galacticus_Nodes            , only : nodeComponentBlackHole
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus, speedLight
-    use :: Numerical_Constants_Prefixes, only : milli
+  double precision function Black_Hole_Gravitational_Radius(blackHole)
+    !% Computes the gravitational radius (in Mpc) for the {\normalfont \ttfamily blackHole}.
+    use :: Galacticus_Nodes                , only : nodeComponentBlackHole
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Physical    , only : speedLight
+    use :: Numerical_Constants_Prefixes    , only : milli
     implicit none
-    class(nodeComponentBlackHole), intent(inout) :: thisBlackHole
+    class(nodeComponentBlackHole), intent(inout) :: blackHole
 
-    Black_Hole_Gravitational_Radius=gravitationalConstantGalacticus*thisBlackHole%mass()/(milli*speedLight)**2
+    Black_Hole_Gravitational_Radius=gravitationalConstantGalacticus*blackHole%mass()/(milli*speedLight)**2
     return
   end function Black_Hole_Gravitational_Radius
 
-  double precision function Black_Hole_Frame_Dragging_Frequency_Node(thisBlackHole,radius,units)
+  double precision function Black_Hole_Frame_Dragging_Frequency_Node(blackHole,radius,units)
     !% Returns the frame-dragging angular velocity in the Kerr metric.
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBlackHole
     implicit none
-    class           (nodeComponentBlackHole), intent(inout), pointer  :: thisBlackHole
+    class           (nodeComponentBlackHole), intent(inout), pointer  :: blackHole
     double precision                        , intent(in   )           :: radius
     integer                                 , intent(in   ), optional :: units
     integer                                                           :: unitsActual
@@ -306,14 +306,14 @@ contains
     case (unitsGravitational)
        radiusDimensionless=radius
     case (unitsPhysical)
-       radiusDimensionless=radius/Black_Hole_Gravitational_Radius(thisBlackHole)
+       radiusDimensionless=radius/Black_Hole_Gravitational_Radius(blackHole)
     case default
        radiusDimensionless=0.0d0
        call Galacticus_Error_Report('unrecognized units'//{introspection:location})
     end select
 
     ! Get the black hole spin.
-    blackHoleSpin=thisBlackHole%spin()
+    blackHoleSpin=blackHole%spin()
 
     Black_Hole_Frame_Dragging_Frequency_Node=Black_Hole_Frame_Dragging_Frequency_Spin(blackHoleSpin,radiusDimensionless)
     return
@@ -328,12 +328,12 @@ contains
     return
   end function Black_Hole_Frame_Dragging_Frequency_Spin
 
-  double precision function Black_Hole_Metric_A_Factor_Node(thisBlackHole,radius,units)
-    !% Returns the $\mathcal{A}$ factor appearing in the Kerr metric for {\normalfont \ttfamily thisBlackHole}.
+  double precision function Black_Hole_Metric_A_Factor_Node(blackHole,radius,units)
+    !% Returns the $\mathcal{A}$ factor appearing in the Kerr metric for {\normalfont \ttfamily blackHole}.
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBlackHole
     implicit none
-    class           (nodeComponentBlackHole), intent(inout)           :: thisBlackHole
+    class           (nodeComponentBlackHole), intent(inout)           :: blackHole
     double precision                        , intent(in   )           :: radius
     integer                                 , intent(in   ), optional :: units
     integer                                                           :: unitsActual
@@ -351,14 +351,14 @@ contains
     case (unitsGravitational)
        radiusDimensionless=radius
     case (unitsPhysical)
-       radiusDimensionless=radius/Black_Hole_Gravitational_Radius(thisBlackHole)
+       radiusDimensionless=radius/Black_Hole_Gravitational_Radius(blackHole)
     case default
        radiusDimensionless=0.0d0
        call Galacticus_Error_Report('unrecognized units'//{introspection:location})
     end select
 
     ! Get the black hole spin.
-    blackHoleSpin=thisBlackHole%spin()
+    blackHoleSpin=blackHole%spin()
 
     Black_Hole_Metric_A_Factor_Node=Black_Hole_Metric_A_Factor_Spin(blackHoleSpin,radiusDimensionless)
     return
@@ -373,12 +373,12 @@ contains
     return
   end function Black_Hole_Metric_A_Factor_Spin
 
-  double precision function Black_Hole_Metric_D_Factor_Node(thisBlackHole,radius,units)
-    !% Returns the $\mathcal{D}$ factor appearing in the Kerr metric for {\normalfont \ttfamily thisBlackHole}.
+  double precision function Black_Hole_Metric_D_Factor_Node(blackHole,radius,units)
+    !% Returns the $\mathcal{D}$ factor appearing in the Kerr metric for {\normalfont \ttfamily blackHole}.
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBlackHole
     implicit none
-    class           (nodeComponentBlackHole), intent(inout), pointer  :: thisBlackHole
+    class           (nodeComponentBlackHole), intent(inout), pointer  :: blackHole
     double precision                        , intent(in   )           :: radius
     integer                                 , intent(in   ), optional :: units
     integer                                                           :: unitsActual
@@ -396,14 +396,14 @@ contains
     case (unitsGravitational)
        radiusDimensionless=radius
     case (unitsPhysical)
-       radiusDimensionless=radius/Black_Hole_Gravitational_Radius(thisBlackHole)
+       radiusDimensionless=radius/Black_Hole_Gravitational_Radius(blackHole)
     case default
        radiusDimensionless=0.0d0
        call Galacticus_Error_Report('unrecognized units'//{introspection:location})
     end select
 
     ! Get the black hole spin.
-    blackHoleSpin=thisBlackHole%spin()
+    blackHoleSpin=blackHole%spin()
 
     Black_Hole_Metric_D_Factor_Node=Black_Hole_Metric_D_Factor_Spin(blackHoleSpin,radiusDimensionless)
     return
@@ -418,13 +418,13 @@ contains
     return
   end function Black_Hole_Metric_D_Factor_Spin
 
-  double precision function Black_Hole_Horizon_Radius_Node(thisBlackHole,units)
+  double precision function Black_Hole_Horizon_Radius_Node(blackHole,units)
     !% Return the radius of the horizon for a Kerr metric with dimensionless angular momentum {\normalfont \ttfamily j}.
     !% The radius is in units of the gravitational radius.
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBlackHole
     implicit none
-    class           (nodeComponentBlackHole), intent(inout), pointer  :: thisBlackHole
+    class           (nodeComponentBlackHole), intent(inout), pointer  :: blackHole
     integer                                 , intent(in   ), optional :: units
     double precision                                                  :: blackHoleSpin, radiusDimensionless
     integer                                                           :: unitsActual
@@ -437,14 +437,14 @@ contains
     end if
 
     ! Get the black hole spin.
-    blackHoleSpin=thisBlackHole%spin()
+    blackHoleSpin=blackHole%spin()
 
     radiusDimensionless=Black_Hole_Horizon_Radius_Spin(blackHoleSpin)
     select case (unitsActual)
     case (unitsGravitational)
        Black_Hole_Horizon_Radius_Node=radiusDimensionless
     case (unitsPhysical)
-       Black_Hole_Horizon_Radius_Node=radiusDimensionless*Black_Hole_Gravitational_Radius(thisBlackHole)
+       Black_Hole_Horizon_Radius_Node=radiusDimensionless*Black_Hole_Gravitational_Radius(blackHole)
     case default
        Black_Hole_Horizon_Radius_Node=0.0d0
        call Galacticus_Error_Report('unrecognized units'//{introspection:location})
@@ -462,12 +462,12 @@ contains
     return
   end function Black_Hole_Horizon_Radius_Spin
 
-  double precision function Black_Hole_Static_Radius_Node(thisBlackHole,theta,units)
-    !% Return the radius of the static limit for a Kerr metric for the black hole in {\normalfont \ttfamily thisBlackHole} and angle {\normalfont \ttfamily theta}.
+  double precision function Black_Hole_Static_Radius_Node(blackHole,theta,units)
+    !% Return the radius of the static limit for a Kerr metric for the black hole in {\normalfont \ttfamily blackHole} and angle {\normalfont \ttfamily theta}.
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBlackHole
     implicit none
-    class           (nodeComponentBlackHole), intent(inout)           :: thisBlackHole
+    class           (nodeComponentBlackHole), intent(inout)           :: blackHole
     integer                                 , intent(in   ), optional :: units
     double precision                        , intent(in   ), optional :: theta
     double precision                                                  :: blackHoleSpin, radiusDimensionless
@@ -481,7 +481,7 @@ contains
     end if
 
     ! Get the black hole spin.
-    blackHoleSpin=thisBlackHole%spin()
+    blackHoleSpin=blackHole%spin()
 
     ! Get the dimensionless static radius.
     radiusDimensionless=Black_Hole_Static_Radius_Spin(blackHoleSpin,theta)
@@ -491,7 +491,7 @@ contains
     case (unitsGravitational)
        Black_Hole_Static_Radius_Node=radiusDimensionless
     case (unitsPhysical)
-       Black_Hole_Static_Radius_Node=radiusDimensionless*Black_Hole_Gravitational_Radius(thisBlackHole)
+       Black_Hole_Static_Radius_Node=radiusDimensionless*Black_Hole_Gravitational_Radius(blackHole)
     case default
        Black_Hole_Static_Radius_Node=0.0d0
        call Galacticus_Error_Report('unrecognized units'//{introspection:location})
@@ -537,16 +537,15 @@ contains
     return
   end function A2
 
-  double precision function Black_Hole_Rotational_Energy_Spin_Down_Node(thisBlackHole)
-    !% Wrapper function for \href{func:black_hole_rotational_energy_spin_down_spin}{{\normalfont \ttfamily
-    !% Black\_Hole\_Rotational\_Energy\_Spin\_Down\_Node}} which takes a tree node as input.
+  double precision function Black_Hole_Rotational_Energy_Spin_Down_Node(blackHole)
+    !% Computes the spin down rate of a black hole due to extraction of rotational energy for the primary black hole.
     use :: Galacticus_Nodes, only : nodeComponentBlackHole
     implicit none
-    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole
+    class           (nodeComponentBlackHole), intent(inout) :: blackHole
     double precision                                        :: blackHoleSpin
 
     ! Get the black hole spin.
-    blackHoleSpin=thisBlackHole%spin()
+    blackHoleSpin=blackHole%spin()
 
     ! Get the spin down function.
     Black_Hole_Rotational_Energy_Spin_Down_Node=Black_Hole_Rotational_Energy_Spin_Down_Spin(blackHoleSpin)
@@ -563,7 +562,45 @@ contains
     !% \begin{equation}
     !% S = [(1+\sqrt{1-j^2})^2+j^2] {\sqrt{1-j^2}\over j},
     !% \end{equation}
-    !% for black hole spin $j$.
+    !% for black hole spin $j$. This result is derived as follows. Starting from equation~(9) in \cite{benson_maximum_2009}:
+    !% \begin{equation}
+    !%  M_{\bullet,\mathrm{irr}} = \frac{1}{2} M_\bullet \left[ (1+\sqrt{1-j^2})^2 + j^2 \right]^{1/2},
+    !%  \label{eq:blackHoleMassIrreducible}
+    !% \end{equation}
+    !% which we can rearrange to get
+    !% \begin{equation}
+    !%  (1 + \sqrt{1-j^2})^2 + j^2 = 4 (M_{\bullet,\mathrm{irr}}/M_\bullet)^2.
+    !% \end{equation}
+    !% Differentating this gives
+    !% \begin{equation}
+    !% \left[ -2(1 + \sqrt{1-j^2}) \frac{1}{2} (1-j^2)^{-1/2} 2 j + 2 j \right] \frac{\mathrm{d} j}{\mathrm{d} M_\bullet} = - 8 (M_{\bullet,\mathrm{irr}}/M_\bullet)^2 M^{-1}_\bullet,
+    !% \end{equation}
+    !% which simplifies to
+    !% \begin{equation}
+    !% \frac{j}{(1-j^2)^{1/2}} \frac{\mathrm{d} j}{\mathrm{d} M_\bullet} = 4 (M_{\bullet,\mathrm{irr}}/M_\bullet)^2 M^{-1}_\bullet,
+    !% \end{equation}
+    !% and therefore
+    !% \begin{equation}
+    !%  \frac{\mathrm{d} j}{\mathrm{d} M_\bullet} = \frac{4}{M_\bullet} \left(\frac{M_{\bullet,\mathrm{irr}}}{M_\bullet}\right)^2  \frac{(1-j^2)^{1/2}}{j},
+    !% \end{equation}
+    !% which is equation~(10) in \cite{benson_maximum_2009}.
+    !%
+    !% The spin-down rate is then
+    !% \begin{equation}
+    !%  \frac{\mathrm{d}j}{\mathrm{d}t} = - \frac{\mathrm{d}j}{\mathrm{d}M_\bullet} \frac{P_\mathrm{jet}}{\mathrm{c}^2} = - 4 \frac{P_\mathrm{jet}}{M_\bullet \mathrm{c}^2} \left(\frac{M_{\bullet,\mathrm{irr}}}{M_\bullet}\right)^2  \frac{(1-j^2)^{1/2}}{j}.
+    !%  \label{eq:blackHoleJetSpinDownRate}
+    !% \end{equation}
+    !%
+    !% The spin-down parameter is then
+    !% \begin{equation}
+    !%  s_\mathrm{jet} = \frac{M_\bullet}{\dot{M}_{\bullet,0}} \frac{\mathrm{d}j}{\mathrm{d}t}.
+    !% \end{equation}
+    !% Using equations~(\ref{eq:blackHoleMassIrreducible}) and (\ref{eq:blackHoleJetSpinDownRate}) the above becomes
+    !% \begin{equation}
+    !%   s_\mathrm{jet} = - \frac{P_\mathrm{jet}}{\dot{M}_{\bullet,0} \mathrm{c}^2} \left[ (1+\sqrt{1-j^2})^2 + j^2 \right] \frac{(1-j^2)^{1/2}}{j},
+    !% \end{equation}
+    !% which is equation~(12)\footnote{Note that equation~(12) of \cite{benson_maximum_2009} is missing the factor of
+    !% $\dot{M}_{\bullet,0} \mathrm{c}^2$ in the denominator} of \cite{benson_maximum_2009}.
     implicit none
     double precision, intent(in   ) :: blackHoleSpin
     double precision, parameter     :: blackHoleSpinMinimum      =5.0d-8

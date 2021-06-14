@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,7 +23,21 @@
   use :: Galactic_Filters, only : galacticFilterClass
   
   !# <nodeOperator name="nodeOperatorGalaxyMergersOutput">
-  !#  <description>A node operator class that outputs data on mergers between galaxies.</description>
+  !#  <description>
+  !#   A node operator class that outputs data on mergers between galaxies. Data is stored to datasets in a group specified via
+  !#   the {\normalfont \ttfamily mergersGroupName} parameter (defaulting to {\normalfont \ttfamily galaxyMergers}). Datasets
+  !#   output are:
+  !#   \begin{description}
+  !#    \item{\normalfont \ttfamily [indexHost]} the index of the host halo in the merger;
+  !#    \item{\normalfont \ttfamily [indexSatellite]} the index of the satellite halo in the merger;
+  !#    \item{\normalfont \ttfamily [indexTree]} the index of the merger tree in which the merger occurred;
+  !#    \item{\normalfont \ttfamily [massHost]} the mass of the host halo;
+  !#    \item{\normalfont \ttfamily [massSatellite]} the mass of the satellite halo;
+  !#    \item{\normalfont \ttfamily [time]} the time at which the merger occurred.
+  !#   \end{description}
+  !#   Two \refClass{galacticFilterClass}es are accepted, via parameters {\normalfont \ttfamily [galacticFilterSatellite]} and {\normalfont
+  !#   \ttfamily [galacticFilterCentral]} which can be used to control which galaxies are included in the output.
+  !#  </description>
   !# </nodeOperator>
   type, extends(nodeOperatorClass) :: nodeOperatorGalaxyMergersOutput
      !% A node operator class that shifts node indices at node promotion.
@@ -55,11 +69,9 @@ contains
 
     !# <inputParameter>
     !#   <name>mergersGroupName</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('galaxyMergers')</defaultValue>
     !#   <description>The name of the HDF5 group to which galaxy merger data should be output.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <objectBuilder class="galacticFilter" parameterName="galacticFilterSatellite" name="galacticFilterSatellite_" source="parameters">
     !#  <default>

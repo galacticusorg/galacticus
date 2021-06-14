@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -25,7 +25,18 @@
   use :: Virial_Density_Contrast , only : virialDensityContrastFixed
 
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationGao2008">
-  !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{gao_redshift_2008}.</description>
+  !#  <description>
+  !#   A dark matter profile concentration class in which the concentration is computed using a fitting function from
+  !#   \cite{gao_redshift_2008}:
+  !#   \begin{equation}
+  !#   \log_{10} c = A \log_{10} M_\mathrm{halo} + B.
+  !#   \end{equation}
+  !#   The parameters are a functon of expansion factor, $a$. We use the following fits to the \cite{gao_redshift_2008} results:
+  !#   \begin{eqnarray}
+  !#   A &amp;=&amp; -0.140 \exp\left[-\left(\left\{\log_{10}a+0.05\right\}/0.35\right)^2\right], \\
+  !#   B &amp;=&amp;  2.646 \exp\left[-\left(\log_{10}a/0.50\right)^2\right].
+  !#   \end{eqnarray}
+  !#  </description>
   !#  <deepCopy>
   !#   <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
   !#  </deepCopy>
@@ -88,10 +99,35 @@ contains
     allocate(self%darkMatterProfileDMODefinition_ )
     allocate(     darkMatterHaloScaleDefinition_  )
     allocate(self%virialDensityContrastDefinition_)
-    !# <referenceConstruct isResult="yes" owner="self" object="virialDensityContrastDefinition_" constructor="virialDensityContrastFixed                        (200.0d0,fixedDensityTypeCritical,2.0d0,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
-    !# <referenceConstruct                             object="darkMatterHaloScaleDefinition_"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,self%virialDensityContrastDefinition_ )"/>
-    !# <referenceConstruct isResult="yes" owner="self" object="darkMatterProfileDMODefinition_"  constructor="darkMatterProfileDMONFW                           (darkMatterHaloScaleDefinition_                                                           )"/>
-    !# <objectDestructor                               name  ="darkMatterHaloScaleDefinition_"                                                                                                                                                              />
+    !# <referenceConstruct owner="self" isResult="yes" object="virialDensityContrastDefinition_">
+    !#  <constructor>
+    !#   virialDensityContrastFixed                        (                                                                            &amp;
+    !#    &amp;                                             densityContrastValue                =200.0d0                              , &amp;
+    !#    &amp;                                             densityType                         =fixedDensityTypeCritical             , &amp;
+    !#    &amp;                                             turnAroundOverVirialRadius          =2.0d0                                , &amp;
+    !#    &amp;                                             cosmologyParameters_                =self%cosmologyParameters_            , &amp;
+    !#    &amp;                                             cosmologyFunctions_                 =self%cosmologyFunctions_               &amp;
+    !#    &amp;                                            )
+    !#  </constructor>
+    !# </referenceConstruct>
+    !# <referenceConstruct                             object="darkMatterHaloScaleDefinition_"  >
+    !#  <constructor>
+    !#   darkMatterHaloScaleVirialDensityContrastDefinition(                                                                            &amp;
+    !#    &amp;                                             cosmologyParameters_                =self%cosmologyParameters_            , &amp;
+    !#    &amp;                                             cosmologyFunctions_                 =self%cosmologyFunctions_             , &amp;
+    !#    &amp;                                             virialDensityContrast_              =self%virialDensityContrastDefinition_  &amp;
+    !#    &amp;                                            )
+    !#  </constructor>
+    !# </referenceConstruct>
+    !# <referenceConstruct owner="self" isResult="yes" object="darkMatterProfileDMODefinition_" >
+    !#  <constructor>
+    !#   darkMatterProfileDMONFW                           (                                                                            &amp;
+    !#    &amp;                                             velocityDispersionUseSeriesExpansion=.true.                               , &amp;
+    !#    &amp;                                             darkMatterHaloScale_                =darkMatterHaloScaleDefinition_         &amp;
+    !#    &amp;                                            )
+    !#  </constructor>
+    !# </referenceConstruct>
+    !# <objectDestructor                               name  ="darkMatterHaloScaleDefinition_" />
     return
   end function gao2008ConstructorInternal
 

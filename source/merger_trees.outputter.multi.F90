@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,17 +26,20 @@
 
   !# <mergerTreeOutputter name="mergerTreeOutputterMulti">
   !#  <description>A merger tree outputter which combines multiple other outputters.</description>
+  !#  <deepCopy>
+  !#   <linkedList type="multiOutputterList" variable="outputters" next="next" object="outputter_" objectType="mergerTreeOutputterClass"/>
+  !#  </deepCopy>
   !# </mergerTreeOutputter>
   type, extends(mergerTreeOutputterClass) :: mergerTreeOutputterMulti
      !% Implementation of a merger tree outputter which combines multiple other outputters.
      private
      type(multiOutputterList), pointer :: outputters => null()
    contains
-     final     ::             multiDestructor
-     procedure :: output   => multiOutput
-     procedure :: finalize => multiFinalize
-     procedure :: reduce   => multiReduce
-     procedure :: deepCopy => multiDeepCopy
+     final     ::               multiDestructor
+     procedure :: outputTree => multiOutputTree
+     procedure :: outputNode => multiOutputNode
+     procedure :: finalize   => multiFinalize
+     procedure :: reduce     => multiReduce
   end type mergerTreeOutputterMulti
 
   interface mergerTreeOutputterMulti
@@ -58,7 +61,7 @@ contains
 
     self      %outputters => null()
     outputter_           => null()
-    do i=1,parameters%copiesCount('mergerTreeOutputterMethod',zeroIfNotPresent=.true.)
+    do i=1,parameters%copiesCount('mergerTreeOutputter',zeroIfNotPresent=.true.)
        if (associated(outputter_)) then
           allocate(outputter_%next)
           outputter_ => outputter_%next
@@ -105,23 +108,38 @@ contains
     return
   end subroutine multiDestructor
 
-  subroutine multiOutput(self,tree,indexOutput,time,isLastOutput)
+  subroutine multiOutputTree(self,tree,indexOutput,time)
     !% Output from all outputters.
     implicit none
-    class           (mergerTreeOutputterMulti), intent(inout)           :: self
-    type            (multiOutputterList      ), pointer                 :: outputter_
-    type            (mergerTree              ), intent(inout), target   :: tree
-    integer         (c_size_t                ), intent(in   )           :: indexOutput
-    double precision                          , intent(in   )           :: time
-    logical                                   , intent(in   ), optional :: isLastOutput
+    class           (mergerTreeOutputterMulti), intent(inout)         :: self
+    type            (mergerTree              ), intent(inout), target :: tree
+    integer         (c_size_t                ), intent(in   )         :: indexOutput
+    double precision                          , intent(in   )         :: time
+    type            (multiOutputterList      ), pointer               :: outputter_
 
     outputter_ => self%outputters
     do while (associated(outputter_))
-       call outputter_%outputter_%output(tree,indexOutput,time,isLastOutput)
+       call outputter_%outputter_%outputTree(tree,indexOutput,time)
        outputter_ => outputter_%next
     end do
     return
-  end subroutine multiOutput
+  end subroutine multiOutputTree
+
+  subroutine multiOutputNode(self,node,indexOutput)
+    !% Output from all outputters.
+    implicit none
+    class  (mergerTreeOutputterMulti), intent(inout) :: self
+    type   (treeNode                ), intent(inout) :: node
+    integer(c_size_t                ), intent(in   ) :: indexOutput
+    type   (multiOutputterList      ), pointer       :: outputter_
+
+    outputter_ => self%outputters
+    do while (associated(outputter_))
+       call outputter_%outputter_%outputNode(node,indexOutput)
+       outputter_ => outputter_%next
+    end do
+    return
+  end subroutine multiOutputNode
 
   subroutine multiFinalize(self)
     !% Finalize all outputters.
@@ -159,37 +177,3 @@ contains
     end select
     return
   end subroutine multiReduce
-
-  subroutine multiDeepCopy(self,destination)
-    !% Perform a deep copy for the {\normalfont \ttfamily multi} outputter class.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    implicit none
-    class(mergerTreeOutputterMulti), intent(inout) :: self
-    class(mergerTreeOutputterClass), intent(inout) :: destination
-    type (multiOutputterList      ), pointer       :: outputter_   , outputterDestination_, &
-         &                                            outputterNew_
-
-    call self%mergerTreeOutputterClass%deepCopy(destination)
-    select type (destination)
-    type is (mergerTreeOutputterMulti)
-       destination%outputters => null          ()
-       outputterDestination_  => null          ()
-       outputter_             => self%outputters
-       do while (associated(outputter_))
-          allocate(outputterNew_)
-          if (associated(outputterDestination_)) then
-             outputterDestination_%next       => outputterNew_
-             outputterDestination_            => outputterNew_
-          else
-             destination          %outputters => outputterNew_
-             outputterDestination_            => outputterNew_
-          end if
-          allocate(outputterNew_%outputter_,mold=outputter_%outputter_)
-          !# <deepCopy source="outputter_%outputter_" destination="outputterNew_%outputter_"/>
-          outputter_ => outputter_%next
-       end do
-    class default
-       call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})
-    end select
-    return
-  end subroutine multiDeepCopy

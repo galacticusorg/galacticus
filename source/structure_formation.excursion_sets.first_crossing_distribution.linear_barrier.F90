@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,7 +23,14 @@
   use :: Excursion_Sets_Barriers   , only : excursionSetBarrierClass
 
   !# <excursionSetFirstCrossing name="excursionSetFirstCrossingLinearBarrier">
-  !#  <description>An excursion set first crossing statistics class for linear barriers.</description>
+  !#  <description>
+  !#   An excursion set first crossing statistics class for linear barriers. Specifically, the first crossing distribution is
+  !#   \begin{equation}
+  !#    f(S,t) = B(0,t) \exp(- B(S,t)^2/2S)/S/\sqrt{2 pi S},
+  !#   \end{equation}
+  !#   where $B(S,t)$ is the (assumed-to-be-linear-in-$S$) barrier at time $t$ and variance $S$. The first crossing rate is
+  !#   computed using a finite difference approximation between two closely-spaced times. The non-crossing rate is zero.
+  !#  </description>
   !# </excursionSetFirstCrossing>
   type, extends(excursionSetFirstCrossingClass) :: excursionSetFirstCrossingLinearBarrier
      !% A linearBarrier excursion set barrier class.
@@ -178,7 +185,7 @@ contains
     class           (excursionSetFirstCrossingLinearBarrier), intent(inout) :: self
     double precision                                        , intent(in   ) :: time, variance
     type            (treeNode                              ), intent(inout) :: node
-    !GCC$ attributes unused :: self, time, variance, node
+    !$GLC attributes unused :: self, time, variance, node
 
     linearBarrierRateNonCrossing=0.0d0
     return

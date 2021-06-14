@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,7 +27,7 @@
   !#  <description>Provides a nonlinear power spectrum class in which the power spectrum is computed using the algorithm of \cite{peacock_non-linear_1996}.</description>
   !# </powerSpectrumNonlinear>
   type, extends(powerSpectrumNonlinearClass) :: powerSpectrumNonlinearPeacockDodds1996
-     !% A linear transfer function class.
+     !% A nonlinear power spectrum class in which the power spectrum is computed using the algorithm of \cite{peacock_non-linear_1996}.
      private
      double precision                         , dimension(2) :: waveNumberPrevious           , fNLPrevious
      double precision                                        :: timePrevious

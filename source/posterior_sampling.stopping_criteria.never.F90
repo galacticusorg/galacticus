@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,7 @@
   !% Implementation of a posterior sampling stopping class which never stops.
 
   !# <posteriorSampleStoppingCriterion name="posteriorSampleStoppingCriterionNever">
-  !#  <description>A posterior sampling stopping class which never converges.</description>
+  !#  <description>A posterior sampling stopping class which never stops.</description>
   !# </posteriorSampleStoppingCriterion>
   type, extends(posteriorSampleStoppingCriterionClass) :: posteriorSampleStoppingCriterionNever
      !% Implementation of a posterior sampling convergence class which never converges.
@@ -42,7 +42,7 @@ contains
     implicit none
     type(posteriorSampleStoppingCriterionNever)                :: self
     type(inputParameters                      ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=posteriorSampleStoppingCriterionNever()
     return
@@ -53,7 +53,7 @@ contains
     implicit none
     class(posteriorSampleStoppingCriterionNever), intent(inout) :: self
     class(posteriorSampleStateClass            ), intent(inout) :: simulationState
-    !GCC$ attributes unused :: self, simulationState
+    !$GLC attributes unused :: self, simulationState
 
     neverStop=.false.
     return

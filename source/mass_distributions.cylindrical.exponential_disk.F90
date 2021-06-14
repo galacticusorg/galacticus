@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -51,45 +51,14 @@
   !$ integer      (omp_lock_kind           )                              :: factorComputeLock                     , rotationCurveLock                     , &
   !$   &                                                                     rotationCurveGradientLock             , potentialLock
 contains
-     !@ <objectMethods>
-     !@   <object>massDistributionExponentialDisk</object>
-     !@   <objectMethod>
-     !@     <method>tabulate</method>
-     !@     <description>Tabulates the potential for an exponential disk mass distribution.</description>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>besselFactorRotationCurve</method>
-     !@     <description>Compute the Bessel function factor appearing in the exponential disk rotation curve.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ halfRadius\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>besselFactorRotationCurveGradient</method>
-     !@     <description>Compute the Bessel function factor appearing in the exponential disk rotation curve gradient.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ halfRadius\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>besselFactorPotential</method>
-     !@     <description>Compute the Bessel function factor appearing in the exponential disk potential.</description>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ halfRadius\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>accelerationTabulate</method>
-     !@     <description>Tabulate the gravitational acceleration and tidal tensor due to the disk.</description>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>accelerationInterpolate</method>
-     !@     <description>Interpolate in the tabulated gravitational acceleration and/or tidal tensor due to the disk.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(coordinateCylindrical)\textgreater} coordinatesCylindrical\argin, [accelerationRadial]\argout, [accelerationVertical]\argout, [tidalTensorRadialRadial]\argout, [tidalTensorVerticalVertical]\argout, [tidalTensorCross]\argout</arguments>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Tabulates the potential for an exponential disk mass distribution." method="tabulate" />
+     !#   <method description="Compute the Bessel function factor appearing in the exponential disk rotation curve." method="besselFactorRotationCurve" />
+     !#   <method description="Compute the Bessel function factor appearing in the exponential disk rotation curve gradient." method="besselFactorRotationCurveGradient" />
+     !#   <method description="Compute the Bessel function factor appearing in the exponential disk potential." method="besselFactorPotential" />
+     !#   <method description="Tabulate the gravitational acceleration and tidal tensor due to the disk." method="accelerationTabulate" />
+     !#   <method description="Interpolate in the tabulated gravitational acceleration and/or tidal tensor due to the disk." method="accelerationInterpolate" />
+     !# </methods>
      final     ::                                      exponentialDiskDestructor
      procedure :: tabulate                          => exponentialDiskTabulate
      procedure :: besselFactorRotationCurve         => exponentialDiskBesselFactorRotationCurve
@@ -140,36 +109,28 @@ contains
 
     !# <inputParameter>
     !#   <name>scaleHeight</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultSource>\citep{kregel_flattening_2002}</defaultSource>
     !#   <defaultValue>0.137d0</defaultValue>
     !#   <description>The scale height of the exponential disk profile.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>scaleRadius</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The scale radius of the exponential disk profile.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>mass</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The mass of the exponential disk profile.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>dimensionless</name>
     !#   <defaultValue>.true.</defaultValue>
-    !#   <cardinality>1</cardinality>
     !#   <description>If true the exponential disk profile is considered to be dimensionless.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <conditionalCall>
     !#  <call>self=massDistributionExponentialDisk(scaleHeight=scaleHeight{conditions})</call>
@@ -378,7 +339,7 @@ contains
 
   double precision function exponentialDiskRotationCurve(self,radius)
     !% Return the mid-plane rotation curve for an exponential disk.
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (massDistributionExponentialDisk), intent(inout) :: self
     double precision                                 , intent(in   ) :: radius
@@ -420,7 +381,7 @@ contains
 
   double precision function exponentialDiskRotationCurveGradient(self,radius)
     !% Return the mid-plane rotation curve gradient for an exponential disk.
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (massDistributionExponentialDisk), intent(inout) :: self
     double precision                                 , intent(in   ) :: radius
@@ -451,8 +412,8 @@ contains
 
   double precision function exponentialDiskPotential(self,coordinates)
     !% Return the gravitational potential for an exponential disk.
-    use :: Coordinates                 , only : assignment(=)                  , coordinateCylindrical
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Coordinates                     , only : assignment(=)                  , coordinateCylindrical
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (massDistributionExponentialDisk), intent(inout) :: self
     class           (coordinate                     ), intent(in   ) :: coordinates
@@ -683,9 +644,8 @@ contains
 
   function exponentialDiskAcceleration(self,coordinates)
     !% Computes the gravitational acceleration at {\normalfont \ttfamily coordinates} for exponential disk mass distributions.
-    use :: Coordinates                     , only : assignment(=)                  , coordinateCylindrical, coordinateCartesian
-    use :: Numerical_Constants_Astronomical, only : gigaYear                       , megaParsec
-    use :: Numerical_Constants_Physical    , only : gravitationalConstantGalacticus
+    use :: Coordinates                     , only : assignment(=), coordinateCartesian            , coordinateCylindrical
+    use :: Numerical_Constants_Astronomical, only : gigaYear     , gravitationalConstantGalacticus, megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     double precision                                 , dimension(3  ) :: exponentialDiskAcceleration
@@ -728,8 +688,8 @@ contains
 
   function exponentialDiskTidalTensor(self,coordinates)
     !% Computes the gravitational tidal tensor at {\normalfont \ttfamily coordinates} for exponential disk mass distributions.
-    use :: Coordinates                 , only : assignment(=)                  , coordinateCylindrical, coordinateCartesian
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Coordinates                     , only : assignment(=)                  , coordinateCartesian, coordinateCylindrical
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     type            (tensorRank2Dimension3Symmetric )                 :: exponentialDiskTidalTensor
     class           (massDistributionExponentialDisk), intent(inout)  :: self
@@ -787,7 +747,7 @@ contains
   
   subroutine exponentialDiskAccelerationInterpolate(self,coordinatesCylindrical,accelerationRadial,accelerationVertical,tidalTensorRadialRadial,tidalTensorVerticalVertical,tidalTensorCross)
     !% Interpolate gravitational accelerations and tidal tensors in the tabulated solutions for an exponential disk.
-    use :: Coordinates, only : assignment(=), coordinateCylindrical, coordinateCartesian
+    use :: Coordinates, only : assignment(=), coordinateCartesian, coordinateCylindrical
     implicit none
     class           (massDistributionExponentialDisk), intent(inout)            :: self
     type            (coordinateCylindrical          ), intent(in   )            :: coordinatesCylindrical
@@ -895,36 +855,36 @@ contains
   subroutine exponentialDiskAccelerationTabulate(self)
     !% Tabulate the acceleration (and tidal tensor) due to the exponential disk mass distribution. Uses the approach of
     !% \cite{kuijken_mass_1989}. The tabulation is built for a dimensionless disk.
-    use :: Bessel_Functions        , only : Bessel_Function_J0_Zero    , Bessel_Function_J1_Zero         , Bessel_Function_Jn_Zero
-    use :: Galacticus_Display      , only : Galacticus_Display_Counter , Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Unindent, &
-         &                                  verbosityWorking
+    use :: Bessel_Functions        , only : Bessel_Function_J0_Zero, Bessel_Function_J1_Zero, Bessel_Function_Jn_Zero
+    use :: Display                 , only : displayCounter         , displayCounterClear    , displayIndent          , displayUnindent, &
+          &                                 verbosityLevelWorking
+    use :: File_Utilities          , only : Directory_Make         , File_Exists            , File_Lock              , File_Path      , &
+          &                                 File_Unlock            , lockDescriptor
     use :: Galacticus_Error        , only : Galacticus_Error_Report
-    use :: Galacticus_Paths        , only : galacticusPath             , pathTypeDataDynamic
-    use :: FGSL                    , only : fgsl_function              , fgsl_integration_workspace
-    use :: File_Utilities          , only : File_Exists                , File_Lock                       , File_Unlock              , File_Path                  , &
-         &                                  Directory_Make             , lockDescriptor
-    use :: ISO_Varying_String      , only : operator(//)               , char                            , varying_string
-    use :: IO_HDF5                 , only : hdf5Access                 , hdf5Object
+    use :: Galacticus_Paths        , only : galacticusPath         , pathTypeDataDynamic
+    use :: IO_HDF5                 , only : hdf5Access             , hdf5Object
+    use :: ISO_Varying_String      , only : char                   , operator(//)           , varying_string
     use :: Numerical_Constants_Math, only : Pi
-    use :: Numerical_Integration   , only : Integrate                  , Integrate_Done
-    use :: Numerical_Ranges        , only : Make_Range                 , rangeTypeLogarithmic
+    use :: Numerical_Integration   , only : integrator
+    use :: Numerical_Ranges        , only : Make_Range             , rangeTypeLogarithmic
     implicit none
     class           (massDistributionExponentialDisk), intent(inout) :: self
-    double precision                                 , parameter     :: radiusMinimum          = 1.0d-2, radiusMaximum    =5.0d1
-    double precision                                 , parameter     :: radiiPerDecade         =30.0d+0
-    double precision                                 , parameter     :: wavenumberMaximumFactor=10.0d+0
-    integer                                          , parameter     :: xi                     = 2
-    type            (fgsl_function                  ), save          :: integrandFunction
-    type            (fgsl_integration_workspace     ), save          :: integrationWorkspace
-    logical                                          , save          :: integrationReset               , converged
-    integer                                          , save          :: iBesselZero                    , besselOrder
-    double precision                                 , save          :: height                         , accelerationDelta      , &
-         &                                                              wavenumberLow                  , wavenumberHigh         , &
-         &                                                              tidalTensorDelta               , tidalTensorRadialRadial
-    !$omp threadprivate(height,accelerationDelta,tidalTensorDelta,tidalTensorRadialRadial,wavenumberLow,wavenumberHigh,iBesselZero,besselOrder,converged,integrationReset,integrandFunction,integrationWorkspace)
-    integer                                                          :: countRadii                     , iRadius                , &
-         &                                                              iHeight                        , countWork
-    double precision                                                 :: radius                         , beta
+    double precision                                 , parameter     :: radiusMinimum                    = 1.0d-2, radiusMaximum    =5.0d1
+    double precision                                 , parameter     :: radiiPerDecade                   =30.0d+0
+    double precision                                 , parameter     :: wavenumberMaximumFactor          =10.0d+0
+    integer                                          , parameter     :: xi                               = 2
+    type            (integrator                     ), save          :: integratorAccelerationRadial             , integratorAccelerationVertical       , &
+         &                                                              integratorTidalTensorRadialRadial        , integratorTidalTensorVerticalVertical, &
+         &                                                              integratorTidalTensorCross
+    logical                                          , save          :: converged
+    integer                                          , save          :: iBesselZero                              , besselOrder
+    double precision                                 , save          :: height                                   , accelerationDelta                    , &
+         &                                                              wavenumberLow                            , wavenumberHigh                       , &
+         &                                                              tidalTensorDelta                         , tidalTensorRadialRadial
+    !$omp threadprivate(height,accelerationDelta,tidalTensorDelta,tidalTensorRadialRadial,wavenumberLow,wavenumberHigh,iBesselZero,besselOrder,converged,integratorAccelerationRadial,integratorAccelerationVertical,integratorTidalTensorRadialRadial,integratorTidalTensorVerticalVertical,integratorTidalTensorCross)
+    integer                                                          :: countRadii                               , iRadius                              , &
+         &                                                              iHeight                                  , countWork
+    double precision                                                 :: radius                                   , beta
     type            (varying_string                 )                :: fileName
     character       (len=8                          )                :: label
     type            (hdf5Object                     )                :: file
@@ -985,15 +945,21 @@ contains
             &  *self%scaleRadius &
             &  /self%scaleHeight
        ! Iterate over radii and heights.
-       call Galacticus_Display_Indent("tabulating gravitational accelerations for exponential disk",verbosityWorking)
+       call displayIndent("tabulating gravitational accelerations for exponential disk",verbosityLevelWorking)
        countWork=0
        do iRadius=1,countRadii
           radius=self%accelerationRadii(iRadius)
-          !$omp parallel do
+          !$omp parallel
+          integratorAccelerationRadial         =integrator(accelerationRadialIntegrand         ,toleranceAbsolute=1.0d-6,toleranceRelative=1.0d-3)
+          integratorAccelerationVertical       =integrator(accelerationVerticalIntegrand       ,toleranceAbsolute=1.0d-6,toleranceRelative=1.0d-3)
+          integratorTidalTensorRadialRadial    =integrator(tidalTensorRadialRadialIntegrand    ,toleranceAbsolute=1.0d-6,toleranceRelative=1.0d-3)
+          integratorTidalTensorVerticalVertical=integrator(tidalTensorVerticalVerticalIntegrand,toleranceAbsolute=1.0d-6,toleranceRelative=1.0d-3)
+          integratorTidalTensorCross           =integrator(tidalTensorCrossIntegrand           ,toleranceAbsolute=1.0d-6,toleranceRelative=1.0d-3)
+          !$omp do
           do iHeight=1,countRadii
              !$omp atomic
              countWork=countWork+1
-             call Galacticus_Display_Counter(int(100.0d0*dble(countWork)/dble(countRadii**2)),iRadius == 1 .and. iHeight == 1,verbosityWorking)
+             call displayCounter(int(100.0d0*dble(countWork)/dble(countRadii**2)),iRadius == 1 .and. iHeight == 1,verbosityLevelWorking)
              height=self%accelerationHeights(iHeight)          
              ! Evaluate the integral for the radial component of acceleration.
              self%accelerationRadial(iRadius,iHeight)=0.0d0
@@ -1006,18 +972,7 @@ contains
                 wavenumberLow    =+wavenumberHigh
                 wavenumberHigh   =+Bessel_Function_J1_Zero(iBesselZero) &
                      &            /radius        
-                integrationReset =.true.
-                accelerationDelta=+Integrate(                                                 &
-                     &                                         wavenumberLow                , &
-                     &                                         wavenumberHigh               , &
-                     &                                         accelerationRadialIntegrand  , &
-                     &                                         integrandFunction            , &
-                     &                                         integrationWorkspace         , &
-                     &                       reset            =integrationReset             , &
-                     &                       toleranceAbsolute=1.0d-6                       , &
-                     &                       toleranceRelative=1.0d-3                         &
-                     &                      )
-                call Integrate_Done(integrandFunction,integrationWorkspace)
+                accelerationDelta=+integratorAccelerationRadial%integrate(wavenumberLow,wavenumberHigh)
                 converged=abs(accelerationDelta) < 1.0d-6*abs(self%accelerationRadial(iRadius,iHeight))
                 self%accelerationRadial(iRadius,iHeight)=+self%accelerationRadial(iRadius,iHeight) &
                      &                                   +     accelerationDelta
@@ -1033,18 +988,7 @@ contains
                 wavenumberLow    =+wavenumberHigh
                 wavenumberHigh   =+Bessel_Function_J0_Zero(iBesselZero) &
                      &            /radius
-                integrationReset =.true.
-                accelerationDelta=+Integrate(                                                 &
-                     &                                         wavenumberLow                , &
-                     &                                         wavenumberHigh               , &
-                     &                                         accelerationVerticalIntegrand, &
-                     &                                         integrandFunction            , &
-                     &                                         integrationWorkspace         , &
-                     &                       reset            =integrationReset             , &
-                     &                       toleranceAbsolute=1.0d-6                       , &
-                     &                       toleranceRelative=1.0d-3                         &
-                     &                      )
-                call Integrate_Done(integrandFunction,integrationWorkspace)
+                accelerationDelta=+integratorAccelerationVertical%integrate(wavenumberLow,wavenumberHigh)
                 converged=abs(accelerationDelta) < 1.0d-6*abs(self%accelerationVertical(iRadius,iHeight))
                 self%accelerationVertical(iRadius,iHeight)=+self%accelerationVertical(iRadius,iHeight) &
                      &                                     +     accelerationDelta
@@ -1070,18 +1014,7 @@ contains
                    case default
                       call Galacticus_Error_Report('incorrect Bessel function order'//{introspection:location})
                    end select
-                   integrationReset=.true.
-                   tidalTensorDelta=+Integrate(                                                    &
-                        &                                        wavenumberLow                   , &
-                        &                                        wavenumberHigh                  , &
-                        &                                        tidalTensorRadialRadialIntegrand, &
-                        &                                        integrandFunction               , &
-                        &                                        integrationWorkspace            , &
-                        &                      reset            =integrationReset                , &
-                        &                      toleranceAbsolute=1.0d-6                          , &
-                        &                      toleranceRelative=1.0d-3                            &
-                        &                     )
-                   call Integrate_Done(integrandFunction,integrationWorkspace)
+                   tidalTensorDelta=+integratorTidalTensorRadialRadial%integrate(wavenumberLow,wavenumberHigh)
                    converged=abs(tidalTensorDelta) < 1.0d-6*abs(tidalTensorRadialRadial)                   
                    tidalTensorRadialRadial=+tidalTensorRadialRadial &
                         &                  +     tidalTensorDelta
@@ -1100,18 +1033,7 @@ contains
                 wavenumberLow   =+wavenumberHigh
                 wavenumberHigh  =+Bessel_Function_J0_Zero(iBesselZero) &
                      &           /radius
-                integrationReset=.true.
-                tidalTensorDelta=+Integrate(                                                        &
-                     &                                        wavenumberLow                       , &
-                     &                                        wavenumberHigh                      , &
-                     &                                        tidalTensorVerticalVerticalIntegrand, &
-                     &                                        integrandFunction                   , &
-                     &                                        integrationWorkspace                , &
-                     &                      reset            =integrationReset                    , &
-                     &                      toleranceAbsolute=1.0d-6                              , &
-                     &                      toleranceRelative=1.0d-3                                &
-                     &                     )
-                call Integrate_Done(integrandFunction,integrationWorkspace)
+                tidalTensorDelta=+integratorTidalTensorVerticalVertical%integrate(wavenumberLow,wavenumberHigh)
                 converged=abs(tidalTensorDelta) < 1.0d-6*abs(self%tidalTensorVerticalVertical(iRadius,iHeight))
                 self%tidalTensorVerticalVertical(iRadius,iHeight)=+self%tidalTensorVerticalVertical(iRadius,iHeight) &
                      &                                            +     tidalTensorDelta
@@ -1127,27 +1049,17 @@ contains
                 wavenumberLow   =+wavenumberHigh
                 wavenumberHigh  =+Bessel_Function_J1_Zero(iBesselZero) &
                      &           /radius
-                integrationReset=.true.
-                tidalTensorDelta=+Integrate(                                             &
-                     &                                        wavenumberLow            , &
-                     &                                        wavenumberHigh           , &
-                     &                                        tidalTensorCrossIntegrand, &
-                     &                                        integrandFunction        , &
-                     &                                        integrationWorkspace     , &
-                     &                      reset            =integrationReset         , &
-                     &                      toleranceAbsolute=1.0d-6                   , &
-                     &                      toleranceRelative=1.0d-3                     &
-                     &                     )
-                call Integrate_Done(integrandFunction,integrationWorkspace)
+                tidalTensorDelta=+integratorTidalTensorCross%integrate(wavenumberLow,wavenumberHigh)
                 converged=abs(tidalTensorDelta) < 1.0d-6*abs(self%tidalTensorCross(iRadius,iHeight))
                 self%tidalTensorCross(iRadius,iHeight)=+self%tidalTensorCross(iRadius,iHeight) &
                      &                                 +     tidalTensorDelta
              end do
           end do
-          !$omp end parallel do
+          !$omp end do
+          !$omp end parallel
        end do
-       call Galacticus_Display_Counter_Clear(       verbosityWorking)
-       call Galacticus_Display_Unindent     ("done",verbosityWorking)
+       call displayCounterClear(       verbosityLevelWorking)
+       call displayUnindent     ("done",verbosityLevelWorking)
        !$ call hdf5Access%set()
        call file%openFile    (char   (fileName                        )                              ,overWrite=.true.,readOnly=.false.)
        call file%writeDataset(        self%accelerationRadii           ,'radii'                                                        )
@@ -1303,7 +1215,7 @@ contains
 
     double precision function Izm(wavenumber,m)
       !% Evalute the $m$-dependent part of the $I(z)$ integral.
-      use Binomial_Coefficients, only : Binomial_Coefficient
+      use :: Binomial_Coefficients, only : Binomial_Coefficient
       implicit none
       double precision, intent(in   ) :: wavenumber
       integer         , intent(in   ) :: m
@@ -1343,7 +1255,7 @@ contains
     
     double precision function dIzdz(wavenumber)
       !% $z$ derivative of the $z$-dependent term appearing in the expression for the potential of the disk.
-      use Binomial_Coefficients, only : Binomial_Coefficient
+      use :: Binomial_Coefficients, only : Binomial_Coefficient
       implicit none
       double precision, intent(in   ) :: wavenumber
       double precision                :: dIzdzmOdd , dIzdzmEven, &
@@ -1371,7 +1283,7 @@ contains
 
     double precision function dIzdzm(wavenumber,m)
       !% Evalute the $m$-dependent part of the $\mathrm{d}I(z)/\mathrm{d}z$ integral.
-      use Binomial_Coefficients, only : Binomial_Coefficient
+      use :: Binomial_Coefficients, only : Binomial_Coefficient
       implicit none
       double precision, intent(in   ) :: wavenumber
       integer         , intent(in   ) :: m
@@ -1412,7 +1324,7 @@ contains
 
     double precision function d2Izdz2(wavenumber)
       !% $z$ $2^\mathrm{nd}$ derivative of the $z$-dependent term appearing in the expression for the potential of the disk.
-      use Binomial_Coefficients, only : Binomial_Coefficient
+      use :: Binomial_Coefficients, only : Binomial_Coefficient
       implicit none
       double precision, intent(in   ) :: wavenumber
       double precision                :: d2Izdz2mOdd , d2Izdz2mEven, &
@@ -1440,7 +1352,7 @@ contains
 
     double precision function d2Izdz2m(wavenumber,m)
       !% Evalute the $m$-dependent part of the $\mathrm{d}^2I(z)/\mathrm{d}z^2$ integral.
-      use Binomial_Coefficients, only : Binomial_Coefficient
+      use :: Binomial_Coefficients, only : Binomial_Coefficient
       implicit none
       double precision, intent(in   ) :: wavenumber
       integer         , intent(in   ) :: m

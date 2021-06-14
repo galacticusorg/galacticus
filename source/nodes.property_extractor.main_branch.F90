@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,10 +17,16 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an ISM mass output analysis property extractor class.
+  !% Contains a module which implements a node property extractor which reports if a node is on the main branch of its merger
+  !% tree.
 
   !# <nodePropertyExtractor name="nodePropertyExtractorMainBranchStatus">
-  !#  <description>An ISM mass output analysis property extractor class.</description>
+  !#  <description>
+  !#   A node property extractor class which extracts the status of each node with respect to the main branch of its merger
+  !#   tree. The status will be extracted as {\normalfont \ttfamily nodeIsOnMainBranch}, with a value of 1 indicating that the
+  !#   node is a primary progenitor of the final halo (i.e. is on the main branch of the tree) and a value of 0 indicating that it
+  !#   is not.
+  !#  </description>
   !# </nodePropertyExtractor>
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorMainBranchStatus
      !% A stelalr mass output analysis class.
@@ -45,7 +51,7 @@ contains
     implicit none
     type(nodePropertyExtractorMainBranchStatus)                :: mainBranchStatusConstructorParameters
     type(inputParameters                      ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     mainBranchStatusConstructorParameters=nodePropertyExtractorMainBranchStatus()
     return
@@ -59,7 +65,7 @@ contains
     type            (treeNode                             ), intent(inout), target   :: node
     double precision                                       , intent(in   )           :: time
     type            (multiCounter                         ), intent(inout), optional :: instance
-    !GCC$ attributes unused :: self, instance, time
+    !$GLC attributes unused :: self, instance, time
 
     if (node%isOnMainBranch()) then
        mainBranchStatusExtract=1
@@ -74,7 +80,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorMainBranchStatus), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     mainBranchStatusType=outputAnalysisPropertyTypeLinear
     return
@@ -85,7 +91,7 @@ contains
     implicit none
     type (varying_string                       )                :: mainBranchStatusName
     class(nodePropertyExtractorMainBranchStatus), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     mainBranchStatusName=var_str('nodeIsOnMainBranch')
     return
@@ -96,7 +102,7 @@ contains
     implicit none
     type (varying_string                       )                :: mainBranchStatusDescription
     class(nodePropertyExtractorMainBranchStatus), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     mainBranchStatusDescription=var_str('Indicates if the node is on the main branch of the merger tree (0|1).')
     return

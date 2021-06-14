@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -31,27 +31,11 @@
      double precision        , allocatable, dimension(:,:) :: angularPowerSpectra
      type            (window)                              :: mangleWindow
    contains
-     !@ <objectMethods>
-     !@   <object>surveyGeometryMangle</object>
-     !@   <objectMethod>
-     !@     <method>mangleDirectory</method>
-     !@     <type>\textcolor{red}{\textless type(varying\_string) \textgreater}</type>
-     !@     <arguments></arguments>
-     !@     <description>Return the directory containing \gls{mangle} files for this survey geometry.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>mangleFiles</method>
-     !@     <type>\textcolor{red}{\textless type(varying\_string)(:) \textgreater}</type>
-     !@     <arguments></arguments>
-     !@     <description>Return array of \gls{mangle} filenames for this survey geometry.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>initialize</method>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@     <description>Initialize an instance of the \gls{mangle} survey geometry class.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return the directory containing \gls{mangle} files for this survey geometry." method="mangleDirectory" />
+     !#   <method description="Return array of \gls{mangle} filenames for this survey geometry." method="mangleFiles" />
+     !#   <method description="Initialize an instance of the \gls{mangle} survey geometry class." method="initialize" />
+     !# </methods>
      procedure                                  :: windowFunctionAvailable => mangleWindowFunctionAvailable
      procedure                                  :: angularPowerAvailable   => mangleAngularPowerAvailable
      procedure                                  :: solidAngle              => mangleSolidAngle
@@ -103,7 +87,7 @@ contains
     !% Return false to indicate that survey window function is not available.
     implicit none
     class(surveyGeometryMangle), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     mangleWindowFunctionAvailable=.false.
     return
@@ -113,7 +97,7 @@ contains
     !% Return true to indicate that survey angular power is available.
     implicit none
     class(surveyGeometryMangle), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     mangleAngularPowerAvailable=.true.
     return
@@ -167,7 +151,7 @@ contains
     integer                               , intent(in   )                                           :: gridCount
     double precision                      , intent(  out)                                           :: boxLength
     complex         (c_double_complex    ), intent(  out), dimension(gridCount,gridCount,gridCount) :: windowFunction1,windowFunction2
-    !GCC$ attributes unused :: self, mass1, mass2, gridCount, boxLength, windowFunction1, windowFunction2
+    !$GLC attributes unused :: self, mass1, mass2, gridCount, boxLength, windowFunction1, windowFunction2
 
     call Galacticus_Error_Report('window function construction is not supported'//{introspection:location})
     return

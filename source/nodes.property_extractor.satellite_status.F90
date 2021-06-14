@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -60,11 +60,9 @@ contains
 
     !# <inputParameter>
     !#   <name>discriminator</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('boundMass')</defaultValue>
     !#   <description>Specifies whether bound mass or position history will be used to determine satellite orphan status.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     self=nodePropertyExtractorSatelliteStatus(enumerationSatelliteStatusDiscriminatorEncode(char(discriminator),includesPrefix=.false.))
     !# <inputParametersValidate source="parameters"/>
@@ -129,7 +127,7 @@ contains
     class           (nodeComponentSatellite              ), pointer                 :: satellite
     class           (nodeComponentPosition               ), pointer                 :: position
     type            (history                             )                          :: discriminatorHistory
-    !GCC$ attributes unused :: instance, time
+    !$GLC attributes unused :: instance, time
 
     if (node%isSatellite()) then
        basic => node%basic()
@@ -165,7 +163,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorSatelliteStatus), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     satelliteStatusType=outputAnalysisPropertyTypeLinear
     return
@@ -176,7 +174,7 @@ contains
     implicit none
     type (varying_string                      )                :: satelliteStatusName
     class(nodePropertyExtractorSatelliteStatus), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     satelliteStatusName=var_str('satelliteStatus')
     return
@@ -187,7 +185,7 @@ contains
     implicit none
     type (varying_string                      )                :: satelliteStatusDescription
     class(nodePropertyExtractorSatelliteStatus), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     satelliteStatusDescription=var_str('Satellite status flag (0=not a satellite; 1=satellite with halo; 2=orphaned satellite).')
     return

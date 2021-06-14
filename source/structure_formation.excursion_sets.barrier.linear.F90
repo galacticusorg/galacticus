@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,13 @@
 !% Contains a module which implements a linear excursion set barrier class.
 
   !# <excursionSetBarrier name="excursionSetBarrierLinear">
-  !#  <description>A linear excursion set barrier class.</description>
+  !#  <description>
+  !#   A linear excursion set barrier class. The barrier is given by:
+  !#   \begin{equation}
+  !#   B(S) = B_0 + B_1 S,
+  !#   \end{equation}
+  !#   where $B_0=${\normalfont \ttfamily [coefficientConstant]}, and $B_0=${\normalfont \ttfamily [coefficientLinear]}.
+  !#  </description>
   !# </excursionSetBarrier>
   type, extends(excursionSetBarrierClass) :: excursionSetBarrierLinear
      !% A linear excursion set barrier class.
@@ -54,8 +60,6 @@ contains
     !#   <variable>coefficientConstant</variable>
     !#   <defaultValue>1.67d0</defaultValue>
     !#   <description>The constant coefficient in the linear excursion set barrier.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>coefficientLinear</name>
@@ -63,8 +67,6 @@ contains
     !#   <variable>coefficientLinear</variable>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The linear coefficient in the linear excursion set barrier.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=excursionSetBarrierLinear(coefficientConstant,coefficientLinear)
     !# <inputParametersValidate source="parameters"/>
@@ -88,7 +90,7 @@ contains
     double precision                           , intent(in   ) :: variance, time
     type            (treeNode                 ), intent(inout) :: node
     logical                                    , intent(in   ) :: rateCompute
-    !GCC$ attributes unused :: time, rateCompute, node
+    !$GLC attributes unused :: time, rateCompute, node
 
     linearBarrier=+self%coefficientConstant          &
          &        +self%coefficientLinear  *variance
@@ -102,7 +104,7 @@ contains
     double precision                           , intent(in   ) :: variance   , time
     type            (treeNode                 ), intent(inout) :: node
     logical                                    , intent(in   ) :: rateCompute
-    !GCC$ attributes unused :: variance, time, rateCompute, node
+    !$GLC attributes unused :: variance, time, rateCompute, node
 
     linearBarrierGradient=+self%coefficientLinear
     return

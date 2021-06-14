@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,7 +26,10 @@ module Power_Spectra_Primordial
   !# <functionClass>
   !#  <name>powerSpectrumPrimordial</name>
   !#  <descriptiveName>Primordial Power Spectrum</descriptiveName>
-  !#  <description>Class providing the primordial power spectrum.</description>
+  !#  <description>
+  !#   Class providing the primordial power spectrum. The late-time power spectrum is typically computed from the specified
+  !#   primordial power spectrum and the \refPhysics{transferFunction} and normalized to a value of $\sigma_8$.
+  !#  </description>
   !#  <default>powerLaw</default>
   !#  <method name="power" >
   !#   <description>Return the (unnormalized) power in the primordial power spectrum at the given {\normalfont \ttfamily wavenumber} (specified in units of Mpc$^{-1}$.</description>

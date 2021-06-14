@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -38,6 +38,7 @@
      procedure :: angularMomentumVectorMean       => isotropicAngularMomentumVectorMean
      procedure :: velocityTotalRootMeanSquared    => isotropicVelocityTotalRootMeanSquared
      procedure :: energyMean                      => isotropicEnergyMean
+     procedure :: isAngularlyResolved             => isotropicIsAngularlyResolved
   end type virialOrbitIsotropic
 
   interface virialOrbitIsotropic
@@ -127,7 +128,7 @@ contains
     double precision                      , dimension(3)  :: isotropicVelocityTangentialVectorMean
     class           (virialOrbitIsotropic), intent(inout) :: self
     type            (treeNode            ), intent(inout) :: node                                 , host
-    !GCC$ attributes unused :: self, node, host
+    !$GLC attributes unused :: self, node, host
 
     ! Since the tangntial velocity is assumed to be isotropically distributed the mean of the vector tangential velocity is zero.
     isotropicVelocityTangentialVectorMean=0.0d0
@@ -151,7 +152,7 @@ contains
     double precision                      , dimension(3)  :: isotropicAngularMomentumVectorMean
     class           (virialOrbitIsotropic), intent(inout) :: self
     type            (treeNode            ), intent(inout) :: node                              , host
-    !GCC$ attributes unused :: self, node, host
+    !$GLC attributes unused :: self, node, host
 
     ! Since the tangntial velocity is assumed to be isotropically distributed the mean of the vector angular momentum is zero.
     isotropicAngularMomentumVectorMean=0.0d0
@@ -177,3 +178,14 @@ contains
     isotropicEnergyMean=self%virialOrbit_%energyMean(node,host)
     return
   end function isotropicEnergyMean
+
+  logical function isotropicIsAngularlyResolved(self)
+    !% Return true indicating that orbits are angularly-resolved.
+    implicit none
+    class(virialOrbitIsotropic), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    isotropicIsAngularlyResolved=.true.
+    return
+  end function isotropicIsAngularlyResolved
+  

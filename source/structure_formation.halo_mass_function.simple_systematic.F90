@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,12 +20,21 @@
 !% Contains a module which implements a dark matter halo mass function class which modifies another mass function using a simple model for systematics.
 
   !# <haloMassFunction name="haloMassFunctionSimpleSystematic">
-  !#  <description>The halo mass function is computed by modifying another halo mass function using a simple model for systematic errors.</description>
+  !#  <description>
+
+  !#   A halo mass function class in which the mass function is computed by modifying another halo mass function (specified as a
+  !#   subparameter) using a simple model for systematic errors as follows:
+  !#   \begin{equation}
+  !#     {\mathrm{d} n\over \mathrm{d}M}(M) \rightarrow {\mathrm{d} n\over \mathrm{d}M}(M) \left( 1 + \alpha + \beta
+  !#     \log_{10}\left[ {M \over 10^{12}M_\odot} \right] \right)
+  !#   \end{equation}
+  !#   where $\alpha=${\normalfont \ttfamily [alpha]}, and $\beta=${\normalfont \ttfamily [beta]}.
+  !#  </description>
   !# </haloMassFunction>
   type, extends(haloMassFunctionClass) :: haloMassFunctionSimpleSystematic
      !% A halo mass function class which modifies another mass function using a simple model for systematics.
      private
-     double precision                                 :: alpha                , beta
+     double precision                                 :: alpha                          , beta
      class           (haloMassFunctionClass), pointer :: referenceMassFunction => null()
     contains
      final     ::                 simpleSystematicDestructor
@@ -56,16 +65,12 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>Parameter $\alpha$ appearing in model for simple systematic shift in the halo mass function.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>beta</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>Parameter $\beta$ appearing in model for simple systematic shift in the halo mass function.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_"  source="parameters"/>
     !# <objectBuilder class="haloMassFunction"    name="referenceMassFunction" source="parameters"/>

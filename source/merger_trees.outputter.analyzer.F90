@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -29,10 +29,11 @@
      private
      class(outputAnalysisClass), pointer :: outputAnalysis_ => null()
    contains
-     final     ::             analyzerDestructor
-     procedure :: output   => analyzerOutput
-     procedure :: finalize => analyzerFinalize
-     procedure :: reduce   => analyzerReduce
+     final     ::               analyzerDestructor
+     procedure :: outputTree => analyzerOutputTree
+     procedure :: outputNode => analyzerOutputNode
+     procedure :: finalize   => analyzerFinalize
+     procedure :: reduce     => analyzerReduce
   end type mergerTreeOutputterAnalyzer
 
   interface mergerTreeOutputterAnalyzer
@@ -77,22 +78,20 @@ contains
     return
   end subroutine analyzerDestructor
 
-  subroutine analyzerOutput(self,tree,indexOutput,time,isLastOutput)
+  subroutine analyzerOutputTree(self,tree,indexOutput,time)
     !% Write properties of nodes in {\normalfont \ttfamily tree} to the \glc\ output file.
     use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
     use :: Galacticus_Nodes              , only : mergerTree                   , nodeComponentBasic, treeNode
     use :: Merger_Tree_Walkers           , only : mergerTreeWalkerAllNodes
     implicit none
-    class           (mergerTreeOutputterAnalyzer), intent(inout)           :: self
-    type            (mergerTree                 ), intent(inout), target   :: tree
-    integer         (c_size_t                   ), intent(in   )           :: indexOutput
-    double precision                             , intent(in   )           :: time
-    logical                                      , intent(in   ), optional :: isLastOutput
-    type            (treeNode                   )               , pointer  :: node
-    class           (nodeComponentBasic         )               , pointer  :: basic
-    type            (mergerTree                 )               , pointer  :: treeCurrent
-    type            (mergerTreeWalkerAllNodes   )                          :: treeWalker
-    !GCC$ attributes unused :: isLastOutput
+    class           (mergerTreeOutputterAnalyzer), intent(inout)          :: self
+    type            (mergerTree                 ), intent(inout), target  :: tree
+    integer         (c_size_t                   ), intent(in   )          :: indexOutput
+    double precision                             , intent(in   )          :: time
+    type            (treeNode                   )               , pointer :: node
+    class           (nodeComponentBasic         )               , pointer :: basic
+    type            (mergerTree                 )               , pointer :: treeCurrent
+    type            (mergerTreeWalkerAllNodes   )                         :: treeWalker
 
     ! Iterate over trees.
     treeCurrent => tree
@@ -113,7 +112,20 @@ contains
        treeCurrent => treeCurrent%nextTree
     end do
     return
-  end subroutine analyzerOutput
+  end subroutine analyzerOutputTree
+
+  subroutine analyzerOutputNode(self,node,indexOutput)
+    !% Perform no output.
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
+    class  (mergerTreeOutputterAnalyzer), intent(inout) :: self
+    type   (treeNode                   ), intent(inout) :: node
+    integer(c_size_t                   ), intent(in   ) :: indexOutput
+    !$GLC attributes unused :: self, node, indexOutput
+
+    call Galacticus_Error_Report('output of single nodes is not supported'//{introspection:location})
+    return
+  end subroutine analyzerOutputNode
 
   subroutine analyzerReduce(self,reduced)
     !% Reduce over the outputter.

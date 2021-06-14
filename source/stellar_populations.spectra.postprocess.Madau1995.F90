@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,10 @@
   !% An implementation of a spectrum postprocessor that applies the \cite{madau_radiative_1995} calculation of the attenuation of spectra by the intergalactic medium.
 
   !# <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorMadau1995">
-  !#  <description>Multiplier the \cite{madau_radiative_1995} calculation of the attenuation of spectra by the intergalactic medium.</description>
+  !#  <description>
+  !#   A stellar population postprocessor class that postprocesses spectra through absorption by the \gls{igm} using the results
+  !#   of \cite{madau_radiative_1995}.
+  !#  </description>
   !# </stellarPopulationSpectraPostprocessor>
   type, extends(stellarPopulationSpectraPostprocessorClass) :: stellarPopulationSpectraPostprocessorMadau1995
      !% An spectrum postprocessor multipliering the \cite{madau_radiative_1995} calculation of the attenuation of spectra by the intergalactic medium.
@@ -43,7 +46,7 @@ contains
     implicit none
     type(stellarPopulationSpectraPostprocessorMadau1995)                :: self
     type(inputParameters                               ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=stellarPopulationSpectraPostprocessorMadau1995()
     return
@@ -61,7 +64,7 @@ contains
     integer                                                                                   :: iLine
     double precision                                                                          :: continuumFactor                                                                                                               , emissionFactor                  , &
          &                                                                                       opticalDepth                                                                                                                  , wavelengthObservedLymanContinuum
-    !GCC$ attributes unused :: self, age
+    !$GLC attributes unused :: self, age
 
     ! Check if this is a zero redshift case.
     if (redshift <= 0.0d0) then

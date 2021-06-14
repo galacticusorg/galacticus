@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,17 @@
   !% Contains a module which implements a model of the tidal field acting on a satellite assuming spherical symmetry in the host.
 
   !# <satelliteTidalField name="satelliteTidalFieldSphericalSymmetry">
-  !#  <description>A satellite tidal field class which computes the tidal field assuming spherical symmetry.</description>
+  !#  <description>
+  !#   A satellite tidal field class which assumes a spherically-symmetric host halo, and computes the tidal field accordingly
+  !#   using:
+  !#   \begin{equation}
+  !#    \mathcal{F} = {\mathrm{G} M_\mathrm{host}(&lt;r_\mathrm{p}) \over r_\mathrm{p}^3} - 4 \pi \mathrm{G}
+  !#    \rho_\mathrm{host}(r_\mathrm{p}) + \omega_\mathrm{p}^2,
+  !#   \end{equation}
+  !#   where $r_\mathrm{p}$ is the pericentric radius. $M_\mathrm{host}(&lt;r)$ is the mass of the host halo enclosed within a sphere
+  !#   of radius $r$, $\rho_\mathrm{host}(r)$ is the host density at radius $r$, and $\omega_\mathrm{p}$ is the orbital angular
+  !#   velocity at pericenter.
+  !#  </description>
   !# </satelliteTidalField>
   type, extends(satelliteTidalFieldClass) :: satelliteTidalFieldSphericalSymmetry
      !% Implementation of a satellite tidal friction class which assumes spherical symmetry.
@@ -48,11 +58,9 @@ contains
 
     !# <inputParameter>
     !#   <name>factorBoost</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The factor by which to boost satellite tidal fields in the {\normalfont \ttfamily sphericalSymmetry} tidal field class.</description>
     !#   <source>parameters</source>
-    !#   <type>float</type>
     !# </inputParameter>
     self=satelliteTidalFieldSphericalSymmetry(factorBoost)
     !# <inputParametersValidate source="parameters"/>
@@ -77,7 +85,7 @@ contains
     use :: Galacticus_Nodes                  , only : nodeComponentSatellite                          , treeNode
     use :: Kepler_Orbits                     , only : keplerOrbit
     use :: Numerical_Constants_Math          , only : Pi
-    use :: Numerical_Constants_Physical      , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical      , only : gravitationalConstantGalacticus
     use :: Satellite_Orbits                  , only : Satellite_Orbit_Extremum_Phase_Space_Coordinates, extremumPericenter
     implicit none
     class           (satelliteTidalFieldSphericalSymmetry), intent(inout) :: self

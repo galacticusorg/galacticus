@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +21,20 @@
   !% orbital parameters designed to fit the results of \cite{tormen_rise_1997} as described by \cite{cole_hierarchical_2000}.
 
   !# <satelliteMergingTimescales name="satelliteMergingTimescalesLaceyCole1993Tormen">
-  !#  <description>Computes the merging timescale using the method of \cite{lacey_merger_1993} with a parameterization of orbital parameters designed to fit the results of \cite{tormen_rise_1997} as described by \cite{cole_hierarchical_2000}.</description>
+  !#  <description>
+  !#   A satellite merging timescale class which computes merging timescales using the dynamical friction calculation of
+  !#   \cite{lacey_merger_1993} with a parameterization of orbital parameters designed to fit the results of
+  !#   \cite{tormen_rise_1997} as described by \cite{cole_hierarchical_2000}. Timescales are multiplied by the value of the
+  !#   {\normalfont \ttfamily mergingTimescaleMultiplier} input parameter. Specifically, the merging time is taken to be:
+  !#   \begin{equation}
+  !#    \tau_\mathrm{merge} = {f_\tau \Phi \tau_\mathrm{dynamical} \over 2 B(1)} { M_\mathrm{host}/M_\mathrm{satellite} \over \ln
+  !#    (M_\mathrm{host}/M_\mathrm{satellite})}
+  !#   \end{equation}
+  !#   where $f_\tau=${\normalfont \ttfamily mergingTimescaleMultiplier}, $\tau_\mathrm{dynamical}$ is the dynamical time of the
+  !#   host halo and $B(x)=\hbox{erf}(x)-2 x \exp(x)/\sqrt{\Pi}$. The orbital factor $\Phi \equiv \epsilon^{0.78}
+  !#   (R_\mathrm{c}/R_\mathrm{virial})^2$ is drawn at random from a log-normal distribution with median $-0.14$ and dispersion
+  !#   $0.26$ as found by \cite{cole_hierarchical_2000}.
+  !#  </description>
   !# </satelliteMergingTimescales>
   type, extends(satelliteMergingTimescalesLaceyCole1993) :: satelliteMergingTimescalesLaceyCole1993Tormen
      !% A class implementing the \cite{cole_hierarchical_2000} method for satellite merging timescales.
@@ -67,15 +80,12 @@ contains
     class           (satelliteMergingTimescalesLaceyCole1993Tormen), intent(inout) :: self
     type            (treeNode                                     ), intent(inout) :: node
     type            (keplerOrbit                                  ), intent(inout) :: orbit
-    type            (treeNode                                     ), pointer       :: hostNode
     double precision                                               , parameter     :: orbitalFactorDistributionSigma=+0.26d0                   !   Cole et al. (2000).
     double precision                                               , parameter     :: orbitalFactorDistributionMean =-0.14d0                   !   Cole et al. (2000).
     double precision                                                               :: log10OrbitalFactor                    , randomDeviate, &
          &                                                                            orbitalFactor
-    !GCC$ attributes unused :: orbit
+    !$GLC attributes unused :: orbit
 
-    ! Find the host node.
-    hostNode => node%parent
     ! Compute the orbital factor - selected at random from a lognormal distribution.
     randomDeviate     =+orbitalFactorDistributionSigma                              &
          &             *node%hostTree%randomNumberGenerator_%standardNormalSample()

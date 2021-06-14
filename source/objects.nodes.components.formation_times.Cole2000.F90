@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -62,20 +62,16 @@ contains
 
     !# <inputParameter>
     !#   <name>haloReformationMassFactor</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>2.0d0</defaultValue>
     !#   <description>Factor by which halo mass must have increased to trigger a new formation event.</description>
     !#   <source>parameters_</source>
-    !#   <type>double</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>haloReformationOnPromotionOnly</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Specifies whether halo reformation should occur only at node promotion events, or at the precise time that
     !#      the halo mass has increased sufficiently in mass.</description>
     !#   <source>parameters_</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     return
   end subroutine Node_Component_Formation_Times_Cole2000_Initialize
@@ -91,7 +87,7 @@ contains
     implicit none
     type(inputParameters), intent(inout) :: parameters_
     type(dependencyRegEx), dimension(1)  :: dependencies
-    !GCC$ attributes unused :: parameters_
+    !$GLC attributes unused :: parameters_
     
     ! Check if this implementation is selected.
     if (defaultFormationTimeComponent%cole2000IsActive()) then
@@ -118,19 +114,17 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Formation_Times_Cole2000_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Formation_Times_Cole2000_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
+  subroutine Node_Component_Formation_Times_Cole2000_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
     !% Check for need to update the formation time of a node in the {\normalfont \ttfamily Cole2000} formation time component.
     use :: Galacticus_Nodes, only : defaultFormationTimeComponent, interruptTask, nodeComponentBasic, nodeComponentFormationTime, &
           &                         propertyTypeInactive         , treeNode
     implicit none
-    type     (treeNode                   ), intent(inout), pointer :: node
-    logical                               , intent(in   )          :: odeConverged
+    type     (treeNode                   ), intent(inout)          :: node
     logical                               , intent(inout)          :: interrupt
     procedure(interruptTask              ), intent(inout), pointer :: interruptProcedure
     integer                               , intent(in   )          :: propertyType
     class    (nodeComponentFormationTime )               , pointer :: formationTime
     class    (nodeComponentBasic         )               , pointer :: basicFormation    , basic
-    !GCC$ attributes unused :: odeConverged
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
@@ -161,7 +155,7 @@ contains
     type (treeNode                  ), intent(inout) :: node
     class(nodeComponentFormationTime), pointer       :: formationTime
     class(nodeComponentBasic        ), pointer       :: basicFormation, basicParent
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
     
     if (haloReformationOnPromotionOnly) then
        formationTime  => node              %formationTime()

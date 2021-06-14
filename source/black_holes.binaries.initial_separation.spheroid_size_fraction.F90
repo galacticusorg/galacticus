@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +21,11 @@
 !% larger of the host and satellite spheroids.
 
   !# <blackHoleBinaryInitialSeparation name="blackHoleBinaryInitialSeparationSpheroidRadiusFraction">
-  !#  <description>A black hole binary initial separation class in which the radius is a fixed fraction of the scale radius of the larger of the host and satellite spheroids.</description>
+  !#  <description>
+  !#   A black hole binary initial separation class that assumes that the initial separation of the binary is equal to a fixed
+  !#   fraction {\normalfont \ttfamily [spheroidRadiusFraction]} of the larger of the spheroid scale radii of the two merging
+  !#   galaxies.
+  !#  </description>
   !# </blackHoleBinaryInitialSeparation>
   type, extends(blackHoleBinaryInitialSeparationClass) :: blackHoleBinaryInitialSeparationSpheroidRadiusFraction
      !% A black hole binary initial separation class in which the radius is a fixed fraction of the scale radius of the larger of the host and satellite spheroids.
@@ -50,11 +54,9 @@ contains
 
     !# <inputParameter>
     !#   <name>spheroidRadiusFraction</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The fraction of the spheroid radius at which merging black holes will be initially placed.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     self=blackHoleBinaryInitialSeparationSpheroidRadiusFraction(spheroidRadiusFraction)
     !# <inputParametersValidate source="parameters"/>

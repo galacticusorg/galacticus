@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -43,7 +43,7 @@ contains
     implicit none
     type(outputAnalysisDistributionOperatorIdentity)                :: self
     type(inputParameters                           ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=outputAnalysisDistributionOperatorIdentity()
     return
@@ -51,7 +51,7 @@ contains
 
   function identityOperateScalar(self,propertyValue,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
     !% Implement a identity output analysis distribution operator.
-    use :: Arrays_Search, only : Search_Array
+    use :: Arrays_Search, only : searchArray
     implicit none
     class           (outputAnalysisDistributionOperatorIdentity), intent(inout)                                        :: self
     double precision                                            , intent(in   )                                        :: propertyValue
@@ -61,14 +61,16 @@ contains
     type            (treeNode                                  ), intent(inout)                                        :: node
     double precision                                                           , dimension(size(propertyValueMinimum)) :: identityOperateScalar
     integer         (c_size_t                                  )                                                       :: binIndex
-    !GCC$ attributes unused :: self, outputIndex, propertyType, node
+    !$GLC attributes unused :: self, outputIndex, propertyType, node
 
     ! Initialize distribution to zero.
     identityOperateScalar=0.0d0
     ! Find the corresponding bin in the array.
-    binIndex=Search_Array(propertyValueMinimum,propertyValue)
+    binIndex=searchArray(propertyValueMinimum,propertyValue)
     ! Check if value lies within range.
     if (binIndex <= 0) return
+    ! Capture the final bin.
+    if (binIndex == size(propertyValueMinimum)-1_c_size_t .and. propertyValue > propertyValueMaximum(binIndex)) binIndex=size(propertyValueMinimum)
     ! Add weight to distribution if within the bin.
     if     (                                                 &
          &   propertyValue >= propertyValueMinimum(binIndex) &
@@ -89,7 +91,7 @@ contains
     integer         (c_size_t                                  ), intent(in   )                                        :: outputIndex
     type            (treeNode                                  ), intent(inout)                                        :: node
     double precision                                                           , dimension(size(propertyValueMinimum)) :: identityOperateDistribution
-    !GCC$ attributes unused :: self, propertyValueMinimum, propertyValueMaximum, outputIndex, propertyType, node
+    !$GLC attributes unused :: self, propertyValueMinimum, propertyValueMaximum, outputIndex, propertyType, node
 
     identityOperateDistribution=distribution
     return

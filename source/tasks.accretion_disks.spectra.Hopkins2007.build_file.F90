@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -41,7 +41,7 @@ contains
     implicit none
     type(taskAGNSpectraHopkins2008BuildFile)                :: self
     type(inputParameters                   ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=taskAGNSpectraHopkins2008BuildFile()
     return
@@ -50,18 +50,18 @@ contains
   subroutine agnSpectraHopkins2008BuildFilePerform(self,status)
     !% Builds the tabulation.
     use :: Accretion_Disk_Spectra, only : accretionDiskSpectraHopkins2007
-    use :: Galacticus_Display    , only : Galacticus_Display_Indent      , Galacticus_Display_Unindent
+    use :: Display               , only : displayIndent                  , displayUnindent
     use :: Galacticus_Error      , only : errorStatusSuccess
     implicit none
     class  (taskAGNSpectraHopkins2008BuildFile), intent(inout), target   :: self
     integer                                    , intent(  out), optional :: status
     type   (accretionDiskSpectraHopkins2007   )                          :: accretionDiskSpectra_
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
-    call Galacticus_Display_Indent  ('Begin task: hopkins2007 AGN spectra file build')
+    call displayIndent  ('Begin task: hopkins2007 AGN spectra file build')
     accretionDiskSpectra_=accretionDiskSpectraHopkins2007()
     if (present(status)) status=errorStatusSuccess
-    call Galacticus_Display_Unindent('Done task: hopkins2007 AGN spectra file build')
+    call displayUnindent('Done task: hopkins2007 AGN spectra file build')
     return
   end subroutine agnSpectraHopkins2008BuildFilePerform
 
@@ -69,7 +69,7 @@ contains
     !% Specifies that this task does not requires the main output file.
     implicit none
     class(taskAGNSpectraHopkins2008BuildFile), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     agnSpectraHopkins2008BuildFileRequiresOutputFile=.false.
     return

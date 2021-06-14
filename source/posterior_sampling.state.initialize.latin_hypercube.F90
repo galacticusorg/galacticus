@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +22,12 @@
   use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
   !# <posteriorSampleStateInitialize name="posteriorSampleStateInitializeLatinHypercube">
-  !#  <description>A posterior sampling state initialization class which samples the inital state at random from the priors using Latin Hypercube sampling.</description>
+  !#  <description>
+  !#   This class uses a \gls{latinhypercube} design (in the cumulative prior probability distribution of each parameter) to assign
+  !#   initial state vectors. In particular, a \gls{maximin} design is used in which a number of trial \glspl{latinhypercube} are
+  !#   constructed and the hypercube with the greatest minimum distance between any pair of state vectors is selected. The {\normalfont
+  !#   \ttfamily [maximinTrialCount]} parameter is used to specify the number of trial hypercubes to construct.
+  !#  </description>
   !# </posteriorSampleStateInitialize>
   type, extends(posteriorSampleStateInitializeClass) :: posteriorSampleStateInitializeLatinHypercube
      !% Implementation of a posterior sampling state initialization class which samples the inital state at random from the priors using Latin Hypercube sampling.
@@ -53,11 +58,9 @@ contains
 
     !# <inputParameter>
     !#   <name>maximinTrialCount</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1000</defaultValue>
     !#   <description>The number of trial Latin Hypercubes to construct when seeking the maximum minimum separation sample.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     self=posteriorSampleStateInitializeLatinHypercube(maximinTrialCount,randomNumberGenerator_)
@@ -91,7 +94,7 @@ contains
     use, intrinsic :: ISO_C_Binding               , only : c_size_t
     use            :: MPI_Utilities               , only : mpiBarrier   , mpiSelf
     use            :: Models_Likelihoods_Constants, only : logImpossible
-    use            :: Sort                        , only : Sort_Index_Do
+    use            :: Sorting                     , only : sortIndex
     implicit none
     class           (posteriorSampleStateInitializeLatinHypercube), intent(inout)                 :: self
     class           (posteriorSampleStateClass                   ), intent(inout)                 :: simulationState
@@ -106,7 +109,7 @@ contains
          &                                                                                           i1                   , i2                      , &
          &                                                                                           k
     double precision                                                                              :: separationMinimum    , separationMinimumMaximum
-    !GCC$ attributes unused :: modelLikelihood
+    !$GLC attributes unused :: modelLikelihood
 
     ! No knowledge of evaluation time.
     timeEvaluatePrevious=-1.0d0
@@ -126,7 +129,7 @@ contains
           x(mpiSelf%rank())=self%randomNumberGenerator_%uniformSample()
           y                =mpiSelf%sum(x)
           call mpiBarrier()
-          order            =Sort_Index_Do(y)-1
+          order            =sortIndex(y)-1
           do i=0,mpiSelf%count()-1
              stateGrid(i,j)=(dble(order(i))+0.5d0)/mpiSelf%count()
           end do

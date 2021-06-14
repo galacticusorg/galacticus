@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,10 @@
   !% An implementation of the intergalactic medium state class for a simplistic model of instantaneous and full reionization.
 
   !# <accretionHaloTotal name="accretionHaloTotalBertschinger">
-  !#  <description>A halo total accretion class which assumes the accretion corresponds to the basic mass.</description>
+  !#  <description>
+  !#   A halo total accretion class that assumes that the accretion rate is equal to the growth rate of the basic component
+  !#   Bertschinger mass property.
+  !#  </description>
   !# </accretionHaloTotal>
   type, extends(accretionHaloTotalClass) :: accretionHaloTotalBertschinger
      !% A halo total accretion class which assumes the accretion corresponds to the Bertschinger mass.
@@ -43,7 +46,7 @@ contains
     implicit none
     type(accretionHaloTotalBertschinger)                :: self
     type(inputParameters               ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=accretionHaloTotalBertschinger()
     return
@@ -56,7 +59,7 @@ contains
     class(accretionHaloTotalBertschinger), intent(inout) :: self
     type (treeNode                      ), intent(inout) :: node
     class(nodeComponentBasic            ), pointer       :: basic
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     basic                     => node %basic                    ()
     bertschingerAccretionRate =  basic%accretionRateBertschinger()
@@ -70,7 +73,7 @@ contains
     class(accretionHaloTotalBertschinger), intent(inout) :: self
     type (treeNode                      ), intent(inout) :: node
     class(nodeComponentBasic            ), pointer       :: basic
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     basic                    => node %basic           ()
     bertschingerAccretedMass =  basic%massBertschinger()

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,7 +23,16 @@
   use :: Cooling_Functions, only : coolingFunction, coolingFunctionClass
 
   !# <coolingTime name="coolingTimeSimple">
-  !#  <description>A simple cooling time calculation (based on the ratio of the thermal energy density to the volume cooling rate).</description>
+  !#  <description>
+
+  !#   A cooling time class in which the cooling time is simply
+  !#   \begin{equation}
+  !#    t_\mathrm{cool} = {N \over 2} {\mathrm{k}_\mathrm{B} T n_\mathrm{tot} \over \Lambda},
+  !#   \end{equation}
+  !#   where $N=${\normalfont \ttfamily [degreesOfFreedom]} is the number of degrees of freedom in the cooling gas which has
+  !#   temperature $T$ and total particle number density (including electrons) $n_\mathrm{tot}$ and $\Lambda$ is the cooling
+  !#   function.
+  !#  </description>
   !# </coolingTime>
   type, extends(coolingTimeClass) :: coolingTimeSimple
      !% Implementation of cooling time calculation (based on the ratio of the thermal energy density to the volume cooling rate).
@@ -61,8 +70,6 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>3.0d0</defaultValue>
     !#   <description>Number of degrees of freedom to assume when computing the energy density of cooling gas in the ``simple'' cooling time class.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="coolingFunction" name="coolingFunction_" source="parameters"/>
     !# <objectBuilder class="chemicalState"   name="chemicalState_"   source="parameters"/>
@@ -95,7 +102,7 @@ contains
     return
   end subroutine simpleDestructor
 
-  double precision function simpleTime(self,temperature,density,gasAbundances,chemicalDensities,radiation)
+  double precision function simpleTime(self,node,temperature,density,gasAbundances,chemicalDensities,radiation)
     !% Compute the cooling time (in Gyr) for gas at the given {\normalfont \ttfamily temperature} (in Kelvin), {\normalfont \ttfamily density} (in $M_\odot$
     !% Mpc$^{-3}$), composition specified by {\normalfont \ttfamily gasAbundances} and experiencing a radiation field as described by {\normalfont \ttfamily radiation}.
     use :: Numerical_Constants_Astronomical, only : gigaYear          , massSolar, megaParsec
@@ -105,6 +112,7 @@ contains
     use :: Numerical_Constants_Units       , only : ergs
     implicit none
     class           (coolingTimeSimple   ), intent(inout) :: self
+    type            (treeNode            ), intent(inout) :: node
     double precision                      , intent(in   ) :: density                       , temperature
     type            (abundances          ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances  ), intent(in   ) :: chemicalDensities
@@ -113,6 +121,7 @@ contains
     double precision                      , parameter     :: timeLarge              =1.0d10
     double precision                                      :: coolingFunctionValue          , energyDensityThermal , &
          &                                                   numberDensityAllSpecies       , numberDensityHydrogen
+    !$GLC attributes unused :: node
 
     ! Compute number density of hydrogen (in cm⁻³).
     numberDensityHydrogen  =  +density                                    &
@@ -122,11 +131,11 @@ contains
          &                    /hecto                                  **3 &
          &                    /megaParsec                             **3
     ! Get the number density of all species, including electrons.
-    numberDensityAllSpecies=+                                           numberDensityHydrogen                                                        &
-         &                  /     gasAbundances %hydrogenNumberFraction(                                                                           ) &
-         &                  +self%chemicalState_%electronDensity       (numberDensityHydrogen,temperature,gasAbundances                  ,radiation)
+    numberDensityAllSpecies=+                                                numberDensityHydrogen                                                        &
+         &                  /     gasAbundances %hydrogenNumberFraction(                                                                                ) &
+         &                  +self%chemicalState_%electronDensity       (     numberDensityHydrogen,temperature,gasAbundances                  ,radiation)
     ! Get the cooling function (in ergs cm⁻³ s⁻¹).
-    coolingFunctionValue   =+self%coolingFunction_%coolingFunction     (numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
+    coolingFunctionValue   =+self%coolingFunction_%coolingFunction     (node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     ! Compute the cooling time.
     if (coolingFunctionValue > 0.0d0) then
        ! Determine the thermal energy density of the gas (in ergs cm⁻³).
@@ -145,31 +154,35 @@ contains
     return
   end function simpleTime
 
-  double precision function simpleGradientDensityLogarithmic(self,temperature,density,gasAbundances,chemicalDensities,radiation)
+  double precision function simpleGradientDensityLogarithmic(self,node,temperature,density,gasAbundances,chemicalDensities,radiation)
     !% Return $\d\ln t_\mathrm{cool}/\d\ln \rho$ for gas at the given {\normalfont \ttfamily temperature} (in Kelvin), {\normalfont \ttfamily density} (in $M_\odot$
     !% Mpc$^{-3}$), composition specified by {\normalfont \ttfamily gasAbundances} and experiencing a radiation field as described by {\normalfont \ttfamily radiation}.
    implicit none
     class           (coolingTimeSimple   ), intent(inout) :: self
+    type            (treeNode            ), intent(inout) :: node
     double precision                      , intent(in   ) :: density          , temperature
     type            (abundances          ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances  ), intent(in   ) :: chemicalDensities
     class           (radiationFieldClass ), intent(inout) :: radiation
+    !$GLC attributes unused :: node
 
-    simpleGradientDensityLogarithmic=+1.0d0                                                                                                               &
-         &                           -self%coolingFunction_%coolingFunctionDensityLogSlope(density,temperature,gasAbundances,chemicalDensities,radiation)
+    simpleGradientDensityLogarithmic=+1.0d0                                                                                                                    &
+         &                           -self%coolingFunction_%coolingFunctionDensityLogSlope(node,density,temperature,gasAbundances,chemicalDensities,radiation)
     return
   end function simpleGradientDensityLogarithmic
 
-  double precision function simpleGradientTemperatureLogarithmic(self,temperature,density,gasAbundances,chemicalDensities,radiation)
+  double precision function simpleGradientTemperatureLogarithmic(self,node,temperature,density,gasAbundances,chemicalDensities,radiation)
     !% Return $\d\ln t_\mathrm{cool}/\d\ln T$ for gas at the given {\normalfont \ttfamily temperature} (in Kelvin), {\normalfont \ttfamily density} (in $M_\odot$
     !% Mpc$^{-3}$), composition specified by {\normalfont \ttfamily gasAbundances} and experiencing a radiation field as described by {\normalfont \ttfamily radiation}.
     implicit none
     class           (coolingTimeSimple   ), intent(inout) :: self
+    type            (treeNode            ), intent(inout) :: node
     double precision                      , intent(in   ) :: density          , temperature
     type            (abundances          ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances  ), intent(in   ) :: chemicalDensities
     class           (radiationFieldClass ), intent(inout) :: radiation
+    !$GLC attributes unused :: node
 
-    simpleGradientTemperatureLogarithmic=-self%coolingFunction_%coolingFunctionTemperatureLogSlope(density,temperature,gasAbundances,chemicalDensities,radiation)
+    simpleGradientTemperatureLogarithmic=-self%coolingFunction_%coolingFunctionTemperatureLogSlope(node,density,temperature,gasAbundances,chemicalDensities,radiation)
     return
   end function simpleGradientTemperatureLogarithmic

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -29,33 +29,12 @@ module Timers
      !% Type used to perform timing.
      real :: timeStart, timeStop
    contains
-     !@ <objectMethods>
-     !@   <object>timer</object>
-     !@   <objectMethod>
-     !@     <method>start</method>
-     !@     <arguments></arguments>
-     !@     <type>\void</type>
-     !@     <description>Start the timer.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>stop</method>
-     !@     <arguments></arguments>
-     !@     <type>\void</type>
-     !@     <description>Stop the timer.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>report</method>
-     !@     <arguments></arguments>
-     !@     <type>\doublezero</type>
-     !@     <description>Report the time recorded as a double precision value.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>reportText</method>
-     !@     <arguments></arguments>
-     !@     <type>\textcolor{red}{\textless character(len=12)\textgreater}</type>
-     !@     <description>Report the time recorded as a character value.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Start the timer." method="start" />
+     !#   <method description="Stop the timer." method="stop" />
+     !#   <method description="Report the time recorded as a double precision value." method="report" />
+     !#   <method description="Report the time recorded as a character value." method="reportText" />
+     !# </methods>
      procedure :: start      => timerStart
      procedure :: stop       => timerStop
      procedure :: report     => timerReport

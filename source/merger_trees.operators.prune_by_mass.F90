@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,11 @@
 !% Contains a module which implements a pruning-by-mass operator on merger trees.
 
   !# <mergerTreeOperator name="mergerTreeOperatorPruneByMass">
-  !#  <description>Provides a pruning-by-mass operator on merger trees.</description>
+  !#  <description>
+  !#   A merger tree operator class which allows for branches of merger trees to be pruned---i.e. nodes below a specified mass
+  !#   limit are removed from the tree prior to any evolution. This can be useful for convergence studies for example. Set
+  !#   {\normalfont \ttfamily [massThreshold]} to the desired mass threshold below which nodes will be pruned.
+  !#  </description>
   !# </mergerTreeOperator>
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorPruneByMass
      !% A pruning-by-mass merger tree operator class.
@@ -52,8 +56,6 @@ contains
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <variable>pruneByMassConstructorParameters%massThreshold</variable>
     !#   <description>Threshold mass below which merger tree branches should be pruned.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>preservePrimaryProgenitor</name>
@@ -61,8 +63,6 @@ contains
     !#   <defaultValue>.true.</defaultValue>
     !#   <variable>pruneByMassConstructorParameters%preservePrimaryProgenitor</variable>
     !#   <description>If true, primary progenitor status is preserved even if the primary progenitor is pruned from the tree.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParametersValidate source="parameters"/>
     return

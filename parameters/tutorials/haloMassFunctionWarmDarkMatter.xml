@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Parameters for tutorial on computing the halo mass function for warm dark matter - https://github.com/galacticusorg/galacticus/wiki/Tutorial%3A-Warm-dark-matter-halo-mass-function -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+
+  <!-- Specify tasks to perform -->
+  <task value="haloMassFunction">
+    <haloMassMinimum value="1.0e7"/>    
+  </task>
+
+  <!-- Component selection -->
+  <componentBasic             value="standard"/>
+  <componentDarkMatterProfile value="scale"   />
+  <darkMatterProfileMinimumConcentration value="1.0"/>
+
+  <!-- Use a thermal WDM particle - mass is in keV -->
+  <darkMatterParticle value="WDMThermal">
+    <degreesOfFreedomEffective value="1.5" />
+    <mass value="3.0" />
+  </darkMatterParticle>
+
+  <!-- Cosmological parameters -->
+  <cosmologyFunctions value="matterLambda"/>
+  <cosmologyParameters value="simple">
+    <HubbleConstant value="70.20000"/>
+    <OmegaMatter value=" 0.27250"/>
+    <OmegaDarkEnergy value=" 0.72750"/>
+    <OmegaBaryon value=" 0.04550"/>
+    <temperatureCMB value=" 2.72548"/>
+  </cosmologyParameters>
+
+  <!-- Power spectrum options -->
+  <!-- Use the Bode et al. (2001) transfer function for thermal WDM -->
+  <transferFunction value="bode2001">
+    <epsilon value="0.359" />
+    <eta value="3.810" />
+    <nu value="1.100" />
+    <!-- Bode2001 transfer function works by modifying a CDM transfer function - so feed it a CDM transfer function here -->
+    <transferFunction value="eisensteinHu1999">
+      <!-- Feed this transfer function a CDM particle - otherwise it will see the WDM particle defined above and complain that it
+           can not compute WDM transfer functions -->
+      <darkMatterParticle value="CDM" />
+      <neutrinoNumberEffective value="3.046"/>
+      <neutrinoMassSummed value="0.000"/>
+    </transferFunction>
+  </transferFunction>
+  <powerSpectrumPrimordial value="powerLaw">
+    <index value="0.961"/>
+    <wavenumberReference value="1.000"/>
+    <running value="0.000"/>
+  </powerSpectrumPrimordial>
+  <powerSpectrumPrimordialTransferred value="simple"/>
+  <!-- When computing sigma(M) for power spectra with a cut off it's better to use a filter that is sharp in k-space, instead of
+       the usual real-space top-hat (which introduces artificial halos below the cut-off scale -->
+  <cosmologicalMassVariance value="filteredPower">
+    <monotonicInterpolation value="true" />
+    <nonMonotonicIsFatal value="false" />
+    <powerSpectrumWindowFunction value="sharpKSpace">
+      <normalization value="2.5" />
+    </powerSpectrumWindowFunction>
+    <sigma_8 value="0.807" />
+    <tolerance value="3.0e-4" />
+    <toleranceTopHat value="3.0e-4" />
+  </cosmologicalMassVariance>
+
+  <!-- Structure formation options -->
+  <linearGrowth value="collisionlessMatter"/>
+  <haloMassFunction value="tinker2008"/>
+  <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <!-- Use the Barkana et al. (2001) method for the critical overdensity for collapse for WDM -->
+  <criticalOverdensity value="barkana2001WDM">
+    <!-- Barkana2001 critical overdensity works by modifying a CDM critical overdensity - so feed it a CDM critical overdensity
+         here -->
+    <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt">
+      <!-- Feed this critical overdensity a CDM particle - otherwise it will see the WDM particle defined above and complain that
+           it can not compute WDM critical overdensities-->
+      <darkMatterParticle value="CDM" />
+    </criticalOverdensity>
+  </criticalOverdensity>
+  
+  <!-- Dark matter halo structure options -->
+  <darkMatterProfileDMO value="NFW"/>
+  <darkMatterProfileConcentration value="schneider2015">
+    <!-- Define a reference CDM universe - the Schneider algorithm works by finding halos with the same formation epoch in this
+         reference universe -->
+    <reference>
+      <darkMatterParticle value="CDM" />
+      <darkMatterProfileConcentration value="gao2008"/>
+      <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+      <cosmologicalMassVariance value="filteredPower">
+	<sigma_8 value="0.807"/>
+	<monotonicInterpolation value="true" />
+	<nonMonotonicIsFatal value="false" />
+	<powerSpectrumWindowFunction value="sharpKSpace">
+	  <normalization value="2.5" />
+	</powerSpectrumWindowFunction>
+	<transferFunction value="eisensteinHu1999">
+	  <darkMatterParticle value="CDM" />
+	  <neutrinoNumberEffective value="3.046"/>
+	  <neutrinoMassSummed value="0.000"/>
+	</transferFunction>
+      </cosmologicalMassVariance>
+    </reference>
+  </darkMatterProfileConcentration>
+
+  <!-- Output options -->
+  <galacticusOutputFileName value="haloMassFunctionWarmDarkMatter.hdf5"/>
+  <outputTimes value="list">
+    <redshifts value="0.0 1.0"/>
+  </outputTimes>
+
+</parameters>

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,26 +26,22 @@
 
   !# <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorSequence">
   !#  <description>A sequence output analysis distribution operator class.</description>
+  !#  <deepCopy>
+  !#   <linkedList type="distributionOperatorList" variable="operators" next="next" object="operator_" objectType="outputAnalysisDistributionOperatorClass"/>
+  !#  </deepCopy>
   !# </outputAnalysisDistributionOperator>
   type, extends(outputAnalysisDistributionOperatorClass) :: outputAnalysisDistributionOperatorSequence
      !% A sequence output distribution operator class.
      private
      type(distributionOperatorList), pointer :: operators => null()
    contains
-     !@ <objectMethods>
-     !@   <object>outputAnalysisDistributionOperatorSequence</object>
-     !@   <objectMethod>
-     !@     <method>prepend</method>
-     !@     <arguments>\textcolor{red}{\textless class(outputAnalysisDistributionOperatorClass)\textgreater} operator\_\argin</arguments>
-     !@     <type>\void</type>
-     !@     <description>Prepend an operator to a sequence of distribution operators.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Prepend an operator to a sequence of distribution operators." method="prepend" />
+     !# </methods>
      final     ::                        sequenceDestructor
      procedure :: operateScalar       => sequenceOperateScalar
      procedure :: operateDistribution => sequenceOperateDistribution
      procedure :: prepend             => sequencePrepend
-     procedure :: deepCopy            => sequenceDeepCopy
   end type outputAnalysisDistributionOperatorSequence
 
   interface outputAnalysisDistributionOperatorSequence
@@ -67,7 +63,7 @@ contains
 
     self     %operators => null()
     operator_           => null()
-    do i=1,parameters%copiesCount('outputAnalysisDistributionOperatorMethod',zeroIfNotPresent=.true.)
+    do i=1,parameters%copiesCount('outputAnalysisDistributionOperator',zeroIfNotPresent=.true.)
        if (associated(operator_)) then
           allocate(operator_%next)
           operator_ => operator_%next
@@ -174,38 +170,3 @@ contains
     self       %operators => operatorNew
     return
   end subroutine sequencePrepend
-
-  subroutine sequenceDeepCopy(self,destination)
-    !% Perform a deep copy for the {\normalfont \ttfamily sequence} output analysis distribution operator class.
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    implicit none
-    class(outputAnalysisDistributionOperatorSequence), intent(inout) :: self
-    class(outputAnalysisDistributionOperatorClass   ), intent(inout) :: destination
-    type (distributionOperatorList                  ), pointer       :: operator_   , operatorDestination_, &
-         &                                                              operatorNew_
-
-    call self%outputAnalysisDistributionOperatorClass%deepCopy(destination)
-    select type (destination)
-    type is (outputAnalysisDistributionOperatorSequence)
-       destination%operators => null          ()
-       operatorDestination_  => null          ()
-       operator_             => self%operators
-       do while (associated(operator_))
-          allocate(operatorNew_)
-          if (associated(operatorDestination_)) then
-             operatorDestination_%next       => operatorNew_
-             operatorDestination_            => operatorNew_
-          else
-             destination          %operators => operatorNew_
-             operatorDestination_            => operatorNew_
-          end if
-          allocate(operatorNew_%operator_,mold=operator_%operator_)
-          !# <deepCopy source="operator_%operator_" destination="operatorNew_%operator_"/>
-          operator_ => operator_%next
-       end do
-    class default
-       call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})
-    end select
-    return
-  end subroutine sequenceDeepCopy
-

@@ -28,7 +28,7 @@ my @massFunctionTypes =
      	 label  => "Tinker2008",
      	 method => "tinker2008"
      },
-     # Disabled due to bug in HMFcalc implementation of Bhattacharya mass function.
+     # Disabled because we're not able to get agreement with the HMFCalc result. Reason is not understood.
      # {
      # 	 label  => "Bhattacharya",
      # 	 method => "bhattacharya2011"
@@ -57,28 +57,29 @@ foreach my $massFunctionType ( @massFunctionTypes ) {
     $wavenumber *= $parametersHMFCalc{'h'};
 
     # Read the HMFcalc mass function file.
-    (my $mass, my $massFunction) = rcols($hmfCalcPath."mVector_PLANCK-SMT .txt",0,6);
+    my $massFunctionColumn = $massFunctionType->{'label'} eq "Bhattacharya" ? 2 : 6;
+    (my $mass, my $massFunction) = rcols($hmfCalcPath."mVector_PLANCK-SMT .txt",0,$massFunctionColumn);
     $mass         /= $parametersHMFCalc{'h'}   ;
     $massFunction *= $parametersHMFCalc{'h'}**3;
     
     # Construct a parameter file for Galacticus.
     my $xml        = new XML::Simple();
     my $parameters = $xml->XMLin('parameters/haloMassFunctionsBase.xml');
-    $parameters->{'taskMethod'                    }->{'haloMassMinimum'     }->{'value'} =      $mass->(( 0))->sclr();
-    $parameters->{'taskMethod'                    }->{'haloMassMaximum'     }->{'value'} =      $mass->((-1))->sclr();
-    $parameters->{'taskMethod'                    }->{'pointsPerDecade'     }->{'value'} =  1.0/$parametersHMFCalc{'dlog10m'};
-    $parameters->{'cosmologyParametersMethod'     }->{'temperatureCMB'      }->{'value'} =      $parametersHMFCalc{'t_cmb'  };
-    $parameters->{'cosmologyParametersMethod'     }->{'OmegaMatter'         }->{'value'} =      $parametersHMFCalc{'omegam' };
-    $parameters->{'cosmologyParametersMethod'     }->{'OmegaDarkEnergy'     }->{'value'} =      $parametersHMFCalc{'omegav' };
-    $parameters->{'cosmologyParametersMethod'     }->{'OmegaBaryon'         }->{'value'} =      $parametersHMFCalc{'omegab' };
-    $parameters->{'cosmologyParametersMethod'     }->{'HubbleConstant'      }->{'value'} =      $parametersHMFCalc{'H0'     };
-    $parameters->{'cosmologicalMassVarianceMethod'}->{'sigma_8'             }->{'value'} =      $parametersHMFCalc{'sigma_8'};
-    $parameters->{'powerSpectrumPrimordialMethod' }->{'index'               }->{'value'} =      $parametersHMFCalc{'n'      };
-    $parameters->{'criticalOverdensityMethod'     }->{'criticalOverdensity' }->{'value'} =      $parametersHMFCalc{'delta_c'};
-    $parameters->{'virialDensityContrastMethod'   }->{'densityContrastValue'}->{'value'} =      $parametersHMFCalc{'delta_h'};
-    $parameters->{'transferFunctionMethod'        }->{'fileName'            }->{'value'} = "testSuite/outputs/HMFcalc/".$massFunctionType->{'label'}."_Tk.hdf5" ;
-    $parameters->{'haloMassFunctionMethod'        }                          ->{'value'} = $massFunctionType->{'method'};
-    $parameters->{'galacticusOutputFileName'      }                          ->{'value'} = "testSuite/outputs/HMFcalc/".$massFunctionType->{'label'}."_HMF.hdf5";
+    $parameters->{'task'                    }->{'haloMassMinimum'     }->{'value'} =      $mass->(( 0))->sclr();
+    $parameters->{'task'                    }->{'haloMassMaximum'     }->{'value'} =      $mass->((-1))->sclr();
+    $parameters->{'task'                    }->{'pointsPerDecade'     }->{'value'} =  1.0/$parametersHMFCalc{'dlog10m'};
+    $parameters->{'cosmologyParameters'     }->{'temperatureCMB'      }->{'value'} =      $parametersHMFCalc{'t_cmb'  };
+    $parameters->{'cosmologyParameters'     }->{'OmegaMatter'         }->{'value'} =      $parametersHMFCalc{'omegam' };
+    $parameters->{'cosmologyParameters'     }->{'OmegaDarkEnergy'     }->{'value'} =      $parametersHMFCalc{'omegav' };
+    $parameters->{'cosmologyParameters'     }->{'OmegaBaryon'         }->{'value'} =      $parametersHMFCalc{'omegab' };
+    $parameters->{'cosmologyParameters'     }->{'HubbleConstant'      }->{'value'} =      $parametersHMFCalc{'H0'     };
+    $parameters->{'cosmologicalMassVariance'}->{'sigma_8'             }->{'value'} =      $parametersHMFCalc{'sigma_8'};
+    $parameters->{'powerSpectrumPrimordial' }->{'index'               }->{'value'} =      $parametersHMFCalc{'n'      };
+    $parameters->{'criticalOverdensity'     }->{'criticalOverdensity' }->{'value'} =      $parametersHMFCalc{'delta_c'};
+    $parameters->{'virialDensityContrast'   }->{'densityContrastValue'}->{'value'} =      $parametersHMFCalc{'delta_h'};
+    $parameters->{'transferFunction'        }->{'fileName'            }->{'value'} = "testSuite/outputs/HMFcalc/".$massFunctionType->{'label'}."_Tk.hdf5" ;
+    $parameters->{'haloMassFunction'        }                          ->{'value'} = $massFunctionType->{'method'};
+    $parameters->{'galacticusOutputFileName'}                          ->{'value'} = "testSuite/outputs/HMFcalc/".$massFunctionType->{'label'}."_HMF.hdf5";
     open(my $parameterOutputFile,">","outputs/HMFcalc/".$massFunctionType->{'label'}.".xml");
     print $parameterOutputFile $xml->XMLout($parameters, RootName => "parameters");
     close($parameterOutputFile);
@@ -115,13 +116,13 @@ foreach my $massFunctionType ( @massFunctionTypes ) {
 	exit 0;
     }
     if ( any(abs($mass-$massGalacticus)/$mass > 1.0e-6) ) {
-	print "FAILED: [".$massFunctionType->{'label'}."]masses are inconsistent\n";
+	print "FAILED: [".$massFunctionType->{'label'}."] masses are inconsistent\n";
 	exit 0;
     }
 
     # Compare mass function with that from HMFcalc.
     my $differenceFractional       = abs($massFunction-$massFunctionGalacticus)/$massFunction;
-    my $differenceFractionlMaximum = $differenceFractional->maximum();    
+    my $differenceFractionlMaximum = $differenceFractional->maximum();
     if ( $differenceFractionlMaximum > 1.0e-3 ) {
 	print "FAILED: [" .$massFunctionType->{'label'}."] mass function differs\n";
     } else {

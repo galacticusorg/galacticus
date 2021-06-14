@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -58,17 +58,13 @@ contains
 
     !# <inputParameter>
     !#   <name>probabilitySuccess</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The probability of success for a single trial.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>countTrials</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The number of trials.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     self=distributionFunctionDiscrete1DBinomial(probabilitySuccess,countTrials,randomNumberGenerator_)
@@ -161,7 +157,7 @@ contains
     !% Return the minimum possible value in a binomial discrete distribution.
     implicit none
     class(distributionFunctionDiscrete1DBinomial), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     binomialMinimum=0
     return
@@ -171,7 +167,7 @@ contains
     !% Return the maximum possible value in a binomial discrete distribution.
     implicit none
     class(distributionFunctionDiscrete1DBinomial), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     binomialMaximum=self%countTrials
     return

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,7 +23,16 @@
   use :: Tables              , only : table1DLogarithmicLinear
 
   !# <haloModelPowerSpectrumModifier name="haloModelPowerSpectrumModifierTriaxiality">
-  !#  <description>A triaxiality modifier for power spectra in the halo model of clustering based on the results of \cite{smith_triaxial_2005}.</description>
+  !#  <description>
+  !#   A halo model power spectrum modifier class which attempts to modify power spectra to approximately account for the effects
+  !#   of halo triaxiality using the results of \cite{smith_triaxial_2005}. Specifically, the one- and two-halo power spectra are
+  !#   multiplied by a correction factor, $\Delta^2_\mathrm{triax}/\Delta^2_\mathrm{sphere}$, derived from the lower panels of
+  !#   Figures 3 and 2 of \cite{smith_triaxial_2005} respectively for their ``JS02'' profile model. Given the uncertainty in this
+  !#   correction, the power spectrum covariance (if provided) is incremented by $\epsilon^2 (
+  !#   [\Delta^2_\mathrm{triax}/\Delta^2_\mathrm{sphere}-1] \otimes [\Delta^2_\mathrm{triax}/\Delta^2_\mathrm{sphere}-1)$ where
+  !#   $\epsilon=0.4$ is chosen to approximate the difference between ``continuity'' and ``JS02'' profiles in
+  !#   \cite{smith_triaxial_2005}.
+  !#  </description>
   !# </haloModelPowerSpectrumModifier>
   type, extends(haloModelPowerSpectrumModifierClass) :: haloModelPowerSpectrumModifierTriaxiality
      private

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -24,7 +24,12 @@
   use :: Virial_Density_Contrast, only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
 
   !# <virialOrbit name="virialOrbitBenson2005">
-  !#  <description>Virial orbits using the \cite{benson_orbital_2005} orbital parameter distribution.</description>
+  !#  <description>
+  !#   A virial orbits class which selects orbital parameters randomly from the distribution given by
+  !#   \cite{benson_orbital_2005}. If the virial density contrast definition differs from that used by \cite{benson_orbital_2005}
+  !#   then the orbit is assigned based on \cite{benson_orbital_2005}'s definition and then propagated to the virial radius
+  !#   relevant to the current definition of density contrast.
+  !#  </description>
   !#  <deepCopy>
   !#   <functionClass variables="virialDensityContrast_"/>
   !#  </deepCopy>
@@ -35,8 +40,8 @@
   type, extends(virialOrbitClass) :: virialOrbitBenson2005
      !% A virial orbit class using the \cite{benson_orbital_2005} orbital parameter distribution.
      private
-     class(darkMatterHaloScaleClass                                       ), pointer :: darkMatterHaloScale_   => null()
-     class(cosmologyFunctionsClass                                        ), pointer :: cosmologyFunctions_    => null()
+     class(darkMatterHaloScaleClass                                      ), pointer :: darkMatterHaloScale_   => null()
+     class(cosmologyFunctionsClass                                       ), pointer :: cosmologyFunctions_    => null()
      type (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt), pointer :: virialDensityContrast_ => null()
    contains
      final     ::                                    benson2005Destructor
@@ -201,7 +206,7 @@ contains
     double precision                       , parameter     :: velocityTangentialMean=0.748205d0
     double precision                                       :: massHost                         , radiusHost, &
          &                                                    velocityHost
-    !GCC$ attributes unused :: node
+    !$GLC attributes unused :: node
 
     hostBasic                                 =>  host%basic()
     massHost                                  =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost)
@@ -217,7 +222,7 @@ contains
     double precision                       , dimension(3)  :: benson2005VelocityTangentialVectorMean
     class           (virialOrbitBenson2005), intent(inout) :: self
     type            (treeNode             ), intent(inout) :: node                                  , host
-    !GCC$ attributes unused :: self, node, host
+    !$GLC attributes unused :: self, node, host
 
     benson2005VelocityTangentialVectorMean=0.0d0
     call Galacticus_Error_Report('vector velocity is not defined for this class'//{introspection:location})
@@ -255,7 +260,7 @@ contains
     double precision                       , dimension(3)  :: benson2005AngularMomentumVectorMean
     class           (virialOrbitBenson2005), intent(inout) :: self
     type            (treeNode             ), intent(inout) :: node                               , host
-    !GCC$ attributes unused :: self, node, host
+    !$GLC attributes unused :: self, node, host
 
     benson2005AngularMomentumVectorMean=0.0d0
     call Galacticus_Error_Report('vector angular momentum is not defined for this class'//{introspection:location})
@@ -274,7 +279,7 @@ contains
     double precision                       , parameter     :: velocityTotalRootMeanSquared=1.25534d0
     double precision                                       :: massHost                              , radiusHost, &
          &                                                    velocityHost
-    !GCC$ attributes unused :: node
+    !$GLC attributes unused :: node
 
     hostBasic                              =>  host%basic()
     massHost                               =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost)
@@ -287,7 +292,7 @@ contains
     !% Return the mean energy of the orbits.
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
-    use :: Numerical_Constants_Physical        , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical    , only : gravitationalConstantGalacticus
     implicit none
     class           (virialOrbitBenson2005), intent(inout) :: self
     type            (treeNode             ), intent(inout) :: node        , host

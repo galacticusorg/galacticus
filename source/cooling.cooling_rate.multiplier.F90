@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -55,8 +55,6 @@ contains
     !#  <source>parameters</source>
     !#  <defaultValue>0.0d0</defaultValue>
     !#  <description>The value by which cooling rates should be multiplied.</description>
-    !#  <type>real</type>
-    !#  <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="coolingRate" name="coolingRate_" source="parameters"/>
     self=coolingRateMultiplier(multiplier,coolingRate_)

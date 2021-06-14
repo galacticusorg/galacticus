@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,7 +27,9 @@ module Excursion_Sets_Barriers
   !# <functionClass>
   !#  <name>excursionSetBarrier</name>
   !#  <descriptiveName>Excursion Set Barrier</descriptiveName>
-  !#  <description>Class providing barriers for the excursion set problem.</description>
+  !#  <description>
+  !#   Class providing barriers for the excursion set problem.
+  !#  </description>
   !#  <default>criticalOverdensity</default>
   !#  <method name="barrier" >
   !#   <description>Return the barrier height at the given variance and time. The {\normalfont \ttfamily rateCompute} should be set to {\normalfont \ttfamily true} if the barrier is being used in a calculation of barrier crossing rates, and to {\normalfont \ttfamily false} otherwise.</description>
@@ -52,6 +54,7 @@ module Excursion_Sets_Barriers
   !#  <name>excursionSetRemap</name>
   !#  <description>Specifies whether a remapping of the barrier should apply to cases where the excursion set is used for rate calculation, non-rate calculations, or both.</description>
   !#  <encodeFunction>yes</encodeFunction>
+  !#  <decodeFunction>yes</decodeFunction>
   !#  <validator>yes</validator>
   !#  <entry label="rates"   />
   !#  <entry label="nonRates"/>

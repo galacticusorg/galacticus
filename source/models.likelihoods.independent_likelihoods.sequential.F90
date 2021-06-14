@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -69,36 +69,32 @@ contains
     !#   <name>finalLikelihoodFullEvaluation</name>
     !#   <variable>self%finalLikelihoodFullEvaluation</variable>
     !#   <defaultValue>.true.</defaultValue>
-    !#   <cardinality>1</cardinality>
     !#   <description>If true the final likelihood is evaluated fully, and not treated as a ``lock in'' likelihood.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>restoreLevels</name>
     !#   <variable>self%restoreLevels</variable>
     !#   <defaultValue>.true.</defaultValue>
-    !#   <cardinality>1</cardinality>
     !#   <description>If true the level reached by each chain is restored on restarts. Otherwise, the level is initialized to zero (which may be useful for stochastic likelihoods).</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     ! Initialize the parent class.
     self%posteriorSampleLikelihoodIndependentLikelihoods=posteriorSampleLikelihoodIndependentLikelihoods(parameters)
     ! Get likelihood multipliers and acceptances.
-    if     (                                                                                   &
-         &   parameters%copiesCount('posteriorSampleLikelihoodMethod',zeroIfNotPresent=.true.) &
-         &  /=                                                                                 &
-         &   parameters%copiesCount('likelihoodMultiplier'           ,zeroIfNotPresent=.true.) &
+    if     (                                                                             &
+         &   parameters%copiesCount('posteriorSampleLikelihood',zeroIfNotPresent=.true.) &
+         &  /=                                                                           &
+         &   parameters%copiesCount('likelihoodMultiplier'     ,zeroIfNotPresent=.true.) &
          & ) call Galacticus_Error_Report('number of likelihood multipliers must match number of likelihoods'//{introspection:location})
-    if     (                                                                                   &
-         &   parameters%copiesCount('posteriorSampleLikelihoodMethod',zeroIfNotPresent=.true.) &
-         &  /=                                                                                 &
-         &   parameters%copiesCount('likelihoodAccept'               ,zeroIfNotPresent=.true.) &
+    if     (                                                                             &
+         &   parameters%copiesCount('posteriorSampleLikelihood',zeroIfNotPresent=.true.) &
+         &  /=                                                                           &
+         &   parameters%copiesCount('likelihoodAccept'         ,zeroIfNotPresent=.true.) &
          & ) call Galacticus_Error_Report('number of likelihood accepts must match number of likelihoods'    //{introspection:location})
-    allocate(self%likelihoodMultiplier(parameters%copiesCount('posteriorSampleLikelihoodMethod',zeroIfNotPresent=.true.)))
-    allocate(self%likelihoodAccept    (parameters%copiesCount('posteriorSampleLikelihoodMethod',zeroIfNotPresent=.true.)))
-    do i=1,parameters%copiesCount('posteriorSampleLikelihoodMethod',zeroIfNotPresent=.true.)
+    allocate(self%likelihoodMultiplier(parameters%copiesCount('posteriorSampleLikelihood',zeroIfNotPresent=.true.)))
+    allocate(self%likelihoodAccept    (parameters%copiesCount('posteriorSampleLikelihood',zeroIfNotPresent=.true.)))
+    do i=1,parameters%copiesCount('posteriorSampleLikelihood',zeroIfNotPresent=.true.)
        call parameters%value('likelihoodMultiplier',self%likelihoodMultiplier(i),copyInstance=i)
        call parameters%value('likelihoodAccept'    ,self%likelihoodAccept    (i),copyInstance=i)
     end do
@@ -128,11 +124,11 @@ contains
 
   double precision function independentLikelihoodsSequantialEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
     !% Return the log-likelihood for the halo mass function likelihood function.
-    use :: Galacticus_Display          , only : Galacticus_Display_Message
+    use :: Display                     , only : displayMessage
     use :: Galacticus_Error            , only : Galacticus_Error_Report
     use :: ISO_Varying_String          , only : varying_string
     use :: MPI_Utilities               , only : mpiSelf
-    use :: Models_Likelihoods_Constants, only : logImpossible             , logImprobable
+    use :: Models_Likelihoods_Constants, only : logImpossible          , logImprobable
     use :: String_Handling             , only : operator(//)
     implicit none
     class           (posteriorSampleLikelihoodIndpndntLklhdsSqntl), intent(inout)               :: self
@@ -176,7 +172,7 @@ contains
        self%evaluateCountGlobal=evaluateCount
        message="sequential likelihood number "
        message=message//evaluateCount//" has been reached globally"
-       call Galacticus_Display_Message(message)
+       call displayMessage(message)
     end if
     ! Initialize a local copy of the proposed log prior. In order to ensure MPI synchronization between processes we must always
     ! call evaluate on each independent likelihood. For example, the "Galacticus" likelihood class runs each chain under MPI
@@ -210,7 +206,9 @@ contains
              if (modelLikelihood_%parameterMap(i) == -1) call Galacticus_Error_Report('failed to find matching parameter ['//char(modelLikelihood_%parameterMapNames(i))//']'//{introspection:location})
              ! Copy the model parameter definition.
              allocate(modelLikelihood_%modelParametersActive_(i)%modelParameter_,mold=modelParametersActive_(modelLikelihood_%parameterMap(i))%modelParameter_)
+             !# <deepCopyReset variables="modelParametersActive_(modelLikelihood_%parameterMap(i))%modelParameter_"/>
              !# <deepCopy source="modelParametersActive_(modelLikelihood_%parameterMap(i))%modelParameter_" destination="modelLikelihood_%modelParametersActive_(i)%modelParameter_"/>
+             !# <deepCopyFinalize variables="modelLikelihood_%modelParametersActive_(i)%modelParameter_"/>
           end do
           if (allocated(modelLikelihood_%parameterMapInactive)) then
              do i=1,size(modelLikelihood_%parameterMapInactive)
@@ -225,7 +223,9 @@ contains
                 if (modelLikelihood_%parameterMapInactive(i) == -1) call Galacticus_Error_Report('failed to find matching parameter ['//char(modelLikelihood_%parameterMapNamesInactive(i))//']'//{introspection:location})
                 ! Copy the model parameter definition.
                 allocate(modelLikelihood_%modelParametersInactive_(i)%modelParameter_,mold=modelParametersInactive_(modelLikelihood_%parameterMapInactive(i))%modelParameter_)
+                !# <deepCopyReset variables="modelParametersInactive_(modelLikelihood_%parameterMapInactive(i))%modelParameter_"/>
                 !# <deepCopy source="modelParametersInactive_(modelLikelihood_%parameterMapInactive(i))%modelParameter_" destination="modelLikelihood_%modelParametersInactive_(i)%modelParameter_"/>
+                !# <deepCopyFinalize variables="modelLikelihood_%modelParametersInactive_(i)%modelParameter_"/>
              end do
           end if
           ! Mark the likelihood as initialized.
@@ -320,7 +320,7 @@ contains
     class           (posteriorSampleLikelihoodIndpndntLklhdsSqntl), intent(inout)               :: self
     double precision                                              , intent(in   ), dimension(:) :: simulationState
     double precision                                              , intent(in   )               :: logLikelihood
-    !GCC$ attributes unused :: simulationState
+    !$GLC attributes unused :: simulationState
 
     ! Detect the sequential state jumping to the next level.
     if (logLikelihood-dble(self%evaluateCount)*indpndntLklhdsSqntLogLikelihoodIncrement > 0.0d0 .and. self%restoreLevels) then

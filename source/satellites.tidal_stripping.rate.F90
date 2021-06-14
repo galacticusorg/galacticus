@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -29,14 +29,15 @@ module Satellite_Tidal_Stripping
   !# <functionClass>
   !#  <name>satelliteTidalStripping</name>
   !#  <descriptiveName>Tidal stripping models for satellites.</descriptiveName>
-  !#  <description>Class providing models of tidal stripping for satellites.</description>
+  !#  <description>
+  !#   Class providing models of tidal stripping for satellites.
+  !#  </description>
   !#  <default>zentner2005</default>
-  !#  <calculationReset>yes</calculationReset>
   !#  <method name="massLossRate" >
   !#   <description>Returns the rate of tidal mass loss for {\normalfont \ttfamily node} (in units of $M_\odot$/Gyr).</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout), target :: node</argument>
+  !#   <argument>type(treeNode), intent(inout) :: node</argument>
   !#  </method>
   !# </functionClass>
 

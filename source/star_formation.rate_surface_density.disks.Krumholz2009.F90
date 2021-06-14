@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,9 +23,41 @@
   use :: Kind_Numbers        , only : kind_int8
   use :: Math_Exponentiation , only : fastExponentiator
   use :: Tables              , only : table1DLinearLinear
+  use :: Root_Finder         , only : rootFinder
 
   !# <starFormationRateSurfaceDensityDisks name="starFormationRateSurfaceDensityDisksKrumholz2009">
-  !#  <description>The \cite{krumholz_star_2009} star formation rate surface density law for galactic disks.</description>
+  !#  <description>
+  !#   A star formation rate surface density class implementing the model of \citep{krumholz_star_2009}:
+  !#   \begin{equation}
+  !#    \dot{\Sigma}_\star(R) = \nu_\mathrm{SF} f_\mathrm{H_2}(R)\Sigma_\mathrm{HI, disk}(R) \left\{ \begin{array}{ll}
+  !#    (\Sigma_\mathrm{HI}/\Sigma_0)^{-1/3}, &amp; \hbox{ if } \Sigma_\mathrm{HI}/\Sigma_0 \le 1 \\
+  !#    (\Sigma_\mathrm{HI}/\Sigma_0)^{1/3}, &amp; \hbox{ if } \Sigma_\mathrm{HI}/\Sigma_0 &gt; 1 \end{array} \right. ,
+  !#   \end{equation}
+  !#   where $\nu_\mathrm{SF}=${\normalfont \ttfamily [frequencyStarFormation]} is a frequency and $\Sigma_0=85 M_\odot
+  !#   \hbox{pc}^{-2}$. The molecular fraction is given by
+  !#   \begin{equation}
+  !#    f_\mathrm{H_2} = 1 - \left( 1 + \left[ { 3 s \over 4 (1+\delta)} \right]^{-5} \right)^{-1/5},
+  !#   \end{equation}
+  !#   where
+  !#   \begin{equation}
+  !#    \delta = 0.0712 \left[ 0.1 s^{-1} + 0.675 \right]^{-2.8},
+  !#   \end{equation}
+  !#   and
+  !#   \begin{equation}
+  !#    s = {\ln(1+0.6\chi+0.01\chi^2) \over 0.04 \Sigma_\mathrm{comp,0} Z^\prime},
+  !#   \end{equation}
+  !#   with
+  !#   \begin{equation}
+  !#    \chi = 0.77 \left[ 1 + 3.1 Z^{\prime 0.365} \right],
+  !#   \end{equation}
+  !#   and $\Sigma_\mathrm{comp,0}=c \Sigma_\mathrm{HI}/M_\odot \hbox{pc}^{-2}$ where $c=${\normalfont \ttfamily
+  !#   [clumpingFactorMolecularComplex]} is a density enhancement factor relating the surface density of molecular complexes to
+  !#   the gas density on larger scales. Alternatively, if {\normalfont \ttfamily [molecularFractionFast]} is set to true, the
+  !#   molecular fraction will be computed using the faster (but less acccurate at low molecular fraction) formula
+  !#   \begin{equation}
+  !#    f_\mathrm{H_2} = 1 - { 3s/4 \over (1 + s/4)}.
+  !#   \end{equation}
+  !#  </description>
   !# </starFormationRateSurfaceDensityDisks>
   type, extends(starFormationRateSurfaceDensityDisksClass) :: starFormationRateSurfaceDensityDisksKrumholz2009
      !% Implementation of the \cite{krumholz_star_2009} star formation rate surface density law for galactic disks.
@@ -40,31 +72,16 @@
           &                                                    sigmaMolecularComplexNormalization, clumpingFactorMolecularComplex, &
           &                                                    frequencyStarFormation
      logical                                                :: assumeMonotonicSurfaceDensity     , molecularFractionFast
+     type            (rootFinder         )                  :: finder
      type            (fastExponentiator  )                  :: surfaceDensityExponentiator
      type            (table1DLinearLinear)                  :: molecularFraction
      procedure       (double precision   ), nopass, pointer :: molecularFraction_
    contains
-     !@ <objectMethods>
-     !@   <object>starFormationRateSurfaceDensityDisksKrumholz2009</object>
-     !@   <objectMethod>
-     !@     <method>calculationReset</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(table)\textgreater} node\arginout</arguments>
-     !@     <description>Reset memoized calculations.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>computeFactors</method>
-     !@     <arguments></arguments>
-     !@     <type>\void</type>
-     !@     <description>Compute constant factors required.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>surfaceDensityFactors</method>
-     !@     <arguments></arguments>
-     !@     <type>\void</type>
-     !@     <description>Compute surface density factors required.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Reset memoized calculations." method="calculationReset" />
+     !#   <method description="Compute constant factors required." method="computeFactors" />
+     !#   <method description="Compute surface density factors required." method="surfaceDensityFactors" />
+     !# </methods>
      final     ::                          krumholz2009Destructor
      procedure :: autoHook              => krumholz2009AutoHook
      procedure :: computeFactors        => krumholz2009ComputeFactors
@@ -89,6 +106,10 @@
   ! Minimum fraction of molecular hydrogen allowed.
   double precision                                                  , parameter :: krumholz2009MolecularFractionMinimum=1.0d-4
 
+  ! Range of s-parameter to tabulate.
+  double precision                                                  , parameter :: sMinimum                            =0.0d+0, sMaximum=8.0d0
+
+
 contains
 
   function krumholz2009ConstructorParameters(parameters) result(self)
@@ -102,40 +123,28 @@ contains
 
     !# <inputParameter>
     !#   <name>frequencyStarFormation</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultSource>\citep{krumholz_star_2009}</defaultSource>
     !#   <defaultValue>0.385d0</defaultValue>
     !#   <description>The star formation frequency (in units of Gyr$^{-1}$) in the ``Krumholz-McKee-Tumlinson'' star formation timescale calculation.</description>
-    !#   <group>starFormation</group>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>clumpingFactorMolecularComplex</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>5.0d0</defaultValue>
     !#   <description>The density enhancement (relative to mean disk density) for molecular complexes in the ``Krumholz-McKee-Tumlinson'' star formation timescale calculation.</description>
-    !#   <group>starFormation</group>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>molecularFractionFast</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Selects whether the fast (but less accurate) fitting formula for molecular hydrogen should be used in the ``Krumholz-McKee-Tumlinson'' star formation timescale calculation.</description>
-    !#   <group>starFormation</group>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>assumeMonotonicSurfaceDensity</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>If true, assume that the surface density in disks is always monotonically decreasing.</description>
-    !#   <group>starFormation</group>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     self=starFormationRateSurfaceDensityDisksKrumholz2009(frequencyStarFormation,clumpingFactorMolecularComplex,molecularFractionFast,assumeMonotonicSurfaceDensity)
     !# <inputParametersValidate source="parameters"/>
@@ -146,11 +155,11 @@ contains
     !% Internal constructor for the {\normalfont \ttfamily krumholz2009} star formation surface density rate from disks class.
     use :: Abundances_Structure, only : unitAbundances
     use :: Table_Labels        , only : extrapolationTypeFix
+    use :: Root_Finder         , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
     implicit none
     type            (starFormationRateSurfaceDensityDisksKrumholz2009)                :: self
     double precision                                                  , intent(in   ) :: frequencyStarFormation      , clumpingFactorMolecularComplex
     logical                                                           , intent(in   ) :: molecularFractionFast       , assumeMonotonicSurfaceDensity
-    double precision                                                  , parameter     :: sMinimum              =0.0d0, sMaximum                      =8.0d0
     integer                                                           , parameter     :: sCount                =1000
     integer                                                                           :: i
     !# <constructorAssign variables="frequencyStarFormation, clumpingFactorMolecularComplex, molecularFractionFast, assumeMonotonicSurfaceDensity"/>
@@ -174,6 +183,17 @@ contains
     end do
     ! Initialize exponentiator.
     self%surfaceDensityExponentiator=fastExponentiator(1.0d0,100.0d0,0.33d0,100.0d0,.false.)
+    ! Build root finder.
+    self%finder=rootFinder(                                                               &
+         &                 rootFunction                 =krumholz2009CriticalDensityRoot, &
+         &                 toleranceAbsolute            =0.0d+0                         , &
+         &                 toleranceRelative            =1.0d-4                         , &
+         &                 rangeExpandUpward            =2.0d0                          , &
+         &                 rangeExpandDownward          =0.5d0                          , &
+         &                 rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative  , &
+         &                 rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive  , &
+         &                 rangeExpandType              =rangeExpandMultiplicative        &
+         &                )
     return
   end function krumholz2009ConstructorInternal
 
@@ -274,16 +294,26 @@ contains
           ! Compute the molecular fraction.
           if (self%metallicityRelativeToSolar > 0.0d0) then
              sigmaMolecularComplex=self%sigmaMolecularComplexNormalization*surfaceDensityGas
-             s                    =self%sNormalization/sigmaMolecularComplex
-             molecularFraction    =self%molecularFraction%interpolate(s)
+             if (sigmaMolecularComplex > 0.0d0) then
+                if (sigmaMolecularComplex < self%sNormalization/sMaximum) then
+                   s=sMaximum
+                else
+                   s=self%sNormalization/sigmaMolecularComplex
+                end if
+                molecularFraction=self%molecularFraction%interpolate(s)
+             else
+                molecularFraction=krumholz2009MolecularFractionMinimum
+             end if
           else
-             molecularFraction    =krumholz2009MolecularFractionMinimum
+             molecularFraction   =krumholz2009MolecularFractionMinimum
           end if
           ! Compute the cloud density factor.
-          if (surfaceDensityGasDimensionless < 1.0d0) then
-             surfaceDensityFactor=self%surfaceDensityExponentiator%exponentiate(1.0d0/surfaceDensityGasDimensionless)
+          if      (surfaceDensityGasDimensionless <= 0.0d0) then
+             surfaceDensityFactor=0.0d0
+          else if (surfaceDensityGasDimensionless <  1.0d0) then
+             surfaceDensityFactor=1.0d0/self%surfaceDensityExponentiator%exponentiate(surfaceDensityGasDimensionless)
           else
-             surfaceDensityFactor=self%surfaceDensityExponentiator%exponentiate(      surfaceDensityGasDimensionless)
+             surfaceDensityFactor=1.0d0*self%surfaceDensityExponentiator%exponentiate(surfaceDensityGasDimensionless)
           end if
           ! Compute the star formation rate surface density.
           krumholz2009Rate=+self%frequencyStarFormation &
@@ -360,14 +390,11 @@ contains
 
   function krumholz2009Intervals(self,node,radiusInner,radiusOuter)
     !% Returns intervals to use for integrating the \cite{krumholz_star_2009} star formation rate over a galactic disk.
-    use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
     class           (starFormationRateSurfaceDensityDisksKrumholz2009), intent(inout), target         :: self
     double precision                                                  , allocatable  , dimension(:,:) :: krumholz2009Intervals
     type            (treeNode                                        ), intent(inout), target         :: node
     double precision                                                  , intent(in   )                 :: radiusInner          , radiusOuter
-    type            (rootFinder                                      ), save                          :: finder
-    !$omp threadprivate(finder)
     double precision                                                                                  :: surfaceDensityGas    , surfaceDensityGasDimensionless, &
          &                                                                                               radiusCritical
 
@@ -391,20 +418,9 @@ contains
           else
              ! The disk transitions the critical surface density - attempt to locate the radius at which this happens and use two
              ! intervals split at this point.
-             if (.not.finder%isInitialized()) then
-                call finder%rootFunction(krumholz2009CriticalDensityRoot)
-                call finder%tolerance   (toleranceAbsolute=0.0d0,toleranceRelative=1.0d-4)
-                call finder%rangeExpand(                                                             &
-                     &                  rangeExpandUpward            =2.0d0                        , &
-                     &                  rangeExpandDownward          =0.5d0                        , &
-                     &                  rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
-                     &                  rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
-                     &                  rangeExpandType              =rangeExpandMultiplicative      &
-                     &                 )
-             end if
              krumholz2009Self => self
              krumholz2009Node => node
-             radiusCritical   =  finder%find(rootRange=[radiusInner,radiusOuter])
+             radiusCritical   =  self%finder%find(rootRange=[radiusInner,radiusOuter])
              allocate(krumholz2009Intervals(2,2))
              krumholz2009Intervals=reshape([radiusInner,radiusCritical,radiusCritical,radiusOuter],[2,2])
           end if

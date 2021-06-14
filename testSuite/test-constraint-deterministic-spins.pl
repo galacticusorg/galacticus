@@ -20,7 +20,7 @@ my  $model          = new PDL::IO::HDF5("outputs/constrainDeterministicSpins.hdf
 my  $analyses       = $model   ->group  ('analyses'                );
 my  $analysis       = $analyses->group  ('spinDistributionBett2007');
 (my $logLikelihood) = $analysis->attrGet('logLikelihood'           );
-if ( $logLikelihood > -290.0 ) {
+if ( $logLikelihood > -295.0 ) {
     print "SUCCESS: deterministic spin model matches constraint [log ℒ = "      .sprintf("%10.2f",$logLikelihood->sclr())."]\n";
 } else {
     print "FAILED: deterministic spin model does not match constraint [log ℒ = ".sprintf("%10.2f",$logLikelihood->sclr())."]\n";

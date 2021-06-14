@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -46,7 +46,7 @@ contains
     implicit none
     type(nodePropertyExtractorTreeWeight)                :: self
     type(inputParameters                ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=nodePropertyExtractorTreeWeight()
     return
@@ -58,7 +58,7 @@ contains
     class(nodePropertyExtractorTreeWeight), intent(inout)           :: self
     type (treeNode                       ), intent(inout), target   :: node
     type (multiCounter                   ), intent(inout), optional :: instance
-    !GCC$ attributes unused :: self, instance
+    !$GLC attributes unused :: self, instance
 
     treeWeightExtract=node%hostTree%volumeWeight
     return
@@ -69,7 +69,7 @@ contains
     implicit none
     type (varying_string                 )                :: treeWeightName
     class(nodePropertyExtractorTreeWeight), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     treeWeightName=var_str('mergerTreeWeight')
     return
@@ -80,7 +80,7 @@ contains
     implicit none
     type (varying_string                 )                :: treeWeightDescription
     class(nodePropertyExtractorTreeWeight), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     treeWeightDescription=var_str('The weight assigned to this tree - typically the number of such trees per unit volume required to make a cosmologically-representative sample [Mpc⁻³].')
     return
@@ -91,7 +91,7 @@ contains
     use :: Numerical_Constants_Astronomical, only : megaParsec
     implicit none
     class(nodePropertyExtractorTreeWeight), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     treeWeightUnitsInSI=1.0d0/megaParsec**3
     return
@@ -102,7 +102,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorTreeWeight), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     treeWeightType=outputAnalysisPropertyTypeLinear
     return

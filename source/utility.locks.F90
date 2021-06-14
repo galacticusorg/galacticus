@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -31,35 +31,14 @@ module Locks
      !% OpenMP lock type which allows querying based on thread number.
      private
      !$ integer(omp_lock_kind) :: lock
-     integer                   :: ownerThread=-2
+     integer                   :: ownerThread=-1
    contains
-     !@ <objectMethods>
-     !@   <object>ompLock</object>
-     !@   <objectMethod>
-     !@     <method>set</method>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@     <description>Obtain a lock on the object.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>unset</method>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@     <description>Release a lock on the object.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>initialize</method>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@     <description>(Re)initialize an OpenMP lock object.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>ownedByThread</method>
-     !@     <type>\logicalzero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return true if the current thread already owns this lock.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Obtain a lock on the object." method="set" />
+     !#   <method description="Release a lock on the object." method="unset" />
+     !#   <method description="(Re)initialize an OpenMP lock object." method="initialize" />
+     !#   <method description="Return true if the current thread already owns this lock." method="ownedByThread" />
+     !# </methods>
      final     ::                  ompLockDestructor
      procedure :: initialize    => ompLockInitialize
      procedure :: set           => ompLockSet
@@ -77,39 +56,13 @@ module Locks
      private
      !$ integer(omp_lock_kind), allocatable, dimension(:) :: locks
    contains
-     !@ <objectMethods>
-     !@   <object>ompReadWriteLock</object>
-     !@   <objectMethod>
-     !@     <method>setRead</method>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@     <description>Obtain a read (non-blocking) lock on the object.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>unsetRead</method>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@     <description>Release a read (non-blocking) lock on the object.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>setWrite</method>
-     !@     <type>\void</type>
-     !@     <arguments>\logicalzero\ [haveReadLock]\argin</arguments>
-     !@     <description>Obtain a write (blocking) lock on the object. The lock will block until all other read/write locks on the object are released and while held will prevent any read locks from being obtained. If the thread requesting the write lock already has a read lock it should set {\normalfont \ttfamily haveReadLock=.true.} when calling this function.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>unsetWrite</method>
-     !@     <type>\void</type>
-     !@     <arguments>\logicalzero\ [haveReadLock]\argin</arguments>
-     !@     <description>Release a write (blocking) lock on the object. If the thread releasing the write lock already had a read lock it should set {\normalfont \ttfamily haveReadLock=.true.} when calling this function to ensure that read locked is retained.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>initialize</method>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@     <description>(Re)initialize an OpenMP read/write lock object</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Obtain a read (non-blocking) lock on the object." method="setRead" />
+     !#   <method description="Release a read (non-blocking) lock on the object." method="unsetRead" />
+     !#   <method description="Obtain a write (blocking) lock on the object. The lock will block until all other read/write locks on the object are released and while held will prevent any read locks from being obtained. If the thread requesting the write lock already has a read lock it should set {\normalfont \ttfamily haveReadLock=.true.} when calling this function." method="setWrite" />
+     !#   <method description="Release a write (blocking) lock on the object. If the thread releasing the write lock already had a read lock it should set {\normalfont \ttfamily haveReadLock=.true.} when calling this function to ensure that read locked is retained." method="unsetWrite" />
+     !#   <method description="(Re)initialize an OpenMP read/write lock object" method="initialize" />
+     !# </methods>
      final     ::               ompReadWriteLockDestructor
      procedure :: initialize => ompReadWriteLockInitialize
      procedure :: setRead    => ompReadWriteLockSetRead
@@ -129,27 +82,11 @@ module Locks
      !$ integer(omp_lock_kind) :: lock
      integer   (c_size_t     ) :: lockValue
    contains
-     !@ <objectMethods>
-     !@   <object>ompIncrementalLock</object>
-     !@   <objectMethod>
-     !@     <method>set</method>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@     <description>Obtain a lock on the object.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>unset</method>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@     <description>Release a lock on the object.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>initialize</method>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@     <description>(Re)initialize an OpenMP incremental lock object.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Obtain a lock on the object." method="set" />
+     !#   <method description="Release a lock on the object." method="unset" />
+     !#   <method description="(Re)initialize an OpenMP incremental lock object." method="initialize" />
+     !# </methods>
      final     ::               ompIncrementalLockDestructor
      procedure :: initialize => ompIncrementalLockInitialize
      procedure :: set        => ompIncrementalLockSet
@@ -191,7 +128,6 @@ contains
 
     ! Initialize the lock.
     !$ call OMP_Init_Lock(self%lock)
-    self%ownerThread=-1
     return
   end subroutine ompLockInitialize
 
@@ -201,7 +137,6 @@ contains
     implicit none
     class(ompLock), intent(inout) :: self
 
-    if (self%ownerThread == -2) call self%initialize()
     !$ call OMP_Set_Lock(self%lock)
     !$ self%ownerThread=OMP_Get_Thread_Num()
     return
@@ -213,8 +148,8 @@ contains
     implicit none
     class(ompLock), intent(inout) :: self
 
-    !$ call OMP_Unset_Lock(self%lock)
     self%ownerThread=-1
+    !$ call OMP_Unset_Lock(self%lock)
     return
   end subroutine ompLockUnset
 

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -41,8 +41,8 @@ contains
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(galacticFilterTreeHosted)                :: self
-    type(inputParameters       ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    type(inputParameters         ), intent(inout) :: parameters
+    !$GLC attributes unused :: parameters
 
     self=galacticFilterTreeHosted()
     return
@@ -51,9 +51,9 @@ contains
   logical function treeHostedPasses(self,node)
     !% Implement a galactic filter which passes only main branch halos.
     implicit none
-    class(galacticFilterTreeHosted), intent(inout) :: self
-    type (treeNode              ), intent(inout) :: node
-    !GCC$ attributes unused :: self
+    class(galacticFilterTreeHosted), intent(inout)         :: self
+    type (treeNode                ), intent(inout), target :: node
+    !$GLC attributes unused :: self
 
     treeHostedPasses=associated(node%hostTree)
     return

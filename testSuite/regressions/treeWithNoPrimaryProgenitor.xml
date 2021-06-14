@@ -56,8 +56,8 @@
 <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
-  <mergerTreeConstructorMethod value="read">
-  <fileNames value="testSuite/data/mergerTrees/treeWithNoPrimaryProgenitor.hdf5"/>
+  <mergerTreeConstructor value="read">
+    <fileNames value="testSuite/data/mergerTrees/treeWithNoPrimaryProgenitor.hdf5"/>
     <presetPositions value="false"/>
     <presetOrbits value="false"/>
     <presetMergerTimes value="true"/>
@@ -65,24 +65,50 @@
     <presetSubhaloMasses value="false"/>
     <presetSpins value="false"/>
     <presetScaleRadii value="false"/>
-  </mergerTreeConstructorMethod>
-  <mergerTreeEvolverMethod value="standard">
+  </mergerTreeConstructor>
+  <mergerTreeEvolver value="standard">
     <allTreesExistAtFinalTime value="false"/>
-  </mergerTreeEvolverMethod>
+  </mergerTreeEvolver>
 
-  <treeNodeMethodSatellite value="preset"/>
-  <cosmologyParametersMethod value="simple">
+  <componentSatellite value="preset"/>
+  <cosmologyParameters value="simple">
     <HubbleConstant value="70.0"/>
     <OmegaMatter value="0.3"/>
     <OmegaDarkEnergy value="0.7"/>
     <OmegaBaryon value="0.04"/>
-  </cosmologyParametersMethod>
+  </cosmologyParameters>
 
-  <cosmologicalMassVarianceMethod value="filteredPower">
+  <cosmologicalMassVariance value="filteredPower">
     <sigma_8 value="0.93"/>
-  </cosmologicalMassVarianceMethod>
+  </cosmologicalMassVariance>
 
-  <hotHaloRamPressureStrippingMethod value="virialRadius"/>
+  <hotHaloRamPressureStripping value="virialRadius"/>
   <hotHaloTrackStrippedGas value="false"/>
   <satelliteOrbitStoreOrbitalParameters value="false"/>
+
+  <!-- Node evolution and physics -->
+  <nodeOperator value="multi">
+    <nodeOperator value="starFormationDisks"/>
+    <nodeOperator value="starFormationSpheroids"/>
+    <!--Stellar feedback outflows-->
+    <nodeOperator value="stellarFeedbackDisks">
+      <stellarFeedbackOutflows value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflows value="powerLaw">
+          <velocityCharacteristic value="250.0"/>
+          <exponent value="3.5"/>
+        </stellarFeedbackOutflows>
+      </stellarFeedbackOutflows>
+    </nodeOperator>
+    <nodeOperator value="stellarFeedbackSpheroids">
+      <stellarFeedbackOutflows value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflows value="powerLaw">
+          <velocityCharacteristic value="250.0"/>
+          <exponent value="3.5"/>
+        </stellarFeedbackOutflows>
+      </stellarFeedbackOutflows>
+    </nodeOperator>
+  </nodeOperator>
+
 </parameters>

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -47,11 +47,9 @@ contains
 
     !# <inputParameter>
     !#   <name>Rv</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>2.7d0</defaultValue>
     !#   <description>The relative visibility, $R_\mathrm{V}$.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     self=stellarSpectraDustAttenuationPrevotBouchet(Rv)
     !# <inputParametersValidate source="parameters"/>

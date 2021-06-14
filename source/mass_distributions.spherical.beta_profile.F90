@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -58,51 +58,39 @@ contains
 
     !# <inputParameter>
     !#   <name>beta</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>2.0d0/3.0d0</defaultValue>
     !#   <description>The value $\beta$ in a $\beta$-model mass distribution.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>densityNormalization</name>
     !#   <defaultValue>0.0d0</defaultValue>
-    !#   <cardinality>1</cardinality>
     !#   <description>The density normalization of a $\beta$-model mass distribution.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>mass</name>
     !#   <defaultValue>0.0d0</defaultValue>
-    !#   <cardinality>1</cardinality>
     !#   <description>The mass of a $\beta$-model mass distribution.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>outerRadius</name>
     !#   <defaultValue>0.0d0</defaultValue>
-    !#   <cardinality>1</cardinality>
     !#   <description>The outer radius of a $\beta$-model mass distribution.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>coreRadius</name>
     !#   <defaultValue>0.0d0</defaultValue>
-    !#   <cardinality>1</cardinality>
     !#   <description>The core radius of a $\beta$-model mass distribution.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>dimensionless</name>
     !#   <defaultValue>.false.</defaultValue>
-    !#   <cardinality>1</cardinality>
     !#   <description>If true then the $\beta$-model mass distribution is considered to be in dimensionless units.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <conditionalCall>
     !#  <call>self=massDistributionBetaProfile(beta{conditions})</call>
@@ -118,11 +106,11 @@ contains
 
   function betaProfileConstructorInternal(beta,densityNormalization,mass,outerRadius,coreRadius,dimensionless) result(self)
     !% Constructor for ``betaProfile'' convergence class.
-    use :: Galacticus_Display      , only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent, Galacticus_Verbosity_Level, &
-          &                                 verbosityDebug
+    use :: Display                 , only : displayIndent          , displayMessage, displayUnindent, displayVerbosity, &
+          &                                 verbosityLevelDebug
     use :: Galacticus_Error        , only : Galacticus_Error_Report
     use :: Hypergeometric_Functions, only : Hypergeometric_2F1
-    use :: Numerical_Comparison    , only : Values_Agree             , Values_Differ
+    use :: Numerical_Comparison    , only : Values_Agree           , Values_Differ
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     type            (massDistributionBetaProfile)                          :: self
@@ -188,20 +176,20 @@ contains
              call Galacticus_Error_Report('unphysical outer radius'//{introspection:location})
           end if
           ! Assert that the mass within the outer radius equals that specified.
-          if (Galacticus_Verbosity_Level() >= verbosityDebug) then
+          if (displayVerbosity() >= verbosityLevelDebug) then
              if (.not.Values_Agree(self%massEnclosedBySphere(outerRadius),mass,relTol=1.0d-6,absTol=tiny(0.0d0))) then
-                call Galacticus_Display_Indent('beta-profile parameters:')
+                call displayIndent('beta-profile parameters:')
                 write (message,'(a,e12.6)') '    coreRadius: ',coreRadius
-                call Galacticus_Display_Message(message)
+                call displayMessage(message)
                 write (message,'(a,e12.6)') '   outerRadius: ',outerRadius
-                call Galacticus_Display_Message(message)
+                call displayMessage(message)
                 write (message,'(a,e12.6)') '          mass: ',mass
-                call Galacticus_Display_Message(message)
+                call displayMessage(message)
                 write (message,'(a,e12.6)') '          beta: ',beta
-                call Galacticus_Display_Message(message)
+                call displayMessage(message)
                 write (message,'(a,e12.6)') 'mass(<r_outer): ',self%massEnclosedBySphere(outerRadius)
-                call Galacticus_Display_Message(message)
-                call Galacticus_Display_Unindent('done')
+                call displayMessage(message)
+                call displayUnindent('done')
                 call Galacticus_Error_Report('profile normalization failed'//{introspection:location})
              end if
           end if
@@ -326,11 +314,11 @@ contains
     !% Return the potential at the specified {\normalfont \ttfamily coordinates} in a $\beta$-profile mass distribution. Calculated using
     !% \href{http://www.wolframalpha.com/input/?i=integrate+4\%2F3+\%CF\%80+r+\%CF\%81+2F1\%283\%2F2\%2C+\%283+\%CE\%B2\%29\%2F2\%2C+5\%2F2\%2C+-r^2\%29}{Wolfram
     !% Alpha}.
-    use :: Coordinates                 , only : assignment(=)                  , coordinateSpherical
-    use :: Hypergeometric_Functions    , only : Hypergeometric_2F1
-    use :: Numerical_Comparison        , only : Values_Agree
-    use :: Numerical_Constants_Math    , only : Pi
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Coordinates                     , only : assignment(=)                  , coordinateSpherical
+    use :: Hypergeometric_Functions        , only : Hypergeometric_2F1
+    use :: Numerical_Comparison            , only : Values_Agree
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Math        , only : Pi
     implicit none
     class           (massDistributionBetaProfile), intent(inout) :: self
     class           (coordinate                 ), intent(in   ) :: coordinates

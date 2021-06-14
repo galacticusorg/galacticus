@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,7 +26,28 @@
 
   !# <coolingSpecificAngularMomentum name="coolingSpecificAngularMomentumConstantRotation">
   !#  <description>
-  !#   A specific angular momentum of cooling gas class which assumes a constant rotation velocity as a function of radius.
+  !#   A cooling specific angular momentum class which assumes a constant rotation velocity as a function of radius. The specific
+  !#   angular momentum of cooling gas is given either by
+  !#   \begin{equation}
+  !#    j_\mathrm{cool} = \langle j \rangle r_\mathrm{cool} A,
+  !#   \end{equation}
+  !#   where $r_\mathrm{cool}$ is the cooling radius, $A$ is the rotation normalization and $\langle j \rangle$ is the mean
+  !#   specific angular momentum of the cooling gas, if {\normalfont \ttfamily [useInteriorMean]}$=${\normalfont \ttfamily false},
+  !#   or by
+  !#   \begin{equation}
+  !#    j_\mathrm{cool} = \langle j \rangle {I_3(r_\mathrm{cool})/I_2(r_\mathrm{cool})} A,
+  !#   \end{equation}
+  !#   where $I_n(r)$ is the $n^\mathrm{th}$ radial moment of the hot gas density profile from $0$ to $r$ (this therefore gives
+  !#   the mean specific angular momentum interior to radius $r$), if {\normalfont \ttfamily [useInteriorMean]}$=${\normalfont
+  !#   \ttfamily true}.
+  !#
+  !#   If {\normalfont \ttfamily [sourceAngularMomentumSpecificMean]}$=${\normalfont \ttfamily darkMatter} then $\langle j
+  !#   \rangle$ is the mean specific angular momentum of the dark matter halo, computed from its spin parameter, while if
+  !#   {\normalfont \ttfamily [sourceAngularMomentumSpecificMean]}$=${\normalfont \ttfamily hotGas} then $\langle j \rangle$ is
+  !#   equal to the mean specific angular momentum of gas currently in the hot gas reservoir. If {\normalfont \ttfamily
+  !#   [sourceNormalizationRotation]}$=${\normalfont \ttfamily darkMatter} then the rotation normalization $A$ is computed using
+  !#   the dark matter density profile, while if {\normalfont \ttfamily [sourceNormalizationRotation]}$=${\normalfont \ttfamily
+  !#   hotGas} it is computed using the density profile of the hot gas reservoir.
   !#  </description>
   !# </coolingSpecificAngularMomentum>
   type, extends(coolingSpecificAngularMomentumClass) :: coolingSpecificAngularMomentumConstantRotation
@@ -40,15 +61,9 @@
      integer                                                 :: sourceAngularMomentumSpecificMean          , sourceNormalizationRotation
      logical                                                 :: useInteriorMean
    contains
-     !@ <objectMethods>
-     !@   <object>coolingSpecificAngularMomentumConstantRotation</object>
-     !@   <objectMethod>
-     !@     <method>calculationReset</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(table)\textgreater} node\arginout</arguments>
-     !@     <description>Reset memoized calculations.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Reset memoized calculations." method="calculationReset" />
+     !# </methods>
      final     ::                            constantRotationDestructor
      procedure :: autoHook                => constantRotationAutoHook
      procedure :: calculationReset        => constantRotationCalculationReset
@@ -85,33 +100,27 @@ contains
 
     !# <inputParameter>
     !#   <name>sourceAngularMomentumSpecificMean</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('hotGas')</defaultValue>
     !#   <description>
     !#    The component (``{\normalfont \ttfamily hotGas}'' or ``{\normalfont \ttfamily darkMatter}'') from which the mean specific angular momentum should be computed for
     !#    calculations of cooling gas specific angular momentum.
     !#   </description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>sourceNormalizationRotation</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('hotGas')</defaultValue>
     !#   <description>
     !#    The component (``{\normalfont \ttfamily hotGas}'' or ``{\normalfont \ttfamily darkMatter}'') from which the constant rotation speed should be computed for
     !#    calculations of cooling gas specific angular momentum.
     !#   </description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>useInteriorMean</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Specifies whether to use the specific angular momentum at the cooling radius, or the mean specific angular momentum interior to that radius.</description>
     !#   <source>parameters</source>
-    !#   <type>boolean</type>
     !# </inputParameter>
     !# <objectBuilder class="darkMatterProfileDMO"    name="darkMatterProfileDMO_"    source="parameters"/>
     !# <objectBuilder class="hotHaloMassDistribution" name="hotHaloMassDistribution_" source="parameters"/>
@@ -169,7 +178,7 @@ contains
     !% Return the specific angular momentum of cooling gas in the constantRotation model.
     use :: Galacticus_Error            , only : Galacticus_Error_Report
     use :: Galacticus_Nodes            , only : nodeComponentBasic             , nodeComponentHotHalo, nodeComponentSpin, treeNode
-    use :: Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (coolingSpecificAngularMomentumConstantRotation), intent(inout) :: self
     type            (treeNode                                      ), intent(inout) :: node

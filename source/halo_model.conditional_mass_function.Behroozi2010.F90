@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +22,67 @@
   use :: Tables, only : table1D, table1DLogarithmicLinear
 
   !# <conditionalMassFunction name="conditionalMassFunctionBehroozi2010">
-  !#  <description>A class which implements the conditional mass function using the fiting functions of \cite{behroozi_comprehensive_2010}.</description>
+  !#  <description>
+  !#   A conditional mass function class which implements the fiting functions of \cite{behroozi_comprehensive_2010}:
+  !#   \begin{equation}
+  !#    \langle N_\mathrm{c}(M_\star|M)\rangle \equiv \int_{M_\star}^\infty \phi_\mathrm{c}(M_\star^\prime) \d \ln M_\star^\prime
+  !#    = {1 \over 2} \left[ 1 - \hbox{erf}\left( {\log_{10}M_\star - \log_{10} f_\mathrm{SHMR}(M) \over \sqrt{2}\sigma_{\log
+  !#    M_\star}} \right) \right].
+  !#   \end{equation}
+  !#   Here, the function $f_\mathrm{SHMR}(M)$ is the solution of
+  !#   \begin{equation}
+  !#    \log_{10}M = \log_{10}M_1 + \beta \log_{10}\left({M_\star \over M_{\star,0}}\right) + {(M_\star/M_{\star,0})^\delta \over
+  !#    1 + (M_\star/M_{\star,0})^{-\gamma}} - {1/2}.
+  !#   \end{equation}
+  !#   For satellites,
+  !#   \begin{equation}
+  !#    \langle N_\mathrm{s}(M_\star|M)\rangle \equiv \int_{M_\star}^\infty \phi_\mathrm{s}(M_\star^\prime) \d \ln M_\star^\prime
+  !#    = \langle N_\mathrm{c}(M_\star|M)\rangle \left({f^{-1}_\mathrm{SHMR}(M_\star) \over
+  !#    M_\mathrm{sat}}\right)^{\alpha_\mathrm{sat}} \exp\left(- {M_\mathrm{cut} \over f^{-1}_\mathrm{SHMR}(M_\star)} \right),
+  !#   \end{equation}
+  !#   where
+  !#   \begin{equation}
+  !#    {M_\mathrm{sat} \over 10^{12} M_\odot} = B_\mathrm{sat} \left({f^{-1}_\mathrm{SHMR}(M_\star) \over 10^{12}
+  !#    M_\odot}\right)^{\beta_\mathrm{sat}},
+  !#   \end{equation}
+  !#   and
+  !#   \begin{equation}
+  !#    {M_\mathrm{cut} \over 10^{12} M_\odot} = B_\mathrm{cut} \left({f^{-1}_\mathrm{SHMR}(M_\star) \over 10^{12}
+  !#    M_\odot}\right)^{\beta_\mathrm{cut}}.
+  !#   \end{equation}
+  !#   By default, parameter values are taken from the fit of \cite{leauthaud_new_2011}, specifically their {\normalfont \ttfamily
+  !#   SIG\_MOD1} method for their $z_1$ sample. These default values, and the \glc\ input parameters which can be used to adjust
+  !#   them are shown in Table~\ref{table:Behroozi2010FitParameters}. This method assumes that $P_\mathrm{s}(N|M_\star,M;\delta
+  !#   \ln M_\star)$ is a Poisson distribution while $P_\mathrm{c}(N|M_\star,M;\delta \ln M_\star)$ has a Bernoulli distribution,
+  !#   with each distribution's free parameter fixed by requiring
+  !#   \begin{equation}
+  !#    \phi(M_\star;M) \delta \ln M_\star = \sum_{N=0}^\infty N P(N|M_\star,M;\delta \ln M_\star)
+  !#   \end{equation}
+  !#   \begin{table}
+  !#   \caption{Parameters of the \cite{behroozi_comprehensive_2010} conditional stellar mass function model, along with their
+  !#   default values and the corresponding \glc\ input parameters.}
+  !#   \label{table:Behroozi2010FitParameters}
+  !#   \begin{center}
+  !#   \begin{tabular}{lr@{.}ll}
+  !#   \hline
+  !#   {\normalfont \bfseries Parameter} &amp; \multicolumn{2}{c}{{\normalfont \bfseries Default}} &amp; {\normalfont \bfseries \glc\ name} \\
+  !#   \hline
+  !#   $\alpha_\mathrm{sat}$&amp; 1&amp;0&amp; {\normalfont \ttfamily [conditionalStellarMassFunctionBehrooziAlphaSatellite]} \\
+  !#   $\log_{10} M_1$&amp; 12&amp;520&amp; {\normalfont \ttfamily [conditionalStellarMassFunctionBehrooziLog10M1]} \\
+  !#   $\log_{10} M_{\star,0}$&amp; 10&amp;916&amp; {\normalfont \ttfamily [conditionalStellarMassFunctionBehrooziLog10Mstar0]} \\
+  !#   $\beta$&amp; 0&amp;457&amp; {\normalfont \ttfamily [conditionalStellarMassFunctionBehrooziBeta]} \\
+  !#   $\delta$&amp; 0&amp;5666&amp; {\normalfont \ttfamily [conditionalStellarMassFunctionBehrooziDelta]} \\
+  !#   $\gamma$&amp; 1&amp;53&amp; {\normalfont \ttfamily [conditionalStellarMassFunctionBehrooziGamma]} \\
+  !#   $\sigma_{\log M_\star}$&amp; 0&amp;206&amp; {\normalfont \ttfamily [conditionalStellarMassFunctionBehrooziSigmaLogMstar]} \\
+  !#   $B_\mathrm{cut}$&amp; 1&amp;47&amp; {\normalfont \ttfamily [conditionalStellarMassFunctionBehrooziBCut]} \\
+  !#   $B_\mathrm{sat}$&amp; 10&amp;62&amp; {\normalfont \ttfamily [conditionalStellarMassFunctionBehrooziBSatellite]} \\
+  !#   $\beta_\mathrm{cut}$&amp; $-$0&amp;13&amp; {\normalfont \ttfamily [conditionalStellarMassFunctionBehrooziBetaCut]} \\
+  !#   $\beta_\mathrm{sat}$&amp; 0&amp;859&amp; {\normalfont \ttfamily [conditionalStellarMassFunctionBehrooziBetaCut]} \\
+  !#   \hline
+  !#   \end{tabular}
+  !#   \end{center}
+  !#   \end{table}
+  !#  </description>
   !# </conditionalMassFunction>
   type, extends(conditionalMassFunctionClass) :: conditionalMassFunctionBehroozi2010
      !% Implements the conditional mass function using the fiting functions of \cite{behroozi_comprehensive_2010}.
@@ -50,15 +110,9 @@
      type            (table1DLogarithmicLinear)               :: fMassTable
      class           (table1D                 ), allocatable  :: fMassHaloTable
    contains
-     !@ <objectMethods>
-     !@   <object>conditionalMassFunctionBehroozi2010</object>
-     !@   <objectMethod>
-     !@     <method>compute</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ massHalo\argin, \doublezero\ mass\argin, \doublezero\ numberCentrals\argout, \doublezero\ numberSatellites\argout</arguments>
-     !@     <description>Compute the cumulative conditional mass function, $\langle N(M_\star|M_\mathrm{halo}) \rangle \equiv \phi(M_\star|M_\mathrm{halo})$.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Compute the cumulative conditional mass function, $\langle N(M_\star|M_\mathrm{halo}) \rangle \equiv \phi(M_\star|M_\mathrm{halo})$." method="compute" />
+     !# </methods>
      final     ::                         behroozi2010Destructor
      procedure :: massFunction         => behroozi2010MassFunction
      procedure :: massFunctionVariance => behroozi2010MassFunctionVariance
@@ -97,113 +151,80 @@ contains
 
     !# <inputParameter>
     !#   <name>alphaSatellite</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultSource>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The parameter $\alpha_\mathrm{sat}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
-    !#   <group>haloModel</group>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>log10M1</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultSource>
     !#   <defaultValue>12.520d0</defaultValue>
     !#   <description>The parameter $\log_{10}M_1$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
-    !#   <group>haloModel</group>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>log10Mstar0</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultSource>
     !#   <defaultValue>10.916d0</defaultValue>
     !#   <description>The parameter $\log_{10}M_{\star,0}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
-    !#   <group>haloModel</group>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>beta</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultSource>
     !#   <defaultValue>0.457d0</defaultValue>
     !#   <description>The parameter $\beta$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
-    !#   <group>haloModel</group>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>delta</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultSource>
     !#   <defaultValue>0.5666d0</defaultValue>
     !#   <description>The parameter $\delta$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
-    !#   <group>haloModel</group>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>gamma</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultSource>
     !#   <defaultValue>1.53d0</defaultValue>
     !#   <description>The parameter $\gamma$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
-    !#   <group>haloModel</group>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>sigmaLogMstar</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultSource>
     !#   <defaultValue>0.206d0</defaultValue>
     !#   <description>The parameter $\sigma_{\log M_\star}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
-    !#   <group>haloModel</group>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>BCut</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultSource>
     !#   <defaultValue>1.47d0</defaultValue>
     !#   <description>The parameter $B_\mathrm{cut}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
-    !#   <group>haloModel</group>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>BSatellite</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultSource>
     !#   <defaultValue>10.62d0</defaultValue>
     !#   <description>The parameter $B_\mathrm{sat}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
-    !#   <group>haloModel</group>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>betaCut</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultSource>
     !#   <defaultValue>-0.13d0</defaultValue>
     !#   <description>The parameter $\beta_\mathrm{cut}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
-    !#   <group>haloModel</group>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>betaSatellite</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultSource>
     !#   <defaultValue>0.859d0</defaultValue>
     !#   <description>The parameter $\beta_\mathrm{sat}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
-    !#   <group>haloModel</group>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     self=conditionalMassFunctionBehroozi2010(alphaSatellite,log10M1,log10Mstar0,beta,delta,gamma,sigmaLogMstar,BCut,BSatellite,betaCut,betaSatellite)
     !# <inputParametersValidate source="parameters"/>

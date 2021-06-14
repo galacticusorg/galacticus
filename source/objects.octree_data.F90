@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -165,8 +165,8 @@ contains
 
   subroutine Add_Particle_To_Octree(self,coordinate,weight)
     !% Add a particle to the octree.
-    use :: Galacticus_Display , only : Galacticus_Display_Message, verbosityWarn
-    use :: ISO_Varying_String , only : varying_string            , assignment(=), operator(//)
+    use :: Display            , only : displayMessage, verbosityLevelWarn
+    use :: ISO_Varying_String , only : varying_string, assignment(=)     , operator(//)
     implicit none
     class           (octreeData    ),               intent(inout) :: self
     double precision                , dimension(3), intent(in   ) :: coordinate
@@ -221,15 +221,15 @@ contains
        else
           message='Warning: Particle is outside the root box of the current octree. It will not be added to the octree. To add the particle, the octree needs to be rebuilt with a larger root box.'//char(10)
        end if
-       call Galacticus_Display_Message(message,verbosityWarn)
+       call displayMessage(message,verbosityLevelWarn)
     end if
     return
   end subroutine Add_Particle_To_Octree
 
   subroutine Remove_Particle_From_Octree(self,coordinate,weight)
     !% Remove a particle from the octree.
-    use :: Galacticus_Display , only : Galacticus_Display_Message, verbosityWarn
-    use :: ISO_Varying_String , only : varying_string            , assignment(=), operator(//)
+    use :: Display            , only : displayMessage, verbosityLevelWarn
+    use :: ISO_Varying_String , only : varying_string, assignment(=)     , operator(//)
     implicit none
     class           (octreeData    ),               intent(inout) :: self
     double precision                , dimension(3), intent(in   ) :: coordinate
@@ -245,7 +245,7 @@ contains
     leafNode => getLeafNode(self%rootNode,coordinate,weight)
     if (.not. associated(leafNode)) then
        message='Warning: Particle not found in the octree. No changes will be made.'//char(10)
-       call Galacticus_Display_Message(message,verbosityWarn)
+       call displayMessage(message,verbosityLevelWarn)
     else
        workNode => leafNode
        do while(associated(workNode))
@@ -473,8 +473,8 @@ contains
 
   function getChildIndex(node,coordinate)
     !% Return the index of the child node that a particle belongs to.
-    use :: Galacticus_Display , only : Galacticus_Display_Message, verbosityWarn
-    use :: ISO_Varying_String , only : varying_string            , assignment(=), operator(//)
+    use :: Display            , only : displayMessage, verbosityLevelWarn
+    use :: ISO_Varying_String , only : varying_string, assignment(=)     , operator(//)
     implicit none
     integer         (c_size_t      )                                  :: getChildIndex
     type            (octreeNode    ), pointer         , intent(in   ) :: node
@@ -497,7 +497,7 @@ contains
        message=message//'  Box bottom left    : '//trim(valueString)//char(10)
        write (valueString,'(e26.17e3,e26.17e3,e26.17e3)') node%boxBottomLeft+node%boxWidth
        message=message//'  Box top right      : '//trim(valueString)//char(10)
-       call Galacticus_Display_Message(message,verbosityWarn)
+       call displayMessage(message,verbosityLevelWarn)
        ! Assign the particle to the nearest node.
        where(coordinateIndex < 1)
           coordinateIndex = 1

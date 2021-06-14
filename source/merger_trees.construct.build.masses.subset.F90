@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -53,21 +53,17 @@ contains
 
     !# <inputParameter>
     !#   <name>subsetBegin</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The first entry in the subset (indexed from 1).</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>subsetEnd</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The last entry in the subset (indexed from 1).</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <objectBuilder class="mergerTreeBuildMasses" name="mergerTreeBuildMasses_" source="parameters"/>
     self=mergerTreeBuildMassesSubset(subsetBegin,subsetEnd,mergerTreeBuildMasses_)
-    !# <inputParametersValidate target="self" source="parameters"/>
+    !# <inputParametersValidate source="parameters"/>
     return
   end function subsetConstructorParameters
 

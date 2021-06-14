@@ -53,32 +53,15 @@ module iso_varying_string
      private
      character(LEN=1), dimension(:), allocatable :: chars
    contains
-     final :: vsFinalize
-     !@ <objectMethod>
-     !@   <object>varying_string</object>
-     !@   <method>destroy</method>
-     !@   <description>Destroys the object by deallocating internal storage.</description>
-     !@ </objectMethod>
-     procedure :: destroy => destroy_VS
-     !@ <objectMethod>
-     !@   <object>varying_string</object>
-     !@   <method>loadFromFile</method>
-     !@   <description>Loads a varying string with the contents of a file.</description>
-     !@ </objectMethod>
+     !# <methods>
+     !#  <method method="destroy"      description="Destroys the object by deallocating internal storage."/>
+     !#  <method method="loadFromFile" description="Loads a varying string with the contents of a file."  />
+     !#  <method method="stateStore"   description="Store the state of a varying string to file."         />
+     !#  <method method="stateRestore" description="Restore the state of a varying string from file."     />
+     !# </methods>
+     procedure :: destroy      => destroy_VS
      procedure :: loadFromFile => load_from_file_VS
-     !@ <objectMethod>
-     !@   <object>varying_string</object>
-     !@   <method>stateStore</method>
-     !@   <arguments>\intzero\ stateFile\argin</arguments>
-     !@   <description>Store the state of a varying string to file.</description>
-     !@ </objectMethod>
-     procedure :: stateStore => vsStateStore
-     !@ <objectMethod>
-     !@   <object>varying_string</object>
-     !@   <method>restoreState</method>
-     !@   <arguments>\intzero\ stateFile\argin</arguments>
-     !@   <description>Restore the state of a varying string from file.</description>
-     !@ </objectMethod>
+     procedure :: stateStore   => vsStateStore
      procedure :: stateRestore => vsStateRestore
   end type varying_string
 
@@ -546,19 +529,28 @@ contains
 !****
 
   elemental function op_eq_VS_VS (string_a, string_b) result (op_eq)
+    !% Test equality of two varying string objects.
+    implicit none
+    type   (varying_string), intent(in) :: string_a
+    type   (varying_string), intent(in) :: string_b
+    integer                             :: i
+    logical                             :: op_eq
 
-    type(varying_string), intent(in) :: string_a
-    type(varying_string), intent(in) :: string_b
-    logical                          :: op_eq
-
-! Compare (==) two varying strings
-
-    op_eq = char(string_a) == char(string_b)
-
-! Finish
-
+    ! Compare (==) two varying strings
+    if (size(string_a%chars) == size(string_b%chars)) then
+       ! Strings have equal lengths, so test each character.
+       op_eq=.true.
+       do i=1,size(string_a%chars)
+          if (string_a%chars(i) /= string_b%chars(i)) then
+             op_eq=.false.
+             exit
+          end if
+       end do
+    else
+       ! Strings have different lengths so cannot be equal.
+       op_eq=.false.
+    end if
     return
-
   end function op_eq_VS_VS
 
 !****
@@ -2693,14 +2685,6 @@ contains
     return
   end subroutine destroy_VS
 
-  subroutine vsFinalize (string)
-    !% Destroy a varying string object by deallocating it. Can be necessary to avoid memory leaks in some instances.
-    type(varying_string), intent(inout) :: string
-
-    if (allocated(string%chars)) deallocate(string%chars)
-    return
-  end subroutine vsFinalize
-
   subroutine load_from_file_VS(string,fileName)
     !% Load a varying string object with the contents of a file (specified by {\normalfont \ttfamily fileName}).
     class(varying_string), intent(inout) :: string
@@ -2731,14 +2715,32 @@ contains
     class  (varying_string), intent(inout) :: self
     integer                , intent(in   ) :: stateFile
 
+    !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+    !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
+    !# </workaround>
+#ifdef THREADSAFEIO
+    !$omp critical(gfortranInternalIO)
+#endif
     write (stateFile) allocated(self%chars)
+#ifdef THREADSAFEIO
+    !$omp end critical(gfortranInternalIO)
+#endif
     if (allocated(self%chars)) then
+       !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+       !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
+       !# </workaround>
+#ifdef THREADSAFEIO
+       !$omp critical(gfortranInternalIO)
+#endif
        write (stateFile) size(self%chars,kind=c_size_t)
        write (stateFile) self%chars
+#ifdef THREADSAFEIO
+       !$omp end critical(gfortranInternalIO)
+#endif
     end if
     return
   end subroutine vsStateStore
-  
+
   subroutine vsStateRestore(self,stateFile)
     !% Restore the state of a {\normalfont \ttfamily varying\_string} object from file.
     use, intrinsic :: ISO_C_Binding
@@ -2748,12 +2750,30 @@ contains
     logical                                :: wasAllocated
     integer(c_size_t      )                :: charsSize
 
+    !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+    !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
+    !# </workaround>
+#ifdef THREADSAFEIO
+    !$omp critical(gfortranInternalIO)
+#endif
     read (stateFile) wasAllocated
+#ifdef THREADSAFEIO
+    !$omp end critical(gfortranInternalIO)
+#endif
     if (allocated(self%chars)) deallocate(self%chars)
     if (wasAllocated) then
+       !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+       !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
+       !# </workaround>
+#ifdef THREADSAFEIO
+       !$omp critical(gfortranInternalIO)
+#endif
        read (stateFile) charsSize
        allocate(self%chars(charsSize))
        read (stateFile) self%chars
+#ifdef THREADSAFEIO
+       !$omp end critical(gfortranInternalIO)
+#endif
     end if
     return
   end subroutine vsStateRestore

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +22,10 @@
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !# <virialOrbit name="virialOrbitFixed">
-  !#  <description>Virial orbits assuming fixed orbital parameters.</description>
+  !#  <description>
+  !#   A virial orbit class which sets all orbital parameters to fixed values, with $v_\mathrm{r}=${\normalfont \ttfamily
+  !#   [velocityRadial]}$V_\mathrm{virial}$ and $v_\phi=${\normalfont \ttfamily [velocityTangential]}$V_\mathrm{virial}$.
+  !#  </description>
   !# </virialOrbit>
   type, extends(virialOrbitClass) :: virialOrbitFixed
      !% A virial orbit class that assumes fixed orbital parameters.
@@ -65,16 +68,12 @@ contains
     !#   <defaultValue>-0.90d0</defaultValue>
     !#   <source>parameters</source>
     !#   <description>The radial velocity (in units of the host virial velocity) to used for the fixed virial orbits distribution. Default value matches approximate peak in the distribution of \cite{benson_orbital_2005}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>velocityTangential</name>
     !#   <defaultValue>0.75d0</defaultValue>
     !#   <source>parameters</source>
     !#   <description>The tangential velocity (in units of the host virial velocity) to used for the fixed virial orbits distribution. Default value matches approximate peak in the distribution of \cite{benson_orbital_2005}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="virialDensityContrast"  name="virialDensityContrast_"  source="parameters"/>
     !# <objectBuilder class="darkMatterHaloScale"    name="darkMatterHaloScale_"    source="parameters"/>
@@ -111,7 +110,7 @@ contains
   function fixedOrbit(self,node,host,acceptUnboundOrbits)
     !% Return fixed orbital parameters for a satellite.
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
-    use :: Galacticus_Display                  , only : Galacticus_Display_Indent          , Galacticus_Verbosity_Level_Set, verbosityStandard
+    use :: Display                             , only : displayIndent                      , displayVerbositySet, verbosityLevelStandard
     use :: Galacticus_Error                    , only : Galacticus_Error_Report
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
     use :: ISO_Varying_String                  , only : varying_string
@@ -125,7 +124,7 @@ contains
          &                                                         radiusHost         , massSatellite
     type            (varying_string    )                        :: message
     character       (len=12            )                        :: label
-    !GCC$ attributes unused :: acceptUnboundOrbits
+    !$GLC attributes unused :: acceptUnboundOrbits
 
     ! Reset the orbit.
     call fixedOrbit%reset()
@@ -146,12 +145,12 @@ contains
        call fixedOrbit%propagate(radiusHost,infalling=.true.)
        call fixedOrbit%massesSet(min(basic%mass(),hostBasic%mass()),hostBasic%mass())
     else
-       call Galacticus_Verbosity_Level_Set(verbosityStandard)
-       call Galacticus_Display_Indent('Satellite node')
+       call displayVerbositySet(verbosityLevelStandard)
+       call displayIndent('Satellite node')
        call node%serializeASCII()
-       call Galacticus_Display_Indent('Host node'     )
+       call displayIndent('Host node'     )
        call host%serializeASCII()
-       call Galacticus_Display_Indent('Host node'     )
+       call displayIndent('Host node'     )
        message="orbit does not reach halo radius"               //char(10)
        write (label,'(e12.6)') massSatellite
        message=message//"      satellite mass = "//label//" M☉" //char(10)
@@ -188,7 +187,7 @@ contains
     class           (nodeComponentBasic), pointer       :: hostBasic
     double precision                                    :: massHost    , radiusHost, &
          &                                                 velocityHost
-    !GCC$ attributes unused :: node
+    !$GLC attributes unused :: node
 
     hostBasic                            =>  host%basic()
     massHost                             =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost)
@@ -204,7 +203,7 @@ contains
     double precision                  , dimension(3)  :: fixedVelocityTangentialVectorMean
     class           (virialOrbitFixed), intent(inout) :: self
     type            (treeNode        ), intent(inout) :: node                             , host
-    !GCC$ attributes unused :: self, node, host
+    !$GLC attributes unused :: self, node, host
 
     fixedVelocityTangentialVectorMean=0.0d0
     call Galacticus_Error_Report('vector velocity is not defined for this class'//{introspection:location})
@@ -242,7 +241,7 @@ contains
     double precision                  , dimension(3)  :: fixedAngularMomentumVectorMean
     class           (virialOrbitFixed), intent(inout) :: self
     type            (treeNode        ), intent(inout) :: node                               , host
-    !GCC$ attributes unused :: self, node, host
+    !$GLC attributes unused :: self, node, host
 
     fixedAngularMomentumVectorMean=0.0d0
     call Galacticus_Error_Report('vector angular momentum is not defined for this class'//{introspection:location})
@@ -259,7 +258,7 @@ contains
     class           (nodeComponentBasic), pointer       :: hostBasic
     double precision                                    :: massHost    , radiusHost, &
          &                                                 velocityHost
-    !GCC$ attributes unused :: node
+    !$GLC attributes unused :: node
 
     hostBasic                         =>  host%basic()
     massHost                          =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost)
@@ -275,7 +274,7 @@ contains
     !% Return the mean energy of the orbits.
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
-    use :: Numerical_Constants_Physical        , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical    , only : gravitationalConstantGalacticus
     implicit none
     class           (virialOrbitFixed  ), intent(inout) :: self
     type            (treeNode          ), intent(inout) :: node        , host

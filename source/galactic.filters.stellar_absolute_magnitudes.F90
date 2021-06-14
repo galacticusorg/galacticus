@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -63,8 +63,6 @@ contains
     !#   <name>absoluteMagnitudeThreshold</name>
     !#   <source>parameters</source>
     !#   <description>The parameter $M_0$ appearing in the stellar absolute magnitude threshold for the stellar absolute magnitude galactic filter class.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     stellarAbsoluteMagnitudesConstructorParameters=galacticFilterStellarAbsoluteMagnitudes(absoluteMagnitudeThreshold)
     !# <inputParametersValidate source="parameters"/>
@@ -97,12 +95,12 @@ contains
     use :: Galacticus_Nodes                  , only : nodeComponentBasic              , treeNode
     use :: Stellar_Luminosities_Structure    , only : unitStellarLuminosities
     implicit none
-    class           (galacticFilterStellarAbsoluteMagnitudes), intent(inout) :: self
-    type            (treeNode                               ), intent(inout) :: node
-    class           (nodeComponentBasic                     ), pointer       :: basic
-    double precision                                                         :: time       , luminosity, &
-         &                                                                      abMagnitude
-    integer                                                                  :: iLuminosity
+    class           (galacticFilterStellarAbsoluteMagnitudes), intent(inout)         :: self
+    type            (treeNode                               ), intent(inout), target :: node
+    class           (nodeComponentBasic                     ), pointer               :: basic
+    double precision                                                                 :: time       , luminosity, &
+         &                                                                              abMagnitude
+    integer                                                                          :: iLuminosity
 
     ! Get the basic component.
     basic => node%basic()

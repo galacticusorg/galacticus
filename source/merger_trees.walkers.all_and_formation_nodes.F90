@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -46,7 +46,7 @@ contains
     implicit none
     type(mergerTreeWalkerAllAndFormationNodes)                :: self
     type(inputParameters                     ), intent(inout) :: parameters
-    !GCC$ attributes unused :: self, parameters
+    !$GLC attributes unused :: self, parameters
 
     call Galacticus_Error_Report('this class can not be built from parameters'//{introspection:location})
     return
@@ -97,7 +97,7 @@ contains
     implicit none
     class(mergerTreeWalkerAllAndFormationNodes), intent(inout)          :: self
     type (treeNode                            ), intent(inout), pointer :: node
-    !GCC$ attributes unused :: self, node
+    !$GLC attributes unused :: self, node
 
     call Galacticus_Error_Report('returning to previous node is not supported'//{introspection:location})
     return

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -70,8 +70,6 @@ contains
     !#   <name>errorFractionalMaximum</name>
     !#   <source>parameters</source>
     !#   <description>Maximum allowed fractional error in halo mass.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_"  source="parameters"/>
     !# <objectBuilder class="nbodyHaloMassError"  name="nBodyHaloMassError_"   source="parameters"/>
@@ -111,7 +109,7 @@ contains
   double precision function errorConvolvedDifferential(self,time,mass,node)
     !% Return the differential halo mass function at the given time and mass.
     use :: Galacticus_Nodes     , only : nodeComponentBasic, treeNode
-    use :: Numerical_Integration, only : Integrate         , Integrate_Done
+    use :: Numerical_Integration, only : integrator
     implicit none
     class           (haloMassFunctionErrorConvolved), intent(inout)           :: self
     double precision                                , intent(in   )           :: time                    , mass
@@ -120,8 +118,7 @@ contains
     type            (treeNode                      ), pointer                 :: nodeWork
     class           (nodeComponentBasic            ), pointer                 :: basic
     double precision                                                          :: massLow                 , massHigh
-    type            (fgsl_function                 )                          :: integrandFunction
-    type            (fgsl_integration_workspace    )                          :: integrationWorkspace
+    type            (integrator                    )                          :: integrator_
 
      ! Create a work node.
     nodeWork => treeNode      (                 )
@@ -141,16 +138,15 @@ contains
     errorConvolvedIntrinsicMassFunction => self%massFunctionIntrinsic
     errorConvolvedTime                  =  time
     errorConvolvedMass                  =  mass
-    errorConvolvedDifferential          =  Integrate(                               &
-         &                                           massLow                      , &
-         &                                           massHigh                     , &
-         &                                           errorConvolvedConvolution    , &
-         &                                           integrandFunction            , &
-         &                                           integrationWorkspace         , &
-         &                                           toleranceAbsolute   =1.0d-100, &
-         &                                           toleranceRelative   =1.0d-006  &
-         &                                          )
-    call Integrate_Done(integrandFunction,integrationWorkspace)
+    integrator_                         =  integrator           (                                             &
+         &                                                                         errorConvolvedConvolution, &
+         &                                                       toleranceAbsolute=1.0d-100                 , &
+         &                                                       toleranceRelative=1.0d-006                   &
+         &                                                      )
+    errorConvolvedDifferential          =  integrator_%integrate(                                             &
+         &                                                       massLow                                    , &
+         &                                                       massHigh                                     &
+         &                                                      )
     ! Clean up our work node.
     call nodeWork%destroy()
     deallocate(nodeWork)

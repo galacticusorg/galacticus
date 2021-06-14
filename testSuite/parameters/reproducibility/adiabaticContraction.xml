@@ -6,14 +6,14 @@
   <version>0.9.4</version>
 
   <!-- Component selection -->
-  <treeNodeMethodBasic value="standard"/>
-  <treeNodeMethodHotHalo value="null"/>
-  <treeNodeMethodBlackHole value="null"/>
-  <treeNodeMethodDarkMatterProfile value="scale"/>
-  <treeNodeMethodDisk value="standard"/>
-  <treeNodeMethodSatellite value="preset"/>
-  <treeNodeMethodSpheroid value="standard"/>
-  <treeNodeMethodSpin value="null"/>
+  <componentBasic value="standard"/>
+  <componentHotHalo value="null"/>
+  <componentBlackHole value="null"/>
+  <componentDarkMatterProfile value="scale"/>
+  <componentDisk value="standard"/>
+  <componentSatellite value="preset"/>
+  <componentSpheroid value="standard"/>
+  <componentSpin value="null"/>
   <diskMassDistribution value="exponentialDisk">
     <dimensionless value="true"/>
   </diskMassDistribution>
@@ -22,84 +22,112 @@
   </spheroidMassDistribution>
 
   <!-- Cosmological parameters and options -->
-  <cosmologyFunctionsMethod value="matterLambda"/>
-  <cosmologyParametersMethod value="simple">
+  <cosmologyFunctions value="matterLambda"/>
+  <cosmologyParameters value="simple">
     <HubbleConstant value="70.0"/>
     <OmegaMatter value="0.3"/>
     <OmegaDarkEnergy value="0.7"/>
     <OmegaBaryon value="0.05"/>
     <temperatureCMB value="2.72548"/>
-  </cosmologyParametersMethod>
+  </cosmologyParameters>
 
   <!-- Power spectrum options -->
-  <cosmologicalMassVarianceMethod value="filteredPower">
+  <cosmologicalMassVariance value="filteredPower">
     <sigma_8 value="0.807"/>
-  </cosmologicalMassVarianceMethod>
+  </cosmologicalMassVariance>
 
-  <transferFunctionMethod value="eisensteinHu1999">
+  <transferFunction value="eisensteinHu1999">
     <neutrinoNumberEffective value="3.046"/>
     <neutrinoMassSummed value="0.000"/>
-  </transferFunctionMethod>
-  <powerSpectrumPrimordialMethod value="powerLaw">
+  </transferFunction>
+  <powerSpectrumPrimordial value="powerLaw">
     <index value="1.000"/>
     <wavenumberReference value="1.000"/>
     <running value="0.000"/>
-  </powerSpectrumPrimordialMethod>
+  </powerSpectrumPrimordial>
 
   <!-- Structure formation options -->
-  <linearGrowthMethod value="collisionlessMatter"/>
-  <haloMassFunctionMethod value="tinker2008"/>
-  <criticalOverdensityMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
-  <virialDensityContrastMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <linearGrowth value="collisionlessMatter"/>
+  <haloMassFunction value="tinker2008"/>
+  <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
 
   <!-- Merger tree building options -->
-  <mergerTreeConstructorMethod value="fullySpecified">
-  <fileName value="testSuite/parameters/reproducibility/adiabaticContractionTree.xml"/>
-  </mergerTreeConstructorMethod>
+  <mergerTreeConstructor value="fullySpecified">
+    <fileName value="testSuite/parameters/reproducibility/adiabaticContractionTree.xml"/>
+  </mergerTreeConstructor>
+
   <!-- Dark matter halo profile -->
-  <darkMatterProfileDMOMethod value="isothermal"/>
-  
+  <darkMatterProfileDMO value="isothermal"/>
+
   <!-- Halo accretion options -->
-  <accretionHaloMethod value="zero"/>
+  <accretionHalo value="zero"/>
 
   <!-- Hot halo gas cooling model options -->
-  <hotHaloMassDistributionMethod value="null"/>
+  <hotHaloMassDistribution value="null"/>
 
   <!-- Adiabatic contraction solver -->
-  <darkMatterProfileMethod value="adiabaticGnedin2004">
+  <darkMatterProfile value="adiabaticGnedin2004">
     <A value="1.0"/>
     <omega value="1.0"/>
-  </darkMatterProfileMethod>
+  </darkMatterProfile>
 
   <galacticusStructureSolver value="equilibrium">
     <solutionTolerance value="1.0e-4"/>
   </galacticusStructureSolver>
-  
+
   <!-- Numerical tolerances -->
-  <mergerTreeNodeEvolverMethod value="standard">
+  <mergerTreeNodeEvolver value="standard">
     <odeToleranceAbsolute value="0.01"/>
     <odeToleranceRelative value="0.01"/>
-  </mergerTreeNodeEvolverMethod>
+  </mergerTreeNodeEvolver>
 
-  <mergerTreeEvolverMethod value="standard">
+  <mergerTreeEvolver value="standard">
     <timestepHostAbsolute value="1.00"/>
     <timestepHostRelative value="0.10"/>
-  </mergerTreeEvolverMethod>
+  </mergerTreeEvolver>
 
   <!-- Output options -->
   <outputRedshifts>0.00 0.0001</outputRedshifts>
-  <mergerTreeOutputterMethod value="standard">
+  <mergerTreeOutputter value="standard">
     <outputReferences value="false"/>
-  </mergerTreeOutputterMethod>
-  <nodePropertyExtractorMethod value="multi">
-    <nodePropertyExtractorMethod value="nodeIndices"/>
-    <nodePropertyExtractorMethod value="virialProperties"/>
-    <nodePropertyExtractorMethod value="rotationCurve">
+  </mergerTreeOutputter>
+  <nodePropertyExtractor value="multi">
+    <nodePropertyExtractor value="nodeIndices"/>
+    <nodePropertyExtractor value="virialProperties"/>
+    <nodePropertyExtractor value="rotationCurve">
       <radiusSpecifiers value="spheroidRadius:all:all:1.0 spheroidRadius:darkHalo:dark:1.0 spheroidRadius:spheroid:baryonic:1.0"/>
-    </nodePropertyExtractorMethod>
-  </nodePropertyExtractorMethod>
-  
+    </nodePropertyExtractor>
+  </nodePropertyExtractor>
+
   <!-- Output file -->
   <galacticusOutputFileName value="testSuite/outputs/reproducibility/adiabaticContraction.hdf5"/>
-  
+
+  <nodeOperator value="multi"><!--Stellar feedback outflows-->
+    <nodeOperator value="stellarFeedbackDisks">
+      <stellarFeedbackOutflows value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflows value="powerLaw">
+          <velocityCharacteristic value="250.0"/>
+          <exponent value="3.5"/>
+        </stellarFeedbackOutflows>
+      </stellarFeedbackOutflows>
+    </nodeOperator>
+    <nodeOperator value="stellarFeedbackSpheroids">
+      <stellarFeedbackOutflows value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflows value="powerLaw">
+          <velocityCharacteristic value="250.0"/>
+          <exponent value="3.5"/>
+        </stellarFeedbackOutflows>
+      </stellarFeedbackOutflows>
+    </nodeOperator>
+    <!-- Bar instability in galactic disks -->
+    <nodeOperator value="barInstability">
+      <galacticDynamicsBarInstability value="efstathiou1982">
+	<stabilityThresholdGaseous value="0.7"/>
+	<stabilityThresholdStellar value="1.1"/>
+      </galacticDynamicsBarInstability>
+    </nodeOperator>
+  </nodeOperator>
 </parameters>

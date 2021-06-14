@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -25,6 +25,7 @@
   !#  <name>tinker2008Parameter</name>
   !#  <description>Enumeration of parameters for the {\normalfont \ttfamily tinker2008} halo mass function class.</description>
   !#  <encodeFunction>yes</encodeFunction>
+  !#  <decodeFunction>yes</decodeFunction>
   !#  <validator>yes</validator>
   !#  <entry label="a"            />
   !#  <entry label="b"            />
@@ -33,7 +34,10 @@
   !# </enumeration>
 
   !# <haloMassFunction name="haloMassFunctionTinker2008">
-  !#  <description>The halo mass function is computed from the function given by \cite{tinker_towardhalo_2008}, and using their fits for the parameter values.</description>
+  !#  <description>
+  !#   A dark matter halo mass function class using the function given by \cite{tinker_towardhalo_2008}, and using their fits for
+  !#   the parameter values at the appropriate virial density contrast.
+  !#  </description>
   !#  <stateStorable>
   !#   <exclude variables="densityContrast"/>
   !#  </stateStorable>
@@ -47,15 +51,9 @@
      double precision                                                                                       :: alphaDensityContrast            , timeParameters, &
           &                                                                                                    massParameters
    contains
-     !@ <objectMethods>
-     !@   <object>haloMassFunctionTinker2008</object>
-     !@   <objectMethod>
-     !@     <method>parametersEvaluate</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doublezero\ time\argin, \doublezero\ mass\argin</arguments>
-     !@     <description>Evaluate hyper-parameters needed for the fitting function.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Evaluate hyper-parameters needed for the fitting function." method="parametersEvaluate" />
+     !# </methods>
      final     ::                       tinker2008Destructor
      procedure :: normalization      => tinker2008Normalization
      procedure :: a                  => tinker2008A

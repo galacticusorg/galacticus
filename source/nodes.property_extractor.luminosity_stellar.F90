@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -70,23 +70,17 @@ contains
     !#   <name>filterName</name>
     !#   <source>parameters</source>
     !#   <description>The filter to select.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>filterType</name>
     !#   <source>parameters</source>
     !#   <description>The filter type (rest or observed) to select.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     if (redshiftBandIsPresent) then
        !# <inputParameter>
        !#   <name>redshiftBand</name>
        !#   <source>parameters</source>
        !#   <description>The redshift of the band (if not the output redshift).</description>
-       !#   <type>float</type>
-       !#   <cardinality>0..1</cardinality>
        !# </inputParameter>
     end if
     if (postprocessChainIsPresent) then
@@ -94,8 +88,6 @@ contains
        !#   <name>postprocessChain</name>
        !#   <source>parameters</source>
        !#   <description>The postprocessing chain to use.</description>
-       !#   <type>string</type>
-       !#   <cardinality>0..1</cardinality>
        !# </inputParameter>
     end if
     !# <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
@@ -176,7 +168,7 @@ contains
     type   (multiCounter                          ), intent(inout), optional :: instance
     class  (nodeComponentBasic                    ), pointer                 :: basic
     integer(c_size_t                              )                          :: i
-    !GCC$ attributes unused :: instance
+    !$GLC attributes unused :: instance
 
     basic                    =>                                  node %basic()
     i                        =  self%outputTimes_%index         (basic%time (),findClosest=.true.                                                                                              )
@@ -189,7 +181,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorLuminosityStellar), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     luminosityStellarType=outputAnalysisPropertyTypeLinear
     return
@@ -200,7 +192,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityLuminosity
     implicit none
     class(nodePropertyExtractorLuminosityStellar), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     luminosityStellarQuantity=outputAnalysisPropertyQuantityLuminosity
     return
@@ -231,7 +223,7 @@ contains
     use :: Numerical_Constants_Astronomical, only : luminosityZeroPointAB
     implicit none
     class(nodePropertyExtractorLuminosityStellar), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     luminosityStellarUnitsInSI=luminosityZeroPointAB
     return

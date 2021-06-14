@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,10 @@
   !% Implementation of a perfectly stable model for galactic disk bar instability.
 
   !# <galacticDynamicsBarInstability name="galacticDynamicsBarInstabilityStable">
-  !#  <description>A perfect stability model for galactic disk bar instability.</description>
+  !#  <description>
+  !#   A galactic dynamics bar instability class which assumes perfect stability for galactic disks and so returns an infinite
+  !#   timescale, and no external driving torque.
+  !#  </description>
   !# </galacticDynamicsBarInstability>
   type, extends(galacticDynamicsBarInstabilityClass) :: galacticDynamicsBarInstabilityStable
      !% Implementation of a perfectly stable model for galactic disk bar instability.
@@ -43,24 +46,27 @@ contains
     implicit none
     type(galacticDynamicsBarInstabilityStable)                :: self
     type(inputParameters                     ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=galacticDynamicsBarInstabilityStable()
     return
   end function stableConstructorParameters
 
-  subroutine stableTimescale(self,node,timescale,externalDrivingSpecificTorque)
+  subroutine stableTimescale(self,node,timescale,externalDrivingSpecificTorque,fractionAngularMomentumRetained)
     !% Computes a timescale for depletion of a disk to a pseudo-bulge via bar instability based on the criterion of
     !% \cite{efstathiou_stability_1982}.
     implicit none
     class           (galacticDynamicsBarInstabilityStable), intent(inout) :: self
     type            (treeNode                            ), intent(inout) :: node
-    double precision                                      , intent(  out) :: externalDrivingSpecificTorque, timescale
-    !GCC$ attributes unused :: self, node
+    double precision                                      , intent(  out) :: externalDrivingSpecificTorque  , timescale, &
+         &                                                                   fractionAngularMomentumRetained
+    !$GLC attributes unused :: self, node
 
     ! Assume infinite timescale (i.e. no instability).
-    timescale                    =-1.0d0
+    timescale                      =-1.0d0
     ! Also assume no torque.
-    externalDrivingSpecificTorque=+0.0d0
+    externalDrivingSpecificTorque  =+0.0d0
+    ! Fraction of angular momentum retained is arbitrary.
+    fractionAngularMomentumRetained=+1.0d0
     return
   end subroutine stableTimescale

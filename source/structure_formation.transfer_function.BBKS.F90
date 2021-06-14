@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -25,7 +25,10 @@
   use :: Dark_Matter_Particles, only : darkMatterParticleClass
 
   !# <transferFunction name="transferFunctionBBKS">
-  !#  <description>Provides the \cite{bardeen_statistics_1986} fitting function for the transfer function.</description>
+  !#  <description>
+  !#   A transfer function class implementing the \cite{bardeen_statistics_1986} fitting function to compute the \gls{cdm}
+  !#   transfer function.
+  !#  </description>
   !# </transferFunction>
   type, extends(transferFunctionClass) :: transferFunctionBBKS
      !% A bbks transfer function class.
@@ -225,7 +228,7 @@ contains
     implicit none
     class  (transferFunctionBBKS), intent(inout)           :: self
     integer                      , intent(  out), optional :: status
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     bbksHalfModeMass=0.0d0
     if (present(status)) then

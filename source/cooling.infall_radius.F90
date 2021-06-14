@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -28,7 +28,9 @@ module Cooling_Infall_Radii
   !# <functionClass>
   !#  <name>coolingInfallRadius</name>
   !#  <descriptiveName>Cooling Infall Radius</descriptiveName>
-  !#  <description>Class providing models of the infall radii for gas cooling in the hot atmosphere surrounding a galaxy.</description>
+  !#  <description>
+  !#   Class providing models of the infall radii for gas cooling in the hot atmosphere surrounding a galaxy.
+  !#  </description>
   !#  <default>coolingRadius</default>
   !#  <method name="radius" >
   !#   <description>Return the infall radius for {\normalfont \ttfamily node} (in units of Mpc).</description>

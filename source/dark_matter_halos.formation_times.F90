@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,27 +27,40 @@ module Dark_Matter_Halo_Formation_Times
 
 contains
 
-  double precision function Dark_Matter_Halo_Formation_Time(node,formationMassFraction,darkMatterHaloMassAccretionHistory_)
+  double precision function Dark_Matter_Halo_Formation_Time(node,formationMassFraction,darkMatterHaloMassAccretionHistory_,nodeFormation)
     !% Returns the time at which the main branch progenitor of {\normalfont \ttfamily node} first had a mass equal to {\normalfont \ttfamily
     !% formationMassFraction} of the current mass.
     use :: Dark_Matter_Halo_Mass_Accretion_Histories, only : darkMatterHaloMassAccretionHistoryClass
     use :: Galacticus_Nodes                         , only : nodeComponentBasic                     , treeNode
     implicit none
-    type            (treeNode                               ), intent(inout), target :: node
-    double precision                                         , intent(in   )         :: formationMassFraction
-    class           (darkMatterHaloMassAccretionHistoryClass), intent(inout)         :: darkMatterHaloMassAccretionHistory_
-    type            (treeNode                               ), pointer               :: formationNode                      , workNode
-    class           (nodeComponentBasic                     ), pointer               :: basicParent                        , basic   , &
-         &                                                                              basicWork
-    double precision                                                                 :: massNode                           , timeNode
-
+    type            (treeNode                               ), intent(inout), target            :: node
+    double precision                                         , intent(in   )                    :: formationMassFraction
+    class           (darkMatterHaloMassAccretionHistoryClass), intent(inout)                    :: darkMatterHaloMassAccretionHistory_
+    type            (treeNode                               ), intent(inout), pointer, optional :: nodeFormation
+    type            (treeNode                               ), pointer                          :: formationNode                      , workNode
+    class           (nodeComponentBasic                     ), pointer                          :: basicParent                        , basic   , &
+         &                                                                                         basicWork
+    double precision                                                                            :: massNode                           , massWork, &
+         &                                                                                         timeWork
+    
     basic    => node %basic()
-    timeNode =  basic%time ()
     massNode =  basic%mass ()
-    workNode => node
+    if (present(nodeFormation)) then
+       ! We have an initial guess for the formation node. If necessary, walk back up the tree to find the appopriate starting
+       ! node.
+       workNode => nodeFormation
+       do while (associated(workNode))
+          basicWork     => workNode%basic()
+          if (basicWork%mass() > formationMassFraction*massNode) exit
+          workNode => workNode%parent
+       end do
+    else
+       workNode => node
+    end if  
+    formationNode => null()
     do while (associated(workNode))
        formationNode => workNode
-       basicWork => workNode%basic()
+       basicWork     => workNode%basic()
        if (basicWork%mass() <= formationMassFraction*massNode) exit
        workNode => workNode%firstChild
     end do
@@ -56,11 +69,14 @@ contains
        Dark_Matter_Halo_Formation_Time=darkMatterHaloMassAccretionHistory_%time(formationNode,formationMassFraction*massNode)
     else
        ! Interpolate to get the exact time of formation.
-       basicParent => workNode%parent%basic()
-       Dark_Matter_Halo_Formation_Time=                                 basicWork%time()  &
-            &                          +(basicParent%time()            -basicWork%time()) &
-            &                          *(formationMassFraction*massNode-basicWork%mass()) &
-            &                          /(basicParent%mass()            -basicWork%mass())
+       basicParent => workNode %parent%basic()
+       massWork    =  basicWork       %mass ()
+       timeWork    =  basicWork       %time ()
+       Dark_Matter_Halo_Formation_Time=                                 timeWork  &
+            &                          +(basicParent%time()            -timeWork) &
+            &                          *(formationMassFraction*massNode-massWork) &
+            &                          /(basicParent%mass()            -massWork)
+       if (present(nodeFormation)) nodeFormation => workNode
     end if
     return
   end function Dark_Matter_Halo_Formation_Time

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -58,15 +58,11 @@ contains
     !#   <name>name</name>
     !#   <source>parameters</source>
     !#   <description>The name of this property.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>description</name>
     !#   <source>parameters</source>
     !#   <description>A description of this property.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="nodePropertyExtractor" name="propertyNumerator_"   parameterName="nodePropertyExtractorNumerator"   source="parameters"/>
     !# <objectBuilder class="nodePropertyExtractor" name="propertyDenominator_" parameterName="nodePropertyExtractorDenominator" source="parameters"/>
@@ -122,7 +118,7 @@ contains
     type            (treeNode                  ), intent(inout), target   :: node
     type            (multiCounter              ), intent(inout), optional :: instance
     double precision                                                      :: numerator, denominator
-    !GCC$ attributes unused :: instance
+    !$GLC attributes unused :: instance
 
     select type (propertyNumerator_   => self%propertyNumerator_  )
     class is (nodePropertyExtractorScalar)
@@ -180,7 +176,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorRatio), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ratioType=outputAnalysisPropertyTypeLinear
     return

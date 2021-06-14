@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -59,7 +59,7 @@ contains
     implicit none
     type(inputParameters), intent(inout) :: parameters_
     type(dependencyRegEx), dimension(1)  :: dependencies
-    !GCC$ attributes unused :: parameters_
+    !$GLC attributes unused :: parameters_
 
     if (defaultMergingStatisticsComponent%majorIsActive()) then
        !# <objectBuilder class="mergerMassMovements" name="mergerMassMovements_" source="parameters_"/>
@@ -100,7 +100,7 @@ contains
     integer                                                                       :: destinationGasSatellite, destinationGasHost       , &
          &                                                                           destinationStarsHost   , destinationStarsSatellite
     logical                                                                       :: mergerIsMajor
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     ! Record the time of this merger if it is a major merger.
     call mergerMassMovements_%get(node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
@@ -136,7 +136,7 @@ contains
     class           (nodeComponentMergingStatistics)               , pointer      :: mergingStatisticsParent, mergingStatistics
     double precision                                , allocatable  , dimension(:) :: timeMajorMerger        , timeMajorMergerParent, &
          &                                                                           timeMajorMergerNew
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
     
     mergingStatisticsParent => node%parent            %mergingStatistics(autoCreate=.true.)
     mergingStatistics       => node                   %mergingStatistics(autoCreate=.true.)

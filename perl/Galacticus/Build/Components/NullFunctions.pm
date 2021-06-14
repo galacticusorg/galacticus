@@ -114,7 +114,7 @@ sub createNullFunction {
 	name        => $functionName,
 	description => "A null ".$descriptor->{'attribute'}." rate function for a rank ".$descriptor->{'property'}->{'rank'}." {\\normalfont \\ttfamily ".lc($selfType)."} class.\n",
 	variables   => \@variables,
-	content     => "!GCC\$ attributes unused :: ".join(", ",map {@{$_->{'variables'}}} @variables)."\n"
+	content     => "!\$GLC attributes unused :: ".join(", ",map {@{$_->{'variables'}}} @variables)."\n"
     };
     # Add modules if any required.
     $function->{'modules'} = \@modules

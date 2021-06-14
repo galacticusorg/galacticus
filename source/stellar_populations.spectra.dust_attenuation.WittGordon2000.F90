@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -56,11 +56,9 @@ contains
 
     !# <inputParameter>
     !#   <name>model</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>var_str('MilkyWayShellTau3.0')</defaultValue>
     !#   <description>The name of the model from \cite{witt_multiple_2000} to use in dust attenuation calculations.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     self=stellarSpectraDustAttenuationWittGordon2000(enumerationWittGordon2000ModelEncode(char(model),includesPrefix=.false.))
     !# <inputParametersValidate source="parameters"/>

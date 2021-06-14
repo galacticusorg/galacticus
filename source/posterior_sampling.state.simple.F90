@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,12 @@
   !% Implementation of a simple posterior sampling state class.
 
   !# <posteriorSampleState name="posteriorSampleStateSimple">
-  !#  <description>A simple posterior sampling state class.</description>
+  !#  <description>
+  !#  This class stores the current state but makes no attempt to record a history of the state and so cannot provide measures of the
+  !#  mean or variance of state over the simulation history. It does, however, maintain a running average of the state acceptance
+  !#  rate. The number of steps over which the acceptance rate should be computed is specified by the {\normalfont \ttfamily
+  !#  acceptedStateCount}.
+  !#  </description>
   !# </posteriorSampleState>
   type, extends(posteriorSampleStateClass) :: posteriorSampleStateSimple
      !% Implementation of a simple posterior sampling state class.
@@ -29,15 +34,9 @@
      integer         , allocatable, dimension(:) :: accepted
      integer                                     :: acceptedStateCount
    contains
-     !@ <objectMethods>
-     !@   <object>posteriorSampleStateSimple</object>
-     !@   <objectMethod>
-     !@     <method>countSet</method>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ stateCount\argin</arguments>
-     !@     <description>Set the state count.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Set the state count." method="countSet" />
+     !# </methods>
      procedure :: parameterCountSet => simpleParameterCountSet
      procedure :: get               => simpleGet
      procedure :: update            => simpleUpdate
@@ -68,11 +67,9 @@ contains
 
     !# <inputParameter>
     !#   <name>acceptedStateCount</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The number of states to use in acceptance rate statistics.</description>
     !#   <defaultValue>100</defaultValue>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     self=posteriorSampleStateSimple(acceptedStateCount)
     !# <inputParametersValidate source="parameters"/>
@@ -126,7 +123,7 @@ contains
     logical                                     , intent(in   )                         :: isConverged
     logical                                     , intent(in   ), dimension(:), optional :: outlierMask
     integer                                                                             :: i
-    !GCC$ attributes unused :: isConverged, outlierMask
+    !$GLC attributes unused :: isConverged, outlierMask
 
     if (logState) then
        i=mod(self%stepCount,size(self%accepted))+1

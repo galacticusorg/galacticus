@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -49,21 +49,10 @@
      logical                                                                       :: finalized                         , likelihoodNormalize             , &
           &                                                                           xAxisIsLog                        , yAxisIsLog
    contains
-     !@ <objectMethods>
-     !@   <object>outputAnalysisMeanFunction1D</object>
-     !@   <objectMethod>
-     !@     <method>results</method>
-     !@     <arguments>\doubleone\ [binCenter]\arginout, \doubletwo\ [functionValue]\arginout, \doubletwo\ [functionCovariance]\arginout</arguments>
-     !@     <type>\void</type>
-     !@     <description>Return the results of the mean function operator.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>finalizeAnalysis</method>
-     !@     <arguments></arguments>
-     !@     <type>\void</type>
-     !@     <description>Finalize analysis of the mean function operator.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return the results of the mean function operator." method="results" />
+     !#   <method description="Finalize analysis of the mean function operator." method="finalizeAnalysis" />
+     !# </methods>
      final     ::                     meanFunction1DDestructor
      procedure :: analyze          => meanFunction1DAnalyze
      procedure :: finalize         => meanFunction1DFinalize
@@ -135,172 +124,128 @@ contains
     !#   <source>parameters</source>
     !#   <variable>label</variable>
     !#   <description>A label for the analysis.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>xAxisLabel</name>
     !#   <source>parameters</source>
     !#   <description>A label for the $x$-axis in a plot of this analysis.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>yAxisLabel</name>
     !#   <source>parameters</source>
     !#   <description>A label for the $y$-axis in a plot of this analysis.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>xAxisIsLog</name>
     !#   <source>parameters</source>
     !#   <description>If true, indicates that the $x$-axis should be logarithmic in a plot of this analysis.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>yAxisIsLog</name>
     !#   <source>parameters</source>
     !#   <description>If true, indicates that the $y$-axis should be logarithmic in a plot of this analysis.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>comment</name>
     !#   <source>parameters</source>
     !#   <variable>comment</variable>
     !#   <description>A descriptive comment for the analysis.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>propertyLabel</name>
     !#   <source>parameters</source>
     !#   <variable>propertyLabel</variable>
     !#   <description>A label for the property variable.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>propertyComment</name>
     !#   <source>parameters</source>
     !#   <variable>propertyComment</variable>
     !#   <description>A descriptive comment for the property variable.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>propertyUnits</name>
     !#   <source>parameters</source>
     !#   <variable>propertyUnits</variable>
     !#   <description>A human-readable description of the units for the property.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>propertyUnitsInSI</name>
     !#   <source>parameters</source>
     !#   <variable>propertyUnitsInSI</variable>
     !#   <description>A units for the property in the SI system.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>meanLabel</name>
     !#   <source>parameters</source>
     !#   <variable>meanLabel</variable>
     !#   <description>A label for the mean.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>meanComment</name>
     !#   <source>parameters</source>
     !#   <variable>meanComment</variable>
     !#   <description>A descriptive comment for the mean.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>meanUnits</name>
     !#   <source>parameters</source>
     !#   <variable>meanUnits</variable>
     !#   <description>A human-readable description of the units for the mean.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>meanUnitsInSI</name>
     !#   <source>parameters</source>
     !#   <variable>meanUnitsInSI</variable>
     !#   <description>A units for the mean in the SI system.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>binCenter</name>
     !#   <source>parameters</source>
     !#   <variable>binCenter</variable>
     !#   <description>The value of the property at the center of each bin.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>bufferCount</name>
     !#   <source>parameters</source>
     !#   <variable>bufferCount</variable>
     !#   <description>The number of buffer bins to include below and above the range of actual bins.</description>
-    !#   <type>integer</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>outputWeight</name>
     !#   <source>parameters</source>
     !#   <variable>outputWeight</variable>
     !#   <description>The weight to assign to each bin at each output.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>covarianceModel</name>
     !#   <source>parameters</source>
     !#   <variable>covarianceModel</variable>
     !#   <description>The model to use for computing covariances.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>covarianceBinomialBinsPerDecade</name>
     !#   <source>parameters</source>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number of bins per decade of halo mass to use when constructing volume function covariance matrices for main branch galaxies.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>covarianceBinomialMassHaloMinimum</name>
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d8</defaultValue>
     !#   <description>The minimum halo mass to consider when constructing volume function covariance matrices for main branch galaxies.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>covarianceBinomialMassHaloMaximum</name>
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d16</defaultValue>
     !#   <description>The maximum halo mass to consider when constructing volume function covariance matrices for main branch galaxies.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>likelihoodNormalize</name>
     !#   <source>parameters</source>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>If true then normalize the likelihood to make it a probability density.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
    if (parameters%isPresent('meanValueTarget')) then
        if (parameters%isPresent('meanCovarianceTarget')) then
@@ -308,16 +253,12 @@ contains
           !#   <name>meanValueTarget</name>
           !#   <source>parameters</source>
           !#   <description>The target function for likelihood calculations.</description>
-          !#   <type>real</type>
-          !#   <cardinality>0..1</cardinality>
           !# </inputParameter>
           !# <inputParameter>
           !#   <name>meanCovarianceTarget</name>
           !#   <source>parameters</source>
           !#   <variable>meanCovarianceTarget1D</variable>
           !#   <description>The target function covariance for likelihood calculations.</description>
-          !#   <type>real</type>
-          !#   <cardinality>0..1</cardinality>
           !# </inputParameter>
           if (size(meanCovarianceTarget1D) == size(meanValueTarget)**2) then
              allocate(meanCovarianceTarget(size(meanValueTarget),size(meanValueTarget)))
@@ -336,8 +277,6 @@ contains
     !#   <source>parameters</source>
     !#   <description>A label for the target dataset in a plot of this analysis.</description>
     !#   <defaultValue>var_str('')</defaultValue>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     ! Build the object.
     !# <conditionalCall>
@@ -414,7 +353,7 @@ contains
     double precision                                              , intent(in   )          , dimension(:,:) :: outputWeight
     logical                                                       , intent(in   ), optional                 :: xAxisIsLog                                      , yAxisIsLog                                     , &
          &                                                                                                     likelihoodNormalize
-    class           (nodePropertyExtractorClass                  ), intent(inout), target                   :: nodePropertyExtractor_                , outputAnalysisWeightPropertyExtractor_
+    class           (nodePropertyExtractorClass                  ), intent(inout), target                   :: nodePropertyExtractor_                          , outputAnalysisWeightPropertyExtractor_
     class           (outputAnalysisPropertyOperatorClass         ), intent(inout), target                   :: outputAnalysisPropertyOperator_                 , outputAnalysisPropertyUnoperator_              , &
          &                                                                                                     outputAnalysisWeightPropertyOperator_
     class           (outputAnalysisWeightOperatorClass           ), intent(inout), target                   :: outputAnalysisWeightOperatorIn_
@@ -537,7 +476,7 @@ contains
     !#    &amp;                         binCenter                                      , &amp;
     !#    &amp;                         bufferCount                                    , &amp;
     !#    &amp;                         outputWeight                                   , &amp;
-    !#    &amp;                         nodePropertyExtractor_               , &amp;
+    !#    &amp;                         nodePropertyExtractor_                         , &amp;
     !#    &amp;                         outputAnalysisPropertyOperator_                , &amp;
     !#    &amp;                         outputAnalysisPropertyUnoperator_              , &amp;
     !#    &amp;                         outputAnalysisWeightOperatorUnweighted_        , &amp;
@@ -568,7 +507,7 @@ contains
     !#    &amp;                         binCenter                                      , &amp;
     !#    &amp;                         bufferCount                                    , &amp;
     !#    &amp;                         outputWeight                                   , &amp;
-    !#    &amp;                         nodePropertyExtractor_               , &amp;
+    !#    &amp;                         nodePropertyExtractor_                         , &amp;
     !#    &amp;                         outputAnalysisPropertyOperator_                , &amp;
     !#    &amp;                         outputAnalysisPropertyUnoperator_              , &amp;
     !#    &amp;                         outputAnalysisWeightOperatorWeighted_          , &amp;
@@ -599,7 +538,7 @@ contains
     !#    &amp;                         binCenter                                      , &amp;
     !#    &amp;                         bufferCount                                    , &amp;
     !#    &amp;                         outputWeight                                   , &amp;
-    !#    &amp;                         nodePropertyExtractor_               , &amp;
+    !#    &amp;                         nodePropertyExtractor_                         , &amp;
     !#    &amp;                         outputAnalysisPropertyOperator_                , &amp;
     !#    &amp;                         outputAnalysisPropertyUnoperator_              , &amp;
     !#    &amp;                         outputAnalysisWeightOperatorCross_             , &amp;
@@ -811,15 +750,18 @@ contains
 
   double precision function meanFunction1DLogLikelihood(self)
     !% Return the log-likelihood of a meanFunction1D output analysis.
-    use :: Galacticus_Error        , only : Galacticus_Error_Report
-    use :: Linear_Algebra          , only : assignment(=)          , matrix, operator(*), vector
-    use :: Numerical_Constants_Math, only : Pi
+    use :: Galacticus_Error            , only : Galacticus_Error_Report
+    use :: Linear_Algebra              , only : assignment(=)          , matrix, operator(*), vector
+    use :: Numerical_Constants_Math    , only : Pi
+    use :: Interface_GSL               , only : GSL_Success
+    use :: Models_Likelihoods_Constants, only : logImprobable
     implicit none
     class           (outputAnalysisMeanFunction1D), intent(inout)                 :: self
     double precision                              , allocatable  , dimension(:,:) :: meanCovarianceCombined
     double precision                              , allocatable  , dimension(:  ) :: meanValueDifference
     type            (vector                      )                                :: residual
     type            (matrix                      )                                :: covariance
+    integer                                                                       :: status
 
     ! Check for existance of a target distribution.
     if (allocated(self%meanValueTarget)) then
@@ -833,14 +775,18 @@ contains
             &                 -self%meanValueTarget
        meanCovarianceCombined=+self%meanCovariance       &
             &                 +self%meanCovarianceTarget
-       residual              = meanValueDifference
-       covariance            = meanCovarianceCombined
+       residual              = vector(meanValueDifference   )
+       covariance            = matrix(meanCovarianceCombined)
        ! Compute the log-likelihood.
-       meanFunction1DLogLikelihood       =-0.5d0*covariance%covarianceProduct(residual)
-       if (self%likelihoodNormalize)                                                      &
-            & meanFunction1DLogLikelihood=+meanFunction1DLogLikelihood                    &
-            &                             -0.5d0*covariance%determinant()                 &
-            &                             -0.5d0*dble(size(self%binCenter))*log(2.0d0*Pi)
+       meanFunction1DLogLikelihood           =-0.5d0*covariance%covarianceProduct(residual,status)
+       if (status == GSL_Success) then
+          if (self%likelihoodNormalize)                                                      &
+               & meanFunction1DLogLikelihood=+meanFunction1DLogLikelihood                    &
+               &                             -0.5d0*covariance%determinant()                 &
+               &                             -0.5d0*dble(size(self%binCenter))*log(2.0d0*Pi)
+       else
+          meanFunction1DLogLikelihood       =+logImprobable
+       end if
     else
        meanFunction1DLogLikelihood=0.0d0
        call Galacticus_Error_Report('no target distribution was provided for likelihood calculation'//{introspection:location})

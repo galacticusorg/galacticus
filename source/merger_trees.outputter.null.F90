@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,8 +26,9 @@
      !% Implementation of a merger tree outputter which does no output.
      private
    contains
-     procedure :: output   => nullOutput
-     procedure :: finalize => nullFinalize
+     procedure :: outputTree => nullOutputTree
+     procedure :: outputNode => nullOutputNode
+     procedure :: finalize   => nullFinalize
   end type mergerTreeOutputterNull
 
   interface mergerTreeOutputterNull
@@ -43,30 +44,40 @@ contains
     implicit none
     type(mergerTreeOutputterNull)                :: self
     type(inputParameters        ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=mergerTreeOutputterNull()
     return
   end function nullConstructorParameters
 
-  subroutine nullOutput(self,tree,indexOutput,time,isLastOutput)
+  subroutine nullOutputTree(self,tree,indexOutput,time)
     !% Perform no output.
     implicit none
-    class           (mergerTreeOutputterNull), intent(inout)           :: self
-    type            (mergerTree             ), intent(inout), target   :: tree
-    integer         (c_size_t               ), intent(in   )           :: indexOutput
-    double precision                         , intent(in   )           :: time
-    logical                                  , intent(in   ), optional :: isLastOutput
-    !GCC$ attributes unused :: self, tree, indexOutput, time, isLastOutput
+    class           (mergerTreeOutputterNull), intent(inout)         :: self
+    type            (mergerTree             ), intent(inout), target :: tree
+    integer         (c_size_t               ), intent(in   )         :: indexOutput
+    double precision                         , intent(in   )         :: time
+    !$GLC attributes unused :: self, tree, indexOutput, time
 
     return
-  end subroutine nullOutput
+  end subroutine nullOutputTree
+
+  subroutine nullOutputNode(self,node,indexOutput)
+    !% Perform no output.
+    implicit none
+    class           (mergerTreeOutputterNull), intent(inout) :: self
+    type            (treeNode               ), intent(inout) :: node
+    integer         (c_size_t               ), intent(in   ) :: indexOutput
+    !$GLC attributes unused :: self, node, indexOutput
+
+    return
+  end subroutine nullOutputNode
 
   subroutine nullFinalize(self)
     !% Finalize merger tree output.
     implicit none
     class(mergerTreeOutputterNull), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     return
   end subroutine nullFinalize

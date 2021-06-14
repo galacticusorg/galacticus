@@ -1,4 +1,23 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019, 2020, 2021
+!!    Andrew Benson <abenson@carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
 !!           2019, 2020
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
@@ -24,7 +43,83 @@
   use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
   !# <mergerTreeConstructor name="mergerTreeConstructorFullySpecified">
-  !#  <description>Merger tree constructor class which constructs a merger tree given a full specification in XML.</description>
+  !#  <description>
+  !#   A merger tree constructor class which constructs a merger tree given a full specification in XML. This class will construct
+  !#   a merger tree, and set properties of components in each node, using a description read from an XML document. The document
+  !#   is specified via the {\normalfont \ttfamily [fileName]} input parameter.
+  !#   
+  !#   The tree specification document looks as follows:
+  !#   \begin{verbatim}
+  !#   &lt;!-- Simple initial conditions test case --&gt;
+  !#   &lt;initialConditions&gt;
+  !#   
+  !#     &lt;node&gt;
+  !#       &lt;index&gt;2&lt;/index&gt;
+  !#       &lt;parent&gt;1&lt;/parent&gt;
+  !#       &lt;firstChild&gt;-1&lt;/firstChild&gt;
+  !#       &lt;sibling&gt;-1&lt;/sibling&gt;
+  !#       &lt;basic&gt;
+  !#         &lt;time&gt;1.0&lt;/time&gt;
+  !#         &lt;timeLastIsolated&gt;1.0&lt;/timeLastIsolated&gt;
+  !#         &lt;mass&gt;1.0e12&lt;/mass&gt;
+  !#         &lt;accretionRate&gt;7.9365079e9&lt;/accretionRate&gt;
+  !#       &lt;/basic&gt;
+  !#       &lt;spin&gt;
+  !#         &lt;spin&gt;0.1&lt;/spin&gt;
+  !#       &lt;/spin&gt;
+  !#       &lt;disk&gt;
+  !#         &lt;massGas&gt;1.0e10&lt;/massGas&gt;
+  !#         &lt;angularMomentum&gt;1.0e10&lt;/angularMomentum&gt;
+  !#         &lt;abundancesGas&gt;
+  !#   	&lt;metals&gt;1.0e9&lt;/metals&gt;
+  !#   	&lt;Fe&gt;1.0e9&lt;/Fe&gt;
+  !#         &lt;/abundancesGas&gt;
+  !#       &lt;/disk&gt;
+  !#     &lt;/node&gt;
+  !#   
+  !#     &lt;node&gt;
+  !#       &lt;index&gt;1&lt;/index&gt;
+  !#       &lt;parent&gt;-1&lt;/parent&gt;
+  !#       &lt;firstChild&gt;2&lt;/firstChild&gt;
+  !#       &lt;sibling&gt;-1&lt;/sibling&gt;
+  !#       &lt;basic&gt;
+  !#         &lt;time&gt;13.8&lt;/time&gt;
+  !#         &lt;timeLastIsolated&gt;13.8&lt;/timeLastIsolated&gt;
+  !#         &lt;mass&gt;1.1e12&lt;/mass&gt;
+  !#         &lt;accretionRate&gt;7.8125e9&lt;/accretionRate&gt;
+  !#       &lt;/basic&gt;
+  !#       &lt;position&gt;
+  !#         &lt;position&gt;1.23&lt;/position&gt;
+  !#         &lt;position&gt;6.31&lt;/position&gt;
+  !#         &lt;position&gt;3.59&lt;/position&gt;
+  !#       &lt;/position&gt;
+  !#     &lt;/node&gt;
+  !#   
+  !#   &lt;/initialConditions&gt;
+  !#   \end{verbatim}
+  !#   The document consists of a set of {\normalfont \ttfamily node} elements, each of which defines a single node in the merger
+  !#   tree. Each {\normalfont \ttfamily node} element must specify the {\normalfont \ttfamily index} of the node, along with the
+  !#   index of the node's {\normalfont \ttfamily parent}, {\normalfont \ttfamily firstChild}, and {\normalfont \ttfamily
+  !#   sibling}.
+  !#   
+  !#   Each {\normalfont \ttfamily node} element may contain elements which specify the properties of a component in the node. For
+  !#   example, a {\normalfont \ttfamily basic} element will specify properties of the ``basic'' component. If multiple elements
+  !#   for a given component type are present, then multiple instances of that component will be created in the node.
+  !#   
+  !#   Within a component definition element scalar properties are set using an element with the same name as that property
+  !#   (e.g. {\normalfont \ttfamily mass} in the {\normalfont \ttfamily basic} components in the above example). Rank-1 properties
+  !#   are set using a list of elements with the same name as the property (e.g. {\normalfont \ttfamily position} in the
+  !#   {\normalfont \ttfamily position} component in the above example).
+  !#   
+  !#   For composite properties (e.g. abundances), the specification element should contain sub-elements that specify each
+  !#   property of the composite. Currently only the {\normalfont \ttfamily abundances} object supports specification in this way,
+  !#   as detailed below:
+  !#   \begin{description}
+  !#    \item [{\normalfont \ttfamily abundances}] (See {\normalfont \ttfamily abundancesGas} in the above example.) The total
+  !#    metal content is specified via a {\normalfont \ttfamily metals} element. If other elements are being tracked, their
+  !#    content is specified via an element with the short-name of the element (e.g. {\normalfont \ttfamily Fe} for iron).
+  !#   \end{description}
+  !#  </description>
   !#  <deepCopy>
   !#    <increment variables="document%copyCount" atomic="yes"/>
   !#  </deepCopy>
@@ -68,10 +163,8 @@ contains
 
     !# <inputParameter>
     !#   <name>fileName</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The name of the file containing the merger tree specification.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     self=mergerTreeConstructorFullySpecified(fileName,randomNumberGenerator_)
@@ -127,25 +220,26 @@ contains
     return
   end subroutine fullySpecifiedDestructor
 
-  function fullySpecifiedConstruct(self,treeNumber) result(tree)
+  function fullySpecifiedConstruct(self,treeNumber,finished) result(tree)
     !% Construct a fully-specified merger tree.
-    use            :: FoX_DOM           , only : node
-    use            :: Galacticus_Display, only : Galacticus_Display_Indent   , Galacticus_Display_Unindent, Galacticus_Verbosity_Level, verbosityInfo
-    use            :: Galacticus_Error  , only : Galacticus_Error_Report
-    use            :: Galacticus_Nodes  , only : mergerTree                  , treeNode                   , treeNodeList
-    use            :: IO_XML            , only : XML_Get_Elements_By_Tag_Name
-    use, intrinsic :: ISO_C_Binding     , only : c_size_t
-    use            :: Kind_Numbers      , only : kind_int8
-    use            :: Memory_Management , only : Memory_Usage_Record
+    use            :: Display          , only : displayIndent               , displayUnindent, displayVerbosity, verbosityLevelInfo
+    use            :: FoX_DOM          , only : node
+    use            :: Galacticus_Error , only : Galacticus_Error_Report
+    use            :: Galacticus_Nodes , only : mergerTree                  , treeNode       , treeNodeList
+    use            :: IO_XML           , only : XML_Get_Elements_By_Tag_Name
+    use, intrinsic :: ISO_C_Binding    , only : c_size_t
+    use            :: Kind_Numbers     , only : kind_int8
+    use            :: Memory_Management, only : Memory_Usage_Record
     implicit none
-    type            (mergerTree                         ), pointer                     :: tree
-    class           (mergerTreeConstructorFullySpecified), intent(inout)               :: self
-    integer         (c_size_t                           ), intent(in   )               :: treeNumber
-    type            (treeNodeList                       ), allocatable  , dimension(:) :: nodeArray
-    type            (node                               ), pointer                     :: treeDefinition, nodeDefinition
-    type            (xmlNodeList                        ), allocatable  , dimension(:) :: nodes
-    integer                                                                            :: i             , nodeCount
-    integer         (kind_int8                          )                              :: indexValue
+    type   (mergerTree                         ), pointer                     :: tree
+    class  (mergerTreeConstructorFullySpecified), intent(inout)               :: self
+    integer(c_size_t                           ), intent(in   )               :: treeNumber
+    logical                                     , intent(  out)               :: finished
+    type   (treeNodeList                       ), allocatable  , dimension(:) :: nodeArray
+    type   (node                               ), pointer                     :: treeDefinition, nodeDefinition
+    type   (xmlNodeList                        ), allocatable  , dimension(:) :: nodes
+    integer                                                                   :: i             , nodeCount
+    integer(kind_int8                          )                              :: indexValue
 
     ! Read one tree.
     if (treeNumber > 0_c_size_t .and. treeNumber <= self%treeCount) then
@@ -180,10 +274,14 @@ contains
        call tree%properties%initialize()
        ! Restart the random number sequence.
        allocate(tree%randomNumberGenerator_,mold=self%randomNumberGenerator_)
-       call self%randomNumberGenerator_%deepCopy(     tree%randomNumberGenerator_              )
-       call tree%randomNumberGenerator_%seedSet (seed=tree%index                 ,offset=.true.)
+       !$omp critical(mergerTreeConstructFullySpecifiedDeepCopyReset)
+       !# <deepCopyReset variables="self%randomNumberGenerator_"/>
+       !# <deepCopy source="self%randomNumberGenerator_" destination="tree%randomNumberGenerator_"/>
+       !# <deepCopyFinalize variables="tree%randomNumberGenerator_"/>
+       !$omp end critical(mergerTreeConstructFullySpecifiedDeepCopyReset)
+        call tree%randomNumberGenerator_%seedSet(seed=tree%index,offset=.true.)
        ! Begin writing report.
-       call Galacticus_Display_Indent('Initial conditions of fully-specified tree',verbosityInfo)
+       call displayIndent('Initial conditions of fully-specified tree',verbosityLevelInfo)
        ! Iterate over nodes.
        do i=1,nodeCount
           ! Get the node definition.
@@ -210,10 +308,10 @@ contains
           ! Build components.
           call nodeArray(i)%node%componentBuilder(nodeDefinition)
           ! Dump the node.
-          if (Galacticus_Verbosity_Level() > verbosityInfo) call nodeArray(i)%node%serializeASCII()
+          if (displayVerbosity() > verbosityLevelInfo) call nodeArray(i)%node%serializeASCII()
        end do
        ! Finish writing report.
-       call Galacticus_Display_Unindent('done',verbosityInfo)
+       call displayUnindent('done',verbosityLevelInfo)
        ! Destroy the node array.
        deallocate(nodeArray)
        ! Check that we found a root node.
@@ -221,15 +319,19 @@ contains
     else
        nullify(tree)
     end if
+    finished=.not.associated(tree)
     return
 
   contains
 
     function indexNode(nodeDefinition,indexType,required)
       !% Extract and return an index from a node definition as used when constructing fully-specified merger trees.
-      use :: FoX_Dom         , only : extractDataContent          , node
+      use :: FoX_Dom         , only : node
       use :: Galacticus_Error, only : Galacticus_Error_Report
-      use :: IO_XML          , only : XML_Get_Elements_By_Tag_Name
+      use :: Kind_Numbers    , only : kind_int8
+      use :: IO_XML          , only : XML_Get_Elements_By_Tag_Name, extractDataContent => extractDataContentTS
+      use :: FoX_Dom         , only : node
+      use :: Galacticus_Error, only : Galacticus_Error_Report
       use :: Kind_Numbers    , only : kind_int8
       implicit none
       integer  (kind=kind_int8)                             :: indexNode

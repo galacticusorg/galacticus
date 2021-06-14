@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -63,15 +63,9 @@
      logical                                                            :: radiusComputed                      , radiusGrowthRateComputed
      double precision                                                   :: radiusGrowthRateStored              , radiusStored
    contains
-     !@ <objectMethods>
-     !@   <object>coolingRadiusBetaProfile</object>
-     !@   <objectMethod>
-     !@     <method>calculationReset</method>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(table)\textgreater} node\arginout</arguments>
-     !@     <description>Reset memoized calculations.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Reset memoized calculations." method="calculationReset" />
+     !# </methods>
      final     ::                     betaProfileDestructor
      procedure :: autoHook         => betaProfileAutoHook
      procedure :: radius           => betaProfileRadius
@@ -281,8 +275,8 @@ contains
        ! Compute density and cooling time at outer radius and zero radius.
        densityZero     =self%hotHaloMassDistribution_  %density(node,0.0d0      )
        densityOuter    =self%hotHaloMassDistribution_  %density(node,outerRadius)
-       coolingTimeZero =self%coolingTime_              %time   (temperature,densityZero ,hotAbundances,chemicalDensities,self%radiation)
-       coolingTimeOuter=self%coolingTime_              %time   (temperature,densityOuter,hotAbundances,chemicalDensities,self%radiation)
+       coolingTimeZero =self%coolingTime_              %time   (node,temperature,densityZero ,hotAbundances,chemicalDensities,self%radiation)
+       coolingTimeOuter=self%coolingTime_              %time   (node,temperature,densityOuter,hotAbundances,chemicalDensities,self%radiation)
        if (coolingTimeOuter < timeAvailable .or. coolingTimeZero > timeAvailable) then
           ! Cooling radius is static.
           self%radiusGrowthRateStored=0.0d0
@@ -354,10 +348,10 @@ contains
        ! Get the temperature.
        temperature=self%hotHaloTemperatureProfile_%temperature(node,outerRadius)
        ! Compute density and cooling time at outer radius and zero radius.
-       densityZero     =self%hotHaloMassDistribution_  %density(node       ,0.0d0                                                      )
-       densityOuter    =self%hotHaloMassDistribution_  %density(node       ,outerRadius                                                )
-       coolingTimeZero =self%coolingTime_              %time   (temperature,densityZero ,hotAbundances,chemicalDensities,self%radiation)
-       coolingTimeOuter=self%coolingTime_              %time   (temperature,densityOuter,hotAbundances,chemicalDensities,self%radiation)
+       densityZero     =self%hotHaloMassDistribution_  %density(node,0.0d0                                                                  )
+       densityOuter    =self%hotHaloMassDistribution_  %density(node,outerRadius                                                            )
+       coolingTimeZero =self%coolingTime_              %time   (node,temperature,densityZero ,hotAbundances,chemicalDensities,self%radiation)
+       coolingTimeOuter=self%coolingTime_              %time   (node,temperature,densityOuter,hotAbundances,chemicalDensities,self%radiation)
        if (coolingTimeOuter < timeAvailable) then
           ! Cooling time available exceeds cooling time at virial radius, return virial radius.
           self%radiusStored=outerRadius

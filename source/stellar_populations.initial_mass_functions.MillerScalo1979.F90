@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,17 @@
   !% Implements a stellar initial mass function class for the \cite{miller_initial_1979} \gls{imf}.
 
   !# <initialMassFunction name="initialMassFunctionMillerScalo1979">
-  !#  <description>A stellar initial mass function class for the \cite{miller_initial_1979} \gls{imf}.</description>
+  !#  <description>
+  !#   A stellar initial mass function class for the \cite{miller_initial_1979} \gls{imf}:
+  !#   \begin{equation}
+  !#    \phi(M) \propto \left\{ \begin{array}{ll}
+  !#    M^{-1.25} &amp; \hbox{ for } 0.10M_\odot &lt; M &lt; 1.00M_\odot \\
+  !#    M^{-2.00} &amp; \hbox{ for } 1.00M_\odot &lt; M &lt; 2.00M_\odot \\
+  !#    M^{-2.30} &amp; \hbox{ for } 2.00M_\odot &lt; M &lt; 10.0M_\odot \\
+  !#    M^{-3.30} &amp; \hbox{ for } 10.0M_\odot &lt; M &lt; 125M_\odot \\
+  !#    0 &amp; \hbox {otherwise.} \end{array} \right.
+  !#   \end{equation}
+  !#  </description>
   !# </initialMassFunction>
   type, extends(initialMassFunctionPiecewisePowerLaw) :: initialMassFunctionMillerScalo1979
      !% A stellar initial mass function class for the \cite{miller_initial_1979} \gls{imf}.
@@ -43,7 +53,7 @@ contains
     implicit none
     type(initialMassFunctionMillerScalo1979)                :: self
     type(inputParameters                   ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=initialMassFunctionMillerScalo1979()
     return
@@ -66,7 +76,7 @@ contains
     implicit none
     class(initialMassFunctionMillerScalo1979), intent(inout) :: self
     type (varying_string                    )                :: millerScalo1979Label
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     millerScalo1979Label="MillerScalo1979"
     return

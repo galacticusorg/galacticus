@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,17 @@
   !% Implementation of a 1D Cauchy distibution function.
 
   !# <distributionFunction1D name="distributionFunction1DCauchy">
-  !#  <description>A 1D Cauchy distibution function.</description>
+  !#  <description>
+  !#   A Cauchy distribution:
+  !#   \begin{equation}
+  !#    P(x) \propto \left[1+{x-x_0\over\gamma}\right]^{-1}.
+  !#   \end{equation}
+  !#   Specified using:
+  !#   \begin{description}
+  !#   \item[{\normalfont \ttfamily [median]}] The median, $x_0$;
+  !#   \item[{\normalfont \ttfamily [scale]}] The scale, $\gamma$;
+  !#   \end{description}
+  !#  </description>
   !# </distributionFunction1D>
   type, extends(distributionFunction1DClass) :: distributionFunction1DCauchy
      !% Implementation of a 1D Cauchy distibution function.
@@ -53,17 +63,13 @@ contains
 
     !# <inputParameter>
     !#   <name>median</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The median of the Cauchy distribution function.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>scale</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The scale parameter of the Cauchy distribution function.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     self=distributionFunction1DCauchy(median,scale,randomNumberGenerator_)

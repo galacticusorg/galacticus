@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,9 @@
   !% Implements a model of ram pressure stripping of hot halos which always returns zero force.
 
   !# <hotHaloRamPressureForce name="hotHaloRamPressureForceZero">
-  !#  <description>A hot halo ram pressure force class which follows the model of \cite{font_colours_2008}.</description>
+  !#  <description>
+  !#   A hot halo ram pressure force class which assumes a zero ram pressure force due to the hot halo.
+  !#  </description>
   !# </hotHaloRamPressureForce>
   type, extends(hotHaloRamPressureForceClass) :: hotHaloRamPressureForceZero
      !% Implementation of a hot halo ram pressure force class which always returns zero force.
@@ -42,7 +44,7 @@ contains
     implicit none
     type(hotHaloRamPressureForceZero)                :: self
     type(inputParameters            ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=hotHaloRamPressureForceZero()
     return
@@ -53,7 +55,7 @@ contains
     implicit none
     class(hotHaloRamPressureForceZero), intent(inout) :: self
     type (treeNode                   ), intent(inout) :: node
-    !GCC$ attributes unused :: self, node
+    !$GLC attributes unused :: self, node
 
     zeroForce=0.0d0
     return

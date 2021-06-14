@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -84,12 +84,9 @@ contains
     if (defaultDynamicsStatisticsComponent%barsIsActive()) then
        !# <inputParameter>
        !#   <name>dynamicsStatisticsBarsFrequency</name>
-       !#   <cardinality>1</cardinality>
        !#   <defaultValue>0.1d0</defaultValue>
        !#   <description>The frequency (in fractions of the host halo dynamical time) at which to record the bar dynamical status of satellite galaxies.</description>
-       !#   <group>timeStepping</group>
        !#   <source>parameters_</source>
-       !#   <type>double</type>
        !# </inputParameter>
     end if
     return
@@ -130,14 +127,13 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Dynamics_Statistics_Bars_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Dynamics_Statistics_Bars_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
+  subroutine Node_Component_Dynamics_Statistics_Bars_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
     !% Compute the standard disk node mass rate of change.
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : defaultDynamicsStatisticsComponent , interruptTask, nodeComponentBasic, nodeComponentDynamicsStatistics, &
           &                         nodeComponentDynamicsStatisticsBars, treeNode
     implicit none
-    type            (treeNode                       ), intent(inout), pointer      :: node
-    logical                                          , intent(in   )               :: odeConverged
+    type            (treeNode                       ), intent(inout)               :: node
     logical                                          , intent(inout)               :: interrupt
     procedure       (interruptTask                  ), intent(inout), pointer      :: interruptProcedure
     integer                                          , intent(in   )               :: propertyType
@@ -146,7 +142,7 @@ contains
     class           (nodeComponentDynamicsStatistics)               , pointer      :: dynamicsStatistics
     double precision                                 , allocatable  , dimension(:) :: timeRecord
     double precision                                                               :: time
-    !GCC$ attributes unused :: odeConverged, propertyType
+    !$GLC attributes unused :: propertyType
 
     ! Do not compute rates if this component is not active.
     if (.not.defaultDynamicsStatisticsComponent%barsIsActive().or..not.node%isSatellite()) return
@@ -194,7 +190,7 @@ contains
     type            (keplerOrbit                    )                         :: orbit
     double precision                                                          :: barInstabilityTimescale, barInstabilityExternalDrivingSpecificTorque, &
          &                                                                       adiabaticRatio         , velocityPericenter                         , &
-         &                                                                       radiusPericenter
+         &                                                                       radiusPericenter       , fractionAngularMomentumRetained
 
     ! Get components.
     basic              => node%basic             (                 )
@@ -207,7 +203,7 @@ contains
        hostNode  => node     %parent
        orbit     =  satellite%virialOrbit()
        call Satellite_Orbit_Extremum_Phase_Space_Coordinates(hostNode,orbit,extremumPericenter,radiusPericenter,velocityPericenter)
-       call galacticDynamicsBarInstability_%timescale(node,barInstabilityTimescale,barInstabilityExternalDrivingSpecificTorque)
+       call galacticDynamicsBarInstability_%timescale(node,barInstabilityTimescale,barInstabilityExternalDrivingSpecificTorque,fractionAngularMomentumRetained)
        if (disk%radius() > 0.0d0) then
           adiabaticRatio=(radiusPericenter/velocityPericenter)/(2.0d0*Pi*disk%radius()/disk%velocity())
        else
@@ -244,7 +240,7 @@ contains
     type            (hdf5Object                     )                              :: outputs                  , output              , &
          &                                                                            dynamics                 , tree                , &
          &                                                                            dataset
-    !GCC$ attributes unused :: nodePassesFilter
+    !$GLC attributes unused :: nodePassesFilter
 
     ! Output the history data if and only if any has been collated.
     if (dynamicsStatisticsBarsInitialized) then

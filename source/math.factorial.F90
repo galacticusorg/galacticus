@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,21 +19,33 @@
 
 !% Contains a module which implements calculations of factorials.
 
+! Add dependency on GSL library.
+!; gsl
+
 module Factorials
   !% Implements calculations of factorials
+  use, intrinsic :: ISO_C_Binding, only : c_double, c_int
   implicit none
   private
   public :: Factorial, Logarithmic_Double_Factorial
 
+  interface
+     function gsl_sf_fact(n) bind(c,name='gsl_sf_fact')
+       !% Template for the GSL error function.
+       import
+       real   (c_double)        :: gsl_sf_fact
+       integer(c_int   ), value :: n
+     end function gsl_sf_fact
+  end interface
+  
 contains
 
   double precision function Factorial(argument)
     !% Computes the factorial of {\normalfont \ttfamily argument}.
-    use :: FGSL, only : FGSL_SF_Fact
     implicit none
     integer, intent(in   ) :: argument
 
-    Factorial=FGSL_SF_Fact(argument)
+    Factorial=GSL_SF_Fact(argument)
     return
   end function Factorial
 

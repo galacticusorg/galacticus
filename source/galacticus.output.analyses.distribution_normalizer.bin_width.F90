@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -42,7 +42,7 @@ contains
     implicit none
     type(outputAnalysisDistributionNormalizerBinWidth)                :: self
     type(inputParameters                             ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=outputAnalysisDistributionNormalizerBinWidth()
     return
@@ -57,7 +57,7 @@ contains
     double precision                                              , intent(inout), dimension(:,:) :: covariance
     double precision                                              , intent(in   ), dimension(:  ) :: propertyValueMinimum, propertyValueMaximum
     integer         (c_size_t                                    )                                :: i
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     distribution=+distribution            &
          &        /(                      &

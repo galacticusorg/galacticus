@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +22,11 @@
   !% Implements a satellite merging timescale class in which merging timescales are always infinite.
 
   !# <satelliteMergingTimescales name="satelliteMergingTimescalesInfinite">
-  !#  <description>Returns an infinite timescale for merging.</description>
+  !#  <description>
+  !#   A satellite merging timescale class which always gives an infinite timescale for merging (technically, it returns a value
+  !#   close to the largest representable double precision floating point number which should be sufficiently close to infinity
+  !#   for practical purposes).
+  !#  </description>
   !# </satelliteMergingTimescales>
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesInfinite
      !% A class implementing satellite merging timescales that are always infinite.
@@ -45,7 +49,7 @@ contains
     implicit none
     type(satelliteMergingTimescalesInfinite)                :: self
     type(inputParameters                   ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=satelliteMergingTimescalesInfinite()
     return
@@ -57,7 +61,7 @@ contains
     class(satelliteMergingTimescalesInfinite), intent(inout) :: self
     type (treeNode                          ), intent(inout) :: node
     type (keplerOrbit                       ), intent(inout) :: orbit
-    !GCC$ attributes unused :: self, node, orbit
+    !$GLC attributes unused :: self, node, orbit
 
     infiniteTimeUntilMerging=satelliteMergeTimeInfinite
     return

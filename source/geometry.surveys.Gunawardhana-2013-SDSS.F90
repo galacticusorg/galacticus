@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -84,7 +84,7 @@ contains
     class           (surveyGeometryGunawardhana2013SDSS), intent(inout)           :: self
     double precision                                    , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
     integer                                             , intent(in   ), optional :: field
-    !GCC$ attributes unused :: field, mass, luminosity, magnitudeAbsolute
+    !$GLC attributes unused :: field, mass, luminosity, magnitudeAbsolute
 
     ! Compute limiting distances. This is due only to the redshift limit.
     gunawardhana2013SDSSDistanceMinimum=self   %cosmologyFunctions_%distanceComoving           (          &
@@ -112,7 +112,7 @@ contains
     double precision                                    , parameter               :: fluxLimiting           =1.0d-18 ! W m⁻².
     double precision                                                              :: distanceMaximumRedshift        , distanceMaximumLuminosity, &
          &                                                                           distanceLuminosity
-    !GCC$ attributes unused :: field, mass, magnitudeAbsolute
+    !$GLC attributes unused :: field, mass, magnitudeAbsolute
 
     ! Validate input.
     if (.not.present(luminosity)) call Galacticus_Error_Report('luminosity must be supplied '//{introspection:location})

@@ -5,47 +5,47 @@
   <version>0.9.4</version>
 
   <!-- Specify tasks to perform -->
-  <taskMethod value="haloMassFunction"/>
-  
+  <task value="haloMassFunction"/>
+
   <!-- Cosmological parameters -->
-  <cosmologyFunctionsMethod  value="matterLambda"/>
-  <cosmologyParametersMethod value="simple">
-    <HubbleConstant  value="70.20000"/>
-    <OmegaMatter     value=" 0.27250"/>
+  <cosmologyFunctions value="matterLambda"/>
+  <cosmologyParameters value="simple">
+    <HubbleConstant value="70.20000"/>
+    <OmegaMatter value=" 0.27250"/>
     <OmegaDarkEnergy value=" 0.72750"/>
-    <OmegaBaryon     value=" 0.04550"/>
-    <temperatureCMB  value=" 2.72548"/>
-  </cosmologyParametersMethod>
+    <OmegaBaryon value=" 0.04550"/>
+    <temperatureCMB value=" 2.72548"/>
+  </cosmologyParameters>
 
   <!-- Power spectrum options -->
-  <transferFunctionMethod value="eisensteinHu1999">
+  <transferFunction value="eisensteinHu1999">
     <neutrinoNumberEffective value="3.046"/>
-    <neutrinoMassSummed      value="0.000"/>
-  </transferFunctionMethod>
-  <powerSpectrumPrimordialMethod value="powerLaw">
-    <index               value="0.961"/>
+    <neutrinoMassSummed value="0.000"/>
+  </transferFunction>
+  <powerSpectrumPrimordial value="powerLaw">
+    <index value="0.961"/>
     <wavenumberReference value="1.000"/>
-    <running             value="0.000"/>
-  </powerSpectrumPrimordialMethod>
-  <powerSpectrumPrimordialTransferredMethod value="simple"/>
-  <cosmologicalMassVarianceMethod value="filteredPower">
+    <running value="0.000"/>
+  </powerSpectrumPrimordial>
+  <powerSpectrumPrimordialTransferred value="simple"/>
+  <cosmologicalMassVariance value="filteredPower">
     <sigma_8 value="0.807"/>
-  </cosmologicalMassVarianceMethod>
-  
+  </cosmologicalMassVariance>
+
   <!-- Structure formation options -->
-  <linearGrowthMethod          value="collisionlessMatter"                      />
-  <haloMassFunctionMethod      value="tinker2008"                               />
-  <criticalOverdensityMethod   value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
-  <virialDensityContrastMethod value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <linearGrowth value="collisionlessMatter"/>
+  <haloMassFunction value="tinker2008"/>
+  <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
 
   <!-- Dark matter halo structure options -->
-  <darkMatterProfileDMOMethod           value="NFW"    />
-  <darkMatterProfileConcentrationMethod value="gao2008"/>
+  <darkMatterProfileDMO value="NFW"/>
+  <darkMatterProfileConcentration value="gao2008"/>
 
   <!-- Output options -->
   <galacticusOutputFileName value="haloMassFunction.hdf5"/>
-  <outputTimesMethod value="list">
+  <outputTimes value="list">
     <redshifts value="0.0 1.0"/>
-  </outputTimesMethod>
+  </outputTimes>
 
 </parameters>

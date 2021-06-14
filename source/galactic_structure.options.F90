@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -42,6 +42,8 @@ module Galactic_Structure_Options
   !#  <name>componentType</name>
   !#  <description>Used to specify the component(s) to be queried in galactic structure functions.</description>
   !#  <encodeFunction>yes</encodeFunction>
+  !#  <decodeFunction>yes</decodeFunction>
+  !#  <validator>yes</validator>
   !#  <entry label="all"       />
   !#  <entry label="disk"      />
   !#  <entry label="spheroid"  />
@@ -66,18 +68,15 @@ module Galactic_Structure_Options
   !#  <entry label="luminosity" />
   !# </enumeration>
 
+  !# <enumeration>
+  !#  <name>structureErrorCode</name>
+  !#  <description>Error codes for galactic structure functions.</description>
+  !#  <entry label="success"  description="Successful completion."/>
+  !#  <entry label="infinite" description="Result is ±∞."         />
+  !# </enumeration>
+
   ! Null value to use when no weighting is to be applied.
   integer         , parameter, public :: weightIndexNull=0
-
-  ! Error codes.
-  !@ <enumeration>
-  !@  <name>structureErrorCode</name>
-  !@  <description>Error codes for galactic structure functions.</description>
-  !@  <entry label="structureErrorCodeSuccess"  />
-  !@  <entry label="structureErrorCodeInfinite" />
-  !@ </enumeration>
-  integer, parameter :: structureErrorCodeSuccess =0 ! Successful completion.
-  integer, parameter :: structureErrorCodeInfinite=1 ! Result is ±∞.
 
   ! Suitably large value to represent infinite radius.
   double precision, parameter, public :: radiusLarge    =1.0d10

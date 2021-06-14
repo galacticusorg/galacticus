@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -42,7 +42,7 @@ contains
     implicit none
     type(mergerTreeEvolveProfilerNull)                :: self
     type(inputParameters           ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
     
     self=mergerTreeEvolveProfilerNull()
     return
@@ -54,7 +54,7 @@ contains
     class           (mergerTreeEvolveProfilerNull), intent(inout) :: self
     double precision                              , intent(in   ) :: timeStep
     type            (varying_string              ), intent(in   ) :: propertyName
-    !GCC$ attributes unused :: self, timeStep, propertyName
+    !$GLC attributes unused :: self, timeStep, propertyName
 
     return
   end subroutine nullProfile

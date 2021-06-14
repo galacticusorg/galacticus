@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,15 +27,9 @@
      private
      type(varying_string) :: definition_
    contains
-     !@ <objectMethods>
-     !@   <object>modelParameterDerived</object>
-     !@   <objectMethod>
-     !@     <method>definition</method>
-     !@     <type>\textcolor{red}{\textless type(varying\_string)\textgreater}</type>
-     !@     <arguments></arguments>
-     !@     <description>Return the definition for this parameter.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Return the definition for this parameter." method="definition" />
+     !# </methods>
      procedure :: definition => derivedDefinition
   end type modelParameterDerived
 
@@ -57,17 +51,13 @@ contains
 
     !# <inputParameter>
     !#   <name>name</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The name of the parameter.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>definition</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The definition of the parameter.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
     !# </inputParameter>
     self=modelParameterDerived(name,definition)
      !# <inputParametersValidate source="parameters"/>

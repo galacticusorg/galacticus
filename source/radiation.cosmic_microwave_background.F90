@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -30,15 +30,9 @@
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
      double precision                                   :: time
    contains
-     !@ <objectMethods>
-     !@  <object>radiationFieldCosmicMicrowaveBackground</object>
-     !@  <objectMethod>
-     !@   <method>timeSet</method>
-     !@   <type>\void</type>
-     !@   <arguments>\doublezero\ time\argin</arguments>
-     !@   <description>Set the time for the radiation field.</description>
-     !@  </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Set the time for the radiation field." method="timeSet" />
+     !# </methods>
      final     ::            cosmicMicrowaveBackgroundDestructor
      procedure :: timeSet => cosmicMicrowaveBackgroundTimeSet
   end type radiationFieldCosmicMicrowaveBackground

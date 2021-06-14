@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -41,7 +41,7 @@ contains
     implicit none
     type(taskBuildToolCloudy)                :: self
     type(inputParameters    ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=taskBuildToolCloudy()
     return
@@ -49,20 +49,20 @@ contains
 
   subroutine buildToolCloudyPerform(self,status)
     !% Builds the tabulation.
-    use :: Galacticus_Display, only : Galacticus_Display_Indent  , Galacticus_Display_Message, Galacticus_Display_Unindent
-    use :: Galacticus_Error  , only : errorStatusSuccess
-    use :: Interfaces_Cloudy , only : Interface_Cloudy_Initialize
+    use :: Display          , only : displayIndent              , displayMessage, displayUnindent
+    use :: Galacticus_Error , only : errorStatusSuccess
+    use :: Interfaces_Cloudy, only : Interface_Cloudy_Initialize
     implicit none
     class  (taskBuildToolCloudy), intent(inout), target   :: self
     integer                     , intent(  out), optional :: status
     type   (varying_string     )                          :: cloudyPath, cloudyVersion
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
-    call Galacticus_Display_Indent  ('Begin task: Cloudy tool build')
+    call displayIndent  ('Begin task: Cloudy tool build')
     call Interface_Cloudy_Initialize(cloudyPath,cloudyVersion,static=.true.)
-    call Galacticus_Display_Message('Cloudy version '//cloudyVersion//' successfully built in: '//cloudyPath)
+    call displayMessage('Cloudy version '//cloudyVersion//' successfully built in: '//cloudyPath)
     if (present(status)) status=errorStatusSuccess
-    call Galacticus_Display_Unindent('Done task: Cloudy tool build')
+    call displayUnindent('Done task: Cloudy tool build')
     return
   end subroutine buildToolCloudyPerform
 
@@ -70,7 +70,7 @@ contains
     !% Specifies that this task does not requires the main output file.
     implicit none
     class(taskBuildToolCloudy), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     buildToolCloudyRequiresOutputFile=.false.
     return

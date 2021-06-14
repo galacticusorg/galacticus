@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -24,45 +24,66 @@ program Tests_Spherical_Collapse_Dark_Energy_Omega_Zero_Point_Eight
   !% Tests spherical collapse calculations for a dark energy Universe, specifically using a flat, $\omega=-0.8$
   !% cosmology. Compares results to points read from Figure~6 of \cite{horellou_dark_2005} using
   !% \href{http://datathief.org/}{\normalfont \scshape DataThief}.
-  use :: Cosmology_Functions    , only : cosmologyFunctions            , cosmologyFunctionsClass
-  use :: Events_Hooks           , only : eventsHooksInitialize
-  use :: Galacticus_Display     , only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use :: ISO_Varying_String     , only : varying_string                , assignment(=)             , char
-  use :: Input_Parameters       , only : inputParameters
-  use :: Unit_Tests             , only : Assert                        , Unit_Tests_Begin_Group    , Unit_Tests_End_Group, Unit_Tests_Finish
-  use :: Virial_Density_Contrast, only : virialDensityContrast         , virialDensityContrastClass
+  use :: Cosmology_Functions       , only : cosmologyFunctionsMatterDarkEnergy
+  use :: Cosmology_Parameters      , only : cosmologyParametersSimple
+  use :: Display                   , only : displayVerbositySet                                      , verbosityLevelStandard
+  use :: Events_Hooks              , only : eventsHooksInitialize
+  use :: Spherical_Collapse_Solvers, only : cllsnlssMttrDarkEnergyFixedAtTurnaround
+  use :: Transfer_Functions        , only : transferFunctionEisensteinHu1999
+  use :: Unit_Tests                , only : Assert                                                   , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Virial_Density_Contrast   , only : virialDensityContrastSphericalCollapseClsnlssMttrDrkEnrgy
   implicit none
-  double precision                            , dimension(3) :: redshift                     =[  0.00d0,  1.00d0,  2.00d0]
-  double precision                            , dimension(3) :: virialDensityContrastExpected=[367.81d0,217.63d0,192.72d0]
-  class           (cosmologyFunctionsClass   ), pointer      :: cosmologyFunctions_
-  class           (virialDensityContrastClass), pointer      :: virialDensityContrast_
-  double precision                            , parameter    :: massDummy                    =1.0d0
-  type            (varying_string            )               :: parameterFile
-  character       (len=1024                  )               :: message
-  integer                                                    :: iExpansion
-  double precision                                           :: age                                                       , expansionFactor, &
-       &                                                        virialDensityContrastActual
-  type            (inputParameters           )               :: parameters
+  double precision                                                           , dimension(3) :: redshift                     =[0.00d0,1.00d0,2.00d0]
+  double precision                                                           , dimension(3) :: virialDensityContrastExpected=[367.81d0,217.63d0,192.72d0]
+  double precision                                                           , parameter    :: mass                         =1.0d0
+  type            (cosmologyParametersSimple                                )               :: cosmologyParameters_
+  type            (cosmologyFunctionsMatterDarkEnergy                       )               :: cosmologyFunctions_
+  type            (virialDensityContrastSphericalCollapseClsnlssMttrDrkEnrgy)               :: virialDensityContrast_
+  character       (len=1024                                                 )               :: message
+  integer                                                                                   :: iExpansion
+  double precision                                                                          :: age                                                       , expansionFactor, &
+       &                                                                                       virialDensityContrastActual
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
-  ! Initialize event hooks.
+  call displayVerbositySet(verbosityLevelStandard)
+  ! Initialize event hooks.Siz
   call eventsHooksInitialize()
-
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Spherical collapse: dark energy solver (ω=-0.8 cosmology)")
-
   ! Test spherical collapse in a flat universe.
-  parameterFile='testSuite/parameters/sphericalCollapse/darkEnergy.constantEoSminus0.8.xml'
-  parameters=inputParameters(parameterFile)
-  call parameters%markGlobal()
-  ! Get the default cosmology functions object.
-  cosmologyFunctions_    => cosmologyFunctions   ()
-  virialDensityContrast_ => virialDensityContrast()
+  !# <referenceConstruct object="cosmologyParameters_"  >
+  !#  <constructor>
+  !#   cosmologyParametersSimple                                (                                                                     &amp;
+  !#    &amp;                                                    OmegaMatter                = 0.3d0                                 , &amp;
+  !#    &amp;                                                    OmegaBaryon                = 0.0d0                                 , &amp;
+  !#    &amp;                                                    OmegaDarkEnergy            = 0.7d0                                 , &amp;
+  !#    &amp;                                                    temperatureCMB             = 2.7d0                                 , &amp;
+  !#    &amp;                                                    HubbleConstant             =70.0d0                                   &amp;
+  !#    &amp;                                                   )
+  !#  </constructor>
+  !# </referenceConstruct>
+  !# <referenceConstruct object="cosmologyFunctions_"   >
+  !#  <constructor>
+  !#   cosmologyFunctionsMatterDarkEnergy                       (                                                                     &amp;
+  !#    &amp;                                                    cosmologyParameters_       =cosmologyParameters_                  ,  &amp;
+  !#    &amp;                                                    darkEnergyEquationOfStateW0=-0.8d0                                ,  &amp;
+  !#    &amp;                                                    darkEnergyEquationOfStateW1=+0.0d0                                   &amp;
+  !#    &amp;                                                   )
+  !#  </constructor>
+  !# </referenceConstruct>
+  !# <referenceConstruct object="virialDensityContrast_">
+  !#  <constructor>
+  !#   virialDensityContrastSphericalCollapseClsnlssMttrDrkEnrgy(                                                                     &amp;
+  !#    &amp;                                                    cosmologyFunctions_        =cosmologyFunctions_                    , &amp;
+  !#    &amp;                                                    energyFixedAt              =cllsnlssMttrDarkEnergyFixedAtTurnaround, &amp;
+  !#    &amp;                                                    tableStore                 =.true.                                   &amp;
+  !#    &amp;                                                   )
+  !#  </constructor>
+  !# </referenceConstruct>
   do iExpansion=1,size(redshift)
-     expansionFactor            =cosmologyFunctions_%expansionFactorFromRedshift(redshift(iExpansion))
-     age                        =cosmologyFunctions_%cosmicTime(expansionFactor)
-     virialDensityContrastActual=virialDensityContrast_   %densityContrast(massDummy,age)
+     expansionFactor            =cosmologyFunctions_%expansionFactorFromRedshift(redshift       (iExpansion)    )
+     age                        =cosmologyFunctions_%cosmicTime                 (expansionFactor                )
+     virialDensityContrastActual=virialDensityContrast_%densityContrast         (mass                       ,age)
      write (message,'(a,f6.1,a,f6.4,a)') "virial density contrast [z=",redshift(iExpansion),";Ωₘ=",cosmologyFunctions_%omegaMatterEpochal(age),"]"
      call Assert(trim(message),virialDensityContrastActual,virialDensityContrastExpected(iExpansion),relTol=5.0d-3)
   end do

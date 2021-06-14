@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,12 +23,16 @@
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScale, darkMatterHaloScaleClass
 
   !# <coolingRate name="coolingRateCutOff">
-  !#  <description>A cooling rate class which modifies another cooling rate by cutting off cooling above some virial velocity.</description>
+  !#  <description>
+  !#   A cooling rate class which sets the cooling rate to zero in halos with virial velocities below {\normalfont \ttfamily
+  !#   [velocityCutOff]} at redshifts below/above {\normalfont \ttfamily [redshiftCutOff]} for {\normalfont \ttfamily
+  !#   [whenCutOff]}$=${\normalfont \ttfamily after/before}. In other halos the cooling rate is not modified.
+  !#  </description>
   !# </coolingRate>
   type, extends(coolingRateClass) :: coolingRateCutOff
      !% Implementation of cooling rate class which modifies another cooling rate by cutting off cooling above some virial velocity.
      private
-     class           (coolingRateClass        ), pointer :: coolingRate_ => null()
+     class           (coolingRateClass        ), pointer :: coolingRate_         => null()
      class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
      ! Parameters controlling the cut off.
      double precision                            :: velocityCutOff  , timeCutOff
@@ -75,52 +79,45 @@ contains
     !#   <defaultValue>.false.</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Specifies whether to use the virial velocity of the formation node or current node in the cooling rate ``cut-off'' modifier.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>velocityCutOff</name>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <source>parameters</source>
     !#   <description>The velocity below which cooling is suppressed in the ``cut-off'' cooling rate modifier method.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>redshiftCutOff</name>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <source>parameters</source>
     !#   <description>The redshift below which cooling is suppressed in the ``cut-off'' cooling rate modifier method.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>whenCutOff</name>
     !#   <defaultValue>var_str('after')</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Specifies whether cooling is cut off before or after {\normalfont \ttfamily [redshiftCutOff]}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="coolingRate"         name="coolingRate_"         source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
-    self=coolingRateCutOff(                                                                        &
-         &                                                                   velocityCutOff      , &
-         &                 cosmologyFunctions_ %cosmicTime                 (                       &
-         &                  cosmologyFunctions_%expansionFactorFromRedshift (                      &
-         &                                                                   redshiftCutOff        &
-         &                                                                  )                      &
-         &                                                                 )                     , &
-         &                 enumerationCutOffWhenEncode                     (                       &
-         &                                                                   char(whenCutOff)      &
-         &                                                                 )                     , &
-         &                                                                   useFormationNode    , &
-         &                                                                   darkMatterHaloScale_, &
-         &                                                                   coolingRate_          &
+    self=coolingRateCutOff(                                                                          &
+         &                                                                   velocityCutOff        , &
+         &                 cosmologyFunctions_ %cosmicTime                 (                         &
+         &                  cosmologyFunctions_%expansionFactorFromRedshift (                        &
+         &                                                                   redshiftCutOff          &
+         &                                                                  )                        &
+         &                                                                 )                       , &
+         &                 enumerationCutOffWhenEncode                     (                         &
+         &                                                                   char(whenCutOff)      , &
+         &                                                                   includesPrefix=.false.  &
+         &                                                                 )                       , &
+         &                                                                   useFormationNode      , &
+         &                                                                   darkMatterHaloScale_  , &
+         &                                                                   coolingRate_            &
          &                )
-    !# <objectDestructor name="cosmologyFunctions_"/>
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
     !# <objectDestructor name="coolingRate_"        />
     !# <objectDestructor name="darkMatterHaloScale_"/>
     return

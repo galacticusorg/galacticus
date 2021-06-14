@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +22,16 @@
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !# <outputAnalysis name="outputAnalysisGalaxySizesSDSS">
-  !#  <description>A stellar mass function output analysis class.</description>
+  !#  <description>
+  !#   An output analysis class which computes the mass-dependentr $z\approx 0.07$ galaxy size distribution of \cite{shen_size_2003} from
+  !#   the \gls{sdss}. The size function reported by \cite{shen_size_2003} is converted to the appropriate cosmology for the given \glc\
+  !#   model (assuming that sizes scale as the angular diameter distance, and masses as the square of the luminosity distance). The model
+  !#   sizes and masses are then used to construct a mass-dependent radius function by binning into a 2-D histogram using the size and
+  !#   mass bins reported by \cite{shen_size_2003} (modified as described above) as the centers of the bins (with bin boundaries placed
+  !#   at the geometric means of consecutive bin centers). Distributions are computed for both late-type and early-type galaxies,
+  !#   classified on the basis of the stellar mass spheroid-to-total ratio, with the division at a ratio given by {\normalfont \ttfamily
+  !#   [massStellarRatio]}.
+  !#  </description>
   !# </outputAnalysis>
   type, extends(outputAnalysisVolumeFunction1D) :: outputAnalysisGalaxySizesSDSS
      !% A galaxySizesSDSS output analysis class.
@@ -58,16 +67,12 @@ contains
     !#   <name>distributionNumber</name>
     !#   <source>parameters</source>
     !#   <description>The number (1-34) of the distribution to compute.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>massStellarRatio</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0.3d0</defaultValue>
     !#   <description>The stellar mass bulge-to-total ratio used to discriminate late-type vs. early-type galaxies.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>sizeSourceLensing</name>
@@ -75,8 +80,6 @@ contains
     !#   <variable>sizeSourceLensing</variable>
     !#   <defaultValue>2.0d-3</defaultValue>
     !#   <description>The characteristic source size for gravitational lensing calculations.</description>
-    !#   <type>float</type>
-    !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
     !# <objectBuilder class="outputTimes"          name="outputTimes_"          source="parameters"/>
@@ -136,9 +139,11 @@ contains
     type            (outputAnalysisDistributionOperatorSequence     ), pointer                     :: outputAnalysisDistributionOperator_
     type            (outputAnalysisDistributionOperatorGrvtnlLnsng  ), pointer                     :: outputAnalysisDistributionOperatorGrvtnlLnsng_
     class           (outputAnalysisDistributionOperatorClass        ), pointer                     :: outputAnalysisDistributionOperatorProjection_
-    type            (distributionOperatorList                       )               , pointer      :: distributionOperatorSequence
+    type            (distributionOperatorList                       ), pointer                     :: distributionOperatorSequence
     type            (surveyGeometryLiWhite2009SDSS                  ), pointer                     :: surveyGeometry_
-    type            (normalizerList                                 ), pointer                     :: normalizerSequence                              , normalizer_
+    type            (outputAnalysisDistributionNormalizerBinWidth   ), pointer                     :: outputAnalysisDistributionNormalizerBinWidth_
+    type            (outputAnalysisDistributionNormalizerUnitarity  ), pointer                     :: outputAnalysisDistributionNormalizerUnitarity_
+    type            (normalizerList                                 ), pointer                     :: normalizerSequence
     type            (propertyOperatorList                           ), pointer                     :: propertyOperatorSequence                        , weightPropertyOperatorSequence
     type            (galacticFilterStellarMass                      ), pointer                     :: galacticFilterMassStellarMinimum_               , galacticFilterMassStellarMaximum_
     type            (galacticFilterStellarMassMorphology            ), pointer                     :: galacticFilterMorphology_
@@ -222,11 +227,11 @@ contains
     end do
     ! Create a half-mass radius property extractor.
     allocate(nodePropertyExtractor_        )
-    !# <referenceConstruct object="nodePropertyExtractor_"                 constructor="nodePropertyExtractorHalfMassRadius     (                                                                                                                                                            )"/>
+    !# <referenceConstruct object="nodePropertyExtractor_"                           constructor="nodePropertyExtractorHalfMassRadius     (                                                                                                                                                                      )"/>
     ! Create a stellar mass property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_        )
-    !# <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"           constructor="nodePropertyExtractorMassStellar        (                                                                                                                                                            )"/>
-    ! Create multiply, log10, cosmological angular distance, and cosmologyical luminosity distance property operators.
+    !# <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"           constructor="nodePropertyExtractorMassStellar        (                                                                                                                                                                      )"/>
+    ! Create multiply, log10, cosmological angular distance, and cosmological luminosity distance property operators.
     allocate(outputAnalysisPropertyOperatorMultiply_         )
     !# <referenceConstruct object="outputAnalysisPropertyOperatorMultiply_"          constructor="outputAnalysisPropertyOperatorMultiply            (kilo                                                                                                                                                        )"/>
     allocate(outputAnalysisPropertyOperatorLog10_            )
@@ -324,20 +329,14 @@ contains
     allocate   (galacticFilterAll_                       )
     !# <referenceConstruct object="galacticFilterAll_"                                constructor="galacticFilterAll                               (filters_                                                                                                                                                  )"/>
     ! Create a distribution normalizer which normalizes to bin width.
-    allocate(normalizerSequence)
-    normalizer_ => normalizerSequence
-    allocate(outputAnalysisDistributionNormalizerUnitarity  :: normalizer_%normalizer_)
-    select type (normalizer_ => normalizer_%normalizer_)
-    type is (outputAnalysisDistributionNormalizerUnitarity  )
-       !# <referenceConstruct object="normalizer_" constructor="outputAnalysisDistributionNormalizerUnitarity ()"/>
-    end select
-    allocate(normalizer_%next)
-    normalizer_ => normalizer_%next
-    allocate(outputAnalysisDistributionNormalizerBinWidth   :: normalizer_%normalizer_)
-    select type (normalizer_ => normalizer_%normalizer_)
-    type is (outputAnalysisDistributionNormalizerBinWidth  )
-       !# <referenceConstruct object="normalizer_" constructor="outputAnalysisDistributionNormalizerBinWidth  ()"/>
-    end select
+    allocate(outputAnalysisDistributionNormalizerBinWidth_ )
+    !# <referenceConstruct object="outputAnalysisDistributionNormalizerBinWidth_"  constructor="outputAnalysisDistributionNormalizerBinWidth ()"/>
+    allocate(outputAnalysisDistributionNormalizerUnitarity_)
+    !# <referenceConstruct object="outputAnalysisDistributionNormalizerUnitarity_" constructor="outputAnalysisDistributionNormalizerUnitarity()"/>
+    allocate(normalizerSequence     )
+    allocate(normalizerSequence%next)
+    normalizerSequence     %normalizer_ => outputAnalysisDistributionNormalizerUnitarity_
+    normalizerSequence%next%normalizer_ => outputAnalysisDistributionNormalizerBinWidth_
     allocate(outputAnalysisDistributionNormalizer_)
     !# <referenceConstruct object="outputAnalysisDistributionNormalizer_" constructor="outputAnalysisDistributionNormalizerSequence(normalizerSequence)"/>
     ! Construct the object. We convert radii to log10(radii) here.
@@ -387,9 +386,11 @@ contains
          &                                functionValueTarget                                   , &
          &                                functionCovarianceTarget                                &
          &                               )
+    !# <objectDestructor name="surveyGeometry_"                                 />
     !# <objectDestructor name="nodePropertyExtractor_"                          />
     !# <objectDestructor name="outputAnalysisPropertyOperatorSequence_"         />
     !# <objectDestructor name="outputAnalysisWeightPropertyOperatorSequence_"   />
+    !# <objectDestructor name="outputAnalysisPropertyOperatorMultiply_"         />
     !# <objectDestructor name="outputAnalysisPropertyOperatorLog10_"            />
     !# <objectDestructor name="outputAnalysisPropertyOperatorCsmlgyAnglrDstnc_" />
     !# <objectDestructor name="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_"/>
@@ -408,6 +409,8 @@ contains
     !# <objectDestructor name="galacticFilterMorphologyInverted_"               />
     !# <objectDestructor name="cosmologyParametersData"                         />
     !# <objectDestructor name="cosmologyFunctionsData"                          />
+    !# <objectDestructor name="outputAnalysisDistributionNormalizerBinWidth_"   />
+    !# <objectDestructor name="outputAnalysisDistributionNormalizerUnitarity_"  />
     nullify(propertyOperatorSequence      )
     nullify(weightPropertyOperatorSequence)
     nullify(normalizerSequence            )

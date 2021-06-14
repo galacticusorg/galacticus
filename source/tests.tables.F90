@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,11 +21,11 @@
 
 program Test_Tables
   !% Tests that tables work correctly.
-  use :: Array_Utilities   , only : directionDecreasing           , directionIncreasing
-  use :: Galacticus_Display, only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use :: Tables            , only : table                         , table1D                 , table1DLinearCSpline              , table1DLinearLinear, &
-          &                         table1DLinearMonotoneCSpline  , table1DLogarithmicLinear, table1DNonUniformLinearLogarithmic, table2DLogLogLin
-  use :: Unit_Tests        , only : Assert                        , Unit_Tests_Begin_Group  , Unit_Tests_End_Group              , Unit_Tests_Finish
+  use :: Array_Utilities, only : directionDecreasing         , directionIncreasing
+  use :: Display        , only : displayVerbositySet         , verbosityLevelStandard
+  use :: Tables         , only : table                       , table1D                 , table1DLinearCSpline              , table1DLinearLinear, &
+          &                      table1DLinearMonotoneCSpline, table1DLogarithmicLinear, table1DNonUniformLinearLogarithmic, table2DLogLogLin
+  use :: Unit_Tests     , only : Assert                      , Unit_Tests_Begin_Group  , Unit_Tests_End_Group              , Unit_Tests_Finish
   implicit none
   class           (table           ), allocatable :: myTable
   class           (table1D         ), allocatable :: myReversedTable
@@ -36,7 +36,7 @@ program Test_Tables
   logical                                         :: isMonotonic
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Tables")

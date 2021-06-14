@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,7 +26,8 @@
      double precision :: toleranceRelative
      double precision :: recombinationRateTotal, recombinationRateTotalPrevious
    contains
-     procedure :: testConvergence => hydrogenRecombinationRateTestConvergence
+     procedure :: testConvergence     => hydrogenRecombinationRateTestConvergence
+     procedure :: photonPacketEscapes => hydrogenRecombinationRatePhotonPacketEscapes
   end type radiativeTransferConvergenceHydrogenRecombinationRate
   
   interface radiativeTransferConvergenceHydrogenRecombinationRate
@@ -39,7 +40,7 @@ contains
 
   function hydrogenRecombinationRateConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily hydrogenRecombinationRate} radiative transfer matter class which takes a parameter set as input.
-    use :: Input_Parameters, only : inputParameters, inputParameter
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (radiativeTransferConvergenceHydrogenRecombinationRate)                :: self
     type            (inputParameters                                      ), intent(inout) :: parameters
@@ -47,11 +48,9 @@ contains
     
     !# <inputParameter>
     !#   <name>toleranceRelative</name>
-    !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d-3</defaultValue>
     !#   <description>The relative tolerance in total recombination rate required to declare convergence.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     self=radiativeTransferConvergenceHydrogenRecombinationRate(toleranceRelative)
     return
@@ -71,7 +70,7 @@ contains
   
   subroutine hydrogenRecombinationRateTestConvergence(self,radiativeTransferMatter_,properties,statusCell,converged)
     !% Test convergence in the computational domain cell.
-    use :: Galacticus_Display        , only : Galacticus_Display_Message   , verbosityStandard
+    use :: Display                   , only : displayMessage               , verbosityLevelStandard
     use :: MPI_Utilities             , only : mpiSelf
     use :: Radiative_Transfer_Matters, only : radiativeTransferMatterAtomic, radiativeTransferPropertiesMatterAtomic
     implicit none
@@ -108,10 +107,20 @@ contains
           else
              message=trim(message)//    'converged)'
           end if
-          call Galacticus_Display_Message(trim(message),verbosityStandard)
+          call displayMessage(trim(message),verbosityLevelStandard)
        end if
     else
        converged=.true.
     end if
     return
   end subroutine hydrogenRecombinationRateTestConvergence
+
+  subroutine hydrogenRecombinationRatePhotonPacketEscapes(self,photonPacket)
+    !% Process an escaping photon packet.
+    implicit none
+    class(radiativeTransferConvergenceHydrogenRecombinationRate), intent(inout) :: self
+    class(radiativeTransferPhotonPacketClass                   ), intent(inout) :: photonPacket
+    !$GLC attributes unused :: self, photonPacket
+
+    return
+  end subroutine hydrogenRecombinationRatePhotonPacketEscapes

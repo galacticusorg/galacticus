@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +22,10 @@
   use :: Cooling_Radii, only : coolingRadius, coolingRadiusClass
 
   !# <coolingInfallRadius name="coolingInfallRadiusCoolingRadius">
-  !#  <description>A simple infall radius calculation, simply assuming that the infall radius equals the cooling radius.</description>
+  !#  <description>
+  !#   A cooling infall radius class that assumes that the infall radius equals the cooling radius (see
+  !#   \refPhysics{coolingRadius}).
+  !#  </description>
   !# </coolingInfallRadius>
   type, extends(coolingInfallRadiusClass) :: coolingInfallRadiusCoolingRadius
      !% Implementation of a simple infall radius calculation, simply assuming that the infall radius equals the cooling radius.

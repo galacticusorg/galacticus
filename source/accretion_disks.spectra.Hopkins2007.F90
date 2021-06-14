@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -29,15 +29,9 @@
      private
      type(lockDescriptor) :: fileLock
    contains
-     !@ <objectMethods>
-     !@   <object>accretionDiskSpectraHopkins2007</object>
-     !@   <objectMethod>
-     !@     <method>buildFile</method>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@     <description>Build the tabulation file containing AGN spectra.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !# <methods>
+     !#   <method description="Build the tabulation file containing AGN spectra." method="buildFile" />
+     !# </methods>
      procedure :: buildFile => hopkins2007BuildFile
   end type accretionDiskSpectraHopkins2007
 
@@ -55,7 +49,7 @@ contains
     implicit none
     type(accretionDiskSpectraHopkins2007)                :: self
     type(inputParameters                ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    !$GLC attributes unused :: parameters
 
     self=accretionDiskSpectraHopkins2007()
     return
@@ -74,30 +68,27 @@ contains
     call self%buildFile()
     ! Load the file.
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-    call File_Lock           (char(self%fileName),self%fileLock,lockIsShared=.true.)
-    call self%loadFile       (char(self%fileName)                                  )
-    call File_Unlock         (                    self%fileLock                    )
-    ! Initialize interpolators.
-    self%resetLuminosity=.true.
-    self%resetWavelength=.true.
+    call File_Lock    (char(self%fileName),self%fileLock,lockIsShared=.true.)
+    call self%loadFile(char(self%fileName)                                  )
+    call File_Unlock  (                    self%fileLock                    )
     return
   end function hopkins2007ConstructorInternal
 
   subroutine hopkins2007BuildFile(self)
     !% Build a file containing a tabulation of the \cite{hopkins_observational_2007} model AGN spectra.
     use            :: Dates_and_Times                 , only : Formatted_Date_and_Time
-    use            :: File_Utilities                  , only : Count_Lines_in_File       , Directory_Make                  , File_Exists              , File_Lock                  , &
+    use            :: Display                         , only : displayCounter         , displayCounterClear , displayIndent     , displayUnindent, &
+          &                                                    verbosityLevelWorking
+    use            :: File_Utilities                  , only : Count_Lines_in_File    , Directory_Make      , File_Exists       , File_Lock      , &
           &                                                    File_Unlock
-    use            :: Galacticus_Display              , only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Unindent, &
-          &                                                    verbosityWorking
     use            :: Galacticus_Error                , only : Galacticus_Error_Report
-    use            :: Galacticus_Paths                , only : galacticusPath            , pathTypeDataDynamic             , pathTypeDataStatic
-    use            :: IO_HDF5                         , only : hdf5Access                , hdf5Object
+    use            :: Galacticus_Paths                , only : galacticusPath         , pathTypeDataDynamic , pathTypeDataStatic
+    use            :: IO_HDF5                         , only : hdf5Access             , hdf5Object
     use, intrinsic :: ISO_Fortran_Env
     use            :: Numerical_Constants_Astronomical, only : luminositySolar
     use            :: Numerical_Constants_Physical    , only : speedLight
     use            :: Numerical_Constants_Units       , only : angstromsPerMeter
-    use            :: Numerical_Ranges                , only : Make_Range                , rangeTypeLogarithmic
+    use            :: Numerical_Ranges                , only : Make_Range             , rangeTypeLogarithmic
     use            :: String_Handling                 , only : operator(//)
     use            :: System_Command                  , only : System_Command_Do
     implicit none
@@ -137,7 +128,7 @@ contains
     call File_Unlock(self%fileLock)
     ! Make the file if necessary.
     if (makeFile) then
-       call Galacticus_Display_Indent('Building file of tabulated AGN spectra for Hopkins2007 class',verbosity=verbosityWorking)
+       call displayIndent('Building file of tabulated AGN spectra for Hopkins2007 class',verbosity=verbosityLevelWorking)
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(self%fileName),self%fileLock,lockIsShared=.false.)
        ! Download the AGN SED code.
@@ -156,7 +147,7 @@ contains
        allocate(luminosityBolometric(luminosityBolometricCount))
        luminosityBolometric=Make_Range(luminosityBolometricMinimum,luminosityBolometricMaximum,luminosityBolometricCount,rangeTypeLogarithmic)
        do i=1,luminosityBolometricCount
-          call Galacticus_Display_Counter(int(100.0*dble(i-1)/dble(luminosityBolometricCount)),isNew=i==1,verbosity=verbosityWorking)
+          call displayCounter(int(100.0*dble(i-1)/dble(luminosityBolometricCount)),isNew=i==1,verbosity=verbosityLevelWorking)
           write (label,'(e12.6)') log10(luminosityBolometric(i))
           call System_Command_Do(galacticusPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.x "//label//" > "//galacticusPath(pathTypeDataDynamic)//"AGN_Spectrum/SED.txt")
           wavelengthCount=Count_Lines_in_File(galacticusPath(pathTypeDataDynamic)//"AGN_Spectrum/SED.txt",";")-4
@@ -180,7 +171,7 @@ contains
           end do
           close(sedUnit)
        end do
-       call Galacticus_Display_Counter_Clear(verbosity=verbosityWorking)
+       call displayCounterClear(verbosity=verbosityLevelWorking)
        ! Store the data to file.
        !$ call hdf5Access%set()
        call file   %openFile      (char(self%fileName)                             ,overWrite      =.true. )
@@ -205,7 +196,7 @@ contains
        call file%close         (                                                                                                                    )
        !$ call hdf5Access%unset()
        call File_Unlock(self%fileLock)
-       call Galacticus_Display_Unindent('done',verbosity=verbosityWorking)
+       call displayUnindent('done',verbosity=verbosityLevelWorking)
     end if
     return
   end subroutine hopkins2007BuildFile

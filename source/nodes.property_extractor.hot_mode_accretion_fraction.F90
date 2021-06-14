@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -87,7 +87,7 @@ contains
     type            (treeNode                                     ), intent(inout), target   :: node
     type            (multiCounter                                 ), intent(inout), optional :: instance
     double precision                                                                         :: accretionRateHot, accretionRateTotal
-    !GCC$ attributes unused :: instance
+    !$GLC attributes unused :: instance
 
     accretionRateHot  =self%accretionHalo_%accretionRate(node,accretionModeHot  )
     accretionRateTotal=self%accretionHalo_%accretionRate(node,accretionModeTotal)
@@ -104,7 +104,7 @@ contains
     implicit none
     type (varying_string                               )                :: fractionAccretionHotModeName
     class(nodePropertyExtractorFractionAccretionHotMode), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     fractionAccretionHotModeName=var_str('haloAccretionHotModeFraction')
     return
@@ -115,7 +115,7 @@ contains
     implicit none
     type (varying_string                               )                :: fractionAccretionHotModeDescription
     class(nodePropertyExtractorFractionAccretionHotMode), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     fractionAccretionHotModeDescription=var_str('Fraction of halo accretion rate occuring via the hot mode.')
     return
@@ -125,7 +125,7 @@ contains
     !% Return the units of the {\normalfont \ttfamily fractionAccretionHotMode} property in the SI system.
     implicit none
     class(nodePropertyExtractorFractionAccretionHotMode), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     fractionAccretionHotModeUnitsInSI=0.0d0
     return
@@ -136,7 +136,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorFractionAccretionHotMode), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     fractionAccretionHotModeType=outputAnalysisPropertyTypeLinear
     return

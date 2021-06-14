@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +22,24 @@
   use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
   
   !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodMltiVrtNormalStochastic">
-  !#  <description>A posterior sampling likelihood class which implements a multivariate normal.</description>
+  !#  <description>
+  !#   The likelihood is identical to that of the {\normalfont \ttfamily multivariateNormal} class, except that the likelihood function
+  !#   is evaluated stochastically. In addition to the parameter of the {\normalfont \ttfamily multivariateNormal} class, two additional
+  !#   parameters are required and are specified within the {\normalfont \ttfamily likelihood} element using:
+  !#   \begin{verbatim}
+  !#     <realizationCount>4000</realizationCount>
+  !#     <realizationCountMinimum>10</realizationCountMinimum>
+  !#   \end{verbatim}
+  !#   When evaluating the likelihood, the state vector is set equal to 
+  !#   \begin{equation}
+  !#    S^\prime_i = \sum_{j=1}^N {2 U(S_i) \over N},
+  !#   \end{equation}
+  !#   where $N=${\normalfont \ttfamily realizationCount} and $U(x)$ is a uniform random deviate in the range $0$ to $x$. This results in
+  !#   a variance in $S^\prime_i$ of $S_i^2/3N$. This variance is added to the covariance used in evaluating the likelihood. When
+  !#   evaluating the likelihood at a higher temperature the number of realizations is reduced (which increases the covariance, which has
+  !#   the same effect as increasing the temperature) to speed computation, and the likelihood corrected for this fact. The number of
+  !#   realizations is reduced to $N/T$, but never allowed to fall below {\normalfont \ttfamily realizationCountMinimum}.
+  !#  </description>
   !# </posteriorSampleLikelihood>
   type, extends(posteriorSampleLikelihoodMultivariateNormal) :: posteriorSampleLikelihoodMltiVrtNormalStochastic
      !% Implementation of a posterior sampling likelihood class which implements a multivariate likelihood.
@@ -59,31 +76,23 @@ contains
     allocate(covariance(parameters%count('means'),parameters%count('means')))
     !# <inputParameter>
     !#   <name>means</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The mean of the multivariate normal distribution.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>covariance</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The covariance matrix for the of the multivariate normal distribution.</description>
     !#   <source>parameters</source>
-    !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>realizationCount</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The number of realizations of the stochastic likelihood to compute at unit temperature.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>realizationCountMinimum</name>
-    !#   <cardinality>1</cardinality>
     !#   <description>The minimum number of realizations of the stochastic likelihood to compute at higher temperatures.</description>
     !#   <source>parameters</source>
-    !#   <type>integer</type>
     !# </inputParameter>
     !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     self=posteriorSampleLikelihoodMltiVrtNormalStochastic(means,covariance,realizationCount,realizationCountMinimum,randomNumberGenerator_)
@@ -132,7 +141,7 @@ contains
     logical                                                           , intent(inout), optional       :: forceAcceptance
     type            (vector                                          )                                :: stateVector           , difference              , &
          &                                                                                               stateStochasticVector
-    type            (matrix                                          )                                :: covarianceMatrix      , covarianceMatrixInverse
+    type            (matrix                                          )                                :: covarianceMatrix
     double precision                                                  , allocatable  , dimension(:  ) :: stateStochastic       , stateTrue
     double precision                                                  , allocatable  , dimension(:,:) :: covarianceStochastic  , covarianceFixed         , &
          &                                                                                               covarianceFull
@@ -140,7 +149,7 @@ contains
          &                                                                                               realizationCount
     double precision                                                                                  :: temperatureEffective  , likelihoodEffective     , &
          &                                                                                               logDeterminant
-    !GCC$ attributes unused :: self, logLikelihoodCurrent, logPriorCurrent, logPriorProposed, simulationConvergence, timeEvaluate, modelParametersInactive_, forceAcceptance
+    !$GLC attributes unused :: self, logLikelihoodCurrent, logPriorCurrent, logPriorProposed, simulationConvergence, timeEvaluate, modelParametersInactive_, forceAcceptance
 
     ! Report zero variance, as this class is designed specifically for testing for unaccounted-for randomness in the likelihood
     ! estimate.
@@ -171,18 +180,17 @@ contains
     do j=1,simulationState%dimension()
        covarianceStochastic(j,j)=stateTrue(j)**2/3.0d0/dble(realizationCount)
     end do
-    covarianceFixed        =self%covariance
-    covarianceFull         =covarianceFixed*temperatureEffective+covarianceStochastic
-    covarianceMatrix       =covarianceFull
-    covarianceMatrixInverse=covarianceMatrix%invert                ()
-    logDeterminant         =covarianceMatrix%logarithmicDeterminant()
+    covarianceFixed =self%covariance
+    covarianceFull  =covarianceFixed*temperatureEffective+covarianceStochastic
+    covarianceMatrix=covarianceFull
+    logDeterminant  =covarianceMatrix%logarithmicDeterminant()
     deallocate(     stateTrue      )
     deallocate(     stateStochastic)
     deallocate(covarianceStochastic)
     deallocate(covarianceFixed     )
     ! Construct the likelihood.
     difference         =stateStochasticVector-self%means
-    likelihoodEffective=-0.5d0*(difference*(covarianceMatrixInverse*difference))
+    likelihoodEffective=-0.5d0*covarianceMatrix%covarianceProduct(difference)
     ! Correct to unit temperature.
     multivariateNormalStochasticEvaluate= &
          &  temperatureEffective          &
@@ -208,7 +216,7 @@ contains
     !% Respond to possible changes in the likelihood function.
     implicit none
     class(posteriorSampleLikelihoodMltiVrtNormalStochastic), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    !$GLC attributes unused :: self
 
     return
   end subroutine multivariateNormalStochasticFunctionChanged

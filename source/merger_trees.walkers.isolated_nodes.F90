@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -44,7 +44,7 @@ contains
     implicit none
     type(mergerTreeWalkerIsolatedNodes)                :: self
     type(inputParameters              ), intent(inout) :: parameters
-    !GCC$ attributes unused :: self, parameters
+    !$GLC attributes unused :: self, parameters
 
     call Galacticus_Error_Report('this class can not be built from parameters'//{introspection:location})
     return
@@ -70,8 +70,8 @@ contains
     class(mergerTreeWalkerIsolatedNodes), intent(inout)          :: self
     type (treeNode                     ), intent(inout), pointer :: node
 
-    ! If the node is currently pointing to the base node of the tree, then the tree walk is complete.
-    if (associated(self%node,self%tree%baseNode)) then
+    ! If we have already processed all nodes, simply return false and a null pointer.
+    if (.not.self%nodesRemain_) then
        node              => null()
        isolatedNodesNext =  .false.
        return

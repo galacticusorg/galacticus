@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,49 +21,42 @@
 
 module Numerical_Constants_Physical
   !% Contains various useful physical constants.
-  use :: FGSL                        , only : FGSL_CONST_MKSA_BOLTZMANN                , FGSL_CONST_MKSA_ELECTRON_CHARGE      , FGSL_CONST_MKSA_GRAVITATIONAL_CONSTANT, FGSL_CONST_MKSA_MASS_ELECTRON , &
-          &                                   FGSL_CONST_MKSA_PARSEC                   , FGSL_CONST_MKSA_PLANCKS_CONSTANT_H   , FGSL_CONST_MKSA_SOLAR_MASS            , FGSL_CONST_MKSA_SPEED_OF_LIGHT, &
-          &                                   FGSL_CONST_MKSA_STEFAN_BOLTZMANN_CONSTANT, FGSL_CONST_MKSA_THOMSON_CROSS_SECTION, FGSL_CONST_MKSA_VACUUM_PERMITTIVITY   , FGSL_CONST_NUM_FINE_STRUCTURE
-  use :: Numerical_Constants_Math    , only : Pi
-  use :: Numerical_Constants_Prefixes, only : kilo                                     , mega
+  use :: Numerical_Constants_Math, only : Pi
   implicit none
   public
 
   ! Speed of light (m/s).
-  double precision, parameter :: speedLight                     =FGSL_CONST_MKSA_SPEED_OF_LIGHT
-
-  ! Newton's gravitational constant (in Galacticus' M_Solar, Mpc, km/s unit system).
-  double precision, parameter :: gravitationalConstantGalacticus=FGSL_CONST_MKSA_GRAVITATIONAL_CONSTANT*FGSL_CONST_MKSA_SOLAR_MASS/(kilo**2)/FGSL_CONST_MKSA_PARSEC/mega
+  !# <gslConstant variable="speedLight" gslSymbol="GSL_CONST_MKSA_SPEED_OF_LIGHT" gslHeader="gsl_const_mksa"/>
 
   ! Newton's gravitational constant (in SI units).
-  double precision, parameter :: gravitationalConstant          =FGSL_CONST_MKSA_GRAVITATIONAL_CONSTANT
+  !# <gslConstant variable="gravitationalConstant" gslSymbol="GSL_CONST_MKSA_GRAVITATIONAL_CONSTANT" gslHeader="gsl_const_mksa"/>
 
   ! Stefan-Boltzmann constant (in units of J/s/M^2/K^4).
-  double precision, parameter :: stefanBoltzmannConstant        =FGSL_CONST_MKSA_STEFAN_BOLTZMANN_CONSTANT
+  !# <gslConstant variable="stefanBoltzmannConstant" gslSymbol="GSL_CONST_MKSA_STEFAN_BOLTZMANN_CONSTANT" gslHeader="gsl_const_mksa"/>
 
   ! Radiation constant (in units of J/m^3/K^4).
-  double precision, parameter :: radiationConstant              =4.0d0*FGSL_CONST_MKSA_STEFAN_BOLTZMANN_CONSTANT/FGSL_CONST_MKSA_SPEED_OF_LIGHT
+  double precision, parameter :: radiationConstant              =4.0d0*stefanBoltzmannConstant/speedLight
 
   ! Boltzmann's constant (in units of J/K).
-  double precision, parameter :: boltzmannsConstant             =FGSL_CONST_MKSA_BOLTZMANN
+  !# <gslConstant variable="boltzmannsConstant" gslSymbol="GSL_CONST_MKSA_BOLTZMANN" gslHeader="gsl_const_mksa"/>
 
   ! Thomson cross section (in units of m^2).
-  double precision, parameter :: thomsonCrossSection            =FGSL_CONST_MKSA_THOMSON_CROSS_SECTION
+  !# <gslConstant variable="thomsonCrossSection" gslSymbol="GSL_CONST_MKSA_THOMSON_CROSS_SECTION" gslHeader="gsl_const_mksa"/>
 
   ! Electron mass (in units of kg).
-  double precision, parameter :: electronMass                   =FGSL_CONST_MKSA_MASS_ELECTRON
+  !# <gslConstant variable="electronMass" gslSymbol="GSL_CONST_MKSA_MASS_ELECTRON" gslHeader="gsl_const_mksa"/>
 
   ! Planck's constant (in units of J s).
-  double precision, parameter :: plancksConstant                =FGSL_CONST_MKSA_PLANCKS_CONSTANT_H
+  !# <gslConstant variable="plancksConstant" gslSymbol="GSL_CONST_MKSA_PLANCKS_CONSTANT_H" gslHeader="gsl_const_mksa"/>
 
   ! Electron Charge (in units of C).
-  double precision, parameter :: electronCharge                 =FGSL_CONST_MKSA_ELECTRON_CHARGE
+  !# <gslConstant variable="electronCharge" gslSymbol="GSL_CONST_MKSA_ELECTRON_CHARGE" gslHeader="gsl_const_mksa"/>
 
   ! Permitivity of free space (in SI units).
-  double precision, parameter :: eps0                           =FGSL_CONST_MKSA_VACUUM_PERMITTIVITY
+  !# <gslConstant variable="eps0" gslSymbol="GSL_CONST_MKSA_VACUUM_PERMITTIVITY" gslHeader="gsl_const_mksa"/>
 
   ! Fine structure constant (unitless)
-  double precision, parameter :: fineStructure                  =FGSL_CONST_NUM_FINE_STRUCTURE
+  !# <gslConstant variable="fineStructure" gslSymbol="GSL_CONST_NUM_FINE_STRUCTURE" gslHeader="gsl_const_num"/>
 
   ! Classical electron radius (m)
   double precision, parameter :: electronRadius                 = 1.0d0 / (4.0d0 * Pi * eps0) * electronCharge**2 / (electronMass * speedLight**2)

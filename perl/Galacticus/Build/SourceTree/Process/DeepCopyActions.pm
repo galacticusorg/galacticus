@@ -23,16 +23,11 @@ sub Process_DeepCopyActions {
     # Initialize deep copy actions database.
     my $deepCopyActions;
     # Walk the tree.
-    my $node       = $tree;
-    my $moduleNode        ;
-    my $depth      = 0    ;
+    my $node  = $tree;
+    my $depth = 0    ;
     while ( $node ) {
 	# Capture deepCopyActions directives.
 	if ( $node->{'type'} eq "deepCopyActions" ) {
-	    # Assert that our parent is a module (for now).
-	    die("Process_DeepCopyActions: parent node must be a module")
-		unless ( $node->{'parent'}->{'type'} eq "module" );
-	    $moduleNode = $node->{'parent'};
 	    # Extract the directive.
 	    push(@directiveNodes,$node);	    
 	    # Get state storables database if we do not have it.
@@ -89,7 +84,7 @@ CODE
 		# This class is derived from the class of interest, so perform actions.
 		$deepCopyAction .= " type is (".$className.")\n";
 		# Search the class node for declarations.
-		my @staticVariables;
+		my @methodCalls;
 		my $parentClassName = $className;
 		while ( defined($parentClassName) ) {
 		    my $classNode = $classes{$parentClassName}->{'node'}->{'firstChild'};
@@ -103,11 +98,19 @@ CODE
 					foreach ( @variables );
 				}
 			    }
+			    # "methodCall" actions - simply call a method.
+			    if ( exists($directive->{$parentClassName}) && exists($directive->{$parentClassName}->{'methodCall'}) ) {
+				foreach my $methodCall ( &List::ExtraUtils::as_array($directive->{$parentClassName}->{'methodCall'}) ) {				    
+				    push(@methodCalls," call self%".$methodCall->{'method'}."(".(exists($methodCall->{'arguments'}) ? $methodCall->{'arguments'} : "").")");
+				}
+			    }
 			}
 			$classNode = $classNode->{'sibling'};
 		    }
 		    $parentClassName = $classes{$parentClassName}->{'extends'};
 		}
+		$deepCopyAction .= join("\n",@methodCalls)."\n"
+		    if ( @methodCalls );
 	    }
 	}
 	# Close function.
@@ -118,44 +121,21 @@ end subroutine {$className}DeepCopyActions
 CODE
 	# Insert type-bindings.
 	my $content = fill_in_string(<<'CODE', PACKAGE => 'code');
-    !@  <objectMethods>
-    !@   <object>{$className}</object>
-    !@   <objectMethod>
-    !@     <method>deepCopyActions</method>
-    !@     <type>void</type>
-    !@     <arguments></arguments>
-    !@     <description>Perform actions needed for deep copy of this object.</description>
-    !@   </objectMethod>
-    !@  </objectMethods>
+    !# <methods>
+    !#  <method method="deepCopyActions" description="Perform actions needed for deep copy of this object."/>
+    !# </methods>
     procedure :: deepCopyActions => {$className}DeepCopyActions
 CODE
-	my $binding =
-	    [
-	     {
-		 type       => "code" ,
-		 content    => $content,
-		 firstChild => undef(),
-		 sibling    => undef()
-	     }
-	    ];
-	&Galacticus::Build::SourceTree::InsertPostContains($classes{$directive->{'class'}}->{'node'},$binding);
+	my $treeContent = &Galacticus::Build::SourceTree::ParseCode($content,'null');
+	my @childrenContent = &Galacticus::Build::SourceTree::Children($treeContent);
+	&Galacticus::Build::SourceTree::InsertPostContains($classes{$directive->{'class'}}->{'node'},\@childrenContent);
 
 	# Insert code.
-	my $treeTmp = &Galacticus::Build::SourceTree::ParseCode($deepCopyAction,'null');
-	&Galacticus::Build::SourceTree::ProcessTree($treeTmp);
-	my $postContains =
-	    [
-	     {
-		 type       => "code" ,
-		 content    => &Galacticus::Build::SourceTree::Serialize($treeTmp),
-		 firstChild => undef(),
-		 sibling    => undef(),
-		 parent     => undef(),
-		 source     => "Galacticus::Build::SourceTree::Process::DeepCopyActions::Process_DeepCopyActions()",
-		 line       => 1
-	     }
-	    ];
-	&Galacticus::Build::SourceTree::InsertPostContains($directiveNode->{'parent'},$postContains);
+	my $treeDeepCopyActions = &Galacticus::Build::SourceTree::ParseCode($deepCopyAction,'null');
+	&Galacticus::Build::SourceTree::ProcessTree($treeDeepCopyActions);
+	my @childrenDeepCopyActions = &Galacticus::Build::SourceTree::Children($treeDeepCopyActions);
+	&Galacticus::Build::SourceTree::InsertPostContains($directiveNode->{'parent'},\@childrenDeepCopyActions);
+
     }
 }
 

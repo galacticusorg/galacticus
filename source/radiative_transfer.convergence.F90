@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,14 +21,21 @@
 
 module Radiative_Transfer_Convergences
   !% Provides a class that implements convergence criteria for radiative transfer calculations.
-  use :: Radiative_Transfer_Matters, only : radiativeTransferMatterClass, radiativeTransferPropertiesMatter
+  use :: Radiative_Transfer_Matters      , only : radiativeTransferMatterClass      , radiativeTransferPropertiesMatter
+  use :: Radiative_Transfer_Photon_Packet, only : radiativeTransferPhotonPacketClass
   private
-
+  
   !# <functionClass>
   !#  <name>radiativeTransferConvergence</name>
   !#  <descriptiveName>Radiative Transfer Convergence Criteria</descriptiveName>
   !#  <description>Class providing convergence criteria for radiative transfer calculations.</description>
   !#  <default>always</default>
+  !#  <method name="photonPacketEscapes" >
+  !#   <description>Process an escaping photon packet for convergence testing.</description>
+  !#   <type>void</type>
+  !#   <pass>yes</pass>
+  !#   <argument>class(radiativeTransferPhotonPacketClass), intent(inout) :: photonPacket</argument>
+  !#  </method>
   !#  <method name="testConvergence" >
   !#   <description>Test a domain cell for convergence.</description>
   !#   <type>void</type>
