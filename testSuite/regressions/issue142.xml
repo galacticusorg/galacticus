@@ -151,13 +151,16 @@
     <nonAnalyticSolver          value="numerical"/>
   </darkMatterProfileDMO>
   <darkMatterProfileHeating     value="tidal"              />
-  <darkMatterProfileScaleRadius value="ludlow2016"          >
-    <C                                  value="700.27000"    /> <!-- Best fit values from Johnson, Benson, & Grin (2020). -->
-    <f                                  value="  0.07534"    />
-    <timeFormationSeekDelta             value="  0.00000"    />
-    <darkMatterProfileScaleRadius value="concentration" >
-      <correctForConcentrationDefinition    value="true"              />
-      <darkMatterProfileConcentration value="diemerJoyce2019" />
+  <darkMatterProfileScaleRadius value="concentrationLimiter">
+    <concentrationMinimum value="  4.0"/>
+    <concentrationMaximum value="200.0"/>
+    <darkMatterProfileScaleRadius value="ludlow2016"          >
+      <C                                  value="700.27000"    /> <!-- Best fit values from Johnson, Benson, & Grin (2020). -->
+      <f                                  value="  0.07534"    />
+      <timeFormationSeekDelta             value="  0.00000"    />
+      <darkMatterProfileScaleRadius value="concentration" >
+	<correctForConcentrationDefinition    value="true"              />
+	<darkMatterProfileConcentration value="diemerJoyce2019" />
 	<!-- <alpha   value="1.12"/> -->
 	<!-- <beta    value="1.69"/> -->
 	<!-- <eta0    value="6.82"/> -->
@@ -166,11 +169,10 @@
 	<!-- <phi0    value="6.58"/> -->
 	<!-- <phi1    value="1.37"/> -->
 	<!-- <scatter value="0.00"/> -->
-      <!-- </darkMatterProfileConcentration> -->
+	<!-- </darkMatterProfileConcentration> -->
+      </darkMatterProfileScaleRadius>
     </darkMatterProfileScaleRadius>
   </darkMatterProfileScaleRadius>
-  <darkMatterProfileMinimumConcentration value="  4.0"/>
-  <darkMatterProfileMaximumConcentration value="200.0"/>
 
   <!-- Concentration model -->
   <darkMatterProfileScaleVirialTheoremUnresolvedEnergy value="0.5500"/> <!-- Best fit value from Johnson, Benson, & Grin (2020) -->
@@ -305,6 +307,8 @@
 
   <!-- Node evolution and physics -->
   <nodeOperator value="multi">
+    <!-- Halo concentrations -->
+    <nodeOperator value="darkMatterProfileScaleInterpolate"/>
     <!-- Subhalo hierarchy -->
     <nodeOperator value="subsubhaloPromotion"   />
     <!-- Subhalo orbits -->

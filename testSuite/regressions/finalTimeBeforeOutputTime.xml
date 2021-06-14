@@ -4,7 +4,7 @@
 <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
-  <componentDarkMatterProfile value="scale"/>
+  <componentDarkMatterProfile value="null"/>
   <satelliteMergingTimescales value="jiang2008">
     <timescaleMultiplier value="1.0"/>
   </satelliteMergingTimescales>
@@ -48,6 +48,9 @@
   <mergerTreeBuildMassDistribution value="uniform"/>
   <darkMatterProfileDMO value="isothermal"/>
   <darkMatterProfileScaleRadius value="zero"/>
+  <darkMatterProfileConcentration value="fixed">
+    <concentration value="10.0"/>
+  </darkMatterProfileConcentration>
   <cosmologyParameters value="simple">
     <OmegaBaryon value="0.0455"/>
     <OmegaDarkEnergy value="0.75"/>

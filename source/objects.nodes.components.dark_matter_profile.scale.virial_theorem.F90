@@ -53,13 +53,6 @@ module Node_Component_Scale_Virial_Theorem
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#   </property>
-  !#   <property>
-  !#     <name>scaleIsLimited</name>
-  !#     <type>logical</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#     <classDefault>.true.</classDefault>
-  !#   </property>
   !#  </properties>
   !# </component>
 

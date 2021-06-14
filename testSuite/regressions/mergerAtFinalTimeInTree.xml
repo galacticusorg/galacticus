@@ -6,7 +6,7 @@
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
   <verbosityLevel value="standard"/>
-  <componentDarkMatterProfile value="scale"/>
+  <componentDarkMatterProfile value="null"/>
   <starFormationRateDisks value="timescale">
     <starFormationTimescale value="haloScaling">
       <exponentRedshift value="0.0"/>
@@ -46,6 +46,9 @@
   </cosmologicalMassVariance>
   <darkMatterProfileDMO value="isothermal"/>
   <darkMatterProfileScaleRadius value="zero"/>
+  <darkMatterProfileConcentration value="fixed">
+    <concentration value="10.0"/>
+  </darkMatterProfileConcentration>
   <cosmologyParameters value="simple">
     <OmegaBaryon value="0.0455"/>
     <OmegaDarkEnergy value="0.75"/>
