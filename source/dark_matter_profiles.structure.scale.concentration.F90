@@ -214,9 +214,8 @@ contains
           concentrationState_(concentrationStateCount)%nodeWork          => treeNode                                                               (                 )
           concentrationState_(concentrationStateCount)%basic             => concentrationState_(concentrationStateCount)%nodeWork%basic            (autoCreate=.true.)
           concentrationState_(concentrationStateCount)%darkMatterProfile => concentrationState_(concentrationStateCount)%nodeWork%darkMatterProfile(autoCreate=.true.)
-          call concentrationState_(concentrationStateCount)%basic            %timeSet            (basic%time())
-          call concentrationState_(concentrationStateCount)%basic            %timeLastIsolatedSet(basic%time())
-          call concentrationState_(concentrationStateCount)%darkMatterProfile%scaleIsLimitedSet  (.false.     )
+          call concentrationState_(concentrationStateCount)%basic%timeSet            (basic%time())
+          call concentrationState_(concentrationStateCount)%basic%timeLastIsolatedSet(basic%time())
           ! The finder is initialized each time as it is allocated on the stack - this allows this function to be called recursively.
           finder=rootFinder(                                                             &
                &            rootFunction                 =concentrationMassRoot        , &

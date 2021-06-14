@@ -400,10 +400,9 @@ contains
     state(stateCount)%workNode              => treeNode                                    (                 )
     workBasic                               => state(stateCount)%workNode%basic            (autoCreate=.true.)
     state(stateCount)%workDarkMatterProfile => state(stateCount)%workNode%darkMatterProfile(autoCreate=.true.)
-    call workBasic            %massSet            (mass   )
-    call workBasic            %timeSet            (time   )
-    call workBasic            %timeLastIsolatedSet(time   )
-    call state(stateCount)%workDarkMatterProfile%scaleIsLimitedSet  (.false.)
+    call workBasic%massSet            (mass)
+    call workBasic%timeSet            (time)
+    call workBasic%timeLastIsolatedSet(time)
     call Galacticus_Calculations_Reset(state(stateCount)%workNode)
     ! Make an initial guess at the halo radius.
     radiusHalo=(mass/4.0d0/Pi/state(stateCount)%boundingDensity)**(1.0d0/3.0d0)

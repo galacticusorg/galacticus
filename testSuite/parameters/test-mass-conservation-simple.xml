@@ -54,8 +54,14 @@
       <phi1 value="1.37"/>
     </darkMatterProfileConcentration>
     <darkMatterProfileDMO value="NFW"/>
-    <darkMatterProfileScaleRadius value="concentration">
-      <correctForConcentrationDefinition value="true"/>
+
+    <!-- Halo scale radii and concentrations -->
+    <darkMatterProfileScaleRadius value="concentrationLimiter">
+      <concentrationMinimum value="  4.0"/>
+      <concentrationMaximum value="100.0"/>
+      <darkMatterProfileScaleRadius value="concentration">
+	<correctForConcentrationDefinition value="true"/>
+      </darkMatterProfileScaleRadius>
     </darkMatterProfileScaleRadius>
 
     <diskMassToleranceAbsolute value="1.0e-6"/>
@@ -209,11 +215,13 @@
 
     <!-- Node evolution and physics -->
     <nodeOperator value="multi">
-    <!-- Halo spins -->
-    <nodeOperator value="haloSpinRandom" iterable="no">
-      <factorReset value="2.0"/>
-    </nodeOperator>
-    <!-- Star formation -->
+      <!-- Halo concentrations -->
+      <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
+      <!-- Halo spins -->
+      <nodeOperator value="haloSpinRandom" iterable="no">
+	<factorReset value="2.0"/>
+      </nodeOperator>
+      <!-- Star formation -->
       <nodeOperator value="starFormationDisks" iterable="no"/>
       <nodeOperator value="stellarFeedbackDisks" iterable="no">
 	<stellarFeedbackOutflows value="rateLimit">
@@ -226,7 +234,7 @@
 	</stellarFeedbackOutflows>
       </nodeOperator>
     </nodeOperator>
-
+    
   </parameters>
   
 </parameterGrid>

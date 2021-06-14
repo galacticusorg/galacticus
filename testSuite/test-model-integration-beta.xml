@@ -123,8 +123,12 @@
     <phi0 value="7.1395684741179295"/>
     <phi1 value="1.37"/>
   </darkMatterProfileConcentration>
-  <darkMatterProfileScaleRadius value="concentration">
-    <correctForConcentrationDefinition value="true"/>
+  <darkMatterProfileScaleRadius value="concentrationLimiter">
+    <concentrationMinimum value="  4.0"/>
+    <concentrationMaximum value="100.0"/>
+    <darkMatterProfileScaleRadius value="concentration">
+      <correctForConcentrationDefinition value="true"/>
+    </darkMatterProfileScaleRadius>
   </darkMatterProfileScaleRadius>
 
   <!-- Dark matter halo spin -->
@@ -243,6 +247,8 @@
 
   <!-- Node evolution and physics -->
   <nodeOperator value="multi">
+    <!-- Halo concentrations -->
+    <nodeOperator value="darkMatterProfileScaleInterpolate"/>
     <!-- Halo spins -->
     <nodeOperator value="haloSpinRandom">
       <factorReset value="2.0"/>

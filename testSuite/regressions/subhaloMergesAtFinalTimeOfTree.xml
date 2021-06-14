@@ -3,7 +3,7 @@
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
   <verbosityLevel value="standard"/>
-  <componentDarkMatterProfile value="scale"/>
+  <componentDarkMatterProfile value="null"/>
 
   <starFormationRateDisks value="timescale">
     <starFormationTimescale value="haloScaling">
@@ -12,6 +12,11 @@
       <timescale value="1.0"/>
     </starFormationTimescale>
   </starFormationRateDisks>
+
+  <!-- Halo scale radii and concentrations -->
+  <darkMatterProfileConcentration value="fixed">
+    <concentration value="10.0"/>
+  </darkMatterProfileConcentration>
 
   <!-- Node evolution and physics -->
   <nodeOperator value="multi">

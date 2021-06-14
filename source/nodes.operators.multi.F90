@@ -36,6 +36,7 @@
      type(multiProcessList), pointer :: processes => null()
    contains
      final     ::                                        multiDestructor
+     procedure :: nodeTreeInitialize                  => multiNodeTreeInitialize
      procedure :: nodeInitialize                      => multiNodeInitialize
      procedure :: nodesMerge                          => multiNodesMerge
      procedure :: nodePromote                         => multiNodePromote
@@ -111,6 +112,21 @@ contains
     end if
     return
   end subroutine multiDestructor
+
+  subroutine multiNodeTreeInitialize(self,node)
+    !% Perform node tree initialization.
+    implicit none
+    class(nodeOperatorMulti), intent(inout)          :: self
+    type (treeNode         ), intent(inout), target  :: node
+    type (multiProcessList )               , pointer :: process_
+
+    process_ => self%processes
+    do while (associated(process_))
+       call process_%process_%nodeTreeInitialize(node)
+       process_ => process_%next
+    end do
+    return
+  end subroutine multiNodeTreeInitialize
 
   subroutine multiNodeInitialize(self,node)
     !% Perform node initialization.

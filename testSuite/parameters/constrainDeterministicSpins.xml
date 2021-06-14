@@ -222,23 +222,34 @@
   </nbodyHaloMassError>
   <nodeMajorMergerFraction value="0.206728116479416"/>
 
-  <!--Stellar feedback outflows-->
-  <nodeOperator value="stellarFeedbackDisks">
-    <stellarFeedbackOutflows value="rateLimit">
-      <timescaleOutflowFractionalMinimum value="0.001"/>
-      <stellarFeedbackOutflows value="powerLaw">
-        <velocityCharacteristic value="250.0"/>
-        <exponent value="3.5"/>
+  <nodeOperator value="multi">
+    <!-- Halo concentrations -->
+    <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+    <!-- Halo spins -->
+    <nodeOperator value="haloSpinRandom">
+      <factorReset value="2.0"/>
+    </nodeOperator>
+    <!-- Star formation -->
+    <nodeOperator value="starFormationDisks"/>
+    <nodeOperator value="starFormationSpheroids"/>
+    <!--Stellar feedback outflows-->
+    <nodeOperator value="stellarFeedbackDisks">
+      <stellarFeedbackOutflows value="rateLimit">
+	<timescaleOutflowFractionalMinimum value="0.001"/>
+	<stellarFeedbackOutflows value="powerLaw">
+          <velocityCharacteristic value="250.0"/>
+          <exponent value="3.5"/>
+	</stellarFeedbackOutflows>
       </stellarFeedbackOutflows>
-    </stellarFeedbackOutflows>
-  </nodeOperator>
-  <nodeOperator value="stellarFeedbackSpheroids">
-    <stellarFeedbackOutflows value="rateLimit">
-      <timescaleOutflowFractionalMinimum value="0.001"/>
-      <stellarFeedbackOutflows value="powerLaw">
-        <velocityCharacteristic value="250.0"/>
-        <exponent value="3.5"/>
+    </nodeOperator>
+    <nodeOperator value="stellarFeedbackSpheroids">
+      <stellarFeedbackOutflows value="rateLimit">
+	<timescaleOutflowFractionalMinimum value="0.001"/>
+	<stellarFeedbackOutflows value="powerLaw">
+          <velocityCharacteristic value="250.0"/>
+          <exponent value="3.5"/>
+	</stellarFeedbackOutflows>
       </stellarFeedbackOutflows>
-    </stellarFeedbackOutflows>
+    </nodeOperator>
   </nodeOperator>
 </parameters>

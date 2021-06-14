@@ -29,6 +29,7 @@
   use    :: Kind_Numbers                      , only : kind_int8
   use    :: MPI_Utilities                     , only : mpiCounter
   use    :: Merger_Tree_Read_Importers        , only : mergerTreeImporterClass
+  use    :: Nodes_Operators                   , only : nodeOperatorClass
   use    :: Numerical_Random_Numbers          , only : randomNumberGeneratorClass
   !$ use :: OMP_Lib                           , only : omp_lock_kind
   use    :: Output_Times                      , only : outputTimes                        , outputTimesClass
@@ -169,7 +170,6 @@
   !#   \href{https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format#forest-halos-group}{here}) then the spin parameters
   !#   of nodes will be computed and set. This requires a dark matter halo spin component which supports setting of the spin (see
   !#   \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Physics.pdf\#sec.DarkMatterHaloSpinComponent}{here}).
-
   !#  </description>
   !# </mergerTreeConstructor>
   type, extends(mergerTreeConstructorClass) :: mergerTreeConstructorRead
@@ -186,6 +186,7 @@
      class           (outputTimesClass                   ), pointer                   :: outputTimes_                          => null()
      class           (darkMatterProfileScaleRadiusClass  ), pointer                   :: darkMatterProfileScaleRadius_         => null()
      class           (randomNumberGeneratorClass         ), pointer                   :: randomNumberGenerator_                => null()
+     class           (nodeOperatorClass                  ), pointer                   :: nodeOperator_                         => null()
      integer                                                                          :: fileCurrent
      type            (varying_string                     ), allocatable, dimension(:) :: fileNames                                      , presetNamedReals                    , &
           &                                                                              presetNamedIntegers
@@ -375,6 +376,7 @@ contains
     class           (outputTimesClass                   ), pointer                   :: outputTimes_
     class           (darkMatterProfileScaleRadiusClass  ), pointer                   :: darkMatterProfileScaleRadius_
     class           (randomNumberGeneratorClass         ), pointer                   :: randomNumberGenerator_
+    class           (nodeOperatorClass                  ), pointer                   :: nodeOperator_
     type            (varying_string                     ), allocatable, dimension(:) :: fileNames                           , presetNamedReals                    , &
          &                                                                              presetNamedIntegers
     integer                                                                          :: fileCount
@@ -568,17 +570,22 @@ contains
        !#   <source>parameters</source>
        !# </inputParameter>
     end if
-    !# <objectBuilder class="cosmologyFunctions"             name="cosmologyFunctions_"             source="parameters"                                                                            />
-    !# <objectBuilder class="mergerTreeImporter"             name="mergerTreeImporter_"             source="parameters"                                                                            />
-    !# <objectBuilder class="darkMatterHaloScale"            name="darkMatterHaloScale_"            source="parameters"                                                                            />
-    !# <objectBuilder class="darkMatterProfileDMO"           name="darkMatterProfileDMO_"           source="parameters"                                                                            />
-    !# <objectBuilder class="darkMatterProfileConcentration" name="darkMatterProfileConcentration_" source="parameters"                                                                            />
-    !# <objectBuilder class="haloSpinDistribution"           name="haloSpinDistribution_"           source="parameters"                                                                            />
-    !# <objectBuilder class="virialOrbit"                    name="virialOrbit_"                    source="parameters"                                                                            />
-    !# <objectBuilder class="outputTimes"                    name="outputTimes_"                    source="parameters"                                                                            />
-    !# <objectBuilder class="darkMatterProfileScaleRadius"   name="darkMatterProfileScaleRadius_"   source="parameters"                                                                            />
-    !# <objectBuilder class="randomNumberGenerator"          name="randomNumberGenerator_"          source="parameters"                                                                            />
-    !# <objectBuilder class="satelliteMergingTimescales"     name="satelliteMergingTimescales_"     source="parameters" parameterName="satelliteMergingTimescalesSubresolution" threadPrivate="yes" >
+    !# <objectBuilder class="cosmologyFunctions"             name="cosmologyFunctions_"             source="parameters"                                                        />
+    !# <objectBuilder class="mergerTreeImporter"             name="mergerTreeImporter_"             source="parameters"                                                        />
+    !# <objectBuilder class="darkMatterHaloScale"            name="darkMatterHaloScale_"            source="parameters"                                                        />
+    !# <objectBuilder class="darkMatterProfileDMO"           name="darkMatterProfileDMO_"           source="parameters"                                                        />
+    !# <objectBuilder class="darkMatterProfileConcentration" name="darkMatterProfileConcentration_" source="parameters"                                                        />
+    !# <objectBuilder class="haloSpinDistribution"           name="haloSpinDistribution_"           source="parameters"                                                        />
+    !# <objectBuilder class="virialOrbit"                    name="virialOrbit_"                    source="parameters"                                                        />
+    !# <objectBuilder class="outputTimes"                    name="outputTimes_"                    source="parameters"                                                        />
+    !# <objectBuilder class="darkMatterProfileScaleRadius"   name="darkMatterProfileScaleRadius_"   source="parameters"                                                        />
+    !# <objectBuilder class="randomNumberGenerator"          name="randomNumberGenerator_"          source="parameters"                                                        />
+    !# <objectBuilder class="nodeOperator"                   name="nodeOperator_"                   source="parameters" parameterName="nodeOperatorTreeInitializor"             >
+    !#  <default>
+    !#   <nodeOperatorTreeInitializor value="null"/>
+    !#  </default>
+    !# </objectBuilder>
+    !# <objectBuilder class="satelliteMergingTimescales"     name="satelliteMergingTimescales_"     source="parameters" parameterName="satelliteMergingTimescalesSubresolution" >
     !#  <default>
     !#   <satelliteMergingTimescalesSubresolution value="zero"/>
     !#  </default>
@@ -622,6 +629,7 @@ contains
          &                                                                               virialOrbit_                                                 , &
          &                                                                               outputTimes_                                                 , &
          &                                                                               darkMatterProfileScaleRadius_                                , &
+         &                                                                               nodeOperator_                                                , &
          &                                                                               randomNumberGenerator_                                         &
          &                        )
     !# <inputParametersValidate source="parameters"/>
@@ -635,11 +643,12 @@ contains
     !# <objectDestructor name="outputTimes_"                   />
     !# <objectDestructor name="darkMatterProfileScaleRadius_"  />
     !# <objectDestructor name="satelliteMergingTimescales_"    />
+    !# <objectDestructor name="nodeOperator_"                  />
     !# <objectDestructor name="randomNumberGenerator_"         />
     return
   end function readConstructorParameters
 
-  function readConstructorInternal(fileNames,outputTimeSnapTolerance,forestSizeMaximum,beginAt,missingHostsAreFatal,treeIndexToRootNodeIndex,subhaloAngularMomentaMethod,allowBranchJumps,allowSubhaloPromotions,presetMergerTimes,presetMergerNodes,presetSubhaloMasses,presetSubhaloIndices,presetPositions,presetScaleRadii,presetScaleRadiiConcentrationMinimum,presetScaleRadiiConcentrationMaximum,presetScaleRadiiMinimumMass,scaleRadiiFailureIsFatal,presetUnphysicalSpins,presetSpins,presetSpins3D,presetOrbits,presetOrbitsSetAll,presetOrbitsAssertAllSet,presetOrbitsBoundOnly,presetNamedReals,presetNamedIntegers,cosmologyFunctions_,mergerTreeImporter_,darkMatterHaloScale_,darkMatterProfileDMO_,darkMatterProfileConcentration_,haloSpinDistribution_,satelliteMergingTimescales_,virialOrbit_,outputTimes_,darkMatterProfileScaleRadius_,randomNumberGenerator_) result(self)
+  function readConstructorInternal(fileNames,outputTimeSnapTolerance,forestSizeMaximum,beginAt,missingHostsAreFatal,treeIndexToRootNodeIndex,subhaloAngularMomentaMethod,allowBranchJumps,allowSubhaloPromotions,presetMergerTimes,presetMergerNodes,presetSubhaloMasses,presetSubhaloIndices,presetPositions,presetScaleRadii,presetScaleRadiiConcentrationMinimum,presetScaleRadiiConcentrationMaximum,presetScaleRadiiMinimumMass,scaleRadiiFailureIsFatal,presetUnphysicalSpins,presetSpins,presetSpins3D,presetOrbits,presetOrbitsSetAll,presetOrbitsAssertAllSet,presetOrbitsBoundOnly,presetNamedReals,presetNamedIntegers,cosmologyFunctions_,mergerTreeImporter_,darkMatterHaloScale_,darkMatterProfileDMO_,darkMatterProfileConcentration_,haloSpinDistribution_,satelliteMergingTimescales_,virialOrbit_,outputTimes_,darkMatterProfileScaleRadius_,nodeOperator_,randomNumberGenerator_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily read} merger tree constructor class.
     use    :: Display                    , only : displayMagenta         , displayReset
     use    :: File_Utilities             , only : File_Name_Expand
@@ -661,6 +670,7 @@ contains
     class           (outputTimesClass                   ), intent(in   ), target       :: outputTimes_
     class           (darkMatterProfileScaleRadiusClass  ), intent(in   ), target       :: darkMatterProfileScaleRadius_
     class           (randomNumberGeneratorClass         ), intent(in   ), target       :: randomNumberGenerator_
+    class           (nodeOperatorClass                  ), intent(in   ), target       :: nodeOperator_
     type            (varying_string                     ), intent(in   ), dimension(:) :: fileNames                           , presetNamedReals                    , &
          &                                                                                presetNamedIntegers
     integer         (c_size_t                           ), intent(in   )               :: forestSizeMaximum
@@ -679,7 +689,7 @@ contains
          &                                                                                presetScaleRadiiMinimumMass         , outputTimeSnapTolerance
     integer         (c_size_t                           )                              :: iOutput                             , i
     type            (varying_string                     )                              :: message
-    !# <constructorAssign variables="fileNames, outputTimeSnapTolerance, forestSizeMaximum, beginAt, missingHostsAreFatal, treeIndexToRootNodeIndex, subhaloAngularMomentaMethod, allowBranchJumps, allowSubhaloPromotions, presetMergerTimes, presetMergerNodes, presetSubhaloMasses, presetSubhaloIndices, presetPositions, presetScaleRadii,  presetScaleRadiiConcentrationMinimum, presetScaleRadiiConcentrationMaximum, presetScaleRadiiMinimumMass, scaleRadiiFailureIsFatal, presetUnphysicalSpins, presetSpins, presetSpins3D, presetOrbits, presetOrbitsSetAll, presetOrbitsAssertAllSet, presetOrbitsBoundOnly, presetNamedReals, presetNamedIntegers, *cosmologyFunctions_, *mergerTreeImporter_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *darkMatterProfileConcentration_, *haloSpinDistribution_, *satelliteMergingTimescales_, *virialOrbit_, *outputTimes_, *darkMatterProfileScaleRadius_, *randomNumberGenerator_"/>
+    !# <constructorAssign variables="fileNames, outputTimeSnapTolerance, forestSizeMaximum, beginAt, missingHostsAreFatal, treeIndexToRootNodeIndex, subhaloAngularMomentaMethod, allowBranchJumps, allowSubhaloPromotions, presetMergerTimes, presetMergerNodes, presetSubhaloMasses, presetSubhaloIndices, presetPositions, presetScaleRadii,  presetScaleRadiiConcentrationMinimum, presetScaleRadiiConcentrationMaximum, presetScaleRadiiMinimumMass, scaleRadiiFailureIsFatal, presetUnphysicalSpins, presetSpins, presetSpins3D, presetOrbits, presetOrbitsSetAll, presetOrbitsAssertAllSet, presetOrbitsBoundOnly, presetNamedReals, presetNamedIntegers, *cosmologyFunctions_, *mergerTreeImporter_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *darkMatterProfileConcentration_, *haloSpinDistribution_, *satelliteMergingTimescales_, *virialOrbit_, *outputTimes_, *darkMatterProfileScaleRadius_, *nodeOperator_, *randomNumberGenerator_"/>
 
     ! Initialize statuses.
     self%warningNestedHierarchyIssued           =.false.
@@ -873,6 +883,7 @@ contains
     !# <objectDestructor name="self%virialOrbit_"                   />
     !# <objectDestructor name="self%outputTimes_"                   />
     !# <objectDestructor name="self%darkMatterProfileScaleRadius_"  />
+    !# <objectDestructor name="self%nodeOperator_"                  />
     !# <objectDestructor name="self%randomNumberGenerator_"         />
     return
   end subroutine readDestructor
@@ -1229,6 +1240,8 @@ contains
                   &       {introspection:location}                                                                                                                        &
                   &      )
           end if
+          ! Apply any tree initialization operators.
+          call self%nodeOperator_%nodeTreeInitialize(tree%baseNode)
           ! Assign named properties.
           if     (                                    &
                &   size(self%presetNamedReals   ) > 0 &

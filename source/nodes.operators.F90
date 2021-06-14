@@ -29,6 +29,15 @@ module Nodes_Operators
   !#  <descriptiveName>Node Operators</descriptiveName>
   !#  <description>Class providing operators acting on nodes.</description>
   !#  <default>null</default>
+  !#  <method name="nodeTreeInitialize" >
+  !#   <description>Act on the initialization of a tree.</description>
+  !#   <type>void</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type(treeNode), intent(inout), target :: node</argument>
+  !#   <code>
+  !#    !$GLC attributes unused :: self, node
+  !#   </code>
+  !#  </method>
   !#  <method name="nodeInitialize" >
   !#   <description>Act on the initialization of a node.</description>
   !#   <type>void</type>

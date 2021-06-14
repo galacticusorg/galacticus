@@ -82,7 +82,11 @@
   <!-- Dark matter halo structure options -->
   <darkMatterProfileDMO value="NFW"/>
   <darkMatterProfileConcentration value="gao2008"/>
-  <darkMatterProfileMinimumConcentration value="4"/>
+  <darkMatterProfileScaleRadius value="concentrationLimiter">
+    <concentrationMinimum value="  4.0"/>
+    <concentrationMaximum value="100.0"/>
+    <darkMatterProfileScaleRadius value="concentration"/>
+  </darkMatterProfileScaleRadius>
   <haloSpinDistribution value="bett2007">
     <alpha value="2.509"/>
     <lambda0 value="0.04326"/>
@@ -212,6 +216,8 @@
 
   <!-- Node evolution and physics -->
   <nodeOperator value="multi">
+    <!-- Halo concentrations -->
+    <nodeOperator value="darkMatterProfileScaleInterpolate"/>
     <!-- Halo spins -->
     <nodeOperator value="haloSpinRandom">
       <factorReset value="2.0"/>

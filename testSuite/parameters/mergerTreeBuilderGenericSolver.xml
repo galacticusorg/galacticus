@@ -132,23 +132,14 @@
     <computeCovariances value="false"/>
   </mergerTreeOperator>
 
-  <!--Stellar feedback outflows-->
-  <nodeOperator value="stellarFeedbackDisks">
-    <stellarFeedbackOutflows value="rateLimit">
-      <timescaleOutflowFractionalMinimum value="0.001"/>
-      <stellarFeedbackOutflows value="powerLaw">
-        <velocityCharacteristic value="250.0"/>
-        <exponent value="3.5"/>
-      </stellarFeedbackOutflows>
-    </stellarFeedbackOutflows>
-  </nodeOperator>
-  <nodeOperator value="stellarFeedbackSpheroids">
-    <stellarFeedbackOutflows value="rateLimit">
-      <timescaleOutflowFractionalMinimum value="0.001"/>
-      <stellarFeedbackOutflows value="powerLaw">
-        <velocityCharacteristic value="250.0"/>
-        <exponent value="3.5"/>
-      </stellarFeedbackOutflows>
-    </stellarFeedbackOutflows>
-  </nodeOperator>
+  <!-- Halo scale radii and concentrations -->
+  <darkMatterProfileScaleRadius value="concentrationLimiter">
+    <concentrationMinimum value="  4.0"/>
+    <concentrationMaximum value="100.0"/>
+    <darkMatterProfileScaleRadius value="concentration"/>
+  </darkMatterProfileScaleRadius>
+
+  <!-- Halo concentrations -->
+  <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+  
 </parameters>
