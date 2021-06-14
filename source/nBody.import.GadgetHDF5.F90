@@ -123,7 +123,8 @@ contains
   subroutine gadgetHDF5Import(self,simulations)
     !% Import data from a Gadget HDF5 file.
     use :: Galacticus_Error                , only : Galacticus_Error_Report
-    use :: Hashes                          , only : rank1IntegerSizeTPtrHash, rank1DoublePtrHash, rank2DoublePtrHash, doubleHash
+    use :: Hashes                          , only : rank1IntegerSizeTPtrHash, rank2IntegerSizeTPtrHash, rank1DoublePtrHash, rank2DoublePtrHash, &
+         &                                          doubleHash
     use :: Numerical_Constants_Astronomical, only : massSolar               , megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
@@ -175,10 +176,11 @@ contains
          &   *self      %unitVelocityInSI &
          &   /kilo
     ! Store the data.
-    simulations(1)%propertiesInteger  =rank1IntegerSizeTPtrHash()
-    simulations(1)%propertiesReal     =rank1DoublePtrHash      ()
-    simulations(1)%propertiesRealRank1=rank2DoublePtrHash      ()
-    simulations(1)%attributesReal     =doubleHash              ()
+    simulations(1)%propertiesInteger     =rank1IntegerSizeTPtrHash()
+    simulations(1)%propertiesIntegerRank1=rank2IntegerSizeTPtrHash()
+    simulations(1)%propertiesReal        =rank1DoublePtrHash      ()
+    simulations(1)%propertiesRealRank1   =rank2DoublePtrHash      ()
+    simulations(1)%attributesReal        =doubleHash              ()
     call simulations(1)%propertiesRealRank1%set('position'       ,position       )
     call simulations(1)%propertiesRealRank1%set('velocity'       ,velocity       )
     call simulations(1)%propertiesInteger  %set('particleID'     ,particleID     )
