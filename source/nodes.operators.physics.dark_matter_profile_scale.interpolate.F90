@@ -122,6 +122,7 @@ contains
 
     ! Set the growth rate for the scale radius.
     call self%nodeTreeInitialize(node)
+    darkMatterProfile => node%darkMatterProfile()
     if (node%isPrimaryProgenitor()) then
        ! Node is the primary progenitor, so compute the scale radius growth rate.
        basic        =>  node              %basic()
