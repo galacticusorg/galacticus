@@ -37,6 +37,7 @@
    contains
      final     ::                          darkMatterProfileScaleInterpolateConstructorDestructor
      procedure :: nodeTreeInitialize    => darkMatterProfileScaleInterpolateNodeTreeInitialize
+     procedure :: nodeInitialize        => darkMatterProfileScaleInterpolateNodeInitialize
      procedure :: differentialEvolution => darkMatterProfileScaleInterpolateDifferentialEvolution
   end type nodeOperatorDarkMatterProfileScaleInterpolate
   
