@@ -11,7 +11,7 @@ use LaTeX::Encode;
 use Fcntl qw(SEEK_SET);
 use Fortran::Utils;
 
-# Scan Fortran 90 source code and output a Latex file describing it.
+# Scan Fortran 90 source code and output a LaTeX file describing it.
 #
 # Currently outputs lists of modules used, and used by with hyperlinks, along with description and code line count. Collects much
 # more information on subroutine calls, function calls, module procedures etc. Could be made to output information on these if
@@ -35,9 +35,6 @@ my $currentDirectory = cwd;
 
 # Specify location of include files.
 my $includeFileDirectory = $currentDirectory."/".$sourceDir[0]."/../work/build";
-
-# Specify regex for source code comments.
-my $commentRegex = "^\\s*\\%";
 
 # Specify regex for use statements.
 my $useRegex = "^\\s*use\\s*(,\\s*intrinsic\\s*)*(::)??\\s*([a-z0-9_]+)";
@@ -213,10 +210,15 @@ sub processFile {
 		  if ( $lineProcessed == 1 ) {next LINE};
 
 		  # Check for source code comments.
-		  if ( $bufferedComments =~ m/$commentRegex/i ) {
+		  if ( $bufferedComments =~ m/^\{/ ) {
 		      my $unitId = $unitIdList[-1];
-		      (my $trimmedComments = $bufferedComments) =~ s/^\s*\%//;
-		      $units{$unitId}->{"comments"} .= $trimmedComments;
+		      until ( eof($fileHandle) ) {
+			  my $commentLine = <$fileHandle>;
+			  last
+			      if ( $commentLine =~ m/^\s*!!\}/ );
+			  $commentLine =~ s/^\s*!//;
+			  $units{$unitId}->{"comments"} .= $commentLine;
+		      }
 		      # Mark line as processed.
 		      $lineProcessed = 1;
 		  }

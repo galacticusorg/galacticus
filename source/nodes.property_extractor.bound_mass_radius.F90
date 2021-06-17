@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a property extractor class that extracts the radius enclosing the current bound mass.
+!!{
+Contains a module which implements a property extractor class that extracts the radius enclosing the current bound mass.
+!!}
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorRadiusBoundMass">
-  !#  <description>
-  !#   A property extractor class that extracts the radius enclosing the current bound mass.
-  !#  </description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorRadiusBoundMass">
+   <description>
+    A property extractor class that extracts the radius enclosing the current bound mass.
+   </description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRadiusBoundMass
-     !% A property extractor class that extracts the radius enclosing the current bound mass.
+     !!{
+     A property extractor class that extracts the radius enclosing the current bound mass.
+     !!}
      private
    contains
      procedure :: extract     => radiusBoundMassExtract
@@ -36,14 +42,18 @@
   end type nodePropertyExtractorRadiusBoundMass
 
   interface nodePropertyExtractorRadiusBoundMass
-     !% Constructors for the ``radiusBoundMass'' output analysis class.
+     !!{
+     Constructors for the ``radiusBoundMass'' output analysis class.
+     !!}
      module procedure radiusBoundMassConstructorParameters
   end interface nodePropertyExtractorRadiusBoundMass
 
 contains
 
   function radiusBoundMassConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily radiusBoundMass} property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily radiusBoundMass} property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(nodePropertyExtractorRadiusBoundMass)                :: self
@@ -55,7 +65,9 @@ contains
   end function radiusBoundMassConstructorParameters
 
   double precision function radiusBoundMassExtract(self,node,instance)
-    !% Implement a bound mass radius property extractor.
+    !!{
+    Implement a bound mass radius property extractor.
+    !!}
     use :: Galacticus_Nodes                  , only : nodeComponentSatellite
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Radius_Enclosing_Mass
     implicit none
@@ -71,7 +83,9 @@ contains
   end function radiusBoundMassExtract
 
   function radiusBoundMassName(self)
-    !% Return the name of the bound mass radius property.
+    !!{
+    Return the name of the bound mass radius property.
+    !!}
     implicit none
     type (varying_string                      )                :: radiusBoundMassName
     class(nodePropertyExtractorRadiusBoundMass), intent(inout) :: self
@@ -82,7 +96,9 @@ contains
   end function radiusBoundMassName
 
   function radiusBoundMassDescription(self)
-    !% Return a description of the bound mass radius property.
+    !!{
+    Return a description of the bound mass radius property.
+    !!}
     implicit none
     type (varying_string                      )                :: radiusBoundMassDescription
     class(nodePropertyExtractorRadiusBoundMass), intent(inout) :: self
@@ -93,7 +109,9 @@ contains
   end function radiusBoundMassDescription
 
   double precision function radiusBoundMassUnitsInSI(self)
-    !% Return the units of the bound mass radius property in the SI system.
+    !!{
+    Return the units of the bound mass radius property in the SI system.
+    !!}
     use :: Numerical_Constants_Astronomical, only : megaParsec
     implicit none
     class(nodePropertyExtractorRadiusBoundMass), intent(inout) :: self
@@ -104,7 +122,9 @@ contains
   end function radiusBoundMassUnitsInSI
 
   integer function radiusBoundMassType(self)
-    !% Return the type of the bound mass radius property.
+    !!{
+    Return the type of the bound mass radius property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorRadiusBoundMass), intent(inout) :: self

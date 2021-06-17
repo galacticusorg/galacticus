@@ -17,33 +17,39 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a posterior sampling likelihood class which implements a multivariate normal likelihood.
+  !!{
+  Implementation of a posterior sampling likelihood class which implements a multivariate normal likelihood.
+  !!}
 
   use :: Linear_Algebra, only : matrix, vector
 
-  !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodMultivariateNormal">
-  !#  <description>
-  !#   The likelihood is a simple multivariate Gaussian, intended primarily for testing purposes. The distribution parameters are
-  !#   specified within the {\normalfont \ttfamily likelihood} element using:
-  !#   \begin{verbatim}
-  !#     <mean>0.45 0.50</mean>
-  !#     <covariance>
-  !#       <row>1.0e-4 -0.9e-4</row>
-  !#       <row>-0.9e-4 1.0e-4</row>
-  !#     </covariance>
-  !#   \end{verbatim}
-  !#   where the {\normalfont \ttfamily mean} element gives the mean vector of $N$ elements, and the {\normalfont \ttfamily covariance}
-  !#   element contains $N$ {\normalfont \ttfamily row} elements each containing a vector of $N$ elements giving a single row of the
-  !#   covariance matrix. The likelihood is then:
-  !#   \begin{equation}
-  !#   \log \mathcal{L} = - {1 \over 2} \Delta \mathcal{C}^{-1} \Delta^\mathrm{T},
-  !#   \end{equation}
-  !#   where $\Delta = \theta - \bar{\theta}$, $\theta$ is the state, $\bar{\theta}$ is the mean, and $\mathcal{C}$ is the covariance
-  !#   matrix.
-  !#  </description>
-  !# </posteriorSampleLikelihood>
+  !![
+  <posteriorSampleLikelihood name="posteriorSampleLikelihoodMultivariateNormal">
+   <description>
+    The likelihood is a simple multivariate Gaussian, intended primarily for testing purposes. The distribution parameters are
+    specified within the {\normalfont \ttfamily likelihood} element using:
+    \begin{verbatim}
+      <mean>0.45 0.50</mean>
+      <covariance>
+        <row>1.0e-4 -0.9e-4</row>
+        <row>-0.9e-4 1.0e-4</row>
+      </covariance>
+    \end{verbatim}
+    where the {\normalfont \ttfamily mean} element gives the mean vector of $N$ elements, and the {\normalfont \ttfamily covariance}
+    element contains $N$ {\normalfont \ttfamily row} elements each containing a vector of $N$ elements giving a single row of the
+    covariance matrix. The likelihood is then:
+    \begin{equation}
+    \log \mathcal{L} = - {1 \over 2} \Delta \mathcal{C}^{-1} \Delta^\mathrm{T},
+    \end{equation}
+    where $\Delta = \theta - \bar{\theta}$, $\theta$ is the state, $\bar{\theta}$ is the mean, and $\mathcal{C}$ is the covariance
+    matrix.
+   </description>
+  </posteriorSampleLikelihood>
+  !!]
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodMultivariateNormal
-     !% Implementation of a posterior sampling likelihood class which implements a multivariate likelihood.
+     !!{
+     Implementation of a posterior sampling likelihood class which implements a multivariate likelihood.
+     !!}
      private
      type(vector) :: means
      type(matrix) :: covariance
@@ -53,7 +59,9 @@
   end type posteriorSampleLikelihoodMultivariateNormal
 
   interface posteriorSampleLikelihoodMultivariateNormal
-     !% Constructors for the {\normalfont \ttfamily multivariateNormal} posterior sampling convergence class.
+     !!{
+     Constructors for the {\normalfont \ttfamily multivariateNormal} posterior sampling convergence class.
+     !!}
      module procedure multivariateNormalConstructorParameters
      module procedure multivariateNormalConstructorInternal
   end interface posteriorSampleLikelihoodMultivariateNormal
@@ -61,8 +69,10 @@
 contains
 
   function multivariateNormalConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily multivariateNormal} posterior sampling convergence class which builds the object from a
-    !% parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily multivariateNormal} posterior sampling convergence class which builds the object from a
+    parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (posteriorSampleLikelihoodMultivariateNormal)                              :: self
@@ -72,35 +82,45 @@ contains
 
     allocate(means     (parameters%count('means')                          ))
     allocate(covariance(parameters%count('means'),parameters%count('means')))
-    !# <inputParameter>
-    !#   <name>means</name>
-    !#   <description>The mean of the multivariate normal distribution.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>covariance</name>
-    !#   <description>The covariance matrix for the of the multivariate normal distribution.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>means</name>
+      <description>The mean of the multivariate normal distribution.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>covariance</name>
+      <description>The covariance matrix for the of the multivariate normal distribution.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     self=posteriorSampleLikelihoodMultivariateNormal(means,covariance)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function multivariateNormalConstructorParameters
 
   function multivariateNormalConstructorInternal(means,covariance) result(self)
-    !% Constructor for ``multivariateNormal'' convergence class.
+    !!{
+    Constructor for ``multivariateNormal'' convergence class.
+    !!}
     use :: Linear_Algebra, only : assignment(=)
     implicit none
     type            (posteriorSampleLikelihoodMultivariateNormal)                                :: self
     double precision                                             , intent(in   ), dimension(:  ) :: means
     double precision                                             , intent(in   ), dimension(:,:) :: covariance
-    !# <constructorAssign variables="means, covariance" allocate="no"/>
+    !![
+    <constructorAssign variables="means, covariance" allocate="no"/>
+    !!]
 
     return
   end function multivariateNormalConstructorInternal
 
   double precision function multivariateNormalEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
-    !% Return the log-likelihood for a multivariate-normal likelihood function.
+    !!{
+    Return the log-likelihood for a multivariate-normal likelihood function.
+    !!}
     use :: Linear_Algebra                , only : assignment(=)                  , operator(*)
     use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
     use :: Posterior_Sampling_State      , only : posteriorSampleStateClass
@@ -134,7 +154,9 @@ contains
   end function multivariateNormalEvaluate
 
   subroutine multivariateNormalFunctionChanged(self)
-    !% Respond to possible changes in the likelihood function.
+    !!{
+    Respond to possible changes in the likelihood function.
+    !!}
     implicit none
     class(posteriorSampleLikelihoodMultivariateNormal), intent(inout) :: self
     !$GLC attributes unused :: self

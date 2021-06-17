@@ -19,17 +19,21 @@
 
 !+    Contributions to this file made by: Andrew Benson.
 
-!% Contains a module which implements calculations of the integral appearing in the \cite{chandrasekhar_dynamical_1943} dynamical
-!% friction model.
+!!{
+Contains a module which implements calculations of the integral appearing in the \cite{chandrasekhar_dynamical_1943} dynamical
+friction model.
+!!}
 
 module Galactic_Structure_Chandrasekhar_Integrals
-  !% Implements calculations of the integral appearing in the \cite{chandrasekhar_dynamical_1943} dynamical friction model:
-  !% \begin{equation}
-  !%  \rho(\boldsymbol{x}_\mathrm{s}) \int \mathrm{d}\boldsymbol{v} f(\boldsymbol{v}) {\boldsymbol{v}-\boldsymbol{v}_\mathrm{s} \over |\boldsymbol{v}-\boldsymbol{v}_\mathrm{s}|^3},
-  !% \end{equation}  
-  !% where $\rho(\boldsymbol{x}_\mathrm{s})$ is the density at the position of the perturber, $\boldsymbol{x}_\mathrm{s}$,
-  !% $f(\boldsymbol{v})$ is the velocity distribution function at velocity $\boldsymbol{v}$, and $\boldsymbol{v}_\mathrm{s}$ is
-  !% the velocity of the perturber.
+  !!{
+  Implements calculations of the integral appearing in the \cite{chandrasekhar_dynamical_1943} dynamical friction model:
+  \begin{equation}
+   \rho(\boldsymbol{x}_\mathrm{s}) \int \mathrm{d}\boldsymbol{v} f(\boldsymbol{v}) {\boldsymbol{v}-\boldsymbol{v}_\mathrm{s} \over |\boldsymbol{v}-\boldsymbol{v}_\mathrm{s}|^3},
+  \end{equation}  
+  where $\rho(\boldsymbol{x}_\mathrm{s})$ is the density at the position of the perturber, $\boldsymbol{x}_\mathrm{s}$,
+  $f(\boldsymbol{v})$ is the velocity distribution function at velocity $\boldsymbol{v}$, and $\boldsymbol{v}_\mathrm{s}$ is
+  the velocity of the perturber.
+  !!}
   use :: Kind_Numbers, only : kind_int8
   implicit none
   private
@@ -43,12 +47,18 @@ module Galactic_Structure_Chandrasekhar_Integrals
 contains
 
   function Galactic_Structure_Chandrasekhar_Integral(node,positionCartesian,velocityCartesian,componentType,massType)
-    !% Compute the \cite{chandrasekhar_dynamical_1943} integral at a given position and velocity.
+    !!{
+    Compute the \cite{chandrasekhar_dynamical_1943} integral at a given position and velocity.
+    !!}
     use :: Galactic_Structure_Options, only : componentTypeAll                         , massTypeAll
     use :: Galacticus_Nodes          , only : optimizeForChandrasekharIntegralSummation, reductionSummation, treeNode
-    !# <include directive="chandrasekharIntegralTask" type="moduleUse">
+    !![
+    <include directive="chandrasekharIntegralTask" type="moduleUse">
+    !!]
     include 'galactic_structure.chandrasekharIntegral.tasks.modules.inc'
-    !# </include>
+    !![
+    </include>
+    !!]
     implicit none
     double precision                                                 , dimension(3) :: Galactic_Structure_Chandrasekhar_Integral
     type            (treeNode                        ), intent(inout)               :: node
@@ -89,16 +99,22 @@ contains
     end if
     ! Compute the Chandrasekhar integral.
     Galactic_Structure_Chandrasekhar_Integral=node%mapDouble1(componentChandrasekharIntegralFunction,chandrasekharIntegralSize,reductionSummation,optimizeFor=optimizeForChandrasekharIntegralSummation)
-    !# <include directive="chandrasekharIntegralTask" type="functionCall" functionType="function" returnParameter="componentChandrasekharIntegral">
-    !#  <functionArgs>node,positionCartesianShared,velocityCartesianShared,componentTypeShared,massTypeShared</functionArgs>
-    !#  <onReturn>Galactic_Structure_Chandrasekhar_Integral=Galactic_Structure_Chandrasekhar_Integral+componentChandrasekharIntegral</onReturn>
+    !![
+    <include directive="chandrasekharIntegralTask" type="functionCall" functionType="function" returnParameter="componentChandrasekharIntegral">
+     <functionArgs>node,positionCartesianShared,velocityCartesianShared,componentTypeShared,massTypeShared</functionArgs>
+     <onReturn>Galactic_Structure_Chandrasekhar_Integral=Galactic_Structure_Chandrasekhar_Integral+componentChandrasekharIntegral</onReturn>
+    !!]
     include 'galactic_structure.chandrasekharIntegral.tasks.inc'
-    !# </include>
+    !![
+    </include>
+    !!]
     return
   end function Galactic_Structure_Chandrasekhar_Integral
 
   function Component_Chandrasekhar_Integral(component,resultSize)
-    !% Function returning the Chandrasekhar integral in a component. Suitable for mapping over components.
+    !!{
+    Function returning the Chandrasekhar integral in a component. Suitable for mapping over components.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponent
     implicit none
     integer                        , intent(in   )         :: resultSize

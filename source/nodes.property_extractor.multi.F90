@@ -17,35 +17,43 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements a multi node property extractor class.
+  !!{
+  Contains a module which implements a multi node property extractor class.
+  !!}
 
   type, public :: multiExtractorList
      class(nodePropertyExtractorClass), pointer :: extractor_
      type (multiExtractorList        ), pointer :: next       => null()
   end type multiExtractorList
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorMulti">
-  !#  <description>A multi output extractor property extractor class.</description>
-  !#  <deepCopy>
-  !#   <linkedList type="multiExtractorList" variable="extractors" next="next" object="extractor_" objectType="nodePropertyExtractorClass"/>
-  !#  </deepCopy>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorMulti">
+   <description>A multi output extractor property extractor class.</description>
+   <deepCopy>
+    <linkedList type="multiExtractorList" variable="extractors" next="next" object="extractor_" objectType="nodePropertyExtractorClass"/>
+   </deepCopy>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorClass) :: nodePropertyExtractorMulti
-     !% A multi property extractor output extractor class, which concatenates properties from any number of other property
-     !% extractors.
+     !!{
+     A multi property extractor output extractor class, which concatenates properties from any number of other property
+     extractors.
+     !!}
      private
      type(multiExtractorList), pointer :: extractors => null()
    contains
-     !# <methods>
-     !#   <method description="Return a description of the columns."                                        method="columnDescriptions" pass="yes"/>
-     !#   <method description="Return the number of properties in the tuple."                               method="elementCount"       pass="yes"/>
-     !#   <method description="Extract the double properties from the given {\normalfont \ttfamily node}."  method="extractDouble"      pass="yes"/>
-     !#   <method description="Extract the integer properties from the given {\normalfont \ttfamily node}." method="extractInteger"     pass="yes"/>
-     !#   <method description="Return the names of the properties extracted."                               method="names"              pass="yes"/>
-     !#   <method description="Return descriptions of the properties extracted."                            method="descriptions"       pass="yes"/>
-     !#   <method description="Return the units of the properties extracted in the SI system."              method="unitsInSI"          pass="yes"/>
-     !#   <method description="Return the ranks of the properties extracted."                               method="ranks"              pass="yes"/>
-     !# </methods>
+     !![
+     <methods>
+       <method description="Return a description of the columns."                                        method="columnDescriptions" pass="yes"/>
+       <method description="Return the number of properties in the tuple."                               method="elementCount"       pass="yes"/>
+       <method description="Extract the double properties from the given {\normalfont \ttfamily node}."  method="extractDouble"      pass="yes"/>
+       <method description="Extract the integer properties from the given {\normalfont \ttfamily node}." method="extractInteger"     pass="yes"/>
+       <method description="Return the names of the properties extracted."                               method="names"              pass="yes"/>
+       <method description="Return descriptions of the properties extracted."                            method="descriptions"       pass="yes"/>
+       <method description="Return the units of the properties extracted in the SI system."              method="unitsInSI"          pass="yes"/>
+       <method description="Return the ranks of the properties extracted."                               method="ranks"              pass="yes"/>
+     </methods>
+     !!]
      final     ::                       multiDestructor
      procedure :: columnDescriptions => multiColumnDescriptions
      procedure :: elementCount       => multiElementCount
@@ -60,23 +68,29 @@
   end type nodePropertyExtractorMulti
 
   interface nodePropertyExtractorMulti
-     !% Constructors for the ``multi'' output extractor class.
+     !!{
+     Constructors for the ``multi'' output extractor class.
+     !!}
      module procedure multiConstructorParameters
      module procedure multiConstructorInternal
   end interface nodePropertyExtractorMulti
 
-  !# <enumeration>
-  !#  <name>elementType</name>
-  !#  <description>Enumeration of extracted property element types.</description>
-  !#  <visibility>public</visibility>
-  !#  <entry label="integer"/>
-  !#  <entry label="double" />
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>elementType</name>
+   <description>Enumeration of extracted property element types.</description>
+   <visibility>public</visibility>
+   <entry label="integer"/>
+   <entry label="double" />
+  </enumeration>
+  !!]
 
 contains
 
   function multiConstructorParameters(parameters) result(self)
-    !% Constructor for the ``multi'' output extractor property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the ``multi'' output extractor property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (nodePropertyExtractorMulti)                :: self
@@ -94,13 +108,17 @@ contains
           allocate(self%extractors)
           extractor_ => self%extractors
        end if
-       !# <objectBuilder class="nodePropertyExtractor" name="extractor_%extractor_" source="parameters" copy="i" />
+       !![
+       <objectBuilder class="nodePropertyExtractor" name="extractor_%extractor_" source="parameters" copy="i" />
+       !!]
     end do
     return
   end function multiConstructorParameters
 
   function multiConstructorInternal(extractors) result(self)
-    !% Internal constructor for the ``multi'' output extractor property extractor class.
+    !!{
+    Internal constructor for the ``multi'' output extractor property extractor class.
+    !!}
     implicit none
     type(nodePropertyExtractorMulti)                         :: self
     type(multiExtractorList        ), target , intent(in   ) :: extractors
@@ -109,14 +127,18 @@ contains
     self      %extractors => extractors
     extractor_            => extractors
     do while (associated(extractor_))
-       !# <referenceCountIncrement owner="extractor_" object="extractor_"/>
+       !![
+       <referenceCountIncrement owner="extractor_" object="extractor_"/>
+       !!]
        extractor_ => extractor_%next
     end do
     return
   end function multiConstructorInternal
 
   subroutine multiDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily multi} output extractor property extractor class.
+    !!{
+    Destructor for the {\normalfont \ttfamily multi} output extractor property extractor class.
+    !!}
     implicit none
     type(nodePropertyExtractorMulti), intent(inout) :: self
     type(multiExtractorList        ), pointer       :: extractor_, extractorNext
@@ -125,7 +147,9 @@ contains
        extractor_ => self%extractors
        do while (associated(extractor_))
           extractorNext => extractor_%next
-          !# <objectDestructor name="extractor_%extractor_"/>
+          !![
+          <objectDestructor name="extractor_%extractor_"/>
+          !!]
           deallocate(extractor_)
           extractor_ => extractorNext
        end do
@@ -134,7 +158,9 @@ contains
   end subroutine multiDestructor
 
   integer function multiElementCount(self,elementType,time)
-    !% Return the number of elements in the multiple property extractors.
+    !!{
+    Return the number of elements in the multiple property extractors.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (nodePropertyExtractorMulti), intent(inout) :: self
@@ -165,7 +191,9 @@ contains
   end function multiElementCount
 
   function multiExtractDouble(self,node,time,instance)
-    !% Implement a multi output extractor.
+    !!{
+    Implement a multi output extractor.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Poly_Ranks      , only : polyRankDouble
     implicit none
@@ -217,7 +245,9 @@ contains
   end function multiExtractDouble
 
   function multiExtractInteger(self,node,time,instance)
-    !% Implement a multi output extractor.
+    !!{
+    Implement a multi output extractor.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Poly_Ranks      , only : polyRankInteger
     implicit none
@@ -263,7 +293,9 @@ contains
   end function multiExtractInteger
 
   subroutine multiAddInstances(self,node,instance)
-    !% Implement adding of instances to a multi output extractor.
+    !!{
+    Implement adding of instances to a multi output extractor.
+    !!}
     implicit none
     class(nodePropertyExtractorMulti), intent(inout) :: self
     type (treeNode                  ), intent(inout) :: node
@@ -279,7 +311,9 @@ contains
   end subroutine multiAddInstances
 
   function multiNames(self,elementType,time)
-    !% Return the names of the multiple properties.
+    !!{
+    Return the names of the multiple properties.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (varying_string            ), dimension(:) , allocatable :: multiNames
@@ -333,7 +367,9 @@ contains
   end function multiNames
 
   subroutine multiColumnDescriptions(self,elementType,i,time,descriptions)
-    !% Return column descriptions of the multiple properties.
+    !!{
+    Return column descriptions of the multiple properties.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (nodePropertyExtractorMulti), intent(inout)              :: self
@@ -399,7 +435,9 @@ contains
   end subroutine multiColumnDescriptions
 
   function multiDescriptions(self,elementType,time)
-    !% Return the descriptions of the multiple properties.
+    !!{
+    Return the descriptions of the multiple properties.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (varying_string            ), dimension(:) , allocatable :: multiDescriptions
@@ -453,7 +491,9 @@ contains
   end function multiDescriptions
 
   function multiUnitsInSI(self,elementType,time)
-    !% Return the units of the multiple properties in the SI system.
+    !!{
+    Return the units of the multiple properties in the SI system.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision                            , dimension(:) , allocatable :: multiUnitsInSI
@@ -504,7 +544,9 @@ contains
   end function multiUnitsInSI
 
   function multiRanks(self,elementType,time)
-    !% Return the ranks of the multiple properties.
+    !!{
+    Return the ranks of the multiple properties.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     integer                                     , dimension(:) , allocatable :: multiRanks
@@ -555,7 +597,9 @@ contains
   end function multiRanks
 
   integer function multiType(self)
-    !% Return the type of the multi property.
+    !!{
+    Return the type of the multi property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorMulti), intent(inout) :: self

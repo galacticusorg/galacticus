@@ -17,7 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a posterior sampling simulation class which implements the differential evolution algorithm.
+  !!{
+  Implementation of a posterior sampling simulation class which implements the differential evolution algorithm.
+  !!}
 
   use :: Model_Parameters                    , only : modelParameterList
   use :: Models_Likelihoods                  , only : posteriorSampleLikelihoodClass
@@ -27,11 +29,15 @@
   use :: Posterior_Sampling_State_Initialize , only : posteriorSampleStateInitializeClass
   use :: Posterior_Sampling_Stopping_Criteria, only : posteriorSampleStoppingCriterionClass
 
-  !# <posteriorSampleSimulation name="posteriorSampleSimulationParticleSwarm">
-  !#  <description>A posterior sampling simulation class which implements the particle swarm algorithm.</description>
-  !# </posteriorSampleSimulation>
+  !![
+  <posteriorSampleSimulation name="posteriorSampleSimulationParticleSwarm">
+   <description>A posterior sampling simulation class which implements the particle swarm algorithm.</description>
+  </posteriorSampleSimulation>
+  !!]
   type, extends(posteriorSampleSimulationClass) :: posteriorSampleSimulationParticleSwarm
-     !% Implementation of a posterior sampling simulation class which implements the particle swarm algorithm.
+     !!{
+     Implementation of a posterior sampling simulation class which implements the particle swarm algorithm.
+     !!}
      private
      type            (modelParameterList                   ), pointer, dimension(:) :: modelParametersActive_            => null(), modelParametersInactive_     => null()
      class           (posteriorSampleLikelihoodClass       ), pointer               :: posteriorSampleLikelihood_        => null()
@@ -50,16 +56,20 @@
      type            (varying_string                       )                        :: logFileRoot                                , interactionRoot                       , &
           &                                                                            logFilePreviousRoot
    contains
-     !# <methods>
-     !#   <method description="Return the log of posterior probability for the given {\normalfont \ttfamily simulationState}." method="posterior" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Return the log of posterior probability for the given {\normalfont \ttfamily simulationState}." method="posterior" />
+     </methods>
+     !!]
      final     ::              particleSwarmDestructor
      procedure :: simulate  => particleSwarmSimulate
      procedure :: posterior => particleSwarmPosterior
   end type posteriorSampleSimulationParticleSwarm
 
   interface posteriorSampleSimulationParticleSwarm
-     !% Constructors for the {\normalfont \ttfamily particleSwarm} posterior sampling convergence class.
+     !!{
+     Constructors for the {\normalfont \ttfamily particleSwarm} posterior sampling convergence class.
+     !!}
      module procedure particleSwarmConstructorParameters
      module procedure particleSwarmConstructorInternal
   end interface posteriorSampleSimulationParticleSwarm
@@ -67,8 +77,10 @@
 contains
 
   function particleSwarmConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily particleSwarm} posterior sampling simulation class which builds the object from a
-    !% parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily particleSwarm} posterior sampling simulation class which builds the object from a
+    parameter set.
+    !!}
     use :: Display         , only : displayMessage         , displayVerbosity      , verbosityLevelInfo
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Input_Parameters, only : inputParameter         , inputParameters
@@ -97,101 +109,107 @@ contains
          &                                                                                           velocityCoefficientInitial
     logical                                                                                       :: resume                           , appendLogs
 
-    !# <inputParameter>
-    !#   <name>stepsMaximum</name>
-    !#   <defaultValue>huge(0)</defaultValue>
-    !#   <description>The maximum number of steps to take.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>logFlushCount</name>
-    !#   <defaultValue>10</defaultValue>
-    !#   <description>The number of steps between flushing the log file.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>reportCount</name>
-    !#   <defaultValue>10</defaultValue>
-    !#   <description>The number of steps between issuing reports.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>interactionRoot</name>
-    !#   <defaultValue>var_str('none')</defaultValue>
-    !#   <description>Root file name for interaction files, or `{\normalfont \ttfamily none}' if interaction is not required.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>logFileRoot</name>
-    !#   <description>Root file name for log files.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>logFilePreviousRoot</name>
-    !#   <defaultValue>var_str('none')</defaultValue>
-    !#   <description>Root file name for log files from which to resume.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>resume</name>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>If true, resume from a previous set of log files.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>appendLogs</name>
-    !#   <description>If true, do not overwrite existing log files, but instead append to them.</description>
-    !#   <source>parameters</source>
-    !#   <defaultValue>.false.</defaultValue>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>inertiaWeight</name>
-    !#   <defaultValue>0.72d0</defaultValue>
-    !#   <description>Inertia parameter.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>accelerationCoefficientPersonal</name>
-    !#   <defaultValue>1.193d0</defaultValue>
-    !#   <description>Personal accleration parameter.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>accelerationCoefficientGlobal</name>
-    !#   <defaultValue>1.193d0</defaultValue>
-    !#   <description>Global accleration parameter.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>velocityCoefficient</name>
-    !#   <defaultValue>0.5d0</defaultValue>
-    !#   <description>Velocity parameter.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>velocityCoefficientInitial</name>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>Velocity parameter.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="posteriorSampleLikelihood"        name="posteriorSampleLikelihood_"        source="parameters"/>
-    !# <objectBuilder class="posteriorSampleConvergence"       name="posteriorSampleConvergence_"       source="parameters"/>
-    !# <objectBuilder class="posteriorSampleStoppingCriterion" name="posteriorSampleStoppingCriterion_" source="parameters"/>
-    !# <objectBuilder class="posteriorSampleState"             name="posteriorSampleState_"             source="parameters"/>
-    !# <objectBuilder class="posteriorSampleStateInitialize"   name="posteriorSampleStateInitialize_"   source="parameters"/>
-    !# <objectBuilder class="randomNumberGenerator"            name="randomNumberGenerator_"            source="parameters"/>
+    !![
+    <inputParameter>
+      <name>stepsMaximum</name>
+      <defaultValue>huge(0)</defaultValue>
+      <description>The maximum number of steps to take.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>logFlushCount</name>
+      <defaultValue>10</defaultValue>
+      <description>The number of steps between flushing the log file.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>reportCount</name>
+      <defaultValue>10</defaultValue>
+      <description>The number of steps between issuing reports.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>interactionRoot</name>
+      <defaultValue>var_str('none')</defaultValue>
+      <description>Root file name for interaction files, or `{\normalfont \ttfamily none}' if interaction is not required.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>logFileRoot</name>
+      <description>Root file name for log files.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>logFilePreviousRoot</name>
+      <defaultValue>var_str('none')</defaultValue>
+      <description>Root file name for log files from which to resume.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>resume</name>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, resume from a previous set of log files.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>appendLogs</name>
+      <description>If true, do not overwrite existing log files, but instead append to them.</description>
+      <source>parameters</source>
+      <defaultValue>.false.</defaultValue>
+    </inputParameter>
+    <inputParameter>
+      <name>inertiaWeight</name>
+      <defaultValue>0.72d0</defaultValue>
+      <description>Inertia parameter.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>accelerationCoefficientPersonal</name>
+      <defaultValue>1.193d0</defaultValue>
+      <description>Personal accleration parameter.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>accelerationCoefficientGlobal</name>
+      <defaultValue>1.193d0</defaultValue>
+      <description>Global accleration parameter.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>velocityCoefficient</name>
+      <defaultValue>0.5d0</defaultValue>
+      <description>Velocity parameter.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>velocityCoefficientInitial</name>
+      <defaultValue>0.0d0</defaultValue>
+      <description>Velocity parameter.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="posteriorSampleLikelihood"        name="posteriorSampleLikelihood_"        source="parameters"/>
+    <objectBuilder class="posteriorSampleConvergence"       name="posteriorSampleConvergence_"       source="parameters"/>
+    <objectBuilder class="posteriorSampleStoppingCriterion" name="posteriorSampleStoppingCriterion_" source="parameters"/>
+    <objectBuilder class="posteriorSampleState"             name="posteriorSampleState_"             source="parameters"/>
+    <objectBuilder class="posteriorSampleStateInitialize"   name="posteriorSampleStateInitialize_"   source="parameters"/>
+    <objectBuilder class="randomNumberGenerator"            name="randomNumberGenerator_"            source="parameters"/>
+    !!]
     ! Determine the number of parameters.
     activeParameterCount  =0
     inactiveParameterCount=0
     do i=1,parameters%copiesCount("modelParameter")
-       !# <objectBuilder class="modelParameter" name="modelParameter_" source="parameters" copy="i" />
+       !![
+       <objectBuilder class="modelParameter" name="modelParameter_" source="parameters" copy="i" />
+       !!]
        select type (modelParameter_)
        class is (modelParameterActive  )
           activeParameterCount  =activeParameterCount  +1
        class is (modelParameterInactive)
           inactiveParameterCount=inactiveParameterCount+1
        end select
-       !# <objectDestructor name="modelParameter_"/>
+       !![
+       <objectDestructor name="modelParameter_"/>
+       !!]
     end do
     if (activeParameterCount < 1) call Galacticus_Error_Report('at least one active parameter must be specified in config file'//{introspection:location})
     if (mpiSelf%isMaster() .and. displayVerbosity() >= verbosityLevelInfo) then
@@ -205,32 +223,46 @@ contains
     iActive  =0
     iInactive=0
     do i=1,parameters%copiesCount("modelParameter")
-       !# <objectBuilder class="modelParameter" name="modelParameter_" source="parameters" copy="i" />
+       !![
+       <objectBuilder class="modelParameter" name="modelParameter_" source="parameters" copy="i" />
+       !!]
        select type (modelParameter_)
        class is (modelParameterInactive)
           iInactive=iInactive+1
           modelParametersInactive_(iInactive)%modelParameter_ => modelParameter_
-          !# <referenceCountIncrement owner="modelParametersInactive_(iInactive)" object="modelParameter_"/>
+          !![
+          <referenceCountIncrement owner="modelParametersInactive_(iInactive)" object="modelParameter_"/>
+          !!]
        class is (modelParameterActive  )
           iActive  =iActive  +1
           modelParametersActive_  (  iActive)%modelParameter_ => modelParameter_
-          !# <referenceCountIncrement owner="modelParametersActive_  (iActive  )" object="modelParameter_"/>
+          !![
+          <referenceCountIncrement owner="modelParametersActive_  (iActive  )" object="modelParameter_"/>
+          !!]
        end select
-       !# <objectDestructor name="modelParameter_"/>
+       !![
+       <objectDestructor name="modelParameter_"/>
+       !!]
     end do
     self=posteriorSampleSimulationParticleSwarm(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,randomNumberGenerator_,stepsMaximum,char(logFileRoot),logFlushCount,reportCount,inertiaWeight,accelerationCoefficientPersonal,accelerationCoefficientGlobal,velocityCoefficient,velocityCoefficientInitial,char(interactionRoot),resume,appendLogs,char(logFilePreviousRoot))
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="posteriorSampleLikelihood_"       />
-    !# <objectDestructor name="posteriorSampleConvergence_"      />
-    !# <objectDestructor name="posteriorSampleStoppingCriterion_"/>
-    !# <objectDestructor name="posteriorSampleState_"            />
-    !# <objectDestructor name="posteriorSampleStateInitialize_"  />
-    !# <objectDestructor name="randomNumberGenerator_"           />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="posteriorSampleLikelihood_"       />
+    <objectDestructor name="posteriorSampleConvergence_"      />
+    <objectDestructor name="posteriorSampleStoppingCriterion_"/>
+    <objectDestructor name="posteriorSampleState_"            />
+    <objectDestructor name="posteriorSampleStateInitialize_"  />
+    <objectDestructor name="randomNumberGenerator_"           />
+    !!]
     do i=1,  activeParameterCount
-       !# <objectDestructor name="modelParametersActive_  (i)%modelParameter_"/>
+       !![
+       <objectDestructor name="modelParametersActive_  (i)%modelParameter_"/>
+       !!]
     end do
     do i=1,inactiveParameterCount
-       !# <objectDestructor name="modelParametersInactive_(i)%modelParameter_"/>
+       !![
+       <objectDestructor name="modelParametersInactive_(i)%modelParameter_"/>
+       !!]
     end do
     deallocate(modelParametersActive_  )
     deallocate(modelParametersInactive_)
@@ -238,7 +270,9 @@ contains
   end function particleSwarmConstructorParameters
 
   function particleSwarmConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,randomNumberGenerator_,stepsMaximum,logFileRoot,logFlushCount,reportCount,inertiaWeight,accelerationCoefficientPersonal,accelerationCoefficientGlobal,velocityCoefficient,velocityCoefficientInitial,interactionRoot,resume,appendLogs,logFilePreviousRoot) result(self)
-    !% Internal constructor for the ``particleSwarm'' simulation class.
+    !!{
+    Internal constructor for the ``particleSwarm'' simulation class.
+    !!}
     implicit none
     type            (posteriorSampleSimulationParticleSwarm)                                      :: self
     type            (modelParameterList                    ), intent(in   ), target, dimension(:) :: modelParametersActive_           , modelParametersInactive_
@@ -257,17 +291,23 @@ contains
          &                                                                                           velocityCoefficientInitial
     logical                                                 , intent(in   )                       :: resume                           , appendLogs
     integer                                                                                       :: i
-    !# <constructorAssign variables="*posteriorSampleLikelihood_, *posteriorSampleConvergence_, *posteriorSampleStoppingCriterion_, *posteriorSampleState_, *posteriorSampleStateInitialize_, *randomNumberGenerator_, stepsMaximum, logFileRoot, logFlushCount, reportCount, inertiaWeight, accelerationCoefficientPersonal, accelerationCoefficientGlobal, velocityCoefficient, velocityCoefficientInitial, interactionRoot, resume, appendLogs, logFilePreviousRoot"/>
+    !![
+    <constructorAssign variables="*posteriorSampleLikelihood_, *posteriorSampleConvergence_, *posteriorSampleStoppingCriterion_, *posteriorSampleState_, *posteriorSampleStateInitialize_, *randomNumberGenerator_, stepsMaximum, logFileRoot, logFlushCount, reportCount, inertiaWeight, accelerationCoefficientPersonal, accelerationCoefficientGlobal, velocityCoefficient, velocityCoefficientInitial, interactionRoot, resume, appendLogs, logFilePreviousRoot"/>
+    !!]
 
     allocate(self%modelParametersActive_  (size(modelParametersActive_  )))
     allocate(self%modelParametersInactive_(size(modelParametersInactive_)))
     self%modelParametersActive_  =modelParametersActive_
     self%modelParametersInactive_=modelParametersInactive_
     do i=1,size(modelParametersActive_  )
-       !# <referenceCountIncrement owner="self%modelParametersActive_  (i)" object="modelParameter_"/>
+       !![
+       <referenceCountIncrement owner="self%modelParametersActive_  (i)" object="modelParameter_"/>
+       !!]
     end do
     do i=1,size(modelParametersInactive_)
-       !# <referenceCountIncrement owner="self%modelParametersInactive_(i)" object="modelParameter_"/>
+       !![
+       <referenceCountIncrement owner="self%modelParametersInactive_(i)" object="modelParameter_"/>
+       !!]
     end do
     self%parameterCount=size(modelParametersActive_)
     self%isInteractive =trim(interactionRoot ) /= "none"
@@ -276,28 +316,38 @@ contains
   end function particleSwarmConstructorInternal
 
   subroutine particleSwarmDestructor(self)
-    !% Destroy a differential evolution simulation object.
+    !!{
+    Destroy a differential evolution simulation object.
+    !!}
     implicit none
     type   (posteriorSampleSimulationParticleSwarm), intent(inout) :: self
     integer                                                        :: i
 
-    !# <objectDestructor name="self%posteriorSampleLikelihood_"       />
-    !# <objectDestructor name="self%posteriorSampleConvergence_"      />
-    !# <objectDestructor name="self%posteriorSampleStoppingCriterion_"/>
-    !# <objectDestructor name="self%posteriorSampleState_"            />
-    !# <objectDestructor name="self%posteriorSampleStateInitialize_"  />
-    !# <objectDestructor name="self%randomNumberGenerator_"           />
+    !![
+    <objectDestructor name="self%posteriorSampleLikelihood_"       />
+    <objectDestructor name="self%posteriorSampleConvergence_"      />
+    <objectDestructor name="self%posteriorSampleStoppingCriterion_"/>
+    <objectDestructor name="self%posteriorSampleState_"            />
+    <objectDestructor name="self%posteriorSampleStateInitialize_"  />
+    <objectDestructor name="self%randomNumberGenerator_"           />
+    !!]
     do i=1,size(self%modelParametersActive_  )
-       !# <objectDestructor name="self%modelParametersActive_  (i)%modelParameter_"/>
+       !![
+       <objectDestructor name="self%modelParametersActive_  (i)%modelParameter_"/>
+       !!]
     end do
     do i=1,size(self%modelParametersInactive_)
-       !# <objectDestructor name="self%modelParametersInactive_(i)%modelParameter_"/>
+       !![
+       <objectDestructor name="self%modelParametersInactive_(i)%modelParameter_"/>
+       !!]
     end do
     return
   end subroutine particleSwarmDestructor
 
   subroutine particleSwarmSimulate(self)
-    !% Perform a particle swarm simulation.
+    !!{
+    Perform a particle swarm simulation.
+    !!}
     use :: Display                     , only : displayIndent          , displayMessage, displayUnindent, displayMagenta, &
          &                                      displayReset
     use :: File_Utilities              , only : File_Exists            , File_Remove
@@ -576,7 +626,9 @@ contains
   end subroutine particleSwarmSimulate
 
   subroutine particleSwarmPosterior(self,posteriorSampleState_,logPosterior,logLikelihood,logLikelihoodVariance,timeEvaluate,timeEvaluatePrevious,forceAcceptance)
-    !% Return the log of the posterior for the current state.
+    !!{
+    Return the log of the posterior for the current state.
+    !!}
     use            :: Display                     , only : displayIndent             , displayMessage, displayUnindent
     use            :: Galacticus_Error            , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding               , only : c_size_t

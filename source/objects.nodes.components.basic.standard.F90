@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module with the standard implementation of basic tree node methods.
+!!{
+Contains a module with the standard implementation of basic tree node methods.
+!!}
 
 module Node_Component_Basic_Standard
-  !% The standard implementation of basic tree node methods.
+  !!{
+  The standard implementation of basic tree node methods.
+  !!}
   implicit none
   private
   public :: Node_Component_Basic_Standard_Rate_Compute     , Node_Component_Basic_Standard_Scale_Set          , &
@@ -28,55 +32,61 @@ module Node_Component_Basic_Standard
        &    Node_Component_Basic_Standard_Plausibility     , Node_Component_Basic_Standard_Post_Step          , &
        &    Node_Component_Basic_Standard_Thread_Initialize, Node_Component_Basic_Standard_Thread_Uninitialize
 
-  !# <component>
-  !#  <class>basic</class>
-  !#  <name>standard</name>
-  !#  <isDefault>true</isDefault>
-  !#  <properties>
-  !#   <property>
-  !#     <name>mass</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-  !#     <output unitsInSI="massSolar" comment="Total mass of the node, assuming universal baryon fraction."/>
-  !#   </property>
-  !#   <property>
-  !#     <name>time</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-  !#   </property>
-  !#   <property>
-  !#     <name>timeLastIsolated</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#     <getFunction bindsTo="component">BasicStandardTimeLastIsolated</getFunction>
-  !#     <output unitsInSI="gigaYear" comment="Time at which node was last an isolated halo."/>
-  !#   </property>
-  !#   <property>
-  !#     <name>accretionRate</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#   </property>
-  !#   <property>
-  !#     <name>massTarget</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#   </property>
-  !#  </properties>
-  !#  <functions>objects.nodes.components.basic.standard.bound_functions.inc</functions>
-  !# </component>
+  !![
+  <component>
+   <class>basic</class>
+   <name>standard</name>
+   <isDefault>true</isDefault>
+   <properties>
+    <property>
+      <name>mass</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+      <output unitsInSI="massSolar" comment="Total mass of the node, assuming universal baryon fraction."/>
+    </property>
+    <property>
+      <name>time</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+    </property>
+    <property>
+      <name>timeLastIsolated</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+      <getFunction bindsTo="component">BasicStandardTimeLastIsolated</getFunction>
+      <output unitsInSI="gigaYear" comment="Time at which node was last an isolated halo."/>
+    </property>
+    <property>
+      <name>accretionRate</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+    </property>
+    <property>
+      <name>massTarget</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+    </property>
+   </properties>
+   <functions>objects.nodes.components.basic.standard.bound_functions.inc</functions>
+  </component>
+  !!]
 
 contains
 
-  !# <nodeComponentThreadInitializationTask>
-  !#  <unitName>Node_Component_Basic_Standard_Thread_Initialize</unitName>
-  !# </nodeComponentThreadInitializationTask>
+  !![
+  <nodeComponentThreadInitializationTask>
+   <unitName>Node_Component_Basic_Standard_Thread_Initialize</unitName>
+  </nodeComponentThreadInitializationTask>
+  !!]
   subroutine Node_Component_Basic_Standard_Thread_Initialize(parameters_)
-    !% Initializes the tree node scale dark matter profile module.
+    !!{
+    Initializes the tree node scale dark matter profile module.
+    !!}
     use :: Events_Hooks    , only : nodePromotionEvent   , openMPThreadBindingAtLevel
     use :: Galacticus_Nodes, only : defaultBasicComponent
     use :: Input_Parameters, only : inputParameters
@@ -89,11 +99,15 @@ contains
     return
   end subroutine Node_Component_Basic_Standard_Thread_Initialize
 
-  !# <nodeComponentThreadUninitializationTask>
-  !#  <unitName>Node_Component_Basic_Standard_Thread_Uninitialize</unitName>
-  !# </nodeComponentThreadUninitializationTask>
+  !![
+  <nodeComponentThreadUninitializationTask>
+   <unitName>Node_Component_Basic_Standard_Thread_Uninitialize</unitName>
+  </nodeComponentThreadUninitializationTask>
+  !!]
   subroutine Node_Component_Basic_Standard_Thread_Uninitialize()
-    !% Uninitializes the tree node scale dark matter profile module.
+    !!{
+    Uninitializes the tree node scale dark matter profile module.
+    !!}
     use :: Events_Hooks    , only : nodePromotionEvent
     use :: Galacticus_Nodes, only : defaultBasicComponent
     implicit none
@@ -103,11 +117,15 @@ contains
     return
   end subroutine Node_Component_Basic_Standard_Thread_Uninitialize
 
-  !# <rateComputeTask>
-  !#  <unitName>Node_Component_Basic_Standard_Rate_Compute</unitName>
-  !# </rateComputeTask>
+  !![
+  <rateComputeTask>
+   <unitName>Node_Component_Basic_Standard_Rate_Compute</unitName>
+  </rateComputeTask>
+  !!]
   subroutine Node_Component_Basic_Standard_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
-    !% Compute rates of change of properties in the standard implementation of the basic component.
+    !!{
+    Compute rates of change of properties in the standard implementation of the basic component.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentBasicStandard, propertyTypeInactive, treeNode
     implicit none
     type     (treeNode          ), intent(inout)          :: node
@@ -132,11 +150,15 @@ contains
     return
   end subroutine Node_Component_Basic_Standard_Rate_Compute
 
-  !# <scaleSetTask>
-  !#  <unitName>Node_Component_Basic_Standard_Scale_Set</unitName>
-  !# </scaleSetTask>
+  !![
+  <scaleSetTask>
+   <unitName>Node_Component_Basic_Standard_Scale_Set</unitName>
+  </scaleSetTask>
+  !!]
   subroutine Node_Component_Basic_Standard_Scale_Set(node)
-    !% Set scales for properties in the standard implementation of the basic component.
+    !!{
+    Set scales for properties in the standard implementation of the basic component.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentBasicStandard, treeNode
     implicit none
     type            (treeNode          ), intent(inout), pointer :: node
@@ -157,11 +179,15 @@ contains
     return
   end subroutine Node_Component_Basic_Standard_Scale_Set
 
-  !# <mergerTreeInitializeTask>
-  !#  <unitName>Node_Component_Basic_Standard_Tree_Initialize</unitName>
-  !# </mergerTreeInitializeTask>
+  !![
+  <mergerTreeInitializeTask>
+   <unitName>Node_Component_Basic_Standard_Tree_Initialize</unitName>
+  </mergerTreeInitializeTask>
+  !!]
   subroutine Node_Component_Basic_Standard_Tree_Initialize(node)
-    !% Set the mass accretion rate for {\normalfont \ttfamily node}.
+    !!{
+    Set the mass accretion rate for {\normalfont \ttfamily node}.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentBasicStandard, treeNode
     implicit none
     type            (treeNode          ), intent(inout), pointer :: node
@@ -249,11 +275,15 @@ contains
     return
   end subroutine Node_Component_Basic_Standard_Tree_Initialize
 
-  !# <nodeMergerTask>
-  !#  <unitName>Node_Component_Basic_Standard_Stop_Accretion</unitName>
-  !# </nodeMergerTask>
+  !![
+  <nodeMergerTask>
+   <unitName>Node_Component_Basic_Standard_Stop_Accretion</unitName>
+  </nodeMergerTask>
+  !!]
   subroutine Node_Component_Basic_Standard_Stop_Accretion(node)
-    !% Switch off accretion of new mass onto this node once it becomes a satellite.
+    !!{
+    Switch off accretion of new mass onto this node once it becomes a satellite.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentBasicStandard, treeNode
     implicit none
     type (treeNode          ), intent(inout) :: node
@@ -273,8 +303,10 @@ contains
   end subroutine Node_Component_Basic_Standard_Stop_Accretion
   
   subroutine nodePromotion(self,node)
-    !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the mass of {\normalfont \ttfamily node}
-    !% to be that of its parent.
+    !!{
+    Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the mass of {\normalfont \ttfamily node}
+    to be that of its parent.
+    !!}
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: Galacticus_Nodes  , only : nodeComponentBasic     , nodeComponentBasicStandard, treeNode
     use :: ISO_Varying_String, only : var_str                , varying_string            , operator(//)
@@ -308,7 +340,9 @@ contains
   end subroutine nodePromotion
 
   double precision function Node_Component_Basic_Standard_Unresolved_Mass(node)
-    !% Return the unresolved mass for {\normalfont \ttfamily node}.
+    !!{
+    Return the unresolved mass for {\normalfont \ttfamily node}.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     type (treeNode          ), intent(inout), pointer :: node
@@ -329,11 +363,15 @@ contains
     return
   end function Node_Component_Basic_Standard_Unresolved_Mass
 
-  !# <radiusSolverPlausibility>
-  !#  <unitName>Node_Component_Basic_Standard_Plausibility</unitName>
-  !# </radiusSolverPlausibility>
+  !![
+  <radiusSolverPlausibility>
+   <unitName>Node_Component_Basic_Standard_Plausibility</unitName>
+  </radiusSolverPlausibility>
+  !!]
   subroutine Node_Component_Basic_Standard_Plausibility(node)
-    !% Determines whether the basic is physically plausible. Require the mass and time to be positive.
+    !!{
+    Determines whether the basic is physically plausible. Require the mass and time to be positive.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentBasicStandard, treeNode
     implicit none
     type   (treeNode          ), intent(inout) :: node
@@ -350,11 +388,15 @@ contains
     return
   end subroutine Node_Component_Basic_Standard_Plausibility
 
-  !# <postStepTask>
-  !# <unitName>Node_Component_Basic_Standard_Post_Step</unitName>
-  !# </postStepTask>
+  !![
+  <postStepTask>
+  <unitName>Node_Component_Basic_Standard_Post_Step</unitName>
+  </postStepTask>
+  !!]
   subroutine Node_Component_Basic_Standard_Post_Step(node,status)
-    !% Test for failure in the basic mass evolution.
+    !!{
+    Test for failure in the basic mass evolution.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentBasicStandard, treeNode
     use :: Interface_GSL   , only : GSL_Failure
     implicit none

@@ -17,25 +17,31 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a stellar initial mass function class based on \cite{chabrier_galactic_2001}.
+  !!{
+  Implements a stellar initial mass function class based on \cite{chabrier_galactic_2001}.
+  !!}
 
-  !# <initialMassFunction name="initialMassFunctionChabrier2001">
-  !#  <description>
-  !#   A stellar initial mass function class based on \cite{chabrier_galactic_2001}:
-  !#   \begin{equation}
-  !#    \phi(M) \propto \left\{ \begin{array}{ll}
-  !#    M^{-1} \exp(-[\log_{10}(M/M_\mathrm{c})/\sigma_\mathrm{c}]^2/2) &amp; \hbox{ for } M_\mathrm{l} &lt; M &lt; M_\mathrm{t}  \\
-  !#    M^\alpha &amp; \hbox{ for } M_\mathrm{t} &lt; M &lt; M_\mathrm{u} \\
-  !#    0 &amp; \hbox {otherwise,} \end{array} \right.
-  !#   \end{equation}
-  !#   where $\sigma_\mathrm{c}=${\normalfont \ttfamily [sigma]}, $M_\mathrm{c}=${\normalfont \ttfamily
-  !#   [massCharacteristic]}$M_\odot$, $\alpha=${\normalfont \ttfamily [exponent]}, $M_\mathrm{t}=${\normalfont \ttfamily
-  !#   [massTransition]}$M_\odot$, $M_\mathrm{l}=${\normalfont \ttfamily [massLower]}$M_\odot$, and $M_\mathrm{u}=${\normalfont
-  !#   \ttfamily [massUpper]}$M_\odot$.
-  !#  </description>
-  !# </initialMassFunction>
+  !![
+  <initialMassFunction name="initialMassFunctionChabrier2001">
+   <description>
+    A stellar initial mass function class based on \cite{chabrier_galactic_2001}:
+    \begin{equation}
+     \phi(M) \propto \left\{ \begin{array}{ll}
+     M^{-1} \exp(-[\log_{10}(M/M_\mathrm{c})/\sigma_\mathrm{c}]^2/2) &amp; \hbox{ for } M_\mathrm{l} &lt; M &lt; M_\mathrm{t}  \\
+     M^\alpha &amp; \hbox{ for } M_\mathrm{t} &lt; M &lt; M_\mathrm{u} \\
+     0 &amp; \hbox {otherwise,} \end{array} \right.
+    \end{equation}
+    where $\sigma_\mathrm{c}=${\normalfont \ttfamily [sigma]}, $M_\mathrm{c}=${\normalfont \ttfamily
+    [massCharacteristic]}$M_\odot$, $\alpha=${\normalfont \ttfamily [exponent]}, $M_\mathrm{t}=${\normalfont \ttfamily
+    [massTransition]}$M_\odot$, $M_\mathrm{l}=${\normalfont \ttfamily [massLower]}$M_\odot$, and $M_\mathrm{u}=${\normalfont
+    \ttfamily [massUpper]}$M_\odot$.
+   </description>
+  </initialMassFunction>
+  !!]
   type, extends(initialMassFunctionClass) :: initialMassFunctionChabrier2001
-     !% A stellar initial mass function class based on \cite{chabrier_galactic_2001}.
+     !!{
+     A stellar initial mass function class based on \cite{chabrier_galactic_2001}.
+     !!}
      private
      double precision :: massLower               , massTransition        , &
           &              massUpper               , exponent              , &
@@ -50,7 +56,9 @@
   end type initialMassFunctionChabrier2001
 
   interface initialMassFunctionChabrier2001
-     !% Constructors for the {\normalfont \ttfamily chabrier2001} initial mass function class.
+     !!{
+     Constructors for the {\normalfont \ttfamily chabrier2001} initial mass function class.
+     !!}
      module procedure chabrier2001ConstructorParameters
      module procedure chabrier2001ConstructorInternal
   end interface initialMassFunctionChabrier2001
@@ -58,7 +66,9 @@
 contains
 
   function chabrier2001ConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily chabrier2001} initial mass function class which takes a parameter list as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily chabrier2001} initial mass function class which takes a parameter list as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (initialMassFunctionChabrier2001)                :: self
@@ -67,49 +77,55 @@ contains
           &                                                             massUpper         , exponent      , &
           &                                                             massCharacteristic, sigma
 
-    !# <inputParameter>
-    !#   <name>massUpper</name>
-    !#   <defaultValue>125.0d0</defaultValue>
-    !#   <description>The upper mass limit for the \cite{chabrier_galactic_2001} \gls{imf}.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massLower</name>
-    !#   <defaultValue>0.1d0</defaultValue>
-    !#   <description>The lower mass limit for the \cite{chabrier_galactic_2001} \gls{imf}.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massTransition</name>
-    !#   <defaultValue>1.0d0</defaultValue>
-    !#   <description>The transition limit for the \cite{chabrier_galactic_2001} \gls{imf}.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>sigma</name>
-    !#   <defaultValue>0.69d0</defaultValue>
-    !#   <description>The width of the lognormal part of the \cite{chabrier_galactic_2001} \gls{imf}.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>exponent</name>
-    !#   <defaultValue>-2.3d0</defaultValue>
-    !#   <description>The exponent of the power law part of the \cite{chabrier_galactic_2001} \gls{imf}.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massCharacteristic</name>
-    !#   <defaultValue>0.08d0</defaultValue>
-    !#   <description>Characteristic mass of the lognormal part of the \cite{chabrier_galactic_2001} \gls{imf}.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>massUpper</name>
+      <defaultValue>125.0d0</defaultValue>
+      <description>The upper mass limit for the \cite{chabrier_galactic_2001} \gls{imf}.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>massLower</name>
+      <defaultValue>0.1d0</defaultValue>
+      <description>The lower mass limit for the \cite{chabrier_galactic_2001} \gls{imf}.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>massTransition</name>
+      <defaultValue>1.0d0</defaultValue>
+      <description>The transition limit for the \cite{chabrier_galactic_2001} \gls{imf}.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>sigma</name>
+      <defaultValue>0.69d0</defaultValue>
+      <description>The width of the lognormal part of the \cite{chabrier_galactic_2001} \gls{imf}.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>exponent</name>
+      <defaultValue>-2.3d0</defaultValue>
+      <description>The exponent of the power law part of the \cite{chabrier_galactic_2001} \gls{imf}.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>massCharacteristic</name>
+      <defaultValue>0.08d0</defaultValue>
+      <description>Characteristic mass of the lognormal part of the \cite{chabrier_galactic_2001} \gls{imf}.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     self=initialMassFunctionChabrier2001(massLower,massTransition,massUpper,exponent,massCharacteristic,sigma)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function chabrier2001ConstructorParameters
 
   function chabrier2001ConstructorInternal(massLower,massTransition,massUpper,exponent,massCharacteristic,sigma) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily chabrier2001} initial mass function.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily chabrier2001} initial mass function.
+    !!}
     use :: Error_Functions         , only : Error_Function
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -118,7 +134,9 @@ contains
          &                                                              massUpper         , exponent      , &
          &                                                              massCharacteristic, sigma
     double precision                                                 :: normalization
-    !# <constructorAssign variables="massLower,massTransition,massUpper,exponent,massCharacteristic,sigma"/>
+    !![
+    <constructorAssign variables="massLower,massTransition,massUpper,exponent,massCharacteristic,sigma"/>
+    !!]
 
     self%normalizationLogNormal  =+sqrt(Pi/2.0d0)                                     &
          &                        *self%sigma                                         &
@@ -187,7 +205,9 @@ contains
   end function chabrier2001ConstructorInternal
 
   double precision function chabrier2001MassMinimum(self)
-    !% Return the minimum mass of stars in the \cite{chabrier_galactic_2001} \gls{imf}.
+    !!{
+    Return the minimum mass of stars in the \cite{chabrier_galactic_2001} \gls{imf}.
+    !!}
     implicit none
     class(initialMassFunctionChabrier2001), intent(inout) :: self
 
@@ -196,7 +216,9 @@ contains
   end function chabrier2001MassMinimum
 
   double precision function chabrier2001MassMaximum(self)
-    !% Return the maximum mass of stars in the \cite{chabrier_galactic_2001} \gls{imf}.
+    !!{
+    Return the maximum mass of stars in the \cite{chabrier_galactic_2001} \gls{imf}.
+    !!}
     implicit none
     class(initialMassFunctionChabrier2001), intent(inout) :: self
 
@@ -205,7 +227,9 @@ contains
   end function chabrier2001MassMaximum
 
   double precision function chabrier2001Phi(self,massInitial)
-    !% Evaluate the \cite{chabrier_galactic_2001} stellar initial mass function.
+    !!{
+    Evaluate the \cite{chabrier_galactic_2001} stellar initial mass function.
+    !!}
     implicit none
     class           (initialMassFunctionChabrier2001), intent(inout) :: self
     double precision                                 , intent(in   ) :: massInitial
@@ -241,7 +265,9 @@ contains
   end function chabrier2001Phi
 
   subroutine chabrier2001Tabulate(self,imfTable)
-    !% Construct and return a tabulation of the \cite{chabrier_galactic_2001} \gls{imf}.
+    !!{
+    Construct and return a tabulation of the \cite{chabrier_galactic_2001} \gls{imf}.
+    !!}
     use :: Tables, only : table1DLogarithmicLinear
     implicit none
     class  (initialMassFunctionChabrier2001)             , intent(inout) :: self
@@ -265,7 +291,9 @@ contains
   end subroutine chabrier2001Tabulate
 
   function chabrier2001Label(self)
-    !% Return a label for this \gls{imf}.
+    !!{
+    Return a label for this \gls{imf}.
+    !!}
     implicit none
     class(initialMassFunctionChabrier2001), intent(inout) :: self
     type (varying_string                    )             :: chabrier2001Label

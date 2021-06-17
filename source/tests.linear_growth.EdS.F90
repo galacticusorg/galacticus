@@ -18,7 +18,9 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 program Tests_Linear_Growth_EdS
-  !% Tests linear growth calculations.
+  !!{
+  Tests linear growth calculations.
+  !!}
   use :: Cosmology_Parameters, only : cosmologyParametersSimple
   use :: Cosmology_Functions , only : cosmologyFunctionsMatterLambda
   use :: Display             , only : displayVerbositySet           , verbosityLevelStandard
@@ -38,32 +40,34 @@ program Tests_Linear_Growth_EdS
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Linear growth: Einstein-de Sitter")
   ! Test growth factor in an Einstein-de Sitter universe. Growth factor should equal the expansion factor.
-  !# <referenceConstruct object="cosmologyParameters_">
-  !#  <constructor>
-  !#   cosmologyParametersSimple      (                                           &amp;
-  !#    &amp;                          OmegaMatter         = 1.00d0             , &amp;
-  !#    &amp;                          OmegaBaryon         = 0.00d0             , &amp;
-  !#    &amp;                          OmegaDarkEnergy     = 0.00d0             , &amp;
-  !#    &amp;                          temperatureCMB      = 2.78d0             , &amp;
-  !#    &amp;                          HubbleConstant      =73.00d0               &amp;
-  !#    &amp;                         )
-  !#  </constructor>
-  !# </referenceConstruct>
-  !# <referenceConstruct object="cosmologyFunctions_" >
-  !#  <constructor>
-  !#   cosmologyFunctionsMatterLambda (                                           &amp;
-  !#    &amp;                          cosmologyParameters_=cosmologyParameters_  &amp;
-  !#    &amp;                         )
-  !#  </constructor>
-  !# </referenceConstruct>
-  !# <referenceConstruct object="linearGrowth_"       >
-  !#  <constructor>
-  !#   linearGrowthCollisionlessMatter(                                           &amp;
-  !#    &amp;                          cosmologyParameters_=cosmologyParameters_, &amp;
-  !#    &amp;                          cosmologyFunctions_ =cosmologyFunctions_   &amp;
-  !#    &amp;                         )
-  !#  </constructor>
-  !# </referenceConstruct>
+  !![
+  <referenceConstruct object="cosmologyParameters_">
+   <constructor>
+    cosmologyParametersSimple      (                                           &amp;
+     &amp;                          OmegaMatter         = 1.00d0             , &amp;
+     &amp;                          OmegaBaryon         = 0.00d0             , &amp;
+     &amp;                          OmegaDarkEnergy     = 0.00d0             , &amp;
+     &amp;                          temperatureCMB      = 2.78d0             , &amp;
+     &amp;                          HubbleConstant      =73.00d0               &amp;
+     &amp;                         )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="cosmologyFunctions_" >
+   <constructor>
+    cosmologyFunctionsMatterLambda (                                           &amp;
+     &amp;                          cosmologyParameters_=cosmologyParameters_  &amp;
+     &amp;                         )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="linearGrowth_"       >
+   <constructor>
+    linearGrowthCollisionlessMatter(                                           &amp;
+     &amp;                          cosmologyParameters_=cosmologyParameters_, &amp;
+     &amp;                          cosmologyFunctions_ =cosmologyFunctions_   &amp;
+     &amp;                         )
+   </constructor>
+  </referenceConstruct>
+  !!]
   do iExpansion=1,size(redshift)
      expansionFactor=cosmologyFunctions_%expansionFactorFromRedshift(redshift(iExpansion))
      linearGrowthFactor=linearGrowth_%value(expansionFactor=expansionFactor,component=componentDarkMatter)

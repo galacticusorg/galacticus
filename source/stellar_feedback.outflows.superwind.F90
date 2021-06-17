@@ -17,24 +17,30 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a ``superwind'' stellar feedback model.
+  !!{
+  Implementation of a ``superwind'' stellar feedback model.
+  !!}
 
-  !# <stellarFeedbackOutflows name="stellarFeedbackOutflowsSuperWind">
-  !#  <description>
-  !#   A stellar feedback outflow class which implements a ``superwind''. The outflow rate is given by:
-  !#   \begin{equation}
-  !#    \dot{M}_\mathrm{outflow} = \beta_\mathrm{superwind} {\dot{E} \over E_\mathrm{canonical}} \left\{ \begin{array}{ll} \left(
-  !#    V_\mathrm{superwind}/V\right)^2 &amp; \hbox{ if } V &gt; V_\mathrm{superwind} \\ 1 &amp; \hbox{ otherwise,} \end{array}
-  !#    \right.
-  !#   \end{equation}
-  !#   where $V_\mathrm{superwind}=${\normalfont \ttfamily [velocityCharacteristic]} (in km/s) and
-  !#   $\beta_\mathrm{superwind}=${\normalfont \ttfamily [massLoading]} are input parameters, $V$ is the characteristic velocity
-  !#   of the component, $\dot{E}$ is the rate of energy input from stellar populations and $E_\mathrm{canonical}$ is the total
-  !#   energy input by a canonical stellar population normalized to $1 M_\odot$ after infinite time.
-  !#  </description>
-  !# </stellarFeedbackOutflows>
+  !![
+  <stellarFeedbackOutflows name="stellarFeedbackOutflowsSuperWind">
+   <description>
+    A stellar feedback outflow class which implements a ``superwind''. The outflow rate is given by:
+    \begin{equation}
+     \dot{M}_\mathrm{outflow} = \beta_\mathrm{superwind} {\dot{E} \over E_\mathrm{canonical}} \left\{ \begin{array}{ll} \left(
+     V_\mathrm{superwind}/V\right)^2 &amp; \hbox{ if } V &gt; V_\mathrm{superwind} \\ 1 &amp; \hbox{ otherwise,} \end{array}
+     \right.
+    \end{equation}
+    where $V_\mathrm{superwind}=${\normalfont \ttfamily [velocityCharacteristic]} (in km/s) and
+    $\beta_\mathrm{superwind}=${\normalfont \ttfamily [massLoading]} are input parameters, $V$ is the characteristic velocity
+    of the component, $\dot{E}$ is the rate of energy input from stellar populations and $E_\mathrm{canonical}$ is the total
+    energy input by a canonical stellar population normalized to $1 M_\odot$ after infinite time.
+   </description>
+  </stellarFeedbackOutflows>
+  !!]
   type, extends(stellarFeedbackOutflowsClass) :: stellarFeedbackOutflowsSuperWind
-     !% Implementation of a ``superwind'' stellar feedback model.
+     !!{
+     Implementation of a ``superwind'' stellar feedback model.
+     !!}
      private
      double precision :: velocityCharacteristic, massLoading
    contains
@@ -42,7 +48,9 @@
   end type stellarFeedbackOutflowsSuperWind
 
   interface stellarFeedbackOutflowsSuperWind
-     !% Constructors for the superwind stellar feedback class.
+     !!{
+     Constructors for the superwind stellar feedback class.
+     !!}
      module procedure superWindConstructorParameters
      module procedure superWindConstructorInternal
   end interface stellarFeedbackOutflowsSuperWind
@@ -50,50 +58,62 @@
 contains
 
   function superWindConstructorParameters(parameters) result(self)
-    !% Constructor for the superwind stellar feedback class which takes a parameter set as input.
+    !!{
+    Constructor for the superwind stellar feedback class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (stellarFeedbackOutflowsSuperWind)                :: self
     type            (inputParameters                  ), intent(inout) :: parameters
     double precision                                                   :: velocityCharacteristic, massLoading
 
-    !# <inputParameter>
-    !#   <name>velocityCharacteristic</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>200.0d0</defaultValue>
-    !#   <description>The velocity scale at which the \gls{sne}-driven superwind outflow rate transitions to a constant.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massLoading</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>2.0d0</defaultValue>
-    !#   <description>The mass-loading of ``superwind'' outflows.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>velocityCharacteristic</name>
+      <source>parameters</source>
+      <defaultValue>200.0d0</defaultValue>
+      <description>The velocity scale at which the \gls{sne}-driven superwind outflow rate transitions to a constant.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>massLoading</name>
+      <source>parameters</source>
+      <defaultValue>2.0d0</defaultValue>
+      <description>The mass-loading of ``superwind'' outflows.</description>
+    </inputParameter>
+    !!]
     self=stellarFeedbackOutflowsSuperWind(velocityCharacteristic,massLoading)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function superWindConstructorParameters
 
   function superWindConstructorInternal(velocityCharacteristic,massLoading) result(self)
-    !% Internal constructor for the superwind stellar feedback class.
+    !!{
+    Internal constructor for the superwind stellar feedback class.
+    !!}
     implicit none
     type            (stellarFeedbackOutflowsSuperWind)                :: self
     double precision                                  , intent(in   ) :: velocityCharacteristic, massLoading
-    !# <constructorAssign variables="velocityCharacteristic, massLoading"/>
+    !![
+    <constructorAssign variables="velocityCharacteristic, massLoading"/>
+    !!]
 
     return
   end function superWindConstructorInternal
 
   subroutine superWindOutflowRate(self,component,rateStarFormation,rateEnergyInput,rateOutflowEjective,rateOutflowExpulsive)
-    !% Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the given {\normalfont \ttfamily component}. The outflow
-    !% rate is given by 
-    !% \begin{equation}
-    !% \dot{M}_\mathrm{outflow} = f_\mathrm{SW,0} \left\{ \begin{array}{ll} 1 & \hbox{ if } V_\mathrm{disk} < V_\mathrm{disk,SW} \\ (V_\mathrm{disk,SW}/V_\mathrm{disk})^2 &  \hbox{ if } V_\mathrm{disk} \ge V_\mathrm{disk,SW} \end{array} \right. ,
-    !% \end{equation}
-    !% where $V_\mathrm{disk,SW}=${\normalfont \ttfamily [velocityCharacteristic]} and $f_\mathrm{SW,0}=${\normalfont \ttfamily
-    !% [massLoadnig]}. Note that the velocity $V_\mathrm{ disk}$ is whatever characteristic value returned by the disk
-    !% method. This scaling is functionally similar to that adopted by \cite{cole_hierarchical_2000} and \cite{baugh_can_2005},
-    !% except that they specifically used the circular velocity at half-mass radius.
+    !!{
+    Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the given {\normalfont \ttfamily component}. The outflow
+    rate is given by 
+    \begin{equation}
+    \dot{M}_\mathrm{outflow} = f_\mathrm{SW,0} \left\{ \begin{array}{ll} 1 & \hbox{ if } V_\mathrm{disk} < V_\mathrm{disk,SW} \\ (V_\mathrm{disk,SW}/V_\mathrm{disk})^2 &  \hbox{ if } V_\mathrm{disk} \ge V_\mathrm{disk,SW} \end{array} \right. ,
+    \end{equation}
+    where $V_\mathrm{disk,SW}=${\normalfont \ttfamily [velocityCharacteristic]} and $f_\mathrm{SW,0}=${\normalfont \ttfamily
+    [massLoadnig]}. Note that the velocity $V_\mathrm{ disk}$ is whatever characteristic value returned by the disk
+    method. This scaling is functionally similar to that adopted by \cite{cole_hierarchical_2000} and \cite{baugh_can_2005},
+    except that they specifically used the circular velocity at half-mass radius.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : nodeComponentDisk                     , nodeComponentSpheroid
     use :: Stellar_Feedback, only : feedbackEnergyInputAtInfinityCanonical

@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides various atomic data.
+!!{
+Contains a module which provides various atomic data.
+!!}
 
 module Atomic_Data
-  !% Provides various atomic data.
+  !!{
+  Provides various atomic data.
+  !!}
   implicit none
   private
   public :: Atom_Lookup, Abundance_Pattern_Lookup, Atomic_Number, Atomic_Mass, Atomic_Abundance, Atomic_Data_Atoms_Count, Atomic_Short_Label
 
   type atomicData
-     !% Data type for storing atomic data.
+     !!{
+     Data type for storing atomic data.
+     !!}
      integer                                             :: atomicNumber
      double precision                                    :: atomicMass
      double precision        , allocatable, dimension(:) :: abundanceByMass
@@ -61,7 +67,9 @@ module Atomic_Data
 contains
 
   character(len=3) function Atomic_Short_Label(atomIndex,atomicNumber,name)
-    !% Return the short label for an atom.
+    !!{
+    Return the short label for an atom.
+    !!}
     implicit none
     integer         , intent(in   ), optional :: atomIndex, atomicNumber
     character(len=*), intent(in   ), optional :: name
@@ -82,7 +90,9 @@ contains
   end function Atomic_Short_Label
 
   integer function Atomic_Number(atomIndex,shortLabel,name)
-    !% Returns the atomic number of an element specified by name or short label.
+    !!{
+    Returns the atomic number of an element specified by name or short label.
+    !!}
     implicit none
     integer         , intent(in   ), optional :: atomIndex
     character(len=*), intent(in   ), optional :: name     , shortLabel
@@ -105,7 +115,9 @@ contains
   end function Atomic_Number
 
   double precision function Atomic_Mass(atomIndex,atomicNumber,shortLabel,name)
-    !% Returns the atomic mass of an element specified by atomic number, name or short label.
+    !!{
+    Returns the atomic mass of an element specified by atomic number, name or short label.
+    !!}
     implicit none
     integer         , intent(in   ), optional :: atomIndex, atomicNumber
     character(len=*), intent(in   ), optional :: name     , shortLabel
@@ -128,7 +140,9 @@ contains
   end function Atomic_Mass
 
   double precision function Atomic_Abundance(abundanceIndex,abundanceName,atomIndex,atomicNumber,shortLabel,name,normalization)
-    !% Returns the abundance by mass of a given atom in a given abundance pattern.
+    !!{
+    Returns the abundance by mass of a given atom in a given abundance pattern.
+    !!}
     implicit none
     integer         , intent(in   ), optional :: abundanceIndex   , atomIndex, atomicNumber, &
          &                                       normalization
@@ -163,7 +177,9 @@ contains
   end function Atomic_Abundance
 
   integer function Atomic_Data_Atoms_Count()
-    !% Return the number of atomic species known in this module.
+    !!{
+    Return the number of atomic species known in this module.
+    !!}
     implicit none
 
     ! Ensure the module is initialized.
@@ -175,7 +191,9 @@ contains
   end function Atomic_Data_Atoms_Count
 
   subroutine Atomic_Data_Initialize
-    !% Ensure that the module is initialized by reading in data.
+    !!{
+    Ensure that the module is initialized by reading in data.
+    !!}
     use :: FoX_dom           , only : destroy                , getElementsByTagname             , node
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: Galacticus_Paths  , only : galacticusPath         , pathTypeDataStatic
@@ -298,7 +316,9 @@ contains
   end subroutine Atomic_Data_Initialize
 
   integer function Atom_Lookup(atomicNumber,shortLabel,name)
-    !% Returns the position in the {\normalfont \ttfamily atoms()} array of an element specified by atomic number, name or short label.
+    !!{
+    Returns the position in the {\normalfont \ttfamily atoms()} array of an element specified by atomic number, name or short label.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: String_Handling , only : String_Lower_Case
     implicit none
@@ -344,7 +364,9 @@ contains
   end function Atom_Lookup
 
   integer function Abundance_Pattern_Lookup(abundanceIndex,abundanceName)
-    !% Returns the position in the {\normalfont \ttfamily atoms()} array of an element specified by atomic number, name or short label.
+    !!{
+    Returns the position in the {\normalfont \ttfamily atoms()} array of an element specified by atomic number, name or short label.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: String_Handling , only : String_Lower_Case
     implicit none

@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to test the numerical interpolation code.
+!!{
+Contains a program to test the numerical interpolation code.
+!!}
 
 program Test_Interpolation
-  !% Tests that numerical interpolation code works correctly.
+  !!{
+  Tests that numerical interpolation code works correctly.
+  !!}
   use            :: Display                , only : displayVerbositySet         , verbosityLevelStandard
   use, intrinsic :: ISO_C_Binding          , only : c_size_t
   use            :: Numerical_Interpolation, only : interpolator

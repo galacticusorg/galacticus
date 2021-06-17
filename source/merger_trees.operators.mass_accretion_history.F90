@@ -17,27 +17,33 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements a merger tree operator which outputs mass accretion
-  !% histories.
+  !!{
+  Contains a module which implements a merger tree operator which outputs mass accretion
+  histories.
+  !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
   use :: IO_HDF5            , only : hdf5Object
 
-  !# <mergerTreeOperator name="mergerTreeOperatorMassAccretionHistory">
-  !#  <description>
-  !#   A merger tree operator class which outputs mass accretion histories (i.e. the mass of the \gls{node} on the primary branch
-  !#   as a function of time). Histories are written into the \glc\ output file in a group with name given by {\normalfont
-  !#   \ttfamily [outputGroupName]}. Within that group, each merger tree has its own group named {\normalfont \ttfamily
-  !#   mergerTree\textless\ N\textgreater} where {\normalfont \ttfamily \textless\ N\textgreater} is the tree index. Within each
-  !#   such merger tree group datasets giving the node index (``{\normalfont \ttfamily nodeIndex}''), time (``{\normalfont
-  !#   \ttfamily nodeTime}''), basic mass (``{\normalfont \ttfamily nodeMass}''), expansion factor (``{\normalfont \ttfamily
-  !#   nodeExpansionFactor}'') are written. Optionally, datasets giving the spin parameter (``{\normalfont \ttfamily nodeSpin}'')
-  !#   and its vector components (``{\normalfont \ttfamily nodeSpinVector}'') are included if {\normalfont \ttfamily
-  !#   [includeSpin]} and {\normalfont \ttfamily [includeSpinVector]} respectively are set to {\normalfont \ttfamily true}.
-  !#  </description>
-  !# </mergerTreeOperator>
+  !![
+  <mergerTreeOperator name="mergerTreeOperatorMassAccretionHistory">
+   <description>
+    A merger tree operator class which outputs mass accretion histories (i.e. the mass of the \gls{node} on the primary branch
+    as a function of time). Histories are written into the \glc\ output file in a group with name given by {\normalfont
+    \ttfamily [outputGroupName]}. Within that group, each merger tree has its own group named {\normalfont \ttfamily
+    mergerTree\textless\ N\textgreater} where {\normalfont \ttfamily \textless\ N\textgreater} is the tree index. Within each
+    such merger tree group datasets giving the node index (``{\normalfont \ttfamily nodeIndex}''), time (``{\normalfont
+    \ttfamily nodeTime}''), basic mass (``{\normalfont \ttfamily nodeMass}''), expansion factor (``{\normalfont \ttfamily
+    nodeExpansionFactor}'') are written. Optionally, datasets giving the spin parameter (``{\normalfont \ttfamily nodeSpin}'')
+    and its vector components (``{\normalfont \ttfamily nodeSpinVector}'') are included if {\normalfont \ttfamily
+    [includeSpin]} and {\normalfont \ttfamily [includeSpinVector]} respectively are set to {\normalfont \ttfamily true}.
+   </description>
+  </mergerTreeOperator>
+  !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorMassAccretionHistory
-     !% A merger tree operator class which outputs mass accretion histories.
+     !!{
+     A merger tree operator class which outputs mass accretion histories.
+     !!}
      private
      type   (hdf5Object             )          :: outputGroup
      type   (varying_string         )          :: outputGroupName
@@ -50,7 +56,9 @@
   end type mergerTreeOperatorMassAccretionHistory
 
   interface mergerTreeOperatorMassAccretionHistory
-     !% Constructors for the mass accretion history merger tree operator class.
+     !!{
+     Constructors for the mass accretion history merger tree operator class.
+     !!}
      module procedure massAccretionHistoryConstructorParameters
      module procedure massAccretionHistoryConstructorInternal
   end interface mergerTreeOperatorMassAccretionHistory
@@ -58,8 +66,10 @@
 contains
 
   function massAccretionHistoryConstructorParameters(parameters) result(self)
-    !% Constructor for the mass accretion history merger tree operator class which takes a
-    !% parameter set as input.
+    !!{
+    Constructor for the mass accretion history merger tree operator class which takes a
+    parameter set as input.
+    !!}
     implicit none
     type (mergerTreeOperatorMassAccretionHistory)                :: self
     type (inputParameters                       ), intent(inout) :: parameters
@@ -67,33 +77,39 @@ contains
     class(cosmologyFunctionsClass               ), pointer       :: cosmologyFunctions_
     logical                                                      :: includeSpin        , includeSpinVector
 
-    !# <inputParameter>
-    !#   <name>outputGroupName</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>var_str('massAccretionHistories')</defaultValue>
-    !#   <description>The name of the \gls{hdf5} group to output mass accretion histories to.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>includeSpin</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>If true, include the spin of the halo in the output.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>includeSpinVector</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>If true, include the spin vector of the halo in the output.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>outputGroupName</name>
+      <source>parameters</source>
+      <defaultValue>var_str('massAccretionHistories')</defaultValue>
+      <description>The name of the \gls{hdf5} group to output mass accretion histories to.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>includeSpin</name>
+      <source>parameters</source>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, include the spin of the halo in the output.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>includeSpinVector</name>
+      <source>parameters</source>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, include the spin vector of the halo in the output.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !!]
     self=mergerTreeOperatorMassAccretionHistory(char(outputGroupName),includeSpin,includeSpinVector,cosmologyFunctions_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"/>
+    !!]
     return
   end function massAccretionHistoryConstructorParameters
 
   function massAccretionHistoryConstructorInternal(outputGroupName,includeSpin,includeSpinVector,cosmologyFunctions_) result(self)
-    !% Internal constructor for the mass accretion history merger tree operator class.
+    !!{
+    Internal constructor for the mass accretion history merger tree operator class.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Component_List, Galacticus_Error_Report
     use :: Galacticus_Nodes, only : defaultSpinComponent
     implicit none
@@ -101,7 +117,9 @@ contains
     character(len=*                                 ), intent(in   )         :: outputGroupName
     logical                                          , intent(in   )         :: includeSpin        , includeSpinVector
     class    (cosmologyFunctionsClass               ), intent(in   ), target :: cosmologyFunctions_
-    !# <constructorAssign variables="outputGroupName, includeSpin, includeSpinVector, *cosmologyFunctions_"/>
+    !![
+    <constructorAssign variables="outputGroupName, includeSpin, includeSpinVector, *cosmologyFunctions_"/>
+    !!]
 
     if (self%includeSpin      .and..not.defaultSpinComponent%spinIsGettable      ())                            &
          & call Galacticus_Error_Report                                                                         &
@@ -127,16 +145,22 @@ contains
   end function massAccretionHistoryConstructorInternal
 
   subroutine massAccretionHistoryDestructor(self)
-    !% Destructor for the mass accretion history merger tree operator function class.
+    !!{
+    Destructor for the mass accretion history merger tree operator function class.
+    !!}
     implicit none
     type(mergerTreeOperatorMassAccretionHistory), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"/>
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"/>
+    !!]
     return
   end subroutine massAccretionHistoryDestructor
 
   subroutine massAccretionHistoryOperatePreEvolution(self,tree)
-    !% Output the mass accretion history for a merger tree.
+    !!{
+    Output the mass accretion history for a merger tree.
+    !!}
     use            :: Display                         , only : displayGreen           , displayReset
     use            :: Galacticus_Error                , only : Galacticus_Error_Report
     use            :: Galacticus_HDF5                 , only : galacticusOutputFile
@@ -235,7 +259,9 @@ contains
   end subroutine massAccretionHistoryOperatePreEvolution
 
   subroutine massAccretionHistoryFinalize(self)
-    !% Close the mass accretion history group before closing the HDF5 file.
+    !!{
+    Close the mass accretion history group before closing the HDF5 file.
+    !!}
     use :: IO_HDF5, only : hdf5Access
     implicit none
     class(mergerTreeOperatorMassAccretionHistory), intent(inout) :: self

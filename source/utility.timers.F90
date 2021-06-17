@@ -17,24 +17,32 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements timers.
+!!{
+Contains a module which implements timers.
+!!}
 
 module Timers
-  !% Implements timers.
+  !!{
+  Implements timers.
+  !!}
   implicit none
   private
   public :: timer
 
   type :: timer
-     !% Type used to perform timing.
+     !!{
+     Type used to perform timing.
+     !!}
      real :: timeStart, timeStop
    contains
-     !# <methods>
-     !#   <method description="Start the timer." method="start" />
-     !#   <method description="Stop the timer." method="stop" />
-     !#   <method description="Report the time recorded as a double precision value." method="report" />
-     !#   <method description="Report the time recorded as a character value." method="reportText" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Start the timer." method="start" />
+       <method description="Stop the timer." method="stop" />
+       <method description="Report the time recorded as a double precision value." method="report" />
+       <method description="Report the time recorded as a character value." method="reportText" />
+     </methods>
+     !!]
      procedure :: start      => timerStart
      procedure :: stop       => timerStop
      procedure :: report     => timerReport
@@ -42,14 +50,18 @@ module Timers
   end type timer
 
   interface timer
-     !% Constructors for the {\normalfont \ttfamily timer} class.
+     !!{
+     Constructors for the {\normalfont \ttfamily timer} class.
+     !!}
      module procedure timerConstructorInternal
   end interface timer
   
 contains
 
   function timerConstructorInternal() result(self)
-    !% Constructor for the {\normalfont \ttfamily timer} class.
+    !!{
+    Constructor for the {\normalfont \ttfamily timer} class.
+    !!}
     type(timer) :: self
 
     self%timeStart=-huge(0.0)
@@ -58,7 +70,9 @@ contains
   end function timerConstructorInternal
 
   subroutine timerStart(self)
-    !% Start the timer.
+    !!{
+    Start the timer.
+    !!}
     implicit none
     class(timer), intent(inout) :: self
     
@@ -67,7 +81,9 @@ contains
   end subroutine timerStart
   
   subroutine timerStop(self)
-    !% Stop the timer.
+    !!{
+    Stop the timer.
+    !!}
     implicit none
     class(timer), intent(inout) :: self
     
@@ -76,7 +92,9 @@ contains
   end subroutine timerStop
 
   double precision function timerReport(self)
-    !% Report the time recorded by the time as a double precision value.
+    !!{
+    Report the time recorded by the time as a double precision value.
+    !!}
     implicit none
     class(timer), intent(inout) :: self
 
@@ -86,7 +104,9 @@ contains
   end function timerReport
   
   function timerReportText(self)
-    !% Report the time recorded by the time as a text value.
+    !!{
+    Report the time recorded by the time as a text value.
+    !!}
     implicit none
     character       (len=14)                :: timerReportText
     class           (timer ), intent(inout) :: self

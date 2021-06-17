@@ -17,31 +17,41 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a perfectly stable model for galactic disk bar instability.
+  !!{
+  Implementation of a perfectly stable model for galactic disk bar instability.
+  !!}
 
-  !# <galacticDynamicsBarInstability name="galacticDynamicsBarInstabilityStable">
-  !#  <description>
-  !#   A galactic dynamics bar instability class which assumes perfect stability for galactic disks and so returns an infinite
-  !#   timescale, and no external driving torque.
-  !#  </description>
-  !# </galacticDynamicsBarInstability>
+  !![
+  <galacticDynamicsBarInstability name="galacticDynamicsBarInstabilityStable">
+   <description>
+    A galactic dynamics bar instability class which assumes perfect stability for galactic disks and so returns an infinite
+    timescale, and no external driving torque.
+   </description>
+  </galacticDynamicsBarInstability>
+  !!]
   type, extends(galacticDynamicsBarInstabilityClass) :: galacticDynamicsBarInstabilityStable
-     !% Implementation of a perfectly stable model for galactic disk bar instability.
+     !!{
+     Implementation of a perfectly stable model for galactic disk bar instability.
+     !!}
      private
    contains
      procedure :: timescale => stableTimescale
   end type galacticDynamicsBarInstabilityStable
 
   interface galacticDynamicsBarInstabilityStable
-     !% Constructors for the {\normalfont \ttfamily stable} model for galactic disk bar instability class.
+     !!{
+     Constructors for the {\normalfont \ttfamily stable} model for galactic disk bar instability class.
+     !!}
      module procedure stableConstructorParameters
   end interface galacticDynamicsBarInstabilityStable
 
 contains
 
   function stableConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily stable} model for galactic disk bar instability class which takes a
-    !% parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily stable} model for galactic disk bar instability class which takes a
+    parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(galacticDynamicsBarInstabilityStable)                :: self
@@ -53,8 +63,10 @@ contains
   end function stableConstructorParameters
 
   subroutine stableTimescale(self,node,timescale,externalDrivingSpecificTorque,fractionAngularMomentumRetained)
-    !% Computes a timescale for depletion of a disk to a pseudo-bulge via bar instability based on the criterion of
-    !% \cite{efstathiou_stability_1982}.
+    !!{
+    Computes a timescale for depletion of a disk to a pseudo-bulge via bar instability based on the criterion of
+    \cite{efstathiou_stability_1982}.
+    !!}
     implicit none
     class           (galacticDynamicsBarInstabilityStable), intent(inout) :: self
     type            (treeNode                            ), intent(inout) :: node

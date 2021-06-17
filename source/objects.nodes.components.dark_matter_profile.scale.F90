@@ -17,61 +17,74 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a dark matter profile method that provides a scale radius.
+!!{
+Contains a module which implements a dark matter profile method that provides a scale radius.
+!!}
 
 module Node_Component_Dark_Matter_Profile_Scale
-  !% Implements a dark matter profile method that provides a scale radius.
+  !!{
+  Implements a dark matter profile method that provides a scale radius.
+  !!}
   implicit none
   private
   public :: Node_Component_Dark_Matter_Profile_Scale_Scale_Set        , Node_Component_Dark_Matter_Profile_Scale_Plausibility       , &
        &    Node_Component_Dark_Matter_Profile_Scale_Thread_Initialize, Node_Component_Dark_Matter_Profile_Scale_Thread_Uninitialize
 
-  !# <component>
-  !#  <class>darkMatterProfile</class>
-  !#  <name>scale</name>
-  !#  <isDefault>true</isDefault>
-  !#  <properties>
-  !#   <property>
-  !#     <name>scale</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-  !#     <output unitsInSI="megaParsec" comment="Scale radius of the dark matter profile [Mpc]."/>
-  !#     <classDefault>-1.0d0</classDefault>
-  !#   </property>
-  !#   <property>
-  !#     <name>scaleGrowthRate</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#   </property>
-  !#  </properties>
-  !# </component>
+  !![
+  <component>
+   <class>darkMatterProfile</class>
+   <name>scale</name>
+   <isDefault>true</isDefault>
+   <properties>
+    <property>
+      <name>scale</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+      <output unitsInSI="megaParsec" comment="Scale radius of the dark matter profile [Mpc]."/>
+      <classDefault>-1.0d0</classDefault>
+    </property>
+    <property>
+      <name>scaleGrowthRate</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+    </property>
+   </properties>
+  </component>
+  !!]
 
 contains
 
-  !# <nodeComponentThreadInitializationTask>
-  !#  <unitName>Node_Component_Dark_Matter_Profile_Scale_Thread_Initialize</unitName>
-  !# </nodeComponentThreadInitializationTask>
+  !![
+  <nodeComponentThreadInitializationTask>
+   <unitName>Node_Component_Dark_Matter_Profile_Scale_Thread_Initialize</unitName>
+  </nodeComponentThreadInitializationTask>
+  !!]
   subroutine Node_Component_Dark_Matter_Profile_Scale_Thread_Initialize(parameters_)
-    !% Initializes the tree node scale dark matter profile module.
+    !!{
+    Initializes the tree node scale dark matter profile module.
+    !!}
     use :: Events_Hooks    , only : nodePromotionEvent               , openMPThreadBindingAtLevel
     use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent
     use :: Input_Parameters, only : inputParameter                   , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
-    !$GLC attributes unused :: parameters_
 
     if (defaultDarkMatterProfileComponent%scaleIsActive()) &
          & call nodePromotionEvent%attach(defaultDarkMatterProfileComponent,nodePromotion,openMPThreadBindingAtLevel,label="nodeComponentDarkMatterProfileScale")
     return
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Thread_Initialize
 
-  !# <nodeComponentThreadUninitializationTask>
-  !#  <unitName>Node_Component_Dark_Matter_Profile_Scale_Thread_Uninitialize</unitName>
-  !# </nodeComponentThreadUninitializationTask>
+  !![
+  <nodeComponentThreadUninitializationTask>
+   <unitName>Node_Component_Dark_Matter_Profile_Scale_Thread_Uninitialize</unitName>
+  </nodeComponentThreadUninitializationTask>
+  !!]
   subroutine Node_Component_Dark_Matter_Profile_Scale_Thread_Uninitialize()
-    !% Uninitializes the tree node scale dark matter profile module.
+    !!{
+    Uninitializes the tree node scale dark matter profile module.
+    !!}
     use :: Events_Hooks    , only : nodePromotionEvent
     use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent
     implicit none
@@ -81,12 +94,16 @@ contains
     return
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Thread_Uninitialize
 
-  !# <radiusSolverPlausibility>
-  !#  <unitName>Node_Component_Dark_Matter_Profile_Scale_Plausibility</unitName>
-  !#  <after>Node_Component_Basic_Standard_Plausibility</after>
-  !# </radiusSolverPlausibility>
+  !![
+  <radiusSolverPlausibility>
+   <unitName>Node_Component_Dark_Matter_Profile_Scale_Plausibility</unitName>
+   <after>Node_Component_Basic_Standard_Plausibility</after>
+  </radiusSolverPlausibility>
+  !!]
   subroutine Node_Component_Dark_Matter_Profile_Scale_Plausibility(node)
-    !% Determines whether the dark matter profile is physically plausible for radius solving tasks.
+    !!{
+    Determines whether the dark matter profile is physically plausible for radius solving tasks.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileScale, treeNode
     implicit none
     type   (treeNode                      ), intent(inout) :: node
@@ -105,8 +122,10 @@ contains
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Plausibility
 
   subroutine nodePromotion(self,node)
-    !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the growth rate of {\normalfont \ttfamily node}
-    !% to be that of its parent.
+    !!{
+    Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the growth rate of {\normalfont \ttfamily node}
+    to be that of its parent.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic     , nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileScale, treeNode
     implicit none
@@ -127,11 +146,15 @@ contains
     return
   end subroutine nodePromotion
   
-  !# <scaleSetTask>
-  !#  <unitName>Node_Component_Dark_Matter_Profile_Scale_Scale_Set</unitName>
-  !# </scaleSetTask>
+  !![
+  <scaleSetTask>
+   <unitName>Node_Component_Dark_Matter_Profile_Scale_Scale_Set</unitName>
+  </scaleSetTask>
+  !!]
   subroutine Node_Component_Dark_Matter_Profile_Scale_Scale_Set(node)
-    !% Set scales for properties of {\normalfont \ttfamily node}.
+    !!{
+    Set scales for properties of {\normalfont \ttfamily node}.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileScale, treeNode
     implicit none
     type (treeNode                      ), intent(inout), pointer :: node

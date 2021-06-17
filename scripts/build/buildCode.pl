@@ -18,7 +18,7 @@ use Galacticus::Build::FunctionCall;
 use Galacticus::Build::FunctionGlobal;
 use Galacticus::Build::SourceTree;
 
-# Scans source code for "!#" directives and generates code from these.
+# Scans source code for "!![...!!]" directives and generates code from these.
 # Andrew Benson (18-November-2011)
 
 # Read command line arguments.
@@ -65,7 +65,7 @@ foreach my $fileName ( @fileNamesToScan ) {
     # Determine source code type.
     $build->{'codeType'       } = $fileName =~ m/\.c(pp)??$/ ? "c" : "fortran";
     # Add the file name to the stack of file names to process.
-    my @fileStack = ( { name => $fileName, position => -1 } );
+    my @fileStack = ( { name => $fileName, position => -1, inXML => 0 } );
     (my $fileIdentifier = $fileName) =~ s/\//_/g;
     $fileIdentifier =~ s/^\._??//;
     # Check if file is updated. If it is not, skip processing it. If it is, remove previous record of directives and rescan.
@@ -99,6 +99,9 @@ foreach my $fileName ( @fileNamesToScan ) {
 		$processedLine = <$file>;
 		$rawLine       = $processedLine;	
 	    }
+	    # Detect the end of an XML section and change state.
+	    $fileProcess->{'inXML'} = 0
+		if ( $rawLine =~ m/^\s*!!\]/ );
 	    # Record the current line number for any subsequent error reporting.
 	    my $lineNumber = $.;
 	    # Fortran-specific processing.
@@ -112,11 +115,11 @@ foreach my $fileName ( @fileNamesToScan ) {
 		if (               $processedLine =~ $Fortran::Utils::unitClosers{'module'}->{'regEx'} )
 	            {$build->{'moduleName'} = ""                                                            };
 	    }
-	    if ( $rawLine =~ m/^\s*(!|\/\/)\#\s+(<\s*([a-zA-Z]+)+.*>)\s*$/ ) {
-		my $xmlCode = $2."\n";
-		my $xmlTag  = $3;
+	    if ( $fileProcess->{'inXML'} && $rawLine =~ m/^\s*(<\s*([a-zA-Z]+)+.*>)\s*$/ ) {
+		my $xmlCode = $1."\n";
+		my $xmlTag  = $2;
 		# Read ahead until a matching close tag is found.
-		unless ( $xmlCode =~  m/\/>/ ) {
+		unless ( $xmlCode =~ m/\/>/ ) {
 		    my $nextLine = "";
 		    until ( $nextLine =~ m/<\/$xmlTag>/ || eof($file) ) {
 			if ( $build->{'codeType'} eq "fortran" ) {
@@ -124,12 +127,18 @@ foreach my $fileName ( @fileNamesToScan ) {
 			} elsif ( $build->{'codeType'} eq "c" ) {
 			    $nextLine = <$file>;
 			}
+			# Detect the end of an XML section and change state.
+			$fileProcess->{'inXML'} = 0
+			    if ( $nextLine =~ m/^\s*!!\]/ );
 			# Check for included files.
 			($includeFile = $sourceDirectoryName."/".$ENV{'BUILDPATH'}."/".$1) =~ s/\.inc$/.Inc/
 			    if ( $build->{'codeType'} eq "fortran" && $nextLine =~ m/^\s*include\s*['"]([^'"]+)['"]\s*$/ );
 			# Add the line to our XML.
-			$nextLine =~ s/^\s*(!|\/\/)\#\s+//;
+			$nextLine =~ s/^\s*//;
 			$xmlCode .= $nextLine;
+			# Detect the start of an XML section and change state.
+			$fileProcess->{'inXML'} = 1
+			    if ( $nextLine =~ m/^\s*!!\[/ );	
 		    }
 		}
 		# Check if this directive matches that which we are currently processing.
@@ -147,13 +156,16 @@ foreach my $fileName ( @fileNamesToScan ) {
 			if ( $verbosity == 1 );
 		}
 	    }
+	    # Detect the start of an XML section and change state.
+	    $fileProcess->{'inXML'} = 1
+		if ( $rawLine =~ m/^\s*!!\[/ );
 	    # If an include file was found, push the current file back onto the stack, followed by the include file, and finish
 	    # processing the current file. We process files in this way (rather than simply pushing all include files to the stack
 	    # and processing them after the main file) because we want to know the module context within which the file is
 	    # included.
 	    if ( defined($includeFile) && -e $includeFile ) {
 		$fileProcess->{'position'} = tell($file);
-		push(@fileStack,$fileProcess,{name => $includeFile, position => -1});
+		push(@fileStack,$fileProcess,{name => $includeFile, position => -1, inXML => 0});
 		push(@{$directivesPerFile->{$fileIdentifier}->{'files'}},$includeFile);
 		last;
 	    }

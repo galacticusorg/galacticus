@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a galactic high-pass filter for total stellar mass.
+!!{
+Contains a module which implements a galactic high-pass filter for total stellar mass.
+!!}
 
-  !# <galacticFilter name="galacticFilterStellarMass">
-  !#  <description>
-  !#  A galactic high-pass filter for stellar mass. Galaxies with a combined disk plus spheroid stellar mass greater than or equal
-  !#  to a fixed threshold, $M_{\star,0}=${\normalfont \ttfamily [massThreshold]}.
-  !#  </description>
-  !# </galacticFilter>
+  !![
+  <galacticFilter name="galacticFilterStellarMass">
+   <description>
+   A galactic high-pass filter for stellar mass. Galaxies with a combined disk plus spheroid stellar mass greater than or equal
+   to a fixed threshold, $M_{\star,0}=${\normalfont \ttfamily [massThreshold]}.
+   </description>
+  </galacticFilter>
+  !!]
   type, extends(galacticFilterClass) :: galacticFilterStellarMass
-     !% A galactic high-pass filter class for stellar mass.
+     !!{
+     A galactic high-pass filter class for stellar mass.
+     !!}
      private
      double precision :: massThreshold
    contains
@@ -34,7 +40,9 @@
   end type galacticFilterStellarMass
 
   interface galacticFilterStellarMass
-     !% Constructors for the ``stellarMass'' galactic filter class.
+     !!{
+     Constructors for the ``stellarMass'' galactic filter class.
+     !!}
      module procedure stellarMassConstructorParameters
      module procedure stellarMassConstructorInternal
   end interface galacticFilterStellarMass
@@ -42,34 +50,44 @@
 contains
 
   function stellarMassConstructorParameters(parameters)
-    !% Constructor for the ``stellarMass'' galactic filter class which takes a parameter set as input.
+    !!{
+    Constructor for the ``stellarMass'' galactic filter class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(galacticFilterStellarMass)                :: stellarMassConstructorParameters
     type(inputParameters          ), intent(inout) :: parameters
 
     ! Check and read parameters.
-    !# <inputParameter>
-    !#   <name>massThreshold</name>
-    !#   <source>parameters</source>
-    !#   <variable>stellarMassConstructorParameters%massThreshold</variable>
-    !#   <description>The parameter $M_0$ (in units of $M_\odot$) appearing in the stellar mass threshold for the stellar mass galactic filter class.</description>
-    !# </inputParameter>
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParameter>
+      <name>massThreshold</name>
+      <source>parameters</source>
+      <variable>stellarMassConstructorParameters%massThreshold</variable>
+      <description>The parameter $M_0$ (in units of $M_\odot$) appearing in the stellar mass threshold for the stellar mass galactic filter class.</description>
+    </inputParameter>
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function stellarMassConstructorParameters
 
   function stellarMassConstructorInternal(massThreshold)
-    !% Internal constructor for the ``stellarMass'' galactic filter class.
+    !!{
+    Internal constructor for the ``stellarMass'' galactic filter class.
+    !!}
     implicit none
     type            (galacticFilterStellarMass)                :: stellarMassConstructorInternal
     double precision                           , intent(in   ) :: massThreshold
-    !# <constructorAssign variables="massThreshold"/>
+    !![
+    <constructorAssign variables="massThreshold"/>
+    !!]
     return
   end function stellarMassConstructorInternal
 
   logical function stellarMassPasses(self,node)
-    !% Implement a  stellar mass high-pass galactic filter.
+    !!{
+    Implement a  stellar mass high-pass galactic filter.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid, treeNode
     implicit none
     class           (galacticFilterStellarMass), intent(inout)         :: self

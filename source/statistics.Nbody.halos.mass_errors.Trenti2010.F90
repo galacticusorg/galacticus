@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an N-body dark matter halo mass error class using the model of \cite{trenti_how_2010}.
+!!{
+Contains a module which implements an N-body dark matter halo mass error class using the model of \cite{trenti_how_2010}.
+!!}
 
   use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
 
-  !# <nbodyHaloMassError name="nbodyHaloMassErrorTrenti2010">
-  !#  <description>An N-body dark matter halo mass error class using the model of \cite{trenti_how_2010}.</description>
-  !# </nbodyHaloMassError>
+  !![
+  <nbodyHaloMassError name="nbodyHaloMassErrorTrenti2010">
+   <description>An N-body dark matter halo mass error class using the model of \cite{trenti_how_2010}.</description>
+  </nbodyHaloMassError>
+  !!]
   type, extends(nbodyHaloMassErrorPowerLaw) :: nbodyHaloMassErrorTrenti2010
-     !% An N-body halo mass error class using the model of \cite{trenti_how_2010}.
+     !!{
+     An N-body halo mass error class using the model of \cite{trenti_how_2010}.
+     !!}
      private
      ! Parameters of the correlation model.
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_         => null()
@@ -37,7 +43,9 @@
   end type nbodyHaloMassErrorTrenti2010
 
   interface nbodyHaloMassErrorTrenti2010
-     !% Constructors for the {\normalfont \ttfamily trenti2010} N-body halo mass error class.
+     !!{
+     Constructors for the {\normalfont \ttfamily trenti2010} N-body halo mass error class.
+     !!}
      module procedure nbodyHaloMassErrorTrenti2010Parameters
      module procedure nbodyHaloMassErrorTrenti2010Internal
   end interface nbodyHaloMassErrorTrenti2010
@@ -45,7 +53,9 @@
 contains
 
   function nbodyHaloMassErrorTrenti2010Parameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily trenti2010} N-body halo mass error class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily trenti2010} N-body halo mass error class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (nbodyHaloMassErrorTrenti2010)                :: self
@@ -55,45 +65,51 @@ contains
          &                                                           correlationMassExponent, correlationRedshiftExponent
 
     ! Check and read parameters.
-    !# <inputParameter>
-    !#   <name>massParticle</name>
-    !#   <source>parameters</source>
-    !#   <variable>massParticle</variable>
-    !#   <description>The mass of the particle in the N-body simulation in which halos were found.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>correlationNormalization</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <variable>correlationNormalization</variable>
-    !#   <description>Variable $C_0$ in the model for the correlation between halo mass errors: $C_{12} = C_0 [M_2/M_1]^\alpha [(1+z_2)/(1+z_1)]^\beta$.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>correlationMassExponent</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <variable>correlationMassExponent</variable>
-    !#   <description>Variable $\alpha$ in the model for the correlation between halo mass errors: $C_{12} = C_0 [M_2/M_1]^\alpha [(1+z_2)/(1+z_1)]^\beta$.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>correlationRedshiftExponent</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <variable>correlationRedshiftExponent</variable>
-    !#   <description>Variable $\beta$ in the model for the correlation between halo mass errors: $C_{12} = C_0 [M_2/M_1]^\alpha [(1+z_2)/(1+z_1)]^\beta$.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>massParticle</name>
+      <source>parameters</source>
+      <variable>massParticle</variable>
+      <description>The mass of the particle in the N-body simulation in which halos were found.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>correlationNormalization</name>
+      <source>parameters</source>
+      <defaultValue>0.0d0</defaultValue>
+      <variable>correlationNormalization</variable>
+      <description>Variable $C_0$ in the model for the correlation between halo mass errors: $C_{12} = C_0 [M_2/M_1]^\alpha [(1+z_2)/(1+z_1)]^\beta$.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>correlationMassExponent</name>
+      <source>parameters</source>
+      <defaultValue>0.0d0</defaultValue>
+      <variable>correlationMassExponent</variable>
+      <description>Variable $\alpha$ in the model for the correlation between halo mass errors: $C_{12} = C_0 [M_2/M_1]^\alpha [(1+z_2)/(1+z_1)]^\beta$.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>correlationRedshiftExponent</name>
+      <source>parameters</source>
+      <defaultValue>0.0d0</defaultValue>
+      <variable>correlationRedshiftExponent</variable>
+      <description>Variable $\beta$ in the model for the correlation between halo mass errors: $C_{12} = C_0 [M_2/M_1]^\alpha [(1+z_2)/(1+z_1)]^\beta$.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !!]
     self=nbodyHaloMassErrorTrenti2010(massParticle,correlationNormalization,correlationMassExponent,correlationRedshiftExponent,cosmologyFunctions_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"/>
+    !!]
     return
   end function nbodyHaloMassErrorTrenti2010Parameters
 
   function nbodyHaloMassErrorTrenti2010Internal(massParticle,correlationNormalization,correlationMassExponent,correlationRedshiftExponent,cosmologyFunctions_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily trenti2010} N-body halo mass error class. \cite{trenti_how_2010} report
-    !% a normalization of the fractional error in particle number of 0.15 at $N=1000$ particles. Since this is based on
-    !% comparisons of halos in simulations differing in number of particles by a factor $8$ this actually overestimates the
-    !% normalization by a factor $\sqrt{5/4}$. Therefore, we use a normalization of $0.135$ here.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily trenti2010} N-body halo mass error class. \cite{trenti_how_2010} report
+    a normalization of the fractional error in particle number of 0.15 at $N=1000$ particles. Since this is based on
+    comparisons of halos in simulations differing in number of particles by a factor $8$ this actually overestimates the
+    normalization by a factor $\sqrt{5/4}$. Therefore, we use a normalization of $0.135$ here.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (nbodyHaloMassErrorTrenti2010)                                  :: self
@@ -118,7 +134,9 @@ contains
        self%correlationMassExponent     =  correlationMassExponent
        self%correlationRedshiftExponent =  correlationRedshiftExponent
        self%cosmologyFunctions_         => cosmologyFunctions_
-       !# <referenceCountIncrement owner="self" isResult="yes" object="cosmologyFunctions_"/>
+       !![
+       <referenceCountIncrement owner="self" isResult="yes" object="cosmologyFunctions_"/>
+       !!]
     else
        self%correlationNormalization    =  0.0d0
        self%correlationMassExponent     =  0.0d0
@@ -129,18 +147,24 @@ contains
   end function nbodyHaloMassErrorTrenti2010Internal
 
   subroutine trenti2010Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily trenti2010} N-body statistics class.
+    !!{
+    Destructor for the {\normalfont \ttfamily trenti2010} N-body statistics class.
+    !!}
     implicit none
     type(nbodyHaloMassErrorTrenti2010), intent(inout) :: self
 
     if (associated(self%cosmologyFunctions_)) then
-       !# <objectDestructor name="self%cosmologyFunctions_"/>
+       !![
+       <objectDestructor name="self%cosmologyFunctions_"/>
+       !!]
     end if
     return
   end subroutine trenti2010Destructor
 
   double precision function trenti2010Correlation(self,node1,node2)
-    !% Return the correlation of the masses of a pair of N-body halos.
+    !!{
+    Return the correlation of the masses of a pair of N-body halos.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (nbodyHaloMassErrorTrenti2010), intent(inout) :: self

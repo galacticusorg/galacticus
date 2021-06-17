@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements reading of parameters from an XML data file.
+!!{
+Contains a module which implements reading of parameters from an XML data file.
+!!}
 
 module Input_Parameters
-  !% Implements reading of parameters from an XML file.
+  !!{
+  Implements reading of parameters from an XML file.
+  !!}
   use :: FoX_dom           , only : node
   use :: Function_Classes  , only : functionClass
   use :: IO_HDF5           , only : hdf5Object
@@ -30,35 +34,43 @@ module Input_Parameters
   private
   public :: inputParameters, inputParameter, inputParameterList, globalParameters
 
-  !# <generic identifier="Type">
-  !#  <instance label="Logical"        intrinsic="logical"                                          outputConverter="regEx¦(.*)¦char($1)¦"/>
-  !#  <instance label="Integer"        intrinsic="integer"                                          outputConverter="regEx¦(.*)¦$1¦"      />
-  !#  <instance label="Long"           intrinsic="integer         (kind=kind_int8)"                 outputConverter="regEx¦(.*)¦$1¦"      />
-  !#  <instance label="Double"         intrinsic="double precision"                                 outputConverter="regEx¦(.*)¦$1¦"      />
-  !#  <instance label="Character"      intrinsic="character       (len=*         )"                 outputConverter="regEx¦(.*)¦$1¦"      />
-  !#  <instance label="VarStr"         intrinsic="type            (varying_string)"                 outputConverter="regEx¦(.*)¦$1¦"      />
-  !#  <instance label="LogicalRank1"   intrinsic="logical                         , dimension(:)"   outputConverter="regEx¦(.*)¦char($1)¦"/>
-  !#  <instance label="IntegerRank1"   intrinsic="integer                         , dimension(:)"   outputConverter="regEx¦(.*)¦$1¦"      />
-  !#  <instance label="DoubleRank1"    intrinsic="double precision                , dimension(:)"   outputConverter="regEx¦(.*)¦$1¦"      />
-  !#  <instance label="LongRank1"      intrinsic="integer         (kind=kind_int8), dimension(:)"   outputConverter="regEx¦(.*)¦$1¦"      />
-  !#  <instance label="CharacterRank1" intrinsic="character       (len=*         ), dimension(:)"   outputConverter="regEx¦(.*)¦$1¦"      />
-  !#  <instance label="VarStrRank1"    intrinsic="type            (varying_string), dimension(:)"   outputConverter="regEx¦(.*)¦$1¦"      />
-  !#  <instance label="DoubleRank2"    intrinsic="double precision                , dimension(:,:)" outputConverter="regEx¦(.*)¦$1¦"      />
-  !# </generic>
+  !![
+  <generic identifier="Type">
+   <instance label="Logical"        intrinsic="logical"                                          outputConverter="regEx¦(.*)¦char($1)¦"/>
+   <instance label="Integer"        intrinsic="integer"                                          outputConverter="regEx¦(.*)¦$1¦"      />
+   <instance label="Long"           intrinsic="integer         (kind=kind_int8)"                 outputConverter="regEx¦(.*)¦$1¦"      />
+   <instance label="Double"         intrinsic="double precision"                                 outputConverter="regEx¦(.*)¦$1¦"      />
+   <instance label="Character"      intrinsic="character       (len=*         )"                 outputConverter="regEx¦(.*)¦$1¦"      />
+   <instance label="VarStr"         intrinsic="type            (varying_string)"                 outputConverter="regEx¦(.*)¦$1¦"      />
+   <instance label="LogicalRank1"   intrinsic="logical                         , dimension(:)"   outputConverter="regEx¦(.*)¦char($1)¦"/>
+   <instance label="IntegerRank1"   intrinsic="integer                         , dimension(:)"   outputConverter="regEx¦(.*)¦$1¦"      />
+   <instance label="DoubleRank1"    intrinsic="double precision                , dimension(:)"   outputConverter="regEx¦(.*)¦$1¦"      />
+   <instance label="LongRank1"      intrinsic="integer         (kind=kind_int8), dimension(:)"   outputConverter="regEx¦(.*)¦$1¦"      />
+   <instance label="CharacterRank1" intrinsic="character       (len=*         ), dimension(:)"   outputConverter="regEx¦(.*)¦$1¦"      />
+   <instance label="VarStrRank1"    intrinsic="type            (varying_string), dimension(:)"   outputConverter="regEx¦(.*)¦$1¦"      />
+   <instance label="DoubleRank2"    intrinsic="double precision                , dimension(:,:)" outputConverter="regEx¦(.*)¦$1¦"      />
+  </generic>
+  !!]
 
-  !# <generic identifier="cType">
-  !#  <instance label="Double" intrinsic="real   (kind=c_double)" />
-  !#  <instance label="Long"   intrinsic="integer(kind=c_long  )" />
-  !# </generic>
+  !![
+  <generic identifier="cType">
+   <instance label="Double" intrinsic="real   (kind=c_double)" />
+   <instance label="Long"   intrinsic="integer(kind=c_long  )" />
+  </generic>
+  !!]
 
   type :: genericObjectList
-     !% A list-type for unlimited polymorphic pointers.
+     !!{
+     A list-type for unlimited polymorphic pointers.
+     !!}
      private
      class(functionClass), pointer :: object => null()
   end type genericObjectList
 
   type :: inputParameter
-     !% A class to handle input parameters for \glc.
+     !!{
+     A class to handle input parameters for \glc.
+     !!}
      private
      type   (node             ), pointer                   :: content
      type   (inputParameter   ), pointer    , public       :: parent         , firstChild        , &
@@ -66,16 +78,18 @@ module Input_Parameters
      type   (genericObjectList), allocatable, dimension(:) :: objects
      logical                                               :: created=.false., removed   =.false.
    contains
-     !# <methods>
-     !#   <method description="Return true if this is a valid parameter node." method="isParameter" />
-     !#   <method description="Return true the object corresponding to this parameter has been created." method="objectCreated" />
-     !#   <method description="Return a pointer to the object corresponding to this parameter." method="objectGet" />
-     !#   <method description="Set a pointer to the object corresponding to this parameter." method="objectSet" />
-     !#   <method description="Reset all objects in this parameter and any sub-parameters." method="reset" />
-     !#   <method description="Set the value of this parameter." method="set" />
-     !#   <method description="Return the value of this parameter in a simple textual context." method="get" />
-     !#   <method description="Destroy this parameter and all subparameters." method="destroy" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Return true if this is a valid parameter node." method="isParameter" />
+       <method description="Return true the object corresponding to this parameter has been created." method="objectCreated" />
+       <method description="Return a pointer to the object corresponding to this parameter." method="objectGet" />
+       <method description="Set a pointer to the object corresponding to this parameter." method="objectSet" />
+       <method description="Reset all objects in this parameter and any sub-parameters." method="reset" />
+       <method description="Set the value of this parameter." method="set" />
+       <method description="Return the value of this parameter in a simple textual context." method="get" />
+       <method description="Destroy this parameter and all subparameters." method="destroy" />
+     </methods>
+     !!]
      procedure :: isParameter   => inputParameterIsParameter
      procedure :: objectCreated => inputParameterObjectCreated
      procedure :: objectGet     => inputParameterObjectGet
@@ -99,27 +113,29 @@ module Input_Parameters
      logical                                   :: global                 =  .false., isNull                   =.false., &
           &                                       outputParametersCopied =  .false., outputParametersTemporary=.false.
    contains
-     !# <methods>
-     !#   <method description="Build a tree of {\normalfont \ttfamily inputParameter} objects from the structure of an XML parameter file." method="buildTree" />
-     !#   <method description="Resolve references in the tree of {\normalfont \ttfamily inputParameter} objects." method="resolveReferences" />
-     !#   <method description="Mark an input parameter set as the global set." method="markGlobal" />
-     !#   <method description="Return true if these parameters are the global set." method="isGlobal" />
-     !#   <method description="Open an output group for parameters in the given HDF5 object." method="parametersGroupOpen" />
-     !#   <method description="Copy the HDF5 output group for parameters from another parameters object." method="parametersGroupCopy" />
-     !#   <method description="Check that a given parameter name is a valid name, aborting if not." method="validateName" />
-     !#   <method description="Check that parameters are valid and, optionally, check if they match expected names in the provided list." method="checkParameters" />
-     !#   <method description="Return the XML node containing the named parameter." method="node" />
-     !#   <method description="Return true if the named parameter is present in the set." method="isPresent" />
-     !#   <method description="Return a count of the number copies of the named parameter. If the parameter is not present, this function aborts, unless {\normalfont \ttfamily zeroIfNotPresent} is set to {\normalfont \ttfamily true}, in which case a result of 0 is returned." method="copiesCount" />
-     !#   <method description="Return a count of the number of values in the named parameter. If the parameter is not present, this function aborts, unless {\normalfont \ttfamily zeroIfNotPresent} is set to {\normalfont \ttfamily true}, in which case a result of 0 is returned." method="count" />
-     !#   <method description="Return the set of subparameters of the named parameter." method="subParameters" />
-     !#   <method description="Return the value of a parameter specified by name or XML node. A default value can be specified only if the parameter is specified by name. Supported types include rank-0 and rank-1 logicals, integers, long integers, doubles, characters, and varying strings." method="value" />
-     !#   <method description="Serialize input parameters to a string." method="serializeToString" />
-     !#   <method description="Serialize input parameters to an XML file." method="serializeToXML" />
-     !#   <method description="Add a parameter." method="addParameter" />
-     !#   <method description="Reset all objects in this parameter set." method="reset" />
-     !#   <method description="Destroy the parameters document." method="destroy" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Build a tree of {\normalfont \ttfamily inputParameter} objects from the structure of an XML parameter file." method="buildTree" />
+       <method description="Resolve references in the tree of {\normalfont \ttfamily inputParameter} objects." method="resolveReferences" />
+       <method description="Mark an input parameter set as the global set." method="markGlobal" />
+       <method description="Return true if these parameters are the global set." method="isGlobal" />
+       <method description="Open an output group for parameters in the given HDF5 object." method="parametersGroupOpen" />
+       <method description="Copy the HDF5 output group for parameters from another parameters object." method="parametersGroupCopy" />
+       <method description="Check that a given parameter name is a valid name, aborting if not." method="validateName" />
+       <method description="Check that parameters are valid and, optionally, check if they match expected names in the provided list." method="checkParameters" />
+       <method description="Return the XML node containing the named parameter." method="node" />
+       <method description="Return true if the named parameter is present in the set." method="isPresent" />
+       <method description="Return a count of the number copies of the named parameter. If the parameter is not present, this function aborts, unless {\normalfont \ttfamily zeroIfNotPresent} is set to {\normalfont \ttfamily true}, in which case a result of 0 is returned." method="copiesCount" />
+       <method description="Return a count of the number of values in the named parameter. If the parameter is not present, this function aborts, unless {\normalfont \ttfamily zeroIfNotPresent} is set to {\normalfont \ttfamily true}, in which case a result of 0 is returned." method="count" />
+       <method description="Return the set of subparameters of the named parameter." method="subParameters" />
+       <method description="Return the value of a parameter specified by name or XML node. A default value can be specified only if the parameter is specified by name. Supported types include rank-0 and rank-1 logicals, integers, long integers, doubles, characters, and varying strings." method="value" />
+       <method description="Serialize input parameters to a string." method="serializeToString" />
+       <method description="Serialize input parameters to an XML file." method="serializeToXML" />
+       <method description="Add a parameter." method="addParameter" />
+       <method description="Reset all objects in this parameter set." method="reset" />
+       <method description="Destroy the parameters document." method="destroy" />
+     </methods>
+     !!]
      final     ::                        inputParametersFinalize
      procedure :: buildTree           => inputParametersBuildTree
      procedure :: resolveReferences   => inputParametersResolveReferences
@@ -146,7 +162,9 @@ module Input_Parameters
   end type inputParameters
 
   interface inputParameters
-     !% Constructors for the {\normalfont \ttfamily inputParameters} class.
+     !!{
+     Constructors for the {\normalfont \ttfamily inputParameters} class.
+     !!}
      module procedure inputParametersConstructorVarStr
      module procedure inputParametersConstructorFileChar
      module procedure inputParametersConstructorNode
@@ -156,33 +174,41 @@ module Input_Parameters
 
   ! Define a type to hold lists of parameters (and values) prior to output.
   type :: inputParameterList
-     !% A class to hold lists of parameters (and values) prior to output.
+     !!{
+     A class to hold lists of parameters (and values) prior to output.
+     !!}
      integer                                            :: count
      type   (varying_string), allocatable, dimension(:) :: name , value
    contains
-     !# <methods>
-     !#   <method description="Serialize a list of input parameters to an XML document." method="serializeToXML" />
-     !#   <method description="Add a parameter and value to the list." method="add" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Serialize a list of input parameters to an XML document." method="serializeToXML" />
+       <method description="Add a parameter and value to the list." method="add" />
+     </methods>
+     !!]
      final     ::                      inputParameterListDestructor
      procedure :: add               => inputParameterListAdd
      procedure :: serializeToXML    => inputParameterListSerializeToXML
   end type inputParameterList
 
   interface inputParameterList
-     !% Constructors for {\normalfont \ttfamily inputParameterList} objects.
+     !!{
+     Constructors for {\normalfont \ttfamily inputParameterList} objects.
+     !!}
      module procedure inputParameterListConstructor
   end interface inputParameterList
 
-  !# <enumeration>
-  !#  <name>inputParameterErrorStatus</name>
-  !#  <description>Error status codes used by the input parameters module.</description>
-  !#  <entry label="success"        />
-  !#  <entry label="notPresent"     />
-  !#  <entry label="parse"          />
-  !#  <entry label="emptyValue"     />
-  !#  <entry label="ambiguousValue" />
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>inputParameterErrorStatus</name>
+   <description>Error status codes used by the input parameters module.</description>
+   <entry label="success"        />
+   <entry label="notPresent"     />
+   <entry label="parse"          />
+   <entry label="emptyValue"     />
+   <entry label="ambiguousValue" />
+  </enumeration>
+  !!]
 
   ! Pointer to the global input parameters.
   type   (inputParameters), pointer   :: globalParameters       => null()
@@ -201,7 +227,9 @@ module Input_Parameters
 contains
 
   function inputParametersConstructorNull()
-    !% Constructor for the {\normalfont \ttfamily inputParameters} class creating a null instance.
+    !!{
+    Constructor for the {\normalfont \ttfamily inputParameters} class creating a null instance.
+    !!}
     use :: FoX_dom, only : createDocument, getDocumentElement, getImplementation, setLiveNodeLists
     implicit none
     type(inputParameters) :: inputParametersConstructorNull
@@ -222,8 +250,10 @@ contains
   end function inputParametersConstructorNull
 
   function inputParametersConstructorVarStr(xmlString,allowedParameterNames,outputParametersGroup,noOutput)
-    !% Constructor for the {\normalfont \ttfamily inputParameters} class from an XML file
-    !% specified as a variable length string.
+    !!{
+    Constructor for the {\normalfont \ttfamily inputParameters} class from an XML file
+    specified as a variable length string.
+    !!}
     use :: FoX_dom           , only : node
     use :: ISO_Varying_String, only : char, extract, operator(==)
     use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, parseString => parseStringTS
@@ -264,8 +294,10 @@ contains
   end function inputParametersConstructorVarStr
 
   function inputParametersConstructorFileVarStr(fileName,allowedParameterNames,outputParametersGroup,noOutput)
-    !% Constructor for the {\normalfont \ttfamily inputParameters} class from an XML file
-    !% specified as a variable length string.
+    !!{
+    Constructor for the {\normalfont \ttfamily inputParameters} class from an XML file
+    specified as a variable length string.
+    !!}
     use :: ISO_Varying_String, only : char
     implicit none
     type     (inputParameters)                                           :: inputParametersConstructorFileVarStr
@@ -284,8 +316,10 @@ contains
   end function inputParametersConstructorFileVarStr
 
   function inputParametersConstructorFileChar(fileName,allowedParameterNames,outputParametersGroup,noOutput)
-    !% Constructor for the {\normalfont \ttfamily inputParameters} class from an XML file
-    !% specified as a character variable.
+    !!{
+    Constructor for the {\normalfont \ttfamily inputParameters} class from an XML file
+    specified as a character variable.
+    !!}
     use :: File_Utilities  , only : File_Exists
     use :: FoX_dom         , only : node
     use :: Galacticus_Error, only : Galacticus_Error_Report
@@ -325,7 +359,9 @@ contains
   end function inputParametersConstructorFileChar
 
   function inputParametersConstructorCopy(parameters)
-    !% Constructor for the {\normalfont \ttfamily inputParameters} class from an existing parameters object.
+    !!{
+    Constructor for the {\normalfont \ttfamily inputParameters} class from an existing parameters object.
+    !!}
     implicit none
     type(inputParameters)                :: inputParametersConstructorCopy
     type(inputParameters), intent(in   ) :: parameters
@@ -338,7 +374,9 @@ contains
   end function inputParametersConstructorCopy
 
   function inputParametersConstructorNode(parametersNode,allowedParameterNames,outputParametersGroup,noOutput,noBuild)
-    !% Constructor for the {\normalfont \ttfamily inputParameters} class from an FoX node.
+    !!{
+    Constructor for the {\normalfont \ttfamily inputParameters} class from an FoX node.
+    !!}
     use :: Display           , only : displayMessage                   , displayGreen   , displayReset
     use :: File_Utilities    , only : File_Name_Temporary
     use :: FoX_dom           , only : getOwnerDocument                 , node           , setLiveNodeLists
@@ -363,8 +401,10 @@ contains
     integer                                                           :: allowedParameterFromFileCount , allowedParameterCount
     character(len=  10       )                                        :: versionLabel
     type     (varying_string )                                        :: message
-    !# <optionalArgument name="noOutput" defaultsTo=".false." />
-    !# <optionalArgument name="noBuild"  defaultsTo=".false." />
+    !![
+    <optionalArgument name="noOutput" defaultsTo=".false." />
+    <optionalArgument name="noBuild"  defaultsTo=".false." />
+    !!]
 
     inputParametersConstructorNode%global   =  .false.
     inputParametersConstructorNode%isNull   =  .false.
@@ -442,7 +482,9 @@ contains
   end function inputParametersConstructorNode
 
   recursive subroutine inputParametersBuildTree(self,parentParameter,parametersNode)
-    !% Build a tree representation of the input parameter file.
+    !!{
+    Build a tree representation of the input parameter file.
+    !!}
     use :: FoX_DOM, only : ELEMENT_NODE          , getNodeType, node
     use :: IO_XML , only : XML_Get_Child_Elements, xmlNodeList
     implicit none
@@ -478,7 +520,9 @@ contains
   end subroutine inputParametersBuildTree
 
    subroutine inputParametersResolveReferences(self)
-    !% Build a tree representation of the input parameter file.
+    !!{
+    Build a tree representation of the input parameter file.
+    !!}
     use :: FoX_dom           , only : ELEMENT_NODE           , getNodeName  , getNodeType     , hasAttribute  , &
          &                            DOMException           , inException  , getAttributeNode, getTextContent
     use :: ISO_Varying_String, only : operator(==)           , assignment(=)
@@ -529,7 +573,9 @@ contains
   end subroutine inputParametersResolveReferences
 
   function inputParametersWalkTree(currentNode) result(nextNode)
-    !% Perform a depth-first walk of a parameter tree.
+    !!{
+    Perform a depth-first walk of a parameter tree.
+    !!}
     implicit none
     type(inputParameter), pointer                :: nextNode
     type(inputParameter), pointer, intent(in   ) :: currentNode
@@ -555,7 +601,9 @@ contains
   end function inputParametersWalkTree
 
   subroutine inputParametersDestroy(self)
-    !% Destructor for the {\normalfont \ttfamily inputParameters} class.
+    !!{
+    Destructor for the {\normalfont \ttfamily inputParameters} class.
+    !!}
     use :: FoX_DOM, only : destroy
     implicit none    
     class(inputParameters), intent(inout) :: self
@@ -576,7 +624,9 @@ contains
   end subroutine inputParametersDestroy
 
   subroutine inputParametersFinalize(self)
-    !% Finalizer for the {\normalfont \ttfamily inputParameters} class.
+    !!{
+    Finalizer for the {\normalfont \ttfamily inputParameters} class.
+    !!}
     use :: File_Utilities    , only : File_Remove
     use :: FoX_dom           , only : destroy
     use :: IO_HDF5           , only : hdf5Access
@@ -615,7 +665,9 @@ contains
   end subroutine inputParametersFinalize
 
   recursive subroutine inputParameterDestroy(self)
-    !% Destructor for the {\normalfont \ttfamily inputParameter} class.
+    !!{
+    Destructor for the {\normalfont \ttfamily inputParameter} class.
+    !!}
     class(inputParameter), intent(inout) :: self
     type (inputParameter), pointer       :: child, childNext
 
@@ -634,7 +686,9 @@ contains
   end subroutine inputParameterDestroy
 
   logical function inputParameterIsParameter(self)
-    !% Return true if this is a valid parameter.
+    !!{
+    Return true if this is a valid parameter.
+    !!}
     use :: FoX_dom, only : ELEMENT_NODE   , getNodeType, hasAttribute
     use :: IO_XML , only : XML_Path_Exists
     implicit none
@@ -660,7 +714,9 @@ contains
   end function inputParameterIsParameter
 
   logical function inputParameterObjectCreated(self)
-    !% Return true if the specified instance of the object associated with this parameter has been created.
+    !!{
+    Return true if the specified instance of the object associated with this parameter has been created.
+    !!}
     !$ use :: OMP_Lib, only : OMP_Get_Ancestor_Thread_Num, OMP_In_Parallel
     implicit none
     class  (inputParameter), intent(in   ) :: self
@@ -682,7 +738,9 @@ contains
   end function inputParameterObjectCreated
 
   function inputParameterObjectGet(self)
-    !% Return a pointer to the object associated with this parameter.
+    !!{
+    Return a pointer to the object associated with this parameter.
+    !!}
     use    :: Galacticus_Error, only : Galacticus_Error_Report
     !$ use :: OMP_Lib         , only : OMP_Get_Ancestor_Thread_Num, OMP_In_Parallel
     implicit none
@@ -706,7 +764,9 @@ contains
   end function inputParameterObjectGet
 
   subroutine inputParameterObjectSet(self,object)
-    !% Set a pointer to the object associated with this parameter.
+    !!{
+    Set a pointer to the object associated with this parameter.
+    !!}
     !$ use :: OMP_Lib, only : OMP_Get_Ancestor_Thread_Num, OMP_Get_Max_Threads, OMP_In_Parallel
     implicit none
     class  (inputParameter), intent(inout)         :: self
@@ -725,25 +785,33 @@ contains
        !$ allocate(self%objects(0:OMP_Get_Max_Threads()))
     end if
     self%objects(instance)%object => object
-    !# <referenceCountIncrement owner="self%objects(instance)" object="object"/>
+    !![
+    <referenceCountIncrement owner="self%objects(instance)" object="object"/>
+    !!]
     !$omp end critical (inputParameterObjects)
     return
   end subroutine inputParameterObjectSet
 
   recursive subroutine inputParameterReset(self,children)
-    !% Reset objects associated with this parameter and any sub-parameters.
+    !!{
+    Reset objects associated with this parameter and any sub-parameters.
+    !!}
     use :: FoX_dom, only : destroy
     implicit none
     class  (inputParameter), intent(inout), target   :: self
     logical                , intent(in   ), optional :: children
     type   (inputParameter), pointer                 :: child, childNext
     integer                                          :: i
-    !# <optionalArgument name="children" defaultsTo=".true."/>
+    !![
+    <optionalArgument name="children" defaultsTo=".true."/>
+    !!]
 
     if (allocated(self%objects)) then
        do i=lbound(self%objects,dim=1),ubound(self%objects,dim=1)
           if (associated(self%objects(i)%object)) then
-             !# <objectDestructor name="self%objects(i)%object"/>
+             !![
+             <objectDestructor name="self%objects(i)%object"/>
+             !!]
           end if
        end do
     end if
@@ -763,7 +831,9 @@ contains
   end subroutine inputParameterReset
 
   subroutine inputParameterSetDouble(self,value)
-    !% Set the value of a parameter.
+    !!{
+    Set the value of a parameter.
+    !!}
     use :: FoX_DOM, only : setAttribute
     implicit none
     class           (inputParameter), intent(inout) :: self
@@ -776,7 +846,9 @@ contains
   end subroutine inputParameterSetDouble
 
  subroutine inputParameterSetVarStr(self,value)
-   !% Set the value of a parameter.
+   !!{
+   Set the value of a parameter.
+   !!}
     use :: FoX_DOM           , only : setAttribute
     use :: ISO_Varying_String, only : char
     implicit none
@@ -788,7 +860,9 @@ contains
   end subroutine inputParameterSetVarStr
 
   function inputParameterGet(self)
-    !% Get the value of a parameter.
+    !!{
+    Get the value of a parameter.
+    !!}
     use :: FoX_dom           , only : DOMException           , getAttributeNode, getNodeName, hasAttribute, &
           &                           inException            , node
     use :: Galacticus_Error  , only : Galacticus_Error_Report
@@ -935,7 +1009,9 @@ contains
   end subroutine inputParametersCheckParameters
 
   subroutine inputParametersMarkGlobal(self)
-    !% Mark an {\normalfont \ttfamily inputParameters} object as the global input parameters.
+    !!{
+    Mark an {\normalfont \ttfamily inputParameters} object as the global input parameters.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(inputParameters), intent(inout), target :: self
@@ -948,7 +1024,9 @@ contains
   end subroutine inputParametersMarkGlobal
 
   logical function inputParametersIsGlobal(self)
-    !% Return true if an {\normalfont \ttfamily inputParameters} object is the global input parameter set.
+    !!{
+    Return true if an {\normalfont \ttfamily inputParameters} object is the global input parameter set.
+    !!}
     implicit none
     class(inputParameters), intent(in   ), target :: self
 
@@ -957,7 +1035,9 @@ contains
   end function inputParametersIsGlobal
 
   subroutine inputParametersParametersGroupOpen(self,outputGroup)
-    !% Open an output group for parameters in the given HDF5 object.
+    !!{
+    Open an output group for parameters in the given HDF5 object.
+    !!}
     use :: File_Utilities    , only : File_Remove
     use :: IO_HDF5           , only : hdf5Access
     use :: ISO_Varying_String, only : char
@@ -986,7 +1066,9 @@ contains
   end subroutine inputParametersParametersGroupOpen
 
   subroutine inputParametersParametersGroupCopy(self,inputParameters_)
-    !% Copy an output group for parameters in the given HDF5 object.
+    !!{
+    Copy an output group for parameters in the given HDF5 object.
+    !!}
     use :: IO_HDF5, only : hdf5Access
     implicit none
     class(inputParameters), intent(inout) :: self
@@ -1000,7 +1082,9 @@ contains
   end subroutine inputParametersParametersGroupCopy
 
   subroutine inputParametersValidateName(self,parameterName)
-    !% Validate a parameter name.
+    !!{
+    Validate a parameter name.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class    (inputParameters), intent(in   ) :: self
@@ -1012,7 +1096,9 @@ contains
   end subroutine inputParametersValidateName
 
   function inputParametersNode(self,parameterName,requireValue,copyInstance)
-    !% Return the node containing the parameter.
+    !!{
+    Return the node containing the parameter.
+    !!}
     use :: FoX_dom         , only : ELEMENT_NODE           , getNodeName, getNodeType, hasAttribute, &
           &                         node
     use :: Galacticus_Error, only : Galacticus_Error_Report
@@ -1025,8 +1111,10 @@ contains
     integer                   , intent(in   ), optional :: copyInstance
     type     (node           ), pointer                 :: node_
     integer                                             :: skipInstances
-    !# <optionalArgument name="requireValue" defaultsTo=".true." />
-    !# <optionalArgument name="copyInstance" defaultsTo="1"      />
+    !![
+    <optionalArgument name="requireValue" defaultsTo=".true." />
+    <optionalArgument name="copyInstance" defaultsTo="1"      />
+    !!]
 
     call self%validateName(parameterName)
     !$omp critical (FoX_DOM_Access)
@@ -1066,7 +1154,9 @@ contains
   end function inputParametersNode
 
   logical function inputParametersIsPresent(self,parameterName,requireValue)
-    !% Return true if the specified parameter is present.
+    !!{
+    Return true if the specified parameter is present.
+    !!}
     use :: FoX_dom, only : ELEMENT_NODE   , getNodeName, getNodeType, hasAttribute, &
           &                node
     use :: IO_XML , only : XML_Path_Exists
@@ -1076,7 +1166,9 @@ contains
     logical                   , intent(in   ), optional :: requireValue
     type     (node           ), pointer                 :: node_
     type     (inputParameter ), pointer                 :: currentParameter
-    !# <optionalArgument name="requireValue" defaultsTo=".true." />
+    !![
+    <optionalArgument name="requireValue" defaultsTo=".true." />
+    !!]
 
     call self%validateName(parameterName)
     inputParametersIsPresent=.false.
@@ -1112,7 +1204,9 @@ contains
   end function inputParametersIsPresent
 
   integer function inputParametersCopiesCount(self,parameterName,requireValue,zeroIfNotPresent)
-    !% Return true if the specified parameter is present.
+    !!{
+    Return true if the specified parameter is present.
+    !!}
     use :: FoX_dom         , only : ELEMENT_NODE           , getNodeName, getNodeType, hasAttribute, &
           &                         node
     use :: Galacticus_Error, only : Galacticus_Error_Report
@@ -1123,8 +1217,10 @@ contains
     logical                   , intent(in   ), optional :: requireValue    , zeroIfNotPresent
     type     (node           ), pointer                 :: node_
     type     (inputParameter ), pointer                 :: currentParameter
-    !# <optionalArgument name="zeroIfNotPresent" defaultsTo=".false."/>
-    !# <optionalArgument name="requireValue"     defaultsTo=".true." />
+    !![
+    <optionalArgument name="zeroIfNotPresent" defaultsTo=".false."/>
+    <optionalArgument name="requireValue"     defaultsTo=".true." />
+    !!]
 
     call self%validateName(parameterName)
     if (self%isPresent(parameterName,requireValue_)) then
@@ -1166,7 +1262,9 @@ contains
   end function inputParametersCopiesCount
 
   integer function inputParametersCount(self,parameterName,zeroIfNotPresent)
-    !% Return a count of the number of values in a parameter.
+    !!{
+    Return a count of the number of values in a parameter.
+    !!}
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: ISO_Varying_String, only : char
     use :: String_Handling   , only : String_Count_Words
@@ -1175,7 +1273,9 @@ contains
     character(len=*          ), intent(in   )           :: parameterName
     logical                   , intent(in   ), optional :: zeroIfNotPresent
     type     (varying_string )                          :: parameterText
-    !# <optionalArgument name="zeroIfNotPresent" defaultsTo=".false." />
+    !![
+    <optionalArgument name="zeroIfNotPresent" defaultsTo=".false." />
+    !!]
 
     if (self%isPresent(parameterName)) then
        call self%value(parameterName,parameterText,writeOutput=.false.)
@@ -1192,7 +1292,9 @@ contains
   end function inputParametersCount
 
   function inputParametersSubParameters(self,parameterName,requireValue,requirePresent,copyInstance)
-    !% Return sub-parameters of the specified parameter.
+    !!{
+    Return sub-parameters of the specified parameter.
+    !!}
     use :: FoX_dom           , only : node
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: IO_HDF5           , only : hdf5Access
@@ -1208,7 +1310,9 @@ contains
     integer                                             :: copyCount
     type     (varying_string )                          :: groupName
 
-    !# <optionalArgument name="requirePresent" defaultsTo=".true." />
+    !![
+    <optionalArgument name="requirePresent" defaultsTo=".true." />
+    !!]
 
     if (.not.self%isPresent(parameterName,requireValue)) then
        if (requirePresent_) then
@@ -1236,7 +1340,9 @@ contains
   end function inputParametersSubParameters
 
   recursive subroutine inputParametersValueName{Type¦label}(self,parameterName,parameterValue,defaultValue,errorStatus,writeOutput,copyInstance)
-    !% Return the value of the parameter specified by name.
+    !!{
+    Return the value of the parameter specified by name.
+    !!}
     use :: FoX_dom         , only : hasAttribute           , node
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: IO_HDF5         , only : hdf5Access
@@ -1249,7 +1355,9 @@ contains
     integer                          , intent(in   ), optional :: copyInstance
     logical                          , intent(in   ), optional :: writeOutput
     type            (inputParameter ), pointer                 :: parameterNode
-    !# <optionalArgument name="writeOutput" defaultsTo=".true." />
+    !![
+    <optionalArgument name="writeOutput" defaultsTo=".true." />
+    !!]
 
     if (self%isPresent(parameterName)) then
        parameterNode => self%node(parameterName,copyInstance=copyInstance)
@@ -1271,7 +1379,9 @@ contains
   end subroutine inputParametersValueName{Type¦label}
 
   recursive subroutine inputParametersValueNode{Type¦label}(self,parameterNode,parameterValue,errorStatus,writeOutput)
-    !% Return the value of the specified parameter.
+    !!{
+    Return the value of the specified parameter.
+    !!}
     use :: FoX_dom           , only : DOMException                     , getAttributeNode  , getNodeName , hasAttribute, &
           &                           inException                      , node
     use :: Galacticus_Error  , only : Galacticus_Error_Report
@@ -1319,7 +1429,9 @@ contains
     double precision                                                         :: workValue
     {Type¦match¦^Long.*¦character(len=parameterLengthMaximum) :: parameterText¦}
     {Type¦match¦^(Character|VarStr)Rank1$¦type(varying_string) :: parameterText¦}
-    !# <optionalArgument name="writeOutput" defaultsTo=".true." />
+    !![
+    <optionalArgument name="writeOutput" defaultsTo=".true." />
+    !!]
 
     if (present(errorStatus)) errorStatus=inputParameterErrorStatusSuccess
     !$omp critical (FoX_DOM_Access)
@@ -1460,7 +1572,9 @@ contains
   end subroutine inputParametersValueNode{Type¦label}
 
   function inputParameterListConstructor()
-    !% Construct an {\normalfont \ttfamily inputParameterList} object.
+    !!{
+    Construct an {\normalfont \ttfamily inputParameterList} object.
+    !!}
     implicit none
     type(inputParameterList) :: inputParameterListConstructor
 
@@ -1469,7 +1583,9 @@ contains
   end function inputParameterListConstructor
 
   subroutine inputParameterListDestructor(self)
-    !% Destroy an {\normalfont \ttfamily inputParameterList} object.
+    !!{
+    Destroy an {\normalfont \ttfamily inputParameterList} object.
+    !!}
     implicit none
     type(inputParameterList), intent(inout) :: self
 
@@ -1479,7 +1595,9 @@ contains
   end subroutine inputParameterListDestructor
 
   subroutine inputParameterListAdd(self,name,value)
-    !% Add a parameter to a list of input parameters to an XML document.
+    !!{
+    Add a parameter to a list of input parameters to an XML document.
+    !!}
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
     class    (inputParameterList), intent(inout)               :: self
@@ -1508,7 +1626,9 @@ contains
   end subroutine inputParameterListAdd
 
   subroutine inputParameterListSerializeToXML(self,parameterDoc)
-    !% Serialize a list of input parameters to an XML document.
+    !!{
+    Serialize a list of input parameters to an XML document.
+    !!}
     use :: FoX_wXML          , only : xml_AddAttribute, xml_EndElement, xml_NewElement, xmlf_t
     use :: ISO_Varying_String, only : char
     class (inputParameterList), intent(in   ) :: self
@@ -1526,7 +1646,9 @@ contains
   end subroutine inputParameterListSerializeToXML
 
   recursive function inputParametersSerializeToString(self,hashed)
-    !% Serialize input parameters to a string.
+    !!{
+    Serialize input parameters to a string.
+    !!}
     use :: FoX_dom             , only : getNodeName  , node
     use :: Hashes_Cryptographic, only : Hash_MD5
     use :: ISO_Varying_String  , only : assignment(=), char, operator(//)
@@ -1540,7 +1662,9 @@ contains
     type   (varying_string )                          :: parameterValue
     logical                                           :: firstParameter
     type   (inputParameters)                          :: subParameters
-    !# <optionalArgument name="hashed" defaultsTo=".false." />
+    !![
+    <optionalArgument name="hashed" defaultsTo=".false." />
+    !!]
 
     inputParametersSerializeToString=""
     firstParameter=.true.
@@ -1568,7 +1692,9 @@ contains
   end function inputParametersSerializeToString
 
   subroutine inputParametersSerializeToXML(self,parameterFile)
-    !% Serialize input parameters to an XML file.
+    !!{
+    Serialize input parameters to an XML file.
+    !!}
     use :: FoX_DOM           , only : serialize
     use :: ISO_Varying_String, only : char
    implicit none
@@ -1580,7 +1706,9 @@ contains
   end subroutine inputParametersSerializeToXML
 
   subroutine inputParametersAddParameter(self,parameterName,parameterValue)
-    !% Add a parameter to the set.
+    !!{
+    Add a parameter to the set.
+    !!}
     use :: FoX_dom, only : ELEMENT_NODE, appendChild, createElementNS, getNamespaceURI, &
           &                getNodeName , getNodeType, hasAttribute   , node           , &
           &                setAttribute
@@ -1647,7 +1775,9 @@ contains
   end subroutine inputParametersAddParameter
 
   subroutine inputParametersReset(self)
-    !% Reset all objects in a parameter set.
+    !!{
+    Reset all objects in a parameter set.
+    !!}
     implicit none
     class(inputParameters), intent(inout) :: self
 

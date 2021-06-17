@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to test differentiation functions.
+!!{
+Contains a program to test differentiation functions.
+!!}
 
 program Test_Differentiation
-  !% Tests that numerical differentiation functions work.
+  !!{
+  Tests that numerical differentiation functions work.
+  !!}
   use :: Display                       , only : displayVerbositySet, verbosityLevelStandard
   use :: Numerical_Differentiation     , only : differentiator
   use :: Test_Differentiation_Functions, only : function1

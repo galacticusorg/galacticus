@@ -17,29 +17,35 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements the major merging statistics component.
+!!{
+Contains a module which implements the major merging statistics component.
+!!}
 
 module Node_Component_Merging_Statistics_Major
-  !% Implements the major merging statistics component.
+  !!{
+  Implements the major merging statistics component.
+  !!}
   use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
   implicit none
   private
   public :: Node_Component_Merging_Statistics_Major_Thread_Uninitialize, Node_Component_Merging_Statistics_Major_Output, &
        &    Node_Component_Merging_Statistics_Major_Thread_Initialize
 
-  !# <component>
-  !#  <class>mergingStatistics</class>
-  !#  <name>major</name>
-  !#  <isDefault>false</isDefault>
-  !#  <properties>
-  !#   <property>
-  !#     <name>majorMergerTime</name>
-  !#     <type>double</type>
-  !#     <rank>1</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#   </property>
-  !#  </properties>
-  !# </component>
+  !![
+  <component>
+   <class>mergingStatistics</class>
+   <name>major</name>
+   <isDefault>false</isDefault>
+   <properties>
+    <property>
+      <name>majorMergerTime</name>
+      <type>double</type>
+      <rank>1</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+    </property>
+   </properties>
+  </component>
+  !!]
 
   ! Classes used.
   class(mergerMassMovementsClass), pointer :: mergerMassMovements_
@@ -47,11 +53,15 @@ module Node_Component_Merging_Statistics_Major
 
 contains
 
-  !# <nodeComponentThreadInitializationTask>
-  !#  <unitName>Node_Component_Merging_Statistics_Major_Thread_Initialize</unitName>
-  !# </nodeComponentThreadInitializationTask>
+  !![
+  <nodeComponentThreadInitializationTask>
+   <unitName>Node_Component_Merging_Statistics_Major_Thread_Initialize</unitName>
+  </nodeComponentThreadInitializationTask>
+  !!]
   subroutine Node_Component_Merging_Statistics_Major_Thread_Initialize(parameters_)
-    !% Initializes the tree node very simple disk profile module.
+    !!{
+    Initializes the tree node very simple disk profile module.
+    !!}
     use :: Events_Hooks    , only : nodePromotionEvent               , satelliteMergerEvent, openMPThreadBindingAtLevel, dependencyRegEx, &
          &                          dependencyDirectionAfter
     use :: Galacticus_Nodes, only : defaultMergingStatisticsComponent
@@ -62,7 +72,9 @@ contains
     !$GLC attributes unused :: parameters_
 
     if (defaultMergingStatisticsComponent%majorIsActive()) then
-       !# <objectBuilder class="mergerMassMovements" name="mergerMassMovements_" source="parameters_"/>
+       !![
+       <objectBuilder class="mergerMassMovements" name="mergerMassMovements_" source="parameters_"/>
+       !!]
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
        call nodePromotionEvent  %attach(defaultMergingStatisticsComponent,nodePromotion  ,openMPThreadBindingAtLevel,label='nodeComponentMergingStatisticsMajor'                          )
        call satelliteMergerEvent%attach(defaultMergingStatisticsComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentMergingStatisticsMajor',dependencies=dependencies)
@@ -70,17 +82,23 @@ contains
     return
   end subroutine Node_Component_Merging_Statistics_Major_Thread_Initialize
 
-  !# <nodeComponentThreadUninitializationTask>
-  !#  <unitName>Node_Component_Merging_Statistics_Major_Thread_Uninitialize</unitName>
-  !# </nodeComponentThreadUninitializationTask>
+  !![
+  <nodeComponentThreadUninitializationTask>
+   <unitName>Node_Component_Merging_Statistics_Major_Thread_Uninitialize</unitName>
+  </nodeComponentThreadUninitializationTask>
+  !!]
   subroutine Node_Component_Merging_Statistics_Major_Thread_Uninitialize()
-    !% Uninitializes the tree node very simple disk profile module.
+    !!{
+    Uninitializes the tree node very simple disk profile module.
+    !!}
     use :: Events_Hooks    , only : nodePromotionEvent               , satelliteMergerEvent
     use :: Galacticus_Nodes, only : defaultMergingStatisticsComponent
     implicit none
 
     if (defaultMergingStatisticsComponent%majorIsActive()) then
-       !# <objectDestructor name="mergerMassMovements_"/>
+       !![
+       <objectDestructor name="mergerMassMovements_"/>
+       !!]
        call nodePromotionEvent  %detach(defaultMergingStatisticsComponent,nodePromotion  )
        call satelliteMergerEvent%detach(defaultMergingStatisticsComponent,satelliteMerger)
     end if
@@ -88,7 +106,9 @@ contains
   end subroutine Node_Component_Merging_Statistics_Major_Thread_Uninitialize
 
   subroutine satelliteMerger(self,node)
-    !% Record any major merger of {\normalfont \ttfamily node}.
+    !!{
+    Record any major merger of {\normalfont \ttfamily node}.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentMergingStatistics, treeNode
     implicit none
     class           (*                             ), intent(inout)                :: self
@@ -128,7 +148,9 @@ contains
   end subroutine satelliteMerger
 
   subroutine nodePromotion(self,node)
-    !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the node merger time.
+    !!{
+    Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the node merger time.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentMergingStatistics, treeNode
     implicit none
     class           (*                             ), intent(inout)               :: self
@@ -149,11 +171,15 @@ contains
     return
   end subroutine nodePromotion
 
-  !# <mergerTreeExtraOutputTask>
-  !#  <unitName>Node_Component_Merging_Statistics_Major_Output</unitName>
-  !# </mergerTreeExtraOutputTask>
+  !![
+  <mergerTreeExtraOutputTask>
+   <unitName>Node_Component_Merging_Statistics_Major_Output</unitName>
+  </mergerTreeExtraOutputTask>
+  !!]
   subroutine Node_Component_Merging_Statistics_Major_Output(node,iOutput,treeIndex,nodePassesFilter)
-    !% Output properties for all black holes in {\normalfont \ttfamily node}.
+    !!{
+    Output properties for all black holes in {\normalfont \ttfamily node}.
+    !!}
     use            :: Galacticus_HDF5   , only : galacticusOutputFile
     use            :: Galacticus_Nodes  , only : defaultMergingStatisticsComponent, mergerTree, nodeComponentMergingStatistics, treeNode
     use            :: IO_HDF5           , only : hdf5Access                       , hdf5Object

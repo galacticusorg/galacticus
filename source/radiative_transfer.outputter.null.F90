@@ -17,25 +17,33 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !# <radiativeTransferOutputter name="radiativeTransferOutputterNull">
-  !#  <description>A null radiative transfer outputter class.</description>
-  !# </radiativeTransferOutputter>
+  !![
+  <radiativeTransferOutputter name="radiativeTransferOutputterNull">
+   <description>A null radiative transfer outputter class.</description>
+  </radiativeTransferOutputter>
+  !!]
   type, extends(radiativeTransferOutputterClass) :: radiativeTransferOutputterNull
-     !% Implementation of a null radiative transfer outputter class.
+     !!{
+     Implementation of a null radiative transfer outputter class.
+     !!}
      private
    contains
   end type radiativeTransferOutputterNull
 
   interface radiativeTransferOutputterNull
-     !% Constructors for the {\normalfont \ttfamily null} radiative transfer outputter packet class.
+     !!{
+     Constructors for the {\normalfont \ttfamily null} radiative transfer outputter packet class.
+     !!}
      module procedure nullConstructorParameters
   end interface radiativeTransferOutputterNull
   
 contains
 
   function nullConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily null} radiative transfer outputter class which takes a parameter set as
-    !% input.
+    !!{
+    Constructor for the {\normalfont \ttfamily null} radiative transfer outputter class which takes a parameter set as
+    input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(radiativeTransferOutputterNull)                :: self

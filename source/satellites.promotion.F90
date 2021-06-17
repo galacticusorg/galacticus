@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which handles events where a satellite is moved to a new host halo.
+!!{
+Contains a module which handles events where a satellite is moved to a new host halo.
+!!}
 
 module Satellite_Promotion
-  !% Handles events where a satellite is moved to a new host halo.
+  !!{
+  Handles events where a satellite is moved to a new host halo.
+  !!}
   implicit none
   private
   public :: Satellite_Move_To_New_Host
@@ -28,17 +32,25 @@ module Satellite_Promotion
 contains
 
   subroutine Satellite_Move_To_New_Host(satelliteNode,newHostNode)
-    !% Move {\normalfont \ttfamily satelliteNode} to be a satellite of {\normalfont \ttfamily newHostNode}.
+    !!{
+    Move {\normalfont \ttfamily satelliteNode} to be a satellite of {\normalfont \ttfamily newHostNode}.
+    !!}
     use :: Display           , only : displayMessage    , displayVerbosity, verbosityLevelInfo
     use :: Galacticus_Nodes  , only : nodeComponentBasic, treeNode
     use :: ISO_Varying_String, only : assignment(=)     , operator(//)    , varying_string
     use :: String_Handling   , only : operator(//)
-    !# <include directive="satelliteHostChangeTask" type="moduleUse">
+    !![
+    <include directive="satelliteHostChangeTask" type="moduleUse">
+    !!]
     include 'satellites.structures.host_change.moduleUse.inc'
-    !# </include>
-    !# <include directive="satellitePreHostChangeTask" type="moduleUse">
+    !![
+    </include>
+    <include directive="satellitePreHostChangeTask" type="moduleUse">
+    !!]
     include 'satellites.structures.pre_host_change.moduleUse.inc'
-    !# </include>
+    !![
+    </include>
+    !!]
     implicit none
     type     (treeNode          ), intent(inout), target  :: satelliteNode    , newHostNode
     type     (treeNode          )               , pointer :: lastSatelliteNode
@@ -56,10 +68,14 @@ contains
     end if
 
     ! Allow arbitrary routines to act prior to the host change event.
-    !# <include directive="satellitePreHostChangeTask" type="functionCall" functionType="void">
-    !#  <functionArgs>satelliteNode,newHostNode</functionArgs>
+    !![
+    <include directive="satellitePreHostChangeTask" type="functionCall" functionType="void">
+     <functionArgs>satelliteNode,newHostNode</functionArgs>
+    !!]
     include 'satellites.structures.pre_host_change.inc'
-    !# </include>
+    !![
+    </include>
+    !!]
 
     ! First remove from its current host.
     call satelliteNode%removeFromHost()
@@ -75,10 +91,14 @@ contains
     satelliteNode%sibling => null()
 
     ! Allow arbitrary routines to process the host change event.
-    !# <include directive="satelliteHostChangeTask" type="functionCall" functionType="void">
-    !#  <functionArgs>satelliteNode</functionArgs>
+    !![
+    <include directive="satelliteHostChangeTask" type="functionCall" functionType="void">
+     <functionArgs>satelliteNode</functionArgs>
+    !!]
     include 'satellites.structures.host_change.inc'
-    !# </include>
+    !![
+    </include>
+    !!]
 
     return
   end subroutine Satellite_Move_To_New_Host

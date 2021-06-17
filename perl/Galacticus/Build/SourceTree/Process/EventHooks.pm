@@ -91,11 +91,13 @@ end type hook{$interfaceType}
 type, extends(eventHook) :: eventHook{$interfaceType}
   private
  contains
-  !# <methods>
-  !#   <method method="attach"     description="Attach a hook to the event."                         />
-  !#   <method method="isAttached" description="Return true if the object is attached to this event."/>
-  !#   <method method="detach"     description="Detach a hook from the event."                       />
-  !# </methods>
+  !![
+  <methods>
+    <method method="attach"     description="Attach a hook to the event."                         />
+    <method method="isAttached" description="Return true if the object is attached to this event."/>
+    <method method="detach"     description="Detach a hook from the event."                       />
+  </methods>
+  !!]
   procedure :: attach     => eventHook{$interfaceType}Attach
   procedure :: isAttached => eventHook{$interfaceType}IsAttached
   procedure :: detach     => eventHook{$interfaceType}Detach

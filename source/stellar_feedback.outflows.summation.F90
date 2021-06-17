@@ -22,14 +22,18 @@
      type (stellarFeedbackOutflowsList ), pointer :: next            => null()
   end type stellarFeedbackOutflowsList
 
-  !# <stellarFeedbackOutflows name="stellarFeedbackOutflowsSummation">
-  !#  <description>A photon source class for summation sources.</description>
-  !#  <deepCopy>
-  !#   <linkedList type="stellarFeedbackOutflowsList" variable="stellarFeedbackOutflowss" next="next" object="stellarFeedbackOutflows" objectType="stellarFeedbackOutflowsClass"/>
-  !#  </deepCopy>
-  !# </stellarFeedbackOutflows>
+  !![
+  <stellarFeedbackOutflows name="stellarFeedbackOutflowsSummation">
+   <description>A photon source class for summation sources.</description>
+   <deepCopy>
+    <linkedList type="stellarFeedbackOutflowsList" variable="stellarFeedbackOutflowss" next="next" object="stellarFeedbackOutflows" objectType="stellarFeedbackOutflowsClass"/>
+   </deepCopy>
+  </stellarFeedbackOutflows>
+  !!]
   type, extends(stellarFeedbackOutflowsClass) :: stellarFeedbackOutflowsSummation
-     !% Implementation of a summation stellar feedback class.
+     !!{
+     Implementation of a summation stellar feedback class.
+     !!}
      private
      type   (stellarFeedbackOutflowsList), pointer :: stellarFeedbackOutflowss => null()
    contains
@@ -38,7 +42,9 @@
   end type stellarFeedbackOutflowsSummation
 
   interface stellarFeedbackOutflowsSummation
-     !% Constructors for the {\normalfont \ttfamily summation} stellar feedback class.
+     !!{
+     Constructors for the {\normalfont \ttfamily summation} stellar feedback class.
+     !!}
      module procedure summationConstructorParameters
      module procedure summationConstructorInternal
   end interface stellarFeedbackOutflowsSummation
@@ -46,7 +52,9 @@
 contains
 
   function summationConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily summation} stellar feedback class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily summation} stellar feedback class which takes a parameter set as input.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Input_Parameters, only : inputParameter         , inputParameters
     implicit none
@@ -64,13 +72,17 @@ contains
           allocate(self%stellarFeedbackOutflowss)
           stellarFeedbackOutflows_ => self%stellarFeedbackOutflowss
        end if
-       !# <objectBuilder class="stellarFeedbackOutflows" name="stellarFeedbackOutflows_%stellarFeedbackOutflows" source="parameters" copy="i" />
+       !![
+       <objectBuilder class="stellarFeedbackOutflows" name="stellarFeedbackOutflows_%stellarFeedbackOutflows" source="parameters" copy="i" />
+       !!]
     end do
     return
   end function summationConstructorParameters
 
   function summationConstructorInternal(stellarFeedbackOutflowss) result(self)
-    !% Internal constructor for the ``summation'' stellar feedback class.
+    !!{
+    Internal constructor for the ``summation'' stellar feedback class.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type (stellarFeedbackOutflowsSummation)                         :: self
@@ -80,14 +92,18 @@ contains
     self            %stellarFeedbackOutflowss => stellarFeedbackOutflowss
     stellarFeedbackOutflows_                  => stellarFeedbackOutflowss
     do while (associated(stellarFeedbackOutflows_))
-       !# <referenceCountIncrement owner="stellarFeedbackOutflows_" object="stellarFeedbackOutflows"/>
+       !![
+       <referenceCountIncrement owner="stellarFeedbackOutflows_" object="stellarFeedbackOutflows"/>
+       !!]
        stellarFeedbackOutflows_ => stellarFeedbackOutflows_%next
     end do
     return
   end function summationConstructorInternal
 
   subroutine summationDestructor(self)
-    !% Destructor for the ``summation'' stellar feedback class.
+    !!{
+    Destructor for the ``summation'' stellar feedback class.
+    !!}
     implicit none
     type(stellarFeedbackOutflowsSummation), intent(inout) :: self
     type(stellarFeedbackOutflowsList     ), pointer       :: stellarFeedbackOutflows, stellarFeedbackOutflowsNext
@@ -95,7 +111,9 @@ contains
     stellarFeedbackOutflows => self%stellarFeedbackOutflowss
     do while (associated(stellarFeedbackOutflows))
        stellarFeedbackOutflowsNext => stellarFeedbackOutflows%next
-       !# <objectDestructor name="stellarFeedbackOutflows%stellarFeedbackOutflows"/>
+       !![
+       <objectDestructor name="stellarFeedbackOutflows%stellarFeedbackOutflows"/>
+       !!]
        deallocate(stellarFeedbackOutflows)
        stellarFeedbackOutflows => stellarFeedbackOutflowsNext
     end do
@@ -103,7 +121,9 @@ contains
   end subroutine summationDestructor
   
   subroutine summationOutflowRate(self,component,rateStarFormation,rateEnergyInput,rateOutflowEjective,rateOutflowExpulsive)
-    !% Initialize the photon packet.
+    !!{
+    Initialize the photon packet.
+    !!}
     implicit none
     class           (stellarFeedbackOutflowsSummation), intent(inout) :: self
     type            (stellarFeedbackOutflowsList     ), pointer       :: stellarFeedbackOutflows

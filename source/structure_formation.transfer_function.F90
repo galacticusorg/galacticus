@@ -17,46 +17,52 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides a class that implements transfer functions.
+!!{
+Contains a module which provides a class that implements transfer functions.
+!!}
 
 module Transfer_Functions
-  !% Provides an object that implements transfer functions.
+  !!{
+  Provides an object that implements transfer functions.
+  !!}
   private
 
-  !# <functionClass>
-  !#  <name>transferFunction</name>
-  !#  <descriptiveName>Transfer Function</descriptiveName>
-  !#  <description>Class providing transfer functions for power spectra.</description>
-  !#  <default>eisensteinHu1999</default>
-  !#  <method name="value" >
-  !#   <description>Return the transfer function for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ) :: wavenumber</argument>
-  !#  </method>
-  !#  <method name="logarithmicDerivative" >
-  !#   <description>Return the logarithmic derivative of the transfer function for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ) :: wavenumber</argument>
-  !#  </method>
-  !#  <method name="epochTime" >
-  !#   <description>Return the cosmic time corresponding to the epoch for which this transfer function is defined.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#  </method>
-  !#  <method name="halfModeMass" >
-  !#   <description>Return the mass (in $M_\odot$) corresponding to the wavenumber at which the transfer function is suppressed by a factor of two due to small-scale dark matter particle physics.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>integer, intent(  out), optional :: status</argument>
-  !#  </method>
-  !#  <method name="quarterModeMass" >
-  !#   <description>Return the mass (in $M_\odot$) corresponding to the wavenumber at which the transfer function is suppressed by a factor of four due to small-scale dark matter particle physics.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>integer, intent(  out), optional :: status</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>transferFunction</name>
+   <descriptiveName>Transfer Function</descriptiveName>
+   <description>Class providing transfer functions for power spectra.</description>
+   <default>eisensteinHu1999</default>
+   <method name="value" >
+    <description>Return the transfer function for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision, intent(in   ) :: wavenumber</argument>
+   </method>
+   <method name="logarithmicDerivative" >
+    <description>Return the logarithmic derivative of the transfer function for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision, intent(in   ) :: wavenumber</argument>
+   </method>
+   <method name="epochTime" >
+    <description>Return the cosmic time corresponding to the epoch for which this transfer function is defined.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+   </method>
+   <method name="halfModeMass" >
+    <description>Return the mass (in $M_\odot$) corresponding to the wavenumber at which the transfer function is suppressed by a factor of two due to small-scale dark matter particle physics.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>integer, intent(  out), optional :: status</argument>
+   </method>
+   <method name="quarterModeMass" >
+    <description>Return the mass (in $M_\odot$) corresponding to the wavenumber at which the transfer function is suppressed by a factor of four due to small-scale dark matter particle physics.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>integer, intent(  out), optional :: status</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Transfer_Functions

@@ -17,22 +17,28 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a merger tree operator class which dumps pre-evolution tree structure to the output file.
+  !!{
+  Implements a merger tree operator class which dumps pre-evolution tree structure to the output file.
+  !!}
 
   use :: IO_HDF5                 , only : hdf5Object
   use :: Node_Property_Extractors, only : nodePropertyExtractorClass
   
-  !# <mergerTreeOperator name="mergerTreeOperatorOutputStructure">
-  !#  <description>
-  !#   A merger tree operator class which dumps pre-evolution tree structure to the output file. The node properties to be
-  !#   included in the dump are controlled by a \refClass{nodePropertyExtractorClass} object provided to this class.  Structures are
-  !#   written to a new group, {\normalfont \ttfamily mergerTreeStructures}, in the \glc\ output file. This group will contain
-  !#   groups called {\normalfont \ttfamily mergerTreeN} where {\normalfont \ttfamily N} is the merger tree index. Each such group
-  !#   will contain datasets corresponding to all extracted properties.
-  !#  </description>
-  !# </mergerTreeOperator>
+  !![
+  <mergerTreeOperator name="mergerTreeOperatorOutputStructure">
+   <description>
+    A merger tree operator class which dumps pre-evolution tree structure to the output file. The node properties to be
+    included in the dump are controlled by a \refClass{nodePropertyExtractorClass} object provided to this class.  Structures are
+    written to a new group, {\normalfont \ttfamily mergerTreeStructures}, in the \glc\ output file. This group will contain
+    groups called {\normalfont \ttfamily mergerTreeN} where {\normalfont \ttfamily N} is the merger tree index. Each such group
+    will contain datasets corresponding to all extracted properties.
+   </description>
+  </mergerTreeOperator>
+  !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorOutputStructure
-     !% A merger tree operator class which dumps pre-evolution tree structure to the output file.
+     !!{
+     A merger tree operator class which dumps pre-evolution tree structure to the output file.
+     !!}
      private
      class(nodePropertyExtractorClass), pointer :: nodePropertyExtractor_
      type (hdf5Object                )          :: outputGroup
@@ -43,7 +49,9 @@
   end type mergerTreeOperatorOutputStructure
 
   interface mergerTreeOperatorOutputStructure
-     !% Constructors for the {\normalfont \ttfamily outputStructure} merger tree operator class.
+     !!{
+     Constructors for the {\normalfont \ttfamily outputStructure} merger tree operator class.
+     !!}
      module procedure outputStructureConstructorParameters
      module procedure outputStructureConstructorInternal
   end interface mergerTreeOperatorOutputStructure
@@ -51,43 +59,59 @@
 contains
 
   function outputStructureConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily outputStructure} merger tree operator class which takes a parameter set as
-    !% input.
+    !!{
+    Constructor for the {\normalfont \ttfamily outputStructure} merger tree operator class which takes a parameter set as
+    input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type (mergerTreeOperatorOutputStructure)                :: self
     type (inputParameters                  ), intent(inout) :: parameters
     class(nodePropertyExtractorClass       ), pointer       :: nodePropertyExtractor_
 
-    !# <objectBuilder class="nodePropertyExtractor" name="nodePropertyExtractor_" source="parameters"/>
+    !![
+    <objectBuilder class="nodePropertyExtractor" name="nodePropertyExtractor_" source="parameters"/>
+    !!]
     self=outputStructureConstructorInternal(nodePropertyExtractor_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="nodePropertyExtractor_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="nodePropertyExtractor_"/>
+    !!]
     return
   end function outputStructureConstructorParameters
 
   function outputStructureConstructorInternal(nodePropertyExtractor_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily outputStructure} merger tree operator class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily outputStructure} merger tree operator class.
+    !!}
     implicit none
     type (mergerTreeOperatorOutputStructure)                        :: self
     class(nodePropertyExtractorClass       ), intent(in   ), target :: nodePropertyExtractor_
-    !# <constructorAssign variables="*nodePropertyExtractor_"/>
+    !![
+    <constructorAssign variables="*nodePropertyExtractor_"/>
+    !!]
 
     return
   end function outputStructureConstructorInternal
 
   subroutine outputStructureDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily outputStructure} merger tree operator function class.
+    !!{
+    Destructor for the {\normalfont \ttfamily outputStructure} merger tree operator function class.
+    !!}
     implicit none
     type(mergerTreeOperatorOutputStructure), intent(inout) :: self
 
     call self%finalize()
-    !# <objectDestructor name="self%nodePropertyExtractor_"/>
+    !![
+    <objectDestructor name="self%nodePropertyExtractor_"/>
+    !!]
     return
   end subroutine outputStructureDestructor
   
   subroutine outputStructureOperatePreEvolution(self,tree)
-    !% Output the structure of {\normalfont \ttfamily tree}.
+    !!{
+    Output the structure of {\normalfont \ttfamily tree}.
+    !!}
     use    :: Galacticus_Error                  , only : Galacticus_Error_Report
     use    :: Galacticus_HDF5                   , only : galacticusOutputFile
     use    :: Galacticus_Nodes                  , only : nodeComponentBasic
@@ -277,7 +301,9 @@ contains
   end subroutine outputStructureOperatePreEvolution
 
   subroutine outputStructureFinalize(self)
-    !% Close the merger tree structure group.
+    !!{
+    Close the merger tree structure group.
+    !!}
     !$ use :: IO_HDF5, only : hdf5Access
     implicit none
     class(mergerTreeOperatorOutputStructure), intent(inout) :: self

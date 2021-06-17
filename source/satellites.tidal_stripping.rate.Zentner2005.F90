@@ -19,32 +19,38 @@
 
 !+    Contributions to this file made by:  Anthony Pullen, Andrew Benson.
 
-  !% Implementation of a satellite tidal stripping class which follows the model of \cite{zentner_physics_2005}.
+  !!{
+  Implementation of a satellite tidal stripping class which follows the model of \cite{zentner_physics_2005}.
+  !!}
 
   use :: Satellite_Tidal_Stripping_Radii, only : satelliteTidalStrippingRadiusClass
 
-  !# <satelliteTidalStripping name="satelliteTidalStrippingZentner2005">
-  !#  <description>
-  !#   A satellite tidal stripping class which uses the formalism of \cite{zentner_physics_2005} to compute the mass loss rate
-  !#   $\dot{M}_\mathrm{sat}$:
-  !#   \begin{equation}
-  !#   \dot{M}_\mathrm{sat}=-\alpha \frac{M_\mathrm{sat}(>r_\mathrm{tidal})}{T_\mathrm{orb}},
-  !#   \end{equation}
-  !#   where $\alpha=${\normalfont \ttfamily [efficiency]},
-  !#   \begin{equation}
-  !#   T_\mathrm{orb} = {1 \over \hbox{max}(\omega/2\pi,v_\mathrm{r}/r)},
-  !#   \end{equation}
-  !#   where $\omega$ is the angular velocity of the satellite, $v_\mathrm{r}$ is the radial velocity, $r$ is the orbital radius,
-  !#   and $r_\mathrm{tidal}$ is the tidal radius of the satellite, given by the \cite{king_structure_1962} formula:
-  !#   \begin{equation}
-  !#   r_\mathrm{tidal}=\left(\frac{GM_\mathrm{sat}}{\omega^2-d^2\Phi/dr^2}\right)^{1/3},
-  !#   \end{equation}
-  !#   where $\omega$ is the orbital angular velocity of the satellite, and $\Phi(r)$ is the gravitational potential due to the
-  !#   host.
-  !#  </description>
-  !# </satelliteTidalStripping>
+  !![
+  <satelliteTidalStripping name="satelliteTidalStrippingZentner2005">
+   <description>
+    A satellite tidal stripping class which uses the formalism of \cite{zentner_physics_2005} to compute the mass loss rate
+    $\dot{M}_\mathrm{sat}$:
+    \begin{equation}
+    \dot{M}_\mathrm{sat}=-\alpha \frac{M_\mathrm{sat}(>r_\mathrm{tidal})}{T_\mathrm{orb}},
+    \end{equation}
+    where $\alpha=${\normalfont \ttfamily [efficiency]},
+    \begin{equation}
+    T_\mathrm{orb} = {1 \over \hbox{max}(\omega/2\pi,v_\mathrm{r}/r)},
+    \end{equation}
+    where $\omega$ is the angular velocity of the satellite, $v_\mathrm{r}$ is the radial velocity, $r$ is the orbital radius,
+    and $r_\mathrm{tidal}$ is the tidal radius of the satellite, given by the \cite{king_structure_1962} formula:
+    \begin{equation}
+    r_\mathrm{tidal}=\left(\frac{GM_\mathrm{sat}}{\omega^2-d^2\Phi/dr^2}\right)^{1/3},
+    \end{equation}
+    where $\omega$ is the orbital angular velocity of the satellite, and $\Phi(r)$ is the gravitational potential due to the
+    host.
+   </description>
+  </satelliteTidalStripping>
+  !!]
   type, extends(satelliteTidalStrippingClass) :: satelliteTidalStrippingZentner2005
-     !% Implementation of a satellite tidal stripping class which follows the model of \cite{zentner_physics_2005}.
+     !!{
+     Implementation of a satellite tidal stripping class which follows the model of \cite{zentner_physics_2005}.
+     !!}
      private
      class           (satelliteTidalStrippingRadiusClass), pointer :: satelliteTidalStrippingRadius_ => null()
      double precision                                              :: efficiency
@@ -54,7 +60,9 @@
   end type satelliteTidalStrippingZentner2005
 
   interface satelliteTidalStrippingZentner2005
-     !% Constructors for the {\normalfont \ttfamily zentner2005} satellite tidal stripping class.
+     !!{
+     Constructors for the {\normalfont \ttfamily zentner2005} satellite tidal stripping class.
+     !!}
      module procedure zentner2005ConstructorParameters
      module procedure zentner2005ConstructorInternal
   end interface satelliteTidalStrippingZentner2005
@@ -67,7 +75,9 @@
 contains
 
   function zentner2005ConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily zentner2005} satellite tidaql stripping class which builds the object from a parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily zentner2005} satellite tidaql stripping class which builds the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (satelliteTidalStrippingZentner2005)                :: self
@@ -75,41 +85,55 @@ contains
     class           (satelliteTidalStrippingRadiusClass), pointer       :: satelliteTidalStrippingRadius_
     double precision                                                    :: efficiency
 
-    !# <inputParameter>
-    !#   <name>efficiency</name>
-    !#   <defaultValue>2.5d0</defaultValue>
-    !#   <description>The dimensionless rate coefficient apeparing in the \cite{zentner_physics_2005} expression for the tidal mass loss rate from subhalos.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="satelliteTidalStrippingRadius" name="satelliteTidalStrippingRadius_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>efficiency</name>
+      <defaultValue>2.5d0</defaultValue>
+      <description>The dimensionless rate coefficient apeparing in the \cite{zentner_physics_2005} expression for the tidal mass loss rate from subhalos.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="satelliteTidalStrippingRadius" name="satelliteTidalStrippingRadius_" source="parameters"/>
+    !!]
     self=satelliteTidalStrippingZentner2005(efficiency,satelliteTidalStrippingRadius_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="satelliteTidalStrippingRadius_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="satelliteTidalStrippingRadius_"/>
+    !!]
     return
   end function zentner2005ConstructorParameters
 
   function zentner2005ConstructorInternal(efficiency,satelliteTidalStrippingRadius_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily zentner2005} satellite tidal stripping class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily zentner2005} satellite tidal stripping class.
+    !!}
     implicit none
     type            (satelliteTidalStrippingZentner2005)                        :: self
     class           (satelliteTidalStrippingRadiusClass), intent(in   ), target :: satelliteTidalStrippingRadius_
     double precision                                    , intent(in)            :: efficiency
-    !# <constructorAssign variables="efficiency, *satelliteTidalStrippingRadius_"/>
+    !![
+    <constructorAssign variables="efficiency, *satelliteTidalStrippingRadius_"/>
+    !!]
 
     return
   end function zentner2005ConstructorInternal
 
   subroutine zentner2005Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily zentner2005} satellite tidal stripping class.
+    !!{
+    Destructor for the {\normalfont \ttfamily zentner2005} satellite tidal stripping class.
+    !!}
     implicit none
     type(satelliteTidalStrippingZentner2005), intent(inout) :: self
 
-    !# <objectDestructor name="self%satelliteTidalStrippingRadius_"/>
+    !![
+    <objectDestructor name="self%satelliteTidalStrippingRadius_"/>
+    !!]
     return
   end subroutine zentner2005Destructor
 
   double precision function zentner2005MassLossRate(self,node)
-    !% Return a mass loss rate for satellites due to tidal stripping using the formulation of \cite{zentner_physics_2005}.
+    !!{
+    Return a mass loss rate for satellites due to tidal stripping using the formulation of \cite{zentner_physics_2005}.
+    !!}
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
     use :: Galacticus_Nodes                  , only : nodeComponentSatellite          , treeNode
     use :: Numerical_Constants_Astronomical  , only : gigaYear                        , megaParsec    , gravitationalConstantGalacticus

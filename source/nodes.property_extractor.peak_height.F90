@@ -19,11 +19,15 @@
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVariance, cosmologicalMassVarianceClass, criticalOverdensity, criticalOverdensityClass
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorPeakHeight">
-  !#  <description>A property extractor class for peak height of the halo.</description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorPeakHeight">
+   <description>A property extractor class for peak height of the halo.</description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorPeakHeight
-     !% A property extractor which extracts peakHeight properties.
+     !!{
+     A property extractor which extracts peakHeight properties.
+     !!}
      private
      class(criticalOverdensityClass     ), pointer :: criticalOverdensity_      => null()
      class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
@@ -38,7 +42,9 @@
   end type nodePropertyExtractorPeakHeight
 
   interface nodePropertyExtractorPeakHeight
-     !% Constructors for the ``peakHeight'' output extractor class.
+     !!{
+     Constructors for the ``peakHeight'' output extractor class.
+     !!}
      module procedure peakHeightConstructorParameters
      module procedure peakHeightConstructorInternal
   end interface nodePropertyExtractorPeakHeight
@@ -46,7 +52,9 @@
 contains
 
   function peakHeightConstructorParameters(parameters) result(self)
-    !% Constructor for the ``peakHeight'' property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the ``peakHeight'' property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (nodePropertyExtractorPeakHeight)                :: self
@@ -54,38 +62,52 @@ contains
     class(criticalOverdensityClass       ), pointer       :: criticalOverdensity_
     class(cosmologicalMassVarianceClass  ), pointer       :: cosmologicalMassVariance_
 
-    !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
-    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    !![
+    <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
+    <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    !!]
     self=nodePropertyExtractorPeakHeight(criticalOverdensity_,cosmologicalMassVariance_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="criticalOverdensity_"     />
-    !# <objectDestructor name="cosmologicalMassVariance_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="criticalOverdensity_"     />
+    <objectDestructor name="cosmologicalMassVariance_"/>
+    !!]
     return
   end function peakHeightConstructorParameters
 
   function peakHeightConstructorInternal(criticalOverdensity_,cosmologicalMassVariance_) result(self)
-    !% Internal constructor for the ``peakHeight'' output extractor property extractor class.
+    !!{
+    Internal constructor for the ``peakHeight'' output extractor property extractor class.
+    !!}
     implicit none
     type (nodePropertyExtractorPeakHeight)                        :: self
     class(criticalOverdensityClass       ), intent(in   ), target :: criticalOverdensity_
     class(cosmologicalMassVarianceClass  ), intent(in   ), target :: cosmologicalMassVariance_
-    !# <constructorAssign variables="*criticalOverdensity_,*cosmologicalMassVariance_"/>
+    !![
+    <constructorAssign variables="*criticalOverdensity_,*cosmologicalMassVariance_"/>
+    !!]
 
     return
   end function peakHeightConstructorInternal
 
   subroutine peakHeightDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily peakHeight} property extractor class.
+    !!{
+    Destructor for the {\normalfont \ttfamily peakHeight} property extractor class.
+    !!}
     implicit none
     type(nodePropertyExtractorPeakHeight), intent(inout) :: self
 
-    !# <objectDestructor name="self%criticalOverdensity_"     />
-    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
+    !![
+    <objectDestructor name="self%criticalOverdensity_"     />
+    <objectDestructor name="self%cosmologicalMassVariance_"/>
+    !!]
     return
   end subroutine peakHeightDestructor
 
   integer function peakHeightElementCount(self,time)
-    !% Return the number of elements in the {\normalfont \ttfamily peakHeight} property extractors.
+    !!{
+    Return the number of elements in the {\normalfont \ttfamily peakHeight} property extractors.
+    !!}
     implicit none
     class           (nodePropertyExtractorPeakHeight), intent(inout) :: self
     double precision                                 , intent(in   ) :: time
@@ -96,7 +118,9 @@ contains
   end function peakHeightElementCount
 
   function peakHeightExtract(self,node,time,instance)
-    !% Implement a peakHeight output extractor.
+    !!{
+    Implement a peakHeight output extractor.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     double precision                                 , dimension(:) , allocatable :: peakHeightExtract
@@ -123,7 +147,9 @@ contains
   end function peakHeightExtract
 
   function peakHeightNames(self,time)
-    !% Return the names of the {\normalfont \ttfamily peakHeight} properties.
+    !!{
+    Return the names of the {\normalfont \ttfamily peakHeight} properties.
+    !!}
     implicit none
     type            (varying_string                 ), dimension(:) , allocatable :: peakHeightNames
     class           (nodePropertyExtractorPeakHeight), intent(inout)              :: self
@@ -140,7 +166,9 @@ contains
   end function peakHeightNames
 
   function peakHeightDescriptions(self,time)
-    !% Return the descriptions of the {\normalfont \ttfamily peakHeight} properties.
+    !!{
+    Return the descriptions of the {\normalfont \ttfamily peakHeight} properties.
+    !!}
     implicit none
     type            (varying_string                 ), dimension(:) , allocatable :: peakHeightDescriptions
     class           (nodePropertyExtractorPeakHeight), intent(inout)              :: self
@@ -157,7 +185,9 @@ contains
   end function peakHeightDescriptions
 
   function peakHeightUnitsInSI(self,time)
-    !% Return the units of the {\normalfont \ttfamily peakHeight} properties in the SI system.
+    !!{
+    Return the units of the {\normalfont \ttfamily peakHeight} properties in the SI system.
+    !!}
     implicit none
     double precision                                 , dimension(:) , allocatable :: peakHeightUnitsInSI
     class           (nodePropertyExtractorPeakHeight), intent(inout)              :: self
@@ -170,7 +200,9 @@ contains
   end function peakHeightUnitsInSI
 
   integer function peakHeightType(self)
-    !% Return the type of the peakHeight property.
+    !!{
+    Return the type of the peakHeight property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorPeakHeight), intent(inout) :: self

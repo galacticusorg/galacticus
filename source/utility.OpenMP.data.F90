@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module that implements useful OpenMP utilities.
+!!{
+Contains a module that implements useful OpenMP utilities.
+!!}
 
 module OpenMP_Utilities_Data
-  !% Implements data for useful OpenMP utilities.
+  !!{
+  Implements data for useful OpenMP utilities.
+  !!}
 #ifdef OMPPROFILE
   use :: ISO_Varying_String, only : varying_string, var_str
 #endif

@@ -17,28 +17,38 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a cold dark matter particle class.
+!!{
+Contains a module which implements a cold dark matter particle class.
+!!}
 
 
-  !# <darkMatterParticle name="darkMatterParticleCDM">
-  !#  <description>Provides a cold dark matter particle.</description>
-  !# </darkMatterParticle>
+  !![
+  <darkMatterParticle name="darkMatterParticleCDM">
+   <description>Provides a cold dark matter particle.</description>
+  </darkMatterParticle>
+  !!]
   type, extends(darkMatterParticleClass) :: darkMatterParticleCDM
-     !% A cold dark matter particle class.
+     !!{
+     A cold dark matter particle class.
+     !!}
      private
    contains
      procedure :: mass => CDMMass
   end type darkMatterParticleCDM
 
   interface darkMatterParticleCDM
-     !% Constructors for the ``{\normalfont \ttfamily CDM}'' dark matter particle class.
+     !!{
+     Constructors for the ``{\normalfont \ttfamily CDM}'' dark matter particle class.
+     !!}
      module procedure CDMConstructorParameters
   end interface darkMatterParticleCDM
 
 contains
 
   function CDMConstructorParameters(parameters)
-    !% Constructor for the ``{\normalfont \ttfamily CDM}'' dark matter particle class which takes a parameter set as input.
+    !!{
+    Constructor for the ``{\normalfont \ttfamily CDM}'' dark matter particle class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(darkMatterParticleCDM)                :: CDMConstructorParameters
@@ -50,7 +60,9 @@ contains
   end function CDMConstructorParameters
 
   double precision function CDMMass(self)
-    !% Return the mass, in units of keV, of a cold dark matter particle. An infinite mass is assumed.
+    !!{
+    Return the mass, in units of keV, of a cold dark matter particle. An infinite mass is assumed.
+    !!}
     implicit none
     class(darkMatterParticleCDM), intent(inout) :: self
 

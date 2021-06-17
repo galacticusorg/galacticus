@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a merger tree evolution timestep class which limits the step to the next satellite destruction event.
+  !!{
+  Contains a merger tree evolution timestep class which limits the step to the next satellite destruction event.
+  !!}
 
-  !# <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepSatelliteDestruction">
-  !#  <description>A merger tree evolution timestepping class which limits the step to the next satellite destruction event.</description>
-  !# </mergerTreeEvolveTimestep>
+  !![
+  <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepSatelliteDestruction">
+   <description>A merger tree evolution timestepping class which limits the step to the next satellite destruction event.</description>
+  </mergerTreeEvolveTimestep>
+  !!]
   type, extends(mergerTreeEvolveTimestepClass) :: mergerTreeEvolveTimestepSatelliteDestruction
-     !% Implementation of a merger tree evolution timestepping class which limits the step to the next satellite destruction event.
+     !!{
+     Implementation of a merger tree evolution timestepping class which limits the step to the next satellite destruction event.
+     !!}
      private
      logical :: limitTimesteps
    contains
@@ -31,7 +37,9 @@
   end type mergerTreeEvolveTimestepSatelliteDestruction
 
   interface mergerTreeEvolveTimestepSatelliteDestruction
-     !% Constructors for the {\normalfont \ttfamily satelliteDestruction} merger tree evolution timestep class.
+     !!{
+     Constructors for the {\normalfont \ttfamily satelliteDestruction} merger tree evolution timestep class.
+     !!}
      module procedure satelliteDestructionConstructorParameters
      module procedure satelliteDestructionConstructorInternal
   end interface mergerTreeEvolveTimestepSatelliteDestruction
@@ -39,7 +47,9 @@
 contains
 
   function satelliteDestructionConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily satelliteDestruction} merger tree evolution timestep class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily satelliteDestruction} merger tree evolution timestep class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(mergerTreeEvolveTimestepSatelliteDestruction)                :: self
@@ -51,7 +61,9 @@ contains
   end function satelliteDestructionConstructorParameters
 
   function satelliteDestructionConstructorInternal() result(self)
-    !% Constructor for the {\normalfont \ttfamily satelliteDestruction} merger tree evolution timestep class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily satelliteDestruction} merger tree evolution timestep class which takes a parameter set as input.
+    !!}
     use :: Galacticus_Nodes, only : defaultSatelliteComponent
     implicit none
     type(mergerTreeEvolveTimestepSatelliteDestruction) :: self
@@ -61,7 +73,9 @@ contains
   end function satelliteDestructionConstructorInternal
 
   double precision function satelliteDestructionTimeEvolveTo(self,timeEnd,node,task,taskSelf,report,lockNode,lockType)
-    !% Determine a suitable timestep for {\normalfont \ttfamily node} such that it does not exceed the time of the next satellite merger.
+    !!{
+    Determine a suitable timestep for {\normalfont \ttfamily node} such that it does not exceed the time of the next satellite merger.
+    !!}
     use :: Evolve_To_Time_Reports, only : Evolve_To_Time_Report
     use :: Galacticus_Nodes      , only : nodeComponentBasic   , nodeComponentSatellite
     use :: ISO_Varying_String    , only : varying_string
@@ -105,7 +119,9 @@ contains
   end function satelliteDestructionTimeEvolveTo
 
   subroutine satelliteDestructionDestructionProcess(self,tree,node,deadlockStatus)
-    !% Process a satellite node which has undergone a merger with its host node.
+    !!{
+    Process a satellite node which has undergone a merger with its host node.
+    !!}
     use :: Display                            , only : displayMessage               , displayVerbosity, verbosityLevelInfo
     use :: Galacticus_Error                   , only : Galacticus_Error_Report
     use :: ISO_Varying_String                 , only : varying_string

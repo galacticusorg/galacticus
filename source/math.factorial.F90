@@ -17,13 +17,17 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements calculations of factorials.
+!!{
+Contains a module which implements calculations of factorials.
+!!}
 
 ! Add dependency on GSL library.
 !; gsl
 
 module Factorials
-  !% Implements calculations of factorials
+  !!{
+  Implements calculations of factorials
+  !!}
   use, intrinsic :: ISO_C_Binding, only : c_double, c_int
   implicit none
   private
@@ -31,7 +35,9 @@ module Factorials
 
   interface
      function gsl_sf_fact(n) bind(c,name='gsl_sf_fact')
-       !% Template for the GSL error function.
+       !!{
+       Template for the GSL error function.
+       !!}
        import
        real   (c_double)        :: gsl_sf_fact
        integer(c_int   ), value :: n
@@ -41,7 +47,9 @@ module Factorials
 contains
 
   double precision function Factorial(argument)
-    !% Computes the factorial of {\normalfont \ttfamily argument}.
+    !!{
+    Computes the factorial of {\normalfont \ttfamily argument}.
+    !!}
     implicit none
     integer, intent(in   ) :: argument
 
@@ -50,7 +58,9 @@ contains
   end function Factorial
 
   double precision function Logarithmic_Double_Factorial(argument)
-    !% Computes the natural logarithm of the double factorial, $k!!$.
+    !!{
+    Computes the natural logarithm of the double factorial, $k!!$.
+    !!}
     implicit none
     integer, intent(in   ) :: argument
     integer                :: i

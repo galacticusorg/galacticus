@@ -17,18 +17,24 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a merger tree constructor class which filters out trees from other constructors.
+  !!{
+  Implements a merger tree constructor class which filters out trees from other constructors.
+  !!}
 
   use :: Merger_Tree_Filters, only : mergerTreeFilterClass
 
-  !# <mergerTreeConstructor name="mergerTreeConstructorFilter">
-  !#  <description>
-  !#   A merger tree constructor class filters trees from another constructor. Trees which do not pass the filter are
-  !#   dropped. Those that do pass the filter are returned.
-  !#  </description>
-  !# </mergerTreeConstructor>
+  !![
+  <mergerTreeConstructor name="mergerTreeConstructorFilter">
+   <description>
+    A merger tree constructor class filters trees from another constructor. Trees which do not pass the filter are
+    dropped. Those that do pass the filter are returned.
+   </description>
+  </mergerTreeConstructor>
+  !!]
   type, extends(mergerTreeConstructorClass) :: mergerTreeConstructorFilter
-     !% A class implementing merger tree construction by filtering out trees from another constructor.
+     !!{
+     A class implementing merger tree construction by filtering out trees from another constructor.
+     !!}
      private
      class(mergerTreeConstructorClass), pointer :: mergerTreeConstructor_ => null()
      class(mergerTreeFilterClass     ), pointer :: mergerTreeFilter_      => null()
@@ -38,7 +44,9 @@
   end type mergerTreeConstructorFilter
 
   interface mergerTreeConstructorFilter
-     !% Constructors for the {\normalfont \ttfamily filter} merger tree constructor class.
+     !!{
+     Constructors for the {\normalfont \ttfamily filter} merger tree constructor class.
+     !!}
      module procedure filterConstructorParameters
      module procedure filterConstructorInternal
   end interface mergerTreeConstructorFilter
@@ -46,7 +54,9 @@
 contains
 
   function filterConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily augment} merger tree operator class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily augment} merger tree operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (mergerTreeConstructorFilter)                :: self
@@ -54,38 +64,52 @@ contains
     class(mergerTreeConstructorClass ), pointer       :: mergerTreeConstructor_
     class(mergerTreeFilterClass      ), pointer       :: mergerTreeFilter_
  
-    !# <objectBuilder class="mergerTreeConstructor" name="mergerTreeConstructor_" source="parameters"/>
-    !# <objectBuilder class="mergerTreeFilter"      name="mergerTreeFilter_"      source="parameters"/>
+    !![
+    <objectBuilder class="mergerTreeConstructor" name="mergerTreeConstructor_" source="parameters"/>
+    <objectBuilder class="mergerTreeFilter"      name="mergerTreeFilter_"      source="parameters"/>
+    !!]
     self=mergerTreeConstructorFilter(mergerTreeConstructor_,mergerTreeFilter_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="mergerTreeConstructor_"/>
-    !# <objectDestructor name="mergerTreeFilter_"     />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="mergerTreeConstructor_"/>
+    <objectDestructor name="mergerTreeFilter_"     />
+    !!]
     return
   end function filterConstructorParameters
 
   function filterConstructorInternal(mergerTreeConstructor_,mergerTreeFilter_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily augment} merger tree operator class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily augment} merger tree operator class.
+    !!}
     implicit none
     type (mergerTreeConstructorFilter)                        :: self
     class(mergerTreeConstructorClass ), intent(in   ), target :: mergerTreeConstructor_
     class(mergerTreeFilterClass      ), intent(in   ), target :: mergerTreeFilter_
-    !# <constructorAssign variables="*mergerTreeConstructor_, *mergerTreeFilter_"/>
+    !![
+    <constructorAssign variables="*mergerTreeConstructor_, *mergerTreeFilter_"/>
+    !!]
 
     return
   end function filterConstructorInternal
 
   subroutine filterDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily filter} merger tree constructor class.
+    !!{
+    Destructor for the {\normalfont \ttfamily filter} merger tree constructor class.
+    !!}
     implicit none
     type(mergerTreeConstructorFilter), intent(inout) :: self
 
-    !# <objectDestructor name="self%mergerTreeConstructor_"/>
-    !# <objectDestructor name="self%mergerTreeFilter_"     />
+    !![
+    <objectDestructor name="self%mergerTreeConstructor_"/>
+    <objectDestructor name="self%mergerTreeFilter_"     />
+    !!]
     return
   end subroutine filterDestructor
 
   function filterConstruct(self,treeNumber,finished) result(tree)
-    !% Construct a merger tree by filtering out trees from another constructor.
+    !!{
+    Construct a merger tree by filtering out trees from another constructor.
+    !!}
     implicit none
     class  (mergerTreeConstructorFilter), intent(inout) :: self
     type   (mergerTree                 ), pointer       :: tree

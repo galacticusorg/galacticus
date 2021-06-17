@@ -17,27 +17,37 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a boolean analysis property operator class.
+!!{
+Contains a module which implements a boolean analysis property operator class.
+!!}
 
-  !# <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorBoolean">
-  !#  <description>A boolean analysis property operator class, specifically $x \rightarrow x/|x|$, that is, the operator maintains the sign of the input while normalizing the magnitude to unity (or zero for zero input).</description>
-  !# </outputAnalysisPropertyOperator>
+  !![
+  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorBoolean">
+   <description>A boolean analysis property operator class, specifically $x \rightarrow x/|x|$, that is, the operator maintains the sign of the input while normalizing the magnitude to unity (or zero for zero input).</description>
+  </outputAnalysisPropertyOperator>
+  !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorBoolean
-     !% A boolean property operator class.
+     !!{
+     A boolean property operator class.
+     !!}
      private
    contains
      procedure :: operate => booleanOperate
   end type outputAnalysisPropertyOperatorBoolean
 
   interface outputAnalysisPropertyOperatorBoolean
-     !% Constructors for the ``boolean'' output analysis class.
+     !!{
+     Constructors for the ``boolean'' output analysis class.
+     !!}
      module procedure booleanConstructorParameters
   end interface outputAnalysisPropertyOperatorBoolean
 
 contains
 
   function booleanConstructorParameters(parameters) result(self)
-    !% Constructor for the ``boolean'' output analysis property operator class which takes a parameter set as input.
+    !!{
+    Constructor for the ``boolean'' output analysis property operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(outputAnalysisPropertyOperatorBoolean)                :: self
@@ -49,7 +59,9 @@ contains
   end function booleanConstructorParameters
 
   double precision function booleanOperate(self,propertyValue,node,propertyType,outputIndex)
-    !% Implement an boolean output analysis property operator.
+    !!{
+    Implement an boolean output analysis property operator.
+    !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     class           (outputAnalysisPropertyOperatorBoolean), intent(inout)           :: self

@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of zero accretion from the \gls{igm} onto halos.
+  !!{
+  An implementation of zero accretion from the \gls{igm} onto halos.
+  !!}
 
-  !# <accretionHalo name="accretionHaloZero">
-  !#  <description>Accretion onto halos assuming no accretion.</description>
-  !# </accretionHalo>
+  !![
+  <accretionHalo name="accretionHaloZero">
+   <description>Accretion onto halos assuming no accretion.</description>
+  </accretionHalo>
+  !!]
   type, extends(accretionHaloClass) :: accretionHaloZero
-     !% A halo accretion class that assumes no accretion.
+     !!{
+     A halo accretion class that assumes no accretion.
+     !!}
      private
    contains
      procedure :: branchHasBaryons       => zeroBranchHasBaryons
@@ -38,14 +44,18 @@
   end type accretionHaloZero
 
   interface accretionHaloZero
-     !% Constructors for the {\normalfont \ttfamily zero} halo accretion class.
+     !!{
+     Constructors for the {\normalfont \ttfamily zero} halo accretion class.
+     !!}
      module procedure zeroConstructorParameters
   end interface accretionHaloZero
 
 contains
 
   function zeroConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily zero} halo accretion class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily zero} halo accretion class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(accretionHaloZero)                :: self
@@ -57,7 +67,9 @@ contains
   end function zeroConstructorParameters
 
   logical function zeroBranchHasBaryons(self,node)
-    !% Returns true if this branch can accrete any baryons.
+    !!{
+    Returns true if this branch can accrete any baryons.
+    !!}
     implicit none
     class(accretionHaloZero), intent(inout)         :: self
     type (treeNode         ), intent(inout), target :: node
@@ -68,7 +80,9 @@ contains
   end function zeroBranchHasBaryons
 
   double precision function zeroAccretionRate(self,node,accretionMode)
-    !% Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
+    !!{
+    Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
+    !!}
     implicit none
     class  (accretionHaloZero), intent(inout) :: self
     type   (treeNode         ), intent(inout) :: node
@@ -80,7 +94,9 @@ contains
   end function zeroAccretionRate
 
   double precision function zeroAccretedMass(self,node,accretionMode)
-    !% Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
+    !!{
+    Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
+    !!}
     implicit none
     class  (accretionHaloZero), intent(inout) :: self
     type   (treeNode         ), intent(inout) :: node
@@ -92,7 +108,9 @@ contains
   end function zeroAccretedMass
 
   double precision function zeroFailedAccretionRate(self,node,accretionMode)
-    !% Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
+    !!{
+    Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
+    !!}
     implicit none
     class  (accretionHaloZero), intent(inout) :: self
     type   (treeNode         ), intent(inout) :: node
@@ -104,7 +122,9 @@ contains
   end function zeroFailedAccretionRate
 
   double precision function zeroFailedAccretedMass(self,node,accretionMode)
-    !% Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
+    !!{
+    Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
+    !!}
     implicit none
     class  (accretionHaloZero), intent(inout) :: self
     type   (treeNode         ), intent(inout) :: node
@@ -116,7 +136,9 @@ contains
   end function zeroFailedAccretedMass
 
   function zeroAccretionRateMetals(self,node,accretionMode)
-    !% Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
+    !!{
+    Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
+    !!}
     use :: Abundances_Structure, only : abundances, zeroAbundances
     implicit none
     type   (abundances       )                :: zeroAccretionRateMetals
@@ -130,7 +152,9 @@ contains
   end function zeroAccretionRateMetals
 
   function zeroAccretedMassMetals(self,node,accretionMode)
-    !% Computes the mass of abundances accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
+    !!{
+    Computes the mass of abundances accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
+    !!}
     use :: Abundances_Structure, only : abundances, zeroAbundances
     implicit none
     type   (abundances       )                :: zeroAccretedMassMetals
@@ -144,7 +168,9 @@ contains
   end function zeroAccretedMassMetals
 
   function zeroAccretionRateChemicals(self,node,accretionMode)
-    !% Computes the rate of mass of chemicals accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
+    !!{
+    Computes the rate of mass of chemicals accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
+    !!}
     use :: Chemical_Abundances_Structure, only : chemicalAbundances, zeroChemicalAbundances
     implicit none
     type   (chemicalAbundances)                :: zeroAccretionRateChemicals
@@ -158,7 +184,9 @@ contains
   end function zeroAccretionRateChemicals
 
   function zeroAccretedMassChemicals(self,node,accretionMode)
-    !% Computes the mass of chemicals accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
+    !!{
+    Computes the mass of chemicals accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
+    !!}
     use :: Chemical_Abundances_Structure, only : chemicalAbundances, zeroChemicalAbundances
     implicit none
     type   (chemicalAbundances)                :: zeroAccretedMassChemicals

@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an N-body data importer for Gadget HDF5 files.
+!!{
+Contains a module which implements an N-body data importer for Gadget HDF5 files.
+!!}
 
   use :: IO_HDF5, only : hdf5Object
 
-  !# <nbodyImporter name="nbodyImporterGadgetHDF5">
-  !#  <description>An importer for Gadget HDF5 files.</description>
-  !# </nbodyImporter>
+  !![
+  <nbodyImporter name="nbodyImporterGadgetHDF5">
+   <description>An importer for Gadget HDF5 files.</description>
+  </nbodyImporter>
+  !!]
   type, extends(nbodyImporterClass) :: nbodyImporterGadgetHDF5
-     !% An importer for Gadget HDF5 files.
+     !!{
+     An importer for Gadget HDF5 files.
+     !!}
      private
      type            (varying_string) :: fileName       , label
      type            (hdf5Object    ) :: file
@@ -39,7 +45,9 @@
   end type nbodyImporterGadgetHDF5
 
   interface nbodyImporterGadgetHDF5
-     !% Constructors for the ``gadgetHDF5'' N-body importer class.
+     !!{
+     Constructors for the ``gadgetHDF5'' N-body importer class.
+     !!}
      module procedure gadgetHDF5ConstructorParameters
      module procedure gadgetHDF5ConstructorInternal
   end interface nbodyImporterGadgetHDF5
@@ -47,7 +55,9 @@
 contains
 
   function gadgetHDF5ConstructorParameters(parameters) result (self)
-    !% Constructor for the ``gadgetHDF5'' N-body importer class which takes a parameter set as input.
+    !!{
+    Constructor for the ``gadgetHDF5'' N-body importer class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (nbodyImporterGadgetHDF5)                :: self
@@ -57,62 +67,72 @@ contains
          &                                                      unitLengthInSI , unitVelocityInSI
     type            (varying_string         )                :: fileName       , label
 
-    !# <inputParameter>
-    !#   <name>fileName</name>
-    !#   <source>parameters</source>
-    !#   <description>The name of the file to read.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>label</name>
-    !#   <source>parameters</source>
-    !#   <description>A label for the simulation</description>
-    !#   <defaultValue>var_str('primary')</defaultValue>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>particleType</name>
-    !#   <source>parameters</source>
-    !#   <description>The particle type to read from the Gadget HDF5 file.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>lengthSoftening</name>
-    !#   <source>parameters</source>
-    !#   <description>The softening length.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>unitMassInSI</name>
-    !#   <source>parameters</source>
-    !#   <description>The mass unit expressed in the SI system.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>unitLengthInSI</name>
-    !#   <source>parameters</source>
-    !#   <description>The length unit expressed in the SI system.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>unitVelocityInSI</name>
-    !#   <source>parameters</source>
-    !#   <description>The velocity unit expressed in the SI system.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>fileName</name>
+      <source>parameters</source>
+      <description>The name of the file to read.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>label</name>
+      <source>parameters</source>
+      <description>A label for the simulation</description>
+      <defaultValue>var_str('primary')</defaultValue>
+    </inputParameter>
+    <inputParameter>
+      <name>particleType</name>
+      <source>parameters</source>
+      <description>The particle type to read from the Gadget HDF5 file.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>lengthSoftening</name>
+      <source>parameters</source>
+      <description>The softening length.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>unitMassInSI</name>
+      <source>parameters</source>
+      <description>The mass unit expressed in the SI system.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>unitLengthInSI</name>
+      <source>parameters</source>
+      <description>The length unit expressed in the SI system.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>unitVelocityInSI</name>
+      <source>parameters</source>
+      <description>The velocity unit expressed in the SI system.</description>
+    </inputParameter>
+    !!]
     self=nbodyImporterGadgetHDF5(fileName,label,particleType,lengthSoftening,unitMassInSI,unitLengthInSI,unitVelocityInSI)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function gadgetHDF5ConstructorParameters
 
   function gadgetHDF5ConstructorInternal(fileName,label,particleType,lengthSoftening,unitMassInSI,unitLengthInSI,unitVelocityInSI) result (self)
-    !% Internal constructor for the ``gadgetHDF5'' N-body importer class.
+    !!{
+    Internal constructor for the ``gadgetHDF5'' N-body importer class.
+    !!}
     implicit none
     type            (nbodyImporterGadgetHDF5)                :: self
     type            (varying_string         ), intent(in   ) :: fileName       , label
     integer                                  , intent(in   ) :: particleType
     double precision                         , intent(in   ) :: lengthSoftening, unitMassInSI   , &
          &                                                      unitLengthInSI ,unitVelocityInSI
-    !# <constructorAssign variables="fileName, label, particleType,lengthSoftening,unitMassInSI,unitLengthInSI,unitVelocityInSI"/>
+    !![
+    <constructorAssign variables="fileName, label, particleType,lengthSoftening,unitMassInSI,unitLengthInSI,unitVelocityInSI"/>
+    !!]
 
     return
   end function gadgetHDF5ConstructorInternal
 
   subroutine gadgetHDF5Destructor(self)
-    !% Destructor for Gadget HF5 importer class.
+    !!{
+    Destructor for Gadget HF5 importer class.
+    !!}
     implicit none
     type(nbodyImporterGadgetHDF5), intent(inout) :: self
 
@@ -121,7 +141,9 @@ contains
   end subroutine gadgetHDF5Destructor
 
   subroutine gadgetHDF5Import(self,simulations)
-    !% Import data from a Gadget HDF5 file.
+    !!{
+    Import data from a Gadget HDF5 file.
+    !!}
     use :: Galacticus_Error                , only : Galacticus_Error_Report
     use :: Hashes                          , only : rank1IntegerSizeTPtrHash, rank2IntegerSizeTPtrHash, rank1DoublePtrHash, rank2DoublePtrHash, &
          &                                          doubleHash
@@ -190,7 +212,9 @@ contains
   end subroutine gadgetHDF5Import
 
   logical function gadgetHDF5IsHDF5(self)
-    !% Return whether or not the imported data is from an HDF5 file.
+    !!{
+    Return whether or not the imported data is from an HDF5 file.
+    !!}
     implicit none
     class(nbodyImporterGadgetHDF5), intent(inout) :: self
 

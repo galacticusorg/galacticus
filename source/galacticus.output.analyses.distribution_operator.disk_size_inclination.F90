@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements the effects of inclination on disk size in an output analysis distribution operator class.
+  !!{
+  Contains a module which implements the effects of inclination on disk size in an output analysis distribution operator class.
+  !!}
 
   use :: Tables, only : table1D, table1DLinearLinear
 
-  !# <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorDiskSizeInclntn">
-  !#  <description>An output analysis distribution operator class which implements the effects of inclination on disk size.</description>
-  !# </outputAnalysisDistributionOperator>
+  !![
+  <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorDiskSizeInclntn">
+   <description>An output analysis distribution operator class which implements the effects of inclination on disk size.</description>
+  </outputAnalysisDistributionOperator>
+  !!]
   type, extends(outputAnalysisDistributionOperatorClass) :: outputAnalysisDistributionOperatorDiskSizeInclntn
-     !% An output distribution operator class which implements the effects of inclination on disk size.
+     !!{
+     An output distribution operator class which implements the effects of inclination on disk size.
+     !!}
      private
      type (table1DLinearLinear)              :: inclinationTable
      class(table1D            ), allocatable :: sizeTable
@@ -36,7 +42,9 @@
   end type outputAnalysisDistributionOperatorDiskSizeInclntn
 
   interface outputAnalysisDistributionOperatorDiskSizeInclntn
-     !% Constructors for the ``diskSizeInclination'' output distribution operator class.
+     !!{
+     Constructors for the ``diskSizeInclination'' output distribution operator class.
+     !!}
      module procedure diskSizeInclinationConstructorParameters
      module procedure diskSizeInclinationConstructorInternal
   end interface outputAnalysisDistributionOperatorDiskSizeInclntn
@@ -48,7 +56,9 @@
 contains
 
   function diskSizeInclinationConstructorParameters(parameters) result(self)
-    !% Constructor for the ``diskSizeInclination'' output analysis distribution operator operator class which takes a parameter set as input.
+    !!{
+    Constructor for the ``diskSizeInclination'' output analysis distribution operator operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(outputAnalysisDistributionOperatorDiskSizeInclntn)                :: self
@@ -60,7 +70,9 @@ contains
   end function diskSizeInclinationConstructorParameters
 
   function diskSizeInclinationConstructorInternal() result(self)
-    !% Internal constructor for the ``diskSizeInclination'' output analysis distribution operator class.
+    !!{
+    Internal constructor for the ``diskSizeInclination'' output analysis distribution operator class.
+    !!}
     use :: File_Utilities    , only : File_Exists              , File_Lock                    , File_Unlock                  , lockDescriptor, &
           &                           Directory_Make
     use :: Galacticus_Paths  , only : galacticusPath           , pathTypeDataDynamic
@@ -137,7 +149,9 @@ contains
   end function diskSizeInclinationConstructorInternal
 
   subroutine diskSizeInclinationDestructor(self)
-    !% Destructor for the ``diskSizeInclination'' output analysis distribution operator operator class.
+    !!{
+    Destructor for the ``diskSizeInclination'' output analysis distribution operator operator class.
+    !!}
     implicit none
     type(outputAnalysisDistributionOperatorDiskSizeInclntn), intent(inout) :: self
 
@@ -148,7 +162,9 @@ contains
   end subroutine diskSizeInclinationDestructor
 
   double precision function diskSizeInclntnRoot(xHalf)
-    !% Function used in solving for the half-light radii of inclined disks.
+    !!{
+    Function used in solving for the half-light radii of inclined disks.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Integration   , only : integrator
     implicit none
@@ -163,7 +179,9 @@ contains
   end function diskSizeInclntnRoot
 
   double precision function diskSizeInclntnIntegrandX(x)
-    !% Integral for half-light radius.
+    !!{
+    Integral for half-light radius.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Integration   , only : integrator
     implicit none
@@ -178,7 +196,9 @@ contains
   end function diskSizeInclntnIntegrandX
 
   double precision function diskSizeInclntnIntegrandPhi(phi)
-    !% Integral for half-light radius.
+    !!{
+    Integral for half-light radius.
+    !!}
     implicit none
     double precision, intent(in   ) :: phi
 
@@ -187,7 +207,9 @@ contains
   end function diskSizeInclntnIntegrandPhi
 
   function diskSizeInclinationOperateScalar(self,propertyValue,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
-    !% Implement a disk size inclination output analysis distribution operator.
+    !!{
+    Implement a disk size inclination output analysis distribution operator.
+    !!}
     implicit none
     class           (outputAnalysisDistributionOperatorDiskSizeInclntn), intent(inout)                                        :: self
     double precision                                                   , intent(in   )                                        :: propertyValue
@@ -210,7 +232,9 @@ contains
   end function diskSizeInclinationOperateScalar
 
   function diskSizeInclinationOperateDistribution(self,distribution,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
-    !% Implement a disk size inclination output analysis distribution operator.
+    !!{
+    Implement a disk size inclination output analysis distribution operator.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (outputAnalysisDistributionOperatorDiskSizeInclntn), intent(inout)                                        :: self

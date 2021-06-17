@@ -17,27 +17,33 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a posterior sampling differential evolution proposal size temperature exponent class in which the exponent
-  !% is adaptive.
+  !!{
+  Implementation of a posterior sampling differential evolution proposal size temperature exponent class in which the exponent
+  is adaptive.
+  !!}
 
-  !# <posteriorSampleDffrntlEvltnPrpslSzTmpExp name="posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive">
-  !#  <description>
-  !#   This class adaptively changes $\alpha$ in an attempt to maintain the gradient of the acceptance rate with the logarithm of
-  !#   temperature, $\mathrm{d} R/\mathrm{d}\ln T$, at an acceptable level. The algorithm is controlled by the following sub-parameters:
-  !#   \begin{description}
-  !#   \item[{\normalfont \ttfamily [exponentInitial]}] The initial value for $\alpha$;
-  !#   \item[{\normalfont \ttfamily [exponentFactor]}] The additive factor by which $\alpha$ should be increased or decreased if the
-  !#     acceptance rate gradient is out of range;
-  !#   \item[{\normalfont \ttfamily [exponentMinimum]}] The smallest value allowed for $\alpha$;
-  !#   \item[{\normalfont \ttfamily [exponentMaximum]}] The largest value allowed for $\alpha$;
-  !#   \item[{\normalfont \ttfamily [acceptanceRateMinimum]}] The minimum acceptance rate gradient to accept before reducing $\alpha$;
-  !#   \item[{\normalfont \ttfamily [acceptanceRateMaximum]}] The maximum acceptance rate gradient to accept before reducing $\alpha$;
-  !#   \item[{\normalfont \ttfamily [updateCount]}] The number of steps between successive checks of the acceptance rate gradient.
-  !#   \end{description}
-  !#  </description>
-  !# </posteriorSampleDffrntlEvltnPrpslSzTmpExp>
+  !![
+  <posteriorSampleDffrntlEvltnPrpslSzTmpExp name="posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive">
+   <description>
+    This class adaptively changes $\alpha$ in an attempt to maintain the gradient of the acceptance rate with the logarithm of
+    temperature, $\mathrm{d} R/\mathrm{d}\ln T$, at an acceptable level. The algorithm is controlled by the following sub-parameters:
+    \begin{description}
+    \item[{\normalfont \ttfamily [exponentInitial]}] The initial value for $\alpha$;
+    \item[{\normalfont \ttfamily [exponentFactor]}] The additive factor by which $\alpha$ should be increased or decreased if the
+      acceptance rate gradient is out of range;
+    \item[{\normalfont \ttfamily [exponentMinimum]}] The smallest value allowed for $\alpha$;
+    \item[{\normalfont \ttfamily [exponentMaximum]}] The largest value allowed for $\alpha$;
+    \item[{\normalfont \ttfamily [acceptanceRateMinimum]}] The minimum acceptance rate gradient to accept before reducing $\alpha$;
+    \item[{\normalfont \ttfamily [acceptanceRateMaximum]}] The maximum acceptance rate gradient to accept before reducing $\alpha$;
+    \item[{\normalfont \ttfamily [updateCount]}] The number of steps between successive checks of the acceptance rate gradient.
+    \end{description}
+   </description>
+  </posteriorSampleDffrntlEvltnPrpslSzTmpExp>
+  !!]
   type, extends(posteriorSampleDffrntlEvltnPrpslSzTmpExpClass) :: posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive
-     !% Implementation of a posterior sampling differential evolution proposal size class in which the exponent is adaptive.
+     !!{
+     Implementation of a posterior sampling differential evolution proposal size class in which the exponent is adaptive.
+     !!}
      private
      double precision :: exponentCurrent, exponentAdjustFactor, &
           &              exponentInitial
@@ -49,7 +55,9 @@
   end type posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive
 
   interface posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive
-     !% Constructors for the {\normalfont \ttfamily adaptive} posterior sampling differential evolution random jump class.
+     !!{
+     Constructors for the {\normalfont \ttfamily adaptive} posterior sampling differential evolution random jump class.
+     !!}
      module procedure adaptiveConstructorParameters
      module procedure adaptiveConstructorInternal
   end interface posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive
@@ -57,8 +65,10 @@
 contains
 
   function adaptiveConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily adaptive} posterior sampling differential evolution random jump class which
-    !% builds the object from a parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily adaptive} posterior sampling differential evolution random jump class which
+    builds the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive)                 :: self
@@ -68,55 +78,63 @@ contains
          &                                                                                gradientMinimum, gradientMaximum
     integer                                                                            :: updateCount
 
-    !# <inputParameter>
-    !#   <name>exponentInitial</name>
-    !#   <description>The initial exponent.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>exponentMinimum</name>
-    !#   <description>The minimum allowed exponent.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>exponentMaximum</name>
-    !#   <description>The maximum allowed exponent.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>exponentAdjustFactor</name>
-    !#   <description>The factor by which to adjust the exponent.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>gradientMinimum</name>
-    !#   <description>The minimum acceptable gradient of acceptance rate with log-temperature.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>gradientMaximum</name>
-    !#   <description>The maximum acceptable gradient of acceptance rate with log-temperature.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>updateCount</name>
-    !#   <description>The number of steps between potential updates of the temperature exponent.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>exponentInitial</name>
+      <description>The initial exponent.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>exponentMinimum</name>
+      <description>The minimum allowed exponent.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>exponentMaximum</name>
+      <description>The maximum allowed exponent.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>exponentAdjustFactor</name>
+      <description>The factor by which to adjust the exponent.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>gradientMinimum</name>
+      <description>The minimum acceptable gradient of acceptance rate with log-temperature.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>gradientMaximum</name>
+      <description>The maximum acceptable gradient of acceptance rate with log-temperature.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>updateCount</name>
+      <description>The number of steps between potential updates of the temperature exponent.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     self=posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive(exponentInitial,exponentMinimum,exponentMaximum,exponentAdjustFactor,gradientMinimum,gradientMaximum,updateCount)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function adaptiveConstructorParameters
 
   function adaptiveConstructorInternal(exponentInitial,exponentMinimum,exponentMaximum,exponentAdjustFactor,gradientMinimum,gradientMaximum,updateCount) result(self)
-    !% Constructor for the ``adaptive'' differential evolution proposal size class.
+    !!{
+    Constructor for the ``adaptive'' differential evolution proposal size class.
+    !!}
     implicit none
     type            (posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive)                :: self
     double precision                                                  , intent(in   ) :: exponentInitial, exponentAdjustFactor, &
          &                                                                               exponentMinimum, exponentMaximum     , &
          &                                                                               gradientMinimum, gradientMaximum
     integer                                                           , intent(in   ) :: updateCount
-    !# <constructorAssign variables="exponentInitial,exponentMinimum,exponentMaximum,exponentAdjustFactor,gradientMinimum,gradientMaximum,updateCount"/>
+    !![
+    <constructorAssign variables="exponentInitial,exponentMinimum,exponentMaximum,exponentAdjustFactor,gradientMinimum,gradientMaximum,updateCount"/>
+    !!]
 
     self%exponentCurrent=exponentInitial
     self%lastUpdateCount=0
@@ -124,7 +142,9 @@ contains
   end function adaptiveConstructorInternal
 
 double precision function adaptiveExponent(self,temperedStates,temperatures,simulationState,simulationConvergence)
-  !% Return the adaptive differential evolution proposal size temperature exponent.
+  !!{
+  Return the adaptive differential evolution proposal size temperature exponent.
+  !!}
   use :: Display           , only : displayIndent     , displayMessage, displayUnindent, displayVerbosity, &
           &                         verbosityLevelInfo
   use :: ISO_Varying_String, only : varying_string

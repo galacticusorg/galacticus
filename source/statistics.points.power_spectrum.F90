@@ -17,17 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which computes power spectra from point distributions.
+!!{
+Contains a module which computes power spectra from point distributions.
+!!}
 
 module Statistics_Points_Power_Spectra
-  !% Compute power spectra from point distributions.
+  !!{
+  Compute power spectra from point distributions.
+  !!}
   private
   public :: Statistics_Points_Power_Spectrum
 
 contains
 
   subroutine Statistics_Points_Power_Spectrum(dataPosition,boxLength,wavenumberMinimum,wavenumberMaximum,wavenumberCount,wavenumber,powerSpectrum)
-    !% Compute the power spectrum from a set of points in a periodic cube.
+    !!{
+    Compute the power spectrum from a set of points in a periodic cube.
+    !!}
     use            :: Display                 , only : displayMessage
     use            :: FFTW3                   , only : FFTW_ESTIMATE          , FFTW_FORWARD        , FFTW_Wavenumber, fftw_destroy_plan, &
           &                                            fftw_execute_dft       , fftw_plan_dft_3d

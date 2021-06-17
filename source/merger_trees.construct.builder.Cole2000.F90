@@ -17,7 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of a merger tree builder using the algorithm of \cite{cole_hierarchical_2000}.
+  !!{
+  An implementation of a merger tree builder using the algorithm of \cite{cole_hierarchical_2000}.
+  !!}
 
   use :: Cosmological_Density_Field        , only : cosmologicalMassVarianceClass            , criticalOverdensityClass
   use :: Cosmology_Functions               , only : cosmologyFunctionsClass
@@ -25,56 +27,60 @@
   use :: Merger_Trees_Build_Mass_Resolution, only : mergerTreeMassResolutionClass
   use :: Statistics_Distributions          , only : distributionFunction1DNegativeExponential
 
-  !# <mergerTreeBuilder name="mergerTreeBuilderCole2000">
-  !#  <description>
-  !#   A merger tree builder class which uses the algorithm described by \cite{cole_hierarchical_2000} (with minor modifications
-  !#   described below). This action of this algorithm is controlled by the following parameters:
-  !#   \begin{description}
-  !#    \item [{\normalfont \ttfamily [mergeProbability]}] The maximum probability for a binary merger allowed in a single
-  !#    timestep. This allows the probability to be kept small, such the the probability for multiple mergers within a single
-  !#    timestep is small.
-  !#    \item [{\normalfont \ttfamily [accretionLimit]}] The maximum fractional change in mass due to sub-esolution accretion
-  !#    allowed in any given timestep when building the tree.
-  !#    \item [{\normalfont \ttfamily [redshiftMaximum]}] The highest redshift to which the tree should be built. Any branch
-  !#    reaching this redshift will be terminated. Typically this should be set to a high value such that branches terminate when
-  !#    the resolution limit it reached, but specifying a maximum redshift can be useful in some situations.
-  !#    \item [{\normalfont \ttfamily [branchIntervalStep]}] If {\normalfont \ttfamily true}, instead of limiting each time step
-  !#    such that the probability of branching is less than {\normalfont \ttfamily mergerTreeBuildCole2000MergeProbability}, the
-  !#    interval to the next branching event will be drawn from a negative exponential with the appropriate rate. If this exceeds
-  !#    the maximum allowed timestep based on other considerations (e.g. the accretion limit), no branching occurs, and the
-  !#    timestep proceeds\footnote{Note that we do not have to concern ourselves in the subsequent timestep with the fact that no
-  !#    branching occurred in the previous timestep because of the memorylessness nature of the negative exponential
-  !#    distribution. That is, the distribution of branching intervals conditioned on the fact that no branching occurred in the
-  !#    previous timestep, is just the same negative exponential distribution.}. If the interval is less than the maximum allowed
-  !#    timestep, branching occurs at that point. In the regime of high branching rates (which occur when the branch being grown
-  !#    is far above the mass resolution), this approach allows for larger timesteps to be taken.
-  !#   \end{description}
-  !#   The minimum halo mass that the algorithm will follow is determined by the selection merger tree building mass resolution
-  !#   method (see \refPhysics{mergerTreeMassResolution}). Mass accretion below this scale is treated as smooth accretion
-  !#   and branches are truncated once they fall below this mass.
-  !#   
-  !#   In the original \cite{cole_hierarchical_2000}, when a branch split occurred masses, $M_2$ and $M_3$, of the two new halos
-  !#   were selected by first drawing the mass $M_2$ from the branching distribution function in the range $M_\mathrm{res}$ to
-  !#   $M_1/2$ (where $M_1$ is the mass of the parent halo, and $M_\mathrm{res}$ is the mass resolution being used for the tree),
-  !#   and then setting
-  !#   \begin{equation}
-  !#     M_3 = M_1 (1-F) - M_2
-  !#   \end{equation}
-  !#   where $F$ is the fraction of the parent halo mass gained through sub-resolution accretion in this timestep. As the
-  !#   sub-resolution accretion is removed entirely from the mass $M_3$ and not from $M_2$ this can lead to an assymetry in
-  !#   progenitor mass functions close to $M_1/2$. Therefore, we instead set the progenitor masses by first drawing a mass
-  !#   $M_2^\prime$ from the mass branching distribution function and then setting
-  !#   \begin{eqnarray}
-  !#     M_2 &amp;=&amp; M_2^\prime (1-F), \nonumber \\
-  !#     M_3 &amp;=&amp; (M_1 - M_2^\prime) (1-F),
-  !#   \end{eqnarray}
-  !#   which ensures a symmetric treatment of subresolution accretion close to $M_1/2$.
-  !#   
-  !#  </description>
-  !# </mergerTreeBuilder>
+  !![
+  <mergerTreeBuilder name="mergerTreeBuilderCole2000">
+   <description>
+    A merger tree builder class which uses the algorithm described by \cite{cole_hierarchical_2000} (with minor modifications
+    described below). This action of this algorithm is controlled by the following parameters:
+    \begin{description}
+     \item [{\normalfont \ttfamily [mergeProbability]}] The maximum probability for a binary merger allowed in a single
+     timestep. This allows the probability to be kept small, such the the probability for multiple mergers within a single
+     timestep is small.
+     \item [{\normalfont \ttfamily [accretionLimit]}] The maximum fractional change in mass due to sub-esolution accretion
+     allowed in any given timestep when building the tree.
+     \item [{\normalfont \ttfamily [redshiftMaximum]}] The highest redshift to which the tree should be built. Any branch
+     reaching this redshift will be terminated. Typically this should be set to a high value such that branches terminate when
+     the resolution limit it reached, but specifying a maximum redshift can be useful in some situations.
+     \item [{\normalfont \ttfamily [branchIntervalStep]}] If {\normalfont \ttfamily true}, instead of limiting each time step
+     such that the probability of branching is less than {\normalfont \ttfamily mergerTreeBuildCole2000MergeProbability}, the
+     interval to the next branching event will be drawn from a negative exponential with the appropriate rate. If this exceeds
+     the maximum allowed timestep based on other considerations (e.g. the accretion limit), no branching occurs, and the
+     timestep proceeds\footnote{Note that we do not have to concern ourselves in the subsequent timestep with the fact that no
+     branching occurred in the previous timestep because of the memorylessness nature of the negative exponential
+     distribution. That is, the distribution of branching intervals conditioned on the fact that no branching occurred in the
+     previous timestep, is just the same negative exponential distribution.}. If the interval is less than the maximum allowed
+     timestep, branching occurs at that point. In the regime of high branching rates (which occur when the branch being grown
+     is far above the mass resolution), this approach allows for larger timesteps to be taken.
+    \end{description}
+    The minimum halo mass that the algorithm will follow is determined by the selection merger tree building mass resolution
+    method (see \refPhysics{mergerTreeMassResolution}). Mass accretion below this scale is treated as smooth accretion
+    and branches are truncated once they fall below this mass.
+    
+    In the original \cite{cole_hierarchical_2000}, when a branch split occurred masses, $M_2$ and $M_3$, of the two new halos
+    were selected by first drawing the mass $M_2$ from the branching distribution function in the range $M_\mathrm{res}$ to
+    $M_1/2$ (where $M_1$ is the mass of the parent halo, and $M_\mathrm{res}$ is the mass resolution being used for the tree),
+    and then setting
+    \begin{equation}
+      M_3 = M_1 (1-F) - M_2
+    \end{equation}
+    where $F$ is the fraction of the parent halo mass gained through sub-resolution accretion in this timestep. As the
+    sub-resolution accretion is removed entirely from the mass $M_3$ and not from $M_2$ this can lead to an assymetry in
+    progenitor mass functions close to $M_1/2$. Therefore, we instead set the progenitor masses by first drawing a mass
+    $M_2^\prime$ from the mass branching distribution function and then setting
+    \begin{eqnarray}
+      M_2 &amp;=&amp; M_2^\prime (1-F), \nonumber \\
+      M_3 &amp;=&amp; (M_1 - M_2^\prime) (1-F),
+    \end{eqnarray}
+    which ensures a symmetric treatment of subresolution accretion close to $M_1/2$.
+    
+   </description>
+  </mergerTreeBuilder>
+  !!]
 
   type, extends(mergerTreeBuilderClass) :: mergerTreeBuilderCole2000
-     !% A merger tree builder class using the algorithm of \cite{cole_hierarchical_2000}.
+     !!{
+     A merger tree builder class using the algorithm of \cite{cole_hierarchical_2000}.
+     !!}
      private
      class           (cosmologyFunctionsClass                  ), pointer :: cosmologyFunctions_                      => null()
      class           (mergerTreeMassResolutionClass            ), pointer :: mergerTreeMassResolution_                => null()
@@ -93,12 +99,14 @@
      ! Tolerances for behavior close to the resolution limit.
      double precision                                                     :: toleranceResolutionSelf                           , toleranceResolutionParent
    contains
-     !# <methods>
-     !#   <method description="Return true if construction of the merger tree should be aborted." method="shouldAbort"              />
-     !#   <method description="Return true if the branch should be followed."                     method="shouldFollowBranch"       />
-     !#   <method description="Set the critical overdensity object."                              method="criticalOverdensitySet"   />
-     !#   <method description="Set the critical overdensity object."                              method="criticalOverdensityUpdate"/>
-     !# </methods>
+     !![
+     <methods>
+       <method description="Return true if construction of the merger tree should be aborted." method="shouldAbort"              />
+       <method description="Return true if the branch should be followed."                     method="shouldFollowBranch"       />
+       <method description="Set the critical overdensity object."                              method="criticalOverdensitySet"   />
+       <method description="Set the critical overdensity object."                              method="criticalOverdensityUpdate"/>
+     </methods>
+     !!]
      final     ::                              cole2000Destructor
      procedure :: build                     => cole2000Build
      procedure :: shouldAbort               => cole2000ShouldAbort
@@ -109,7 +117,9 @@
   end type mergerTreeBuilderCole2000
 
   interface mergerTreeBuilderCole2000
-     !% Constructors for the {\normalfont \ttfamily cole2000} merger tree builder class.
+     !!{
+     Constructors for the {\normalfont \ttfamily cole2000} merger tree builder class.
+     !!}
      module procedure cole2000ConstructorParameters
      module procedure cole2000ConstructorInternal
   end interface mergerTreeBuilderCole2000
@@ -117,7 +127,9 @@
 contains
 
   function cole2000ConstructorParameters(parameters) result(self)
-    !% Constructor for the \cite{cole_hierarchical_2000} merger tree building class which reads parameters from a provided parameter list.
+    !!{
+    Constructor for the \cite{cole_hierarchical_2000} merger tree building class which reads parameters from a provided parameter list.
+    !!}
     implicit none
     type            (mergerTreeBuilderCole2000          )                :: self
     type            (inputParameters                    ), intent(inout) :: parameters
@@ -132,47 +144,49 @@ contains
     logical                                                              :: branchIntervalStep
 
     ! Check and read parameters.
-    !# <inputParameter>
-    !#   <name>mergeProbability</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>0.1d0</defaultValue>
-    !#   <description>The largest probability of branching allowed in a timestep in merger trees built by the \cite{cole_hierarchical_2000} method.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>accretionLimit</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>0.1d0</defaultValue>
-    !#   <description>The largest fractional mass change due to subresolution accretion allowed in a timestep in merger trees built by the \cite{cole_hierarchical_2000} method.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>redshiftMaximum</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>1.0d5</defaultValue>
-    !#   <description>The highest redshift to which merger trees will be built in the \cite{cole_hierarchical_2000} method.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>branchIntervalStep</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>If {\normalfont \ttfamily false} use the original \cite{cole_hierarchical_2000} method to determine whether branching occurs in a timestep. If {\normalfont \ttfamily true} draw branching intervals from a negative exponential distribution.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>toleranceResolutionSelf</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>1.0d-6</defaultValue>
-    !#   <description>The fractional tolerance in node mass at the resolution limit below which branch mis-orderings will be ignored.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>toleranceResolutionParent</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>1.0d-3</defaultValue>
-    !#   <description>The fractional tolerance in parent node mass at the resolution limit below which branch mis-orderings will be ignored.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="mergerTreeBranchingProbability" name="mergerTreeBranchingProbability_" source="parameters"/>
-    !# <objectBuilder class="mergerTreeMassResolution"       name="mergerTreeMassResolution_"       source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"             name="cosmologyFunctions_"             source="parameters"/>
-    !# <objectBuilder class="criticalOverdensity"            name="criticalOverdensity_"            source="parameters"/>
-    !# <objectBuilder class="cosmologicalMassVariance"       name="cosmologicalMassVariance_"       source="parameters"/>
+    !![
+    <inputParameter>
+      <name>mergeProbability</name>
+      <source>parameters</source>
+      <defaultValue>0.1d0</defaultValue>
+      <description>The largest probability of branching allowed in a timestep in merger trees built by the \cite{cole_hierarchical_2000} method.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>accretionLimit</name>
+      <source>parameters</source>
+      <defaultValue>0.1d0</defaultValue>
+      <description>The largest fractional mass change due to subresolution accretion allowed in a timestep in merger trees built by the \cite{cole_hierarchical_2000} method.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>redshiftMaximum</name>
+      <source>parameters</source>
+      <defaultValue>1.0d5</defaultValue>
+      <description>The highest redshift to which merger trees will be built in the \cite{cole_hierarchical_2000} method.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>branchIntervalStep</name>
+      <source>parameters</source>
+      <defaultValue>.true.</defaultValue>
+      <description>If {\normalfont \ttfamily false} use the original \cite{cole_hierarchical_2000} method to determine whether branching occurs in a timestep. If {\normalfont \ttfamily true} draw branching intervals from a negative exponential distribution.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>toleranceResolutionSelf</name>
+      <source>parameters</source>
+      <defaultValue>1.0d-6</defaultValue>
+      <description>The fractional tolerance in node mass at the resolution limit below which branch mis-orderings will be ignored.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>toleranceResolutionParent</name>
+      <source>parameters</source>
+      <defaultValue>1.0d-3</defaultValue>
+      <description>The fractional tolerance in parent node mass at the resolution limit below which branch mis-orderings will be ignored.</description>
+    </inputParameter>
+    <objectBuilder class="mergerTreeBranchingProbability" name="mergerTreeBranchingProbability_" source="parameters"/>
+    <objectBuilder class="mergerTreeMassResolution"       name="mergerTreeMassResolution_"       source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"             name="cosmologyFunctions_"             source="parameters"/>
+    <objectBuilder class="criticalOverdensity"            name="criticalOverdensity_"            source="parameters"/>
+    <objectBuilder class="cosmologicalMassVariance"       name="cosmologicalMassVariance_"       source="parameters"/>
+    !!]
     self   =mergerTreeBuilderCole2000(                                                                                                                  &
          &                                                                                                           mergeProbability                 , &
          &                                                                                                           accretionLimit                   , &
@@ -186,17 +200,21 @@ contains
          &                                                                                                           criticalOverdensity_             , &
          &                                                                                                           cosmologicalMassVariance_          &
          &                           )
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="mergerTreeBranchingProbability_"/>
-    !# <objectDestructor name="mergerTreeMassResolution_"      />
-    !# <objectDestructor name="cosmologyFunctions_"            />
-    !# <objectDestructor name="criticalOverdensity_"           />
-    !# <objectDestructor name="cosmologicalMassVariance_"      />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="mergerTreeBranchingProbability_"/>
+    <objectDestructor name="mergerTreeMassResolution_"      />
+    <objectDestructor name="cosmologyFunctions_"            />
+    <objectDestructor name="criticalOverdensity_"           />
+    <objectDestructor name="cosmologicalMassVariance_"      />
+    !!]
     return
   end function cole2000ConstructorParameters
 
   function cole2000ConstructorInternal(mergeProbability,accretionLimit,timeEarliest,branchIntervalStep,toleranceResolutionSelf,toleranceResolutionParent,mergerTreeBranchingProbability_,mergerTreeMassResolution_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_) result(self)
-    !% Internal constructor for the \cite{cole_hierarchical_2000} merger tree building class.
+    !!{
+    Internal constructor for the \cite{cole_hierarchical_2000} merger tree building class.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (mergerTreeBuilderCole2000          )                        :: self
@@ -209,7 +227,9 @@ contains
     class           (cosmologyFunctionsClass            ), intent(in   ), target :: cosmologyFunctions_
     class           (criticalOverdensityClass           ), intent(in   ), target :: criticalOverdensity_
     class           (cosmologicalMassVarianceClass      ), intent(in   ), target :: cosmologicalMassVariance_
-    !# <constructorAssign variables="mergeProbability, accretionLimit, timeEarliest, branchIntervalStep, toleranceResolutionSelf, toleranceResolutionParent, *mergerTreeBranchingProbability_, *mergerTreeMassResolution_, *cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_"/>
+    !![
+    <constructorAssign variables="mergeProbability, accretionLimit, timeEarliest, branchIntervalStep, toleranceResolutionSelf, toleranceResolutionParent, *mergerTreeBranchingProbability_, *mergerTreeMassResolution_, *cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_"/>
+    !!]
 
     ! Initialize state.
     self%branchingIntervalDistributionInitialized=.false.
@@ -223,20 +243,26 @@ contains
   end function cole2000ConstructorInternal
 
   subroutine cole2000Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily cole2000} merger tree builder class.
+    !!{
+    Destructor for the {\normalfont \ttfamily cole2000} merger tree builder class.
+    !!}
     implicit none
     type(mergerTreeBuilderCole2000), intent(inout) :: self
 
-    !# <objectDestructor name="self%mergerTreeBranchingProbability_"/>
-    !# <objectDestructor name="self%mergerTreeMassResolution_"      />
-    !# <objectDestructor name="self%cosmologyFunctions_"            />
-    !# <objectDestructor name="self%criticalOverdensity_"           />
-    !# <objectDestructor name="self%cosmologicalMassVariance_"      />
+    !![
+    <objectDestructor name="self%mergerTreeBranchingProbability_"/>
+    <objectDestructor name="self%mergerTreeMassResolution_"      />
+    <objectDestructor name="self%cosmologyFunctions_"            />
+    <objectDestructor name="self%criticalOverdensity_"           />
+    <objectDestructor name="self%cosmologicalMassVariance_"      />
+    !!]
     return
   end subroutine cole2000Destructor
 
   subroutine cole2000Build(self,tree)
-    !% Build a merger tree.
+    !!{
+    Build a merger tree.
+    !!}
     use :: Galacticus_Error        , only : Galacticus_Error_Report
     use :: Galacticus_Nodes        , only : mergerTree                   , nodeComponentBasic              , treeNode
     use :: ISO_Varying_String      , only : varying_string
@@ -638,8 +664,10 @@ contains
   end subroutine cole2000Build
 
   logical function cole2000ShouldAbort(self,tree)
-    !% Return {\normalfont \ttfamily true} if tree construction should be aborted. In the {\normalfont \ttfamily cole2000} tree
-    !% builder we never abort.
+    !!{
+    Return {\normalfont \ttfamily true} if tree construction should be aborted. In the {\normalfont \ttfamily cole2000} tree
+    builder we never abort.
+    !!}
     implicit none
     class(mergerTreeBuilderCole2000), intent(inout) :: self
     type (mergerTree               ), intent(in   ) :: tree
@@ -650,8 +678,10 @@ contains
   end function cole2000ShouldAbort
 
   logical function cole2000ShouldFollowBranch(self,tree,node)
-    !% Return {\normalfont \ttfamily true} if tree construction should continue to follow the current branch. In the {\normalfont
-    !% \ttfamily cole2000} tree builder we always continue.
+    !!{
+    Return {\normalfont \ttfamily true} if tree construction should continue to follow the current branch. In the {\normalfont
+    \ttfamily cole2000} tree builder we always continue.
+    !!}
     use :: Galacticus_Nodes, only : mergerTree, treeNode
     implicit none
     class(mergerTreeBuilderCole2000), intent(inout) :: self
@@ -664,7 +694,9 @@ contains
   end function cole2000ShouldFollowBranch
 
   subroutine cole2000TimeEarliestSet(self,timeEarliest)
-    !% Set the earliest time for the tree builder.
+    !!{
+    Set the earliest time for the tree builder.
+    !!}
     implicit none
     class           (mergerTreeBuilderCole2000), intent(inout) :: self
     double precision                           , intent(in   ) :: timeEarliest
@@ -674,14 +706,20 @@ contains
   end subroutine cole2000TimeEarliestSet
 
   subroutine cole2000CriticalOverdensitySet(self,criticalOverdensity_)
-    !% Set the critical overdensity object for this tree builder.
+    !!{
+    Set the critical overdensity object for this tree builder.
+    !!}
     implicit none
     class(mergerTreeBuilderCole2000), intent(inout)         :: self
     class(criticalOverdensityClass ), intent(in   ), target :: criticalOverdensity_
 
-    !# <objectDestructor name="self%criticalOverdensity_"/>
+    !![
+    <objectDestructor name="self%criticalOverdensity_"/>
+    !!]
     self%criticalOverdensity_         =>      criticalOverdensity_
-    !# <referenceCountIncrement owner="self" object="criticalOverdensity_"/>
+    !![
+    <referenceCountIncrement owner="self" object="criticalOverdensity_"/>
+    !!]
     self%timeParameterIsMassDependent = self%criticalOverdensity_     %isMassDependent      () &
          &                             .or.                                                    &
          &                              self%cosmologicalMassVariance_%growthIsMassDependent()
@@ -689,7 +727,9 @@ contains
   end subroutine cole2000CriticalOverdensitySet
 
   double precision function cole2000CriticalOverdensityUpdate(self,deltaCritical,massCurrent,massNew,nodeNew)
-    !% Update the critical overdensity for a new node, given that of the parent,
+    !!{
+    Update the critical overdensity for a new node, given that of the parent,
+    !!}
     use :: Galacticus_Nodes, only : treeNode
     implicit none
     class           (mergerTreeBuilderCole2000), intent(inout) :: self

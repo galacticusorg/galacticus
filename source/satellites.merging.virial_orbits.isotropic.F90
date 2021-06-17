@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of virial orbits which assumes an isotropic distribution of infall directions and tangential velocities
-  !% applied to another virial orbit class.
+  !!{
+  An implementation of virial orbits which assumes an isotropic distribution of infall directions and tangential velocities
+  applied to another virial orbit class.
+  !!}
 
-  !# <virialOrbit name="virialOrbitIsotropic">
-  !#  <description>Virial orbits which assumes an isotropic distribution of infall directions and tangential velocities applied to another virial orbit class.</description>
-  !# </virialOrbit>
+  !![
+  <virialOrbit name="virialOrbitIsotropic">
+   <description>Virial orbits which assumes an isotropic distribution of infall directions and tangential velocities applied to another virial orbit class.</description>
+  </virialOrbit>
+  !!]
   type, extends(virialOrbitClass) :: virialOrbitIsotropic
-     !% A virial orbit class which assumes an isotropic distribution of infall directions and tangential velocities applied to
-     !% another virial orbit class
+     !!{
+     A virial orbit class which assumes an isotropic distribution of infall directions and tangential velocities applied to
+     another virial orbit class
+     !!}
      private
      class(virialOrbitClass), pointer :: virialOrbit_
    contains
@@ -42,7 +48,9 @@
   end type virialOrbitIsotropic
 
   interface virialOrbitIsotropic
-     !% Constructors for the {\normalfont \ttfamily isotropic} virial orbit class.
+     !!{
+     Constructors for the {\normalfont \ttfamily isotropic} virial orbit class.
+     !!}
      module procedure isotropicConstructorParameters
      module procedure isotropicConstructorInternal
   end interface virialOrbitIsotropic
@@ -50,41 +58,57 @@
 contains
 
   function isotropicConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily isotropic} satellite virial orbit class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily isotropic} satellite virial orbit class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (virialOrbitIsotropic)                :: self
     type (inputParameters     ), intent(inout) :: parameters
     class(virialOrbitClass    ), pointer       :: virialOrbit_
 
-    !# <objectBuilder class="virialOrbit"  name="virialOrbit_" source="parameters"/>
+    !![
+    <objectBuilder class="virialOrbit"  name="virialOrbit_" source="parameters"/>
+    !!]
     self=virialOrbitIsotropic(virialOrbit_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="virialOrbit_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="virialOrbit_"/>
+    !!]
     return
   end function isotropicConstructorParameters
 
   function isotropicConstructorInternal(virialOrbit_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily isotropic} virial orbits class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily isotropic} virial orbits class.
+    !!}
     implicit none
     type (virialOrbitIsotropic)                        :: self
     class(virialOrbitClass    ), intent(in   ), target :: virialOrbit_
-    !# <constructorAssign variables="*virialOrbit_"/>
+    !![
+    <constructorAssign variables="*virialOrbit_"/>
+    !!]
 
     return
   end function isotropicConstructorInternal
 
   subroutine isotropicDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily isotropic} virial orbits class.
+    !!{
+    Destructor for the {\normalfont \ttfamily isotropic} virial orbits class.
+    !!}
     implicit none
     type(virialOrbitIsotropic), intent(inout) :: self
 
-    !# <objectDestructor name="self%virialOrbit_"/>
+    !![
+    <objectDestructor name="self%virialOrbit_"/>
+    !!]
     return
   end subroutine isotropicDestructor
 
   function isotropicOrbit(self,node,host,acceptUnboundOrbits)
-    !% Return isotropic orbital parameters for a satellite.
+    !!{
+    Return isotropic orbital parameters for a satellite.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     type   (keplerOrbit         )                        :: isotropicOrbit
@@ -102,7 +126,9 @@ contains
   end function isotropicOrbit
 
   function isotropicDensityContrastDefinition(self)
-    !% Return a virial density contrast object defining that used in the definition of virial orbits.
+    !!{
+    Return a virial density contrast object defining that used in the definition of virial orbits.
+    !!}
     implicit none
     class(virialDensityContrastClass), pointer       :: isotropicDensityContrastDefinition
     class(virialOrbitIsotropic      ), intent(inout) :: self
@@ -112,7 +138,9 @@ contains
   end function isotropicDensityContrastDefinition
 
   double precision function isotropicVelocityTangentialMagnitudeMean(self,node,host)
-    !% Return the mean magnitude of the tangential velocity.
+    !!{
+    Return the mean magnitude of the tangential velocity.
+    !!}
     implicit none
     class(virialOrbitIsotropic), intent(inout) :: self
     type (treeNode            ), intent(inout) :: node, host
@@ -122,7 +150,9 @@ contains
   end function isotropicVelocityTangentialMagnitudeMean
 
   function isotropicVelocityTangentialVectorMean(self,node,host)
-    !% Return the mean of the vector tangential velocity.
+    !!{
+    Return the mean of the vector tangential velocity.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision                      , dimension(3)  :: isotropicVelocityTangentialVectorMean
@@ -136,7 +166,9 @@ contains
   end function isotropicVelocityTangentialVectorMean
 
   double precision function isotropicAngularMomentumMagnitudeMean(self,node,host)
-    !% Return the mean magnitude of the angular momentum.
+    !!{
+    Return the mean magnitude of the angular momentum.
+    !!}
     implicit none
     class(virialOrbitIsotropic), intent(inout) :: self
     type (treeNode            ), intent(inout) :: node, host
@@ -146,7 +178,9 @@ contains
   end function isotropicAngularMomentumMagnitudeMean
 
   function isotropicAngularMomentumVectorMean(self,node,host)
-    !% Return the mean of the vector tangential velocity.
+    !!{
+    Return the mean of the vector tangential velocity.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision                      , dimension(3)  :: isotropicAngularMomentumVectorMean
@@ -160,7 +194,9 @@ contains
   end function isotropicAngularMomentumVectorMean
 
   double precision function isotropicVelocityTotalRootMeanSquared(self,node,host)
-    !% Return the root mean squared of the total velocity.
+    !!{
+    Return the root mean squared of the total velocity.
+    !!}
     implicit none
     class(virialOrbitIsotropic), intent(inout) :: self
     type (treeNode            ), intent(inout) :: node, host
@@ -170,7 +206,9 @@ contains
   end function isotropicVelocityTotalRootMeanSquared
 
   double precision function isotropicEnergyMean(self,node,host)
-    !% Return the mean of the total energy.
+    !!{
+    Return the mean of the total energy.
+    !!}
     implicit none
     class(virialOrbitIsotropic), intent(inout) :: self
     type (treeNode            ), intent(inout) :: node, host
@@ -180,7 +218,9 @@ contains
   end function isotropicEnergyMean
 
   logical function isotropicIsAngularlyResolved(self)
-    !% Return true indicating that orbits are angularly-resolved.
+    !!{
+    Return true indicating that orbits are angularly-resolved.
+    !!}
     implicit none
     class(virialOrbitIsotropic), intent(inout) :: self
     !$GLC attributes unused :: self

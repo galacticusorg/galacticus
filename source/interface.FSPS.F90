@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides various interfaces to the FSPS code \citep{conroy_propagation_2009}.
+!!{
+Contains a module which provides various interfaces to the FSPS code \citep{conroy_propagation_2009}.
+!!}
 
 module Interfaces_FSPS
-  !% Provides various interfaces to the FSPS code \citep{conroy_propagation_2009}.
+  !!{
+  Provides various interfaces to the FSPS code \citep{conroy_propagation_2009}.
+  !!}
   use :: File_Utilities, only : lockDescriptor
   private
   public :: Interface_FSPS_Initialize, Interface_FSPS_SSPs_Tabulate
@@ -31,7 +35,9 @@ module Interfaces_FSPS
 contains
 
   subroutine Interface_FSPS_Initialize(fspsPath,fspsVersion,static)
-    !% Initialize the interface with FSPS, including downloading and compiling FSPS if necessary.
+    !!{
+    Initialize the interface with FSPS, including downloading and compiling FSPS if necessary.
+    !!}
     use :: Display           , only : displayMessage         , verbosityLevelWorking
     use :: File_Utilities    , only : File_Exists            , File_Lock            , File_Remove , File_Unlock
     use :: Galacticus_Error  , only : Galacticus_Error_Report
@@ -46,7 +52,9 @@ contains
     logical                                            :: upToDate
     character(len=40        )                          :: currentRevision
     type     (varying_string)                          :: lockPath
-    !# <optionalArgument name="static" defaultsTo=".false." />
+    !![
+    <optionalArgument name="static" defaultsTo=".false." />
+    !!]
 
     ! Specify source code path.
     fspsPath=galacticusPath(pathTypeDataDynamic)//"FSPS_v2.5"
@@ -108,7 +116,9 @@ contains
   end subroutine Interface_FSPS_Initialize
 
   subroutine Interface_FSPS_SSPs_Tabulate(imf,imfName,fileFormat,spectraFileName)
-    !% Tabulate simple stellar populations for the given \gls{imf} using FSPS.
+    !!{
+    Tabulate simple stellar populations for the given \gls{imf} using FSPS.
+    !!}
     use :: Dates_and_Times                 , only : Formatted_Date_and_Time
     use :: File_Utilities                  , only : Directory_Make         , File_Exists    , File_Name_Temporary, File_Path, &
           &                                         File_Remove

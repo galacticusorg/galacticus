@@ -23,11 +23,15 @@
   use :: Halo_Mass_Functions           , only : haloMassFunction          , haloMassFunctionClass
   use :: Mass_Function_Incompletenesses, only : massFunctionIncompleteness, massFunctionIncompletenessClass
 
-  !# <task name="taskConditionalMassFunction">
-  !#  <description>A task which computes the conditional mass function in bins of mass for a fixed halo mass.</description>
-  !# </task>
+  !![
+  <task name="taskConditionalMassFunction">
+   <description>A task which computes the conditional mass function in bins of mass for a fixed halo mass.</description>
+  </task>
+  !!]
   type, extends(taskClass) :: taskConditionalMassFunction
-     !% Implementation of a task which computes and outputs the halo mass function and related quantities.
+     !!{
+     Implementation of a task which computes and outputs the halo mass function and related quantities.
+     !!}
      private
      class           (cosmologyFunctionsClass        ), pointer                   :: cosmologyFunctions_
      class           (conditionalMassFunctionClass   ), pointer                   :: conditionalMassFunction_
@@ -48,7 +52,9 @@
   end type taskConditionalMassFunction
 
   interface taskConditionalMassFunction
-     !% Constructors for the {\normalfont \ttfamily conditionalMassFunction} task.
+     !!{
+     Constructors for the {\normalfont \ttfamily conditionalMassFunction} task.
+     !!}
      module procedure conditionalMassFunctionConstructorParameters
      module procedure conditionalMassFunctionConstructorInternal
   end interface taskConditionalMassFunction
@@ -56,7 +62,9 @@
 contains
 
   function conditionalMassFunctionConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily conditionalMassFunction} task class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily conditionalMassFunction} task class which takes a parameter set as input.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Input_Parameters, only : inputParameter         , inputParameters
     implicit none
@@ -78,29 +86,31 @@ contains
     type            (varying_string                 )                              :: outputGroupName            , massHaloText
     character       (len=32                         )                              :: text
 
-    !# <inputParameter>
-    !#   <name>outputGroupName</name>
-    !#   <description>The name of the file to which the computed conditional mass function should be output.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>redshiftMinimum</name>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>The minimum redshift for which to compute the conditional mass function.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>redshiftMaximum</name>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>The maximum redshift for which to compute the conditional mass function.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>useSurveyLimits</name>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>Specifies whether the limiting redshifts for integrating over the halo mass function should be limited by those of a galaxy survey.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>outputGroupName</name>
+      <description>The name of the file to which the computed conditional mass function should be output.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>redshiftMinimum</name>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The minimum redshift for which to compute the conditional mass function.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>redshiftMaximum</name>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The maximum redshift for which to compute the conditional mass function.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>useSurveyLimits</name>
+      <defaultValue>.false.</defaultValue>
+      <description>Specifies whether the limiting redshifts for integrating over the halo mass function should be limited by those of a galaxy survey.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     if (parameters%isPresent('massBinCenters').or.parameters%isPresent('massLogarithmDelta')) then
        if     (                                                 &
             &   .not.parameters%isPresent('massBinCenters'    ) &
@@ -114,16 +124,18 @@ contains
             &  .or.                                             &
             &        parameters%isPresent('countMass'         ) &
             & ) call Galacticus_Error_Report('ambigous mass specification'                                                               //{introspection:location})
-       !# <inputParameter>
-       !#   <name>massBinCenters</name>
-       !#   <description>Logarithmic mass bins centers for conditional mass function calculations.</description>
-       !#   <source>parameters</source>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>massLogarithmDelta</name>
-       !#   <description>Logarithmic widths of mass bins for conditional mass function calculations.</description>
-       !#   <source>parameters</source>
-       !# </inputParameter>
+       !![
+       <inputParameter>
+         <name>massBinCenters</name>
+         <description>Logarithmic mass bins centers for conditional mass function calculations.</description>
+         <source>parameters</source>
+       </inputParameter>
+       <inputParameter>
+         <name>massLogarithmDelta</name>
+         <description>Logarithmic widths of mass bins for conditional mass function calculations.</description>
+         <source>parameters</source>
+       </inputParameter>
+       !!]
     else
        if     (                                                 &
             &        parameters%isPresent('massBinCenters'    ) &
@@ -137,83 +149,95 @@ contains
             &  .or.                                             &
             &   .not.parameters%isPresent('countMass'         ) &
             & ) call Galacticus_Error_Report('all of [massMinimum], [massMaximum], and [countMass] must be specified if any is specified'//{introspection:location})
-       !# <inputParameter>
-       !#   <name>massMinimum</name>
-       !#   <defaultValue>1.0d8</defaultValue>
-       !#   <description>The minimum mass for which to compute the conditional mass function.</description>
-       !#   <source>parameters</source>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>massMaximum</name>
-       !#   <defaultValue>1.0d12</defaultValue>
-       !#   <description>The maximum mass for which to compute the conditional mass function.</description>
-       !#   <source>parameters</source>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>countMass</name>
-       !#   <defaultValue>21</defaultValue>
-       !#   <description>The number of bins for which to compute the conditional mass function.</description>
-       !#   <source>parameters</source>
-       !# </inputParameter>
+       !![
+       <inputParameter>
+         <name>massMinimum</name>
+         <defaultValue>1.0d8</defaultValue>
+         <description>The minimum mass for which to compute the conditional mass function.</description>
+         <source>parameters</source>
+       </inputParameter>
+       <inputParameter>
+         <name>massMaximum</name>
+         <defaultValue>1.0d12</defaultValue>
+         <description>The maximum mass for which to compute the conditional mass function.</description>
+         <source>parameters</source>
+       </inputParameter>
+       <inputParameter>
+         <name>countMass</name>
+         <defaultValue>21</defaultValue>
+         <description>The number of bins for which to compute the conditional mass function.</description>
+         <source>parameters</source>
+       </inputParameter>
+       !!]
     end if
-    !# <inputParameter>
-    !#   <name>massHalo</name>
-    !#   <defaultValue>var_str('all')</defaultValue>
-    !#   <description>The halo mass for which to compute the conditional mass function. A value of ``all'' will cause the conditional mass function to be integrated over the halo mass function, giving the mass function.</description>
-    !#   <source>parameters</source>
-    !#   <variable>massHaloText</variable>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>massHalo</name>
+      <defaultValue>var_str('all')</defaultValue>
+      <description>The halo mass for which to compute the conditional mass function. A value of ``all'' will cause the conditional mass function to be integrated over the halo mass function, giving the mass function.</description>
+      <source>parameters</source>
+      <variable>massHaloText</variable>
+    </inputParameter>
+    !!]
     integrateOverHaloMassFunction=(massHaloText == "all")
     if (integrateOverHaloMassFunction) then
-       !# <inputParameter>
-       !#   <name>massHaloMinimum</name>
-       !#   <defaultValue>1.0d6</defaultValue>
-       !#   <description>The minimum halo mass to use when integrating over the halo mass function.</description>
-       !#   <source>parameters</source>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>massHaloMaximum</name>
-       !#   <defaultValue>1.0d16</defaultValue>
-       !#   <description>The maximum halo mass to use when integrating over the halo mass function.</description>
-       !#   <source>parameters</source>
-       !# </inputParameter>
+       !![
+       <inputParameter>
+         <name>massHaloMinimum</name>
+         <defaultValue>1.0d6</defaultValue>
+         <description>The minimum halo mass to use when integrating over the halo mass function.</description>
+         <source>parameters</source>
+       </inputParameter>
+       <inputParameter>
+         <name>massHaloMaximum</name>
+         <defaultValue>1.0d16</defaultValue>
+         <description>The maximum halo mass to use when integrating over the halo mass function.</description>
+         <source>parameters</source>
+       </inputParameter>
+       !!]
     else
        text=char(massHaloText)
        read (text,*) massHalo
     end if
-    !# <objectBuilder class="cosmologyFunctions"         name="cosmologyFunctions_"         source="parameters"/>
-    !# <objectBuilder class="conditionalMassFunction"    name="conditionalMassFunction_"    source="parameters"/>
-    !# <objectBuilder class="surveyGeometry"             name="surveyGeometry_"             source="parameters"/>
-    !# <objectBuilder class="massFunctionIncompleteness" name="massFunctionIncompleteness_" source="parameters"/>
-    !# <objectBuilder class="haloMassFunction"           name="haloMassFunction_"           source="parameters"/>
+    !![
+    <objectBuilder class="cosmologyFunctions"         name="cosmologyFunctions_"         source="parameters"/>
+    <objectBuilder class="conditionalMassFunction"    name="conditionalMassFunction_"    source="parameters"/>
+    <objectBuilder class="surveyGeometry"             name="surveyGeometry_"             source="parameters"/>
+    <objectBuilder class="massFunctionIncompleteness" name="massFunctionIncompleteness_" source="parameters"/>
+    <objectBuilder class="haloMassFunction"           name="haloMassFunction_"           source="parameters"/>
+    !!]
     ! Compute the time corresponding to the specified redshift.
     timeMinimum=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftMaximum))
     timeMaximum=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftMinimum))
     ! Build the object.
-    !# <conditionalCall>
-    !# <call>
-    !# self=conditionalMassFunctionConstructorInternal(outputGroupName,timeMinimum,timeMaximum,useSurveyLimits,cosmologyFunctions_,conditionalMassFunction_,surveyGeometry_,massFunctionIncompleteness_,haloMassFunction_{conditions})
-    !# </call>
-    !# <argument  name="massMinimum"        value="massMinimum"        parameterPresent="     parameters"                   />
-    !# <argument  name="massMaximum"        value="massMaximum"        parameterPresent="     parameters"                   />
-    !# <argument  name="countMass"          value="countMass"          parameterPresent="     parameters"                   />
-    !# <argument  name="massBinCenters"     value="massBinCenters"     parameterPresent="     parameters"                   />
-    !# <argument  name="massLogarithmDelta" value="massLogarithmDelta" parameterPresent="     parameters"                   />
-    !# <argument  name="massHalo"           value="massHalo"           condition       =".not.integrateOverHaloMassFunction"/>
-    !# <argument  name="massHaloMinimum"    value="massHaloMinimum"    condition       ="     integrateOverHaloMassFunction"/>
-    !# <argument  name="massHaloMaximum"    value="massHaloMaximum"    condition       ="     integrateOverHaloMassFunction"/>
-    !# </conditionalCall>
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"        />
-    !# <objectDestructor name="conditionalMassFunction_"   />
-    !# <objectDestructor name="surveyGeometry_"            />
-    !# <objectDestructor name="massFunctionIncompleteness_"/>
-    !# <objectDestructor name="haloMassFunction_"          />
+    !![
+    <conditionalCall>
+    <call>
+    self=conditionalMassFunctionConstructorInternal(outputGroupName,timeMinimum,timeMaximum,useSurveyLimits,cosmologyFunctions_,conditionalMassFunction_,surveyGeometry_,massFunctionIncompleteness_,haloMassFunction_{conditions})
+    </call>
+    <argument  name="massMinimum"        value="massMinimum"        parameterPresent="     parameters"                   />
+    <argument  name="massMaximum"        value="massMaximum"        parameterPresent="     parameters"                   />
+    <argument  name="countMass"          value="countMass"          parameterPresent="     parameters"                   />
+    <argument  name="massBinCenters"     value="massBinCenters"     parameterPresent="     parameters"                   />
+    <argument  name="massLogarithmDelta" value="massLogarithmDelta" parameterPresent="     parameters"                   />
+    <argument  name="massHalo"           value="massHalo"           condition       =".not.integrateOverHaloMassFunction"/>
+    <argument  name="massHaloMinimum"    value="massHaloMinimum"    condition       ="     integrateOverHaloMassFunction"/>
+    <argument  name="massHaloMaximum"    value="massHaloMaximum"    condition       ="     integrateOverHaloMassFunction"/>
+    </conditionalCall>
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"        />
+    <objectDestructor name="conditionalMassFunction_"   />
+    <objectDestructor name="surveyGeometry_"            />
+    <objectDestructor name="massFunctionIncompleteness_"/>
+    <objectDestructor name="haloMassFunction_"          />
+    !!]
     return
   end function conditionalMassFunctionConstructorParameters
 
   function conditionalMassFunctionConstructorInternal(outputGroupName,timeMinimum,timeMaximum,useSurveyLimits,cosmologyFunctions_,conditionalMassFunction_,surveyGeometry_,massFunctionIncompleteness_,haloMassFunction_,countMass,massMinimum,massMaximum,massBinCenters,massLogarithmDelta,massHalo,massHaloMinimum,massHaloMaximum) result(self)
-    !% Constructor for the {\normalfont \ttfamily conditionalMassFunction} task class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily conditionalMassFunction} task class which takes a parameter set as input.
+    !!}
     use :: Galacticus_Error , only : Galacticus_Error_Report
     use :: Memory_Management, only : allocateArray
     use :: Numerical_Ranges , only : Make_Range             , rangeTypeLogarithmic
@@ -233,7 +257,9 @@ contains
     double precision                                 , intent(in   ), dimension(:), optional :: massBinCenters             , massLogarithmDelta
     type            (varying_string                 ), intent(in   )                         :: outputGroupName
 
-    !# <constructorAssign variables="outputGroupName,massMinimum,massMaximum,countMass,timeMinimum,timeMaximum,useSurveyLimits,massHalo,massHaloMinimum,massHaloMaximum,massBinCenters,massLogarithmDelta,*cosmologyFunctions_,*conditionalMassFunction_,*surveyGeometry_,*massFunctionIncompleteness_, *haloMassFunction_"/>
+    !![
+    <constructorAssign variables="outputGroupName,massMinimum,massMaximum,countMass,timeMinimum,timeMaximum,useSurveyLimits,massHalo,massHaloMinimum,massHaloMaximum,massBinCenters,massLogarithmDelta,*cosmologyFunctions_,*conditionalMassFunction_,*surveyGeometry_,*massFunctionIncompleteness_, *haloMassFunction_"/>
+    !!]
 
     if (present(massHalo)) then
        if (     present(massHaloMinimum).or.     present(massHaloMaximum)) call Galacticus_Error_Report('ambiguous halo mass selection'//{introspection:location})
@@ -253,20 +279,26 @@ contains
   end function conditionalMassFunctionConstructorInternal
 
   subroutine conditionalMassFunctionDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily conditionalMassFunction} task class.
+    !!{
+    Destructor for the {\normalfont \ttfamily conditionalMassFunction} task class.
+    !!}
     implicit none
     type(taskConditionalMassFunction), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"        />
-    !# <objectDestructor name="self%surveyGeometry_"            />
-    !# <objectDestructor name="self%conditionalMassFunction_"   />
-    !# <objectDestructor name="self%massFunctionIncompleteness_"/>
-    !# <objectDestructor name="self%haloMassFunction_"          />
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"        />
+    <objectDestructor name="self%surveyGeometry_"            />
+    <objectDestructor name="self%conditionalMassFunction_"   />
+    <objectDestructor name="self%massFunctionIncompleteness_"/>
+    <objectDestructor name="self%haloMassFunction_"          />
+    !!]
     return
   end subroutine conditionalMassFunctionDestructor
 
   subroutine conditionalMassFunctionPerform(self,status)
-    !% Compute and output the halo mass function.
+    !!{
+    Compute and output the halo mass function.
+    !!}
     use :: Display              , only : displayIndent          , displayUnindent
     use :: Galacticus_Error     , only : Galacticus_Error_Report, errorStatusSuccess
     use :: Galacticus_HDF5      , only : galacticusOutputFile
@@ -392,7 +424,9 @@ contains
   contains
 
     double precision function integrandTime(timePrime)
-      !% Integral over time.
+      !!{
+      Integral over time.
+      !!}
       implicit none
       double precision            , intent(in   ) :: timePrime
       type            (integrator)                :: integrator_
@@ -405,7 +439,9 @@ contains
     end function integrandTime
 
     double precision function integrandNormalizationTime(timePrime)
-      !% Normalization integral over time.
+      !!{
+      Normalization integral over time.
+      !!}
       implicit none
       double precision, intent(in   ) :: timePrime
 
@@ -414,7 +450,9 @@ contains
     end function integrandNormalizationTime
 
     double precision function integrandMassHalo(logMass)
-      !% Integral over halo mass function.
+      !!{
+      Integral over halo mass function.
+      !!}
       implicit none
       double precision, intent(in   ) :: logMass
       double precision                :: mass

@@ -17,19 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of the dark matter halo spin distribution which assumes a
-  !% $\delta$-function distribution.
+  !!{
+  An implementation of the dark matter halo spin distribution which assumes a
+  $\delta$-function distribution.
+  !!}
 
-  !# <haloSpinDistribution name="haloSpinDistributionDeltaFunction">
-  !#  <description>
-  !#   A halo spin distribution class in which the spin is drawn from a $\delta$-function distribution, $P(\lambda) =
-  !#   \delta(\lambda-\lambda_0)$, where $\lambda_0=${\normalfont \ttfamily [spin]}, i.e. a fixed value of spin equal to
-  !#   $\lambda_0$ is returned.
-  !#  </description>
-  !# </haloSpinDistribution>
+  !![
+  <haloSpinDistribution name="haloSpinDistributionDeltaFunction">
+   <description>
+    A halo spin distribution class in which the spin is drawn from a $\delta$-function distribution, $P(\lambda) =
+    \delta(\lambda-\lambda_0)$, where $\lambda_0=${\normalfont \ttfamily [spin]}, i.e. a fixed value of spin equal to
+    $\lambda_0$ is returned.
+   </description>
+  </haloSpinDistribution>
+  !!]
   type, extends(haloSpinDistributionClass) :: haloSpinDistributionDeltaFunction
-     !% A dark matter halo spin distribution concentration class which assumes a
-     !% $\delta$-function distribution.
+     !!{
+     A dark matter halo spin distribution concentration class which assumes a
+     $\delta$-function distribution.
+     !!}
      private
      double precision :: spin
    contains
@@ -39,8 +45,10 @@
   end type haloSpinDistributionDeltaFunction
 
   interface haloSpinDistributionDeltaFunction
-     !% Constructors for the {\normalfont \ttfamily deltaFunction} dark matter halo spin
-     !% distribution class.
+     !!{
+     Constructors for the {\normalfont \ttfamily deltaFunction} dark matter halo spin
+     distribution class.
+     !!}
      module procedure deltaFunctionConstructorParameters
      module procedure deltaFunctionConstructorInternal
   end interface haloSpinDistributionDeltaFunction
@@ -48,29 +56,35 @@
 contains
 
   function deltaFunctionConstructorParameters(parameters)
-    !% Constructor for the {\normalfont \ttfamily deltaFunction} dark matter halo spin
-    !% distribution class which takes a parameter list as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily deltaFunction} dark matter halo spin
+    distribution class which takes a parameter list as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(haloSpinDistributionDeltaFunction)                :: deltaFunctionConstructorParameters
     type(inputParameters                  ), intent(inout) :: parameters
 
     ! Check and read parameters.
-    !# <inputParameter>
-    !#   <name>spin</name>
-    !#   <source>parameters</source>
-    !#   <variable>deltaFunctionConstructorParameters%spin</variable>
-    !#   <defaultValue>0.03687d0</defaultValue>
-    !#   <defaultSource>\citep{bett_spin_2007}</defaultSource>
-    !#   <description>The fixed value of spin in a $\delta$-function spin distribution.</description>
-    !# </inputParameter>
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParameter>
+      <name>spin</name>
+      <source>parameters</source>
+      <variable>deltaFunctionConstructorParameters%spin</variable>
+      <defaultValue>0.03687d0</defaultValue>
+      <defaultSource>\citep{bett_spin_2007}</defaultSource>
+      <description>The fixed value of spin in a $\delta$-function spin distribution.</description>
+    </inputParameter>
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function deltaFunctionConstructorParameters
 
   function deltaFunctionConstructorInternal(spin)
-    !% Internal constructor for the {\normalfont \ttfamily deltaFunction} dark matter halo spin
-    !% distribution class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily deltaFunction} dark matter halo spin
+    distribution class.
+    !!}
     implicit none
     type(haloSpinDistributionDeltaFunction) :: deltaFunctionConstructorInternal
     double precision, intent(in   ) :: spin
@@ -80,8 +94,10 @@ contains
   end function deltaFunctionConstructorInternal
 
   subroutine deltaFunctionDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily deltaFunction} dark matter halo spin
-    !% distribution class.
+    !!{
+    Destructor for the {\normalfont \ttfamily deltaFunction} dark matter halo spin
+    distribution class.
+    !!}
     implicit none
     type(haloSpinDistributionDeltaFunction), intent(inout) :: self
     !$GLC attributes unused :: self
@@ -91,8 +107,10 @@ contains
   end subroutine deltaFunctionDestructor
 
   double precision function deltaFunctionSample(self,node)
-    !% Sample from a $\delta$-function spin parameter distribution for the given {\normalfont
-    !% \ttfamily node}.
+    !!{
+    Sample from a $\delta$-function spin parameter distribution for the given {\normalfont
+    \ttfamily node}.
+    !!}
     implicit none
     class(haloSpinDistributionDeltaFunction), intent(inout) :: self
     type (treeNode                         ), intent(inout) :: node
@@ -103,7 +121,9 @@ contains
   end function deltaFunctionSample
 
   double precision function deltaFunctionDistribution(self,node)
-    !% Return the spin parameter distribution for the given {\normalfont \ttfamily node}.
+    !!{
+    Return the spin parameter distribution for the given {\normalfont \ttfamily node}.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(haloSpinDistributionDeltaFunction), intent(inout) :: self

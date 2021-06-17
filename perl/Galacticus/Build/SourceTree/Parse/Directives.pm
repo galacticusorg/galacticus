@@ -29,7 +29,8 @@ sub Parse_Directives {
 	    my $rawCode;
 	    my $rawDirective;
 	    my $strippedDirective;
-	    my $inDirective = 0;
+	    my $inDirective      = 0;
+	    my $inXML            = 0;
 	    my $directiveRoot;
 	    my $lineNumber       = exists($node->{'line'  }) ? $node->{'line'  } : 0        ;
 	    my $source           = exists($node->{'source'}) ? $node->{'source'} : "unknown";
@@ -37,29 +38,35 @@ sub Parse_Directives {
 	    my $rawDirectiveLine = $lineNumber;
 	    open(my $code,"<",\$node->{'content'});
 	    while ( my $line = <$code> ) {
-		# Determine if line is a directive line.
-		my $isDirective = 0;
-		$isDirective    = 1
-		    if ( $line =~ m/^\s*\!\#\s+\<([^\s\>\/]+)/ || $inDirective == 1 );
-		$directiveRoot = $1
-		    if ( $isDirective == 1 && $inDirective == 0 );		
-		# Catch the end of directives.
+		# Detect the end of an XML section and change state.
+		$inXML = 0
+		    if ( $line =~ m/^\s*!!\]/ );
+		# Process XML blocks.
+		my $isDirective  = 0;
 		my $endDirective = 0;
-		$endDirective = 1
-		    if ( $isDirective == 1 && $line =~ m/\s*\!\#\s+\<\/$directiveRoot\>/ );
-		$endDirective = 1
-		    if ( $isDirective == 1 && $inDirective == 0 && ( $line =~ m/\s*\!\#\s+\<$directiveRoot\s.*\/\>/ || $line =~ m/\s*\!\#\s+\<$directiveRoot\/\>/ ) );
-		# Record whether we are currently in or out of a directive.
-		$inDirective = 1
-		    if ( $isDirective == 1 );
+		(my $strippedLine = $line) =~ s/^\s*\!<\s*//;
+		if ( $inXML ) {
+		    # Determine if line is a directive line.
+		    $isDirective    = 1
+			if ( $strippedLine =~ m/^\s*\<([^\s\>\/]+)/ || $inDirective == 1 );
+		    $directiveRoot = $1
+			if ( $isDirective == 1 && $inDirective == 0 );		
+		    # Catch the end of directives.
+		    $endDirective = 1
+			if ( $isDirective == 1 && $strippedLine =~ m/\s*\<\/$directiveRoot\>/ );
+		    $endDirective = 1
+			if ( $isDirective == 1 && $inDirective == 0 && ( $strippedLine =~ m/\s*\<$directiveRoot\s.*\/\>/ || $strippedLine =~ m/\s*\<$directiveRoot\/\>/ ) );
+		    # Record whether we are currently in or out of a directive.
+		    $inDirective = 1
+			if ( $isDirective == 1 );
+		}
 		# Accumulate raw text.
-		if ( $inDirective == 1 ) {
-		    (my $strippedLine = $line) =~ s/^\s*\!\#\s*//;
+		if ( $inDirective ) {
 		    $rawDirective      .= $line;
 		    $strippedDirective .= $strippedLine;
-		} else {
-		    $rawCode      .= $line
-		};
+		} elsif ( $line !~ m/^\s*!!(\[|\])/ ) {
+		    $rawCode           .= $line;
+		}
 		# Process code and directive blocks as necessary.
 		if ( ( $inDirective == 1 || eof($code) ) && $rawCode      ) {
 		    # Create a new node.
@@ -112,6 +119,7 @@ sub Parse_Directives {
 			line       => $node     ->{'line'        },
 			processed  => 0
 		    };
+		    $rawDirective = "!![\n".$rawDirective."!!]\n";
 		    $newNode->{'firstChild'} =
 		    {
 			type       => "code"           ,
@@ -141,6 +149,10 @@ sub Parse_Directives {
 		    $rawCodeLine      = $lineNumber;
 		    $rawDirectiveLine = $lineNumber;
 		}
+		# Detect the start of an XML section and change state.
+		$inXML = 1
+		    if ( $line =~ m/^\s*!!\[/ );
+		# Increment line number count.
 		++$lineNumber;
 	    }
 	    close($code);

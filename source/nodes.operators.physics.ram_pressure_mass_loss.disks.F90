@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a node operator class that performs ram pressure mass loss in disks.
+  !!{
+  Implements a node operator class that performs ram pressure mass loss in disks.
+  !!}
 
   use :: Ram_Pressure_Stripping_Mass_Loss_Rate, only : ramPressureStrippingClass
   
-  !# <nodeOperator name="nodeOperatorRamPressureMassLossDisks">
-  !#  <description>A node operator class that performs ram pressure mass loss in disks.</description>
-  !# </nodeOperator>
+  !![
+  <nodeOperator name="nodeOperatorRamPressureMassLossDisks">
+   <description>A node operator class that performs ram pressure mass loss in disks.</description>
+  </nodeOperator>
+  !!]
   type, extends(nodeOperatorClass) :: nodeOperatorRamPressureMassLossDisks
-     !% A node operator class that performs ram pressure mass loss in disks.
+     !!{
+     A node operator class that performs ram pressure mass loss in disks.
+     !!}
      private
      class(ramPressureStrippingClass), pointer :: ramPressureStripping_ => null()
    contains
@@ -34,7 +40,9 @@
   end type nodeOperatorRamPressureMassLossDisks
   
   interface nodeOperatorRamPressureMassLossDisks
-     !% Constructors for the {\normalfont \ttfamily ramPressureMassLossDisks} node operator class.
+     !!{
+     Constructors for the {\normalfont \ttfamily ramPressureMassLossDisks} node operator class.
+     !!}
      module procedure ramPressureMassLossDisksConstructorParameters
      module procedure ramPressureMassLossDisksConstructorInternal
   end interface nodeOperatorRamPressureMassLossDisks
@@ -42,41 +50,57 @@
 contains
 
   function ramPressureMassLossDisksConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily ramPressureMassLossDisks} node operator class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily ramPressureMassLossDisks} node operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type (nodeOperatorRamPressureMassLossDisks)                :: self
     type (inputParameters                     ), intent(inout) :: parameters
     class(ramPressureStrippingClass           ), pointer       :: ramPressureStripping_
     
-    !# <objectBuilder class="ramPressureStripping" name="ramPressureStripping_" source="parameters"/>
+    !![
+    <objectBuilder class="ramPressureStripping" name="ramPressureStripping_" source="parameters"/>
+    !!]
     self=nodeOperatorRamPressureMassLossDisks(ramPressureStripping_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="ramPressureStripping_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="ramPressureStripping_"/>
+    !!]
     return
   end function ramPressureMassLossDisksConstructorParameters
 
   function ramPressureMassLossDisksConstructorInternal(ramPressureStripping_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily ramPressureMassLossDisks} node operator class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily ramPressureMassLossDisks} node operator class.
+    !!}
     implicit none
     type (nodeOperatorRamPressureMassLossDisks)                        :: self
     class(ramPressureStrippingClass           ), intent(in   ), target :: ramPressureStripping_
-    !# <constructorAssign variables="*ramPressureStripping_"/>
+    !![
+    <constructorAssign variables="*ramPressureStripping_"/>
+    !!]
 
     return
   end function ramPressureMassLossDisksConstructorInternal
 
   subroutine ramPressureMassLossDisksDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily ramPressureMassLossDisks} node operator class.
+    !!{
+    Destructor for the {\normalfont \ttfamily ramPressureMassLossDisks} node operator class.
+    !!}
     implicit none
     type(nodeOperatorRamPressureMassLossDisks), intent(inout) :: self
 
-    !# <objectDestructor name="self%ramPressureStripping_"/>
+    !![
+    <objectDestructor name="self%ramPressureStripping_"/>
+    !!]
     return
   end subroutine ramPressureMassLossDisksDestructor
   
   subroutine ramPressureMassLossDisksDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !% Perform ram pressure stripping-induced mass loss in a disk.
+    !!{
+    Perform ram pressure stripping-induced mass loss in a disk.
+    !!}
     use :: Galacticus_Nodes    , only : propertyTypeInactive, nodeComponentDisk, nodeComponentHotHalo
     use :: Abundances_Structure, only : operator(*)
     implicit none

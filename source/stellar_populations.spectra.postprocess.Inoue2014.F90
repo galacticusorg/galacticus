@@ -17,23 +17,31 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of a spectrum postprocessor that applies the \cite{inoue_updated_2014} calculation of the attenuation of spectra by the intergalactic medium.
+  !!{
+  An implementation of a spectrum postprocessor that applies the \cite{inoue_updated_2014} calculation of the attenuation of spectra by the intergalactic medium.
+  !!}
 
-  !# <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorInoue2014">
-  !#  <description>
-  !#   A stellar population postprocesing class that postprocesses spectra through absorption by the \gls{igm} using the results
-  !#   of \cite{inoue_updated_2014}.
-  !#  </description>
-  !# </stellarPopulationSpectraPostprocessor>
+  !![
+  <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorInoue2014">
+   <description>
+    A stellar population postprocesing class that postprocesses spectra through absorption by the \gls{igm} using the results
+    of \cite{inoue_updated_2014}.
+   </description>
+  </stellarPopulationSpectraPostprocessor>
+  !!]
   type, extends(stellarPopulationSpectraPostprocessorClass) :: stellarPopulationSpectraPostprocessorInoue2014
-     !% A spectrum postprocessor applying the \cite{inoue_updated_2014} calculation of the attenuation of spectra by the intergalactic medium.
+     !!{
+     A spectrum postprocessor applying the \cite{inoue_updated_2014} calculation of the attenuation of spectra by the intergalactic medium.
+     !!}
      private
    contains
      procedure :: multiplier => inoue2014Multiplier
   end type stellarPopulationSpectraPostprocessorInoue2014
 
   interface stellarPopulationSpectraPostprocessorInoue2014
-     !% Constructors for the {\normalfont \ttfamily inoue2014} stellar population spectra postprocessor class.
+     !!{
+     Constructors for the {\normalfont \ttfamily inoue2014} stellar population spectra postprocessor class.
+     !!}
      module procedure inoue2014ConstructorParameters
   end interface stellarPopulationSpectraPostprocessorInoue2014
 
@@ -131,8 +139,10 @@
 contains
 
   function inoue2014ConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily inoue2014} stellar population spectra postprocessor class which takes a
-    !% parameter list as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily inoue2014} stellar population spectra postprocessor class which takes a
+    parameter list as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(stellarPopulationSpectraPostprocessorInoue2014)                :: self
@@ -144,7 +154,9 @@ contains
   end function inoue2014ConstructorParameters
 
   double precision function inoue2014Multiplier(self,wavelength,age,redshift)
-    !% Apply the \cite{inoue_updated_2014} calculation of the attenuation of spectra by the intergalactic medium.
+    !!{
+    Apply the \cite{inoue_updated_2014} calculation of the attenuation of spectra by the intergalactic medium.
+    !!}
     use :: Numerical_Constants_Atomic, only : lymanSeriesLimitWavelengthHydrogen
     implicit none
     class           (stellarPopulationSpectraPostprocessorInoue2014), intent(inout) :: self

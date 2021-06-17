@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of Gaunt factors using the \cite{van_hoof_accurate_2014} fitting function.
+  !!{
+  An implementation of Gaunt factors using the \cite{van_hoof_accurate_2014} fitting function.
+  !!}
 
   use :: Atomic_Ionization_Potentials, only : atomicIonizationPotentialClass
 
-  !# <gauntFactor name="gauntFactorVanHoof2014">
-  !#  <description>Gaunt factors are computed using the fitting function of \cite{van_hoof_accurate_2014}.</description>
-  !# </gauntFactor>
+  !![
+  <gauntFactor name="gauntFactorVanHoof2014">
+   <description>Gaunt factors are computed using the fitting function of \cite{van_hoof_accurate_2014}.</description>
+  </gauntFactor>
+  !!]
   type, extends(gauntFactorClass) :: gauntFactorVanHoof2014
-     !% A gaunt factor class implementing the fitting function of \cite{van_hoof_accurate_2014}.
+     !!{
+     A gaunt factor class implementing the fitting function of \cite{van_hoof_accurate_2014}.
+     !!}
      private
      class(atomicIonizationPotentialClass), pointer :: atomicIonizationPotential_ => null()
    contains
@@ -34,7 +40,9 @@
   end type gauntFactorVanHoof2014
 
   interface gauntFactorVanHoof2014
-     !% Constructors for the {\normalfont \ttfamily vanHoof2014} gaunt factor class.
+     !!{
+     Constructors for the {\normalfont \ttfamily vanHoof2014} gaunt factor class.
+     !!}
      module procedure vanHoof2014ConstructorParameters
      module procedure vanHoof2014ConstructorInternal
   end interface gauntFactorVanHoof2014
@@ -74,42 +82,58 @@
 contains
 
   function vanHoof2014ConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily vanHoof2014} gaunt factor class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily vanHoof2014} gaunt factor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (gauntFactorVanHoof2014        )                :: self
     type (inputParameters               ), intent(inout) :: parameters
     class(atomicIonizationPotentialClass), pointer       :: atomicIonizationPotential_
 
-    !# <objectBuilder class="atomicIonizationPotential" name="atomicIonizationPotential_" source="parameters"/>
+    !![
+    <objectBuilder class="atomicIonizationPotential" name="atomicIonizationPotential_" source="parameters"/>
+    !!]
     self=gauntFactorVanHoof2014(atomicIonizationPotential_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="atomicIonizationPotential_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="atomicIonizationPotential_"/>
+    !!]
     return
   end function vanHoof2014ConstructorParameters
 
   function vanHoof2014ConstructorInternal(atomicIonizationPotential_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily vanHoof2014} gaunt factor class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily vanHoof2014} gaunt factor class.
+    !!}
     implicit none
     type (gauntFactorVanHoof2014        )                        :: self
     class(atomicIonizationPotentialClass), intent(in   ), target :: atomicIonizationPotential_
-    !# <constructorAssign variables="*atomicIonizationPotential_"/>
+    !![
+    <constructorAssign variables="*atomicIonizationPotential_"/>
+    !!]
 
     return
   end function vanHoof2014ConstructorInternal
 
   subroutine vanHoof2014Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily vanHoof2014} gaunt factor class.
+    !!{
+    Destructor for the {\normalfont \ttfamily vanHoof2014} gaunt factor class.
+    !!}
     implicit none
     type(gauntFactorVanHoof2014), intent(inout) :: self
 
-    !# <objectDestructor name="self%atomicIonizationPotential_"/>
+    !![
+    <objectDestructor name="self%atomicIonizationPotential_"/>
+    !!]
     return
   end subroutine vanHoof2014Destructor
 
   double precision function vanHoof2014Total(self,atomicNumber,electronNumber,temperature)
-    !% Compute thermally averaged Gaunt factors for thermal electron distributions using the tabulations and fits of
-    !% \cite{van_hoof_accurate_2014}.
+    !!{
+    Compute thermally averaged Gaunt factors for thermal electron distributions using the tabulations and fits of
+    \cite{van_hoof_accurate_2014}.
+    !!}
     use :: Galacticus_Error            , only : Galacticus_Error_Report
     use :: Numerical_Constants_Physical, only : boltzmannsConstant
     use :: Numerical_Constants_Units   , only : rydbergs

@@ -17,8 +17,10 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a two-point correlation function class in which the correlation function is found by Fourier
-!% transforming a power spectrum.
+!!{
+Contains a module which implements a two-point correlation function class in which the correlation function is found by Fourier
+transforming a power spectrum.
+!!}
   
   use :: Numerical_Interpolation , only : interpolator
   use :: Power_Spectra           , only : powerSpectrumClass
@@ -26,11 +28,15 @@
   use :: Linear_Growth           , only : linearGrowthClass
   use :: Cosmology_Functions     , only : cosmologyFunctionsClass
 
-  !# <correlationFunctionTwoPoint name="correlationFunctionTwoPointPowerSpectrumTransform">
-  !#  <description>Provides a two-point correlation function class in which the correlation function is found by Fourier transforming a power spectrum.</description>
-  !# </correlationFunctionTwoPoint>
+  !![
+  <correlationFunctionTwoPoint name="correlationFunctionTwoPointPowerSpectrumTransform">
+   <description>Provides a two-point correlation function class in which the correlation function is found by Fourier transforming a power spectrum.</description>
+  </correlationFunctionTwoPoint>
+  !!]
   type, extends(correlationFunctionTwoPointClass) :: correlationFunctionTwoPointPowerSpectrumTransform
-     !% A two-point correlation function class in which the correlation function is found by Fourier transforming a power spectrum.
+     !!{
+     A two-point correlation function class in which the correlation function is found by Fourier transforming a power spectrum.
+     !!}
      private
      class           (powerSpectrumClass         ), pointer     :: powerSpectrum_                  => null()
      class           (powerSpectrumNonlinearClass), pointer     :: powerSpectrumNonlinear_         => null()
@@ -48,7 +54,9 @@
   end type correlationFunctionTwoPointPowerSpectrumTransform
 
   interface correlationFunctionTwoPointPowerSpectrumTransform
-     !% Constructors for the {\normalfont \ttfamily powerSpectrumTransform} two-point correlation function class.
+     !!{
+     Constructors for the {\normalfont \ttfamily powerSpectrumTransform} two-point correlation function class.
+     !!}
      module procedure powerSpectrumTransformConstructorParameters
      module procedure powerSpectrumTransformConstructorInternal
   end interface correlationFunctionTwoPointPowerSpectrumTransform
@@ -56,8 +64,10 @@
 contains
 
   function powerSpectrumTransformConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily powerSpectrumTransform} two-point correlation function class which takes a
-    !% parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily powerSpectrumTransform} two-point correlation function class which takes a
+    parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (correlationFunctionTwoPointPowerSpectrumTransform)                :: self
@@ -72,30 +82,38 @@ contains
     cosmologyFunctions_     => null()
     linearGrowth_           => null()
     if (parameters%isPresent('powerSpectrumNonlinear')) then
-       !# <objectBuilder class="powerSpectrumNonlinear" name="powerSpectrumNonlinear_" source="parameters"/>
+       !![
+       <objectBuilder class="powerSpectrumNonlinear" name="powerSpectrumNonlinear_" source="parameters"/>
+       !!]
     end if
     if (parameters%isPresent('powerSpectrum'         )) then
-       !# <objectBuilder class="powerSpectrum"          name="powerSpectrum_"          source="parameters"/>
-       !# <objectBuilder class="cosmologyFunctions"     name="cosmologyFunctions_"     source="parameters"/>
-       !# <objectBuilder class="linearGrowth"           name="linearGrowth_"           source="parameters"/>
+       !![
+       <objectBuilder class="powerSpectrum"          name="powerSpectrum_"          source="parameters"/>
+       <objectBuilder class="cosmologyFunctions"     name="cosmologyFunctions_"     source="parameters"/>
+       <objectBuilder class="linearGrowth"           name="linearGrowth_"           source="parameters"/>
+       !!]
     end if
-    !# <conditionalCall>
-    !#  <call>self=correlationFunctionTwoPointPowerSpectrumTransform({conditions})</call>
-    !#  <argument name="powerSpectrumNonlinear_" value="powerSpectrumNonlinear_" parameterPresent="parameters" parameterName="powerSpectrumNonlinear"/>
-    !#  <argument name="powerSpectrum_"          value="powerSpectrum_"          parameterPresent="parameters" parameterName="powerSpectrum"         />
-    !#  <argument name="cosmologyFunctions_"     value="cosmologyFunctions_"     parameterPresent="parameters" parameterName="powerSpectrum"         />
-    !#  <argument name="linearGrowth_"           value="linearGrowth_"           parameterPresent="parameters" parameterName="powerSpectrum"         />
-    !# </conditionalCall>
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="powerSpectrumNonlinear_"/>
-    !# <objectDestructor name="powerSpectrum_"         />
-    !# <objectDestructor name="cosmologyFunctions_"    />
-    !# <objectDestructor name="linearGrowth_"          />
+    !![
+    <conditionalCall>
+     <call>self=correlationFunctionTwoPointPowerSpectrumTransform({conditions})</call>
+     <argument name="powerSpectrumNonlinear_" value="powerSpectrumNonlinear_" parameterPresent="parameters" parameterName="powerSpectrumNonlinear"/>
+     <argument name="powerSpectrum_"          value="powerSpectrum_"          parameterPresent="parameters" parameterName="powerSpectrum"         />
+     <argument name="cosmologyFunctions_"     value="cosmologyFunctions_"     parameterPresent="parameters" parameterName="powerSpectrum"         />
+     <argument name="linearGrowth_"           value="linearGrowth_"           parameterPresent="parameters" parameterName="powerSpectrum"         />
+    </conditionalCall>
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="powerSpectrumNonlinear_"/>
+    <objectDestructor name="powerSpectrum_"         />
+    <objectDestructor name="cosmologyFunctions_"    />
+    <objectDestructor name="linearGrowth_"          />
+    !!]
      return
   end function powerSpectrumTransformConstructorParameters
 
   function powerSpectrumTransformConstructorInternal(powerSpectrumNonlinear_,powerSpectrum_,cosmologyFunctions_,linearGrowth_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily powerSpectrumTransform} two-point correlation function class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily powerSpectrumTransform} two-point correlation function class.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type (correlationFunctionTwoPointPowerSpectrumTransform)                                  :: self
@@ -103,7 +121,9 @@ contains
     class(powerSpectrumClass                               ), intent(in   ), target, optional :: powerSpectrum_
     class(cosmologyFunctionsClass                          ), intent(in   ), target, optional :: cosmologyFunctions_
     class(linearGrowthClass                                ), intent(in   ), target, optional :: linearGrowth_
-    !# <constructorAssign variables="*powerSpectrumNonlinear_, *powerSpectrum_, *cosmologyFunctions_, *linearGrowth_"/>
+    !![
+    <constructorAssign variables="*powerSpectrumNonlinear_, *powerSpectrum_, *cosmologyFunctions_, *linearGrowth_"/>
+    !!]
     
     if      (      present(powerSpectrumNonlinear_).and.present(powerSpectrum_) ) then
        call Galacticus_Error_Report('provide either a linear or non-linear power spectrum, not both'//{introspection:location})
@@ -125,19 +145,25 @@ contains
   end function powerSpectrumTransformConstructorInternal
 
   subroutine powerSpectrumTransformDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily powerSpectrumTransform} two-point correlation function class.
+    !!{
+    Destructor for the {\normalfont \ttfamily powerSpectrumTransform} two-point correlation function class.
+    !!}
     implicit none
     type(correlationFunctionTwoPointPowerSpectrumTransform), intent(inout) :: self
 
-    !# <objectDestructor name="self%powerSpectrumNonlinear_"/>
-    !# <objectDestructor name="self%powerSpectrum_"         />
-    !# <objectDestructor name="self%cosmologyFunctions_"    />
-    !# <objectDestructor name="self%linearGrowth_"          />
+    !![
+    <objectDestructor name="self%powerSpectrumNonlinear_"/>
+    <objectDestructor name="self%powerSpectrum_"         />
+    <objectDestructor name="self%cosmologyFunctions_"    />
+    <objectDestructor name="self%linearGrowth_"          />
+    !!]
     return
   end subroutine powerSpectrumTransformDestructor
 
   double precision function powerSpectrumTransformCorrelation(self,separation,time)
-    !% Return a two-point correlation function by Fourier transforming a power spectrum.
+    !!{
+    Return a two-point correlation function by Fourier transforming a power spectrum.
+    !!}
     use :: FFTLogs                 , only : FFTLogSineTransform, fftLogForward 
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Ranges        , only : Make_Range         , rangeTypeLogarithmic
@@ -202,19 +228,21 @@ contains
   end function powerSpectrumTransformCorrelation
   
   double precision function powerSpectrumTransformCorrelationVolumeAveraged(self,separation,time)
-    !% Return a volume-averaged two-point correlation function by Fourier transforming a power spectrum. The volume-averaged
-    !% two-point correlation function is defined as:
-    !% \begin{equation}
-    !%  \bar{\xi}(r) = \int_0^2 \mathrm{d} r 4 \pi r^2 \xi(r) /  \int_0^2 \mathrm{d} r 4 \pi r^2.
-    !% \end{equation}
-    !% Since
-    !% \begin{equation}
-    !%  \xi(r) = \int \mathrm{d}k {P(k) \over (2 \pi)^3} 4 \pi {k^2 \over k r} \sin (k r),
-    !% \end{equation}
-    !% then
-    !% \begin{equation}
-    !%  \bar{\xi}(r) = 3 \int \mathrm{d}k {P(k) \over (2 \pi)^3} 4 \pi {k^2 \over (k r)^2} \left[ {\sin (k r) \over k r} - \cos(k r) \right].
-    !% \end{equation}
+    !!{
+    Return a volume-averaged two-point correlation function by Fourier transforming a power spectrum. The volume-averaged
+    two-point correlation function is defined as:
+    \begin{equation}
+     \bar{\xi}(r) = \int_0^2 \mathrm{d} r 4 \pi r^2 \xi(r) /  \int_0^2 \mathrm{d} r 4 \pi r^2.
+    \end{equation}
+    Since
+    \begin{equation}
+     \xi(r) = \int \mathrm{d}k {P(k) \over (2 \pi)^3} 4 \pi {k^2 \over k r} \sin (k r),
+    \end{equation}
+    then
+    \begin{equation}
+     \bar{\xi}(r) = 3 \int \mathrm{d}k {P(k) \over (2 \pi)^3} 4 \pi {k^2 \over (k r)^2} \left[ {\sin (k r) \over k r} - \cos(k r) \right].
+    \end{equation}
+    !!}
     use :: FFTLogs                 , only : FFTLog     , fftLogForward
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Interpolation , only : interpolator

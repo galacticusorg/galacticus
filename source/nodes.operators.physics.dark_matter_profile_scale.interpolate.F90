@@ -17,21 +17,27 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a node operator class that causes halo spin be interpolated linearly between child and parent nodes.
+  !!{
+  Implements a node operator class that causes halo spin be interpolated linearly between child and parent nodes.
+  !!}
 
   use :: Dark_Matter_Profile_Scales, only : darkMatterProfileScaleRadiusClass
   
-  !# <nodeOperator name="nodeOperatorDarkMatterProfileScaleInterpolate">
-  !#  <description>
-  !#   A node operator class that causes dark matter profile scale radius to be interpolated linearly between child and parent
-  !#   nodes. For primary progenitor nodes $\dot{r}_\mathrm{s} = (r_{\mathrm{s},i+1}-r_{\mathrm{s},i})/(t_{i+1}-t_i)$, where
-  !#   $r_{\mathrm{s},i}$ is the scale radius of the dark matter profile of the node in the initialized tree, $r_{\mathrm{s},i+1}$
-  !#   is the spin of its parent node, and $t_i$ and $t_{i+1}$ are the corresponding times. For non-primary progenitors the rate
-  !#   of change is set to zero, i.e. $\dot{r}_\mathrm{s}=0$.
-  !#  </description>
-  !# </nodeOperator>
+  !![
+  <nodeOperator name="nodeOperatorDarkMatterProfileScaleInterpolate">
+   <description>
+    A node operator class that causes dark matter profile scale radius to be interpolated linearly between child and parent
+    nodes. For primary progenitor nodes $\dot{r}_\mathrm{s} = (r_{\mathrm{s},i+1}-r_{\mathrm{s},i})/(t_{i+1}-t_i)$, where
+    $r_{\mathrm{s},i}$ is the scale radius of the dark matter profile of the node in the initialized tree, $r_{\mathrm{s},i+1}$
+    is the spin of its parent node, and $t_i$ and $t_{i+1}$ are the corresponding times. For non-primary progenitors the rate
+    of change is set to zero, i.e. $\dot{r}_\mathrm{s}=0$.
+   </description>
+  </nodeOperator>
+  !!]
   type, extends(nodeOperatorClass) :: nodeOperatorDarkMatterProfileScaleInterpolate
-     !% A node operator class that causes dark matter profile scale radius to be interpolated linearly between child and parent nodes.
+     !!{
+     A node operator class that causes dark matter profile scale radius to be interpolated linearly between child and parent nodes.
+     !!}
      private
      class(darkMatterProfileScaleRadiusClass), pointer :: darkMatterProfileScaleRadius_ => null()
    contains
@@ -42,7 +48,9 @@
   end type nodeOperatorDarkMatterProfileScaleInterpolate
   
   interface nodeOperatorDarkMatterProfileScaleInterpolate
-     !% Constructors for the {\normalfont \ttfamily darkMatterProfileScaleInterpolate} node operator class.
+     !!{
+     Constructors for the {\normalfont \ttfamily darkMatterProfileScaleInterpolate} node operator class.
+     !!}
      module procedure darkMatterProfileScaleInterpolateConstructorParameters
      module procedure darkMatterProfileScaleInterpolateConstructorInternal
   end interface nodeOperatorDarkMatterProfileScaleInterpolate
@@ -50,42 +58,58 @@
 contains
   
   function darkMatterProfileScaleInterpolateConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily darkMatterProfileScaleInterpolate} node operator class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily darkMatterProfileScaleInterpolate} node operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type (nodeOperatorDarkMatterProfileScaleInterpolate)                :: self
     type (inputParameters                              ), intent(inout) :: parameters
     class(darkMatterProfileScaleRadiusClass            ), pointer       :: darkMatterProfileScaleRadius_
 
-    !# <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
+    !![
+    <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
+    !!]
     self=nodeOperatorDarkMatterProfileScaleInterpolate(darkMatterProfileScaleRadius_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterProfileScaleRadius_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterProfileScaleRadius_"/>
+    !!]
     return
   end function darkMatterProfileScaleInterpolateConstructorParameters
 
   function darkMatterProfileScaleInterpolateConstructorInternal(darkMatterProfileScaleRadius_) result(self)
-    !% Constructor for the {\normalfont \ttfamily darkMatterProfileScaleInterpolate} node operator class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily darkMatterProfileScaleInterpolate} node operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type (nodeOperatorDarkMatterProfileScaleInterpolate)                        :: self
     class(darkMatterProfileScaleRadiusClass            ), intent(in   ), target :: darkMatterProfileScaleRadius_
-    !# <constructorAssign variables="*darkMatterProfileScaleRadius_"/>
+    !![
+    <constructorAssign variables="*darkMatterProfileScaleRadius_"/>
+    !!]
 
     return
   end function darkMatterProfileScaleInterpolateConstructorInternal
 
   subroutine darkMatterProfileScaleInterpolateConstructorDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily darkMatterProfileScaleInterpolate} dark matter halo profile scale radius class.
+    !!{
+    Destructor for the {\normalfont \ttfamily darkMatterProfileScaleInterpolate} dark matter halo profile scale radius class.
+    !!}
     implicit none
     type(nodeOperatorDarkMatterProfileScaleInterpolate), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterProfileScaleRadius_"/>
+    !![
+    <objectDestructor name="self%darkMatterProfileScaleRadius_"/>
+    !!]
     return
   end subroutine darkMatterProfileScaleInterpolateConstructorDestructor
 
   subroutine darkMatterProfileScaleInterpolateNodeTreeInitialize(self,node)
-    !% Initialize dark matter profile scale radii.
+    !!{
+    Initialize dark matter profile scale radii.
+    !!}
     use :: Galacticus_Nodes   , only : nodeComponentDarkMatterProfile
     use :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
     implicit none
@@ -112,7 +136,9 @@ contains
   end subroutine darkMatterProfileScaleInterpolateNodeTreeInitialize
   
   subroutine darkMatterProfileScaleInterpolateNodeInitialize(self,node)
-    !% Compute the rate of growth of dark matter profile scale radius assuming a constant growth rate.
+    !!{
+    Compute the rate of growth of dark matter profile scale radius assuming a constant growth rate.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile
     implicit none
     class           (nodeOperatorDarkMatterProfileScaleInterpolate), intent(inout)          :: self
@@ -151,7 +177,9 @@ contains
   end subroutine darkMatterProfileScaleInterpolateNodeInitialize
   
   subroutine darkMatterProfileScaleInterpolateDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !% Evolve dark matter profile scale radius at a constant rate, to achieve linear interpolation in time.
+    !!{
+    Evolve dark matter profile scale radius at a constant rate, to achieve linear interpolation in time.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, propertyTypeInactive
     implicit none
     class    (nodeOperatorDarkMatterProfileScaleInterpolate), intent(inout), target  :: self

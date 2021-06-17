@@ -17,36 +17,42 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a posterior sampling likelihood class which implements a likelihood using a given posterior distribution
-  !% over the parameters in the form of a set of MCMC chains.
+  !!{
+  Implementation of a posterior sampling likelihood class which implements a likelihood using a given posterior distribution
+  over the parameters in the form of a set of MCMC chains.
+  !!}
 
   use :: Nearest_Neighbors, only : nearestNeighbors
 
-  !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodPosteriorAsPrior">
-  !#  <description>
-  !#   The likelihood is computed either using another likelihood function (the ``wrapped'' likelihood), while including in the
-  !#   likelihood an esimate of the posterior probability of a previous simulation. This effectively allows the posterior of the previous
-  !#   simulation to be used as a prior on the current simulation. The details of the likelihood are specified by the follow
-  !#   subparameters:
-  !#   \begin{description}
-  !#   \item[{\normalfont \ttfamily chainBaseName}] The base name for the old set of MCMC chains to use as the new prior;
-  !#   \item[{\normalfont \ttfamily neighborCount}] The number of neighbor points to use in kernel density estimation of the posterior probability;
-  !#   \item[{\normalfont \ttfamily tolerance}] Tolerance used in finding nearest neighbors;
-  !#   \item[{\normalfont \ttfamily wrappedLikelihood}] Contains another likelihood function definition which will be used to provide the current likelihood.
-  !#   \end{description}
-  !#   
-  !#   This method uses the \gls{ann} library to locate {\normalfont \ttfamily neightborCount} nearest neighbor points in the set of
-  !#   converged states found in the given chains. The {\normalfont \ttfamily tolerance} element determines the accuracy of nearest
-  !#   neighbor finding (see the \gls{ann} documentation for details).When finding nearest neighbors in the MCMC chains, parameters are
-  !#   mapped using whatever mappings are currently active, and distances in each dimension (as used in the metric to determine nearest
-  !#   neighbors) are scaled by the root-variance in that parameter in the converged MCMC chains. The posterior likelihood of the MCMC
-  !#   chains is then estimated from the nearest neighbors using kernel density estimation with a Gaussian kernel with bandwidth equal to
-  !#   the distance to the furthest of the nearest neighbors.
-  !#  </description>
-  !# </posteriorSampleLikelihood>
+  !![
+  <posteriorSampleLikelihood name="posteriorSampleLikelihoodPosteriorAsPrior">
+   <description>
+    The likelihood is computed either using another likelihood function (the ``wrapped'' likelihood), while including in the
+    likelihood an esimate of the posterior probability of a previous simulation. This effectively allows the posterior of the previous
+    simulation to be used as a prior on the current simulation. The details of the likelihood are specified by the follow
+    subparameters:
+    \begin{description}
+    \item[{\normalfont \ttfamily chainBaseName}] The base name for the old set of MCMC chains to use as the new prior;
+    \item[{\normalfont \ttfamily neighborCount}] The number of neighbor points to use in kernel density estimation of the posterior probability;
+    \item[{\normalfont \ttfamily tolerance}] Tolerance used in finding nearest neighbors;
+    \item[{\normalfont \ttfamily wrappedLikelihood}] Contains another likelihood function definition which will be used to provide the current likelihood.
+    \end{description}
+    
+    This method uses the \gls{ann} library to locate {\normalfont \ttfamily neightborCount} nearest neighbor points in the set of
+    converged states found in the given chains. The {\normalfont \ttfamily tolerance} element determines the accuracy of nearest
+    neighbor finding (see the \gls{ann} documentation for details).When finding nearest neighbors in the MCMC chains, parameters are
+    mapped using whatever mappings are currently active, and distances in each dimension (as used in the metric to determine nearest
+    neighbors) are scaled by the root-variance in that parameter in the converged MCMC chains. The posterior likelihood of the MCMC
+    chains is then estimated from the nearest neighbors using kernel density estimation with a Gaussian kernel with bandwidth equal to
+    the distance to the furthest of the nearest neighbors.
+   </description>
+  </posteriorSampleLikelihood>
+  !!]
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodPosteriorAsPrior
-     !% Implementation of a posterior sampling likelihood class which implements a likelihood using a given posterior distribution
-     !% over the parameters in the form of a set of MCMC chains.
+     !!{
+     Implementation of a posterior sampling likelihood class which implements a likelihood using a given posterior distribution
+     over the parameters in the form of a set of MCMC chains.
+     !!}
      private
      class           (posteriorSampleLikelihoodClass), pointer                     :: posteriorSampleLikelihood_ => null()
      integer                                         , allocatable, dimension(:  ) :: neighborIndices           , exclusions
@@ -59,9 +65,11 @@
      double precision                                                              :: tolerance                 , logPriorNormalization
      logical                                                                       :: initialized
    contains
-     !# <methods>
-     !#   <method description="Initialize the posterior-as-prior likelihood." method="initialize" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Initialize the posterior-as-prior likelihood." method="initialize" />
+     </methods>
+     !!]
      final     ::                    posteriorAsPriorDestructor
      procedure :: evaluate        => posteriorAsPriorEvaluate
      procedure :: functionChanged => posteriorAsPriorFunctionChanged
@@ -69,7 +77,9 @@
   end type posteriorSampleLikelihoodPosteriorAsPrior
 
   interface posteriorSampleLikelihoodPosteriorAsPrior
-     !% Constructors for the {\normalfont \ttfamily posteriorAsPrior} posterior sampling likelihood class.
+     !!{
+     Constructors for the {\normalfont \ttfamily posteriorAsPrior} posterior sampling likelihood class.
+     !!}
      module procedure posteriorAsPriorConstructorParameters
      module procedure posteriorAsPriorConstructorInternal
   end interface posteriorSampleLikelihoodPosteriorAsPrior
@@ -77,8 +87,10 @@
 contains
 
   function posteriorAsPriorConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily posteriorAsPrior} posterior sampling likelihood class which builds the object
-    !% from a parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily posteriorAsPrior} posterior sampling likelihood class which builds the object
+    from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (posteriorSampleLikelihoodPosteriorAsPrior)                              :: self
@@ -89,36 +101,42 @@ contains
     integer                                                    , allocatable  , dimension(:) :: exclusions
     double precision                                                                         :: tolerance
 
-    !# <inputParameter>
-    !#   <name>chainBaseName</name>
-    !#   <description>The base name of the MCMC chain files to read.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>neighborCount</name>
-    !#   <description>The number of nearest neighbors to use when estimating the posterior likelihood.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>tolerance</name>
-    !#   <description>Tolerance to use when estimating the posterior likelihood.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>exclusions</name>
-    !#   <description>List of parameter indices to exclude from the posterior likelihood calculation.</description>
-    !#   <defaultValue>[integer :: ]</defaultValue>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="posteriorSampleLikelihood" name="posteriorSampleLikelihood_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>chainBaseName</name>
+      <description>The base name of the MCMC chain files to read.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>neighborCount</name>
+      <description>The number of nearest neighbors to use when estimating the posterior likelihood.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>tolerance</name>
+      <description>Tolerance to use when estimating the posterior likelihood.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>exclusions</name>
+      <description>List of parameter indices to exclude from the posterior likelihood calculation.</description>
+      <defaultValue>[integer :: ]</defaultValue>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="posteriorSampleLikelihood" name="posteriorSampleLikelihood_" source="parameters"/>
+    !!]
     self=posteriorSampleLikelihoodPosteriorAsPrior(char(chainBaseName),neighborCount,tolerance,exclusions,posteriorSampleLikelihood_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="posteriorSampleLikelihood_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="posteriorSampleLikelihood_"/>
+    !!]
     return
   end function posteriorAsPriorConstructorParameters
 
   function posteriorAsPriorConstructorInternal(chainBaseName,neighborCount,tolerance,exclusions,posteriorSampleLikelihood_) result(self)
-    !% Constructor for ``posteriorAsPrior'' posterior sampling likelihood class.
+    !!{
+    Constructor for ``posteriorAsPrior'' posterior sampling likelihood class.
+    !!}
     use :: File_Utilities    , only : File_Exists
     use :: ISO_Varying_String, only : varying_string
     use :: Memory_Management , only : allocateArray
@@ -139,7 +157,9 @@ contains
     character       (len=4                                    )                                        :: label
     logical                                                                                            :: converged
     double precision                                                                                   :: time                      , likelihood
-    !# <constructorAssign variables="tolerance, neighborCount, *posteriorSampleLikelihood_"/>
+    !![
+    <constructorAssign variables="tolerance, neighborCount, *posteriorSampleLikelihood_"/>
+    !!]
 
     self%initialized=.false.
     if (present(exclusions)) then
@@ -209,16 +229,22 @@ contains
   end function posteriorAsPriorConstructorInternal
 
   subroutine posteriorAsPriorDestructor(self)
-    !% Destructor for ``posterior as prior'' posterior sampling likelihood class.
+    !!{
+    Destructor for ``posterior as prior'' posterior sampling likelihood class.
+    !!}
     implicit none
     type(posteriorSampleLikelihoodPosteriorAsPrior), intent(inout) :: self
 
-    !# <objectDestructor name="self%posteriorSampleLikelihood_"/>
+    !![
+    <objectDestructor name="self%posteriorSampleLikelihood_"/>
+    !!]
     return
   end subroutine posteriorAsPriorDestructor
 
   subroutine posteriorAsPriorInitialize(self,modelParametersActive_)
-    !% Initialize a ``posterior as prior'' likelihood object.
+    !!{
+    Initialize a ``posterior as prior'' likelihood object.
+    !!}
     use :: Memory_Management, only : allocateArray
     implicit none
     class           (posteriorSampleLikelihoodPosteriorAsPrior), intent(inout)               :: self
@@ -264,7 +290,9 @@ contains
   end subroutine posteriorAsPriorInitialize
 
   double precision function posteriorAsPriorEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
-    !% Return the log-likelihood for a ``posterior as prior'' likelihood function.
+    !!{
+    Return the log-likelihood for a ``posterior as prior'' likelihood function.
+    !!}
     use :: Numerical_Constants_Math      , only : Pi
     use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
     use :: Posterior_Sampling_State      , only : posteriorSampleStateClass
@@ -319,7 +347,9 @@ contains
   end function posteriorAsPriorEvaluate
 
   subroutine posteriorAsPriorFunctionChanged(self)
-    !% Respond to possible changes in the likelihood function.
+    !!{
+    Respond to possible changes in the likelihood function.
+    !!}
     implicit none
     class(posteriorSampleLikelihoodPosteriorAsPrior), intent(inout) :: self
     !$GLC attributes unused :: self

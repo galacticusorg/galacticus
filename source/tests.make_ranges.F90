@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to test the numerical range making code.
+!!{
+Contains a program to test the numerical range making code.
+!!}
 
 program Test_Make_Ranges
-  !% Tests that numerical range making code works correctly.
+  !!{
+  Tests that numerical range making code works correctly.
+  !!}
   use :: Array_Utilities , only : Array_Reverse
   use :: Display         , only : displayVerbositySet, verbosityLevelStandard
   use :: Numerical_Ranges, only : Make_Range         , rangeTypeLinear       , rangeTypeLogarithmic

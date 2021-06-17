@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module of functions for root finding unit tests.
+!!{
+Contains a module of functions for root finding unit tests.
+!!}
 
 module Test_Root_Finding_Functions
-  !% Contains functions for root finding unit tests.
+  !!{
+  Contains functions for root finding unit tests.
+  !!}
   implicit none
   private
   public :: Root_Function_1, Root_Function_2, Root_Function_2_Derivative, Root_Function_2_Both, Root_Function_3, &
@@ -29,28 +33,36 @@ module Test_Root_Finding_Functions
 contains
 
   double precision function Root_Function_1(x)
-    !% Function for root finding unit tests.
+    !!{
+    Function for root finding unit tests.
+    !!}
     double precision, intent(in   ) :: x
 
     Root_Function_1=x
   end function Root_Function_1
 
   double precision function Root_Function_2(x)
-    !% Function for root finding unit tests.
+    !!{
+    Function for root finding unit tests.
+    !!}
     double precision, intent(in   ) :: x
 
     Root_Function_2=x**2-5.0d0*x+1.0d0
   end function Root_Function_2
 
   double precision function Root_Function_2_Derivative(x)
-    !% Function for root finding unit tests.
+    !!{
+    Function for root finding unit tests.
+    !!}
     double precision, intent(in   ) :: x
 
     Root_Function_2_Derivative=2.0d0*x-5.0d0
   end function Root_Function_2_Derivative
 
   subroutine  Root_Function_2_Both(x,f,df)
-    !% Function for root finding unit tests.
+    !!{
+    Function for root finding unit tests.
+    !!}
     double precision, intent(in   ) :: x
     double precision, intent(  out) :: f, df
 
@@ -59,14 +71,18 @@ contains
   end subroutine Root_Function_2_Both
 
   double precision function Root_Function_3(x)
-    !% Function for root finding unit tests.
+    !!{
+    Function for root finding unit tests.
+    !!}
     double precision, intent(in   ) :: x
 
     Root_Function_3=x*exp(-x)+1.0d0
   end function Root_Function_3
 
   double precision function Root_Function_4(x)
-    !% Function for root finding unit tests.
+    !!{
+    Function for root finding unit tests.
+    !!}
     double precision, intent(in   ) :: x
 
     if (abs(x) > 1.0d0) then
@@ -78,7 +94,9 @@ contains
   end function Root_Function_4
 
   double precision function Root_Function_4_Derivative(x)
-    !% Function for root finding unit tests.
+    !!{
+    Function for root finding unit tests.
+    !!}
     double precision, intent(in   ) :: x
 
     if (abs(x) > 1.0d0) then
@@ -90,7 +108,9 @@ contains
   end function Root_Function_4_Derivative
 
   subroutine  Root_Function_4_Both(x,f,df)
-    !% Function for root finding unit tests.
+    !!{
+    Function for root finding unit tests.
+    !!}
     double precision, intent(in   ) :: x
     double precision, intent(  out) :: f, df
 

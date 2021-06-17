@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an N-body data operator which exports N-body data to IRATE format.
+!!{
+Contains a module which implements an N-body data operator which exports N-body data to IRATE format.
+!!}
 
   use :: Cosmology_Functions , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters, only : cosmologyParametersClass
 
-  !# <nbodyOperator name="nbodyOperatorExportIRATE">
-  !#  <description>An N-body data operator which exports N-body data to IRATE format.</description>
-  !# </nbodyOperator>
+  !![
+  <nbodyOperator name="nbodyOperatorExportIRATE">
+   <description>An N-body data operator which exports N-body data to IRATE format.</description>
+  </nbodyOperator>
+  !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorExportIRATE
-     !% An N-body data operator which exports N-body data to IRATE format.
+     !!{
+     An N-body data operator which exports N-body data to IRATE format.
+     !!}
      private
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
      class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
@@ -39,7 +45,9 @@
   end type nbodyOperatorExportIRATE
 
   interface nbodyOperatorExportIRATE
-     !% Constructors for the {\normalfont \ttfamily exportIRATE} N-body operator class.
+     !!{
+     Constructors for the {\normalfont \ttfamily exportIRATE} N-body operator class.
+     !!}
      module procedure exportIRATEConstructorParameters
      module procedure exportIRATEConstructorInternal
   end interface nbodyOperatorExportIRATE
@@ -47,7 +55,9 @@
 contains
   
   function exportIRATEConstructorParameters(parameters) result (self)
-    !% Constructor for the {\normalfont \ttfamily exportIRATE} N-body operator class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily exportIRATE} N-body operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type            (nbodyOperatorExportIRATE)                :: self
@@ -58,32 +68,38 @@ contains
     integer                                                   :: snapshot
     double precision                                          :: redshift
 
-    !# <inputParameter>
-    !#   <name>fileName</name>
-    !#   <source>parameters</source>
-    !#   <description>The name of the file to which data should be exported.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>snapshot</name>
-    !#   <source>parameters</source>
-    !#   <description>The snapshot index of the data.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>redshift</name>
-    !#   <source>parameters</source>
-    !#   <description>The redshift of the data.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    !![
+    <inputParameter>
+      <name>fileName</name>
+      <source>parameters</source>
+      <description>The name of the file to which data should be exported.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>snapshot</name>
+      <source>parameters</source>
+      <description>The snapshot index of the data.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>redshift</name>
+      <source>parameters</source>
+      <description>The redshift of the data.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    !!]
     self=nbodyOperatorExportIRATE(fileName,snapshot,redshift,cosmologyParameters_,cosmologyFunctions_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"/>
-    !# <objectDestructor name="cosmologyFunctions_" />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"/>
+    <objectDestructor name="cosmologyFunctions_" />
+    !!]
     return
   end function exportIRATEConstructorParameters
 
   function exportIRATEConstructorInternal(fileName,snapshot,redshift,cosmologyParameters_,cosmologyFunctions_) result (self)
-    !% Internal constructor for the {\normalfont \ttfamily exportIRATE} N-body operator class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily exportIRATE} N-body operator class.
+    !!}
     implicit none
     type            (nbodyOperatorExportIRATE)                        :: self
     type            (varying_string          ), intent(in   )         :: fileName
@@ -91,23 +107,31 @@ contains
     double precision                          , intent(in   )         :: redshift
     class           (cosmologyParametersClass), intent(in   ), target :: cosmologyParameters_
     class           (cosmologyFunctionsClass ), intent(in   ), target :: cosmologyFunctions_
-    !# <constructorAssign variables="fileName, snapshot, redshift, *cosmologyParameters_, *cosmologyFunctions_"/>
+    !![
+    <constructorAssign variables="fileName, snapshot, redshift, *cosmologyParameters_, *cosmologyFunctions_"/>
+    !!]
 
     return
   end function exportIRATEConstructorInternal
 
   subroutine exportIRATEDestructor(self)
-    !% Destructor for {\normalfont \ttfamily exportIRATE} importer class.
+    !!{
+    Destructor for {\normalfont \ttfamily exportIRATE} importer class.
+    !!}
     implicit none
     type(nbodyOperatorExportIRATE), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_"/>
-    !# <objectDestructor name="self%cosmologyFunctions_" />
+    !![
+    <objectDestructor name="self%cosmologyParameters_"/>
+    <objectDestructor name="self%cosmologyFunctions_" />
+    !!]
     return
   end subroutine exportIRATEDestructor
 
   subroutine exportIRATEOperate(self,simulations)
-    !% Output simulation data to an IRATE-format file.
+    !!{
+    Output simulation data to an IRATE-format file.
+    !!}
     use :: Display                         , only : displayIndent          , displayUnindent, verbosityLevelStandard
     use :: Galacticus_Error                , only : Galacticus_Error_Report
     use :: IO_HDF5                         , only : hdf5Access             , hdf5Object
@@ -138,20 +162,22 @@ contains
     if (simulations(1)%propertiesRealRank1%exists('position'  )) position    => simulations(1)%propertiesRealRank1%value('position'  )
     if (simulations(1)%propertiesRealRank1%exists('velocity'  )) velocity    => simulations(1)%propertiesRealRank1%value('velocity'  )
     if (simulations(1)%propertiesInteger  %exists('particleID')) particleIDs => simulations(1)%propertiesInteger  %value('particleID')
-    !# <conditionalCall>
-    !#  <call>
-    !#   call irate_%writeHalos(                                   &amp;
-    !#        &amp;                                 self%snapshot, &amp;
-    !#        &amp;                                 self%redshift, &amp;
-    !#        &amp;             overwrite          =.true.       , &amp;
-    !#        &amp;             objectsOverwritable=.true.         &amp;
-    !#        &amp;             {conditions}                       &amp;
-    !#        &amp;            )
-    !#  </call>
-    !#  <argument name="center"   value="position"    condition="associated(position   )"/>
-    !#  <argument name="velocity" value="velocity"    condition="associated(velocity   )"/>
-    !#  <argument name="IDs"      value="particleIDs" condition="associated(particleIDs)"/>
-    !# </conditionalCall>
+    !![
+    <conditionalCall>
+     <call>
+      call irate_%writeHalos(                                   &amp;
+           &amp;                                 self%snapshot, &amp;
+           &amp;                                 self%redshift, &amp;
+           &amp;             overwrite          =.true.       , &amp;
+           &amp;             objectsOverwritable=.true.         &amp;
+           &amp;             {conditions}                       &amp;
+           &amp;            )
+     </call>
+     <argument name="center"   value="position"    condition="associated(position   )"/>
+     <argument name="velocity" value="velocity"    condition="associated(velocity   )"/>
+     <argument name="IDs"      value="particleIDs" condition="associated(particleIDs)"/>
+    </conditionalCall>
+    !!]
     ! Write any attributes to the file.
     if     (                                                   &
          &                                                     &

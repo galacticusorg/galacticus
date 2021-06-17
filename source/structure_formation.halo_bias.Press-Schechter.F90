@@ -17,18 +17,24 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of halo bias using the Press-Schechter algorithm \citep{cole_biased_1989}.
+  !!{
+  Implementation of halo bias using the Press-Schechter algorithm \citep{cole_biased_1989}.
+  !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
 
-  !# <darkMatterHaloBias name="darkMatterHaloBiasPressSchechter">
-  !#  <description>
-  !#   A dark matter halo mass bias class consistent with the halo mass function of \cite{press_formation_1974} (see
-  !#   \citep{mo_analytic_1996}).
-  !#  </description>
-  !# </darkMatterHaloBias>
+  !![
+  <darkMatterHaloBias name="darkMatterHaloBiasPressSchechter">
+   <description>
+    A dark matter halo mass bias class consistent with the halo mass function of \cite{press_formation_1974} (see
+    \citep{mo_analytic_1996}).
+   </description>
+  </darkMatterHaloBias>
+  !!]
   type, extends(darkMatterHaloBiasClass) :: darkMatterHaloBiasPressSchechter
-     !% Implementation of a dark matter halo mass utilizing the Press-Schechter algorithm \citep{cole_biased_1989}.
+     !!{
+     Implementation of a dark matter halo mass utilizing the Press-Schechter algorithm \citep{cole_biased_1989}.
+     !!}
      private
      class(criticalOverdensityClass     ), pointer :: criticalOverdensity_      => null()
      class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
@@ -38,7 +44,9 @@
   end type darkMatterHaloBiasPressSchechter
 
   interface darkMatterHaloBiasPressSchechter
-     !% Constructors for the {\normalfont \ttfamily pressSchechter} dark matter halo bias class.
+     !!{
+     Constructors for the {\normalfont \ttfamily pressSchechter} dark matter halo bias class.
+     !!}
      module procedure pressSchechterConstructorParameters
      module procedure pressSchechterConstructorInternal
   end interface darkMatterHaloBiasPressSchechter
@@ -46,7 +54,9 @@
 contains
 
   function pressSchechterConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily pressSchechter} dark matter halo mass bias which builds the object from a parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily pressSchechter} dark matter halo mass bias which builds the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(darkMatterHaloBiasPressSchechter)                :: self
@@ -54,38 +64,52 @@ contains
     class(criticalOverdensityClass       ), pointer       :: criticalOverdensity_
     class(cosmologicalMassVarianceClass  ), pointer       :: cosmologicalMassVariance_
 
-    !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
-    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    !![
+    <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
+    <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    !!]
     self=darkMatterHaloBiasPressSchechter(criticalOverdensity_,cosmologicalMassVariance_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="criticalOverdensity_"     />
-    !# <objectDestructor name="cosmologicalMassVariance_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="criticalOverdensity_"     />
+    <objectDestructor name="cosmologicalMassVariance_"/>
+    !!]
     return
   end function pressSchechterConstructorParameters
 
   function pressSchechterConstructorInternal(criticalOverdensity_,cosmologicalMassVariance_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily pressSchechter} dark matter halo bias class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily pressSchechter} dark matter halo bias class.
+    !!}
     implicit none
     type (darkMatterHaloBiasPressSchechter)                        :: self
     class(criticalOverdensityClass        ), intent(in   ), target :: criticalOverdensity_
     class(cosmologicalMassVarianceClass   ), intent(in   ), target :: cosmologicalMassVariance_
-    !# <constructorAssign variables="*criticalOverdensity_, *cosmologicalMassVariance_"/>
+    !![
+    <constructorAssign variables="*criticalOverdensity_, *cosmologicalMassVariance_"/>
+    !!]
 
     return
   end function pressSchechterConstructorInternal
 
   subroutine pressSchechterDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily pressSchechter} dark matter halo bias class.
+    !!{
+    Destructor for the {\normalfont \ttfamily pressSchechter} dark matter halo bias class.
+    !!}
     implicit none
     type(darkMatterHaloBiasPressSchechter), intent(inout) :: self
 
-    !# <objectDestructor name="self%criticalOverdensity_"     />
-    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
+    !![
+    <objectDestructor name="self%criticalOverdensity_"     />
+    <objectDestructor name="self%cosmologicalMassVariance_"/>
+    !!]
     return
   end subroutine pressSchechterDestructor
 
   double precision function pressSchechterBiasByMass(self,mass,time,radius)
-    !% Returns the bias of a dark matter halo given the mass and time.
+    !!{
+    Returns the bias of a dark matter halo given the mass and time.
+    !!}
     implicit none
     class           (darkMatterHaloBiasPressSchechter), intent(inout)           :: self
     double precision                                  , intent(in   )           :: mass         , time

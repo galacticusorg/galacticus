@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a galactic high-pass filter for total ISM mass.
+!!{
+Contains a module which implements a galactic high-pass filter for total ISM mass.
+!!}
 
-  !# <galacticFilter name="galacticFilterISMMass">
-  !#  <description>
-  !#  A galactic high-pass filter for ISM mass. Galaxies with a combined disk plus spheroid ISM mass greater than or equal
-  !#  to a fixed threshold, $M_\mathrm{ISM,0}=${\normalfont \ttfamily [massThreshold]}.
-  !#  </description>
-  !# </galacticFilter>
+  !![
+  <galacticFilter name="galacticFilterISMMass">
+   <description>
+   A galactic high-pass filter for ISM mass. Galaxies with a combined disk plus spheroid ISM mass greater than or equal
+   to a fixed threshold, $M_\mathrm{ISM,0}=${\normalfont \ttfamily [massThreshold]}.
+   </description>
+  </galacticFilter>
+  !!]
   type, extends(galacticFilterClass) :: galacticFilterISMMass
-     !% A galactic high-pass filter class for ISM mass.
+     !!{
+     A galactic high-pass filter class for ISM mass.
+     !!}
      private
      double precision :: massThreshold
    contains
@@ -34,7 +40,9 @@
   end type galacticFilterISMMass
 
   interface galacticFilterISMMass
-     !% Constructors for the ``ismMass'' galactic filter class.
+     !!{
+     Constructors for the ``ismMass'' galactic filter class.
+     !!}
      module procedure ismMassConstructorParameters
      module procedure ismMassConstructorInternal
   end interface galacticFilterISMMass
@@ -42,34 +50,44 @@
 contains
 
   function ismMassConstructorParameters(parameters)
-    !% Constructor for the ``ismMass'' galactic filter class which takes a parameter set as input.
+    !!{
+    Constructor for the ``ismMass'' galactic filter class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(galacticFilterISMMass)                :: ismMassConstructorParameters
     type(inputParameters      ), intent(inout) :: parameters
 
     ! Check and read parameters.
-    !# <inputParameter>
-    !#   <name>massThreshold</name>
-    !#   <source>parameters</source>
-    !#   <variable>ismMassConstructorParameters%massThreshold</variable>
-    !#   <description>The parameter $M_0$ (in units of $M_\odot$) appearing in the ISM mass threshold for the ISM mass galactic filter class.</description>
-    !# </inputParameter>
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParameter>
+      <name>massThreshold</name>
+      <source>parameters</source>
+      <variable>ismMassConstructorParameters%massThreshold</variable>
+      <description>The parameter $M_0$ (in units of $M_\odot$) appearing in the ISM mass threshold for the ISM mass galactic filter class.</description>
+    </inputParameter>
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function ismMassConstructorParameters
 
   function ismMassConstructorInternal(massThreshold)
-    !% Internal constructor for the ``ismMass'' galactic filter class.
+    !!{
+    Internal constructor for the ``ismMass'' galactic filter class.
+    !!}
     implicit none
     type            (galacticFilterISMMass)                :: ismMassConstructorInternal
     double precision                       , intent(in   ) :: massThreshold
-    !# <constructorAssign variables="massThreshold"/>
+    !![
+    <constructorAssign variables="massThreshold"/>
+    !!]
     return
   end function ismMassConstructorInternal
 
   logical function ismMassPasses(self,node)
-    !% Implement an ismMass-pass galactic filter.
+    !!{
+    Implement an ismMass-pass galactic filter.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid, treeNode
     implicit none
     class           (galacticFilterISMMass), intent(inout)         :: self

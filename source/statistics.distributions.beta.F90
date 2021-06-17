@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a beta density 1D distibution function.
+  !!{
+  Implementation of a beta density 1D distibution function.
+  !!}
 
   use :: Root_Finder, only : rootFinder
 
-  !# <distributionFunction1D name="distributionFunction1DBeta">
-  !#  <description>A beta 1D distribution function class.</description>
-  !# </distributionFunction1D>
+  !![
+  <distributionFunction1D name="distributionFunction1DBeta">
+   <description>A beta 1D distribution function class.</description>
+  </distributionFunction1D>
+  !!]
     type, extends(distributionFunction1DClass) :: distributionFunction1DBeta
-     !% Implementation of a beta 1D distibution function.
+     !!{
+     Implementation of a beta 1D distibution function.
+     !!}
      private
      double precision             :: alpha , beta
      type            (rootFinder) :: finder
@@ -38,7 +44,9 @@
   end type distributionFunction1DBeta
 
   interface distributionFunction1DBeta
-     !% Constructors for the {\normalfont \ttfamily beta} 1D distribution function class.
+     !!{
+     Constructors for the {\normalfont \ttfamily beta} 1D distribution function class.
+     !!}
      module procedure betaConstructorParameters
      module procedure betaConstructorInternal
   end interface distributionFunction1DBeta
@@ -51,8 +59,10 @@
 contains
 
   function betaConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily beta} 1D distribution function class which builds
-    !% the object from a parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily beta} 1D distribution function class which builds
+    the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (distributionFunction1DBeta)                :: self
@@ -60,30 +70,38 @@ contains
     class           (randomNumberGeneratorClass), pointer       :: randomNumberGenerator_
     double precision                                            :: alpha                 , beta
 
-    !# <inputParameter>
-    !#   <name>alpha</name>
-    !#   <description>The $\alpha$ parameter of the beta distribution function.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>beta</name>
-    !#   <description>The $\beta$ parameter of the beta distribution function.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>alpha</name>
+      <description>The $\alpha$ parameter of the beta distribution function.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>beta</name>
+      <description>The $\beta$ parameter of the beta distribution function.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !!]
     self=distributionFunction1DBeta(alpha,beta,randomNumberGenerator_)
-    !# <objectDestructor name="randomNumberGenerator_"/>
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <objectDestructor name="randomNumberGenerator_"/>
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function betaConstructorParameters
 
   function betaConstructorInternal(alpha,beta,randomNumberGenerator_) result(self)
-    !% Constructor for ``beta'' 1D distribution function class.
+    !!{
+    Constructor for ``beta'' 1D distribution function class.
+    !!}
     type            (distributionFunction1DBeta)                                  :: self
     double precision                            , intent(in   )                   :: alpha                        , beta
     class           (randomNumberGeneratorClass), intent(in   ), target, optional :: randomNumberGenerator_
     double precision                            , parameter                       :: toleranceAbsolute     =1.0d-6, toleranceRelative=0.0d+0
-    !# <constructorAssign variables="alpha, beta, *randomNumberGenerator_"/>
+    !![
+    <constructorAssign variables="alpha, beta, *randomNumberGenerator_"/>
+    !!]
     
     self%finder=rootFinder(                                     &
          &                 rootFunction     =betaRoot         , &
@@ -94,7 +112,9 @@ contains
   end function betaConstructorInternal
 
   double precision function betaDensity(self,x)
-    !% Return the density of a beta distribution.
+    !!{
+    Return the density of a beta distribution.
+    !!}
     use :: Beta_Functions, only : Beta_Function
     implicit none
     class           (distributionFunction1DBeta), intent(inout) :: self
@@ -111,7 +131,9 @@ contains
   end function betaDensity
 
   double precision function betaCumulative(self,x)
-    !% Return the cumulative probability of a beta distribution.
+    !!{
+    Return the cumulative probability of a beta distribution.
+    !!}
     use :: Beta_Functions, only : Beta_Function_Incomplete_Normalized
     implicit none
     class           (distributionFunction1DBeta), intent(inout) :: self
@@ -128,7 +150,9 @@ contains
   end function betaCumulative
 
   double precision function betaInverse(self,p)
-    !% Return the inverse of a beta distribution.
+    !!{
+    Return the inverse of a beta distribution.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (distributionFunction1DBeta), intent(inout), target :: self
@@ -153,7 +177,9 @@ contains
   end function betaInverse
 
   double precision function betaRoot(x)
-    !% Root function used in finding the inverse of the beta distribution.
+    !!{
+    Root function used in finding the inverse of the beta distribution.
+    !!}
     implicit none
     double precision, intent(in   ) :: x
 
@@ -162,7 +188,9 @@ contains
   end function betaRoot
 
   double precision function betaMinimum(self)
-    !% Return the minimum value of a beta distribution.
+    !!{
+    Return the minimum value of a beta distribution.
+    !!}
     implicit none
     class(distributionFunction1DBeta), intent(inout) :: self
     !$GLC attributes unused :: self
@@ -172,7 +200,9 @@ contains
   end function betaMinimum
 
   double precision function betaMaximum(self)
-    !% Return the minimum value of a beta distribution.
+    !!{
+    Return the minimum value of a beta distribution.
+    !!}
     implicit none
     class(distributionFunction1DBeta), intent(inout) :: self
     !$GLC attributes unused :: self

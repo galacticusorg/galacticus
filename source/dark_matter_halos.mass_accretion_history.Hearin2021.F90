@@ -17,28 +17,36 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of dark matter halo mass accretion histories using the rolling power-law model of \cite{hearin_differentiable_2021}.
+  !!{
+  An implementation of dark matter halo mass accretion histories using the rolling power-law model of \cite{hearin_differentiable_2021}.
+  !!}
 
-  !# <darkMatterHaloMassAccretionHistory name="darkMatterHaloMassAccretionHistoryHearin2021">
-  !#  <description>Dark matter halo mass accretion histories using the rolling power-law model of \cite{hearin_differentiable_2021}.</description>
-  !# </darkMatterHaloMassAccretionHistory>
+  !![
+  <darkMatterHaloMassAccretionHistory name="darkMatterHaloMassAccretionHistoryHearin2021">
+   <description>Dark matter halo mass accretion histories using the rolling power-law model of \cite{hearin_differentiable_2021}.</description>
+  </darkMatterHaloMassAccretionHistory>
+  !!]
   type, extends(darkMatterHaloMassAccretionHistoryClass) :: darkMatterHaloMassAccretionHistoryHearin2021
-     !% A dark matter halo mass accretion history class using the rolling power-law model of \cite{hearin_differentiable_2021}.
+     !!{
+     A dark matter halo mass accretion history class using the rolling power-law model of \cite{hearin_differentiable_2021}.
+     !!}
      private
      double precision :: powerLawIndexEarly, powerLawIndexLate, &
           &              rateRollOver      , timeMaximum
    contains
-     !# <methods>
-     !#  <method description="Return the power law index at the given time."                      method="powerLawIndex"          />
-     !#  <method description="Return the derivative of the power law index with respect to time." method="powerLawIndexDerivative"/>
-     !#  <method description="Return the $\log_{10}(t_0)$ parameter."                             method="timeZeroLogarithmic"    />
-     !#  <method description="Return the maximum mass in the mass accretion history."             method="massMaximum"            />
-     !#  <method description="The sigmoid interpolation function."                                method="sigmoid"                />
-     !#  <method description="Return the early-time power law index."                             method="powerLawIndexEarly_"    />
-     !#  <method description="Return the late-time power law index."                              method="powerLawIndexLate_"     />
-     !#  <method description="Return the roll-over rate."                                         method="rateRollOver_"          />
-     !#  <method description="Return the time of maximum mass."                                   method="timeMaximum_"           />
-     !# </methods>
+     !![
+     <methods>
+      <method description="Return the power law index at the given time."                      method="powerLawIndex"          />
+      <method description="Return the derivative of the power law index with respect to time." method="powerLawIndexDerivative"/>
+      <method description="Return the $\log_{10}(t_0)$ parameter."                             method="timeZeroLogarithmic"    />
+      <method description="Return the maximum mass in the mass accretion history."             method="massMaximum"            />
+      <method description="The sigmoid interpolation function."                                method="sigmoid"                />
+      <method description="Return the early-time power law index."                             method="powerLawIndexEarly_"    />
+      <method description="Return the late-time power law index."                              method="powerLawIndexLate_"     />
+      <method description="Return the roll-over rate."                                         method="rateRollOver_"          />
+      <method description="Return the time of maximum mass."                                   method="timeMaximum_"           />
+     </methods>
+     !!]
      procedure         :: mass                    => hearin2021Mass
      procedure         :: massAccretionRate       => hearin2021MassAccretionRate
      procedure         :: powerLawIndex           => hearin2021PowerLawIndex
@@ -53,7 +61,9 @@
   end type darkMatterHaloMassAccretionHistoryHearin2021
 
   interface darkMatterHaloMassAccretionHistoryHearin2021
-     !% Constructors for the {\normalfont \ttfamily hearin2021} dark matter halo mass accretion history class.
+     !!{
+     Constructors for the {\normalfont \ttfamily hearin2021} dark matter halo mass accretion history class.
+     !!}
      module procedure hearin2021ConstructorParameters
      module procedure hearin2021ConstructorInternal
   end interface darkMatterHaloMassAccretionHistoryHearin2021
@@ -61,8 +71,10 @@
 contains
 
   function hearin2021ConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily hearin2021} dark matter halo mass accretion history class which takes a parameter
-    !% set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily hearin2021} dark matter halo mass accretion history class which takes a parameter
+    set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (darkMatterHaloMassAccretionHistoryHearin2021)                :: self
@@ -70,44 +82,54 @@ contains
     double precision                                                              :: powerLawIndexEarly, powerLawIndexLate, &
          &                                                                           rateRollOver      , timeMaximum
 
-    !# <inputParameter>
-    !#   <name>powerLawIndexEarly</name>
-    !#   <description>The early time power law index.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>powerLawIndexLate</name>
-    !#   <description>The late time power law index.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>rateRollOver</name>
-    !#   <description>The roll over rate parameter, $k$.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>timeMaximum</name>
-    !#   <description>The time of the maximum mass.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>powerLawIndexEarly</name>
+      <description>The early time power law index.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>powerLawIndexLate</name>
+      <description>The late time power law index.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>rateRollOver</name>
+      <description>The roll over rate parameter, $k$.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>timeMaximum</name>
+      <description>The time of the maximum mass.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     self=darkMatterHaloMassAccretionHistoryHearin2021(powerLawIndexEarly,powerLawIndexLate,rateRollOver,timeMaximum)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function hearin2021ConstructorParameters
 
   function hearin2021ConstructorInternal(powerLawIndexEarly,powerLawIndexLate,rateRollOver,timeMaximum) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily hearin2021} dark matter halo mass accretion history class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily hearin2021} dark matter halo mass accretion history class.
+    !!}
     implicit none
     type            (darkMatterHaloMassAccretionHistoryHearin2021)                :: self
     double precision                                              , intent(in   ) :: powerLawIndexEarly, powerLawIndexLate, &
          &                                                                           rateRollOver      , timeMaximum
-    !# <constructorAssign variables="powerLawIndexEarly, powerLawIndexLate, rateRollOver, timeMaximum"/>
+    !![
+    <constructorAssign variables="powerLawIndexEarly, powerLawIndexLate, rateRollOver, timeMaximum"/>
+    !!]
     
     return
   end function hearin2021ConstructorInternal
 
   double precision function hearin2021PowerLawIndexEarly(self,node)
-    !% Return the early power law index for the given node.
+    !!{
+    Return the early power law index for the given node.
+    !!}
     implicit none
     class(darkMatterHaloMassAccretionHistoryHearin2021), intent(inout) :: self
     type (treeNode                                    ), intent(inout) :: node
@@ -118,7 +140,9 @@ contains
   end function hearin2021PowerLawIndexEarly
   
   double precision function hearin2021PowerLawIndexLate(self,node)
-    !% Return the late power law index for the given node.
+    !!{
+    Return the late power law index for the given node.
+    !!}
     implicit none
     class(darkMatterHaloMassAccretionHistoryHearin2021), intent(inout) :: self
     type (treeNode                                    ), intent(inout) :: node
@@ -129,7 +153,9 @@ contains
   end function hearin2021PowerLawIndexLate
   
   double precision function hearin2021RateRollOver(self,node)
-    !% Return the roll-over rate for the given node.
+    !!{
+    Return the roll-over rate for the given node.
+    !!}
     implicit none
     class(darkMatterHaloMassAccretionHistoryHearin2021), intent(inout) :: self
     type (treeNode                                    ), intent(inout) :: node
@@ -140,7 +166,9 @@ contains
   end function hearin2021RateRollOver
   
   double precision function hearin2021TimeMaximum(self,node)
-    !% Return the time of maximum mass for the given node.
+    !!{
+    Return the time of maximum mass for the given node.
+    !!}
     implicit none
     class(darkMatterHaloMassAccretionHistoryHearin2021), intent(inout) :: self
     type (treeNode                                    ), intent(inout) :: node
@@ -151,8 +179,10 @@ contains
   end function hearin2021TimeMaximum
   
   double precision function hearin2021Mass(self,node,time)
-    !% Compute the mass corresponding to {\normalfont \ttfamily time} in the mass accretion history of {\normalfont \ttfamily
-    !% node}.
+    !!{
+    Compute the mass corresponding to {\normalfont \ttfamily time} in the mass accretion history of {\normalfont \ttfamily
+    node}.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (darkMatterHaloMassAccretionHistoryHearin2021), intent(inout), target :: self
@@ -173,8 +203,10 @@ contains
   end function hearin2021Mass
 
   double precision function hearin2021MassAccretionRate(self,node,time)
-    !% Compute the mass accretion rate at the given {\normalfont \ttfamily time} in the mass accretion history of
-    !% {\normalfont \ttfamily node}.
+    !!{
+    Compute the mass accretion rate at the given {\normalfont \ttfamily time} in the mass accretion history of
+    {\normalfont \ttfamily node}.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (darkMatterHaloMassAccretionHistoryHearin2021), intent(inout) :: self
@@ -197,7 +229,9 @@ contains
   end function hearin2021MassAccretionRate
 
   double precision function hearin2021MassMaximum(self,node)
-    !% Compute the maximum mass in the mass accretion history of {\normalfont \ttfamily node}.
+    !!{
+    Compute the maximum mass in the mass accretion history of {\normalfont \ttfamily node}.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class(darkMatterHaloMassAccretionHistoryHearin2021), intent(inout) :: self
@@ -217,7 +251,9 @@ contains
   end function hearin2021MassMaximum
 
   double precision function hearin2021PowerLawIndex(self,node,time)
-    !% Compute the power-law index.
+    !!{
+    Compute the power-law index.
+    !!}
     implicit none
     class           (darkMatterHaloMassAccretionHistoryHearin2021), intent(inout) :: self
     type            (treeNode                                    ), intent(inout) :: node
@@ -234,7 +270,9 @@ contains
   end function hearin2021PowerLawIndex
   
   double precision function hearin2021PowerLawIndexDerivative(self,node,time)
-    !% Compute the derivative of the power-law index with respect to time.
+    !!{
+    Compute the derivative of the power-law index with respect to time.
+    !!}
     implicit none
     class           (darkMatterHaloMassAccretionHistoryHearin2021), intent(inout) :: self
     type            (treeNode                                    ), intent(inout) :: node
@@ -255,7 +293,9 @@ contains
   end function hearin2021PowerLawIndexDerivative
   
   double precision function hearin2021TimeZeroLogarithmic(self,node)
-    !% Compute the $t_0$ parameter.
+    !!{
+    Compute the $t_0$ parameter.
+    !!}
     implicit none
     class           (darkMatterHaloMassAccretionHistoryHearin2021), intent(inout) :: self
     type            (treeNode                                    ), intent(inout) :: node
@@ -273,7 +313,9 @@ contains
   end function hearin2021TimeZeroLogarithmic
   
   double precision function hearin2021Sigmoid(x,x0,k,yMinimum,yMaximum)
-    !% Sigmoid interpolation function.
+    !!{
+    Sigmoid interpolation function.
+    !!}
     implicit none
     double precision, intent(in   ) :: x       , x0      , &
          &                             yMinimum, yMaximum, &

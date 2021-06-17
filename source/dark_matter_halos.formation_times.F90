@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements calculations of dark matter halo formation times.
+!!{
+Contains a module which implements calculations of dark matter halo formation times.
+!!}
 
 module Dark_Matter_Halo_Formation_Times
-  !% Implements calculations of dark matter halo formation times.
+  !!{
+  Implements calculations of dark matter halo formation times.
+  !!}
   implicit none
   private
   public :: Dark_Matter_Halo_Formation_Time
@@ -28,8 +32,10 @@ module Dark_Matter_Halo_Formation_Times
 contains
 
   double precision function Dark_Matter_Halo_Formation_Time(node,formationMassFraction,darkMatterHaloMassAccretionHistory_,nodeFormation)
-    !% Returns the time at which the main branch progenitor of {\normalfont \ttfamily node} first had a mass equal to {\normalfont \ttfamily
-    !% formationMassFraction} of the current mass.
+    !!{
+    Returns the time at which the main branch progenitor of {\normalfont \ttfamily node} first had a mass equal to {\normalfont \ttfamily
+    formationMassFraction} of the current mass.
+    !!}
     use :: Dark_Matter_Halo_Mass_Accretion_Histories, only : darkMatterHaloMassAccretionHistoryClass
     use :: Galacticus_Nodes                         , only : nodeComponentBasic                     , treeNode
     implicit none

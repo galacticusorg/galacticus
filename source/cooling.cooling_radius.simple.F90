@@ -17,7 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a simple cooling radius class.
+  !!{
+  Implementation of a simple cooling radius class.
+  !!}
 
   use :: Abundances_Structure         , only : abundances
   use :: Chemical_Abundances_Structure, only : chemicalAbundances
@@ -30,24 +32,28 @@
   use :: Radiation_Fields             , only : radiationFieldCosmicMicrowaveBackground
   use :: Root_Finder                  , only : rootFinder
 
-  !# <coolingRadius name="coolingRadiusSimple">
-  !#  <description>
-  !#   A cooling radius class that computes the cooling radius by seeking the radius at which the time available for cooling (see
-  !#   \refPhysics{coolingTimeAvailable}) equals the cooling time (see \refPhysics{coolingTime}). The growth rate is determined
-  !#   consistently based on the slope of the density profile, the density dependence of the cooling function and the rate at
-  !#   which the time available for cooling is increasing. This method assumes that the cooling time is a monotonic function of
-  !#   radius.
-  !#  </description>
-  !#  <deepCopy>
-  !#   <functionClass variables="radiation"/>
-  !#  </deepCopy>
-  !#  <stateStorable>
-  !#   <functionClass variables="radiation"/>
-  !#  </stateStorable>
-  !# </coolingRadius>
+  !![
+  <coolingRadius name="coolingRadiusSimple">
+   <description>
+    A cooling radius class that computes the cooling radius by seeking the radius at which the time available for cooling (see
+    \refPhysics{coolingTimeAvailable}) equals the cooling time (see \refPhysics{coolingTime}). The growth rate is determined
+    consistently based on the slope of the density profile, the density dependence of the cooling function and the rate at
+    which the time available for cooling is increasing. This method assumes that the cooling time is a monotonic function of
+    radius.
+   </description>
+   <deepCopy>
+    <functionClass variables="radiation"/>
+   </deepCopy>
+   <stateStorable>
+    <functionClass variables="radiation"/>
+   </stateStorable>
+  </coolingRadius>
+  !!]
   type, extends(coolingRadiusClass) :: coolingRadiusSimple
-     !% Implementation of cooling radius class in which the cooling radius is defined as that radius at which the time available
-     !% for cooling equals the cooling time.
+     !!{
+     Implementation of cooling radius class in which the cooling radius is defined as that radius at which the time available
+     for cooling equals the cooling time.
+     !!}
      private
      class           (cosmologyFunctionsClass                ), pointer :: cosmologyFunctions_        => null()
      class           (coolingTimeClass                       ), pointer :: coolingTime_               => null()
@@ -62,9 +68,11 @@
      logical                                                            :: radiusComputed                      , radiusGrowthRateComputed
      double precision                                                   :: radiusGrowthRateStored              , radiusStored
    contains
-     !# <methods>
-     !#   <method description="Reset memoized calculations." method="calculationReset" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Reset memoized calculations." method="calculationReset" />
+     </methods>
+     !!]
      final     ::                     simpleDestructor
      procedure :: autoHook         => simpleAutoHook
      procedure :: radius           => simpleRadius
@@ -73,7 +81,9 @@
   end type coolingRadiusSimple
 
   interface coolingRadiusSimple
-     !% Constructors for the simple cooling radius class.
+     !!{
+     Constructors for the simple cooling radius class.
+     !!}
      module procedure simpleConstructorParameters
      module procedure simpleConstructorInternal
   end interface coolingRadiusSimple
@@ -89,7 +99,9 @@
 contains
 
   function simpleConstructorParameters(parameters) result(self)
-    !% Constructor for the simple cooling radius class which builds the object from a parameter set.
+    !!{
+    Constructor for the simple cooling radius class which builds the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (coolingRadiusSimple           )                :: self
@@ -100,23 +112,29 @@ contains
     class(hotHaloMassDistributionClass  ), pointer       :: hotHaloMassDistribution_
     class(cosmologyFunctionsClass       ), pointer       :: cosmologyFunctions_
 
-    !# <objectBuilder class="cosmologyFunctions"        name="cosmologyFunctions_"        source="parameters"/>
-    !# <objectBuilder class="coolingTimeAvailable"      name="coolingTimeAvailable_"      source="parameters"/>
-    !# <objectBuilder class="coolingTime"               name="coolingTime_"               source="parameters"/>
-    !# <objectBuilder class="hotHaloTemperatureProfile" name="hotHaloTemperatureProfile_" source="parameters"/>
-    !# <objectBuilder class="hotHaloMassDistribution"   name="hotHaloMassDistribution_"   source="parameters"/>
+    !![
+    <objectBuilder class="cosmologyFunctions"        name="cosmologyFunctions_"        source="parameters"/>
+    <objectBuilder class="coolingTimeAvailable"      name="coolingTimeAvailable_"      source="parameters"/>
+    <objectBuilder class="coolingTime"               name="coolingTime_"               source="parameters"/>
+    <objectBuilder class="hotHaloTemperatureProfile" name="hotHaloTemperatureProfile_" source="parameters"/>
+    <objectBuilder class="hotHaloMassDistribution"   name="hotHaloMassDistribution_"   source="parameters"/>
+    !!]
     self=coolingRadiusSimple(cosmologyFunctions_,coolingTimeAvailable_,coolingTime_,hotHaloTemperatureProfile_,hotHaloMassDistribution_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"       />
-    !# <objectDestructor name="coolingTimeAvailable_"     />
-    !# <objectDestructor name="coolingTime_"              />
-    !# <objectDestructor name="hotHaloTemperatureProfile_"/>
-    !# <objectDestructor name="hotHaloMassDistribution_"  />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"       />
+    <objectDestructor name="coolingTimeAvailable_"     />
+    <objectDestructor name="coolingTime_"              />
+    <objectDestructor name="hotHaloTemperatureProfile_"/>
+    <objectDestructor name="hotHaloMassDistribution_"  />
+    !!]
     return
   end function simpleConstructorParameters
 
   function simpleConstructorInternal(cosmologyFunctions_,coolingTimeAvailable_,coolingTime_,hotHaloTemperatureProfile_,hotHaloMassDistribution_) result(self)
-    !% Internal constructor for the simple cooling radius class.
+    !!{
+    Internal constructor for the simple cooling radius class.
+    !!}
     use :: Abundances_Structure         , only : Abundances_Property_Count, abundances
     use :: Array_Utilities              , only : operator(.intersection.)
     use :: Chemical_Abundances_Structure, only : Chemicals_Property_Count
@@ -130,7 +148,9 @@ contains
     class           (hotHaloTemperatureProfileClass), intent(in   ), target :: hotHaloTemperatureProfile_
     class           (hotHaloMassDistributionClass  ), intent(in   ), target :: hotHaloMassDistribution_
     double precision                                , parameter             :: toleranceAbsolute         =0.0d0, toleranceRelative=1.0d-6
-    !# <constructorAssign variables="*cosmologyFunctions_, *coolingTimeAvailable_, *coolingTime_, *hotHaloTemperatureProfile_, *hotHaloMassDistribution_"/>
+    !![
+    <constructorAssign variables="*cosmologyFunctions_, *coolingTimeAvailable_, *coolingTime_, *hotHaloTemperatureProfile_, *hotHaloMassDistribution_"/>
+    !!]
 
     ! Initial state of stored solutions.
     self%radiusComputed          =.false.
@@ -140,7 +160,9 @@ contains
     self%chemicalsCount =Chemicals_Property_Count ()
     ! Initialize radiation field.
     allocate(self%radiation)
-    !# <referenceConstruct isResult="yes" owner="self" object="radiation" constructor="radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)"/>
+    !![
+    <referenceConstruct isResult="yes" owner="self" object="radiation" constructor="radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)"/>
+    !!]
     ! Check that required components are gettable.
     if     (                                                                                                                        &
          &  .not.(                                                                                                                  &
@@ -175,7 +197,9 @@ contains
   end function simpleConstructorInternal
 
   subroutine simpleAutoHook(self)
-    !% Attach to the calculation reset event.
+    !!{
+    Attach to the calculation reset event.
+    !!}
     use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(coolingRadiusSimple), intent(inout) :: self
@@ -185,23 +209,29 @@ contains
   end subroutine simpleAutoHook
 
   subroutine simpleDestructor(self)
-    !% Destructor for the simple cooling radius class.
+    !!{
+    Destructor for the simple cooling radius class.
+    !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none
     type(coolingRadiusSimple), intent(inout) :: self
 
-    !# <objectDestructor name="self%coolingTimeAvailable_"     />
-    !# <objectDestructor name="self%coolingTime_"              />
-    !# <objectDestructor name="self%hotHaloTemperatureProfile_"/>
-    !# <objectDestructor name="self%hotHaloMassDistribution_"  />
-    !# <objectDestructor name="self%cosmologyFunctions_"       />
-    !# <objectDestructor name="self%radiation"                 />
+    !![
+    <objectDestructor name="self%coolingTimeAvailable_"     />
+    <objectDestructor name="self%coolingTime_"              />
+    <objectDestructor name="self%hotHaloTemperatureProfile_"/>
+    <objectDestructor name="self%hotHaloMassDistribution_"  />
+    <objectDestructor name="self%cosmologyFunctions_"       />
+    <objectDestructor name="self%radiation"                 />
+    !!]
     call calculationResetEvent%detach(self,simpleCalculationReset)
     return
   end subroutine simpleDestructor
 
   subroutine simpleCalculationReset(self,node)
-    !% Reset the cooling radius calculation.
+    !!{
+    Reset the cooling radius calculation.
+    !!}
     implicit none
     class(coolingRadiusSimple), intent(inout) :: self
     type (treeNode           ), intent(inout) :: node
@@ -213,7 +243,9 @@ contains
   end subroutine simpleCalculationReset
 
   double precision function simpleRadiusGrowthRate(self,node)
-    !% Returns the cooling radius growth rate (in Mpc/Gyr) in the hot atmosphere.
+    !!{
+    Returns the cooling radius growth rate (in Mpc/Gyr) in the hot atmosphere.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentHotHalo, treeNode
     implicit none
     class           (coolingRadiusSimple ), intent(inout) :: self
@@ -276,7 +308,9 @@ contains
   end function simpleRadiusGrowthRate
 
   double precision function simpleRadius(self,node)
-    !% Return the cooling radius in the simple model.
+    !!{
+    Return the cooling radius in the simple model.
+    !!}
     use :: Chemical_Reaction_Rates_Utilities, only : Chemicals_Mass_To_Density_Conversion
     use :: Galacticus_Nodes                 , only : nodeComponentBasic                  , nodeComponentHotHalo, treeNode
     implicit none
@@ -346,7 +380,9 @@ contains
   end function simpleRadius
 
   double precision function coolingRadiusRoot(radius)
-    !% Root function which evaluates the difference between the cooling time at {\normalfont \ttfamily radius} and the time available for cooling.
+    !!{
+    Root function which evaluates the difference between the cooling time at {\normalfont \ttfamily radius} and the time available for cooling.
+    !!}
     implicit none
     double precision, intent(in   ) :: radius
     double precision                :: coolingTime, density, temperature

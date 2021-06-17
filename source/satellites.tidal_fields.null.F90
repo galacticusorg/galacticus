@@ -17,29 +17,39 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a satellite tidal field class which assumes zero tidal field.
+  !!{
+  Implements a satellite tidal field class which assumes zero tidal field.
+  !!}
 
-  !# <satelliteTidalField name="satelliteTidalFieldNull">
-  !#  <description>
-  !#   A satellite tidal field class which assumes a zero tidal field always.
-  !#  </description>
-  !# </satelliteTidalField>
+  !![
+  <satelliteTidalField name="satelliteTidalFieldNull">
+   <description>
+    A satellite tidal field class which assumes a zero tidal field always.
+   </description>
+  </satelliteTidalField>
+  !!]
   type, extends(satelliteTidalFieldClass) :: satelliteTidalFieldNull
-     !% Implementation of a satellite tidal friction class which assumes no tidal field.
+     !!{
+     Implementation of a satellite tidal friction class which assumes no tidal field.
+     !!}
      private
    contains
      procedure :: tidalTensorRadial => nullTidalTensorRadial
   end type satelliteTidalFieldNull
 
   interface satelliteTidalFieldNull
-     !% Constructors for the null satellite tidal field class.
+     !!{
+     Constructors for the null satellite tidal field class.
+     !!}
      module procedure nullConstructorParameters
   end interface satelliteTidalFieldNull
 
 contains
 
   function nullConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily null} satellite tidal field class which builds the object from a parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily null} satellite tidal field class which builds the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(satelliteTidalFieldNull)                :: self
@@ -51,7 +61,9 @@ contains
   end function nullConstructorParameters
 
   double precision function nullTidalTensorRadial(self,node)
-    !% Return the radial part of the tidal tensor for satellite halos assumed to be zero.
+    !!{
+    Return the radial part of the tidal tensor for satellite halos assumed to be zero.
+    !!}
     implicit none
     class(satelliteTidalFieldNull), intent(inout) :: self
     type (treeNode               ), intent(inout) :: node

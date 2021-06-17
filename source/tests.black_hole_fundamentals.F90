@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to test the black hole fundamental functions.
+!!{
+Contains a program to test the black hole fundamental functions.
+!!}
 
 program Test_Black_Hole_Fundamentals
-  !% Tests of black hole fundamental functions.
+  !!{
+  Tests of black hole fundamental functions.
+  !!}
   use :: Black_Hole_Fundamentals, only : Black_Hole_Horizon_Radius, Black_Hole_ISCO_Radius, orbitPrograde
   use :: Display                , only : displayVerbositySet      , verbosityLevelStandard
   use :: Unit_Tests             , only : Assert                   , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish, &

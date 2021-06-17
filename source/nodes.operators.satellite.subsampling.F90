@@ -17,39 +17,49 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a node operator class that does a subsampling of satellites based on their properties at infall.
+  !!{
+  Implements a node operator class that does a subsampling of satellites based on their properties at infall.
+  !!}
 
-  !# <nodeOperator name="nodeOperatorSatelliteSubsampling">
-  !#  <description>
-  !#   A node operator class that does a subsampling of satellites based on their properties at infall. The sampling
-  !#   function has a form of
-  !#   \begin{equation}
-  !#   f = \alpha (M_{\mathrm{sat}}/M_0)^\beta,
-  !#   \end{equation}
-  !#   where $M_\mathrm{sat}$ is the satellite's mass, $M_0$ is a reference mass scale. The normalization $\alpha$
-  !#   and slope parameter $\beta$ can be set in the paremter file. A threshold on satellite's mass, infall time,
-  !#   and pericenter distance when subsampling is done can also be set to avoid undersampling satellites that are 
-  !#   less abundant, e.g. satellites with large mass, or in plunging orbit.
-  !#  </description>
-  !# </nodeOperator>
+  !![
+  <nodeOperator name="nodeOperatorSatelliteSubsampling">
+   <description>
+    A node operator class that does a subsampling of satellites based on their properties at infall. The sampling
+    function has a form of
+    \begin{equation}
+    f = \alpha (M_{\mathrm{sat}}/M_0)^\beta,
+    \end{equation}
+    where $M_\mathrm{sat}$ is the satellite's mass, $M_0$ is a reference mass scale. The normalization $\alpha$
+    and slope parameter $\beta$ can be set in the paremter file. A threshold on satellite's mass, infall time,
+    and pericenter distance when subsampling is done can also be set to avoid undersampling satellites that are 
+    less abundant, e.g. satellites with large mass, or in plunging orbit.
+   </description>
+  </nodeOperator>
+  !!]
   type, extends(nodeOperatorClass) :: nodeOperatorSatelliteSubsampling
-     !% A node operator class that does a subsampling of satellites based on their properties at infall.
+     !!{
+     A node operator class that does a subsampling of satellites based on their properties at infall.
+     !!}
      private
      double precision :: samplingMassThreshold        , samplingInfallTimeThreshold, &
           &              samplingPericenterThreshold  , samplingFunctionSlope      , &
           &              samplingFunctionNormalization
      logical          :: applyOrbitCriterion
    contains
-     !# <methods>
-     !#   <method description="Compute the sampling rate." method="samplingRate" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Compute the sampling rate." method="samplingRate" />
+     </methods>
+     !!]
      final     ::                 satelliteSubsamplingDestructor
      procedure :: nodesMerge   => satelliteSubsamplingNodesMerge
      procedure :: samplingRate => satelliteSubsamplingSamplingRate
   end type nodeOperatorSatelliteSubsampling
   
   interface nodeOperatorSatelliteSubsampling
-     !% Constructors for the {\normalfont \ttfamily satelliteSubsampling} node operator class.
+     !!{
+     Constructors for the {\normalfont \ttfamily satelliteSubsampling} node operator class.
+     !!}
      module procedure satelliteSubsamplingConstructorParameters
      module procedure satelliteSubsamplingConstructorInternal
   end interface nodeOperatorSatelliteSubsampling
@@ -57,7 +67,9 @@
 contains
 
   function satelliteSubsamplingConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily satelliteSubsampling} node operator class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily satelliteSubsampling} node operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type            (nodeOperatorSatelliteSubsampling)                :: self
@@ -66,43 +78,49 @@ contains
          &                                                               samplingPericenterThreshold  , samplingFunctionSlope      , &
          &                                                               samplingFunctionNormalization
 
-    !# <inputParameter>
-    !#   <name>samplingMassThreshold</name>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>Mass threshold below which satellites are subsampled.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>samplingInfallTimeThreshold</name>
-    !#   <defaultValue>huge(0.0d0)</defaultValue>
-    !#   <description>Infall time threshold below which satellites are subsampled.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>samplingPericenterThreshold</name>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>Pericenter distance threshold above which satellites are subsampled in units of the distance to the host halo at infall. This criterion will be ignored if the {\normalfont \ttfamily virialOrbit} of satellite is not gettable.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>samplingFunctionSlope</name>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>Slope of the sampling function.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>samplingFunctionNormalization</name>
-    !#   <defaultValue>1.0d0</defaultValue>
-    !#   <description>Normalization of the sampling function.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>samplingMassThreshold</name>
+      <defaultValue>0.0d0</defaultValue>
+      <description>Mass threshold below which satellites are subsampled.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>samplingInfallTimeThreshold</name>
+      <defaultValue>huge(0.0d0)</defaultValue>
+      <description>Infall time threshold below which satellites are subsampled.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>samplingPericenterThreshold</name>
+      <defaultValue>0.0d0</defaultValue>
+      <description>Pericenter distance threshold above which satellites are subsampled in units of the distance to the host halo at infall. This criterion will be ignored if the {\normalfont \ttfamily virialOrbit} of satellite is not gettable.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>samplingFunctionSlope</name>
+      <defaultValue>0.0d0</defaultValue>
+      <description>Slope of the sampling function.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>samplingFunctionNormalization</name>
+      <defaultValue>1.0d0</defaultValue>
+      <description>Normalization of the sampling function.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     self=nodeOperatorSatelliteSubsampling(samplingMassThreshold,samplingInfallTimeThreshold,samplingPericenterThreshold,samplingFunctionSlope,samplingFunctionNormalization)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function satelliteSubsamplingConstructorParameters
 
   function satelliteSubsamplingConstructorInternal(samplingMassThreshold,samplingInfallTimeThreshold,samplingPericenterThreshold,samplingFunctionSlope,samplingFunctionNormalization) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily satelliteSubsampling} node operator class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily satelliteSubsampling} node operator class.
+    !!}
     use :: Galacticus_Nodes, only : defaultSatelliteComponent
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
@@ -110,7 +128,9 @@ contains
     double precision                                  , intent(in   ) :: samplingMassThreshold        , samplingInfallTimeThreshold, &
          &                                                               samplingPericenterThreshold  , samplingFunctionSlope      , &
          &                                                               samplingFunctionNormalization
-    !# <constructorAssign variables="samplingMassThreshold,samplingInfallTimeThreshold,samplingPericenterThreshold,samplingFunctionSlope,samplingFunctionNormalization"/>
+    !![
+    <constructorAssign variables="samplingMassThreshold,samplingInfallTimeThreshold,samplingPericenterThreshold,samplingFunctionSlope,samplingFunctionNormalization"/>
+    !!]
     
     if (defaultSatelliteComponent%destructionTimeIsSettable()) then
        self%applyOrbitCriterion=defaultSatelliteComponent%virialOrbitIsGettable()
@@ -121,7 +141,9 @@ contains
   end function satelliteSubsamplingConstructorInternal
 
   subroutine satelliteSubsamplingDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily satelliteSubsampling} node operator class.
+    !!{
+    Destructor for the {\normalfont \ttfamily satelliteSubsampling} node operator class.
+    !!}
     implicit none
     type(nodeOperatorSatelliteSubsampling), intent(inout) :: self
     !$GLC attributes unused :: self
@@ -130,7 +152,9 @@ contains
   end subroutine satelliteSubsamplingDestructor
 
   subroutine satelliteSubsamplingNodesMerge(self,node)
-    !% Does a subsampling of satellites based on their infall mass and orbital parameters.
+    !!{
+    Does a subsampling of satellites based on their infall mass and orbital parameters.
+    !!}
     use :: Galacticus_Nodes   , only : nodeComponentSatellite
     use :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodesBranch
     use :: Display            , only : displayMessage                , displayVerbosity, verbosityLevelInfo
@@ -185,7 +209,9 @@ contains
   end subroutine satelliteSubsamplingNodesMerge
   
   double precision function satelliteSubsamplingSamplingRate(self,node)
-    !% Compute the sampling rate for a satellite based on its properties at infall.
+    !!{
+    Compute the sampling rate for a satellite based on its properties at infall.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSatellite
     use :: Kepler_Orbits   , only : keplerOrbit
     implicit none

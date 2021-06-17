@@ -19,10 +19,14 @@
 
 !+    Contributions to this file made by:  Alex Merson.
 
-!% Contains a module which defines the stellar luminosities object.
+!!{
+Contains a module which defines the stellar luminosities object.
+!!}
 
 module Stellar_Luminosities_Structure
-  !% Defines the stellar luminosities object.
+  !!{
+  Defines the stellar luminosities object.
+  !!}
   use :: ISO_Varying_String                    , only : varying_string
   use :: Stellar_Population_Spectra_Postprocess, only : stellarPopulationSpectraPostprocessorBuilderClass, stellarPopulationSpectraPostprocessorList
   implicit none
@@ -54,41 +58,45 @@ module Stellar_Luminosities_Structure
   end interface operator(*)
 
   type stellarLuminosities
-     !% The stellar luminosities structure.
+     !!{
+     The stellar luminosities structure.
+     !!}
      private
      double precision, allocatable, dimension(:) :: luminosityValue
    contains
-     !# <methods>
-     !#   <method description="Multiply stellar luminosities by a scalar." method="operator(*)" />
-     !#   <method description="Divide stellar luminosities by a scalar." method="operator(/)" />
-     !#   <method description="Add two stellarLuminosities." method="operator(+)" />
-     !#   <method description="Subtract one abundance from another." method="operator(-)" />
-     !#   <method description="Increment a stellar luminosities object." method="increment" />
-     !#   <method description="Return a count of the number of properties in a serialized stellar luminosities object." method="serializeCount" />
-     !#   <method description="Serialize a stellar luminosities object to an array." method="serialize" />
-     !#   <method description="Deserialize a stellar luminosities object from an array." method="deserialize" />
-     !#   <method description="Return true if a stellar luminosities object is zero." method="isZero" />
-     !#   <method description="Destroy a stellar luminosities object." method="destroy" />
-     !#   <method description="Reset a stellar luminosities object." method="reset" />
-     !#   <method description="Build a stellar luminosities object from a provided XML description." method="builder" />
-     !#   <method description="Dump a stellar luminosities object." method="dump" />
-     !#   <method description="Dump a stellar luminosities object to binary." method="dumpRaw" />
-     !#   <method description="Read a stellar luminosities object from binary." method="readRaw" />
-     !#   <method description="Set a stellar luminosities object to unity." method="setToUnity" />
-     !#   <method description="Return the $i^\mathrm{th}$ luminosity." method="luminosity" />
-     !#   <method description="Store a stellar luminosities object in the output buffers." method="output" />
-     !#   <method description="Store a stellar luminosities object in the output buffers." method="postOutput" />
-     !#   <method description="Return the number of luminosities to be output at the given time." method="luminosityOutputCount" />
-     !#   <method description="Specify the count of a stellar luminosities object for output." method="outputCount" />
-     !#   <method description="Specify the names of stellar luminosities object properties for output." method="outputNames" />
-     !#   <method description="Return the total number of luminosities tracked. If {\normalfont \ttfamily unmapped} is true, then the number of luminosities prior to mapping is returned." method="luminosityCount" />
-     !#   <method description="Set the luminosities using a single stellar population." method="setLuminosities" />
-     !#   <method description="Return true if the indexed luminosity is to be output at the given time." method="isOutput" />
-     !#   <method description="Return the index to a luminosity specified by name or properties." method="index" />
-     !#   <method description="Return the name of a luminosity specified by index." method="name" />
-     !#   <method description="Truncate the number of stellar luminosities stored to match that in the given {\normalfont \ttfamily templateLuminosities}." method="truncate" />
-     !#   <method description="Returns the size of any non-static components of the type." method="nonStaticSizeOf" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Multiply stellar luminosities by a scalar." method="operator(*)" />
+       <method description="Divide stellar luminosities by a scalar." method="operator(/)" />
+       <method description="Add two stellarLuminosities." method="operator(+)" />
+       <method description="Subtract one abundance from another." method="operator(-)" />
+       <method description="Increment a stellar luminosities object." method="increment" />
+       <method description="Return a count of the number of properties in a serialized stellar luminosities object." method="serializeCount" />
+       <method description="Serialize a stellar luminosities object to an array." method="serialize" />
+       <method description="Deserialize a stellar luminosities object from an array." method="deserialize" />
+       <method description="Return true if a stellar luminosities object is zero." method="isZero" />
+       <method description="Destroy a stellar luminosities object." method="destroy" />
+       <method description="Reset a stellar luminosities object." method="reset" />
+       <method description="Build a stellar luminosities object from a provided XML description." method="builder" />
+       <method description="Dump a stellar luminosities object." method="dump" />
+       <method description="Dump a stellar luminosities object to binary." method="dumpRaw" />
+       <method description="Read a stellar luminosities object from binary." method="readRaw" />
+       <method description="Set a stellar luminosities object to unity." method="setToUnity" />
+       <method description="Return the $i^\mathrm{th}$ luminosity." method="luminosity" />
+       <method description="Store a stellar luminosities object in the output buffers." method="output" />
+       <method description="Store a stellar luminosities object in the output buffers." method="postOutput" />
+       <method description="Return the number of luminosities to be output at the given time." method="luminosityOutputCount" />
+       <method description="Specify the count of a stellar luminosities object for output." method="outputCount" />
+       <method description="Specify the names of stellar luminosities object properties for output." method="outputNames" />
+       <method description="Return the total number of luminosities tracked. If {\normalfont \ttfamily unmapped} is true, then the number of luminosities prior to mapping is returned." method="luminosityCount" />
+       <method description="Set the luminosities using a single stellar population." method="setLuminosities" />
+       <method description="Return true if the indexed luminosity is to be output at the given time." method="isOutput" />
+       <method description="Return the index to a luminosity specified by name or properties." method="index" />
+       <method description="Return the name of a luminosity specified by index." method="name" />
+       <method description="Truncate the number of stellar luminosities stored to match that in the given {\normalfont \ttfamily templateLuminosities}." method="truncate" />
+       <method description="Returns the size of any non-static components of the type." method="nonStaticSizeOf" />
+     </methods>
+     !!]
      procedure         ::                          Stellar_Luminosities_Add
      procedure         ::                          Stellar_Luminosities_Subtract
      procedure         ::                          Stellar_Luminosities_Multiply
@@ -152,11 +160,15 @@ module Stellar_Luminosities_Structure
   
 contains
 
-  !# <nodeComponentInitializationTask>
-  !#  <unitName>Stellar_Luminosities_Initializor</unitName>
-  !# </nodeComponentInitializationTask>
+  !![
+  <nodeComponentInitializationTask>
+   <unitName>Stellar_Luminosities_Initializor</unitName>
+  </nodeComponentInitializationTask>
+  !!]
   subroutine Stellar_Luminosities_Initializor(parameters_)
-    !% Initialize the {\normalfont \ttfamily stellarLuminositiesStructure} object module. Determines which stellar luminosities are to be tracked.
+    !!{
+    Initialize the {\normalfont \ttfamily stellarLuminositiesStructure} object module. Determines which stellar luminosities are to be tracked.
+    !!}
     use            :: Array_Utilities    , only : Array_Reverse
     use            :: Cosmology_Functions, only : cosmologyFunctions     , cosmologyFunctionsClass
     use            :: Galacticus_Error   , only : Galacticus_Error_Report
@@ -179,20 +191,22 @@ contains
     integer         (c_size_t                                         ), allocatable, dimension(:) :: luminosityTimeIndex
 
     ! Get luminosity output option.
-    !# <inputParameter>
-    !#   <name>luminosityOutputOption</name>
-    !#   <defaultValue>var_str('present')</defaultValue>
-    !#   <description>
-    !#      Selects which luminosities will be output at each output time:
-    !#      \begin{description}
-    !#      \item [all] Output all luminosities;
-    !#      \item [future] Output only those luminosities computed for the present output or future times;
-    !#      \item [present] Output only those luminosities computed for the present output time.
-    !#      \end{description}
-    !#   </description>
-    !#   <source>parameters_</source>
-    !#   <variable>luminosityOutputOptionText</variable>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>luminosityOutputOption</name>
+      <defaultValue>var_str('present')</defaultValue>
+      <description>
+         Selects which luminosities will be output at each output time:
+         \begin{description}
+         \item [all] Output all luminosities;
+         \item [future] Output only those luminosities computed for the present output or future times;
+         \item [present] Output only those luminosities computed for the present output time.
+         \end{description}
+      </description>
+      <source>parameters_</source>
+      <variable>luminosityOutputOptionText</variable>
+    </inputParameter>
+    !!]
     select case (char(luminosityOutputOptionText))
     case ("all")
        luminosityOutputOption=luminosityOutputOptionAll
@@ -205,8 +219,10 @@ contains
     end select
     
     ! Get required objects.
-    !# <objectBuilder class="cosmologyFunctions"                           name="cosmologyFunctions_"                           source="parameters_"/>
-    !# <objectBuilder class="stellarPopulationSpectraPostprocessorBuilder" name="stellarPopulationSpectraPostprocessorBuilder_" source="parameters_"/>
+    !![
+    <objectBuilder class="cosmologyFunctions"                           name="cosmologyFunctions_"                           source="parameters_"/>
+    <objectBuilder class="stellarPopulationSpectraPostprocessorBuilder" name="stellarPopulationSpectraPostprocessorBuilder_" source="parameters_"/>
+    !!]
  
     ! Read in the parameters which specify the luminosities to be computed.
     luminosityCount=parameters_%count('luminosityRedshift',zeroIfNotPresent=.true.)
@@ -229,12 +245,14 @@ contains
        allocate(luminosityPostprocessSet(luminosityCount))
        allocate(luminosityRedshiftText  (luminosityCount))
        call Memory_Usage_Record(sizeof(luminosityFilter)+sizeof(luminosityType)+sizeof(luminosityPostprocessSet),blockCount=4)
-       !# <inputParameter>
-       !#   <name>luminosityRedshift</name>
-       !#   <description>The redshift for which to compute each specified stellar luminosity.</description>
-       !#   <source>parameters_</source>
-       !#   <variable>luminosityRedshiftText</variable>
-       !# </inputParameter>
+       !![
+       <inputParameter>
+         <name>luminosityRedshift</name>
+         <description>The redshift for which to compute each specified stellar luminosity.</description>
+         <source>parameters_</source>
+         <variable>luminosityRedshiftText</variable>
+       </inputParameter>
+       !!]
        do iLuminosity=1,size(luminosityRedshiftText)
           if (luminosityRedshiftText(iLuminosity) /= "all") then
              redshiftLabel=char(luminosityRedshiftText(iLuminosity))
@@ -246,42 +264,48 @@ contains
           luminosityMap(iLuminosity)=iLuminosity
        end do
        if (parameters_%isPresent('luminosityBandRedshift')) then
-          !# <inputParameter>
-          !#   <name>luminosityBandRedshift</name>
-	  !#   <description>If present, force filters to be shifted to this redshift rather than that specified by {\normalfont \ttfamily [luminosityRedshift]}. Allows sampling of the SED at wavelengths corresponding to other redshifts.</description>
-	  !#   <source>parameters_</source>
-          !# </inputParameter>
+          !![
+          <inputParameter>
+            <name>luminosityBandRedshift</name>
+	    <description>If present, force filters to be shifted to this redshift rather than that specified by {\normalfont \ttfamily [luminosityRedshift]}. Allows sampling of the SED at wavelengths corresponding to other redshifts.</description>
+	    <source>parameters_</source>
+          </inputParameter>
+          !!]
        else
           luminosityBandRedshift=luminosityRedshift
        end if
-       !# <inputParameter>
-       !#   <name>luminosityFilter</name>
-       !#   <description>The filter name for each stellar luminosity to be computed.</description>
-       !#   <source>parameters_</source>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>luminosityType</name>
-       !#   <description>
-       !#      The luminosity type for each stellar luminosity to be computed:
-       !#      \begin{description}
-       !#       \item[rest] Compute luminosity in the galaxy rest frame;
-       !#       \item[observed] Compute luminosity in the observer frame\footnote{The luminosity computed in this way is that in the galaxy rest
-       !#                       frame using a filter blueshifted to the galaxy's redshift. This means that to compute an apparent magnitude you
-       !#                       must add not only the distance modulus, but a factor of $-2.5\log_{10}(1+z)$ to account for compression of photon
-       !#                       frequencies.}.
-       !#      \end{description}
-       !#   </description>
-       !#   <source>parameters_</source>
-       !# </inputParameter>
+       !![
+       <inputParameter>
+         <name>luminosityFilter</name>
+         <description>The filter name for each stellar luminosity to be computed.</description>
+         <source>parameters_</source>
+       </inputParameter>
+       <inputParameter>
+         <name>luminosityType</name>
+         <description>
+            The luminosity type for each stellar luminosity to be computed:
+            \begin{description}
+             \item[rest] Compute luminosity in the galaxy rest frame;
+             \item[observed] Compute luminosity in the observer frame\footnote{The luminosity computed in this way is that in the galaxy rest
+                             frame using a filter blueshifted to the galaxy's redshift. This means that to compute an apparent magnitude you
+                             must add not only the distance modulus, but a factor of $-2.5\log_{10}(1+z)$ to account for compression of photon
+                             frequencies.}.
+            \end{description}
+         </description>
+         <source>parameters_</source>
+       </inputParameter>
+       !!]
        ! Read postprocessing set information.
        if (parameters_%count('luminosityPostprocessSet',zeroIfNotPresent=.true.) > 0) then
           if (parameters_%count('luminosityPostprocessSet') /= luminosityCount) &
                & call Galacticus_Error_Report('luminosityPostprocessSet and luminosityFilter input arrays must have same dimension'//{introspection:location})
-          !# <inputParameter>
-          !#   <name>luminosityPostprocessSet</name>
-	  !#   <description>The name of the set of postprocessing algorithms to apply to this filter.</description>
-	  !#   <source>parameters_</source>
-          !# </inputParameter>
+          !![
+          <inputParameter>
+            <name>luminosityPostprocessSet</name>
+	    <description>The name of the set of postprocessing algorithms to apply to this filter.</description>
+	    <source>parameters_</source>
+          </inputParameter>
+          !!]
        else
           luminosityPostprocessSet="default"
        end if
@@ -354,35 +378,47 @@ contains
        unitStellarLuminosities%luminosityValue=1.0d0
        zeroStellarLuminosities%luminosityValue=0.0d0
     end if
-    !# <objectDestructor name="cosmologyFunctions_"                          />
-    !# <objectDestructor name="stellarPopulationSpectraPostprocessorBuilder_"/>
+    !![
+    <objectDestructor name="cosmologyFunctions_"                          />
+    <objectDestructor name="stellarPopulationSpectraPostprocessorBuilder_"/>
+    !!]
     return
   end subroutine Stellar_Luminosities_Initializor
   
-  !# <nodeComponentThreadInitializationTask>
-  !#  <unitName>Stellar_Luminosities_Thread_Initializor</unitName>
-  !# </nodeComponentThreadInitializationTask>
+  !![
+  <nodeComponentThreadInitializationTask>
+   <unitName>Stellar_Luminosities_Thread_Initializor</unitName>
+  </nodeComponentThreadInitializationTask>
+  !!]
   subroutine Stellar_Luminosities_Thread_Initializor(parameters_)
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
 
-    !# <objectBuilder class="stellarPopulationSpectraPostprocessorBuilder" name="stellarPopulationSpectraPostprocessorBuilder__" source="parameters_"/>
+    !![
+    <objectBuilder class="stellarPopulationSpectraPostprocessorBuilder" name="stellarPopulationSpectraPostprocessorBuilder__" source="parameters_"/>
+    !!]
     return
   end subroutine Stellar_Luminosities_Thread_Initializor
   
-  !# <nodeComponentThreadUninitializationTask>
-  !#  <unitName>Stellar_Luminosities_Thread_Uninitializor</unitName>
-  !# </nodeComponentThreadUninitializationTask>
+  !![
+  <nodeComponentThreadUninitializationTask>
+   <unitName>Stellar_Luminosities_Thread_Uninitializor</unitName>
+  </nodeComponentThreadUninitializationTask>
+  !!]
   subroutine Stellar_Luminosities_Thread_Uninitializor()
     implicit none
     
-    !# <objectDestructor name="stellarPopulationSpectraPostprocessorBuilder__"/>
+    !![
+    <objectDestructor name="stellarPopulationSpectraPostprocessorBuilder__"/>
+    !!]
     return
   end subroutine Stellar_Luminosities_Thread_Uninitializor
   
   subroutine Stellar_Luminosities_Destroy(self)
-    !% Destroy an stellarLuminosities object.
+    !!{
+    Destroy an stellarLuminosities object.
+    !!}
     implicit none
     class(stellarLuminosities), intent(inout) :: self
 
@@ -391,7 +427,9 @@ contains
   end subroutine Stellar_Luminosities_Destroy
 
   subroutine Stellar_Luminosities_Builder(self,stellarLuminositiesDefinition)
-    !% Build a {\normalfont \ttfamily stellarLuminosities} object from the given XML {\normalfont \ttfamily stellarLuminositiesDefinition}.
+    !!{
+    Build a {\normalfont \ttfamily stellarLuminosities} object from the given XML {\normalfont \ttfamily stellarLuminositiesDefinition}.
+    !!}
     use :: FoX_DOM         , only : node
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: IO_XML          , only : XML_Get_Elements_By_Tag_Name, xmlNodeList, extractDataContent => extractDataContentTS
@@ -414,7 +452,9 @@ contains
   end subroutine Stellar_Luminosities_Builder
 
   subroutine Stellar_Luminosities_Dump(self)
-    !% Dump a stellar luminosities object.
+    !!{
+    Dump a stellar luminosities object.
+    !!}
     use :: Display           , only : displayMessage
     use :: ISO_Varying_String, only : operator(//)
     implicit none
@@ -439,7 +479,9 @@ contains
   end subroutine Stellar_Luminosities_Dump
 
   subroutine Stellar_Luminosities_Dump_Raw(self,fileHandle)
-    !% Dump an stellarLuminosities object to binary.
+    !!{
+    Dump an stellarLuminosities object to binary.
+    !!}
     implicit none
     class  (stellarLuminosities), intent(in   ) :: self
     integer                     , intent(in   ) :: fileHandle
@@ -453,7 +495,9 @@ contains
   end subroutine Stellar_Luminosities_Dump_Raw
 
   subroutine Stellar_Luminosities_Read_Raw(self,fileHandle)
-    !% Read an stellarLuminosities object from binary.
+    !!{
+    Read an stellarLuminosities object from binary.
+    !!}
     implicit none
     class  (stellarLuminosities), intent(inout) :: self
     integer                     , intent(in   ) :: fileHandle
@@ -471,7 +515,9 @@ contains
   end subroutine Stellar_Luminosities_Read_Raw
 
   subroutine Stellar_Luminosities_Reset(self)
-    !% Reset an stellarLuminosities object.
+    !!{
+    Reset an stellarLuminosities object.
+    !!}
     implicit none
     class(stellarLuminosities), intent(inout) :: self
 
@@ -483,7 +529,9 @@ contains
   end subroutine Stellar_Luminosities_Reset
 
   subroutine Stellar_Luminosities_Set_To_Unity(self)
-    !% Set an stellarLuminosities object to unity.
+    !!{
+    Set an stellarLuminosities object to unity.
+    !!}
     implicit none
     class(stellarLuminosities), intent(inout) :: self
 
@@ -495,7 +543,9 @@ contains
   end subroutine Stellar_Luminosities_Set_To_Unity
 
   logical function Stellar_Luminosities_Is_Zero(self)
-    !% Test whether an stellarLuminosities object is zero.
+    !!{
+    Test whether an stellarLuminosities object is zero.
+    !!}
     implicit none
     class(stellarLuminosities), intent(in   ) :: self
 
@@ -508,7 +558,9 @@ contains
   end function Stellar_Luminosities_Is_Zero
 
   double precision function Stellar_Luminosities_Luminosity(self,index)
-    !% Return the requested luminosity from a {\normalfont \ttfamily stellarLuminosities} object.
+    !!{
+    Return the requested luminosity from a {\normalfont \ttfamily stellarLuminosities} object.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (stellarLuminosities), intent(inout) :: self
@@ -543,7 +595,9 @@ contains
   end function stellarLuminositiesCountMaximum
 
   function stellarLuminositiesMax(luminosities1,luminosities2)
-    !% Return an element-by-element {\normalfont \ttfamily max()} on two stellar luminosity objects.
+    !!{
+    Return an element-by-element {\normalfont \ttfamily max()} on two stellar luminosity objects.
+    !!}
     implicit none
     type   (stellarLuminosities)                :: stellarLuminositiesMax
     type   (stellarLuminosities), intent(in   ) :: luminosities1         , luminosities2
@@ -569,7 +623,9 @@ contains
   end function stellarLuminositiesMax
 
   function stellarLuminositiesAbs(luminosities)
-    !% Return an element-by-element {\normalfont \ttfamily abs()} on a stellar luminosity object.
+    !!{
+    Return an element-by-element {\normalfont \ttfamily abs()} on a stellar luminosity object.
+    !!}
     implicit none
     type(stellarLuminosities)                :: stellarLuminositiesAbs
     type(stellarLuminosities), intent(in   ) :: luminosities
@@ -579,7 +635,9 @@ contains
   end function stellarLuminositiesAbs
 
   function Stellar_Luminosities_Add(luminosities1,luminosities2)
-    !% Add two stellar luminosities objects.
+    !!{
+    Add two stellar luminosities objects.
+    !!}
     implicit none
     type   (stellarLuminosities)                          :: Stellar_Luminosities_Add
     class  (stellarLuminosities), intent(in   )           :: luminosities1
@@ -606,7 +664,9 @@ contains
   end function Stellar_Luminosities_Add
 
   subroutine Stellar_Luminosities_Increment(self,increment)
-    !% Increment a stellar luminosities object.
+    !!{
+    Increment a stellar luminosities object.
+    !!}
     implicit none
     class  (stellarLuminosities), intent(inout) :: self
     class  (stellarLuminosities), intent(in   ) :: increment
@@ -624,7 +684,9 @@ contains
   end subroutine Stellar_Luminosities_Increment
 
   function Stellar_Luminosities_Subtract(luminosities1,luminosities2)
-    !% Subtract two stellar luminosities objects.
+    !!{
+    Subtract two stellar luminosities objects.
+    !!}
     implicit none
     type   (stellarLuminosities)                          :: Stellar_Luminosities_Subtract
     class  (stellarLuminosities), intent(in   )           :: luminosities1
@@ -651,7 +713,9 @@ contains
   end function Stellar_Luminosities_Subtract
 
   function Stellar_Luminosities_Multiply(stellarLuminosities1,multiplier)
-    !% Multiply a stellar luminosities object by a scalar.
+    !!{
+    Multiply a stellar luminosities object by a scalar.
+    !!}
     implicit none
     type            (stellarLuminosities)                :: Stellar_Luminosities_Multiply
     class           (stellarLuminosities), intent(in   ) :: stellarLuminosities1
@@ -662,7 +726,9 @@ contains
   end function Stellar_Luminosities_Multiply
 
   function Stellar_Luminosities_Multiply_Switched(multiplier,stellarLuminosities1)
-    !% Multiply a stellar luminosities object by a scalar.
+    !!{
+    Multiply a stellar luminosities object by a scalar.
+    !!}
     implicit none
     type            (stellarLuminosities)                :: Stellar_Luminosities_Multiply_Switched
     class           (stellarLuminosities), intent(in   ) :: stellarLuminosities1
@@ -673,7 +739,9 @@ contains
   end function Stellar_Luminosities_Multiply_Switched
 
   function Stellar_Luminosities_Divide(stellarLuminosities1,divisor)
-    !% Divide a stellar luminosities object by a scalar.
+    !!{
+    Divide a stellar luminosities object by a scalar.
+    !!}
     implicit none
     type            (stellarLuminosities)                :: Stellar_Luminosities_Divide
     class           (stellarLuminosities), intent(in   ) :: stellarLuminosities1
@@ -684,7 +752,9 @@ contains
   end function Stellar_Luminosities_Divide
 
   integer function Stellar_Luminosities_Property_Count(unmapped)
-    !% Return the number of properties required to track stellar luminosities.
+    !!{
+    Return the number of properties required to track stellar luminosities.
+    !!}
     implicit none
     logical, intent(in   ), optional :: unmapped
 
@@ -698,7 +768,9 @@ contains
   end function Stellar_Luminosities_Property_Count
 
   integer function Stellar_Luminosities_Serialize_Count(self)
-    !% Return the number of properties required to track stellar luminosities.
+    !!{
+    Return the number of properties required to track stellar luminosities.
+    !!}
     implicit none
     class(stellarLuminosities), intent(in   ) :: self
 
@@ -711,7 +783,9 @@ contains
   end function Stellar_Luminosities_Serialize_Count
 
   function Stellar_Luminosities_Name(index)
-    !% Return a name for the specified entry in the stellar luminosities structure.
+    !!{
+    Return a name for the specified entry in the stellar luminosities structure.
+    !!}
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: ISO_Varying_String, only : trim
     implicit none
@@ -728,7 +802,9 @@ contains
   end function Stellar_Luminosities_Name
 
   subroutine Stellar_Luminosities_Create(self)
-    !% Ensure that the {\normalfont \ttfamily luminosity} array in a {\normalfont \ttfamily stellarLuminosities} is allocated.
+    !!{
+    Ensure that the {\normalfont \ttfamily luminosity} array in a {\normalfont \ttfamily stellarLuminosities} is allocated.
+    !!}
     implicit none
     type(stellarLuminosities), intent(inout) :: self
 
@@ -737,7 +813,9 @@ contains
   end subroutine Stellar_Luminosities_Create
 
   subroutine Stellar_Luminosities_Deserialize(self,stellarLuminositiesArray)
-    !% Pack stellar luminosities from an array into a {\normalfont \ttfamily stellarLuminosities} structure.
+    !!{
+    Pack stellar luminosities from an array into a {\normalfont \ttfamily stellarLuminosities} structure.
+    !!}
     implicit none
     class           (stellarLuminosities)              , intent(inout) :: self
     double precision                     , dimension(:), intent(in   ) :: stellarLuminositiesArray
@@ -753,7 +831,9 @@ contains
   end subroutine Stellar_Luminosities_Deserialize
 
   subroutine Stellar_Luminosities_Serialize(self,stellarLuminositiesArray)
-    !% Unpack stellar luminosities from a {\normalfont \ttfamily stellarLuminosities} structure into an array.
+    !!{
+    Unpack stellar luminosities from a {\normalfont \ttfamily stellarLuminosities} structure into an array.
+    !!}
     implicit none
     double precision                     , dimension(:), intent(  out) :: stellarLuminositiesArray(:)
     class           (stellarLuminosities)              , intent(in   ) :: self
@@ -768,7 +848,9 @@ contains
   end subroutine Stellar_Luminosities_Serialize
 
   subroutine Stellar_Luminosities_Output(self,integerProperty,integerBufferCount,integerProperties,doubleProperty,doubleBufferCount,doubleProperties,time,outputInstance)
-    !% Store a {\normalfont \ttfamily stellarLuminosities} object in the output buffers.
+    !!{
+    Store a {\normalfont \ttfamily stellarLuminosities} object in the output buffers.
+    !!}
     use :: Kind_Numbers                      , only : kind_int8
     use :: Multi_Counters                    , only : multiCounter
     use :: Merger_Tree_Outputter_Buffer_Types, only : outputPropertyInteger , outputPropertyDouble
@@ -795,7 +877,9 @@ contains
   end subroutine Stellar_Luminosities_Output
 
   subroutine Stellar_Luminosities_Post_Output(self,time)
-    !% Clean up a {\normalfont \ttfamily stellarLuminosities} object after output.
+    !!{
+    Clean up a {\normalfont \ttfamily stellarLuminosities} object after output.
+    !!}
     implicit none
     class           (stellarLuminosities)                , intent(inout) :: self
     double precision                                     , intent(in   ) :: time
@@ -821,7 +905,9 @@ contains
   end subroutine Stellar_Luminosities_Post_Output
 
   subroutine Stellar_Luminosities_Output_Count(self,integerPropertyCount,doublePropertyCount,time)
-    !% Increment the output count to account for a {\normalfont \ttfamily stellarLuminosities} object.
+    !!{
+    Increment the output count to account for a {\normalfont \ttfamily stellarLuminosities} object.
+    !!}
     implicit none
     class           (stellarLuminosities), intent(in   ) :: self
     integer                              , intent(inout) :: doublePropertyCount, integerPropertyCount
@@ -833,7 +919,9 @@ contains
   end subroutine Stellar_Luminosities_Output_Count
 
   integer function Stellar_Luminosities_Output_Count_Get(time)
-    !% Compute the number of luminosities to be output at a given time.
+    !!{
+    Compute the number of luminosities to be output at a given time.
+    !!}
     implicit none
     double precision, intent(in   ) :: time
     integer                         :: i
@@ -846,7 +934,9 @@ contains
   end function Stellar_Luminosities_Output_Count_Get
 
   subroutine Stellar_Luminosities_Output_Names(self,integerProperty,integerProperties,doubleProperty,doubleProperties,time,prefix,comment,unitsInSI)
-    !% Assign names to output buffers for a {\normalfont \ttfamily stellarLuminosities} object.
+    !!{
+    Assign names to output buffers for a {\normalfont \ttfamily stellarLuminosities} object.
+    !!}
     use :: ISO_Varying_String                , only : assignment(=)        , operator(//)        , trim
     use :: Merger_Tree_Outputter_Buffer_Types, only : outputPropertyInteger, outputPropertyDouble
     implicit none
@@ -874,7 +964,9 @@ contains
   end subroutine Stellar_Luminosities_Output_Names
 
   logical function Stellar_Luminosities_Is_Output(luminosityIndex,time,outputOption)
-    !% Return true or false depending on whether {\normalfont \ttfamily luminosityIndex} should be output at {\normalfont \ttfamily time}.
+    !!{
+    Return true or false depending on whether {\normalfont \ttfamily luminosityIndex} should be output at {\normalfont \ttfamily time}.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     integer         , intent(in   )           :: luminosityIndex
@@ -904,9 +996,11 @@ contains
   end function Stellar_Luminosities_Is_Output
 
   subroutine Stellar_Luminosities_Set(self,mass,stellarPopulation_,stellarPopulationBroadBandLuminosities_,time,abundancesStellar)
-    !% Set the luminosity in each band for a single {\normalfont \ttfamily stellarPopulation\_} of given {\normalfont \ttfamily
-    !% mass} with the specified {\normalfont \ttfamily abundancesStellar} and which formed at cosmological {\normalfont \ttfamily
-    !% time}.
+    !!{
+    Set the luminosity in each band for a single {\normalfont \ttfamily stellarPopulation\_} of given {\normalfont \ttfamily
+    mass} with the specified {\normalfont \ttfamily abundancesStellar} and which formed at cosmological {\normalfont \ttfamily
+    time}.
+    !!}
     use :: Abundances_Structure                      , only : abundances
     use :: Stellar_Population_Broad_Band_Luminosities, only : stellarPopulationBroadBandLuminositiesClass
     use :: Stellar_Populations                       , only : stellarPopulationClass
@@ -944,7 +1038,9 @@ contains
   end subroutine Stellar_Luminosities_Set
 
   integer function Stellar_Luminosities_Index_From_Name(name)
-    !% Return the index of and specified entry in the luminosity list given its name.
+    !!{
+    Return the index of and specified entry in the luminosity list given its name.
+    !!}
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: ISO_Varying_String, only : operator(==)
     implicit none
@@ -963,7 +1059,9 @@ contains
   end function Stellar_Luminosities_Index_From_Name
 
   integer function Stellar_Luminosities_Index_From_Properties(filterName,filterType,redshift,redshiftBand,postprocessChain)
-    !% Return the index of and specified entry in the luminosity list given its properties.
+    !!{
+    Return the index of and specified entry in the luminosity list given its properties.
+    !!}
     use :: Galacticus_Error    , only : Galacticus_Error_Report
     use :: ISO_Varying_String  , only : assignment(=)          , operator(//), operator(==), varying_string
     use :: Numerical_Comparison, only : Values_Agree
@@ -1029,7 +1127,9 @@ contains
 
 
   subroutine Stellar_Luminosities_SED_Top_Hat_Step(wavelengthCentral,filterWidth,wavelengthMinimum,wavelengthMaximum,observedWidth,redshift,stellarPopulationSpectra_)
-    !% Given a top hat filter central wavelength and filter width, determine the position and width of the next top hat filter in the array.
+    !!{
+    Given a top hat filter central wavelength and filter width, determine the position and width of the next top hat filter in the array.
+    !!}
     use :: Stellar_Population_Spectra, only : stellarPopulationSpectraClass
     implicit none
     double precision                               , intent(inout)          :: wavelengthCentral        , filterWidth
@@ -1077,7 +1177,9 @@ contains
   end subroutine Stellar_Luminosities_SED_Top_Hat_Step
 
   subroutine Stellar_Luminosities_Special_Cases(luminosityMap,luminosityRedshiftText,luminosityRedshift,luminosityBandRedshift,luminosityFilter,luminosityType,luminosityPostprocessSet,parameters_)
-    !% Modify the input list of luminosities for special cases.
+    !!{
+    Modify the input list of luminosities for special cases.
+    !!}
     use            :: Cosmology_Functions       , only : cosmologyFunctions      , cosmologyFunctionsClass
     use            :: HII_Region_Emission_Lines , only : emissionLineWavelength
     use, intrinsic :: ISO_C_Binding             , only : c_size_t
@@ -1113,8 +1215,10 @@ contains
          &                                                                                       tabulatedWidth           , filterWidth                , &
          &                                                                                       resolution
     
-    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters_"/>
-    !# <objectBuilder class="stellarPopulationSpectra" name="stellarPopulationSpectra_" source="parameters_"/>
+    !![
+    <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters_"/>
+    <objectBuilder class="stellarPopulationSpectra" name="stellarPopulationSpectra_" source="parameters_"/>
+    !!]
     ! Iterate over all luminosities.
     i=1
     do while (i <= size(luminosityRedshiftText))
@@ -1418,8 +1522,10 @@ contains
        ! Next luminosity.
        i=i+1
     end do
-    !# <objectDestructor name="cosmologyFunctions_"      />
-    !# <objectDestructor name="stellarPopulationSpectra_"/>
+    !![
+    <objectDestructor name="cosmologyFunctions_"      />
+    <objectDestructor name="stellarPopulationSpectra_"/>
+    !!]
     return
   end subroutine Stellar_Luminosities_Special_Cases
 
@@ -1441,7 +1547,9 @@ contains
        & luminosityRedshiftTmp      ,                &
        & luminosityBandRedshiftTmp                   &
        &                                           )
-    !% Expand the filter set by removing the filter at index {\normalfont \ttfamily expandFrom} by adding {\normalfont \ttfamily expandCount} replicas of the filter at that point.
+    !!{
+    Expand the filter set by removing the filter at index {\normalfont \ttfamily expandFrom} by adding {\normalfont \ttfamily expandCount} replicas of the filter at that point.
+    !!}
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
     use            :: Memory_Management, only : allocateArray
     implicit none
@@ -1500,7 +1608,9 @@ contains
   end subroutine Stellar_Luminosities_Expand_Filter_Set
 
   subroutine Stellar_Luminosities_Truncate(self,templateLuminosities)
-    !% Truncate (or pad) the stellar luminosities to match the number in the given {\normalfont \ttfamily templateLuminosities}.
+    !!{
+    Truncate (or pad) the stellar luminosities to match the number in the given {\normalfont \ttfamily templateLuminosities}.
+    !!}
     implicit none
     class           (stellarLuminosities), intent(inout)               :: self
     type            (stellarLuminosities), intent(in   )               :: templateLuminosities
@@ -1535,7 +1645,9 @@ contains
   end subroutine Stellar_Luminosities_Truncate
 
   subroutine Stellar_Luminosities_Parameter_Map_Double(parameters)
-    !% Map an array of luminosity-related input parameters into a new array accounting for special case processing.
+    !!{
+    Map an array of luminosity-related input parameters into a new array accounting for special case processing.
+    !!}
     use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     double precision, intent(inout), allocatable, dimension(:) :: parameters
@@ -1554,11 +1666,15 @@ contains
     return
   end subroutine Stellar_Luminosities_Parameter_Map_Double
 
-  !# <galacticusStateStoreTask>
-  !#  <unitName>Stellar_Luminosities_State_Store</unitName>
-  !# </galacticusStateStoreTask>
+  !![
+  <galacticusStateStoreTask>
+   <unitName>Stellar_Luminosities_State_Store</unitName>
+  </galacticusStateStoreTask>
+  !!]
   subroutine Stellar_Luminosities_State_Store(stateFile,gslStateFile,stateOperationID)
-    !% Write the luminosities state to file.
+    !!{
+    Write the luminosities state to file.
+    !!}
     use            :: Display           , only : displayIndent, displayMessage, displayUnindent, verbosityLevelWorking
     use, intrinsic :: ISO_C_Binding     , only : c_ptr        , c_size_t
     use            :: ISO_Varying_String, only : operator(//) , var_str
@@ -1572,9 +1688,11 @@ contains
 
     call displayIndent  (var_str('storing state for "stellar luminosities" [position: ')//FTell(stateFile)//']',verbosity=verbosityLevelWorking)
     call displayMessage(var_str('storing "luminosityCount" [position: ')//FTell(stateFile)//']',verbosity=verbosityLevelWorking)
-    !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-    !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
-    !# </workaround>
+    !![
+    <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+     <description>Internal file I/O in gfortran can be non-thread safe.</description>
+    </workaround>
+    !!]
 #ifdef THREADSAFEIO
     !$omp critical(gfortranInternalIO)
 #endif
@@ -1583,9 +1701,11 @@ contains
     !$omp end critical(gfortranInternalIO)
 #endif
     call displayMessage(var_str('storing luminosities [position: ')//FTell(stateFile)//']',verbosity=verbosityLevelWorking)
-    !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-    !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
-    !# </workaround>
+    !![
+    <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+     <description>Internal file I/O in gfortran can be non-thread safe.</description>
+    </workaround>
+    !!]
 #ifdef THREADSAFEIO
     !$omp critical(gfortranInternalIO)
 #endif
@@ -1604,11 +1724,15 @@ contains
    return
   end subroutine Stellar_Luminosities_State_Store
 
-  !# <galacticusStateRetrieveTask>
-  !#  <unitName>Stellar_Luminosities_State_Restore</unitName>
-  !# </galacticusStateRetrieveTask>
+  !![
+  <galacticusStateRetrieveTask>
+   <unitName>Stellar_Luminosities_State_Restore</unitName>
+  </galacticusStateRetrieveTask>
+  !!]
   subroutine Stellar_Luminosities_State_Restore(stateFile,gslStateFile,stateOperationID)
-    !% Retrieve the luminosities state from the file.
+    !!{
+    Retrieve the luminosities state from the file.
+    !!}
     use            :: Display            , only : displayIndent   , displayMessage, displayUnindent, verbosityLevelWorking
     use, intrinsic :: ISO_C_Binding      , only : c_ptr           , c_size_t
     use            :: ISO_Varying_String , only : operator(//)    , var_str
@@ -1635,9 +1759,11 @@ contains
     if (allocated(unitStellarLuminosities%luminosityValue)) deallocate(unitStellarLuminosities%luminosityValue)
     if (allocated(zeroStellarLuminosities%luminosityValue)) deallocate(zeroStellarLuminosities%luminosityValue)
     call displayMessage(var_str('restoring "luminosityCount" [position: ')//FTell(stateFile)//']',verbosity=verbosityLevelWorking)
-    !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-    !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
-    !# </workaround>
+    !![
+    <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+     <description>Internal file I/O in gfortran can be non-thread safe.</description>
+    </workaround>
+    !!]
 #ifdef THREADSAFEIO
     !$omp critical(gfortranInternalIO)
 #endif
@@ -1660,9 +1786,11 @@ contains
     unitStellarLuminosities%luminosityValue=1.0d0
     zeroStellarLuminosities%luminosityValue=0.0d0
     call displayMessage(var_str('restoring luminosities [position: ')//FTell(stateFile)//']',verbosity=verbosityLevelWorking)
-    !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-    !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
-    !# </workaround>
+    !![
+    <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+     <description>Internal file I/O in gfortran can be non-thread safe.</description>
+    </workaround>
+    !!]
 #ifdef THREADSAFEIO
     !$omp critical(gfortranInternalIO)
 #endif
@@ -1684,7 +1812,9 @@ contains
   end subroutine Stellar_Luminosities_State_Restore
 
   subroutine sortByIndexPostprocessor(array,index)
-    !% Given an {\normalfont \ttfamily array}, sort it in place using the supplied index.
+    !!{
+    Given an {\normalfont \ttfamily array}, sort it in place using the supplied index.
+    !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     type   (stellarPopulationSpectraPostprocessorList), dimension(:          ), intent(inout) :: array
@@ -1700,7 +1830,9 @@ contains
   end subroutine sortByIndexPostprocessor
 
   function Stellar_Luminosities_Non_Static_Size_Of(self)
-    !% Return the size of any non-static components of the object.
+    !!{
+    Return the size of any non-static components of the object.
+    !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     integer(c_size_t           )                :: Stellar_Luminosities_Non_Static_Size_Of

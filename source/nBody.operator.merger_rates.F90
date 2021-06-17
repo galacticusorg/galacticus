@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an N-body data operator which computes merger rates of halos.
+!!{
+Contains a module which implements an N-body data operator which computes merger rates of halos.
+!!}
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
-  !# <nbodyOperator name="nbodyOperatorMergerRates">
-  !#  <description>An N-body data operator which computes merger rates of halos.</description>
-  !# </nbodyOperator>
+  !![
+  <nbodyOperator name="nbodyOperatorMergerRates">
+   <description>An N-body data operator which computes merger rates of halos.</description>
+  </nbodyOperator>
+  !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorMergerRates
-     !% An N-body data operator which computes merger rates of halos.
+     !!{
+     An N-body data operator which computes merger rates of halos.
+     !!}
      private
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
      integer         (c_size_t               )          :: indexSnapshot
@@ -39,7 +45,9 @@
   end type nbodyOperatorMergerRates
 
   interface nbodyOperatorMergerRates
-     !% Constructors for the {\normalfont \ttfamily mergerRates} N-body operator class.
+     !!{
+     Constructors for the {\normalfont \ttfamily mergerRates} N-body operator class.
+     !!}
      module procedure mergerRatesConstructorParameters
      module procedure mergerRatesConstructorInternal
   end interface nbodyOperatorMergerRates
@@ -47,7 +55,9 @@
 contains
 
   function mergerRatesConstructorParameters(parameters) result (self)
-    !% Constructor for the {\normalfont \ttfamily mergerRates} N-body operator class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily mergerRates} N-body operator class which takes a parameter set as input.
+    !!}
     use :: ISO_Varying_String, only : operator(/=)
     use :: Input_Parameters  , only : inputParameters
     implicit none
@@ -60,58 +70,64 @@ contains
          &                                                       massHostMinimum    , massHostMaximum
     logical                                                   :: missingHostIsFatal , alwaysIsolatedOnly
 
-    !# <inputParameter>
-    !#   <name>indexSnapshot</name>
-    !#   <source>parameters</source>
-    !#   <description>The snapshot index for which to compute the merger rate.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massMinimum</name>
-    !#   <source>parameters</source>
-    !#   <description>The minimum mass (of the secondary halo) for which to accumulate merging statistics.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massMaximum</name>
-    !#   <source>parameters</source>
-    !#   <description>The maximum mass (of the secondary halo) for which to accumulate merging statistics.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massHostMinimum</name>
-    !#   <source>parameters</source>
-    !#   <description>The minimum mass (of the primary halo) for which to accumulate merging statistics.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massHostMaximum</name>
-    !#   <source>parameters</source>
-    !#   <description>The maximum mass (of the primary halo) for which to accumulate merging statistics.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>missingHostIsFatal</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>If true, missing host halos are cause for a fatal error. Otherwise they are ignored.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>alwaysIsolatedOnly</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>If true, only mergers of halos which have been always isolated are considered. Otherwise, all halos are considered.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>suffix</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>var_str('')</defaultValue>
-    !#   <description>A suffix to append to the output merger rate attribute. Useful if you want to write output multiple merger rates.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>indexSnapshot</name>
+      <source>parameters</source>
+      <description>The snapshot index for which to compute the merger rate.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>massMinimum</name>
+      <source>parameters</source>
+      <description>The minimum mass (of the secondary halo) for which to accumulate merging statistics.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>massMaximum</name>
+      <source>parameters</source>
+      <description>The maximum mass (of the secondary halo) for which to accumulate merging statistics.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>massHostMinimum</name>
+      <source>parameters</source>
+      <description>The minimum mass (of the primary halo) for which to accumulate merging statistics.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>massHostMaximum</name>
+      <source>parameters</source>
+      <description>The maximum mass (of the primary halo) for which to accumulate merging statistics.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>missingHostIsFatal</name>
+      <source>parameters</source>
+      <defaultValue>.true.</defaultValue>
+      <description>If true, missing host halos are cause for a fatal error. Otherwise they are ignored.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>alwaysIsolatedOnly</name>
+      <source>parameters</source>
+      <defaultValue>.true.</defaultValue>
+      <description>If true, only mergers of halos which have been always isolated are considered. Otherwise, all halos are considered.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>suffix</name>
+      <source>parameters</source>
+      <defaultValue>var_str('')</defaultValue>
+      <description>A suffix to append to the output merger rate attribute. Useful if you want to write output multiple merger rates.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !!]
     self=nbodyOperatorMergerRates(indexSnapshot,massMinimum,massMaximum,massHostMinimum,massHostMaximum,missingHostIsFatal,alwaysIsolatedOnly,suffix,cosmologyFunctions_)
-    !# <objectDestructor name="cosmologyFunctions_"   />
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <objectDestructor name="cosmologyFunctions_"   />
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function mergerRatesConstructorParameters
 
   function mergerRatesConstructorInternal(indexSnapshot,massMinimum,massMaximum,massHostMinimum,massHostMaximum,missingHostIsFatal,alwaysIsolatedOnly,suffix,cosmologyFunctions_) result (self)
-    !% Internal constructor for the {\normalfont \ttfamily mergerRates} N-body operator class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily mergerRates} N-body operator class.
+    !!}
     implicit none
     type            (nbodyOperatorMergerRates)                        :: self
     class           (cosmologyFunctionsClass ), intent(in   ), target :: cosmologyFunctions_
@@ -120,22 +136,30 @@ contains
     double precision                          , intent(in   )         :: massMinimum        , massMaximum       , &
          &                                                               massHostMinimum    , massHostMaximum
     logical                                   , intent(in   )         :: missingHostIsFatal , alwaysIsolatedOnly
-    !# <constructorAssign variables="indexSnapshot, massMinimum, massMaximum, massHostMinimum, massHostMaximum, missingHostIsFatal, alwaysIsolatedOnly, suffix, *cosmologyFunctions_"/>
+    !![
+    <constructorAssign variables="indexSnapshot, massMinimum, massMaximum, massHostMinimum, massHostMaximum, missingHostIsFatal, alwaysIsolatedOnly, suffix, *cosmologyFunctions_"/>
+    !!]
 
     return
   end function mergerRatesConstructorInternal
 
   subroutine mergerRatesDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily mergerRates} N-body operator class.
+    !!{
+    Destructor for the {\normalfont \ttfamily mergerRates} N-body operator class.
+    !!}
     implicit none
     type(nbodyOperatorMergerRates), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"/>
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"/>
+    !!]
     return
   end subroutine mergerRatesDestructor
   
   subroutine mergerRatesOperate(self,simulations)
-    !% Compute the merger rate at a given snapshot.
+    !!{
+    Compute the merger rate at a given snapshot.
+    !!}
     use    :: Arrays_Search   , only : searchIndexed
     use    :: Display         , only : displayCounter         , displayCounterClear   , displayIndent, displayMessage, &
           &                            displayUnindent        , verbosityLevelStandard

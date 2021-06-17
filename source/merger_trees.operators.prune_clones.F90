@@ -17,27 +17,37 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a pruning-by-mass operator on merger trees.
+!!{
+Contains a module which implements a pruning-by-mass operator on merger trees.
+!!}
 
-  !# <mergerTreeOperator name="mergerTreeOperatorPruneClones">
-  !#  <description>Provides a clone pruning operator on merger trees.</description>
-  !# </mergerTreeOperator>
+  !![
+  <mergerTreeOperator name="mergerTreeOperatorPruneClones">
+   <description>Provides a clone pruning operator on merger trees.</description>
+  </mergerTreeOperator>
+  !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorPruneClones
-     !% A clone pruning merger tree operator class.
+     !!{
+     A clone pruning merger tree operator class.
+     !!}
      private
    contains
      procedure :: operatePreEvolution => pruneClonesOperatePreEvolution
   end type mergerTreeOperatorPruneClones
 
   interface mergerTreeOperatorPruneClones
-     !% Constructors for the clone pruning merger tree operator class.
+     !!{
+     Constructors for the clone pruning merger tree operator class.
+     !!}
      module procedure pruneClonesConstructorParameters
   end interface mergerTreeOperatorPruneClones
 
 contains
 
   function pruneClonesConstructorParameters(parameters)
-    !% Constructor for the clone pruning merger tree operator class which takes a parameter set as input.
+    !!{
+    Constructor for the clone pruning merger tree operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(mergerTreeOperatorPruneClones)                :: pruneClonesConstructorParameters
@@ -49,7 +59,9 @@ contains
   end function pruneClonesConstructorParameters
 
   subroutine pruneClonesOperatePreEvolution(self,tree)
-    !% Perform a clone pruning operation on a merger tree.
+    !!{
+    Perform a clone pruning operation on a merger tree.
+    !!}
     use :: Galacticus_Nodes              , only : mergerTree                    , nodeComponentBasic             , treeNode
     use :: Merger_Tree_Walkers           , only : mergerTreeWalkerIsolatedNodes
     use :: Merger_Trees_Pruning_Utilities, only : Merger_Tree_Prune_Clean_Branch, Merger_Tree_Prune_Unlink_Parent

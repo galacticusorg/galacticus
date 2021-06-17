@@ -17,21 +17,27 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Implements a thermal Sunyaev-Zeldovich cosmological scaling corrector analysis property operator class.
+!!{
+Implements a thermal Sunyaev-Zeldovich cosmological scaling corrector analysis property operator class.
+!!}
 
   use :: Cosmology_Parameters, only : cosmologyParametersClass
   use :: Cosmology_Functions , only : cosmologyFunctionsClass
   use :: Output_Times        , only : outputTimesClass
 
-  !# <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorCosmologySZ">
-  !#  <description>
-  !#   An output analysis property operator class which scales thermal Sunyaev-Zeldovich properties to $z=0$ using the expected
-  !#   cosmological scalings. Specifically, the property is multiplied by a factor of $E^{-2/3}(t)$ where $H(t) = E(t) H_0$ is the
-  !#   epoch-dependent Hubble parameter \citep{planck_collaboration_planck_2013}.
-  !# </description>
-  !# </outputAnalysisPropertyOperator>
+  !![
+  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorCosmologySZ">
+   <description>
+    An output analysis property operator class which scales thermal Sunyaev-Zeldovich properties to $z=0$ using the expected
+    cosmological scalings. Specifically, the property is multiplied by a factor of $E^{-2/3}(t)$ where $H(t) = E(t) H_0$ is the
+    epoch-dependent Hubble parameter \citep{planck_collaboration_planck_2013}.
+  </description>
+  </outputAnalysisPropertyOperator>
+  !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorCosmologySZ
-     !% A cosmological angular distance corrector analysis property operator class.
+     !!{
+     A cosmological angular distance corrector analysis property operator class.
+     !!}
      private
      class           (cosmologyFunctionsClass ), pointer                   :: cosmologyFunctions_  => null()
      class           (cosmologyParametersClass), pointer                   :: cosmologyParameters_ => null()
@@ -43,7 +49,9 @@
   end type outputAnalysisPropertyOperatorCosmologySZ
 
   interface outputAnalysisPropertyOperatorCosmologySZ
-     !% Constructors for the ``csmlgySZ'' output analysis class.
+     !!{
+     Constructors for the ``csmlgySZ'' output analysis class.
+     !!}
      module procedure csmlgySZConstructorParameters
      module procedure csmlgySZConstructorInternal
   end interface outputAnalysisPropertyOperatorCosmologySZ
@@ -51,7 +59,9 @@
 contains
 
   function csmlgySZConstructorParameters(parameters) result(self)
-    !% Constructor for the ``csmlgySZ'' output analysis property operator class which takes a parameter set as input.
+    !!{
+    Constructor for the ``csmlgySZ'' output analysis property operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (outputAnalysisPropertyOperatorCosmologySZ)                :: self
@@ -60,20 +70,26 @@ contains
     class(cosmologyFunctionsClass                  ), pointer       :: cosmologyFunctions_
     class(outputTimesClass                         ), pointer       :: outputTimes_
 
-    !# <objectBuilder class="outputTimes"         name="outputTimes_"         source="parameters"/>
-    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    !![
+    <objectBuilder class="outputTimes"         name="outputTimes_"         source="parameters"/>
+    <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    !!]
     ! Construct the object.
     self=outputAnalysisPropertyOperatorCosmologySZ(cosmologyParameters_,cosmologyFunctions_,outputTimes_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="outputTimes_"        />
-    !# <objectDestructor name="cosmologyParameters_"/>
-    !# <objectDestructor name="cosmologyFunctions_" />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="outputTimes_"        />
+    <objectDestructor name="cosmologyParameters_"/>
+    <objectDestructor name="cosmologyFunctions_" />
+    !!]
     return
   end function csmlgySZConstructorParameters
 
   function csmlgySZConstructorInternal(cosmologyParameters_,cosmologyFunctions_,outputTimes_) result(self)
-    !% Internal constructor for the ``randomErrorPolynomial'' output analysis property operator class.
+    !!{
+    Internal constructor for the ``randomErrorPolynomial'' output analysis property operator class.
+    !!}
     use            :: Galacticus_Error , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
     use            :: Memory_Management, only : allocateArray
@@ -83,7 +99,9 @@ contains
     class  (cosmologyFunctionsClass                  ), intent(in   ), target :: cosmologyFunctions_
     class  (outputTimesClass                         ), intent(in   ), target :: outputTimes_
     integer(c_size_t                                 )                        :: outputIndex
-    !# <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_, *outputTimes_"/>
+    !![
+    <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_, *outputTimes_"/>
+    !!]
 
     call allocateArray(self%correctionFactor,[self%outputTimes_%count()])
     do outputIndex=1,self%outputTimes_%count()
@@ -96,20 +114,26 @@ contains
   end function csmlgySZConstructorInternal
 
   subroutine csmlgySZDestructor(self)
-    !% Destructor for the ``cosmologySZ'' output analysis property operator class.
+    !!{
+    Destructor for the ``cosmologySZ'' output analysis property operator class.
+    !!}
     use :: Memory_Management, only : deallocateArray
     implicit none
     type(outputAnalysisPropertyOperatorCosmologySZ), intent(inout) :: self
 
     call deallocateArray(self%correctionFactor)
-    !# <objectDestructor name="self%cosmologyParameters_"/>
-    !# <objectDestructor name="self%cosmologyFunctions_" />
-    !# <objectDestructor name="self%outputTimes_"        />
+    !![
+    <objectDestructor name="self%cosmologyParameters_"/>
+    <objectDestructor name="self%cosmologyFunctions_" />
+    <objectDestructor name="self%outputTimes_"        />
+    !!]
     return
   end subroutine csmlgySZDestructor
 
   double precision function csmlgySZOperate(self,propertyValue,node,propertyType,outputIndex)
-    !% Implement an csmlgySZ output analysis property operator.
+    !!{
+    Implement an csmlgySZ output analysis property operator.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (outputAnalysisPropertyOperatorCosmologySZ), intent(inout)           :: self

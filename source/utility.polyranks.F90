@@ -17,29 +17,39 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides poly-ranked types (i.e. types which can store data in arrays of different ranks).
+!!{
+Contains a module which provides poly-ranked types (i.e. types which can store data in arrays of different ranks).
+!!}
 
 module Poly_Ranks
-  !% Provides poly-ranked types (i.e. types which can store data in arrays of different ranks).
+  !!{
+  Provides poly-ranked types (i.e. types which can store data in arrays of different ranks).
+  !!}
   use, intrinsic :: ISO_C_Binding, only : c_size_t
   use            :: Kind_Numbers , only : kind_int8
   implicit none
   public
 
-  !# <generic identifier="Type">
-  !#  <instance label="integer" intrinsic="integer(kind_int8)"/>
-  !#  <instance label="double"  intrinsic="double precision"/>
-  !# </generic>
+  !![
+  <generic identifier="Type">
+   <instance label="integer" intrinsic="integer(kind_int8)"/>
+   <instance label="double"  intrinsic="double precision"/>
+  </generic>
+  !!]
 
   type :: polyRank{Type¦label}
-     !% A type which provides poly-ranked double precision data.
+     !!{
+     A type which provides poly-ranked double precision data.
+     !!}
      integer         (c_size_t), allocatable, dimension(:) :: shape_
      {Type¦intrinsic}          , allocatable, dimension(:) :: data
    contains
-     !# <methods>
-     !#   <method description="Return the rank of the data."  method="rank"  />
-     !#   <method description="Return the shape of the data." method="shape" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Return the rank of the data."  method="rank"  />
+       <method description="Return the shape of the data." method="shape" />
+     </methods>
+     !!]
      procedure :: rank   => {Type¦label}Rank
      procedure :: shape  => {Type¦label}Shape
   end type polyRank{Type¦label}
@@ -55,7 +65,9 @@ module Poly_Ranks
 contains
 
   function {Type¦label}Constructor(array) result(self)
-    !% Constructor for poly-ranked arrays.
+    !!{
+    Constructor for poly-ranked arrays.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (polyRank{Type¦label})                               :: self
@@ -88,7 +100,9 @@ contains
   end function {Type¦label}Constructor
   
   subroutine {Type¦label}Assign(array,self)
-    !% Assign to an array.
+    !!{
+    Assign to an array.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (polyRank{Type¦label}), intent(in   )                :: self
@@ -133,7 +147,9 @@ contains
   end subroutine {Type¦label}Assign
   
   integer function {Type¦label}Rank(self)
-    !% Return the rank of the object.
+    !!{
+    Return the rank of the object.
+    !!}
     implicit none
     class(polyRank{Type¦label}), intent(in   ) :: self
 
@@ -142,7 +158,9 @@ contains
   end function {Type¦label}Rank
   
   function {Type¦label}Shape(self) result(shape_)
-    !% Return the shape of the object.
+    !!{
+    Return the shape of the object.
+    !!}
     implicit none
     integer(c_size_t            ), allocatable  , dimension(:) :: shape_
     class  (polyRank{Type¦label}), intent(in   )               :: self

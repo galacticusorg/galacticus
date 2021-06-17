@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements a stellar vs halo mass relation analysis class.
+  !!{
+  Contains a module which implements a stellar vs halo mass relation analysis class.
+  !!}
 
-  !# <outputAnalysis name="outputAnalysisMorphologicalFractionGAMAMoffett2016">
-  !#  <description>A morphological fraction output analysis class for the analysis of \cite{moffett_galaxy_2016}.</description>
-  !# </outputAnalysis>
+  !![
+  <outputAnalysis name="outputAnalysisMorphologicalFractionGAMAMoffett2016">
+   <description>A morphological fraction output analysis class for the analysis of \cite{moffett_galaxy_2016}.</description>
+  </outputAnalysis>
+  !!]
   type, extends(outputAnalysisMeanFunction1D) :: outputAnalysisMorphologicalFractionGAMAMoffett2016
-     !% A morphological fraction output analysis class.
+     !!{
+     A morphological fraction output analysis class.
+     !!}
      private
      double precision, allocatable, dimension(:) :: countAllTarget          , countEarlyTarget        , &
           &                                         functionErrorLowerTarget, functionErrorUpperTarget
@@ -33,7 +39,9 @@
   end type outputAnalysisMorphologicalFractionGAMAMoffett2016
 
   interface outputAnalysisMorphologicalFractionGAMAMoffett2016
-     !% Constructors for the ``morphologicalFractionGAMAMoffett2016'' output analysis class.
+     !!{
+     Constructors for the ``morphologicalFractionGAMAMoffett2016'' output analysis class.
+     !!}
      module procedure morphologicalFractionGAMAMoffett2016ConstructorParameters
      module procedure morphologicalFractionGAMAMoffett2016ConstructorInternal
   end interface outputAnalysisMorphologicalFractionGAMAMoffett2016
@@ -41,7 +49,9 @@
 contains
 
   function morphologicalFractionGAMAMoffett2016ConstructorParameters(parameters) result (self)
-    !% Constructor for the ``morphologicalFractionGAMAMoffett2016'' output analysis class which takes a parameter set as input.
+    !!{
+    Constructor for the ``morphologicalFractionGAMAMoffett2016'' output analysis class which takes a parameter set as input.
+    !!}
     use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
     use :: Input_Parameters   , only : inputParameter    , inputParameters
     implicit none
@@ -57,58 +67,64 @@ contains
     ! Check and read parameters.
     allocate(systematicErrorPolynomialCoefficient(max(1,parameters%count('systematicErrorPolynomialCoefficient',zeroIfNotPresent=.true.))))
     allocate(    randomErrorPolynomialCoefficient(max(1,parameters%count(    'randomErrorPolynomialCoefficient',zeroIfNotPresent=.true.))))
-    !# <inputParameter>
-    !#   <name>ratioEarlyType</name>
-    !#   <defaultValue>0.5d0</defaultValue>
-    !#   <description>The minimum spheroid-to-total ratio for a galaxy to be classified as ``early-type'' when constructing the \gls{gama} early-type fraction function.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>ratioEarlyTypeError</name>
-    !#   <defaultValue>0.3d0</defaultValue>
-    !#   <description>The error in spheroid fraction to be used when constructing the \gls{gama} early-type fraction function.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>systematicErrorPolynomialCoefficient</name>
-    !#   <source>parameters</source>
-    !#   <variable>systematicErrorPolynomialCoefficient</variable>
-    !#   <defaultValue>[0.0d0]</defaultValue>
-    !#   <description>The coefficients of the systematic error polynomial.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>randomErrorPolynomialCoefficient</name>
-    !#   <source>parameters</source>
-    !#   <variable>randomErrorPolynomialCoefficient</variable>
-    !#   <defaultValue>[0.0d0]</defaultValue>
-    !#   <description>The coefficients of the random error polynomial.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>randomErrorMinimum</name>
-    !#   <source>parameters</source>
-    !#   <variable>randomErrorMinimum</variable>
-    !#   <defaultValue>0.07d0</defaultValue>
-    !#   <description>The minimum random error for stellar masses.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>randomErrorMaximum</name>
-    !#   <source>parameters</source>
-    !#   <variable>randomErrorMaximum</variable>
-    !#   <defaultValue>0.07d0</defaultValue>
-    !#   <description>The minimum random error for stellar masses.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
-    !# <objectBuilder class="outputTimes"        name="outputTimes_"        source="parameters"/>
+    !![
+    <inputParameter>
+      <name>ratioEarlyType</name>
+      <defaultValue>0.5d0</defaultValue>
+      <description>The minimum spheroid-to-total ratio for a galaxy to be classified as ``early-type'' when constructing the \gls{gama} early-type fraction function.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>ratioEarlyTypeError</name>
+      <defaultValue>0.3d0</defaultValue>
+      <description>The error in spheroid fraction to be used when constructing the \gls{gama} early-type fraction function.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>systematicErrorPolynomialCoefficient</name>
+      <source>parameters</source>
+      <variable>systematicErrorPolynomialCoefficient</variable>
+      <defaultValue>[0.0d0]</defaultValue>
+      <description>The coefficients of the systematic error polynomial.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>randomErrorPolynomialCoefficient</name>
+      <source>parameters</source>
+      <variable>randomErrorPolynomialCoefficient</variable>
+      <defaultValue>[0.0d0]</defaultValue>
+      <description>The coefficients of the random error polynomial.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>randomErrorMinimum</name>
+      <source>parameters</source>
+      <variable>randomErrorMinimum</variable>
+      <defaultValue>0.07d0</defaultValue>
+      <description>The minimum random error for stellar masses.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>randomErrorMaximum</name>
+      <source>parameters</source>
+      <variable>randomErrorMaximum</variable>
+      <defaultValue>0.07d0</defaultValue>
+      <description>The minimum random error for stellar masses.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    <objectBuilder class="outputTimes"        name="outputTimes_"        source="parameters"/>
+    !!]
     ! Build the object.
     self=outputAnalysisMorphologicalFractionGAMAMoffett2016(ratioEarlyType,ratioEarlyTypeError,systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"/>
-    !# <objectDestructor name="outputTimes_"       />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"/>
+    <objectDestructor name="outputTimes_"       />
+    !!]
     return
   end function morphologicalFractionGAMAMoffett2016ConstructorParameters
 
   function morphologicalFractionGAMAMoffett2016ConstructorInternal(ratioEarlyType,ratioEarlyTypeError,systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_) result (self)
-    !% Constructor for the ``morphologicalFractionGAMAMoffett2016'' output analysis class for internal use.
+    !!{
+    Constructor for the ``morphologicalFractionGAMAMoffett2016'' output analysis class for internal use.
+    !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                            , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
     use :: Galactic_Filters                      , only : galacticFilterStellarMass
@@ -225,7 +241,9 @@ contains
     self%functionErrorUpperTarget=+self%functionErrorUpperTarget-functionValueTarget
     ! Construct survey geometry.
     allocate(surveyGeometry_)
-    !# <referenceConstruct object="surveyGeometry_" constructor="surveyGeometryBaldry2012GAMA(cosmologyFunctions_)"/>
+    !![
+    <referenceConstruct object="surveyGeometry_" constructor="surveyGeometryBaldry2012GAMA(cosmologyFunctions_)"/>
+    !!]
     ! Compute weights that apply to each output redshift.
     call allocateArray(outputWeight,[binCount,outputTimes_%count()])
     do iBin=1,binCount
@@ -234,37 +252,49 @@ contains
     ! Create cosmological model in which data were analyzed.
     allocate(cosmologyParametersData)
     allocate(cosmologyFunctionsData )
-    !# <referenceConstruct object="cosmologyParametersData">
-    !#  <constructor>
-    !#   cosmologyParametersSimple     (                            &amp;
-    !#     &amp;                        OmegaMatter    = 0.30000d0, &amp;
-    !#     &amp;                        OmegaDarkEnergy= 0.70000d0, &amp;
-    !#     &amp;                        HubbleConstant =70.00000d0, &amp;
-    !#     &amp;                        temperatureCMB = 2.72548d0, &amp;
-    !#     &amp;                        OmegaBaryon    = 0.00000d0  &amp;
-    !#     &amp;                       )
-    !#  </constructor>
-    !# </referenceConstruct>
-    !# <referenceConstruct object="cosmologyFunctionsData">
-    !#  <constructor>
-    !#   cosmologyFunctionsMatterLambda(                            &amp;
-    !#     &amp;                        cosmologyParametersData     &amp;
-    !#     &amp;                       )
-    !#  </constructor>
-    !# </referenceConstruct>
+    !![
+    <referenceConstruct object="cosmologyParametersData">
+     <constructor>
+      cosmologyParametersSimple     (                            &amp;
+        &amp;                        OmegaMatter    = 0.30000d0, &amp;
+        &amp;                        OmegaDarkEnergy= 0.70000d0, &amp;
+        &amp;                        HubbleConstant =70.00000d0, &amp;
+        &amp;                        temperatureCMB = 2.72548d0, &amp;
+        &amp;                        OmegaBaryon    = 0.00000d0  &amp;
+        &amp;                       )
+     </constructor>
+    </referenceConstruct>
+    <referenceConstruct object="cosmologyFunctionsData">
+     <constructor>
+      cosmologyFunctionsMatterLambda(                            &amp;
+        &amp;                        cosmologyParametersData     &amp;
+        &amp;                       )
+     </constructor>
+    </referenceConstruct>
+    !!]
     ! Build a filter which select galaxies with stellar mass above some coarse lower limit suitable for this sample.
     allocate(galacticFilter_                                       )
-    !# <referenceConstruct object="galacticFilter_"                                  constructor="galacticFilterStellarMass                           (massThreshold=1.0d8                                                       )"/>
+    !![
+    <referenceConstruct object="galacticFilter_"                                  constructor="galacticFilterStellarMass                           (massThreshold=1.0d8                                                       )"/>
+    !!]
      ! Build identity weight operator.
     allocate(outputAnalysisWeightOperator_                         )
-    !# <referenceConstruct object="outputAnalysisWeightOperator_"                    constructor="outputAnalysisWeightOperatorIdentity                (                                                                          )"/>
+    !![
+    <referenceConstruct object="outputAnalysisWeightOperator_"                    constructor="outputAnalysisWeightOperatorIdentity                (                                                                          )"/>
+    !!]
     ! Build log10() property operator.
     allocate(outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_      )
-    !# <referenceConstruct object="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_" constructor="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc     (cosmologyFunctions_     ,cosmologyFunctionsData              ,outputTimes_)"/>
+    !![
+    <referenceConstruct object="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_" constructor="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc     (cosmologyFunctions_     ,cosmologyFunctionsData              ,outputTimes_)"/>
+    !!]
     allocate(outputAnalysisPropertyOperatorSystmtcPolynomial_      )
-    !# <referenceConstruct object="outputAnalysisPropertyOperatorSystmtcPolynomial_" constructor="outputAnalysisPropertyOperatorSystmtcPolynomial     (errorPolynomialZeroPoint,systematicErrorPolynomialCoefficient             )"/>
+    !![
+    <referenceConstruct object="outputAnalysisPropertyOperatorSystmtcPolynomial_" constructor="outputAnalysisPropertyOperatorSystmtcPolynomial     (errorPolynomialZeroPoint,systematicErrorPolynomialCoefficient             )"/>
+    !!]
     allocate(outputAnalysisPropertyOperatorLog10_                  )
-    !# <referenceConstruct object="outputAnalysisPropertyOperatorLog10_"             constructor="outputAnalysisPropertyOperatorLog10                 (                                                                          )"/>
+    !![
+    <referenceConstruct object="outputAnalysisPropertyOperatorLog10_"             constructor="outputAnalysisPropertyOperatorLog10                 (                                                                          )"/>
+    !!]
     allocate(propertyOperators_                                    )
     allocate(propertyOperators_%next                               )
     allocate(propertyOperators_%next%next                          )
@@ -272,41 +302,53 @@ contains
     propertyOperators_%next     %operator_  => outputAnalysisPropertyOperatorLog10_
     propertyOperators_%next%next%operator_  => outputAnalysisPropertyOperatorSystmtcPolynomial_
     allocate(outputAnalysisPropertyOperator_                       )
-    !# <referenceConstruct object="outputAnalysisPropertyOperator_"                  constructor="outputAnalysisPropertyOperatorSequence              (propertyOperators_                                                        )"/>
+    !![
+    <referenceConstruct object="outputAnalysisPropertyOperator_"                  constructor="outputAnalysisPropertyOperatorSequence              (propertyOperators_                                                        )"/>
+    !!]
     ! Build a random error distribution operator.
     allocate(outputAnalysisDistributionOperator_                   )
-    !# <referenceConstruct object="outputAnalysisDistributionOperator_">
-    !#  <constructor>
-    !#  outputAnalysisDistributionOperatorRandomErrorPlynml (                                  &amp;
-    !#     &amp;                                             randomErrorMinimum              , &amp;
-    !#     &amp;                                             randomErrorMaximum              , &amp;
-    !#     &amp;                                             errorPolynomialZeroPoint        , &amp;
-    !#     &amp;                                             randomErrorPolynomialCoefficient  &amp;
-    !#     &amp;                                            )
-    !#  </constructor>
-    !# </referenceConstruct>
+    !![
+    <referenceConstruct object="outputAnalysisDistributionOperator_">
+     <constructor>
+     outputAnalysisDistributionOperatorRandomErrorPlynml (                                  &amp;
+        &amp;                                             randomErrorMinimum              , &amp;
+        &amp;                                             randomErrorMaximum              , &amp;
+        &amp;                                             errorPolynomialZeroPoint        , &amp;
+        &amp;                                             randomErrorPolynomialCoefficient  &amp;
+        &amp;                                            )
+     </constructor>
+    </referenceConstruct>
+    !!]
     ! Build a weight property operator.
     allocate(outputAnalysisWeightPropertyOperator_                 )
-    !# <referenceConstruct object="outputAnalysisWeightPropertyOperator_">
-    !#  <constructor>
-    !#  outputAnalysisPropertyOperatorNormal                (                                  &amp;
-    !#     &amp;                                             rangeLower  =ratioEarlyType     , &amp;
-    !#     &amp;                                             rangeUpper  =1.0d0              , &amp;
-    !#     &amp;                                             extentLower =0.0d0              , &amp;
-    !#     &amp;                                             extentUpper =1.0d0              , &amp;
-    !#     &amp;                                             rootVariance=ratioEarlyTypeError  &amp;
-    !#     &amp;                                            )
-    !#  </constructor>
-    !# </referenceConstruct>
+    !![
+    <referenceConstruct object="outputAnalysisWeightPropertyOperator_">
+     <constructor>
+     outputAnalysisPropertyOperatorNormal                (                                  &amp;
+        &amp;                                             rangeLower  =ratioEarlyType     , &amp;
+        &amp;                                             rangeUpper  =1.0d0              , &amp;
+        &amp;                                             extentLower =0.0d0              , &amp;
+        &amp;                                             extentUpper =1.0d0              , &amp;
+        &amp;                                             rootVariance=ratioEarlyTypeError  &amp;
+        &amp;                                            )
+     </constructor>
+    </referenceConstruct>
+    !!]
     ! Build anti-log10() property operator.
     allocate(outputAnalysisPropertyUnoperator_                     )
-    !# <referenceConstruct object="outputAnalysisPropertyUnoperator_"                constructor="outputAnalysisPropertyOperatorAntiLog10             (                                                                          )"/>
+    !![
+    <referenceConstruct object="outputAnalysisPropertyUnoperator_"                constructor="outputAnalysisPropertyOperatorAntiLog10             (                                                                          )"/>
+    !!]
     ! Create a stellar mass property extractor.
     allocate(nodePropertyExtractor_                      )
-    !# <referenceConstruct object="nodePropertyExtractor_"                 constructor="nodePropertyExtractorMassStellar          (                                                                          )"/>
+    !![
+    <referenceConstruct object="nodePropertyExtractor_"                 constructor="nodePropertyExtractorMassStellar          (                                                                          )"/>
+    !!]
     ! Create a morpology weight property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_                )
-    !# <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"           constructor="nodePropertyExtractorMassStellarMorphology(                                                                          )"/>
+    !![
+    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"           constructor="nodePropertyExtractorMassStellarMorphology(                                                                          )"/>
+    !!]
     ! Build the object.
     self%outputAnalysisMeanFunction1D=outputAnalysisMeanFunction1D(                                                 &
          &                                                         var_str('morphologicalFractionGAMAMoffett2016'), &
@@ -345,27 +387,31 @@ contains
          &                                                         functionCovarianceTarget                         &
          &                                                        )
     ! Clean up.
-    !# <objectDestructor name="surveyGeometry_"                                 />
-    !# <objectDestructor name="galacticFilter_"                                 />
-    !# <objectDestructor name="outputAnalysisDistributionOperator_"             />
-    !# <objectDestructor name="outputAnalysisWeightOperator_"                   />
-    !# <objectDestructor name="outputAnalysisPropertyOperator_"                 />
-    !# <objectDestructor name="outputAnalysisPropertyOperatorLog10_"            />
-    !# <objectDestructor name="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_"/>
-    !# <objectDestructor name="outputAnalysisPropertyOperatorSystmtcPolynomial_"/>
-    !# <objectDestructor name="outputAnalysisPropertyUnoperator_"               />
-    !# <objectDestructor name="outputAnalysisWeightPropertyOperator_"           />
-    !# <objectDestructor name="outputAnalysisWeightPropertyExtractor_"          />
-    !# <objectDestructor name="nodePropertyExtractor_"                          />
-    !# <objectDestructor name="cosmologyParametersData"                         />
-    !# <objectDestructor name="cosmologyFunctionsData"                          />
+    !![
+    <objectDestructor name="surveyGeometry_"                                 />
+    <objectDestructor name="galacticFilter_"                                 />
+    <objectDestructor name="outputAnalysisDistributionOperator_"             />
+    <objectDestructor name="outputAnalysisWeightOperator_"                   />
+    <objectDestructor name="outputAnalysisPropertyOperator_"                 />
+    <objectDestructor name="outputAnalysisPropertyOperatorLog10_"            />
+    <objectDestructor name="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_"/>
+    <objectDestructor name="outputAnalysisPropertyOperatorSystmtcPolynomial_"/>
+    <objectDestructor name="outputAnalysisPropertyUnoperator_"               />
+    <objectDestructor name="outputAnalysisWeightPropertyOperator_"           />
+    <objectDestructor name="outputAnalysisWeightPropertyExtractor_"          />
+    <objectDestructor name="nodePropertyExtractor_"                          />
+    <objectDestructor name="cosmologyParametersData"                         />
+    <objectDestructor name="cosmologyFunctionsData"                          />
+    !!]
     nullify(propertyOperators_)
     return
   end function morphologicalFractionGAMAMoffett2016ConstructorInternal
 
 
   double precision function morphologicalFractionGAMAMoffett2016LogLikelihood(self)
-    !% Return the log-likelihood of a morphologicalFractionGAMAMoffett2016 output analysis.
+    !!{
+    Return the log-likelihood of a morphologicalFractionGAMAMoffett2016 output analysis.
+    !!}
     use :: Models_Likelihoods_Constants, only : logImpossible
     implicit none
     class  (outputAnalysisMorphologicalFractionGAMAMoffett2016), intent(inout) :: self
@@ -404,7 +450,9 @@ contains
   end function morphologicalFractionGAMAMoffett2016LogLikelihood
 
   subroutine morphologicalFractionGAMAMoffett2016Finalize(self)
-    !% Implement a {\normalfont \ttfamily morphologicalFractionGAMAMoffett2016} output analysis finalization.
+    !!{
+    Implement a {\normalfont \ttfamily morphologicalFractionGAMAMoffett2016} output analysis finalization.
+    !!}
     use :: Galacticus_HDF5, only : galacticusOutputFile
     use :: IO_HDF5        , only : hdf5Access          , hdf5Object
     implicit none

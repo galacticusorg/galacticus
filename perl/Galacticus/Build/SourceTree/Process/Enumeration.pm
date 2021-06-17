@@ -57,7 +57,9 @@ sub Process_Enumerations {
 		$validatorFunction .= "\n";
 		$validatorFunction .= "  ! Auto-generated enumeration function\n";
 		$validatorFunction .= "  logical function ".$functionName."(enumerationValue)\n";
-		$validatorFunction .= "    !% Validate a {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}."} enumeration value.\n";
+		$validatorFunction .= "    !!{\n";
+		$validatorFunction .= "    Validate a {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}."} enumeration value.\n";
+		$validatorFunction .= "    !!}\n";
 		$validatorFunction .= "    implicit none\n\n";
 		$validatorFunction .= "    integer, intent(in   ) :: enumerationValue\n";
 		$validatorFunction .= "    ".$functionName."=(enumerationValue >= ".$node->{'directive'}->{'name'}."Min .and. enumerationValue <= ".$node->{'directive'}->{'name'}."Max)\n";
@@ -82,7 +84,9 @@ sub Process_Enumerations {
 		$function .= "\n";
 		$function .= "  ! Auto-generated enumeration function\n";
 		$function .= "  integer function ".$encodeFunctionName."(name,includesPrefix)\n";
-		$function .= "    !% Encode a {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}."} enumeration from a string, returning the appropriate identifier.\n";
+		$function .= "    !!{\n";
+		$function .= "    Encode a {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}."} enumeration from a string, returning the appropriate identifier.\n";
+		$function .= "    !!}\n";
 		$function .= "    use Galacticus_Error\n"
 		    unless ( $onError );
 		$function .= "    implicit none\n\n";
@@ -137,7 +141,9 @@ sub Process_Enumerations {
 		$function .= "\n";
 		$function .= "  ! Auto-generated enumeration function\n";
 		$function .= "  function ".$decodeFunctionName."(enumerationValue,includePrefix)\n";
-		$function .= "    !% Decode a {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}."} enumeration to a string.\n";
+		$function .= "    !!{\n";
+		$function .= "    Decode a {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}."} enumeration to a string.\n";
+		$function .= "    !!}\n";
 		$function .= "    use ISO_Varying_String\n";
 		$function .= "    use Galacticus_Error\n";
 		$function .= "    implicit none\n\n";

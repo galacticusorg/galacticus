@@ -19,10 +19,14 @@
 
 !+    Contributions to this file made by:  Stéphane Mangeon, Andrew Benson.
 
-!% Contains a module which implements galactic structure tasks for the standard black hole node component.
+!!{
+Contains a module which implements galactic structure tasks for the standard black hole node component.
+!!}
 
 module Node_Component_Black_Hole_Standard_Structure_Tasks
-  !% Implements galactic structure tasks for the standard black hole tree node component.
+  !!{
+  Implements galactic structure tasks for the standard black hole tree node component.
+  !!}
   implicit none
   private
   public :: Node_Component_Black_Hole_Standard_Rotation_Curve         , Node_Component_Black_Hole_Standard_Potential, &
@@ -30,12 +34,16 @@ module Node_Component_Black_Hole_Standard_Structure_Tasks
 
 contains
 
-  !# <rotationCurveTask>
-  !#  <unitName>Node_Component_Black_Hole_Standard_Rotation_Curve</unitName>
-  !# </rotationCurveTask>
+  !![
+  <rotationCurveTask>
+   <unitName>Node_Component_Black_Hole_Standard_Rotation_Curve</unitName>
+  </rotationCurveTask>
+  !!]
   double precision function Node_Component_Black_Hole_Standard_Rotation_Curve(node,radius,componentType,massType)
-    !% Computes the rotation curve for the central black hole. Assumes a point mass black hole with a Keplerian rotation curve,
-    !% \emph{except} that the rotation speed is limited to never exceed the speed of light.
+    !!{
+    Computes the rotation curve for the central black hole. Assumes a point mass black hole with a Keplerian rotation curve,
+    \emph{except} that the rotation speed is limited to never exceed the speed of light.
+    !!}
     use :: Black_Hole_Fundamentals         , only : Black_Hole_Gravitational_Radius
     use :: Galactic_Structure_Options      , only : weightByMass                   , weightIndexNull
     use :: Galacticus_Nodes                , only : nodeComponentBlackHole         , nodeComponentBlackHoleStandard, treeNode
@@ -70,11 +78,15 @@ contains
     return
   end function Node_Component_Black_Hole_Standard_Rotation_Curve
 
-  !# <potentialTask>
-  !#  <unitName>Node_Component_Black_Hole_Standard_Potential</unitName>
-  !# </potentialTask>
+  !![
+  <potentialTask>
+   <unitName>Node_Component_Black_Hole_Standard_Potential</unitName>
+  </potentialTask>
+  !!]
   double precision function Node_Component_Black_Hole_Standard_Potential(node,radius,componentType,massType,status)
-    !% Compute the gravitational potential due to a black hole.
+    !!{
+    Compute the gravitational potential due to a black hole.
+    !!}
     use :: Black_Hole_Fundamentals         , only : Black_Hole_Gravitational_Radius
     use :: Galactic_Structure_Options      , only : componentTypeAll               , componentTypeBlackHole        , massTypeAll, massTypeBlackHole, &
           &                                         weightByMass                   , weightIndexNull
@@ -106,13 +118,17 @@ contains
     return
   end function Node_Component_Black_Hole_Standard_Potential
 
-  !# <rotationCurveGradientTask>
-  !#  <unitName>Node_Component_Black_Hole_Standard_Rotation_Curve_Gradient</unitName>
-  !# </rotationCurveGradientTask>
+  !![
+  <rotationCurveGradientTask>
+   <unitName>Node_Component_Black_Hole_Standard_Rotation_Curve_Gradient</unitName>
+  </rotationCurveGradientTask>
+  !!]
   double precision function Node_Component_Black_Hole_Standard_Rotation_Curve_Gradient(node,radius,componentType &
        &,massType)
-    !% Computes the rotation curve gradient for the central black hole. Assumes a point mass black hole with a Keplerian
-    !% rotation curve, \emph{except} that the rotation speed is limited to never exceed the speed of light.
+    !!{
+    Computes the rotation curve gradient for the central black hole. Assumes a point mass black hole with a Keplerian
+    rotation curve, \emph{except} that the rotation speed is limited to never exceed the speed of light.
+    !!}
     use :: Black_Hole_Fundamentals         , only : Black_Hole_Gravitational_Radius
     use :: Galactic_Structure_Options      , only : componentTypeAll               , componentTypeBlackHole        , massTypeAll, massTypeBlackHole, &
           &                                         weightByMass                   , weightIndexNull

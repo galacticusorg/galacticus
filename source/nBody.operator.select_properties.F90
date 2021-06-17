@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements an N-body data operator which selects particles matching a list of integer properties.
+  !!{
+  Contains a module which implements an N-body data operator which selects particles matching a list of integer properties.
+  !!}
   
-  !# <nbodyOperator name="nbodyOperatorSelectProperties">
-  !#  <description>An N-body data operator which selects particles matching a list of integer properties.</description>
-  !# </nbodyOperator>
+  !![
+  <nbodyOperator name="nbodyOperatorSelectProperties">
+   <description>An N-body data operator which selects particles matching a list of integer properties.</description>
+  </nbodyOperator>
+  !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorSelectProperties
-     !% An N-body data operator which selects particles matching a list of integer properties.
+     !!{
+     An N-body data operator which selects particles matching a list of integer properties.
+     !!}
      private
      type   (varying_string)                            :: propertyName
      integer(c_size_t      ), allocatable, dimension(:) :: selectedValues
@@ -32,7 +38,9 @@
   end type nbodyOperatorSelectProperties
 
   interface nbodyOperatorSelectProperties
-     !% Constructors for the {\normalfont \ttfamily selectProperties} N-body operator class.
+     !!{
+     Constructors for the {\normalfont \ttfamily selectProperties} N-body operator class.
+     !!}
      module procedure selectPropertiesConstructorParameters
      module procedure selectPropertiesConstructorInternal
   end interface nbodyOperatorSelectProperties
@@ -40,7 +48,9 @@
 contains
 
   function selectPropertiesConstructorParameters(parameters) result (self)
-    !% Constructor for the {\normalfont \ttfamily selectProperties} N-body operator class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily selectProperties} N-body operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type   (nbodyOperatorSelectProperties)                              :: self
@@ -48,35 +58,47 @@ contains
     integer(c_size_t                     ), allocatable  , dimension(:) :: selectedValues
     type   (varying_string               )                              :: propertyName
     
-    !# <inputParameter>
-    !#   <name>propertyName</name>
-    !#   <source>parameters</source>
-    !#   <description>A named property on which to select.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>propertyName</name>
+      <source>parameters</source>
+      <description>A named property on which to select.</description>
+    </inputParameter>
+    !!]
     allocate(selectedValues(parameters%count('selectedValues')))
-    !# <inputParameter>
-    !#   <name>selectedValues</name>
-    !#   <source>parameters</source>
-    !#   <description>A list of allowed values for the property</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>selectedValues</name>
+      <source>parameters</source>
+      <description>A list of allowed values for the property</description>
+    </inputParameter>
+    !!]
     self=nbodyOperatorSelectProperties(propertyName,selectedValues)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function selectPropertiesConstructorParameters
 
   function selectPropertiesConstructorInternal(propertyName,selectedValues) result (self)
-    !% Internal constructor for the {\normalfont \ttfamily selectProperties} N-body operator class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily selectProperties} N-body operator class.
+    !!}
     implicit none
     type   (nbodyOperatorSelectProperties)                              :: self
     integer(c_size_t                     ), intent(in   ), dimension(:) :: selectedValues
     type   (varying_string               ), intent(in   )               :: propertyName
-    !# <constructorAssign variables="propertyName, selectedValues"/>
+    !![
+    <constructorAssign variables="propertyName, selectedValues"/>
+    !!]
 
     return
   end function selectPropertiesConstructorInternal
 
   subroutine selectPropertiesOperate(self,simulations)
-    !% Select particles matching a list of integer properties. 
+    !!{
+    Select particles matching a list of integer properties. 
+    !!}
     use :: Display, only : displayIndent, displayMessage, displayUnindent, verbosityLevelStandard
     implicit none
     class           (nbodyOperatorSelectProperties), intent(inout)                 :: self

@@ -21,33 +21,37 @@
   use            :: Geometry_Lightcones, only : geometryLightcone , geometryLightconeClass
   use, intrinsic :: ISO_C_Binding      , only : c_size_t
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorLightcone">
-  !#  <description>
-  !#   A lightcone output extractor property extractor class. The position (and velocity and redshift) of a galaxy within a
-  !#   lightcone will be extracted. Specifically, these properties are extracted as:
-  !#   \begin{description}
-  !#    \item [{\normalfont \ttfamily lightconePositionX}] Position of the galaxy (in comoving Mpc) along the radial direction of
-  !#    the lightcone;
-  !#    \item [{\normalfont \ttfamily lightconePositionY}] Position of the galaxy (in comoving Mpc) along the 1$^\mathrm{st}$
-  !#    angular direction of the lightcone;
-  !#    \item [{\normalfont \ttfamily lightconePositionZ}] Position of the galaxy (in comoving Mpc) along the 2$^\mathrm{nd}$
-  !#    angular direction of the lightcone;
-  !#    \item [{\normalfont \ttfamily lightconeVelocityX}] Velocity of the galaxy (in km/s) along the radial direction of the
-  !#    lightcone;
-  !#    \item [{\normalfont \ttfamily lightconeVelocityY}] Velocity of the galaxy (in km/s) along the 1$^\mathrm{st}$ angular
-  !#    direction of the lightcone;
-  !#    \item [{\normalfont \ttfamily lightconeVelocityZ}] Velocity of the galaxy (in km/s) along the 2$^\mathrm{nd}$ angular
-  !#    direction of the lightcone;
-  !#    \item [{\normalfont \ttfamily lightconeRedshift}] Redshift of the galaxy in the lightcone\footnote{Note that this will
-  !#    not, in general, be precisely the same as the redshift corresponding to the output time.};
-  !#    \item [{\normalfont \ttfamily angularWeight}] The mean number density of this galaxy per unit area on the sky (in
-  !#    degrees$^{-2}$).
-  !#   \end{description}
-  !#   In order to allow this output a lightcone geometry (see \refPhysics{geometryLightcone}) must be specified.
-  !#  </description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorLightcone">
+   <description>
+    A lightcone output extractor property extractor class. The position (and velocity and redshift) of a galaxy within a
+    lightcone will be extracted. Specifically, these properties are extracted as:
+    \begin{description}
+     \item [{\normalfont \ttfamily lightconePositionX}] Position of the galaxy (in comoving Mpc) along the radial direction of
+     the lightcone;
+     \item [{\normalfont \ttfamily lightconePositionY}] Position of the galaxy (in comoving Mpc) along the 1$^\mathrm{st}$
+     angular direction of the lightcone;
+     \item [{\normalfont \ttfamily lightconePositionZ}] Position of the galaxy (in comoving Mpc) along the 2$^\mathrm{nd}$
+     angular direction of the lightcone;
+     \item [{\normalfont \ttfamily lightconeVelocityX}] Velocity of the galaxy (in km/s) along the radial direction of the
+     lightcone;
+     \item [{\normalfont \ttfamily lightconeVelocityY}] Velocity of the galaxy (in km/s) along the 1$^\mathrm{st}$ angular
+     direction of the lightcone;
+     \item [{\normalfont \ttfamily lightconeVelocityZ}] Velocity of the galaxy (in km/s) along the 2$^\mathrm{nd}$ angular
+     direction of the lightcone;
+     \item [{\normalfont \ttfamily lightconeRedshift}] Redshift of the galaxy in the lightcone\footnote{Note that this will
+     not, in general, be precisely the same as the redshift corresponding to the output time.};
+     \item [{\normalfont \ttfamily angularWeight}] The mean number density of this galaxy per unit area on the sky (in
+     degrees$^{-2}$).
+    \end{description}
+    In order to allow this output a lightcone geometry (see \refPhysics{geometryLightcone}) must be specified.
+   </description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorLightcone
-     !% A property extractor which extracts lightcone properties.
+     !!{
+     A property extractor which extracts lightcone properties.
+     !!}
      private
      class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_
      class           (geometryLightconeClass ), pointer                   :: geometryLightcone_
@@ -70,7 +74,9 @@
   end type nodePropertyExtractorLightcone
 
   interface nodePropertyExtractorLightcone
-     !% Constructors for the ``lightcone'' output extractor class.
+     !!{
+     Constructors for the ``lightcone'' output extractor class.
+     !!}
      module procedure lightconeConstructorParameters
      module procedure lightconeConstructorInternal
   end interface nodePropertyExtractorLightcone
@@ -78,7 +84,9 @@
 contains
 
   function lightconeConstructorParameters(parameters) result(self)
-    !% Constructor for the ``lightcone'' output extractor property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the ``lightcone'' output extractor property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (nodePropertyExtractorLightcone)                :: self
@@ -88,35 +96,41 @@ contains
     logical                                                :: includeObservedRedshift, includeAngularCoordinates, &
          &                                                    atCrossing
 
-    !# <inputParameter>
-    !#   <name>includeObservedRedshift</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>If true output the observed redshfit (i.e. including the effects of pecular velocities).</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>includeAngularCoordinates</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>If true output angular coordinates in the lightcone.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>atCrossing</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>If true output positions/velocities at the time of lightcone crossing. Otherwise, output positions at the output time.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
-    !# <objectBuilder class="geometryLightcone"  name="geometryLightcone_"  source="parameters"/>
+    !![
+    <inputParameter>
+      <name>includeObservedRedshift</name>
+      <source>parameters</source>
+      <defaultValue>.false.</defaultValue>
+      <description>If true output the observed redshfit (i.e. including the effects of pecular velocities).</description>
+    </inputParameter>
+    <inputParameter>
+      <name>includeAngularCoordinates</name>
+      <source>parameters</source>
+      <defaultValue>.false.</defaultValue>
+      <description>If true output angular coordinates in the lightcone.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>atCrossing</name>
+      <source>parameters</source>
+      <defaultValue>.false.</defaultValue>
+      <description>If true output positions/velocities at the time of lightcone crossing. Otherwise, output positions at the output time.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    <objectBuilder class="geometryLightcone"  name="geometryLightcone_"  source="parameters"/>
+    !!]
     self=nodePropertyExtractorLightcone(includeObservedRedshift,includeAngularCoordinates,atCrossing,cosmologyFunctions_,geometryLightcone_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"/>
-    !# <objectDestructor name="geometryLightcone_" />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"/>
+    <objectDestructor name="geometryLightcone_" />
+    !!]
     return
   end function lightconeConstructorParameters
 
   function lightconeConstructorInternal(includeObservedRedshift,includeAngularCoordinates,atCrossing,cosmologyFunctions_,geometryLightcone_) result(self)
-    !% Internal constructor for the ``lightcone'' output extractor property extractor class.
+    !!{
+    Internal constructor for the ``lightcone'' output extractor property extractor class.
+    !!}
     use :: Numerical_Constants_Astronomical, only : degreesToRadians, megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
@@ -125,7 +139,9 @@ contains
          &                                                            atCrossing
     class  (cosmologyFunctionsClass       ), intent(in   ), target :: cosmologyFunctions_
     class  (geometryLightconeClass        ), intent(in   ), target :: geometryLightcone_
-    !# <constructorAssign variables="includeObservedRedshift, includeAngularCoordinates, atCrossing, *cosmologyFunctions_, *geometryLightcone_"/>
+    !![
+    <constructorAssign variables="includeObservedRedshift, includeAngularCoordinates, atCrossing, *cosmologyFunctions_, *geometryLightcone_"/>
+    !!]
 
     self%elementCount_=8
     if (includeObservedRedshift) then
@@ -180,17 +196,23 @@ contains
   end function lightconeConstructorInternal
 
   subroutine lightconeDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily lightcone} output extractor property extractor class.
+    !!{
+    Destructor for the {\normalfont \ttfamily lightcone} output extractor property extractor class.
+    !!}
     implicit none
     type(nodePropertyExtractorLightcone), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"/>
-    !# <objectDestructor name="self%geometryLightcone_" />
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"/>
+    <objectDestructor name="self%geometryLightcone_" />
+    !!]
     return
   end subroutine lightconeDestructor
 
   integer function lightconeElementCount(self,time)
-    !% Return the number of elements in the lightconeple property extractors.
+    !!{
+    Return the number of elements in the lightconeple property extractors.
+    !!}
     implicit none
     class           (nodePropertyExtractorLightcone), intent(inout) :: self
     double precision                                , intent(in   ) :: time
@@ -201,7 +223,9 @@ contains
   end function lightconeElementCount
 
   function lightconeExtract(self,node,time,instance)
-    !% Implement a lightcone output extractor.
+    !!{
+    Implement a lightcone output extractor.
+    !!}
     use :: Galacticus_Error                , only : Galacticus_Error_Report
     use :: Numerical_Constants_Astronomical, only : degreesToRadians
     use :: Numerical_Constants_Physical    , only : speedLight
@@ -256,7 +280,9 @@ contains
   end function lightconeExtract
 
   subroutine lightconeAddInstances(self,node,instance)
-    !% Implement adding of instances to a lightcone property extractor.
+    !!{
+    Implement adding of instances to a lightcone property extractor.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: String_Handling , only : operator(//)
     implicit none
@@ -287,7 +313,9 @@ contains
   end subroutine lightconeAddInstances
 
   function lightconeNames(self,time)
-    !% Return the names of the lightconeple properties.
+    !!{
+    Return the names of the lightconeple properties.
+    !!}
     implicit none
     type            (varying_string                ), dimension(:) , allocatable :: lightconeNames
     class           (nodePropertyExtractorLightcone), intent(inout)              :: self
@@ -300,7 +328,9 @@ contains
   end function lightconeNames
 
   function lightconeDescriptions(self,time)
-    !% Return the descriptions of the lightconeple properties.
+    !!{
+    Return the descriptions of the lightconeple properties.
+    !!}
     implicit none
     type            (varying_string                ), dimension(:) , allocatable :: lightconeDescriptions
     class           (nodePropertyExtractorLightcone), intent(inout)              :: self
@@ -313,7 +343,9 @@ contains
   end function lightconeDescriptions
 
   function lightconeUnitsInSI(self,time)
-    !% Return the units of the lightconeple properties in the SI system.
+    !!{
+    Return the units of the lightconeple properties in the SI system.
+    !!}
     implicit none
     double precision                                , dimension(:) , allocatable :: lightconeUnitsInSI
     class           (nodePropertyExtractorLightcone), intent(inout)              :: self
@@ -326,7 +358,9 @@ contains
   end function lightconeUnitsInSI
 
   integer function lightconeType(self)
-    !% Return the type of the lightcone property.
+    !!{
+    Return the type of the lightcone property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorLightcone), intent(inout) :: self

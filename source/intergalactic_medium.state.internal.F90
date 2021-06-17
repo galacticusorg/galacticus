@@ -19,15 +19,21 @@
 
 !+ Contributions to this file made by: Daniel McAndrew.
 
-  !% An implementation of the intergalactic medium state class for an internal model of instantaneous and full reionization.
+  !!{
+  An implementation of the intergalactic medium state class for an internal model of instantaneous and full reionization.
+  !!}
 
   use :: Numerical_Interpolation, only : interpolator
 
-  !# <intergalacticMediumState name="intergalacticMediumStateInternal">
-  !#  <description>The state of the intergalactic medium is solved for internally.</description>
-  !# </intergalacticMediumState>
+  !![
+  <intergalacticMediumState name="intergalacticMediumStateInternal">
+   <description>The state of the intergalactic medium is solved for internally.</description>
+  </intergalacticMediumState>
+  !!]
   type, extends(intergalacticMediumStateClass) :: intergalacticMediumStateInternal
-     !% An \gls{igm} state class for an internally consistent model.
+     !!{
+     An \gls{igm} state class for an internally consistent model.
+     !!}
      double precision              , allocatable, dimension(:  ) :: time            , temperatureIGM  , &
           &                                                         massFiltering   , densityHydrogen1, &
           &                                                         densityHydrogen2, densityHelium1  , &
@@ -44,7 +50,9 @@
   end type intergalacticMediumStateInternal
 
   interface intergalacticMediumStateInternal
-     !% Constructors for the internal intergalactic medium state class.
+     !!{
+     Constructors for the internal intergalactic medium state class.
+     !!}
      module procedure internalConstructorParameters
      module procedure internalConstructorInternal
   end interface intergalacticMediumStateInternal
@@ -52,7 +60,9 @@
 contains
 
   function internalConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily internal} \gls{igm} state class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily internal} \gls{igm} state class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (intergalacticMediumStateInternal)                :: self
@@ -60,22 +70,30 @@ contains
     class(cosmologyFunctionsClass         ), pointer       :: cosmologyFunctions_
     class(cosmologyParametersClass        ), pointer       :: cosmologyParameters_
 
-    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
-    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    !![
+    <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    !!]
     self=intergalacticMediumStateInternal(cosmologyFunctions_,cosmologyParameters_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_" />
-    !# <objectDestructor name="cosmologyParameters_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_" />
+    <objectDestructor name="cosmologyParameters_"/>
+    !!]
     return
   end function internalConstructorParameters
 
   function internalConstructorInternal(cosmologyFunctions_,cosmologyParameters_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily internal} \gls{igm} state class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily internal} \gls{igm} state class.
+    !!}
     implicit none
     type (intergalacticMediumStateInternal)                        :: self
     class(cosmologyFunctionsClass         ), intent(inout), target :: cosmologyFunctions_
     class(cosmologyParametersClass        ), intent(inout), target :: cosmologyParameters_
-    !# <constructorAssign variables="*cosmologyFunctions_, *cosmologyParameters_"/>
+    !![
+    <constructorAssign variables="*cosmologyFunctions_, *cosmologyParameters_"/>
+    !!]
 
     allocate  (self%time            (0))
     allocate  (self%temperatureIGM  (0))
@@ -97,7 +115,9 @@ contains
   end function internalConstructorInternal
 
   subroutine internalAutoHook(self)
-    !% Hook into the internal intergalactic medium state evolver to receive updates.
+    !!{
+    Hook into the internal intergalactic medium state evolver to receive updates.
+    !!}
     use :: Events_Hooks, only : intergalacticMediumStateEvolveUpdateEvent
     implicit none
     class(intergalacticMediumStateInternal), intent(inout) :: self
@@ -107,17 +127,23 @@ contains
   end subroutine internalAutoHook
 
   subroutine internalDestructor(self)
-    !% Destructor for the internal \gls{igm} state class.
+    !!{
+    Destructor for the internal \gls{igm} state class.
+    !!}
     implicit none
     type(intergalacticMediumStateInternal), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_"/>
-    !# <objectDestructor name="self%cosmologyFunctions_" />
+    !![
+    <objectDestructor name="self%cosmologyParameters_"/>
+    <objectDestructor name="self%cosmologyFunctions_" />
+    !!]
     return
   end subroutine internalDestructor
 
   double precision function internalElectronFraction(self,time)
-    !% Return the electron fraction of the \gls{igm} in the internal model.
+    !!{
+    Return the electron fraction of the \gls{igm} in the internal model.
+    !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     class           (intergalacticMediumStateInternal), intent(inout)   :: self
@@ -159,7 +185,9 @@ contains
   end function internalElectronFraction
 
   double precision function internalNeutralHydrogenFraction(self,time)
-    !% Return the neutral hydrogen fraction of the \gls{igm} in the internal model.
+    !!{
+    Return the neutral hydrogen fraction of the \gls{igm} in the internal model.
+    !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     class           (intergalacticMediumStateInternal), intent(inout)   :: self
@@ -194,7 +222,9 @@ contains
   end function internalNeutralHydrogenFraction
 
   double precision function internalNeutralHeliumFraction(self,time)
-    !% Return the neutral helium fraction of the \gls{igm} in the internal model.
+    !!{
+    Return the neutral helium fraction of the \gls{igm} in the internal model.
+    !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     class           (intergalacticMediumStateInternal), intent(inout)  :: self
@@ -229,7 +259,9 @@ contains
   end function internalNeutralHeliumFraction
 
   double precision function internalSinglyIonizedHeliumFraction(self,time)
-    !% Return the singly ionized helium fraction of the \gls{igm} in the internal model.
+    !!{
+    Return the singly ionized helium fraction of the \gls{igm} in the internal model.
+    !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     class           (intergalacticMediumStateInternal), intent(inout)   :: self
@@ -264,7 +296,9 @@ contains
   end function internalSinglyIonizedHeliumFraction
 
   double precision function internalTemperature(self,time)
-    !% Return the temperature of the \gls{igm} in the internal model.
+    !!{
+    Return the temperature of the \gls{igm} in the internal model.
+    !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     class           (intergalacticMediumStateInternal), intent(inout)   :: self
@@ -292,7 +326,9 @@ contains
   end function internalTemperature
 
   subroutine internalStateSet(self,time,densityHydrogen1,densityHydrogen2,densityHelium1,densityHelium2,densityHelium3,temperature,massFiltering)
-    !% Set state in the internal intergalatic medium state class.
+    !!{
+    Set state in the internal intergalatic medium state class.
+    !!}
     use :: Galacticus_Error , only : Galacticus_Error_Report
     use :: Memory_Management, only : allocateArray          , deallocateArray
     implicit none

@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a node property extractor class for halo environment.
+!!{
+Contains a module which implements a node property extractor class for halo environment.
+!!}
 
   use :: Cosmological_Density_Field, only : haloEnvironment, haloEnvironmentClass
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorHaloEnvironment">
-  !#  <description>A node property extractor class for halo environment.</description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorHaloEnvironment">
+   <description>A node property extractor class for halo environment.</description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorHaloEnvironment
-     !% A property extractor class for halo environment.
+     !!{
+     A property extractor class for halo environment.
+     !!}
      private
      class(haloEnvironmentClass), pointer :: haloEnvironment_
    contains
@@ -39,7 +45,9 @@
   end type nodePropertyExtractorHaloEnvironment
 
   interface nodePropertyExtractorHaloEnvironment
-     !% Constructors for the ``haloEnvironment'' output analysis class.
+     !!{
+     Constructors for the ``haloEnvironment'' output analysis class.
+     !!}
      module procedure haloEnvironmentConstructorParameters
      module procedure haloEnvironmentConstructorInternal
   end interface nodePropertyExtractorHaloEnvironment
@@ -47,41 +55,57 @@
 contains
 
   function haloEnvironmentConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily haloEnvironment} node property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily haloEnvironment} node property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (nodePropertyExtractorHaloEnvironment)                :: self
     type (inputParameters                     ), intent(inout) :: parameters
     class(haloEnvironmentClass                ), pointer       :: haloEnvironment_
 
-    !# <objectBuilder class="haloEnvironment" name="haloEnvironment_" source="parameters"/>
+    !![
+    <objectBuilder class="haloEnvironment" name="haloEnvironment_" source="parameters"/>
+    !!]
     self=nodePropertyExtractorHaloEnvironment(haloEnvironment_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="haloEnvironment_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="haloEnvironment_"/>
+    !!]
     return
   end function haloEnvironmentConstructorParameters
 
   function haloEnvironmentConstructorInternal(haloEnvironment_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily haloEnvironment} output analysis property extractor class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily haloEnvironment} output analysis property extractor class.
+    !!}
     implicit none
     type (nodePropertyExtractorHaloEnvironment)                        :: self
     class(haloEnvironmentClass                ), intent(in   ), target :: haloEnvironment_
-    !# <constructorAssign variables="*haloEnvironment_"/>
+    !![
+    <constructorAssign variables="*haloEnvironment_"/>
+    !!]
 
     return
   end function haloEnvironmentConstructorInternal
 
   subroutine haloEnvironmentDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily haloEnvironment} output analysis property extractor class.
+    !!{
+    Destructor for the {\normalfont \ttfamily haloEnvironment} output analysis property extractor class.
+    !!}
     implicit none
     type(nodePropertyExtractorHaloEnvironment), intent(inout) :: self
 
-    !# <objectDestructor name="self%haloEnvironment_"/>
+    !![
+    <objectDestructor name="self%haloEnvironment_"/>
+    !!]
     return
   end subroutine haloEnvironmentDestructor
 
   integer function haloEnvironmentElementCount(self,time)
-    !% Return the number of elements in the {\normalfont \ttfamily haloEnvironment} property extractor.
+    !!{
+    Return the number of elements in the {\normalfont \ttfamily haloEnvironment} property extractor.
+    !!}
     implicit none
     class           (nodePropertyExtractorHaloEnvironment), intent(inout) :: self
     double precision                                      , intent(in   ) :: time
@@ -92,7 +116,9 @@ contains
   end function haloEnvironmentElementCount
 
   function haloEnvironmentExtract(self,node,time,instance)
-    !% Implement extraction of halo environment properties.
+    !!{
+    Implement extraction of halo environment properties.
+    !!}
     implicit none
     double precision                                      , dimension(:) , allocatable :: haloEnvironmentExtract
     class           (nodePropertyExtractorHaloEnvironment), intent(inout), target      :: self
@@ -110,7 +136,9 @@ contains
   end function haloEnvironmentExtract
 
   function haloEnvironmentNames(self,time)
-    !% Return the name of the {\normalfont \ttfamily haloEnvironment} property.
+    !!{
+    Return the name of the {\normalfont \ttfamily haloEnvironment} property.
+    !!}
     implicit none
     type            (varying_string                      ), dimension(:) , allocatable :: haloEnvironmentNames
     class           (nodePropertyExtractorHaloEnvironment), intent(inout)              :: self
@@ -126,7 +154,9 @@ contains
   end function haloEnvironmentNames
 
   function haloEnvironmentDescriptions(self,time)
-    !% Return a description of the {\normalfont \ttfamily haloEnvironment} property.
+    !!{
+    Return a description of the {\normalfont \ttfamily haloEnvironment} property.
+    !!}
     implicit none
     type            (varying_string                      ), dimension(:) , allocatable :: haloEnvironmentDescriptions
     class           (nodePropertyExtractorHaloEnvironment), intent(inout)              :: self
@@ -142,7 +172,9 @@ contains
   end function haloEnvironmentDescriptions
 
   function haloEnvironmentUnitsInSI(self,time)
-    !% Return the units of the {\normalfont \ttfamily haloEnvironment} property in the SI system.
+    !!{
+    Return the units of the {\normalfont \ttfamily haloEnvironment} property in the SI system.
+    !!}
     implicit none
     double precision                                      , allocatable  , dimension(:) :: haloEnvironmentUnitsInSI
     class           (nodePropertyExtractorHaloEnvironment), intent(inout)               :: self
@@ -155,7 +187,9 @@ contains
   end function haloEnvironmentUnitsInSI
 
   integer function haloEnvironmentType(self)
-    !% Return the type of the {\normalfont \ttfamily haloEnvironment} property.
+    !!{
+    Return the type of the {\normalfont \ttfamily haloEnvironment} property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorHaloEnvironment), intent(inout) :: self

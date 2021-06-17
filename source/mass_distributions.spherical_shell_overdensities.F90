@@ -17,40 +17,46 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a mass distribution class which overlays clouds on another mass distribution.
+  !!{
+  Implementation of a mass distribution class which overlays clouds on another mass distribution.
+  !!}
 
   use, intrinsic :: ISO_C_Binding           , only : c_size_t
   use            :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
-  !# <massDistribution name="massDistributionSphericalShellOverdensities">
-  !#  <description>
-  !#   A mass distribution class which overlays overdense spherical shells on another mass distribution.
-  !#   
-  !#   The intent is to mimic the effects of a 3-D distribution of spherical clouds, but along a single sight-line from the center of a
-  !#   spherically symmetric mass distribution. This is useful in computing radiative transfer through cloudy media for spherically
-  !#   symmetric systems.
-  !#   
-  !#   In the 3-D case clouds are defined by a radius, $r_\mathrm{c}$, a volume filling factor, $f_\mathrm{v}$, and a density contrast,
-  !#   $\Delta_\mathrm{c}$. For this case of spherical shells the same quantities are used, except that the radius is referred to as
-  !#   the ``half-width'' of the shell, but is still labelled $r_\mathrm{c}$.
-  !#   
-  !#   In the 3-D case the number density of clouds is
-  !#   \begin{equation}
-  !#    n_\mathrm{c} = {f_\mathrm{v} \over (4 \pi / 3 ) r_\mathrm{c}^3}.
-  !#   \end{equation}
-  !#   Along a sightline of length $l$ (specified by the {\normalfont \ttfamily [radiusBoundary]} parameter) the number of clouds
-  !#   intersected is
-  !#   \begin{equation}
-  !#    N_\mathrm{c} = n_\mathrm{c} l 4 \pi r_\mathrm{c}^2 = 3 f_\mathrm{v} {l \over r_\mathrm{c}}.
-  !#   \end{equation}
-  !#   This last relation is used to determine the number of spherical shells to generate. These shells are then placed randomly
-  !#   in radius between $0$ and $l$. Each shell is also assigned an impact parameter, $b$, meant to represent the distance of the
-  !#   center of the notional spherical cloud from the line of sight. The effective half-width of the shell is then
-  !#   $\sqrt{r_\mathrm{c}^2-b^2}$.
-  !#  </description>
-  !# </massDistribution>
+  !![
+  <massDistribution name="massDistributionSphericalShellOverdensities">
+   <description>
+    A mass distribution class which overlays overdense spherical shells on another mass distribution.
+    
+    The intent is to mimic the effects of a 3-D distribution of spherical clouds, but along a single sight-line from the center of a
+    spherically symmetric mass distribution. This is useful in computing radiative transfer through cloudy media for spherically
+    symmetric systems.
+    
+    In the 3-D case clouds are defined by a radius, $r_\mathrm{c}$, a volume filling factor, $f_\mathrm{v}$, and a density contrast,
+    $\Delta_\mathrm{c}$. For this case of spherical shells the same quantities are used, except that the radius is referred to as
+    the ``half-width'' of the shell, but is still labelled $r_\mathrm{c}$.
+    
+    In the 3-D case the number density of clouds is
+    \begin{equation}
+     n_\mathrm{c} = {f_\mathrm{v} \over (4 \pi / 3 ) r_\mathrm{c}^3}.
+    \end{equation}
+    Along a sightline of length $l$ (specified by the {\normalfont \ttfamily [radiusBoundary]} parameter) the number of clouds
+    intersected is
+    \begin{equation}
+     N_\mathrm{c} = n_\mathrm{c} l 4 \pi r_\mathrm{c}^2 = 3 f_\mathrm{v} {l \over r_\mathrm{c}}.
+    \end{equation}
+    This last relation is used to determine the number of spherical shells to generate. These shells are then placed randomly
+    in radius between $0$ and $l$. Each shell is also assigned an impact parameter, $b$, meant to represent the distance of the
+    center of the notional spherical cloud from the line of sight. The effective half-width of the shell is then
+    $\sqrt{r_\mathrm{c}^2-b^2}$.
+   </description>
+  </massDistribution>
+  !!]
   type, public, extends(massDistributionClass) :: massDistributionSphericalShellOverdensities
-     !% A mass distribution class which overlays clouds on another mass distribution.
+     !!{
+     A mass distribution class which overlays clouds on another mass distribution.
+     !!}
      class           (randomNumberGeneratorClass), pointer                   :: randomNumberGenerator_
      class           (massDistributionClass     ), pointer                   :: massDistribution_
      double precision                            , allocatable, dimension(:) :: radii                 , impactParameter
@@ -64,7 +70,9 @@
   end type massDistributionSphericalShellOverdensities
 
   interface massDistributionSphericalShellOverdensities
-     !% Constructors for the {\normalfont \ttfamily sphericalShellOverdensities} mass distribution class.
+     !!{
+     Constructors for the {\normalfont \ttfamily sphericalShellOverdensities} mass distribution class.
+     !!}
      module procedure sphericalShellOverdensitiesConstructorParameters
      module procedure sphericalShellOverdensitiesConstructorInternal
   end interface massDistributionSphericalShellOverdensities
@@ -72,8 +80,10 @@
 contains
 
   function sphericalShellOverdensitiesConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily sphericalShellOverdensities} mass distribution class which builds the object from a parameter
-    !% set.
+    !!{
+    Constructor for the {\normalfont \ttfamily sphericalShellOverdensities} mass distribution class which builds the object from a parameter
+    set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (massDistributionSphericalShellOverdensities)                :: self
@@ -84,43 +94,49 @@ contains
           &                                                                         volumeFillingFactor   , radiusBoundary
     logical                                                                      :: dimensionless
 
-    !# <inputParameter>
-    !#   <name>halfWidth</name>
-    !#   <description>The shell half-width.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>densityContrast</name>
-    !#   <description>The shell density contrast.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>volumeFillingFactor</name>
-    !#   <description>The shell volume filling factor.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>radiusBoundary</name>
-    !#   <description>The boundary radius within which to populate shells.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>dimensionless</name>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>If true the shell overdensities profile is considered to be dimensionless.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="massDistribution"      name="massDistribution_"      source="parameters"/>
-    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>halfWidth</name>
+      <description>The shell half-width.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>densityContrast</name>
+      <description>The shell density contrast.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>volumeFillingFactor</name>
+      <description>The shell volume filling factor.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>radiusBoundary</name>
+      <description>The boundary radius within which to populate shells.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>dimensionless</name>
+      <defaultValue>.true.</defaultValue>
+      <description>If true the shell overdensities profile is considered to be dimensionless.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="massDistribution"      name="massDistribution_"      source="parameters"/>
+    <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !!]
     self=massDistributionSphericalShellOverdensities(halfWidth,densityContrast,volumeFillingFactor,radiusBoundary,massDistribution_,randomNumberGenerator_,dimensionless)
-    !# <objectDestructor name="massDistribution_"     />
-    !# <objectDestructor name="randomNumberGenerator_"/>
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <objectDestructor name="massDistribution_"     />
+    <objectDestructor name="randomNumberGenerator_"/>
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function sphericalShellOverdensitiesConstructorParameters
   
   function sphericalShellOverdensitiesConstructorInternal(halfWidth,densityContrast,volumeFillingFactor,radiusBoundary,massDistribution_,randomNumberGenerator_,dimensionless) result(self)
-    !% Constructor for ``sphericalShellOverdensities'' mass distribution class.
+    !!{
+    Constructor for ``sphericalShellOverdensities'' mass distribution class.
+    !!}
     use :: Sorting      , only : sort
 #ifdef USEMPI
     use :: MPI_Utilities, only : mpiSelf, mpiBarrier
@@ -134,7 +150,9 @@ contains
     logical                                                      , intent(in   ), optional :: dimensionless
     integer         (c_size_t                                   )                          :: i
     double precision                                                                       :: countShellsMean
-    !# <constructorAssign variables="halfWidth, densityContrast, volumeFillingFactor, radiusBoundary, *massDistribution_, *randomNumberGenerator_"/>
+    !![
+    <constructorAssign variables="halfWidth, densityContrast, volumeFillingFactor, radiusBoundary, *massDistribution_, *randomNumberGenerator_"/>
+    !!]
 
     ! Determine if profile is dimensionless.
     if (present(dimensionless)) then
@@ -190,17 +208,23 @@ contains
   end function sphericalShellOverdensitiesConstructorInternal
   
   subroutine sphericalShellOverdensitiesDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily sphericalShellOverdensities} mass distribution class.
+    !!{
+    Destructor for the {\normalfont \ttfamily sphericalShellOverdensities} mass distribution class.
+    !!}
     implicit none
     type(massDistributionSphericalShellOverdensities), intent(inout) :: self
 
-    !# <objectDestructor name="self%massDistribution_"     />
-    !# <objectDestructor name="self%randomNumberGenerator_"/>
+    !![
+    <objectDestructor name="self%massDistribution_"     />
+    <objectDestructor name="self%randomNumberGenerator_"/>
+    !!]
     return
   end subroutine sphericalShellOverdensitiesDestructor
 
   double precision function sphericalShellOverdensitiesDensity(self,coordinates)
-    !% Return the density at the specified {\normalfont \ttfamily coordinates} in a cloud overdensities mass distribution.
+    !!{
+    Return the density at the specified {\normalfont \ttfamily coordinates} in a cloud overdensities mass distribution.
+    !!}
     use :: Arrays_Search, only : searchArrayClosest
     use :: Coordinates  , only : assignment(=)     , coordinateSpherical
     implicit none

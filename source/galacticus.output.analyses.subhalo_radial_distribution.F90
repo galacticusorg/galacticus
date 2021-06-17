@@ -17,19 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements an output analysis class that computes subhalo radial distributions.
+  !!{
+  Contains a module which implements an output analysis class that computes subhalo radial distributions.
+  !!}
   
-  !# <outputAnalysis name="outputAnalysisSubhaloRadialDistribution">
-  !#  <description>An output analysis class for subhalo mass functions.</description>
-  !#  <deepCopy>
-  !#   <functionClass variables="volumeFunctionsSubHalos, volumeFunctionsHostHalos"/>
-  !#  </deepCopy>
-  !#  <stateStorable>
-  !#   <functionClass variables="volumeFunctionsSubHalos, volumeFunctionsHostHalos"/>
-  !#  </stateStorable>
-  !# </outputAnalysis>
+  !![
+  <outputAnalysis name="outputAnalysisSubhaloRadialDistribution">
+   <description>An output analysis class for subhalo mass functions.</description>
+   <deepCopy>
+    <functionClass variables="volumeFunctionsSubHalos, volumeFunctionsHostHalos"/>
+   </deepCopy>
+   <stateStorable>
+    <functionClass variables="volumeFunctionsSubHalos, volumeFunctionsHostHalos"/>
+   </stateStorable>
+  </outputAnalysis>
+  !!]
   type, extends(outputAnalysisClass) :: outputAnalysisSubhaloRadialDistribution
-     !% An output analysis class for subhalo mass functions.
+     !!{
+     An output analysis class for subhalo mass functions.
+     !!}
      private
      type            (outputAnalysisVolumeFunction1D), pointer                     :: volumeFunctionsSubHalos           => null(), volumeFunctionsHostHalos           => null()
      double precision                                , allocatable, dimension(:  ) :: radiiFractional                            , radialDistribution                          , &
@@ -42,9 +48,11 @@
      integer         (c_size_t                      )                              :: countRadiiFractional 
      logical                                                                       :: finalized
    contains
-     !# <methods>
-     !#   <method description="Finalize analysis." method="finalizeAnalysis" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Finalize analysis." method="finalizeAnalysis" />
+     </methods>
+     !!]
      final     ::                     subhaloRadialDistributionDestructor
      procedure :: analyze          => subhaloRadialDistributionAnalyze
      procedure :: finalize         => subhaloRadialDistributionFinalize
@@ -54,7 +62,9 @@
   end type outputAnalysisSubhaloRadialDistribution
 
   interface outputAnalysisSubhaloRadialDistribution
-     !% Constructors for the ``subhaloRadialDistribution'' output analysis class.
+     !!{
+     Constructors for the ``subhaloRadialDistribution'' output analysis class.
+     !!}
      module procedure subhaloRadialDistributionConstructorParameters
      module procedure subhaloRadialDistributionConstructorFile
      module procedure subhaloRadialDistributionConstructorInternal
@@ -63,7 +73,9 @@
 contains
 
   function subhaloRadialDistributionConstructorParameters(parameters) result(self)
-    !% Constructor for the ``subhaloRadialDistribution'' output analysis class which takes a parameter set as input.
+    !!{
+    Constructor for the ``subhaloRadialDistribution'' output analysis class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters       , only : inputParameter            , inputParameters
     use :: Output_Times           , only : outputTimesClass
     use :: Cosmology_Functions    , only : cosmologyFunctionsClass
@@ -81,70 +93,82 @@ contains
     type            (varying_string                         )                :: fileName
 
     if (parameters%isPresent('fileName')) then
-       !# <inputParameter>
-       !#   <name>fileName</name>
-       !#   <source>parameters</source>
-       !#   <description>The name of the file from which to read the target dataset.</description>
-       !# </inputParameter>
+       !![
+       <inputParameter>
+         <name>fileName</name>
+         <source>parameters</source>
+         <description>The name of the file from which to read the target dataset.</description>
+       </inputParameter>
+       !!]
     else
-       !# <inputParameter>
-       !#   <name>radiusFractionMinimum</name>
-       !#   <source>parameters</source>
-       !#   <defaultValue>1.0d-4</defaultValue>
-       !#   <description>The minimum fractional radius to consider.</description>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>radiusFractionMaximum</name>
-       !#   <source>parameters</source>
-       !#   <defaultValue>1.0d0</defaultValue>
-       !#   <description>The maximum fractional radius to consider.</description>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>countRadiiFractional</name>
-       !#   <source>parameters</source>
-       !#   <defaultValue>10_c_size_t</defaultValue>
-       !#   <description>The number of bins in mass ratio to use.</description>
-       !# </inputParameter>
-      !# <inputParameter>
-       !#   <name>massRatioThreshold</name>
-       !#   <source>parameters</source>
-       !#   <defaultValue>0.0d0</defaultValue>
-       !#   <description>The minimum mass ratio (satellite bound mass to host virial mass) to include in the radial distribution function.</description>
-       !# </inputParameter>
+       !![
+       <inputParameter>
+         <name>radiusFractionMinimum</name>
+         <source>parameters</source>
+         <defaultValue>1.0d-4</defaultValue>
+         <description>The minimum fractional radius to consider.</description>
+       </inputParameter>
+       <inputParameter>
+         <name>radiusFractionMaximum</name>
+         <source>parameters</source>
+         <defaultValue>1.0d0</defaultValue>
+         <description>The maximum fractional radius to consider.</description>
+       </inputParameter>
+       <inputParameter>
+         <name>countRadiiFractional</name>
+         <source>parameters</source>
+         <defaultValue>10_c_size_t</defaultValue>
+         <description>The number of bins in mass ratio to use.</description>
+       </inputParameter>
+      <inputParameter>
+         <name>massRatioThreshold</name>
+         <source>parameters</source>
+         <defaultValue>0.0d0</defaultValue>
+         <description>The minimum mass ratio (satellite bound mass to host virial mass) to include in the radial distribution function.</description>
+       </inputParameter>
+       !!]
     end if
-    !# <inputParameter>
-    !#   <name>redshift</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>The redshift at which to compute the subhalo radial distribution.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>negativeBinomialScatterFractional</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>0.18d0</defaultValue>
-    !#   <defaultSource>\citep{boylan-kolchin_theres_2010}</defaultSource>
-    !#   <description>The fractional scatter (relative to the Poisson scatter) in the negative binomial distribution used in likelihood calculations.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="outputTimes"           name="outputTimes_"           source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
-    !# <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>redshift</name>
+      <source>parameters</source>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The redshift at which to compute the subhalo radial distribution.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>negativeBinomialScatterFractional</name>
+      <source>parameters</source>
+      <defaultValue>0.18d0</defaultValue>
+      <defaultSource>\citep{boylan-kolchin_theres_2010}</defaultSource>
+      <description>The fractional scatter (relative to the Poisson scatter) in the negative binomial distribution used in likelihood calculations.</description>
+    </inputParameter>
+    <objectBuilder class="outputTimes"           name="outputTimes_"           source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
+    <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
+    !!]
     if (parameters%isPresent('fileName')) then
-       !# <conditionalCall>
-       !#  <call>self=outputAnalysisSubhaloRadialDistribution(outputTimes_,virialDensityContrast_,cosmologyFunctions_                                                                      ,fileName                                                                           ,negativeBinomialScatterFractional{conditions})</call>
-       !#   <argument name="redshift" value="redshift" parameterPresent="parameters"/>
-       !# </conditionalCall>
+       !![
+       <conditionalCall>
+        <call>self=outputAnalysisSubhaloRadialDistribution(outputTimes_,virialDensityContrast_,cosmologyFunctions_                                                                      ,fileName                                                                           ,negativeBinomialScatterFractional{conditions})</call>
+         <argument name="redshift" value="redshift" parameterPresent="parameters"/>
+       </conditionalCall>
+       !!]
     else
        self=outputAnalysisSubhaloRadialDistribution(outputTimes_,virialDensityContrast_,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),radiusFractionMinimum,radiusFractionMaximum,countRadiiFractional,massRatioThreshold,negativeBinomialScatterFractional)
     end if
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="outputTimes_"          />
-    !# <objectDestructor name="cosmologyFunctions_"   />
-    !# <objectDestructor name="virialDensityContrast_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="outputTimes_"          />
+    <objectDestructor name="cosmologyFunctions_"   />
+    <objectDestructor name="virialDensityContrast_"/>
+    !!]
     return
   end function subhaloRadialDistributionConstructorParameters
   
   function subhaloRadialDistributionConstructorFile(outputTimes_,virialDensityContrast_,cosmologyFunctions_,fileName,negativeBinomialScatterFractional,redshift) result (self)
-    !% Constructor for the ``subhaloRadialDistribution'' output analysis class for internal use.
+    !!{
+    Constructor for the ``subhaloRadialDistribution'' output analysis class for internal use.
+    !!}
     use :: IO_HDF5                , only : hdf5Object                , hdf5Access
     use :: Output_Times           , only : outputTimesClass
     use :: Cosmology_Functions    , only : cosmologyFunctionsClass
@@ -198,7 +222,9 @@ contains
   end function subhaloRadialDistributionConstructorFile
 
   function subhaloRadialDistributionConstructorInternal(outputTimes_,virialDensityContrast_,time,radiusFractionMinimum,radiusFractionMaximum,countRadiiFractional,massRatioThreshold,negativeBinomialScatterFractional,radialDistributionTarget,radialDistributionCovarianceTarget,labelTarget) result (self)
-    !% Constructor for the ``subhaloRadialDistribution'' output analysis class for internal use.
+    !!{
+    Constructor for the ``subhaloRadialDistribution'' output analysis class for internal use.
+    !!}
     use :: Galactic_Filters                        , only : galacticFilterHaloIsolated                  , galacticFilterHaloNotIsolated      , galacticFilterHighPass    , galacticFilterAll                 , &
          &                                                  filterList
     use :: Node_Property_Extractors                , only : nodePropertyExtractorMassBound              , nodePropertyExtractorHostNode      , nodePropertyExtractorRatio, nodePropertyExtractorRadiusOrbital, &
@@ -244,7 +270,9 @@ contains
     integer         (c_size_t                                    ), parameter                               :: binCountHosts                        =2_c_size_t
     double precision                                              , parameter                               :: massHostLogarithmicMaximum           =1.0d2
     integer         (c_size_t                                    )                                          :: i
-    !# <constructorAssign variables="negativeBinomialScatterFractional, countRadiiFractional, radiusFractionMinimum, radiusFractionMaximum, radialDistributionTarget, radialDistributionCovarianceTarget, labelTarget"/>
+    !![
+    <constructorAssign variables="negativeBinomialScatterFractional, countRadiiFractional, radiusFractionMinimum, radiusFractionMaximum, radialDistributionTarget, radialDistributionCovarianceTarget, labelTarget"/>
+    !!]
 
     ! Initialize.
     self%finalized=.false.
@@ -264,41 +292,61 @@ contains
     allocate(nodePropertyExtractorMassHalo_     )
     allocate(nodePropertyExtractorMassHost_     )
     allocate(nodePropertyExtractorMassRatio_    )
-    !# <referenceConstruct object="nodePropertyExtractorMassBound_"     constructor="nodePropertyExtractorMassBound    (                                                                                                                                           )"/>
-    !# <referenceConstruct object="nodePropertyExtractorRadiusOrbital_" constructor="nodePropertyExtractorRadiusOrbital(                                                                                                                                           )"/>
-    !# <referenceConstruct object="nodePropertyExtractorRadiusVirial_"  constructor="nodePropertyExtractorRadiusVirial (virialDensityContrast_                                                                                                                     )"/>
-    !# <referenceConstruct object="nodePropertyExtractorMassHalo_"      constructor="nodePropertyExtractorMassHalo     (virialDensityContrast_                                                                                                                     )"/>
-    !# <referenceConstruct object="nodePropertyExtractorHost_"          constructor="nodePropertyExtractorHostNode     (nodePropertyExtractorRadiusVirial_                                                                                                         )"/>
-    !# <referenceConstruct object="nodePropertyExtractorMassHost_"      constructor="nodePropertyExtractorHostNode     (nodePropertyExtractorMassHalo_                                                                                                             )"/>
-    !# <referenceConstruct object="nodePropertyExtractor_"              constructor="nodePropertyExtractorRatio        ('radiusFraction','Ratio of subhalo orbital radius to host virial radius',nodePropertyExtractorRadiusOrbital_,nodePropertyExtractorHost_    )"/>
-    !# <referenceConstruct object="nodePropertyExtractorMassRatio_"     constructor="nodePropertyExtractorRatio        ('massRatio'     ,'Ratio of subhalo to host mass'                        ,nodePropertyExtractorMassBound_    ,nodePropertyExtractorMassHost_)"/>
+    !![
+    <referenceConstruct object="nodePropertyExtractorMassBound_"     constructor="nodePropertyExtractorMassBound    (                                                                                                                                           )"/>
+    <referenceConstruct object="nodePropertyExtractorRadiusOrbital_" constructor="nodePropertyExtractorRadiusOrbital(                                                                                                                                           )"/>
+    <referenceConstruct object="nodePropertyExtractorRadiusVirial_"  constructor="nodePropertyExtractorRadiusVirial (virialDensityContrast_                                                                                                                     )"/>
+    <referenceConstruct object="nodePropertyExtractorMassHalo_"      constructor="nodePropertyExtractorMassHalo     (virialDensityContrast_                                                                                                                     )"/>
+    <referenceConstruct object="nodePropertyExtractorHost_"          constructor="nodePropertyExtractorHostNode     (nodePropertyExtractorRadiusVirial_                                                                                                         )"/>
+    <referenceConstruct object="nodePropertyExtractorMassHost_"      constructor="nodePropertyExtractorHostNode     (nodePropertyExtractorMassHalo_                                                                                                             )"/>
+    <referenceConstruct object="nodePropertyExtractor_"              constructor="nodePropertyExtractorRatio        ('radiusFraction','Ratio of subhalo orbital radius to host virial radius',nodePropertyExtractorRadiusOrbital_,nodePropertyExtractorHost_    )"/>
+    <referenceConstruct object="nodePropertyExtractorMassRatio_"     constructor="nodePropertyExtractorRatio        ('massRatio'     ,'Ratio of subhalo to host mass'                        ,nodePropertyExtractorMassBound_    ,nodePropertyExtractorMassHost_)"/>
+    !!]
     ! Create property operators and unoperators to perform conversion to/from logarithmic mass ratio.
     allocate(outputAnalysisPropertyOperator_  )
-    !# <referenceConstruct object="outputAnalysisPropertyOperator_"   constructor="outputAnalysisPropertyOperatorLog10    ()"/>
+    !![
+    <referenceConstruct object="outputAnalysisPropertyOperator_"   constructor="outputAnalysisPropertyOperatorLog10    ()"/>
+    !!]
     allocate(outputAnalysisPropertyUnoperator_)
-    !# <referenceConstruct object="outputAnalysisPropertyUnoperator_" constructor="outputAnalysisPropertyOperatorAntiLog10()"/>
+    !![
+    <referenceConstruct object="outputAnalysisPropertyUnoperator_" constructor="outputAnalysisPropertyOperatorAntiLog10()"/>
+    !!]
     ! Create an identity weight operator.
     allocate(outputAnalysisWeightOperator_)
-    !# <referenceConstruct object="outputAnalysisWeightOperator_" constructor="outputAnalysisWeightOperatorIdentity()"/>
+    !![
+    <referenceConstruct object="outputAnalysisWeightOperator_" constructor="outputAnalysisWeightOperatorIdentity()"/>
+    !!]
     ! Build filters which select subhalos/hosts.
     allocate(galacticFilterHosts_    )
-    !# <referenceConstruct object="galacticFilterHosts_"     constructor="galacticFilterHaloIsolated   (                                                  )"/>
+    !![
+    <referenceConstruct object="galacticFilterHosts_"     constructor="galacticFilterHaloIsolated   (                                                  )"/>
+    !!]
     allocate(galacticFilterIsSubhalo_)
-    !# <referenceConstruct object="galacticFilterIsSubhalo_" constructor="galacticFilterHaloNotIsolated(                                                  )"/>
+    !![
+    <referenceConstruct object="galacticFilterIsSubhalo_" constructor="galacticFilterHaloNotIsolated(                                                  )"/>
+    !!]
     allocate(galacticFilterMassRatio_)
-    !# <referenceConstruct object="galacticFilterMassRatio_" constructor="galacticFilterHighPass       (massRatioThreshold,nodePropertyExtractorMassRatio_)"/>
+    !![
+    <referenceConstruct object="galacticFilterMassRatio_" constructor="galacticFilterHighPass       (massRatioThreshold,nodePropertyExtractorMassRatio_)"/>
+    !!]
     allocate(galacticFilterSubhalos_)
     allocate(filters_                         )
     allocate(filters_                    %next)
     filters_     %filter_ => galacticFilterIsSubhalo_
     filters_%next%filter_ => galacticFilterMassRatio_
-    !# <referenceConstruct object="galacticFilterSubhalos_"  constructor="galacticFilterAll            (filters_                                          )"/>
+    !![
+    <referenceConstruct object="galacticFilterSubhalos_"  constructor="galacticFilterAll            (filters_                                          )"/>
+    !!]
     ! Build an identity distribution operator.
     allocate(outputAnalysisDistributionOperator_)
-    !# <referenceConstruct object="outputAnalysisDistributionOperator_" constructor="outputAnalysisDistributionOperatorIdentity()"/>
+    !![
+    <referenceConstruct object="outputAnalysisDistributionOperator_" constructor="outputAnalysisDistributionOperatorIdentity()"/>
+    !!]
     ! Build an identity distribution normalizers for hosts and subhalos.
     allocate(outputAnalysisDistributionNormalizer_)
-    !# <referenceConstruct object="outputAnalysisDistributionNormalizer_" constructor="outputAnalysisDistributionNormalizerIdentity()"/>
+    !![
+    <referenceConstruct object="outputAnalysisDistributionNormalizer_" constructor="outputAnalysisDistributionNormalizerIdentity()"/>
+    !!]
     ! Compute weights that apply to each output redshift.
     allocate(outputWeightSubhalos(self%countRadiiFractional,outputTimes_%count()))
     allocate(outputWeightHosts  (binCountHosts,outputTimes_%count()))
@@ -314,95 +362,103 @@ contains
     ! Construct the volume function 1D objects.
     allocate(self%volumeFunctionsSubHalos )
     allocate(self%volumeFunctionsHostHalos)
-    !# <referenceConstruct isResult="yes" owner="self" object="volumeFunctionsSubHalos">
-    !#  <constructor>
-    !#   outputAnalysisVolumeFunction1D(                                                                   &amp;
-    !#    &amp;                         var_str('subhaloRadialDistribution')                             , &amp;
-    !#    &amp;                         var_str('Subhalo radial distribution')                           , &amp;
-    !#    &amp;                         var_str('radiusFractional')                                      , &amp;
-    !#    &amp;                         var_str('Ratio of subhalo radial position to host virial radius'), &amp;
-    !#    &amp;                         var_str(' ')                                                     , &amp;
-    !#    &amp;                         1.0d0                                                            , &amp;
-    !#    &amp;                         var_str('radialDistribution')                                    , &amp;
-    !#    &amp;                         var_str('Differential subhalo radial distribution')              , &amp;
-    !#    &amp;                         var_str(' ')                                                     , &amp;
-    !#    &amp;                         0.0d0                                                            , &amp;
-    !#    &amp;                         radiiFractional                                                  , &amp;
-    !#    &amp;                         0_c_size_t                                                       , &amp;
-    !#    &amp;                         outputWeightSubhalos                                             , &amp;
-    !#    &amp;                         nodePropertyExtractor_                                           , &amp;
-    !#    &amp;                         outputAnalysisPropertyOperator_                                  , &amp;
-    !#    &amp;                         outputAnalysisPropertyUnoperator_                                , &amp;
-    !#    &amp;                         outputAnalysisWeightOperator_                                    , &amp;
-    !#    &amp;                         outputAnalysisDistributionOperator_                              , &amp;
-    !#    &amp;                         outputAnalysisDistributionNormalizer_                            , &amp;
-    !#    &amp;                         galacticFilterSubhalos_                                          , &amp;
-    !#    &amp;                         outputTimes_                                                     , &amp;
-    !#    &amp;                         outputAnalysisCovarianceModelPoisson                               &amp;
-    !#    &amp;                        )
-    !#  </constructor>
-    !# </referenceConstruct>
-    !# <referenceConstruct isResult="yes" owner="self" object="volumeFunctionsHostHalos">
-    !#  <constructor>
-    !#   outputAnalysisVolumeFunction1D(                                                                   &amp;
-    !#    &amp;                         var_str(' ')                                                     , &amp;
-    !#    &amp;                         var_str(' ')                                                     , &amp;
-    !#    &amp;                         var_str(' ')                                                     , &amp;
-    !#    &amp;                         var_str(' ')                                                     , &amp;
-    !#    &amp;                         var_str(' ')                                                     , &amp;
-    !#    &amp;                         0.0d0                                                            , &amp;
-    !#    &amp;                         var_str(' ')                                                     , &amp;
-    !#    &amp;                         var_str(' ')                                                     , &amp;
-    !#    &amp;                         var_str(' ')                                                     , &amp;
-    !#    &amp;                         0.0d0                                                            , &amp;
-    !#    &amp;                         massesHosts                                                      , &amp;
-    !#    &amp;                         0_c_size_t                                                       , &amp;
-    !#    &amp;                         outputWeightHosts                                                , &amp;
-    !#    &amp;                         nodePropertyExtractorMassBound_                                  , &amp;
-    !#    &amp;                         outputAnalysisPropertyOperator_                                  , &amp;
-    !#    &amp;                         outputAnalysisPropertyUnoperator_                                , &amp;
-    !#    &amp;                         outputAnalysisWeightOperator_                                    , &amp;
-    !#    &amp;                         outputAnalysisDistributionOperator_                              , &amp;
-    !#    &amp;                         outputAnalysisDistributionNormalizer_                            , &amp;
-    !#    &amp;                         galacticFilterHosts_                                             , &amp;
-    !#    &amp;                         outputTimes_                                                     , &amp;
-    !#    &amp;                         outputAnalysisCovarianceModelPoisson                               &amp;
-    !#    &amp;                        )
-    !#  </constructor>
-    !# </referenceConstruct>
-    !# <objectDestructor name="nodePropertyExtractorMassBound_"      />
-    !# <objectDestructor name="nodePropertyExtractorRadiusOrbital_"  />
-    !# <objectDestructor name="nodePropertyExtractorRadiusVirial_"   />
-    !# <objectDestructor name="nodePropertyExtractorHost_"           />
-    !# <objectDestructor name="nodePropertyExtractorMassHost_"       />
-    !# <objectDestructor name="nodePropertyExtractor_"               />
-    !# <objectDestructor name="nodePropertyExtractorMassHalo_"       />
-    !# <objectDestructor name="nodePropertyExtractorMassRatio_"      />
-    !# <objectDestructor name="outputAnalysisPropertyOperator_"      />
-    !# <objectDestructor name="outputAnalysisPropertyUnoperator_"    />
-    !# <objectDestructor name="outputAnalysisWeightOperator_"        />
-    !# <objectDestructor name="outputAnalysisDistributionOperator_"  />
-    !# <objectDestructor name="galacticFilterHosts_"                 />
-    !# <objectDestructor name="galacticFilterSubhalos_"              />
-    !# <objectDestructor name="galacticFilterIsSubhalo_"             />
-    !# <objectDestructor name="galacticFilterMassRatio_"             />
-    !# <objectDestructor name="outputAnalysisDistributionNormalizer_"/>
+    !![
+    <referenceConstruct isResult="yes" owner="self" object="volumeFunctionsSubHalos">
+     <constructor>
+      outputAnalysisVolumeFunction1D(                                                                   &amp;
+       &amp;                         var_str('subhaloRadialDistribution')                             , &amp;
+       &amp;                         var_str('Subhalo radial distribution')                           , &amp;
+       &amp;                         var_str('radiusFractional')                                      , &amp;
+       &amp;                         var_str('Ratio of subhalo radial position to host virial radius'), &amp;
+       &amp;                         var_str(' ')                                                     , &amp;
+       &amp;                         1.0d0                                                            , &amp;
+       &amp;                         var_str('radialDistribution')                                    , &amp;
+       &amp;                         var_str('Differential subhalo radial distribution')              , &amp;
+       &amp;                         var_str(' ')                                                     , &amp;
+       &amp;                         0.0d0                                                            , &amp;
+       &amp;                         radiiFractional                                                  , &amp;
+       &amp;                         0_c_size_t                                                       , &amp;
+       &amp;                         outputWeightSubhalos                                             , &amp;
+       &amp;                         nodePropertyExtractor_                                           , &amp;
+       &amp;                         outputAnalysisPropertyOperator_                                  , &amp;
+       &amp;                         outputAnalysisPropertyUnoperator_                                , &amp;
+       &amp;                         outputAnalysisWeightOperator_                                    , &amp;
+       &amp;                         outputAnalysisDistributionOperator_                              , &amp;
+       &amp;                         outputAnalysisDistributionNormalizer_                            , &amp;
+       &amp;                         galacticFilterSubhalos_                                          , &amp;
+       &amp;                         outputTimes_                                                     , &amp;
+       &amp;                         outputAnalysisCovarianceModelPoisson                               &amp;
+       &amp;                        )
+     </constructor>
+    </referenceConstruct>
+    <referenceConstruct isResult="yes" owner="self" object="volumeFunctionsHostHalos">
+     <constructor>
+      outputAnalysisVolumeFunction1D(                                                                   &amp;
+       &amp;                         var_str(' ')                                                     , &amp;
+       &amp;                         var_str(' ')                                                     , &amp;
+       &amp;                         var_str(' ')                                                     , &amp;
+       &amp;                         var_str(' ')                                                     , &amp;
+       &amp;                         var_str(' ')                                                     , &amp;
+       &amp;                         0.0d0                                                            , &amp;
+       &amp;                         var_str(' ')                                                     , &amp;
+       &amp;                         var_str(' ')                                                     , &amp;
+       &amp;                         var_str(' ')                                                     , &amp;
+       &amp;                         0.0d0                                                            , &amp;
+       &amp;                         massesHosts                                                      , &amp;
+       &amp;                         0_c_size_t                                                       , &amp;
+       &amp;                         outputWeightHosts                                                , &amp;
+       &amp;                         nodePropertyExtractorMassBound_                                  , &amp;
+       &amp;                         outputAnalysisPropertyOperator_                                  , &amp;
+       &amp;                         outputAnalysisPropertyUnoperator_                                , &amp;
+       &amp;                         outputAnalysisWeightOperator_                                    , &amp;
+       &amp;                         outputAnalysisDistributionOperator_                              , &amp;
+       &amp;                         outputAnalysisDistributionNormalizer_                            , &amp;
+       &amp;                         galacticFilterHosts_                                             , &amp;
+       &amp;                         outputTimes_                                                     , &amp;
+       &amp;                         outputAnalysisCovarianceModelPoisson                               &amp;
+       &amp;                        )
+     </constructor>
+    </referenceConstruct>
+    <objectDestructor name="nodePropertyExtractorMassBound_"      />
+    <objectDestructor name="nodePropertyExtractorRadiusOrbital_"  />
+    <objectDestructor name="nodePropertyExtractorRadiusVirial_"   />
+    <objectDestructor name="nodePropertyExtractorHost_"           />
+    <objectDestructor name="nodePropertyExtractorMassHost_"       />
+    <objectDestructor name="nodePropertyExtractor_"               />
+    <objectDestructor name="nodePropertyExtractorMassHalo_"       />
+    <objectDestructor name="nodePropertyExtractorMassRatio_"      />
+    <objectDestructor name="outputAnalysisPropertyOperator_"      />
+    <objectDestructor name="outputAnalysisPropertyUnoperator_"    />
+    <objectDestructor name="outputAnalysisWeightOperator_"        />
+    <objectDestructor name="outputAnalysisDistributionOperator_"  />
+    <objectDestructor name="galacticFilterHosts_"                 />
+    <objectDestructor name="galacticFilterSubhalos_"              />
+    <objectDestructor name="galacticFilterIsSubhalo_"             />
+    <objectDestructor name="galacticFilterMassRatio_"             />
+    <objectDestructor name="outputAnalysisDistributionNormalizer_"/>
+    !!]
     nullify(filters_)
     return
   end function subhaloRadialDistributionConstructorInternal
 
   subroutine subhaloRadialDistributionDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily subhaloRadialDistribution} output analysis class.
+    !!{
+    Destructor for the {\normalfont \ttfamily subhaloRadialDistribution} output analysis class.
+    !!}
     implicit none
     type(outputAnalysisSubhaloRadialDistribution), intent(inout) :: self
 
-    !# <objectDestructor name="self%volumeFunctionsSubHalos" />
-    !# <objectDestructor name="self%volumeFunctionsHostHalos"/>
+    !![
+    <objectDestructor name="self%volumeFunctionsSubHalos" />
+    <objectDestructor name="self%volumeFunctionsHostHalos"/>
+    !!]
     return
   end subroutine subhaloRadialDistributionDestructor
 
   subroutine subhaloRadialDistributionAnalyze(self,node,iOutput)
-    !% Implement a {\normalfont \ttfamily subhaloRadialDistribution} output analysis.
+    !!{
+    Implement a {\normalfont \ttfamily subhaloRadialDistribution} output analysis.
+    !!}
     implicit none
     class  (outputAnalysisSubhaloRadialDistribution), intent(inout) :: self
     type   (treeNode                         ), intent(inout) :: node
@@ -415,7 +471,9 @@ contains
   end subroutine subhaloRadialDistributionAnalyze
 
   subroutine subhaloRadialDistributionReduce(self,reduced)
-    !% Implement a {\normalfont \ttfamily subhaloRadialDistribution} output analysis reduction.
+    !!{
+    Implement a {\normalfont \ttfamily subhaloRadialDistribution} output analysis reduction.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(outputAnalysisSubhaloRadialDistribution), intent(inout) :: self
@@ -432,7 +490,9 @@ contains
   end subroutine subhaloRadialDistributionReduce
 
   subroutine subhaloRadialDistributionFinalizeAnalysis(self)
-    !% Finalize analysis of a {\normalfont \ttfamily subhaloRadialDistribution} output analysis.
+    !!{
+    Finalize analysis of a {\normalfont \ttfamily subhaloRadialDistribution} output analysis.
+    !!}
     implicit none
     class           (outputAnalysisSubhaloRadialDistribution), intent(inout)               :: self
     double precision                                         , allocatable  , dimension(:) :: radialDistributionHosts
@@ -457,7 +517,9 @@ contains
   end subroutine subhaloRadialDistributionFinalizeAnalysis
 
   subroutine subhaloRadialDistributionFinalize(self)
-    !% Implement a {\normalfont \ttfamily subhaloRadialDistribution} output analysis finalization.
+    !!{
+    Implement a {\normalfont \ttfamily subhaloRadialDistribution} output analysis finalization.
+    !!}
     use :: Galacticus_HDF5                 , only : galacticusOutputFile
     use :: IO_HDF5                         , only : hdf5Access          , hdf5Object
     use :: Numerical_Constants_Astronomical, only : massSolar
@@ -501,11 +563,13 @@ contains
   end subroutine subhaloRadialDistributionFinalize
 
   double precision function subhaloRadialDistributionLogLikelihood(self)
-    !% Return the log-likelihood of a {\normalfont \ttfamily subhaloRadialDistribution} output analysis. The likelihood function
-    !% assumes that the model prediction for the number of subhalos in any given mass bin follows a negative binomial
-    !% distribution as was found for dark matter subhalos \citep[][see also
-    !% \protect\citealt{lu_connection_2016}]{boylan-kolchin_theres_2010}. This has been confirmed by examining the results of many
-    !% tree realizations, although it in principal could be model-dependent.
+    !!{
+    Return the log-likelihood of a {\normalfont \ttfamily subhaloRadialDistribution} output analysis. The likelihood function
+    assumes that the model prediction for the number of subhalos in any given mass bin follows a negative binomial
+    distribution as was found for dark matter subhalos \citep[][see also
+    \protect\citealt{lu_connection_2016}]{boylan-kolchin_theres_2010}. This has been confirmed by examining the results of many
+    tree realizations, although it in principal could be model-dependent.
+    !!}
     use :: Models_Likelihoods_Constants     , only : logImpossible
     use :: Statistics_Distributions_Discrete, only : distributionFunctionDiscrete1DNegativeBinomial
     implicit none

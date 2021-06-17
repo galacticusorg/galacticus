@@ -17,8 +17,10 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a node operator class that accumulates an estimate of the energy radiated from the hot halo due to cooling
-  !% following the model of \cite{benson_galaxy_2010-1}.
+  !!{
+  Implements a node operator class that accumulates an estimate of the energy radiated from the hot halo due to cooling
+  following the model of \cite{benson_galaxy_2010-1}.
+  !!}
 
   use :: Hot_Halo_Temperature_Profiles, only : hotHaloTemperatureProfileClass
   use :: Radiation_Fields             , only : radiationFieldCosmicMicrowaveBackground
@@ -26,17 +28,21 @@
   use :: Cosmology_Functions          , only : cosmologyFunctionsClass
   use :: Chemical_States              , only : chemicalStateClass
 
-  !# <nodeOperator name="nodeOperatorCoolingEnergyRadiated">
-  !#  <description>A node operator class that accumulates an estimate of the energy radiated from the hot halo due to cooling following the model of \cite{benson_galaxy_2010-1}.</description>
-  !#  <deepCopy>
-  !#   <functionClass variables="radiation"/>
-  !#  </deepCopy>
-  !#  <stateStorable>
-  !#   <functionClass variables="radiation"/>
-  !#  </stateStorable>
-  !# </nodeOperator>
+  !![
+  <nodeOperator name="nodeOperatorCoolingEnergyRadiated">
+   <description>A node operator class that accumulates an estimate of the energy radiated from the hot halo due to cooling following the model of \cite{benson_galaxy_2010-1}.</description>
+   <deepCopy>
+    <functionClass variables="radiation"/>
+   </deepCopy>
+   <stateStorable>
+    <functionClass variables="radiation"/>
+   </stateStorable>
+  </nodeOperator>
+  !!]
   type, extends(nodeOperatorClass) :: nodeOperatorCoolingEnergyRadiated
-     !% A node operator class that accumulates an estimate of the energy radiated from the hot halo due to cooling following the model of \cite{benson_galaxy_2010-1}.
+     !!{
+     A node operator class that accumulates an estimate of the energy radiated from the hot halo due to cooling following the model of \cite{benson_galaxy_2010-1}.
+     !!}
      private
      class(cosmologyFunctionsClass                ), pointer :: cosmologyFunctions_        => null()
      class(coolingFunctionClass                   ), pointer :: coolingFunction_           => null()
@@ -50,7 +56,9 @@
   end type nodeOperatorCoolingEnergyRadiated
   
   interface nodeOperatorCoolingEnergyRadiated
-     !% Constructors for the {\normalfont \ttfamily coolingEnergyRadiated} node operator class.
+     !!{
+     Constructors for the {\normalfont \ttfamily coolingEnergyRadiated} node operator class.
+     !!}
      module procedure coolingEnergyRadiatedConstructorParameters
      module procedure coolingEnergyRadiatedConstructorInternal
   end interface nodeOperatorCoolingEnergyRadiated
@@ -58,7 +66,9 @@
 contains
 
   function coolingEnergyRadiatedConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily coolingEnergyRadiated} node operator class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily coolingEnergyRadiated} node operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type (nodeOperatorCoolingEnergyRadiated)                :: self
@@ -68,49 +78,65 @@ contains
     class(coolingFunctionClass               ), pointer      :: coolingFunction_
     class(chemicalStateClass                 ), pointer      :: chemicalState_
 
-    !# <objectBuilder class="hotHaloTemperatureProfile" name="hotHaloTemperatureProfile_" source="parameters"/>
-    !# <objectBuilder class="coolingFunction"           name="coolingFunction_"           source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"        name="cosmologyFunctions_"        source="parameters"/>
-    !# <objectBuilder class="chemicalState"             name="chemicalState_"            source="parameters"/>
+    !![
+    <objectBuilder class="hotHaloTemperatureProfile" name="hotHaloTemperatureProfile_" source="parameters"/>
+    <objectBuilder class="coolingFunction"           name="coolingFunction_"           source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"        name="cosmologyFunctions_"        source="parameters"/>
+    <objectBuilder class="chemicalState"             name="chemicalState_"            source="parameters"/>
+    !!]
      self=nodeOperatorCoolingEnergyRadiated(cosmologyFunctions_,coolingFunction_,hotHaloTemperatureProfile_,chemicalState_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="hotHaloTemperatureProfile_"/>
-    !# <objectDestructor name="coolingFunction_"          />
-    !# <objectDestructor name="cosmologyFunctions_"       />
-    !# <objectDestructor name="chemicalState_"            />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="hotHaloTemperatureProfile_"/>
+    <objectDestructor name="coolingFunction_"          />
+    <objectDestructor name="cosmologyFunctions_"       />
+    <objectDestructor name="chemicalState_"            />
+    !!]
     return
   end function coolingEnergyRadiatedConstructorParameters
 
   function coolingEnergyRadiatedConstructorInternal(cosmologyFunctions_,coolingFunction_,hotHaloTemperatureProfile_,chemicalState_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily coolingEnergyRadiated} node operator class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily coolingEnergyRadiated} node operator class.
+    !!}
     implicit none
     type (nodeOperatorCoolingEnergyRadiated)                        :: self
      class(cosmologyFunctionsClass            ), intent(in   ), target :: cosmologyFunctions_
     class(coolingFunctionClass               ), intent(in   ), target :: coolingFunction_
     class(hotHaloTemperatureProfileClass     ), intent(in   ), target :: hotHaloTemperatureProfile_
     class(chemicalStateClass                 ), intent(in   ), target :: chemicalState_
-    !# <constructorAssign variables="*cosmologyFunctions_, *coolingFunction_, *hotHaloTemperatureProfile_, *chemicalState_"/>
+    !![
+    <constructorAssign variables="*cosmologyFunctions_, *coolingFunction_, *hotHaloTemperatureProfile_, *chemicalState_"/>
+    !!]
 
     allocate(self%radiation)
-    !# <referenceConstruct isResult="yes" owner="self" object="radiation" constructor="radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)"/>
+    !![
+    <referenceConstruct isResult="yes" owner="self" object="radiation" constructor="radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)"/>
+    !!]
     return
   end function coolingEnergyRadiatedConstructorInternal
 
   subroutine coolingEnergyRadiatedDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily coolingEnergyRadiated} node operator class.
+    !!{
+    Destructor for the {\normalfont \ttfamily coolingEnergyRadiated} node operator class.
+    !!}
     implicit none
     type(nodeOperatorCoolingEnergyRadiated), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"/>
-    !# <objectDestructor name="self%coolingFunction_"          />
-    !# <objectDestructor name="self%hotHaloTemperatureProfile_"/>
-    !# <objectDestructor name="self%chemicalState_"            />
-    !# <objectDestructor name="self%radiation"                 />
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"/>
+    <objectDestructor name="self%coolingFunction_"          />
+    <objectDestructor name="self%hotHaloTemperatureProfile_"/>
+    <objectDestructor name="self%chemicalState_"            />
+    <objectDestructor name="self%radiation"                 />
+    !!]
     return
   end subroutine coolingEnergyRadiatedDestructor
   
   subroutine coolingEnergyRadiatedDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !% Accumulates an estimate of the energy radiated from the hot halo due to cooling following the model of \cite{benson_galaxy_2010-1}.
+    !!{
+    Accumulates an estimate of the energy radiated from the hot halo due to cooling following the model of \cite{benson_galaxy_2010-1}.
+    !!}
     use :: Galacticus_Nodes                 , only : nodeComponentBasic                  , nodeComponentHotHalo
     use :: Abundances_Structure             , only : abundances
     use :: Chemical_Abundances_Structure    , only : chemicalAbundances                  , Chemicals_Property_Count
@@ -208,7 +234,9 @@ contains
   
 
   subroutine coolingEnergyRadiatedNodesMerge(self,node)
-    !% Zero the radiated energy of the hot halo component of nodes about to merge.
+    !!{
+    Zero the radiated energy of the hot halo component of nodes about to merge.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentHotHalo
     implicit none
     class(nodeOperatorCoolingEnergyRadiated), intent(inout) :: self

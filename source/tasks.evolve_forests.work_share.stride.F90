@@ -19,11 +19,15 @@
 
   use, intrinsic :: ISO_C_Binding, only : c_size_t
 
-  !# <evolveForestsWorkShare name="evolveForestsWorkShareStride">
-  !#  <description>A forest evolution work sharing class in which forests are assigned by another work sharing class, but then strided over in steps of a specified size.</description>
-  !# </evolveForestsWorkShare>
+  !![
+  <evolveForestsWorkShare name="evolveForestsWorkShareStride">
+   <description>A forest evolution work sharing class in which forests are assigned by another work sharing class, but then strided over in steps of a specified size.</description>
+  </evolveForestsWorkShare>
+  !!]
   type, extends(evolveForestsWorkShareClass) :: evolveForestsWorkShareStride
-     !% Implementation of a forest evolution work sharing class in which forests are assigned by cycling through processes.
+     !!{
+     Implementation of a forest evolution work sharing class in which forests are assigned by cycling through processes.
+     !!}
      private
      integer(c_size_t                   )          :: stride                 , offset
      class  (evolveForestsWorkShareClass), pointer :: evolveForestsWorkShare_
@@ -33,7 +37,9 @@
   end type evolveForestsWorkShareStride
 
   interface evolveForestsWorkShareStride
-     !% Constructors for the {\normalfont \ttfamily stride} forest evolution work sharing class.
+     !!{
+     Constructors for the {\normalfont \ttfamily stride} forest evolution work sharing class.
+     !!}
      module procedure strideConstructorParameters
      module procedure strideConstructorInternal
   end interface evolveForestsWorkShareStride
@@ -41,8 +47,10 @@
 contains
 
   function strideConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily stride} forest evolution work sharing class which takes a parameter set as
-    !% input.
+    !!{
+    Constructor for the {\normalfont \ttfamily stride} forest evolution work sharing class which takes a parameter set as
+    input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (evolveForestsWorkShareStride)                :: self
@@ -50,47 +58,61 @@ contains
     class  (evolveForestsWorkShareClass ), pointer       :: evolveForestsWorkShare_
     integer(c_size_t                    )                :: stride                 , offset
 
-    !# <inputParameter>
-    !#   <name>stride</name>
-    !#   <description>The size of the stride to take over forests.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>offset</name>
-    !#   <description>The offset of the stride to take over forests.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="evolveForestsWorkShare" name="evolveForestsWorkShare_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>stride</name>
+      <description>The size of the stride to take over forests.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>offset</name>
+      <description>The offset of the stride to take over forests.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="evolveForestsWorkShare" name="evolveForestsWorkShare_" source="parameters"/>
+    !!]
     self=evolveForestsWorkShareStride(stride,offset,evolveForestsWorkShare_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="evolveForestsWorkShare_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="evolveForestsWorkShare_"/>
+    !!]
     return
   end function strideConstructorParameters
 
   function strideConstructorInternal(stride,offset,evolveForestsWorkShare_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily stride} forest evolution work sharing class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily stride} forest evolution work sharing class.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type   (evolveForestsWorkShareStride)                        :: self
     integer(c_size_t                    ), intent(in   )         :: stride                 , offset
     class  (evolveForestsWorkShareClass ), intent(in   ), target :: evolveForestsWorkShare_
-    !# <constructorAssign variables="stride, offset, *evolveForestsWorkShare_"/>
+    !![
+    <constructorAssign variables="stride, offset, *evolveForestsWorkShare_"/>
+    !!]
 
     if (offset < 0_c_size_t .or. offset >= stride) call Galacticus_Error_Report('0 ≤ [offset] < [stride]'//{introspection:location})
     return
   end function strideConstructorInternal
 
   subroutine strideDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily stride} forest evolution work sharing class.
+    !!{
+    Destructor for the {\normalfont \ttfamily stride} forest evolution work sharing class.
+    !!}
     implicit none
     type(evolveForestsWorkShareStride), intent(inout) :: self
 
-    !# <objectDestructor name="self%evolveForestsWorkShare_"/>
+    !![
+    <objectDestructor name="self%evolveForestsWorkShare_"/>
+    !!]
     return
   end subroutine strideDestructor
 
   function strideForestNumber(self,utilizeOpenMPThreads)
-    !% Return the number of the next forest to process.
+    !!{
+    Return the number of the next forest to process.
+    !!}
     implicit none
     integer(c_size_t                    )                :: strideForestNumber
     class  (evolveForestsWorkShareStride), intent(inout) :: self

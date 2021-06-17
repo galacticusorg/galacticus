@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of dark matter halo profile shapes  using the \cite{klypin_multidark_2014} algorithm.
+  !!{
+  An implementation of dark matter halo profile shapes  using the \cite{klypin_multidark_2014} algorithm.
+  !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
 
-  !# <darkMatterProfileShape name="darkMatterProfileShapeKlypin2015">
-  !#  <description>Dark matter halo shape parameters are computed using the algorithm of \cite{klypin_multidark_2014}.</description>
-  !# </darkMatterProfileShape>
+  !![
+  <darkMatterProfileShape name="darkMatterProfileShapeKlypin2015">
+   <description>Dark matter halo shape parameters are computed using the algorithm of \cite{klypin_multidark_2014}.</description>
+  </darkMatterProfileShape>
+  !!]
 
   type, extends(darkMatterProfileShapeClass) :: darkMatterProfileShapeKlypin2015
-     !% A dark matter halo profile shape parameter class implementing the algorithm of \cite{klypin_multidark_2014}.
+     !!{
+     A dark matter halo profile shape parameter class implementing the algorithm of \cite{klypin_multidark_2014}.
+     !!}
      private
      class  (criticalOverdensityClass     ), pointer :: criticalOverdensity_ => null()
      class  (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
@@ -37,25 +43,31 @@
   end type darkMatterProfileShapeKlypin2015
 
   interface darkMatterProfileShapeKlypin2015
-     !% Constructors for the {\normalfont \ttfamily klypin2015} dark matter halo profile shape parameter class.
+     !!{
+     Constructors for the {\normalfont \ttfamily klypin2015} dark matter halo profile shape parameter class.
+     !!}
      module procedure klypin2015ConstructorParameters
      module procedure klypin2015ConstructorInternal
   end interface darkMatterProfileShapeKlypin2015
 
-  !# <enumeration>
-  !#  <name>klypin2015Sample</name>
-  !#  <description>Enumeration of sample types for the {\normalfont \ttfamily klypin2015} dark matter profile shape parameter class.</description>
-  !#  <encodeFunction>yes</encodeFunction>
-  !#  <validator>yes</validator>
-  !#  <entry label="all"    />
-  !#  <entry label="relaxed"/>
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>klypin2015Sample</name>
+   <description>Enumeration of sample types for the {\normalfont \ttfamily klypin2015} dark matter profile shape parameter class.</description>
+   <encodeFunction>yes</encodeFunction>
+   <validator>yes</validator>
+   <entry label="all"    />
+   <entry label="relaxed"/>
+  </enumeration>
+  !!]
 
 contains
 
   function klypin2015ConstructorParameters(parameters) result(self)
-    !% Default constructor for the {\normalfont \ttfamily klypin2015} dark matter halo profile
-    !% shape class.
+    !!{
+    Default constructor for the {\normalfont \ttfamily klypin2015} dark matter halo profile
+    shape class.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (darkMatterProfileShapeKlypin2015)                :: self
@@ -64,50 +76,64 @@ contains
     class(cosmologicalMassVarianceClass   ), pointer       :: cosmologicalMassVariance_
     type (varying_string                  )                :: sampleText
 
-    !# <inputParameter>
-    !#   <name>sample</name>
-    !#   <defaultValue>var_str('all')</defaultValue>
-    !#   <description>The sample to use for the halo shape parameter algorithm of \cite{klypin_multidark_2014}.</description>
-    !#   <source>parameters</source>
-    !#   <variable>sampleText</variable>
-    !# </inputParameter>
-    !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
-    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>sample</name>
+      <defaultValue>var_str('all')</defaultValue>
+      <description>The sample to use for the halo shape parameter algorithm of \cite{klypin_multidark_2014}.</description>
+      <source>parameters</source>
+      <variable>sampleText</variable>
+    </inputParameter>
+    <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
+    <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    !!]
     self=darkMatterProfileShapeKlypin2015(enumerationKlypin2015SampleEncode(char(sampleText),includesPrefix=.false.),criticalOverdensity_,cosmologicalMassVariance_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="criticalOverdensity_"     />
-    !# <objectDestructor name="cosmologicalMassVariance_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="criticalOverdensity_"     />
+    <objectDestructor name="cosmologicalMassVariance_"/>
+    !!]
     return
   end function klypin2015ConstructorParameters
 
   function klypin2015ConstructorInternal(sample,criticalOverdensity_,cosmologicalMassVariance_) result(self)
-    !% Constructor for the {\normalfont \ttfamily klypin2015} dark matter halo profile
-    !% shape class.
+    !!{
+    Constructor for the {\normalfont \ttfamily klypin2015} dark matter halo profile
+    shape class.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type   (darkMatterProfileShapeKlypin2015)                        :: self
     integer                                  , intent(in   )         :: sample
     class  (criticalOverdensityClass        ), intent(in   ), target :: criticalOverdensity_
     class  (cosmologicalMassVarianceClass   ), intent(in   ), target :: cosmologicalMassVariance_
-    !# <constructorAssign variables="sample, *criticalOverdensity_, *cosmologicalMassVariance_"/>
+    !![
+    <constructorAssign variables="sample, *criticalOverdensity_, *cosmologicalMassVariance_"/>
+    !!]
 
     if (.not.enumerationKlypin2015SampleIsValid(sample)) call Galacticus_Error_Report('invalid sample'//{introspection:location})
     return
   end function klypin2015ConstructorInternal
 
   subroutine klypin2015Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily klypin2015} dark matter halo profile shape class.
+    !!{
+    Destructor for the {\normalfont \ttfamily klypin2015} dark matter halo profile shape class.
+    !!}
     implicit none
     type(darkMatterProfileShapeKlypin2015), intent(inout) :: self
 
-    !# <objectDestructor name="self%criticalOverdensity_"     />
-    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
+    !![
+    <objectDestructor name="self%criticalOverdensity_"     />
+    <objectDestructor name="self%cosmologicalMassVariance_"/>
+    !!]
     return
   end subroutine klypin2015Destructor
 
   double precision function klypin2015Shape(self,node)
-    !% Return the Einasto profile shape parameter of the dark matter halo profile of {\normalfont \ttfamily node} using the
-    !% \cite{klypin_multidark_2014} algorithm.
+    !!{
+    Return the Einasto profile shape parameter of the dark matter halo profile of {\normalfont \ttfamily node} using the
+    \cite{klypin_multidark_2014} algorithm.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic     , treeNode
     implicit none

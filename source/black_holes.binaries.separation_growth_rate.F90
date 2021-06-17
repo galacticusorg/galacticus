@@ -19,27 +19,33 @@
 
 !+    Contributions to this file made by:  Stéphane Mangeon, Andrew Benson.
 
-!% Contains a module which implements a class for calculations of black hole binary separation growth rate.
+!!{
+Contains a module which implements a class for calculations of black hole binary separation growth rate.
+!!}
 
 module Black_Hole_Binary_Separations
-  !% Implements a class for calculations of black hole binary separation growth rate.
+  !!{
+  Implements a class for calculations of black hole binary separation growth rate.
+  !!}
   use :: Galacticus_Nodes, only : nodeComponentBlackHole
   implicit none
   private
 
-  !# <functionClass>
-  !#  <name>blackHoleBinarySeparationGrowthRate</name>
-  !#  <descriptiveName>Black Hole Binaries Separation Growth Rate</descriptiveName>
-  !#  <description>
-  !#   Class providing models of black hole binary separation growth rates.
-  !#  </description>
-  !#  <default>zero</default>
-  !#  <method name="growthRate" >
-  !#   <description>Computes the rate of growth of the separation of the given black hole and its binary companion in units of Mpc/Gyr.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>class(nodeComponentBlackHole), intent(inout) :: blackHole</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>blackHoleBinarySeparationGrowthRate</name>
+   <descriptiveName>Black Hole Binaries Separation Growth Rate</descriptiveName>
+   <description>
+    Class providing models of black hole binary separation growth rates.
+   </description>
+   <default>zero</default>
+   <method name="growthRate" >
+    <description>Computes the rate of growth of the separation of the given black hole and its binary companion in units of Mpc/Gyr.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>class(nodeComponentBlackHole), intent(inout) :: blackHole</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Black_Hole_Binary_Separations

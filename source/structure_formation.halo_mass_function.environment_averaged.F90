@@ -17,18 +17,24 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a dark matter halo mass function class which averages another (presumably
-!% environment-dependent) mass function over environment.
+!!{
+Contains a module which implements a dark matter halo mass function class which averages another (presumably
+environment-dependent) mass function over environment.
+!!}
 
   use :: Cosmological_Density_Field, only : haloEnvironmentClass
 
-  !# <haloMassFunction name="haloMassFunctionEnvironmentAveraged">
-  !#  <description>
-  !#   The halo mass function is computed averaging another (presumably environment-dependent) mass function over environment.
-  !#  </description>
-  !# </haloMassFunction>
+  !![
+  <haloMassFunction name="haloMassFunctionEnvironmentAveraged">
+   <description>
+    The halo mass function is computed averaging another (presumably environment-dependent) mass function over environment.
+   </description>
+  </haloMassFunction>
+  !!]
   type, extends(haloMassFunctionClass) :: haloMassFunctionEnvironmentAveraged
-     !% A halo mass function class which averages another (presumably environment-dependent) mass function over environment.
+     !!{
+     A halo mass function class which averages another (presumably environment-dependent) mass function over environment.
+     !!}
      private
      class           (haloMassFunctionClass), pointer :: haloMassFunctionConditioned_ => null(), haloMassFunctionUnconditioned_ => null()
      class           (haloEnvironmentClass ), pointer :: haloEnvironment_             => null()
@@ -39,7 +45,9 @@
   end type haloMassFunctionEnvironmentAveraged
 
   interface haloMassFunctionEnvironmentAveraged
-     !% Constructors for the {\normalfont \ttfamily environmentAveraged} halo mass function class.
+     !!{
+     Constructors for the {\normalfont \ttfamily environmentAveraged} halo mass function class.
+     !!}
      module procedure environmentAveragedConstructorParameters
      module procedure environmentAveragedConstructorInternal
   end interface haloMassFunctionEnvironmentAveraged
@@ -47,8 +55,10 @@
 contains
 
   function environmentAveragedConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily environmentAveraged} halo mass function class which takes a parameter set as
-    !% input.
+    !!{
+    Constructor for the {\normalfont \ttfamily environmentAveraged} halo mass function class which takes a parameter set as
+    input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (haloMassFunctionEnvironmentAveraged)                :: self
@@ -57,46 +67,60 @@ contains
     class(haloEnvironmentClass               ), pointer       :: haloEnvironment_
     class(cosmologyParametersClass           ), pointer       :: cosmologyParameters_
 
-    !# <objectBuilder class="haloMassFunction"    name="haloMassFunctionConditioned_"   source="parameters" parameterName="haloMassFunctionConditioned"  />
-    !# <objectBuilder class="haloMassFunction"    name="haloMassFunctionUnconditioned_" source="parameters" parameterName="haloMassFunctionUnconditioned"/>
-    !# <objectBuilder class="haloEnvironment"     name="haloEnvironment_"               source="parameters"                                              />
-    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_"           source="parameters"                                              />
+    !![
+    <objectBuilder class="haloMassFunction"    name="haloMassFunctionConditioned_"   source="parameters" parameterName="haloMassFunctionConditioned"  />
+    <objectBuilder class="haloMassFunction"    name="haloMassFunctionUnconditioned_" source="parameters" parameterName="haloMassFunctionUnconditioned"/>
+    <objectBuilder class="haloEnvironment"     name="haloEnvironment_"               source="parameters"                                              />
+    <objectBuilder class="cosmologyParameters" name="cosmologyParameters_"           source="parameters"                                              />
+    !!]
     self=haloMassFunctionEnvironmentAveraged(haloMassFunctionConditioned_,haloMassFunctionUnconditioned_,haloEnvironment_,cosmologyParameters_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="haloMassFunctionConditioned_"  />
-    !# <objectDestructor name="haloMassFunctionUnconditioned_"/>
-    !# <objectDestructor name="haloEnvironment_"              />
-    !# <objectDestructor name="cosmologyParameters_"          />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="haloMassFunctionConditioned_"  />
+    <objectDestructor name="haloMassFunctionUnconditioned_"/>
+    <objectDestructor name="haloEnvironment_"              />
+    <objectDestructor name="cosmologyParameters_"          />
+    !!]
     return
   end function environmentAveragedConstructorParameters
 
   function environmentAveragedConstructorInternal(haloMassFunctionConditioned_,haloMassFunctionUnconditioned_,haloEnvironment_,cosmologyParameters_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily environmentAveraged} halo mass function class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily environmentAveraged} halo mass function class.
+    !!}
     implicit none
     type (haloMassFunctionEnvironmentAveraged)                        :: self
     class(haloMassFunctionClass              ), target, intent(in   ) :: haloMassFunctionConditioned_,haloMassFunctionUnconditioned_
     class(haloEnvironmentClass               ), target, intent(in   ) :: haloEnvironment_
     class(cosmologyParametersClass           ), target, intent(in   ) :: cosmologyParameters_
-    !# <constructorAssign variables="*haloMassFunctionConditioned_, *haloMassFunctionUnconditioned_, *haloEnvironment_, *cosmologyParameters_"/>
+    !![
+    <constructorAssign variables="*haloMassFunctionConditioned_, *haloMassFunctionUnconditioned_, *haloEnvironment_, *cosmologyParameters_"/>
+    !!]
 
     self%timeMatching=-1.0d0
     return
   end function environmentAveragedConstructorInternal
 
   subroutine environmentAveragedDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily environmentAveraged} halo mass function class.
+    !!{
+    Destructor for the {\normalfont \ttfamily environmentAveraged} halo mass function class.
+    !!}
     implicit none
     type(haloMassFunctionEnvironmentAveraged), intent(inout) :: self
 
-    !# <objectDestructor name="self%haloMassFunctionConditioned_"  />
-    !# <objectDestructor name="self%haloMassFunctionUnconditioned_"/>
-    !# <objectDestructor name="self%haloEnvironment_"              />
-    !# <objectDestructor name="self%cosmologyParameters_"          />
+    !![
+    <objectDestructor name="self%haloMassFunctionConditioned_"  />
+    <objectDestructor name="self%haloMassFunctionUnconditioned_"/>
+    <objectDestructor name="self%haloEnvironment_"              />
+    <objectDestructor name="self%cosmologyParameters_"          />
+    !!]
     return
   end subroutine environmentAveragedDestructor
 
   recursive double precision function environmentAveragedDifferential(self,time,mass,node)
-    !% Return the differential halo mass function at the given time and mass.
+    !!{
+    Return the differential halo mass function at the given time and mass.
+    !!}
     use :: Galacticus_Nodes     , only : mergerTree         , nodeComponentBasic           , treeNode
     use :: Numerical_Integration, only : integrator
     use :: Root_Finder          , only : rangeExpandAdditive, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
@@ -176,7 +200,9 @@ contains
   contains
 
     double precision function environmentAveragedRoot(environmentOverdensity)
-      !% Root function used in determining the range of overdensity over which to integrate.
+      !!{
+      Root function used in determining the range of overdensity over which to integrate.
+      !!}
       implicit none
       double precision, intent(in   ) :: environmentOverdensity
 
@@ -185,7 +211,9 @@ contains
     end function environmentAveragedRoot
 
     double precision function environmentAveragedIntegrand(environmentOverdensity)
-      !% Integrand function used in averging the dark matter halo mass function over environment.
+      !!{
+      Integrand function used in averging the dark matter halo mass function over environment.
+      !!}
       implicit none
       double precision, intent(in   ) :: environmentOverdensity
 

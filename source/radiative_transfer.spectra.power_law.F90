@@ -17,18 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !# <radiativeTransferSpectrum name="radiativeTransferSpectrumPowerLaw">
-  !#  <description>
-  !#   A photon spectrum class for power law spectra of the form
-  !#   \begin{equation}
-  !#    L_\lambda (\lambda) = \begin{array}{cc} A (\lambda/\lambda_\mathrm{min})^\alpha &amp; \hbox{if } \lambda_\mathrm{min} \le \lambda &lt; \lambda_\mathrm{max} \\ 0 &amp; \hbox{otherwise,} \end{array}
-  !#   \end{equation}
-  !#   where $A=${\normalfont \ttfamily normalization}, $\alpha=${\normalfont \ttfamily exponent}, $\lambda_\mathrm{min}=${\normalfont
-  !#   \ttfamily wavelengthMinimum}, and $\lambda_\mathrm{max}=${\normalfont \ttfamily wavelengthMaximum}.
-  !#  </description>
-  !# </radiativeTransferSpectrum>
+  !![
+  <radiativeTransferSpectrum name="radiativeTransferSpectrumPowerLaw">
+   <description>
+    A photon spectrum class for power law spectra of the form
+    \begin{equation}
+     L_\lambda (\lambda) = \begin{array}{cc} A (\lambda/\lambda_\mathrm{min})^\alpha &amp; \hbox{if } \lambda_\mathrm{min} \le \lambda &lt; \lambda_\mathrm{max} \\ 0 &amp; \hbox{otherwise,} \end{array}
+    \end{equation}
+    where $A=${\normalfont \ttfamily normalization}, $\alpha=${\normalfont \ttfamily exponent}, $\lambda_\mathrm{min}=${\normalfont
+    \ttfamily wavelengthMinimum}, and $\lambda_\mathrm{max}=${\normalfont \ttfamily wavelengthMaximum}.
+   </description>
+  </radiativeTransferSpectrum>
+  !!]
   type, extends(radiativeTransferSpectrumClass) :: radiativeTransferSpectrumPowerLaw
-     !% Implementation of a power-law spectrum for radiative transfer calculations.
+     !!{
+     Implementation of a power-law spectrum for radiative transfer calculations.
+     !!}
      private
      double precision :: wavelengthMinimum, wavelengthMaximum, &
           &              exponent         , normalization
@@ -38,7 +42,9 @@
   end type radiativeTransferSpectrumPowerLaw
   
   interface radiativeTransferSpectrumPowerLaw
-     !% Constructors for the {\normalfont \ttfamily powerLaw} radiative transfer spectrum class.
+     !!{
+     Constructors for the {\normalfont \ttfamily powerLaw} radiative transfer spectrum class.
+     !!}
      module procedure powerLawConstructorParameters
      module procedure powerLawConstructorInternal
   end interface radiativeTransferSpectrumPowerLaw
@@ -46,8 +52,10 @@
 contains
 
   function powerLawConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily powerLaw} radiative transfer spectrum class which takes a parameter set as
-    !% input.
+    !!{
+    Constructor for the {\normalfont \ttfamily powerLaw} radiative transfer spectrum class which takes a parameter set as
+    input.
+    !!}
     use :: Input_Parameters, only : inputParameters, inputParameter
     implicit none
     type            (radiativeTransferSpectrumPowerLaw)                :: self
@@ -55,44 +63,54 @@ contains
     double precision                                                   :: wavelengthMinimum, wavelengthMaximum, &
          &                                                                exponent         , normalization
 
-    !# <inputParameter>
-    !#   <name>wavelengthMinimum</name>
-    !#   <description>The minimum wavelength (in units of \AA) for the power-law spectrum.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>wavelengthMaximum</name>
-    !#   <description>The maximum wavelength (in units of \AA) for the power-law spectrum.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>exponent</name>
-    !#   <description>The exponent of the power-law spectrum.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>normalization</name>
-    !#   <description>The normalization (in units of $L_\odot / \AA$) of the power-law spectrum.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>wavelengthMinimum</name>
+      <description>The minimum wavelength (in units of \AA) for the power-law spectrum.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>wavelengthMaximum</name>
+      <description>The maximum wavelength (in units of \AA) for the power-law spectrum.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>exponent</name>
+      <description>The exponent of the power-law spectrum.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>normalization</name>
+      <description>The normalization (in units of $L_\odot / \AA$) of the power-law spectrum.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     self=radiativeTransferSpectrumPowerLaw(wavelengthMinimum,wavelengthMaximum,exponent,normalization)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function powerLawConstructorParameters
 
   function powerLawConstructorInternal(wavelengthMinimum,wavelengthMaximum,exponent,normalization) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily powerLaw} radiative transfer photon packet class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily powerLaw} radiative transfer photon packet class.
+    !!}
     implicit none
     type            (radiativeTransferSpectrumPowerLaw)                :: self
     double precision                                   , intent(in   ) :: wavelengthMinimum, wavelengthMaximum, &
          &                                                                exponent         , normalization
-    !# <constructorAssign variables="wavelengthMinimum, wavelengthMaximum, exponent, normalization"/>
+    !![
+    <constructorAssign variables="wavelengthMinimum, wavelengthMaximum, exponent, normalization"/>
+    !!]
 
     return
   end function powerLawConstructorInternal
 
   double precision function powerLawLuminosity(self,wavelengthMinimum,wavelengthMaximum)
-    !% Compute the luminosity in the given wavelength range for a power-law spectrum.
+    !!{
+    Compute the luminosity in the given wavelength range for a power-law spectrum.
+    !!}
     use :: Numerical_Comparison, only : Values_Agree
     implicit none
     class           (radiativeTransferSpectrumPowerLaw), intent(inout) :: self
@@ -118,7 +136,9 @@ contains
   end function powerLawLuminosity
   
   double precision function powerLawSpectrum(self,wavelength)
-    !% Return the spectrum of the power-law.
+    !!{
+    Return the spectrum of the power-law.
+    !!}
     implicit none
     class           (radiativeTransferSpectrumPowerLaw), intent(inout) :: self
     double precision                                   , intent(in   ) :: wavelength

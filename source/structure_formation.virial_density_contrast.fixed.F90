@@ -17,20 +17,26 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of fixed dark matter halo virial density contrasts.
+  !!{
+  An implementation of fixed dark matter halo virial density contrasts.
+  !!}
 
   use :: Cosmology_Functions , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters, only : cosmologyParametersClass
 
-  !# <virialDensityContrast name="virialDensityContrastFixed">
-  !#  <description>
-  !#   A dark matter halo virial density contrast class which uses a fixed virial density contrast of {\normalfont \ttfamily
-  !#   [densityContrastValue]}, defined relative to {\normalfont \ttfamily critical} or {\normalfont \ttfamily mean} density as
-  !#   specified by {\normalfont \ttfamily [densityType]}.
-  !#  </description>
-  !# </virialDensityContrast>
+  !![
+  <virialDensityContrast name="virialDensityContrastFixed">
+   <description>
+    A dark matter halo virial density contrast class which uses a fixed virial density contrast of {\normalfont \ttfamily
+    [densityContrastValue]}, defined relative to {\normalfont \ttfamily critical} or {\normalfont \ttfamily mean} density as
+    specified by {\normalfont \ttfamily [densityType]}.
+   </description>
+  </virialDensityContrast>
+  !!]
   type, extends(virialDensityContrastClass) :: virialDensityContrastFixed
-     !% A dark matter halo virial density contrast class assuming fixed contrast.
+     !!{
+     A dark matter halo virial density contrast class assuming fixed contrast.
+     !!}
      private
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
      class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
@@ -44,26 +50,32 @@
   end type virialDensityContrastFixed
 
   interface virialDensityContrastFixed
-     !% Constructors for the {\normalfont \ttfamily fixed} dark matter halo virial density contrast class.
+     !!{
+     Constructors for the {\normalfont \ttfamily fixed} dark matter halo virial density contrast class.
+     !!}
      module procedure fixedConstructorParameters
      module procedure fixedConstructorInternal
   end interface virialDensityContrastFixed
 
   ! Enumeration for different reference densities.
-  !# <enumeration>
-  !#  <name>fixedDensityType</name>
-  !#  <description>Specifies reference density type for fixed virial density contrast.</description>
-  !#  <visibility>public</visibility>
-  !#  <validator>yes</validator>
-  !#  <encodeFunction>yes</encodeFunction>
-  !#  <entry label="critical" />
-  !#  <entry label="mean"     />
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>fixedDensityType</name>
+   <description>Specifies reference density type for fixed virial density contrast.</description>
+   <visibility>public</visibility>
+   <validator>yes</validator>
+   <encodeFunction>yes</encodeFunction>
+   <entry label="critical" />
+   <entry label="mean"     />
+  </enumeration>
+  !!]
 
 contains
 
   function fixedConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily fixed} dark matter halo virial density contrast class that takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily fixed} dark matter halo virial density contrast class that takes a parameter set as input.
+    !!}
     use :: ISO_Varying_String, only : var_str       , varying_string
     use :: Input_Parameters  , only : inputParameter, inputParameters
     implicit none
@@ -74,35 +86,41 @@ contains
     double precision                                            :: densityContrastValue, turnAroundOverVirialRadius
     type            (varying_string            )                :: densityType
 
-    !# <inputParameter>
-    !#  <name>densityContrastValue</name>
-    !#  <source>parameters</source>
-    !#  <defaultValue>200.0d0</defaultValue>
-    !#  <description>The virial density contrast to use in the fixed value model.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#  <name>densityType</name>
-    !#  <source>parameters</source>
-    !#  <defaultValue>var_str('critical')</defaultValue>
-    !#  <description>The reference density to use in the fixed value virial density contrast model. Either of {\normalfont \ttfamily critical} and {\normalfont \ttfamily mean} are allowed.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#  <name>turnAroundOverVirialRadius</name>
-    !#  <source>parameters</source>
-    !#  <defaultValue>2.0d0</defaultValue>
-    !#  <description>The ratio of the turnaround to virial radii in the fixed value model.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    !![
+    <inputParameter>
+     <name>densityContrastValue</name>
+     <source>parameters</source>
+     <defaultValue>200.0d0</defaultValue>
+     <description>The virial density contrast to use in the fixed value model.</description>
+    </inputParameter>
+    <inputParameter>
+     <name>densityType</name>
+     <source>parameters</source>
+     <defaultValue>var_str('critical')</defaultValue>
+     <description>The reference density to use in the fixed value virial density contrast model. Either of {\normalfont \ttfamily critical} and {\normalfont \ttfamily mean} are allowed.</description>
+    </inputParameter>
+    <inputParameter>
+     <name>turnAroundOverVirialRadius</name>
+     <source>parameters</source>
+     <defaultValue>2.0d0</defaultValue>
+     <description>The ratio of the turnaround to virial radii in the fixed value model.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    !!]
     self=virialDensityContrastFixed(densityContrastValue,enumerationFixedDensityTypeEncode(char(densityType),includesPrefix=.false.),turnAroundOverVirialRadius,cosmologyParameters_,cosmologyFunctions_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"/>
-    !# <objectDestructor name="cosmologyFunctions_" />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"/>
+    <objectDestructor name="cosmologyFunctions_" />
+    !!]
     return
   end function fixedConstructorParameters
 
   function fixedConstructorInternal(densityContrastValue,densityType,turnAroundOverVirialRadius,cosmologyParameters_,cosmologyFunctions_) result(self)
-    !% Constructor for the {\normalfont \ttfamily fixed} dark matter halo virial density contrast class.
+    !!{
+    Constructor for the {\normalfont \ttfamily fixed} dark matter halo virial density contrast class.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (virialDensityContrastFixed)                        :: self
@@ -110,24 +128,32 @@ contains
     integer                                     , intent(in   )         :: densityType
     class           (cosmologyParametersClass  ), intent(in   ), target :: cosmologyParameters_
     class           (cosmologyFunctionsClass   ), intent(in   ), target :: cosmologyFunctions_
-    !# <constructorAssign variables="densityContrastValue, densityType, turnAroundOverVirialRadius, *cosmologyParameters_, *cosmologyFunctions_"/>
+    !![
+    <constructorAssign variables="densityContrastValue, densityType, turnAroundOverVirialRadius, *cosmologyParameters_, *cosmologyFunctions_"/>
+    !!]
 
     if (.not.enumerationFixedDensityTypeIsValid(densityType)) call Galacticus_Error_Report('invalid densityType'//{introspection:location})
     return
   end function fixedConstructorInternal
 
   subroutine fixedDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily fixed} virial density contrast class.
+    !!{
+    Destructor for the {\normalfont \ttfamily fixed} virial density contrast class.
+    !!}
     implicit none
     type(virialDensityContrastFixed), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_"/>
-    !# <objectDestructor name="self%cosmologyFunctions_" />
+    !![
+    <objectDestructor name="self%cosmologyParameters_"/>
+    <objectDestructor name="self%cosmologyFunctions_" />
+    !!]
     return
   end subroutine fixedDestructor
 
   double precision function fixedDensityContrast(self,mass,time,expansionFactor,collapsing)
-    !% Return the virial density contrast at the given epoch, assuming a fixed contrast.
+    !!{
+    Return the virial density contrast at the given epoch, assuming a fixed contrast.
+    !!}
     use :: Cosmology_Functions, only : cosmologyFunctionsStaticUniverse
     implicit none
     class           (virialDensityContrastFixed), intent(inout)           :: self
@@ -161,7 +187,9 @@ contains
   end function fixedDensityContrast
 
   double precision function fixedDensityContrastRateOfChange(self,mass,time,expansionFactor,collapsing)
-    !% Return the virial density contrast at the given epoch, assuming a fixed contrast.
+    !!{
+    Return the virial density contrast at the given epoch, assuming a fixed contrast.
+    !!}
     implicit none
     class           (virialDensityContrastFixed), intent(inout)           :: self
     double precision                            , intent(in   )           :: mass
@@ -188,7 +216,9 @@ contains
   end function fixedDensityContrastRateOfChange
 
   double precision function fixedTurnAroundOverVirialRadii(self,mass,time,expansionFactor,collapsing)
-    !% Return the virial density contrast at the given epoch, assuming a fixed contrast.
+    !!{
+    Return the virial density contrast at the given epoch, assuming a fixed contrast.
+    !!}
     implicit none
     class           (virialDensityContrastFixed), intent(inout)           :: self
     double precision                            , intent(in   )           :: mass

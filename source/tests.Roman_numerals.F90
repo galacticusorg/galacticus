@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to test Roman numeral conversion functions.
+!!{
+Contains a program to test Roman numeral conversion functions.
+!!}
 
 program Test_Roman_Numerals
-  !% Tests that Roman numeral conversion functions work.
+  !!{
+  Tests that Roman numeral conversion functions work.
+  !!}
   use :: Display                 , only : displayVerbositySet, verbosityLevelStandard
   use :: ISO_Varying_String      , only : var_str
   use :: Numerical_Roman_Numerals, only : Roman_Numerals

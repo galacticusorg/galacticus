@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which stores data for the preset interpolated position node component.
+!!{
+Contains a module which stores data for the preset interpolated position node component.
+!!}
 
 module Node_Component_Position_Preset_Interpolated_Data
-  !% Stores data for the preset interpolated position node component.
+  !!{
+  Stores data for the preset interpolated position node component.
+  !!}
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
   implicit none
   public

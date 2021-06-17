@@ -17,18 +17,26 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements a mass-metallicity relation analysis class.
+  !!{
+  Contains a module which implements a mass-metallicity relation analysis class.
+  !!}
 
-  !# <outputAnalysis name="outputAnalysisMassMetallicityBlanc2017">
-  !#  <description>A mass-metallicity relation output analysis class.</description>
-  !# </outputAnalysis>
+  !![
+  <outputAnalysis name="outputAnalysisMassMetallicityBlanc2017">
+   <description>A mass-metallicity relation output analysis class.</description>
+  </outputAnalysis>
+  !!]
   type, extends(outputAnalysisMeanFunction1D) :: outputAnalysisMassMetallicityBlanc2017
-     !% A mass-metallicity relation output analysis class.
+     !!{
+     A mass-metallicity relation output analysis class.
+     !!}
      private
   end type outputAnalysisMassMetallicityBlanc2017
 
   interface outputAnalysisMassMetallicityBlanc2017
-     !% Constructors for the ``massMetallicityBlanc2017'' output analysis class.
+     !!{
+     Constructors for the ``massMetallicityBlanc2017'' output analysis class.
+     !!}
      module procedure massMetallicityBlanc2017ConstructorParameters
      module procedure massMetallicityBlanc2017ConstructorInternal
   end interface outputAnalysisMassMetallicityBlanc2017
@@ -36,7 +44,9 @@
 contains
 
   function massMetallicityBlanc2017ConstructorParameters(parameters) result (self)
-    !% Constructor for the ``massMetallicityBlanc2017'' output analysis class which takes a parameter set as input.
+    !!{
+    Constructor for the ``massMetallicityBlanc2017'' output analysis class which takes a parameter set as input.
+    !!}
     use :: Cosmology_Functions           , only : cosmologyFunctions             , cosmologyFunctionsClass
     use :: Input_Parameters              , only : inputParameter                 , inputParameters
     use :: Star_Formation_Rates_Disks    , only : starFormationRateDisksClass
@@ -57,63 +67,69 @@ contains
     allocate(metallicitySystematicErrorPolynomialCoefficient(max(1,parameters%count('metallicitySystematicErrorPolynomialCoefficient',zeroIfNotPresent=.true.))))
     allocate(           systematicErrorPolynomialCoefficient(max(1,parameters%count(           'systematicErrorPolynomialCoefficient',zeroIfNotPresent=.true.))))
     allocate(               randomErrorPolynomialCoefficient(max(1,parameters%count(               'randomErrorPolynomialCoefficient',zeroIfNotPresent=.true.))))
-    !# <inputParameter>
-    !#   <name>metallicitySystematicErrorPolynomialCoefficient</name>
-    !#   <source>parameters</source>
-    !#   <variable>metallicitySystematicErrorPolynomialCoefficient</variable>
-    !#   <defaultValue>[0.0d0]</defaultValue>
-    !#   <description>The coefficients of the metallicity systematic error polynomial.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>systematicErrorPolynomialCoefficient</name>
-    !#   <source>parameters</source>
-    !#   <variable>systematicErrorPolynomialCoefficient</variable>
-    !#   <defaultValue>[0.0d0]</defaultValue>
-    !#   <description>The coefficients of the systematic error polynomial.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>randomErrorPolynomialCoefficient</name>
-    !#   <source>parameters</source>
-    !#   <variable>randomErrorPolynomialCoefficient</variable>
-    !#   <defaultValue>[0.0d0]</defaultValue>
-    !#   <description>The coefficients of the random error polynomial.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>randomErrorMinimum</name>
-    !#   <source>parameters</source>
-    !#   <variable>randomErrorMinimum</variable>
-    !#   <defaultValue>0.07d0</defaultValue>
-    !#   <description>The minimum random error for stellar masses.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>randomErrorMaximum</name>
-    !#   <source>parameters</source>
-    !#   <variable>randomErrorMaximum</variable>
-    !#   <defaultValue>0.07d0</defaultValue>
-    !#   <description>The maximum random error for stellar masses.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>fractionGasThreshold</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>0.05d0</defaultValue>
-    !#   <description>The minimum gas fraction to include in the sample.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions"         name="cosmologyFunctions_"         source="parameters"/>
-    !# <objectBuilder class="outputTimes"                name="outputTimes_"                source="parameters"/>
-    !# <objectBuilder class="starFormationRateDisks"     name="starFormationRateDisks_"     source="parameters"/>
-    !# <objectBuilder class="starFormationRateSpheroids" name="starFormationRateSpheroids_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>metallicitySystematicErrorPolynomialCoefficient</name>
+      <source>parameters</source>
+      <variable>metallicitySystematicErrorPolynomialCoefficient</variable>
+      <defaultValue>[0.0d0]</defaultValue>
+      <description>The coefficients of the metallicity systematic error polynomial.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>systematicErrorPolynomialCoefficient</name>
+      <source>parameters</source>
+      <variable>systematicErrorPolynomialCoefficient</variable>
+      <defaultValue>[0.0d0]</defaultValue>
+      <description>The coefficients of the systematic error polynomial.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>randomErrorPolynomialCoefficient</name>
+      <source>parameters</source>
+      <variable>randomErrorPolynomialCoefficient</variable>
+      <defaultValue>[0.0d0]</defaultValue>
+      <description>The coefficients of the random error polynomial.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>randomErrorMinimum</name>
+      <source>parameters</source>
+      <variable>randomErrorMinimum</variable>
+      <defaultValue>0.07d0</defaultValue>
+      <description>The minimum random error for stellar masses.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>randomErrorMaximum</name>
+      <source>parameters</source>
+      <variable>randomErrorMaximum</variable>
+      <defaultValue>0.07d0</defaultValue>
+      <description>The maximum random error for stellar masses.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>fractionGasThreshold</name>
+      <source>parameters</source>
+      <defaultValue>0.05d0</defaultValue>
+      <description>The minimum gas fraction to include in the sample.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyFunctions"         name="cosmologyFunctions_"         source="parameters"/>
+    <objectBuilder class="outputTimes"                name="outputTimes_"                source="parameters"/>
+    <objectBuilder class="starFormationRateDisks"     name="starFormationRateDisks_"     source="parameters"/>
+    <objectBuilder class="starFormationRateSpheroids" name="starFormationRateSpheroids_" source="parameters"/>
+    !!]
     ! Build the object.
     self=outputAnalysisMassMetallicityBlanc2017(metallicitySystematicErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,fractionGasThreshold,cosmologyFunctions_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"        />
-    !# <objectDestructor name="outputTimes_"               />
-    !# <objectDestructor name="starFormationRateDisks_"    />
-    !# <objectDestructor name="starFormationRateSpheroids_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"        />
+    <objectDestructor name="outputTimes_"               />
+    <objectDestructor name="starFormationRateDisks_"    />
+    <objectDestructor name="starFormationRateSpheroids_"/>
+    !!]
     return
   end function massMetallicityBlanc2017ConstructorParameters
 
   function massMetallicityBlanc2017ConstructorInternal(metallicitySystematicErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,fractionGasThreshold,cosmologyFunctions_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_) result (self)
-    !% Constructor for the ``massMetallicityBlanc2017'' output analysis class for internal use.
+    !!{
+    Constructor for the ``massMetallicityBlanc2017'' output analysis class for internal use.
+    !!}
     use :: Abundances_Structure                  , only : Abundances_Index_From_Name                         , abundances
     use :: Atomic_Data                           , only : Atomic_Mass
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                            , cosmologyFunctionsMatterLambda
@@ -191,7 +207,9 @@ contains
     !$ call hdf5Access%unset()
     ! Construct survey geometry. Use a lower redshift limit than actually used by Blanc et al. to ensure that low mass bins have non-zero weight.
     allocate(surveyGeometry_)
-    !# <referenceConstruct object="surveyGeometry_" constructor="surveyGeometryLiWhite2009SDSS(redshiftMinimum=0.02d0,redshiftMaximum=0.25d0,cosmologyFunctions_=cosmologyFunctions_)"/>
+    !![
+    <referenceConstruct object="surveyGeometry_" constructor="surveyGeometryLiWhite2009SDSS(redshiftMinimum=0.02d0,redshiftMaximum=0.25d0,cosmologyFunctions_=cosmologyFunctions_)"/>
+    !!]
     ! Compute weights that apply to each output redshift.
     binCount=size(masses,kind=c_size_t)
     allocate(functionCovarianceTarget(binCount,binCount))
@@ -206,44 +224,52 @@ contains
     ! Create cosmological model in which data were analyzed.
     allocate(cosmologyParametersData)
     allocate(cosmologyFunctionsData )
-    !# <referenceConstruct object="cosmologyParametersData">
-    !#  <constructor>
-    !#   cosmologyParametersSimple     (                            &amp;
-    !#     &amp;                        OmegaMatter    = 0.30000d0, &amp;
-    !#     &amp;                        OmegaDarkEnergy= 0.70000d0, &amp;
-    !#     &amp;                        HubbleConstant =70.00000d0, &amp;
-    !#     &amp;                        temperatureCMB = 2.72548d0, &amp;
-    !#     &amp;                        OmegaBaryon    = 0.00000d0  &amp;
-    !#     &amp;                       )
-    !#  </constructor>
-    !# </referenceConstruct>
-    !# <referenceConstruct object="cosmologyFunctionsData">
-    !#  <constructor>
-    !#   cosmologyFunctionsMatterLambda(                            &amp;
-    !#     &amp;                        cosmologyParametersData     &amp;
-    !#     &amp;                       )
-    !#  </constructor>
-    !# </referenceConstruct>
+    !![
+    <referenceConstruct object="cosmologyParametersData">
+     <constructor>
+      cosmologyParametersSimple     (                            &amp;
+        &amp;                        OmegaMatter    = 0.30000d0, &amp;
+        &amp;                        OmegaDarkEnergy= 0.70000d0, &amp;
+        &amp;                        HubbleConstant =70.00000d0, &amp;
+        &amp;                        temperatureCMB = 2.72548d0, &amp;
+        &amp;                        OmegaBaryon    = 0.00000d0  &amp;
+        &amp;                       )
+     </constructor>
+    </referenceConstruct>
+    <referenceConstruct object="cosmologyFunctionsData">
+     <constructor>
+      cosmologyFunctionsMatterLambda(                            &amp;
+        &amp;                        cosmologyParametersData     &amp;
+        &amp;                       )
+     </constructor>
+    </referenceConstruct>
+    !!]
     ! Build a filter which select galaxies with stellar mass above some coarse lower limit suitable for this sample and with a
     ! selection for the star forming main sequence (based on that proposed by Renzini & Peng; 2015;
     ! http://adsabs.harvard.edu/abs/2015ApJ...801L..29R with a downward shift of 0.6dex to allow for the width of the
     ! distribution).
     allocate(galacticFilterStellarMass_                            )
-    !# <referenceConstruct object="galacticFilterStellarMass_" constructor="galacticFilterStellarMass(massThreshold=1.00d8)"/>
+    !![
+    <referenceConstruct object="galacticFilterStellarMass_" constructor="galacticFilterStellarMass(massThreshold=1.00d8)"/>
+    !!]
     allocate(galacticFilterStarFormationRate_                      )
-    !# <referenceConstruct object="galacticFilterStarFormationRate_">
-    !#  <constructor>
-    !#   galacticFilterStarFormationRate(                                                         &amp;
-    !#     &amp;                         logM0                      =0.00d0                     , &amp;
-    !#     &amp;                         logSFR0                    =0.76d0                     , &amp;
-    !#     &amp;                         logSFR1                    =0.76d0                     , &amp;
-    !#     &amp;                         starFormationRateDisks_    =starFormationRateDisks_    , &amp;
-    !#     &amp;                         starFormationRateSpheroids_=starFormationRateSpheroids_  &amp;
-    !#     &amp;                        )
-    !#  </constructor>
-    !# </referenceConstruct>
+    !![
+    <referenceConstruct object="galacticFilterStarFormationRate_">
+     <constructor>
+      galacticFilterStarFormationRate(                                                         &amp;
+        &amp;                         logM0                      =0.00d0                     , &amp;
+        &amp;                         logSFR0                    =0.76d0                     , &amp;
+        &amp;                         logSFR1                    =0.76d0                     , &amp;
+        &amp;                         starFormationRateDisks_    =starFormationRateDisks_    , &amp;
+        &amp;                         starFormationRateSpheroids_=starFormationRateSpheroids_  &amp;
+        &amp;                        )
+     </constructor>
+    </referenceConstruct>
+    !!]
     allocate(galacticFilterGasFractionISM_                         )
-    !# <referenceConstruct object="galacticFilterGasFractionISM_" constructor="galacticFilterGasFractionISM(fractionGasThreshold=fractionGasThreshold)"/>
+    !![
+    <referenceConstruct object="galacticFilterGasFractionISM_" constructor="galacticFilterGasFractionISM(fractionGasThreshold=fractionGasThreshold)"/>
+    !!]
     allocate(filters_                                              )
     filter_ => filters_
     filter_%filter_ =>galacticFilterStellarMass_
@@ -254,17 +280,27 @@ contains
     filter_ => filter_%next
     filter_%filter_ => galacticFilterGasFractionISM_
     allocate(galacticFilter_                                       )
-    !# <referenceConstruct object="galacticFilter_"                                   constructor="galacticFilterAll                                      (filters_                                                                  )"/>
+    !![
+    <referenceConstruct object="galacticFilter_"                                   constructor="galacticFilterAll                                      (filters_                                                                  )"/>
+    !!]
     ! Build identity weight operator.
     allocate(outputAnalysisWeightOperator_                         )
-    !# <referenceConstruct object="outputAnalysisWeightOperator_"                     constructor="outputAnalysisWeightOperatorIdentity                   (                                                                          )"/>
+    !![
+    <referenceConstruct object="outputAnalysisWeightOperator_"                     constructor="outputAnalysisWeightOperatorIdentity                   (                                                                          )"/>
+    !!]
     ! Build luminosity distance, systematic, and log10() property operators.
     allocate(outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_      )
-    !# <referenceConstruct object="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_"  constructor="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc        (cosmologyFunctions_     ,cosmologyFunctionsData              ,outputTimes_)"/>
+    !![
+    <referenceConstruct object="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_"  constructor="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc        (cosmologyFunctions_     ,cosmologyFunctionsData              ,outputTimes_)"/>
+    !!]
     allocate(outputAnalysisPropertyOperatorSystmtcPolynomial_      )
-    !# <referenceConstruct object="outputAnalysisPropertyOperatorSystmtcPolynomial_"  constructor="outputAnalysisPropertyOperatorSystmtcPolynomial        (errorPolynomialZeroPoint,systematicErrorPolynomialCoefficient             )"/>
+    !![
+    <referenceConstruct object="outputAnalysisPropertyOperatorSystmtcPolynomial_"  constructor="outputAnalysisPropertyOperatorSystmtcPolynomial        (errorPolynomialZeroPoint,systematicErrorPolynomialCoefficient             )"/>
+    !!]
     allocate(outputAnalysisPropertyOperatorLog10_                  )
-    !# <referenceConstruct object="outputAnalysisPropertyOperatorLog10_"              constructor="outputAnalysisPropertyOperatorLog10                    (                                                                          )"/>
+    !![
+    <referenceConstruct object="outputAnalysisPropertyOperatorLog10_"              constructor="outputAnalysisPropertyOperatorLog10                    (                                                                          )"/>
+    !!]
     allocate(propertyOperators_                                    )
     allocate(propertyOperators_%next                               )
     allocate(propertyOperators_%next%next                          )
@@ -272,32 +308,42 @@ contains
     propertyOperators_%next     %operator_           => outputAnalysisPropertyOperatorLog10_
     propertyOperators_%next%next%operator_           => outputAnalysisPropertyOperatorSystmtcPolynomial_
     allocate(outputAnalysisPropertyOperator_                       )
-    !# <referenceConstruct object="outputAnalysisPropertyOperator_"                   constructor="outputAnalysisPropertyOperatorSequence                 (propertyOperators_                                                        )"/>
+    !![
+    <referenceConstruct object="outputAnalysisPropertyOperator_"                   constructor="outputAnalysisPropertyOperatorSequence                 (propertyOperators_                                                        )"/>
+    !!]
     ! Build a random error distribution operator.
     allocate(outputAnalysisDistributionOperator_                   )
-    !# <referenceConstruct object="outputAnalysisDistributionOperator_">
-    !#  <constructor>
-    !#   outputAnalysisDistributionOperatorRandomErrorPlynml(                                  &amp;
-    !#     &amp;                                             randomErrorMinimum              , &amp;
-    !#     &amp;                                             randomErrorMaximum              , &amp;
-    !#     &amp;                                             errorPolynomialZeroPoint        , &amp;
-    !#     &amp;                                             randomErrorPolynomialCoefficient  &amp;
-    !#     &amp;                                            )
-    !#  </constructor>
-    !# </referenceConstruct>
+    !![
+    <referenceConstruct object="outputAnalysisDistributionOperator_">
+     <constructor>
+      outputAnalysisDistributionOperatorRandomErrorPlynml(                                  &amp;
+        &amp;                                             randomErrorMinimum              , &amp;
+        &amp;                                             randomErrorMaximum              , &amp;
+        &amp;                                             errorPolynomialZeroPoint        , &amp;
+        &amp;                                             randomErrorPolynomialCoefficient  &amp;
+        &amp;                                            )
+     </constructor>
+    </referenceConstruct>
+    !!]
     ! Build a metallicity weight property operator.
     allocate(outputAnalysisWeightPropertyOperatorSystmtcPolynomial_)
-    !# <referenceConstruct object="outputAnalysisWeightPropertyOperatorSystmtcPolynomial_" constructor="outputAnalysisPropertyOperatorSystmtcPolynomial (metallicityErrorPolynomialZeroPoint,metallicitySystematicErrorPolynomialCoefficient)"/>
+    !![
+    <referenceConstruct object="outputAnalysisWeightPropertyOperatorSystmtcPolynomial_" constructor="outputAnalysisPropertyOperatorSystmtcPolynomial (metallicityErrorPolynomialZeroPoint,metallicitySystematicErrorPolynomialCoefficient)"/>
+    !!]
     allocate(outputAnalysisPropertyOperatorMetallicity12LogNH_     )
-    !# <referenceConstruct object="outputAnalysisPropertyOperatorMetallicity12LogNH_">
-    !#  <constructor>
-    !#   outputAnalysisPropertyOperatorMetallicity12LogNH(                            &amp;
-    !#     &amp;                                          Atomic_Mass(shortLabel="O") &amp;
-    !#     &amp;                                         )
-    !#  </constructor>
-    !# </referenceConstruct>
+    !![
+    <referenceConstruct object="outputAnalysisPropertyOperatorMetallicity12LogNH_">
+     <constructor>
+      outputAnalysisPropertyOperatorMetallicity12LogNH(                            &amp;
+        &amp;                                          Atomic_Mass(shortLabel="O") &amp;
+        &amp;                                         )
+     </constructor>
+    </referenceConstruct>
+    !!]
     allocate(outputAnalysisPropertyOperatorFilterHighPass_         )
-    !# <referenceConstruct object="outputAnalysisPropertyOperatorFilterHighPass_"          constructor="outputAnalysisPropertyOperatorFilterHighPass    (0.0d0                                                        )"/>
+    !![
+    <referenceConstruct object="outputAnalysisPropertyOperatorFilterHighPass_"          constructor="outputAnalysisPropertyOperatorFilterHighPass    (0.0d0                                                        )"/>
+    !!]
     allocate(weightPropertyOperators_                              )
     allocate(weightPropertyOperators_%next                         )
     allocate(weightPropertyOperators_%next%next                    )
@@ -305,13 +351,19 @@ contains
     weightPropertyOperators_%next     %operator_ => outputAnalysisWeightPropertyOperatorSystmtcPolynomial_
     weightPropertyOperators_%next%next%operator_ => outputAnalysisPropertyOperatorFilterHighPass_
     allocate(outputAnalysisWeightPropertyOperator_                 )
-    !# <referenceConstruct object="outputAnalysisWeightPropertyOperator_"                  constructor="outputAnalysisPropertyOperatorSequence          (weightPropertyOperators_                                     )"/>
+    !![
+    <referenceConstruct object="outputAnalysisWeightPropertyOperator_"                  constructor="outputAnalysisPropertyOperatorSequence          (weightPropertyOperators_                                     )"/>
+    !!]
     ! Build anti-log10() property operator.
     allocate(outputAnalysisPropertyUnoperator_                     )
-    !# <referenceConstruct object="outputAnalysisPropertyUnoperator_"                      constructor="outputAnalysisPropertyOperatorAntiLog10         (                                                             )"/>
+    !![
+    <referenceConstruct object="outputAnalysisPropertyUnoperator_"                      constructor="outputAnalysisPropertyOperatorAntiLog10         (                                                             )"/>
+    !!]
     ! Create a stellar mass property extractor.
     allocate(nodePropertyExtractor_                      )
-    !# <referenceConstruct object="nodePropertyExtractor_"                                 constructor="nodePropertyExtractorMassStellar                (                                                             )"/>
+    !![
+    <referenceConstruct object="nodePropertyExtractor_"                                 constructor="nodePropertyExtractorMassStellar                (                                                             )"/>
+    !!]
     ! Find the index for the oxygen abundance.
     indexOxygen=Abundances_Index_From_Name("O")
     if (indexOxygen < 0)                                                                                                                               &
@@ -324,7 +376,9 @@ contains
          &                             )
     ! Create an ISM metallicity weight property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_                )
-    !# <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"                 constructor="nodePropertyExtractorMetallicityISM             (Abundances_Index_From_Name('O')                              )"/>
+    !![
+    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"                 constructor="nodePropertyExtractorMetallicityISM             (Abundances_Index_From_Name('O')                              )"/>
+    !!]
     ! Build the object.
     self%outputAnalysisMeanFunction1D=outputAnalysisMeanFunction1D(                                                         &
          &                                                         var_str('massMetallicityBlanc2017'                    ), &
@@ -363,26 +417,28 @@ contains
          &                                                         functionCovarianceTarget                                 &
          &                                                        )
     ! Clean up.
-    !# <objectDestructor name="galacticFilter_"                                       />
-    !# <objectDestructor name="galacticFilterStellarMass_"                            />
-    !# <objectDestructor name="galacticFilterStarFormationRate_"                      />
-    !# <objectDestructor name="galacticFilterGasFractionISM_"                         />
-    !# <objectDestructor name="surveyGeometry_"                                       />
-    !# <objectDestructor name="outputAnalysisDistributionOperator_"                   />
-    !# <objectDestructor name="outputAnalysisWeightOperator_"                         />
-    !# <objectDestructor name="outputAnalysisPropertyOperator_"                       />
-    !# <objectDestructor name="outputAnalysisPropertyOperatorLog10_"                  />
-    !# <objectDestructor name="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_"      />
-    !# <objectDestructor name="outputAnalysisPropertyOperatorSystmtcPolynomial_"      />
-    !# <objectDestructor name="outputAnalysisWeightPropertyOperatorSystmtcPolynomial_"/>
-    !# <objectDestructor name="outputAnalysisPropertyOperatorMetallicity12LogNH_"     />
-    !# <objectDestructor name="outputAnalysisPropertyOperatorFilterHighPass_"         />
-    !# <objectDestructor name="outputAnalysisPropertyUnoperator_"                     />
-    !# <objectDestructor name="outputAnalysisWeightPropertyOperator_"                 />
-    !# <objectDestructor name="outputAnalysisWeightPropertyExtractor_"                />
-    !# <objectDestructor name="nodePropertyExtractor_"                                />
-    !# <objectDestructor name="cosmologyParametersData"                               />
-    !# <objectDestructor name="cosmologyFunctionsData"                                />
+    !![
+    <objectDestructor name="galacticFilter_"                                       />
+    <objectDestructor name="galacticFilterStellarMass_"                            />
+    <objectDestructor name="galacticFilterStarFormationRate_"                      />
+    <objectDestructor name="galacticFilterGasFractionISM_"                         />
+    <objectDestructor name="surveyGeometry_"                                       />
+    <objectDestructor name="outputAnalysisDistributionOperator_"                   />
+    <objectDestructor name="outputAnalysisWeightOperator_"                         />
+    <objectDestructor name="outputAnalysisPropertyOperator_"                       />
+    <objectDestructor name="outputAnalysisPropertyOperatorLog10_"                  />
+    <objectDestructor name="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_"      />
+    <objectDestructor name="outputAnalysisPropertyOperatorSystmtcPolynomial_"      />
+    <objectDestructor name="outputAnalysisWeightPropertyOperatorSystmtcPolynomial_"/>
+    <objectDestructor name="outputAnalysisPropertyOperatorMetallicity12LogNH_"     />
+    <objectDestructor name="outputAnalysisPropertyOperatorFilterHighPass_"         />
+    <objectDestructor name="outputAnalysisPropertyUnoperator_"                     />
+    <objectDestructor name="outputAnalysisWeightPropertyOperator_"                 />
+    <objectDestructor name="outputAnalysisWeightPropertyExtractor_"                />
+    <objectDestructor name="nodePropertyExtractor_"                                />
+    <objectDestructor name="cosmologyParametersData"                               />
+    <objectDestructor name="cosmologyFunctionsData"                                />
+    !!]
     nullify(propertyOperators_      )
     nullify(weightPropertyOperators_)
     nullify(filter_                 )

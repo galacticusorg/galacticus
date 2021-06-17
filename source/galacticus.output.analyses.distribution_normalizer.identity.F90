@@ -17,27 +17,37 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements an identity output analysis distribution normalizer class.
+  !!{
+  Contains a module which implements an identity output analysis distribution normalizer class.
+  !!}
 
-  !# <outputAnalysisDistributionNormalizer name="outputAnalysisDistributionNormalizerIdentity">
-  !#  <description>An identity output analysis distribution normalizer class.</description>
-  !# </outputAnalysisDistributionNormalizer>
+  !![
+  <outputAnalysisDistributionNormalizer name="outputAnalysisDistributionNormalizerIdentity">
+   <description>An identity output analysis distribution normalizer class.</description>
+  </outputAnalysisDistributionNormalizer>
+  !!]
   type, extends(outputAnalysisDistributionNormalizerClass) :: outputAnalysisDistributionNormalizerIdentity
-     !% An identity output distribution normalizer class.
+     !!{
+     An identity output distribution normalizer class.
+     !!}
      private
    contains
      procedure :: normalize => identityNormalize
   end type outputAnalysisDistributionNormalizerIdentity
 
   interface outputAnalysisDistributionNormalizerIdentity
-     !% Constructors for the ``identity'' output analysis distribution normalizer class.
+     !!{
+     Constructors for the ``identity'' output analysis distribution normalizer class.
+     !!}
      module procedure identityConstructorParameters
   end interface outputAnalysisDistributionNormalizerIdentity
 
 contains
 
   function identityConstructorParameters(parameters) result(self)
-    !% Constructor for the ``identity'' output analysis distribution normalizer class which takes a parameter set as input.
+    !!{
+    Constructor for the ``identity'' output analysis distribution normalizer class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(outputAnalysisDistributionNormalizerIdentity)                :: self
@@ -49,7 +59,9 @@ contains
   end function identityConstructorParameters
 
   subroutine identityNormalize(self,distribution,covariance,propertyValueMinimum,propertyValueMaximum)
-    !% Implement a bin width output analysis distribution normalizer.
+    !!{
+    Implement a bin width output analysis distribution normalizer.
+    !!}
     implicit none
     class           (outputAnalysisDistributionNormalizerIdentity), intent(inout)                 :: self
     double precision                                              , intent(inout), dimension(:  ) :: distribution

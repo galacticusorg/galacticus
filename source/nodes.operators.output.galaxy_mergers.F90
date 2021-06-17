@@ -17,30 +17,36 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a node operator class that outputs data on mergers between galaxies.
+  !!{
+  Implements a node operator class that outputs data on mergers between galaxies.
+  !!}
 
   use :: IO_HDF5         , only : hdf5Object
   use :: Galactic_Filters, only : galacticFilterClass
   
-  !# <nodeOperator name="nodeOperatorGalaxyMergersOutput">
-  !#  <description>
-  !#   A node operator class that outputs data on mergers between galaxies. Data is stored to datasets in a group specified via
-  !#   the {\normalfont \ttfamily mergersGroupName} parameter (defaulting to {\normalfont \ttfamily galaxyMergers}). Datasets
-  !#   output are:
-  !#   \begin{description}
-  !#    \item{\normalfont \ttfamily [indexHost]} the index of the host halo in the merger;
-  !#    \item{\normalfont \ttfamily [indexSatellite]} the index of the satellite halo in the merger;
-  !#    \item{\normalfont \ttfamily [indexTree]} the index of the merger tree in which the merger occurred;
-  !#    \item{\normalfont \ttfamily [massHost]} the mass of the host halo;
-  !#    \item{\normalfont \ttfamily [massSatellite]} the mass of the satellite halo;
-  !#    \item{\normalfont \ttfamily [time]} the time at which the merger occurred.
-  !#   \end{description}
-  !#   Two \refClass{galacticFilterClass}es are accepted, via parameters {\normalfont \ttfamily [galacticFilterSatellite]} and {\normalfont
-  !#   \ttfamily [galacticFilterCentral]} which can be used to control which galaxies are included in the output.
-  !#  </description>
-  !# </nodeOperator>
+  !![
+  <nodeOperator name="nodeOperatorGalaxyMergersOutput">
+   <description>
+    A node operator class that outputs data on mergers between galaxies. Data is stored to datasets in a group specified via
+    the {\normalfont \ttfamily mergersGroupName} parameter (defaulting to {\normalfont \ttfamily galaxyMergers}). Datasets
+    output are:
+    \begin{description}
+     \item{\normalfont \ttfamily [indexHost]} the index of the host halo in the merger;
+     \item{\normalfont \ttfamily [indexSatellite]} the index of the satellite halo in the merger;
+     \item{\normalfont \ttfamily [indexTree]} the index of the merger tree in which the merger occurred;
+     \item{\normalfont \ttfamily [massHost]} the mass of the host halo;
+     \item{\normalfont \ttfamily [massSatellite]} the mass of the satellite halo;
+     \item{\normalfont \ttfamily [time]} the time at which the merger occurred.
+    \end{description}
+    Two \refClass{galacticFilterClass}es are accepted, via parameters {\normalfont \ttfamily [galacticFilterSatellite]} and {\normalfont
+    \ttfamily [galacticFilterCentral]} which can be used to control which galaxies are included in the output.
+   </description>
+  </nodeOperator>
+  !!]
   type, extends(nodeOperatorClass) :: nodeOperatorGalaxyMergersOutput
-     !% A node operator class that shifts node indices at node promotion.
+     !!{
+     A node operator class that shifts node indices at node promotion.
+     !!}
      private
      type (varying_string     )          :: mergersGroupName
      type (hdf5Object         )          :: mergersGroup
@@ -51,7 +57,9 @@
   end type nodeOperatorGalaxyMergersOutput
   
   interface nodeOperatorGalaxyMergersOutput
-     !% Constructors for the {\normalfont \ttfamily galaxyMergersOutput} node operator class.
+     !!{
+     Constructors for the {\normalfont \ttfamily galaxyMergersOutput} node operator class.
+     !!}
      module procedure galaxyMergersOutputConstructorParameters
      module procedure galaxyMergersOutputConstructorInternal
   end interface nodeOperatorGalaxyMergersOutput
@@ -59,7 +67,9 @@
 contains
   
   function galaxyMergersOutputConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily galaxyMergersOutput} node operator class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily galaxyMergersOutput} node operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type (nodeOperatorGalaxyMergersOutput)                :: self
@@ -67,48 +77,60 @@ contains
     class(galacticFilterClass            ), pointer       :: galacticFilterSatellite_, galacticFilterCentral_
     type (varying_string                 )                :: mergersGroupName
 
-    !# <inputParameter>
-    !#   <name>mergersGroupName</name>
-    !#   <defaultValue>var_str('galaxyMergers')</defaultValue>
-    !#   <description>The name of the HDF5 group to which galaxy merger data should be output.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="galacticFilter" parameterName="galacticFilterSatellite" name="galacticFilterSatellite_" source="parameters">
-    !#  <default>
-    !#   <galacticFilterSatellite value="always"/>
-    !#  </default>
-    !# </objectBuilder>
-    !# <objectBuilder class="galacticFilter" parameterName="galacticFilterCentral"   name="galacticFilterCentral_"   source="parameters">
-    !#  <default>
-    !#   <galacticFilterCentral value="always"/>
-    !#  </default>
-    !# </objectBuilder>
+    !![
+    <inputParameter>
+      <name>mergersGroupName</name>
+      <defaultValue>var_str('galaxyMergers')</defaultValue>
+      <description>The name of the HDF5 group to which galaxy merger data should be output.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="galacticFilter" parameterName="galacticFilterSatellite" name="galacticFilterSatellite_" source="parameters">
+     <default>
+      <galacticFilterSatellite value="always"/>
+     </default>
+    </objectBuilder>
+    <objectBuilder class="galacticFilter" parameterName="galacticFilterCentral"   name="galacticFilterCentral_"   source="parameters">
+     <default>
+      <galacticFilterCentral value="always"/>
+     </default>
+    </objectBuilder>
+    !!]
     self=nodeOperatorGalaxyMergersOutput(mergersGroupName,galacticFilterSatellite_,galacticFilterCentral_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="galacticFilterSatellite_"/>
-    !# <objectDestructor name="galacticFilterCentral_"  />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="galacticFilterSatellite_"/>
+    <objectDestructor name="galacticFilterCentral_"  />
+    !!]
     return
   end function galaxyMergersOutputConstructorParameters
 
   function galaxyMergersOutputConstructorInternal(mergersGroupName,galacticFilterSatellite_,galacticFilterCentral_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily galaxyMergersOutput} node operator class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily galaxyMergersOutput} node operator class.
+    !!}
     implicit none
     type (nodeOperatorGalaxyMergersOutput)                        :: self
     class(galacticFilterClass            ), intent(in   ), target :: galacticFilterSatellite_, galacticFilterCentral_
     type (varying_string                 ), intent(in   )         :: mergersGroupName
-    !# <constructorAssign variables="mergersGroupName, *galacticFilterSatellite_, *galacticFilterCentral_"/>
+    !![
+    <constructorAssign variables="mergersGroupName, *galacticFilterSatellite_, *galacticFilterCentral_"/>
+    !!]
 
     return
   end function galaxyMergersOutputConstructorInternal
   
   subroutine galaxyMergersDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily galaxyMergersOutput} node operator class.
+    !!{
+    Destructor for the {\normalfont \ttfamily galaxyMergersOutput} node operator class.
+    !!}
     !$ use :: IO_HDF5         , only : hdf5Access
     implicit none
     type(nodeOperatorGalaxyMergersOutput), intent(inout) :: self
 
-    !# <objectDestructor name="self%galacticFilterSatellite_"/>
-    !# <objectDestructor name="self%galacticFilterCentral_" />
+    !![
+    <objectDestructor name="self%galacticFilterSatellite_"/>
+    <objectDestructor name="self%galacticFilterCentral_" />
+    !!]
     !$ call hdf5Access%set  ()
     if (self%mergersGroup%isOpen()) call self%mergersGroup%close()
     !$ call hdf5Access%unset()
@@ -116,7 +138,9 @@ contains
   end subroutine galaxyMergersDestructor
   
   subroutine galaxyMergersOutputGalaxiesMerge(self,node)
-    !% Act on a merger between galaxies.
+    !!{
+    Act on a merger between galaxies.
+    !!}
     use    :: Galacticus_HDF5 , only : galacticusOutputFile
     use    :: Galacticus_Nodes, only : nodeComponentBasic
     !$ use :: IO_HDF5         , only : hdf5Access

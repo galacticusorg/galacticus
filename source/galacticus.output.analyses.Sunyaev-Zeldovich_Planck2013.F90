@@ -17,18 +17,26 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a thermal Sunyaev-Zeldovich signal vs. stellar mass analysis class.
+  !!{
+  Implements a thermal Sunyaev-Zeldovich signal vs. stellar mass analysis class.
+  !!}
 
-  !# <outputAnalysis name="outputAnalysisSunyaevZeldovichPlanck2013">
-  !#  <description>A thermal Sunyaev-Zeldovich signal vs. stellar mass analysis class using the results of \cite{planck_collaboration_planck_2013}.</description>
-  !# </outputAnalysis>
+  !![
+  <outputAnalysis name="outputAnalysisSunyaevZeldovichPlanck2013">
+   <description>A thermal Sunyaev-Zeldovich signal vs. stellar mass analysis class using the results of \cite{planck_collaboration_planck_2013}.</description>
+  </outputAnalysis>
+  !!]
   type, extends(outputAnalysisMeanFunction1D) :: outputAnalysisSunyaevZeldovichPlanck2013
-     !% A thermal Sunyaev-Zeldovich signal vs stellar mass analysis class using the results of \cite{planck_collaboration_planck_2013}.
+     !!{
+     A thermal Sunyaev-Zeldovich signal vs stellar mass analysis class using the results of \cite{planck_collaboration_planck_2013}.
+     !!}
      private
   end type outputAnalysisSunyaevZeldovichPlanck2013
 
   interface outputAnalysisSunyaevZeldovichPlanck2013
-     !% Constructors for the ``sunyaevZeldovichPlanck2013'' output analysis class.
+     !!{
+     Constructors for the ``sunyaevZeldovichPlanck2013'' output analysis class.
+     !!}
      module procedure sunyaevZeldovichPlanck2013ConstructorParameters
      module procedure sunyaevZeldovichPlanck2013ConstructorInternal
   end interface outputAnalysisSunyaevZeldovichPlanck2013
@@ -36,7 +44,9 @@
 contains
 
   function sunyaevZeldovichPlanck2013ConstructorParameters(parameters) result (self)
-    !% Constructor for the ``sunyaevZeldovichPlanck2013'' output analysis class which takes a parameter set as input.
+    !!{
+    Constructor for the ``sunyaevZeldovichPlanck2013'' output analysis class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (outputAnalysisSunyaevZeldovichPlanck2013)                              :: self
@@ -53,56 +63,62 @@ contains
 
     allocate(systematicErrorPolynomialCoefficient(max(1,parameters%count('systematicErrorPolynomialCoefficient',zeroIfNotPresent=.true.))))
     allocate(    randomErrorPolynomialCoefficient(max(1,parameters%count(    'randomErrorPolynomialCoefficient',zeroIfNotPresent=.true.))))
-    !# <inputParameter>
-    !#   <name>systematicErrorPolynomialCoefficient</name>
-    !#   <source>parameters</source>
-    !#   <variable>systematicErrorPolynomialCoefficient</variable>
-    !#   <defaultValue>[0.0d0]</defaultValue>
-    !#   <description>The coefficients of the systematic error polynomial.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>randomErrorPolynomialCoefficient</name>
-    !#   <source>parameters</source>
-    !#   <variable>randomErrorPolynomialCoefficient</variable>
-    !#   <defaultValue>[0.0d0]</defaultValue>
-    !#   <description>The coefficients of the random error polynomial.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>randomErrorMinimum</name>
-    !#   <source>parameters</source>
-    !#   <variable>randomErrorMinimum</variable>
-    !#   <defaultValue>0.07d0</defaultValue>
-    !#   <description>The minimum random error for stellar masses.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>randomErrorMaximum</name>
-    !#   <source>parameters</source>
-    !#   <variable>randomErrorMaximum</variable>
-    !#   <defaultValue>0.07d0</defaultValue>
-    !#   <description>The minimum random error for stellar masses.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters"       name="cosmologyParameters_"       source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"        name="cosmologyFunctions_"        source="parameters"/>
-    !# <objectBuilder class="darkMatterHaloScale"       name="darkMatterHaloScale_"       source="parameters"/>
-    !# <objectBuilder class="hotHaloMassDistribution"   name="hotHaloMassDistribution_"   source="parameters"/>
-    !# <objectBuilder class="hotHaloTemperatureProfile" name="hotHaloTemperatureProfile_" source="parameters"/>
-    !# <objectBuilder class="chemicalState"             name="chemicalState_"             source="parameters"/>
-    !# <objectBuilder class="outputTimes"               name="outputTimes_"               source="parameters"/>
+    !![
+    <inputParameter>
+      <name>systematicErrorPolynomialCoefficient</name>
+      <source>parameters</source>
+      <variable>systematicErrorPolynomialCoefficient</variable>
+      <defaultValue>[0.0d0]</defaultValue>
+      <description>The coefficients of the systematic error polynomial.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>randomErrorPolynomialCoefficient</name>
+      <source>parameters</source>
+      <variable>randomErrorPolynomialCoefficient</variable>
+      <defaultValue>[0.0d0]</defaultValue>
+      <description>The coefficients of the random error polynomial.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>randomErrorMinimum</name>
+      <source>parameters</source>
+      <variable>randomErrorMinimum</variable>
+      <defaultValue>0.07d0</defaultValue>
+      <description>The minimum random error for stellar masses.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>randomErrorMaximum</name>
+      <source>parameters</source>
+      <variable>randomErrorMaximum</variable>
+      <defaultValue>0.07d0</defaultValue>
+      <description>The minimum random error for stellar masses.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyParameters"       name="cosmologyParameters_"       source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"        name="cosmologyFunctions_"        source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale"       name="darkMatterHaloScale_"       source="parameters"/>
+    <objectBuilder class="hotHaloMassDistribution"   name="hotHaloMassDistribution_"   source="parameters"/>
+    <objectBuilder class="hotHaloTemperatureProfile" name="hotHaloTemperatureProfile_" source="parameters"/>
+    <objectBuilder class="chemicalState"             name="chemicalState_"             source="parameters"/>
+    <objectBuilder class="outputTimes"               name="outputTimes_"               source="parameters"/>
+    !!]
     ! Build the object.
     self=outputAnalysisSunyaevZeldovichPlanck2013(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,hotHaloMassDistribution_,hotHaloTemperatureProfile_,chemicalState_,outputTimes_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"      />
-    !# <objectDestructor name="cosmologyFunctions_"       />
-    !# <objectDestructor name="darkMatterHaloScale_"      />
-    !# <objectDestructor name="hotHaloMassDistribution_"  />
-    !# <objectDestructor name="hotHaloTemperatureProfile_"/>
-    !# <objectDestructor name="chemicalState_"            />
-    !# <objectDestructor name="outputTimes_"              />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"      />
+    <objectDestructor name="cosmologyFunctions_"       />
+    <objectDestructor name="darkMatterHaloScale_"      />
+    <objectDestructor name="hotHaloMassDistribution_"  />
+    <objectDestructor name="hotHaloTemperatureProfile_"/>
+    <objectDestructor name="chemicalState_"            />
+    <objectDestructor name="outputTimes_"              />
+    !!]
     return
   end function sunyaevZeldovichPlanck2013ConstructorParameters
 
   function sunyaevZeldovichPlanck2013ConstructorInternal(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,hotHaloMassDistribution_,hotHaloTemperatureProfile_,chemicalState_,outputTimes_) result (self)
-    !% Constructor for the ``sunyaevZeldovichPlanck2013'' output analysis class for internal use.
+    !!{
+    Constructor for the ``sunyaevZeldovichPlanck2013'' output analysis class for internal use.
+    !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                            , cosmologyFunctionsMatterLambda                 , densityCosmologicalCritical
     use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
     use :: Galactic_Filters                      , only : galacticFilterStellarMass                          , galacticFilterAll                              , galacticFilterHaloIsolated               , &
@@ -179,30 +195,34 @@ contains
     ! Create cosmological model in which data were analyzed.
     allocate(cosmologyParametersData)
     allocate(cosmologyFunctionsData )
-    !# <referenceConstruct object="cosmologyParametersData">
-    !#  <constructor>
-    !#   cosmologyParametersSimple(                            &amp;
-    !#     &amp;                   OmegaMatter    = 0.27200d0, &amp;
-    !#     &amp;                   OmegaDarkEnergy= 0.72800d0, &amp;
-    !#     &amp;                   HubbleConstant =70.40000d0, &amp;
-    !#     &amp;                   temperatureCMB = 2.72548d0, &amp;
-    !#     &amp;                   OmegaBaryon    = 0.00000d0  &amp;
-    !#     &amp;                  )
-    !#  </constructor>
-    !# </referenceConstruct>
-    !# <referenceConstruct object="cosmologyFunctionsData">
-    !# <constructor>
-    !#   cosmologyFunctionsMatterLambda(                        &amp;
-    !#     &amp;                        cosmologyParametersData &amp;
-    !#     &amp;                       )
-    !#  </constructor>
-    !# </referenceConstruct>
+    !![
+    <referenceConstruct object="cosmologyParametersData">
+     <constructor>
+      cosmologyParametersSimple(                            &amp;
+        &amp;                   OmegaMatter    = 0.27200d0, &amp;
+        &amp;                   OmegaDarkEnergy= 0.72800d0, &amp;
+        &amp;                   HubbleConstant =70.40000d0, &amp;
+        &amp;                   temperatureCMB = 2.72548d0, &amp;
+        &amp;                   OmegaBaryon    = 0.00000d0  &amp;
+        &amp;                  )
+     </constructor>
+    </referenceConstruct>
+    <referenceConstruct object="cosmologyFunctionsData">
+    <constructor>
+      cosmologyFunctionsMatterLambda(                        &amp;
+        &amp;                        cosmologyParametersData &amp;
+        &amp;                       )
+     </constructor>
+    </referenceConstruct>
+    !!]
     ! Construct survey geometry. We use the Li & White (2009) SDSS geometry here, since Planck Intermediate Results XI uses the
     ! NYU VAGC catalog (as do Li & White), with a depth of r=17.7 (while Li & White use r=17.6 - sufficiently close). Planck
     ! Intermediate Results XI uses a minimum redshift of 0.03, while the maximum redshift of 0.3 here is chosen based on the
     ! distributions of redshift shown in Figure 1 of that paper.
     allocate(surveyGeometry_)
-    !# <referenceConstruct object="surveyGeometry_" constructor="surveyGeometryLiWhite2009SDSS(redshiftMinimum=0.03d0,redshiftMaximum=0.30d0,cosmologyFunctions_=cosmologyFunctions_)"/>
+    !![
+    <referenceConstruct object="surveyGeometry_" constructor="surveyGeometryLiWhite2009SDSS(redshiftMinimum=0.03d0,redshiftMaximum=0.30d0,cosmologyFunctions_=cosmologyFunctions_)"/>
+    !!]
     ! Compute weights that apply to each output redshift.
     call allocateArray(outputWeight,[binCount,outputTimes_%count()])
     do iBin=1,binCount
@@ -216,66 +236,86 @@ contains
     allocate(filters_                  %next)
     filters_     %filter_ => galacticFilterCentrals_
     filters_%next%filter_ => galacticFilterStellarMass_
-    !# <referenceConstruct object="galacticFilterCentrals_"    constructor="galacticFilterHaloIsolated(                      )"/>
-    !# <referenceConstruct object="galacticFilterStellarMass_" constructor="galacticFilterStellarMass (massThreshold=1.0d9   )"/>
-    !# <referenceConstruct object="galacticFilter_"            constructor="galacticFilterAll         (              filters_)"/>
+    !![
+    <referenceConstruct object="galacticFilterCentrals_"    constructor="galacticFilterHaloIsolated(                      )"/>
+    <referenceConstruct object="galacticFilterStellarMass_" constructor="galacticFilterStellarMass (massThreshold=1.0d9   )"/>
+    <referenceConstruct object="galacticFilter_"            constructor="galacticFilterAll         (              filters_)"/>
+    !!]
     ! Build identity weight operator.
     allocate(outputAnalysisWeightOperator_                         )
-    !# <referenceConstruct object="outputAnalysisWeightOperator_"                    constructor="outputAnalysisWeightOperatorIdentity           (                                                             )"/>
+    !![
+    <referenceConstruct object="outputAnalysisWeightOperator_"                    constructor="outputAnalysisWeightOperatorIdentity           (                                                             )"/>
+    !!]
     ! Build log10() property operator.
     allocate(outputAnalysisPropertyOperatorSystmtcPolynomial_      )
-    !# <referenceConstruct object="outputAnalysisPropertyOperatorSystmtcPolynomial_" constructor="outputAnalysisPropertyOperatorSystmtcPolynomial(errorPolynomialZeroPoint,systematicErrorPolynomialCoefficient)"/>
+    !![
+    <referenceConstruct object="outputAnalysisPropertyOperatorSystmtcPolynomial_" constructor="outputAnalysisPropertyOperatorSystmtcPolynomial(errorPolynomialZeroPoint,systematicErrorPolynomialCoefficient)"/>
+    !!]
     allocate(outputAnalysisPropertyOperatorLog10_                  )
-    !# <referenceConstruct object="outputAnalysisPropertyOperatorLog10_"             constructor="outputAnalysisPropertyOperatorLog10            (                                                             )"/>
+    !![
+    <referenceConstruct object="outputAnalysisPropertyOperatorLog10_"             constructor="outputAnalysisPropertyOperatorLog10            (                                                             )"/>
+    !!]
     allocate(propertyOperators_                                    )
     allocate(propertyOperators_%next                               )
     propertyOperators_     %operator_  => outputAnalysisPropertyOperatorLog10_
     propertyOperators_%next%operator_  => outputAnalysisPropertyOperatorSystmtcPolynomial_
     allocate(outputAnalysisPropertyOperator_                       )
-    !# <referenceConstruct object="outputAnalysisPropertyOperator_"                  constructor="outputAnalysisPropertyOperatorSequence         (propertyOperators_                                           )"/>
+    !![
+    <referenceConstruct object="outputAnalysisPropertyOperator_"                  constructor="outputAnalysisPropertyOperatorSequence         (propertyOperators_                                           )"/>
+    !!]
     ! Build a random error distribution operator.
     allocate(outputAnalysisDistributionOperator_                   )
-    !# <referenceConstruct object="outputAnalysisDistributionOperator_">
-    !#  <constructor>
-    !#  outputAnalysisDistributionOperatorRandomErrorPlynml (                                  &amp;
-    !#     &amp;                                             randomErrorMinimum              , &amp;
-    !#     &amp;                                             randomErrorMaximum              , &amp;
-    !#     &amp;                                             errorPolynomialZeroPoint        , &amp;
-    !#     &amp;                                             randomErrorPolynomialCoefficient  &amp;
-    !#     &amp;                                            )
-    !#  </constructor>
-    !# </referenceConstruct>
+    !![
+    <referenceConstruct object="outputAnalysisDistributionOperator_">
+     <constructor>
+     outputAnalysisDistributionOperatorRandomErrorPlynml (                                  &amp;
+        &amp;                                             randomErrorMinimum              , &amp;
+        &amp;                                             randomErrorMaximum              , &amp;
+        &amp;                                             errorPolynomialZeroPoint        , &amp;
+        &amp;                                             randomErrorPolynomialCoefficient  &amp;
+        &amp;                                            )
+     </constructor>
+    </referenceConstruct>
+    !!]
     ! Build a weight property operator. We use an operator which performs the cosmological scaling (e.g. unnumbered equation at
     ! the end of page 2 of Planck Intermediate Results XI), using the cosmology employed in their analysis.
     allocate(outputAnalysisWeightPropertyOperator_ )
-    !# <referenceConstruct object="outputAnalysisWeightPropertyOperator_">
-    !#  <constructor>
-    !#  outputAnalysisPropertyOperatorCosmologySZ(cosmologyParametersData,cosmologyFunctionsData,outputTimes_)
-    !#  </constructor>
-    !# </referenceConstruct>
+    !![
+    <referenceConstruct object="outputAnalysisWeightPropertyOperator_">
+     <constructor>
+     outputAnalysisPropertyOperatorCosmologySZ(cosmologyParametersData,cosmologyFunctionsData,outputTimes_)
+     </constructor>
+    </referenceConstruct>
+    !!]
     ! Build anti-log10() property operator.
     allocate(outputAnalysisPropertyUnoperator_     )
-    !# <referenceConstruct object="outputAnalysisPropertyUnoperator_" constructor="outputAnalysisPropertyOperatorAntiLog10()"/>
+    !![
+    <referenceConstruct object="outputAnalysisPropertyUnoperator_" constructor="outputAnalysisPropertyOperatorAntiLog10()"/>
+    !!]
     ! Create a stellar mass property extractor.
     allocate(nodePropertyExtractor_                )
-    !# <referenceConstruct object="nodePropertyExtractor_"            constructor="nodePropertyExtractorMassStellar       ()"/>
+    !![
+    <referenceConstruct object="nodePropertyExtractor_"            constructor="nodePropertyExtractorMassStellar       ()"/>
+    !!]
     ! Create a thermal Sunyaev-Zelodvich property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_)
-    !# <referenceConstruct object="outputAnalysisWeightPropertyExtractor_">
-    !#  <constructor>
-    !#   nodePropertyExtractorICMSZ(                                                       &amp;
-    !#     &amp;                                              cosmologyParameters_       , &amp;
-    !#     &amp;                                              cosmologyFunctions_        , &amp;
-    !#     &amp;                                              darkMatterHaloScale_       , &amp;
-    !#     &amp;                                              hotHaloMassDistribution_   , &amp;
-    !#     &amp;                                              hotHaloTemperatureProfile_ , &amp;
-    !#     &amp;                                              chemicalState_             , &amp;
-    !#     &amp;                    densityContrast          =500.0d0                    , &amp;
-    !#     &amp;                    densityContrastRelativeTo=densityCosmologicalCritical, &amp;
-    !#     &amp;                    distanceAngular          =500.0d0                      &amp;
-    !#     &amp;                   )
-    !#  </constructor>
-    !# </referenceConstruct>
+    !![
+    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_">
+     <constructor>
+      nodePropertyExtractorICMSZ(                                                       &amp;
+        &amp;                                              cosmologyParameters_       , &amp;
+        &amp;                                              cosmologyFunctions_        , &amp;
+        &amp;                                              darkMatterHaloScale_       , &amp;
+        &amp;                                              hotHaloMassDistribution_   , &amp;
+        &amp;                                              hotHaloTemperatureProfile_ , &amp;
+        &amp;                                              chemicalState_             , &amp;
+        &amp;                    densityContrast          =500.0d0                    , &amp;
+        &amp;                    densityContrastRelativeTo=densityCosmologicalCritical, &amp;
+        &amp;                    distanceAngular          =500.0d0                      &amp;
+        &amp;                   )
+     </constructor>
+    </referenceConstruct>
+    !!]
     ! Build the object.
     self%outputAnalysisMeanFunction1D=outputAnalysisMeanFunction1D(                                                                     &
          &                                                         var_str('sunyaevZeldovichPlanck2013'                              ), &
@@ -314,21 +354,23 @@ contains
          &                                                         functionCovarianceTarget                                             &
          &                                                        )
     ! Clean up.
-    !# <objectDestructor name="surveyGeometry_"                                 />
-    !# <objectDestructor name="cosmologyParametersData"                         />
-    !# <objectDestructor name="cosmologyFunctionsData"                          />
-    !# <objectDestructor name="galacticFilter_"                                 />
-    !# <objectDestructor name="galacticFilterStellarMass_"                      />
-    !# <objectDestructor name="galacticFilterCentrals_"                         />
-    !# <objectDestructor name="outputAnalysisDistributionOperator_"             />
-    !# <objectDestructor name="outputAnalysisWeightOperator_"                   />
-    !# <objectDestructor name="outputAnalysisPropertyOperator_"                 />
-    !# <objectDestructor name="outputAnalysisPropertyOperatorLog10_"            />
-    !# <objectDestructor name="outputAnalysisPropertyOperatorSystmtcPolynomial_"/>
-    !# <objectDestructor name="outputAnalysisPropertyUnoperator_"               />
-    !# <objectDestructor name="outputAnalysisWeightPropertyOperator_"           />
-    !# <objectDestructor name="outputAnalysisWeightPropertyExtractor_"          />
-    !# <objectDestructor name="nodePropertyExtractor_"                          />
+    !![
+    <objectDestructor name="surveyGeometry_"                                 />
+    <objectDestructor name="cosmologyParametersData"                         />
+    <objectDestructor name="cosmologyFunctionsData"                          />
+    <objectDestructor name="galacticFilter_"                                 />
+    <objectDestructor name="galacticFilterStellarMass_"                      />
+    <objectDestructor name="galacticFilterCentrals_"                         />
+    <objectDestructor name="outputAnalysisDistributionOperator_"             />
+    <objectDestructor name="outputAnalysisWeightOperator_"                   />
+    <objectDestructor name="outputAnalysisPropertyOperator_"                 />
+    <objectDestructor name="outputAnalysisPropertyOperatorLog10_"            />
+    <objectDestructor name="outputAnalysisPropertyOperatorSystmtcPolynomial_"/>
+    <objectDestructor name="outputAnalysisPropertyUnoperator_"               />
+    <objectDestructor name="outputAnalysisWeightPropertyOperator_"           />
+    <objectDestructor name="outputAnalysisWeightPropertyExtractor_"          />
+    <objectDestructor name="nodePropertyExtractor_"                          />
+    !!]
     nullify(propertyOperators_)
     nullify(filters_          )
     return

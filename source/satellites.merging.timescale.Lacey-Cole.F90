@@ -17,33 +17,43 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a satellite merging timescale class which uses the \cite{lacey_merger_1993} method.
+  !!{
+  Implements a satellite merging timescale class which uses the \cite{lacey_merger_1993} method.
+  !!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
-  !# <satelliteMergingTimescales name="satelliteMergingTimescalesLaceyCole1993">
-  !#  <description>
-  !#   A satellite merging timescale class which computes merging timescales using the dynamical friction calculation of
-  !#   \cite{lacey_merger_1993}. Timescales are multiplied by the value of the {\normalfont \ttfamily [timescaleMultiplier]} input
-  !#   parameter.
-  !#  </description>
-  !# </satelliteMergingTimescales>
+  !![
+  <satelliteMergingTimescales name="satelliteMergingTimescalesLaceyCole1993">
+   <description>
+    A satellite merging timescale class which computes merging timescales using the dynamical friction calculation of
+    \cite{lacey_merger_1993}. Timescales are multiplied by the value of the {\normalfont \ttfamily [timescaleMultiplier]} input
+    parameter.
+   </description>
+  </satelliteMergingTimescales>
+  !!]
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesLaceyCole1993
-     !% A class implementing the \cite{lacey_merger_1993} method for satellite merging timescales.
+     !!{
+     A class implementing the \cite{lacey_merger_1993} method for satellite merging timescales.
+     !!}
      private
      class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
      double precision                                    :: timescaleMultiplier
    contains
-     !# <methods>
-     !#   <method description="Return the mass-dependent part of the time (in Gyr) until the satellite will merge with its host." method="timeUntilMergingMassDependence" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Return the mass-dependent part of the time (in Gyr) until the satellite will merge with its host." method="timeUntilMergingMassDependence" />
+     </methods>
+     !!]
      final     ::                                   laceyCole1993Destructor
      procedure :: timeUntilMerging               => laceyCole1993TimeUntilMerging
      procedure :: timeUntilMergingMassDependence => laceyCole1993TimeUntilMergingMassDependence
   end type satelliteMergingTimescalesLaceyCole1993
 
   interface satelliteMergingTimescalesLaceyCole1993
-     !% Constructors for the \cite{lacey_merger_1993} merging timescale class.
+     !!{
+     Constructors for the \cite{lacey_merger_1993} merging timescale class.
+     !!}
      module procedure laceyCole1993ConstructorParameters
      module procedure laceyCole1993ConstructorInternal
   end interface satelliteMergingTimescalesLaceyCole1993
@@ -51,7 +61,9 @@
 contains
 
   function laceyCole1993ConstructorParameters(parameters) result(self)
-    !% Constructor for the \cite{lacey_merger_1993} merging timescale class which builds the object from a parameter set.
+    !!{
+    Constructor for the \cite{lacey_merger_1993} merging timescale class which builds the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (satelliteMergingTimescalesLaceyCole1993)                :: self
@@ -59,41 +71,55 @@ contains
     class           (darkMatterHaloScaleClass               ), pointer       :: darkMatterHaloScale_
     double precision                                                         :: timescaleMultiplier
 
-    !# <inputParameter>
-    !#   <name>timescaleMultiplier</name>
-    !#   <defaultValue>0.75d0</defaultValue>
-    !#   <description>A multiplier for the merging timescale in dynamical friction timescale calculations.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>timescaleMultiplier</name>
+      <defaultValue>0.75d0</defaultValue>
+      <description>A multiplier for the merging timescale in dynamical friction timescale calculations.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    !!]
     self=satelliteMergingTimescalesLaceyCole1993(timescaleMultiplier,darkMatterHaloScale_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterHaloScale_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterHaloScale_"/>
+    !!]
     return
   end function laceyCole1993ConstructorParameters
 
   function laceyCole1993ConstructorInternal(timescaleMultiplier,darkMatterHaloScale_) result(self)
-    !% Constructor for the \cite{lacey_merger_1993} merging timescale class.
+    !!{
+    Constructor for the \cite{lacey_merger_1993} merging timescale class.
+    !!}
     implicit none
     type            (satelliteMergingTimescalesLaceyCole1993)                        :: self
     double precision                                         , intent(in   )         :: timescaleMultiplier
     class           (darkMatterHaloScaleClass               ), intent(in   ), target :: darkMatterHaloScale_
-    !# <constructorAssign variables="timescaleMultiplier, *darkMatterHaloScale_"/>
+    !![
+    <constructorAssign variables="timescaleMultiplier, *darkMatterHaloScale_"/>
+    !!]
 
     return
   end function laceyCole1993ConstructorInternal
 
   subroutine laceyCole1993Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily laceyCole1993} satellite merging timescale class.
+    !!{
+    Destructor for the {\normalfont \ttfamily laceyCole1993} satellite merging timescale class.
+    !!}
     implicit none
     type(satelliteMergingTimescalesLaceyCole1993), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterHaloScale_"/>
+    !![
+    <objectDestructor name="self%darkMatterHaloScale_"/>
+    !!]
     return
   end subroutine laceyCole1993Destructor
 
   double precision function laceyCole1993TimeUntilMerging(self,node,orbit)
-    !% Return the timescale for merging satellites using the \cite{lacey_merger_1993} method.
+    !!{
+    Return the timescale for merging satellites using the \cite{lacey_merger_1993} method.
+    !!}
     use :: Kepler_Orbits, only : keplerOrbit
     implicit none
     class           (satelliteMergingTimescalesLaceyCole1993), intent(inout) :: self
@@ -125,7 +151,9 @@ contains
   end function laceyCole1993TimeUntilMerging
 
   double precision function laceyCole1993TimeUntilMergingMassDependence(self,node)
-    !% Return the mass-dependent part of the timescale for merging satellites using the \cite{lacey_merger_1993} method.
+    !!{
+    Return the mass-dependent part of the timescale for merging satellites using the \cite{lacey_merger_1993} method.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (satelliteMergingTimescalesLaceyCole1993), intent(inout) :: self

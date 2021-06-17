@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to test ODE-IV2 solver routines.
+!!{
+Contains a program to test ODE-IV2 solver routines.
+!!}
 
 program Test_ODE_Solver
-  !% Tests that ODE solver routines work.
+  !!{
+  Tests that ODE solver routines work.
+  !!}
   use            :: Display                  , only : displayVerbositySet                             , verbosityLevelStandard
   use, intrinsic :: ISO_C_Binding            , only : C_Null_FunPtr                                   , c_size_t
   use            :: Numerical_Integration2   , only : integratorMultiVectorizedCompositeGaussKronrod1D

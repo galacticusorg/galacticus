@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an N-body data operator which subsamples points at a given rate.
+!!{
+Contains a module which implements an N-body data operator which subsamples points at a given rate.
+!!}
 
   use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
  
-  !# <nbodyOperator name="nbodyOperatorSubsample">
-  !#  <description>An N-body data operator which filters out particles based on a property range.</description>
-  !# </nbodyOperator>
+  !![
+  <nbodyOperator name="nbodyOperatorSubsample">
+   <description>An N-body data operator which filters out particles based on a property range.</description>
+  </nbodyOperator>
+  !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorSubsample
-     !% An N-body data operator which filters out particles based on a property range.
+     !!{
+     An N-body data operator which filters out particles based on a property range.
+     !!}
      private
      class           (randomNumberGeneratorClass), pointer :: randomNumberGenerator_ => null()
      double precision                                      :: rate
@@ -35,7 +41,9 @@
   end type nbodyOperatorSubsample
 
   interface nbodyOperatorSubsample
-     !% Constructors for the {\normalfont \ttfamily subsample} N-body operator class.
+     !!{
+     Constructors for the {\normalfont \ttfamily subsample} N-body operator class.
+     !!}
      module procedure subsampleConstructorParameters
      module procedure subsampleConstructorInternal
   end interface nbodyOperatorSubsample
@@ -43,7 +51,9 @@
 contains
   
   function subsampleConstructorParameters(parameters) result (self)
-    !% Constructor for the {\normalfont \ttfamily subsample} N-body operator class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily subsample} N-body operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type            (nbodyOperatorSubsample    )                :: self
@@ -51,42 +61,56 @@ contains
     class           (randomNumberGeneratorClass), pointer       :: randomNumberGenerator_
     double precision                                            :: rate
 
-    !# <inputParameter>
-    !#   <name>rate</name>
-    !#   <source>parameters</source>
-    !#   <description>The rate at which to subsample points.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>rate</name>
+      <source>parameters</source>
+      <description>The rate at which to subsample points.</description>
+    </inputParameter>
+    <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !!]
     self=nbodyOperatorSubsample(rate,randomNumberGenerator_)
-    !# <objectDestructor name="randomNumberGenerator_"/>
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <objectDestructor name="randomNumberGenerator_"/>
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function subsampleConstructorParameters
 
   function subsampleConstructorInternal(rate,randomNumberGenerator_) result (self)
-    !% Internal constructor for the {\normalfont \ttfamily subsample} N-body operator class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily subsample} N-body operator class.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (nbodyOperatorSubsample    )                        :: self
     class           (randomNumberGeneratorClass), intent(in   ), target :: randomNumberGenerator_
     double precision                            , intent(in   )         :: rate
-    !# <constructorAssign variables="rate, *randomNumberGenerator_"/>
+    !![
+    <constructorAssign variables="rate, *randomNumberGenerator_"/>
+    !!]
 
     if (rate <= 0.0d0 .or. rate > 1.0d0) call Galacticus_Error_Report('range must be in the interval [0,1)'//{introspection:location})
     return
   end function subsampleConstructorInternal
 
   subroutine subsampleDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily subsample} N-body operator class.
+    !!{
+    Destructor for the {\normalfont \ttfamily subsample} N-body operator class.
+    !!}
     implicit none
     type(nbodyOperatorSubsample), intent(inout) :: self
 
-    !# <objectDestructor name="self%randomNumberGenerator_"/>
+    !![
+    <objectDestructor name="self%randomNumberGenerator_"/>
+    !!]
     return
   end subroutine subsampleDestructor
 
   subroutine subsampleOperate(self,simulations)
-    !% Identify and flag particles which have been always isolated.
+    !!{
+    Identify and flag particles which have been always isolated.
+    !!}
     use :: Display              , only : displayIndent          , displayMessage  , displayUnindent, verbosityLevelStandard
     use :: Galacticus_Error     , only : Galacticus_Error_Report
     use :: NBody_Simulation_Data, only : propertyTypeInteger    , propertyTypeReal

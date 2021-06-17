@@ -17,24 +17,32 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a merger tree masses class which samples masses from a distribution.
+  !!{
+  Implementation of a merger tree masses class which samples masses from a distribution.
+  !!}
 
   use :: Merger_Trees_Build_Masses_Distributions, only : mergerTreeBuildMassDistributionClass
 
-  !# <mergerTreeBuildMasses name="mergerTreeBuildMassesSampledDistribution" abstract="yes">
-  !#  <description>A merger tree masses class which samples masses from a distribution.</description>
-  !# </mergerTreeBuildMasses>
+  !![
+  <mergerTreeBuildMasses name="mergerTreeBuildMassesSampledDistribution" abstract="yes">
+   <description>A merger tree masses class which samples masses from a distribution.</description>
+  </mergerTreeBuildMasses>
+  !!]
   type, extends(mergerTreeBuildMassesClass) :: mergerTreeBuildMassesSampledDistribution
-     !% Implementation of a merger tree masses class which samples masses from a distribution.
+     !!{
+     Implementation of a merger tree masses class which samples masses from a distribution.
+     !!}
      private
      class           (mergerTreeBuildMassDistributionClass), pointer :: mergerTreeBuildMassDistribution_ => null()
      double precision                                                :: massTreeMinimum                           , massTreeMaximum, &
           &                                                             treesPerDecade
    contains
-     !# <methods>
-     !#   <method description="Handles construction of the abstract parent class." method="construct" />
-     !#   <method description="Return a set of values {\normalfont \ttfamily sampleCount} in the interval 0--1, corresponding to values of the cumulative mass distribution." method="sampleCMF" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Handles construction of the abstract parent class." method="construct" />
+       <method description="Return a set of values {\normalfont \ttfamily sampleCount} in the interval 0--1, corresponding to values of the cumulative mass distribution." method="sampleCMF" />
+     </methods>
+     !!]
      final     ::              sampledDistributionDestructor
      procedure :: construct => sampledDistributionConstruct
      procedure :: sampleCMF => sampledDistributionCMF
@@ -47,8 +55,10 @@
 contains
 
   function sampledDistributionConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily sampledDistribution} merger tree masses class which takes a parameter set as
-    !% input.
+    !!{
+    Constructor for the {\normalfont \ttfamily sampledDistribution} merger tree masses class which takes a parameter set as
+    input.
+    !!}
     use :: Display         , only : displayMessage         , verbosityLevelWarn
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Input_Parameters, only : inputParameter         , inputParameters
@@ -56,29 +66,31 @@ contains
     type(mergerTreeBuildMassesSampledDistribution)                :: self
     type(inputParameters                         ), intent(inout) :: parameters
 
-    !# <inputParameter>
-    !#   <name>massTreeMinimum</name>
-    !#   <variable>self%massTreeMinimum</variable>
-    !#   <defaultValue>1.0d10</defaultValue>
-    !#   <description>The minimum mass of merger tree base halos to consider when sampled masses from a distribution, in units of $M_\odot$.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massTreeMaximum</name>
-    !#   <variable>self%massTreeMaximum</variable>
-    !#   <defaultValue>1.0d15</defaultValue>
-    !#   <description>The maximum mass of merger tree base halos to consider when sampled masses from a distribution, in units of $M_\odot$.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>treesPerDecade</name>
-    !#   <variable>self%treesPerDecade</variable>
-    !#   <defaultValue>10.0d0</defaultValue>
-    !#   <description>The number of merger trees masses to sample per decade of base halo mass.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="mergerTreeBuildMassDistribution" name="self%mergerTreeBuildMassDistribution_" source="parameters"/>
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParameter>
+      <name>massTreeMinimum</name>
+      <variable>self%massTreeMinimum</variable>
+      <defaultValue>1.0d10</defaultValue>
+      <description>The minimum mass of merger tree base halos to consider when sampled masses from a distribution, in units of $M_\odot$.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>massTreeMaximum</name>
+      <variable>self%massTreeMaximum</variable>
+      <defaultValue>1.0d15</defaultValue>
+      <description>The maximum mass of merger tree base halos to consider when sampled masses from a distribution, in units of $M_\odot$.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>treesPerDecade</name>
+      <variable>self%treesPerDecade</variable>
+      <defaultValue>10.0d0</defaultValue>
+      <description>The number of merger trees masses to sample per decade of base halo mass.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="mergerTreeBuildMassDistribution" name="self%mergerTreeBuildMassDistribution_" source="parameters"/>
+    <inputParametersValidate source="parameters"/>
+    !!]
     ! Validate input.
     if (self%massTreeMaximum >= 1.0d16              )                                                           &
          & call displayMessage(                                                                     &
@@ -95,16 +107,22 @@ contains
   end function sampledDistributionConstructorParameters
 
   subroutine sampledDistributionDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily sampledDistribution} merger tree masses class.
+    !!{
+    Destructor for the {\normalfont \ttfamily sampledDistribution} merger tree masses class.
+    !!}
     implicit none
     type(mergerTreeBuildMassesSampledDistribution), intent(inout) :: self
 
-    !# <objectDestructor name="self%mergerTreeBuildMassDistribution_"/>
+    !![
+    <objectDestructor name="self%mergerTreeBuildMassDistribution_"/>
+    !!]
     return
   end subroutine sampledDistributionDestructor
 
   subroutine sampledDistributionConstruct(self,time,mass,massMinimum,massMaximum,weight)
-    !% Construct a set of merger tree masses by sampling from a distribution.
+    !!{
+    Construct a set of merger tree masses by sampling from a distribution.
+    !!}
     use            :: Galacticus_Error       , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding          , only : c_size_t
     use            :: Memory_Management      , only : allocateArray          , deallocateArray
@@ -215,7 +233,9 @@ contains
   contains
 
     double precision function distributionIntegrand(logMass)
-      !% The integrand over the mass function sampling density function.
+      !!{
+      The integrand over the mass function sampling density function.
+      !!}
       implicit none
       double precision, intent(in   ) :: logMass
 
@@ -226,7 +246,9 @@ contains
   end subroutine sampledDistributionConstruct
 
   subroutine sampledDistributionCMF(self,x)
-    !% Stub function for cumulative mass function.
+    !!{
+    Stub function for cumulative mass function.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (mergerTreeBuildMassesSampledDistribution), intent(inout)               :: self

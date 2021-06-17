@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module that implements calculations of the cooling time.
+!!{
+Contains a module that implements calculations of the cooling time.
+!!}
 
 module Cooling_Times
-  !% Implements calculations of the cooling time.
+  !!{
+  Implements calculations of the cooling time.
+  !!}
   use :: Abundances_Structure         , only : abundances
   use :: Chemical_Abundances_Structure, only : chemicalAbundances
   use :: Galacticus_Nodes             , only : treeNode
@@ -28,43 +32,45 @@ module Cooling_Times
   implicit none
   private
 
-  !# <functionClass>
-  !#  <name>coolingTime</name>
-  !#  <descriptiveName>Cooling times.</descriptiveName>
-  !#  <description>
-  !#   Class providing models of the cooling time for gas in the hot atmosphere surrounding a galaxy.
-  !#  </description>
-  !#  <default>simple</default>
-  !#  <method name="time" >
-  !#   <description>Returns the cooling time for gas in the hot atmosphere surrounding the galaxy in units of Gyr.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type            (treeNode           ), intent(inout) :: node                      </argument>
-  !#   <argument>double precision                     , intent(in   ) :: temperature      , density</argument>
-  !#   <argument>type            (abundances         ), intent(in   ) :: gasAbundances             </argument>
-  !#   <argument>type            (chemicalAbundances ), intent(in   ) :: chemicalDensities         </argument>
-  !#   <argument>class           (radiationFieldClass), intent(inout) :: radiation                 </argument>
-  !#  </method>
-  !#  <method name="gradientDensityLogarithmic" >
-  !#   <description>Returns the logarithmic derivative of cooling time with respect to density for gas in the hot atmosphere surrounding the galaxy.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type            (treeNode           ), intent(inout) :: node                      </argument>
-  !#   <argument>double precision                     , intent(in   ) :: temperature      , density</argument>
-  !#   <argument>type            (abundances         ), intent(in   ) :: gasAbundances             </argument>
-  !#   <argument>type            (chemicalAbundances ), intent(in   ) :: chemicalDensities         </argument>
-  !#   <argument>class           (radiationFieldClass), intent(inout) :: radiation                 </argument>
-  !#  </method>
-  !#  <method name="gradientTemperatureLogarithmic" >
-  !#   <description>Returns the logarithmic derivative of cooling time with respect to temperature for gas in the hot atmosphere surrounding the galaxy.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type            (treeNode           ), intent(inout) :: node                      </argument>
-  !#   <argument>double precision                     , intent(in   ) :: temperature      , density</argument>
-  !#   <argument>type            (abundances         ), intent(in   ) :: gasAbundances             </argument>
-  !#   <argument>type            (chemicalAbundances ), intent(in   ) :: chemicalDensities         </argument>
-  !#   <argument>class           (radiationFieldClass), intent(inout) :: radiation                 </argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>coolingTime</name>
+   <descriptiveName>Cooling times.</descriptiveName>
+   <description>
+    Class providing models of the cooling time for gas in the hot atmosphere surrounding a galaxy.
+   </description>
+   <default>simple</default>
+   <method name="time" >
+    <description>Returns the cooling time for gas in the hot atmosphere surrounding the galaxy in units of Gyr.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>type            (treeNode           ), intent(inout) :: node                      </argument>
+    <argument>double precision                     , intent(in   ) :: temperature      , density</argument>
+    <argument>type            (abundances         ), intent(in   ) :: gasAbundances             </argument>
+    <argument>type            (chemicalAbundances ), intent(in   ) :: chemicalDensities         </argument>
+    <argument>class           (radiationFieldClass), intent(inout) :: radiation                 </argument>
+   </method>
+   <method name="gradientDensityLogarithmic" >
+    <description>Returns the logarithmic derivative of cooling time with respect to density for gas in the hot atmosphere surrounding the galaxy.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>type            (treeNode           ), intent(inout) :: node                      </argument>
+    <argument>double precision                     , intent(in   ) :: temperature      , density</argument>
+    <argument>type            (abundances         ), intent(in   ) :: gasAbundances             </argument>
+    <argument>type            (chemicalAbundances ), intent(in   ) :: chemicalDensities         </argument>
+    <argument>class           (radiationFieldClass), intent(inout) :: radiation                 </argument>
+   </method>
+   <method name="gradientTemperatureLogarithmic" >
+    <description>Returns the logarithmic derivative of cooling time with respect to temperature for gas in the hot atmosphere surrounding the galaxy.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>type            (treeNode           ), intent(inout) :: node                      </argument>
+    <argument>double precision                     , intent(in   ) :: temperature      , density</argument>
+    <argument>type            (abundances         ), intent(in   ) :: gasAbundances             </argument>
+    <argument>type            (chemicalAbundances ), intent(in   ) :: chemicalDensities         </argument>
+    <argument>class           (radiationFieldClass), intent(inout) :: radiation                 </argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Cooling_Times

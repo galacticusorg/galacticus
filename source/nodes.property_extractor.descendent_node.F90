@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an output analysis property extractor class that extracts a property from a descendent node of the given node.
+!!{
+Contains a module which implements an output analysis property extractor class that extracts a property from a descendent node of the given node.
+!!}
   
-  !# <nodePropertyExtractor name="nodePropertyExtractorDescendentNode">
-  !#  <description>An output analysis property extractor class that extracts a property from a descendent node of the given node.</description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorDescendentNode">
+   <description>An output analysis property extractor class that extracts a property from a descendent node of the given node.</description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorDescendentNode
-     !% A property extractor output analysis class that extracts a property from a descendent node of the given node.
+     !!{
+     A property extractor output analysis class that extracts a property from a descendent node of the given node.
+     !!}
      private
      class           (nodePropertyExtractorScalar), pointer :: nodePropertyExtractor_
      double precision                                       :: timeDescendent
@@ -37,7 +43,9 @@
   end type nodePropertyExtractorDescendentNode
 
   interface nodePropertyExtractorDescendentNode
-     !% Constructors for the ``descendentNode'' node property extractor class.
+     !!{
+     Constructors for the ``descendentNode'' node property extractor class.
+     !!}
      module procedure descendentNodeConstructorParameters
      module procedure descendentNodeConstructorInternal
   end interface nodePropertyExtractorDescendentNode
@@ -45,7 +53,9 @@
 contains
 
   function descendentNodeConstructorParameters(parameters) result(self)
-    !% Constructor for the ``descendentNode'' node property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the ``descendentNode'' node property extractor class which takes a parameter set as input.
+    !!}
     use :: Cosmology_Functions, only : cosmologyFunctionsClass
     use :: Galacticus_Error   , only : Galacticus_Error_Report
     use :: Input_Parameters   , only : inputParameters
@@ -56,47 +66,61 @@ contains
     class           (nodePropertyExtractorClass         ), pointer       :: nodePropertyExtractor_
     double precision                                                     :: redshiftDescendent
     
-    !# <inputParameter>
-    !#   <name>redshiftDescendent</name>
-    !#   <source>parameters</source>
-    !#   <description>The redshift of the descendent node to which to apply the filter.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
-    !# <objectBuilder class="nodePropertyExtractor" name="nodePropertyExtractor_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>redshiftDescendent</name>
+      <source>parameters</source>
+      <description>The redshift of the descendent node to which to apply the filter.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
+    <objectBuilder class="nodePropertyExtractor" name="nodePropertyExtractor_" source="parameters"/>
+    !!]
     select type (nodePropertyExtractor_)
     class is (nodePropertyExtractorScalar)
        self=nodePropertyExtractorDescendentNode(cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftDescendent)),nodePropertyExtractor_)
     class default
        call Galacticus_Error_Report('extracted property must be a real scalar'//{introspection:location})
     end select
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"   />
-    !# <objectDestructor name="nodePropertyExtractor_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"   />
+    <objectDestructor name="nodePropertyExtractor_"/>
+    !!]
     return
   end function descendentNodeConstructorParameters
 
   function descendentNodeConstructorInternal(timeDescendent,nodePropertyExtractor_) result(self)
-    !% Internal constructor for the ``descendentNode'' node property extractor class.
+    !!{
+    Internal constructor for the ``descendentNode'' node property extractor class.
+    !!}
     implicit none
     type            (nodePropertyExtractorDescendentNode)                        :: self
     double precision                                     , intent(in   )         :: timeDescendent
     class           (nodePropertyExtractorScalar        ), intent(in   ), target :: nodePropertyExtractor_
-    !# <constructorAssign variables="timeDescendent, *nodePropertyExtractor_"/>
+    !![
+    <constructorAssign variables="timeDescendent, *nodePropertyExtractor_"/>
+    !!]
 
     return
   end function descendentNodeConstructorInternal
   
   subroutine descendentNodeDestructor(self)
-    !% Destructor for  the ``descendentNode'' node property extractor class.
+    !!{
+    Destructor for  the ``descendentNode'' node property extractor class.
+    !!}
     implicit none
     type(nodePropertyExtractorDescendentNode), intent(inout) :: self
 
-    !# <objectDestructor name="self%nodePropertyExtractor_"/>
+    !![
+    <objectDestructor name="self%nodePropertyExtractor_"/>
+    !!]
     return
   end subroutine descendentNodeDestructor
   
   double precision function descendentNodeExtract(self,node,instance)
-    !% Implement a descendentNode output analysis.
+    !!{
+    Implement a descendentNode output analysis.
+    !!}
     use :: Galacticus_Error    , only : Galacticus_Error_Report
     use :: Galacticus_Nodes    , only : nodeComponentBasic
     use :: Numerical_Comparison, only : Values_Agree
@@ -123,7 +147,9 @@ contains
   end function descendentNodeExtract
 
   integer function descendentNodeType(self)
-    !% Return the type of the halo mass property.
+    !!{
+    Return the type of the halo mass property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorDescendentNode), intent(inout) :: self
@@ -133,7 +159,9 @@ contains
   end function descendentNodeType
 
   function descendentNodeName(self)
-    !% Return the name of the descendentNode property.
+    !!{
+    Return the name of the descendentNode property.
+    !!}
     use :: String_Handling, only : String_Upper_Case_First
     implicit none
     type (varying_string                     )                :: descendentNodeName
@@ -144,7 +172,9 @@ contains
   end function descendentNodeName
 
   function descendentNodeDescription(self)
-    !% Return a description of the descendentNode property.
+    !!{
+    Return a description of the descendentNode property.
+    !!}
     implicit none
     type (varying_string                     )                :: descendentNodeDescription
     class(nodePropertyExtractorDescendentNode), intent(inout) :: self
@@ -154,7 +184,9 @@ contains
   end function descendentNodeDescription
 
   double precision function descendentNodeUnitsInSI(self)
-    !% Return the units of the descendentNode property in the SI system.
+    !!{
+    Return the units of the descendentNode property in the SI system.
+    !!}
     implicit none
     class(nodePropertyExtractorDescendentNode), intent(inout) :: self
 

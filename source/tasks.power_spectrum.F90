@@ -26,11 +26,15 @@
   use :: Power_Spectra_Nonlinear        , only : powerSpectrumNonlinearClass
   use :: Power_Spectrum_Window_Functions, only : powerSpectrumWindowFunctionClass
 
-  !# <task name="taskPowerSpectra">
-  !#  <description>A task which computes and outputs the power spectrum and related quantities.</description>
-  !# </task>
+  !![
+  <task name="taskPowerSpectra">
+   <description>A task which computes and outputs the power spectrum and related quantities.</description>
+  </task>
+  !!]
   type, extends(taskClass) :: taskPowerSpectra
-     !% Implementation of a task which computes and outputs the power spectrum and related quantities.
+     !!{
+     Implementation of a task which computes and outputs the power spectrum and related quantities.
+     !!}
      private
      class           (cosmologyParametersClass         ), pointer :: cosmologyParameters_         => null()
      class           (cosmologyFunctionsClass          ), pointer :: cosmologyFunctions_          => null()
@@ -50,7 +54,9 @@
   end type taskPowerSpectra
 
   interface taskPowerSpectra
-     !% Constructors for the {\normalfont \ttfamily powerSpectrum} task.
+     !!{
+     Constructors for the {\normalfont \ttfamily powerSpectrum} task.
+     !!}
      module procedure powerSpectraConstructorParameters
      module procedure powerSpectraConstructorInternal
   end interface taskPowerSpectra
@@ -58,7 +64,9 @@
 contains
 
   function powerSpectraConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily powerSpectrum} task class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily powerSpectrum} task class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (taskPowerSpectra                )                :: self
@@ -76,44 +84,46 @@ contains
     logical                                                           :: includeNonLinear
     type            (varying_string                  )                :: outputGroup
 
-    !# <inputParameter>
-    !#   <name>wavenumberMinimum</name>
-    !#   <defaultValue>1.0d-3</defaultValue>
-    !#   <description>The minimum wavenumber at which to tabulate power spectra.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>wavenumberMaximum</name>
-    !#   <defaultValue>1.0d+3</defaultValue>
-    !#   <description>The maximum wavenumber at which to tabulate power spectra.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>pointsPerDecade</name>
-    !#   <defaultValue>10</defaultValue>
-    !#   <description>The number of points per decade of wavenumber at which to tabulate power spectra.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>includeNonLinear</name>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>If true the nonlinear power spectrum is also computed and output.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>outputGroup</name>
-    !#   <defaultValue>var_str('.')</defaultValue>
-    !#   <description>The HDF5 output group within which to write power spectrum data.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters"         name="cosmologyParameters_"         source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"          name="cosmologyFunctions_"          source="parameters"/>
-    !# <objectBuilder class="linearGrowth"                name="linearGrowth_"                source="parameters"/>
-    !# <objectBuilder class="powerSpectrum"               name="powerSpectrum_"               source="parameters"/>
-    !# <objectBuilder class="powerSpectrumNonlinear"      name="powerSpectrumNonlinear_"      source="parameters"/>
-    !# <objectBuilder class="powerSpectrumWindowFunction" name="powerSpectrumWindowFunction_" source="parameters"/>
-    !# <objectBuilder class="cosmologicalMassVariance"    name="cosmologicalMassVariance_"    source="parameters"/>
-    !# <objectBuilder class="outputTimes"                 name="outputTimes_"                 source="parameters"/>
+    !![
+    <inputParameter>
+      <name>wavenumberMinimum</name>
+      <defaultValue>1.0d-3</defaultValue>
+      <description>The minimum wavenumber at which to tabulate power spectra.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>wavenumberMaximum</name>
+      <defaultValue>1.0d+3</defaultValue>
+      <description>The maximum wavenumber at which to tabulate power spectra.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>pointsPerDecade</name>
+      <defaultValue>10</defaultValue>
+      <description>The number of points per decade of wavenumber at which to tabulate power spectra.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>includeNonLinear</name>
+      <defaultValue>.false.</defaultValue>
+      <description>If true the nonlinear power spectrum is also computed and output.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>outputGroup</name>
+      <defaultValue>var_str('.')</defaultValue>
+      <description>The HDF5 output group within which to write power spectrum data.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="cosmologyParameters"         name="cosmologyParameters_"         source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"          name="cosmologyFunctions_"          source="parameters"/>
+    <objectBuilder class="linearGrowth"                name="linearGrowth_"                source="parameters"/>
+    <objectBuilder class="powerSpectrum"               name="powerSpectrum_"               source="parameters"/>
+    <objectBuilder class="powerSpectrumNonlinear"      name="powerSpectrumNonlinear_"      source="parameters"/>
+    <objectBuilder class="powerSpectrumWindowFunction" name="powerSpectrumWindowFunction_" source="parameters"/>
+    <objectBuilder class="cosmologicalMassVariance"    name="cosmologicalMassVariance_"    source="parameters"/>
+    <objectBuilder class="outputTimes"                 name="outputTimes_"                 source="parameters"/>
+    !!]
     self=taskPowerSpectra(                               &
          &                 wavenumberMinimum           , &
          &                 wavenumberMaximum           , &
@@ -129,15 +139,17 @@ contains
          &                 cosmologicalMassVariance_   , &
          &                 outputTimes_                  &
          &                )
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"        />
-    !# <objectDestructor name="cosmologyFunctions_"         />
-    !# <objectDestructor name="linearGrowth_"               />
-    !# <objectDestructor name="powerSpectrum_"              />
-    !# <objectDestructor name="powerSpectrumNonlinear_"     />
-    !# <objectDestructor name="powerSpectrumWindowFunction_"/>
-    !# <objectDestructor name="cosmologicalMassVariance_"   />
-    !# <objectDestructor name="outputTimes_"                />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"        />
+    <objectDestructor name="cosmologyFunctions_"         />
+    <objectDestructor name="linearGrowth_"               />
+    <objectDestructor name="powerSpectrum_"              />
+    <objectDestructor name="powerSpectrumNonlinear_"     />
+    <objectDestructor name="powerSpectrumWindowFunction_"/>
+    <objectDestructor name="cosmologicalMassVariance_"   />
+    <objectDestructor name="outputTimes_"                />
+    !!]
     return
   end function powerSpectraConstructorParameters
 
@@ -156,7 +168,9 @@ contains
        &                                    cosmologicalMassVariance_   , &
        &                                    outputTimes_                  &
        &                                   ) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily powerSpectrum} task class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily powerSpectrum} task class.
+    !!}
     implicit none
     type            (taskPowerSpectra                )                        :: self
     class           (cosmologyParametersClass        ), intent(in   ), target :: cosmologyParameters_
@@ -171,29 +185,37 @@ contains
     integer                                           , intent(in   )         :: pointsPerDecade
     logical                                           , intent(in   )         :: includeNonLinear
     type            (varying_string                  ), intent(in   )         :: outputGroup
-    !# <constructorAssign variables="wavenumberMinimum, wavenumberMaximum, pointsPerDecade, includeNonLinear, outputGroup,*cosmologyParameters_,*cosmologyFunctions_,*linearGrowth_,*powerSpectrum_,*powerSpectrumNonlinear_,*powerSpectrumWindowFunction_,*cosmologicalMassVariance_, *outputTimes_"/>
+    !![
+    <constructorAssign variables="wavenumberMinimum, wavenumberMaximum, pointsPerDecade, includeNonLinear, outputGroup,*cosmologyParameters_,*cosmologyFunctions_,*linearGrowth_,*powerSpectrum_,*powerSpectrumNonlinear_,*powerSpectrumWindowFunction_,*cosmologicalMassVariance_, *outputTimes_"/>
+    !!]
 
     return
   end function powerSpectraConstructorInternal
 
   subroutine powerSpectraDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily powerSpectrum} task class.
+    !!{
+    Destructor for the {\normalfont \ttfamily powerSpectrum} task class.
+    !!}
     implicit none
     type(taskPowerSpectra), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_"        />
-    !# <objectDestructor name="self%cosmologyFunctions_"         />
-    !# <objectDestructor name="self%linearGrowth_"               />
-    !# <objectDestructor name="self%powerSpectrum_"              />
-    !# <objectDestructor name="self%powerSpectrumNonlinear_"     />
-    !# <objectDestructor name="self%powerSpectrumWindowFunction_"/>
-    !# <objectDestructor name="self%cosmologicalMassVariance_"   />
-    !# <objectDestructor name="self%outputTimes_"                />
+    !![
+    <objectDestructor name="self%cosmologyParameters_"        />
+    <objectDestructor name="self%cosmologyFunctions_"         />
+    <objectDestructor name="self%linearGrowth_"               />
+    <objectDestructor name="self%powerSpectrum_"              />
+    <objectDestructor name="self%powerSpectrumNonlinear_"     />
+    <objectDestructor name="self%powerSpectrumWindowFunction_"/>
+    <objectDestructor name="self%cosmologicalMassVariance_"   />
+    <objectDestructor name="self%outputTimes_"                />
+    !!]
     return
   end subroutine powerSpectraDestructor
 
   subroutine powerSpectraPerform(self,status)
-    !% Compute and output the halo mass function.
+    !!{
+    Compute and output the halo mass function.
+    !!}
     use            :: Display                         , only : displayIndent       , displayUnindent
     use            :: Galacticus_Error                , only : errorStatusSuccess
     use            :: Galacticus_HDF5                 , only : galacticusOutputFile
@@ -330,7 +352,9 @@ contains
   contains
 
     double precision function varianceIntegrand(wavenumber)
-      !% Integrand function used in compute the variance in (real space) top-hat spheres from the power spectrum.
+      !!{
+      Integrand function used in compute the variance in (real space) top-hat spheres from the power spectrum.
+      !!}
       implicit none
       double precision, intent(in   ) :: wavenumber
 

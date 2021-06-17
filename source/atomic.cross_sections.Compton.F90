@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements calculation of the Compton cross-section.
+!!{
+Contains a module which implements calculation of the Compton cross-section.
+!!}
 
 module Atomic_Cross_Sections_Compton
-  !% Implements calculation of the Compton cross-section.
+  !!{
+  Implements calculation of the Compton cross-section.
+  !!}
   implicit none
   private
   public :: Atomic_Cross_Section_Compton
@@ -28,7 +32,9 @@ module Atomic_Cross_Sections_Compton
 contains
 
   function Atomic_Cross_Section_Compton(photonEnergy)
-    !% Returns the Compton cross section (in cm$^2$) for the specified {\normalfont \ttfamily photonEnergy} (in keV) from \cite{klein_uber_1929}.
+    !!{
+    Returns the Compton cross section (in cm$^2$) for the specified {\normalfont \ttfamily photonEnergy} (in keV) from \cite{klein_uber_1929}.
+    !!}
     use :: Numerical_Constants_Physical, only : electronMass, speedLight, thomsonCrossSection
     use :: Numerical_Constants_Prefixes, only : hecto       , kilo
     use :: Numerical_Constants_Units   , only : electronVolt

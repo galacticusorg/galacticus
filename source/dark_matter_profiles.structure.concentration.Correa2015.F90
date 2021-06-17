@@ -17,7 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of dark matter halo profile concentrations using the \cite{correa_accretion_2015} algorithm.
+  !!{
+  An implementation of dark matter halo profile concentrations using the \cite{correa_accretion_2015} algorithm.
+  !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
@@ -26,17 +28,21 @@
   use :: Linear_Growth             , only : linearGrowthClass
   use :: Virial_Density_Contrast   , only : virialDensityContrastFixed
 
-  !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationCorrea2015">
-  !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{correa_accretion_2015}.</description>
-  !#  <deepCopy>
-  !#   <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
-  !#  </deepCopy>
-  !#  <stateStorable>
-  !#   <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
-  !#  </stateStorable>
-  !# </darkMatterProfileConcentration>
+  !![
+  <darkMatterProfileConcentration name="darkMatterProfileConcentrationCorrea2015">
+   <description>Dark matter halo concentrations are computed using the algorithm of \cite{correa_accretion_2015}.</description>
+   <deepCopy>
+    <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
+   </deepCopy>
+   <stateStorable>
+    <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
+   </stateStorable>
+  </darkMatterProfileConcentration>
+  !!]
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationCorrea2015
-     !% A dark matter halo profile concentration class implementing the algorithm of \cite{correa_accretion_2015}.
+     !!{
+     A dark matter halo profile concentration class implementing the algorithm of \cite{correa_accretion_2015}.
+     !!}
      private
      class           (cosmologyParametersClass     ), pointer :: cosmologyParameters_             => null()
      class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_              => null()
@@ -53,7 +59,9 @@
   end type darkMatterProfileConcentrationCorrea2015
 
   interface darkMatterProfileConcentrationCorrea2015
-     !% Constructors for the {\normalfont \ttfamily correa2015} dark matter halo profile concentration class.
+     !!{
+     Constructors for the {\normalfont \ttfamily correa2015} dark matter halo profile concentration class.
+     !!}
      module procedure correa2015ConstructorParameters
      module procedure correa2015ConstructorInternal
   end interface darkMatterProfileConcentrationCorrea2015
@@ -61,7 +69,9 @@
 contains
 
   function correa2015ConstructorParameters(parameters) result(self)
-    !% Default constructor for the {\normalfont \ttfamily correa2015} dark matter halo profile concentration class.
+    !!{
+    Default constructor for the {\normalfont \ttfamily correa2015} dark matter halo profile concentration class.
+    !!}
     implicit none
     type            (darkMatterProfileConcentrationCorrea2015)                :: self
     type            (inputParameters                         ), intent(inout) :: parameters
@@ -71,29 +81,35 @@ contains
     class           (cosmologicalMassVarianceClass           ), pointer       :: cosmologicalMassVariance_
     double precision                                                          :: A
 
-    !# <inputParameter>
-    !#   <name>A</name>
-    !#   <source>parameters</source>
-    !#   <variable>A</variable>
-    !#   <defaultValue>887.0d0</defaultValue>
-    !#   <defaultSource>\cite{correa_accretion_2015}</defaultSource>
-    !#   <description>The parameter $A$ appearin in eqn.~(17) of \cite{correa_accretion_2015}.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
-    !# <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
-    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>A</name>
+      <source>parameters</source>
+      <variable>A</variable>
+      <defaultValue>887.0d0</defaultValue>
+      <defaultSource>\cite{correa_accretion_2015}</defaultSource>
+      <description>The parameter $A$ appearin in eqn.~(17) of \cite{correa_accretion_2015}.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
+    <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    !!]
     self=darkMatterProfileConcentrationCorrea2015(A,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,cosmologicalMassVariance_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"     />
-    !# <objectDestructor name="cosmologyFunctions_"      />
-    !# <objectDestructor name="linearGrowth_"            />
-    !# <objectDestructor name="cosmologicalMassVariance_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"     />
+    <objectDestructor name="cosmologyFunctions_"      />
+    <objectDestructor name="linearGrowth_"            />
+    <objectDestructor name="cosmologicalMassVariance_"/>
+    !!]
     return
   end function correa2015ConstructorParameters
 
   function correa2015ConstructorInternal(A,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,cosmologicalMassVariance_) result(self)
-    !% Constructor for the {\normalfont \ttfamily correa2015} dark matter halo profile concentration class.
+    !!{
+    Constructor for the {\normalfont \ttfamily correa2015} dark matter halo profile concentration class.
+    !!}
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
     use :: Virial_Density_Contrast, only : fixedDensityTypeCritical
     implicit none
@@ -104,60 +120,70 @@ contains
     class           (linearGrowthClass                                 ), intent(in   ), target  :: linearGrowth_
     class           (cosmologicalMassVarianceClass                     ), intent(in   ), target  :: cosmologicalMassVariance_
     type            (darkMatterHaloScaleVirialDensityContrastDefinition)               , pointer :: darkMatterHaloScaleDefinition_
-    !# <constructorAssign variables="A, *cosmologyParameters_, *cosmologyFunctions_, *linearGrowth_, *cosmologicalMassVariance_"/>
+    !![
+    <constructorAssign variables="A, *cosmologyParameters_, *cosmologyFunctions_, *linearGrowth_, *cosmologicalMassVariance_"/>
+    !!]
 
     allocate(self%virialDensityContrastDefinition_)
     allocate(self%darkMatterProfileDMODefinition_ )
     allocate(     darkMatterHaloScaleDefinition_  )
-    !# <referenceConstruct owner="self" object="virialDensityContrastDefinition_">
-    !#  <constructor>
-    !#   virialDensityContrastFixed                        (                                                                            &amp;
-    !#    &amp;                                             densityContrastValue                =200.0d0                              , &amp;
-    !#    &amp;                                             densityType                         =fixedDensityTypeCritical             , &amp;
-    !#    &amp;                                             turnAroundOverVirialRadius          =2.0d0                                , &amp;
-    !#    &amp;                                             cosmologyParameters_                =self%cosmologyParameters_            , &amp;
-    !#    &amp;                                             cosmologyFunctions_                 =self%cosmologyFunctions_               &amp;
-    !#    &amp;                                            )
-    !#  </constructor>
-    !# </referenceConstruct>
-    !# <referenceConstruct              object="darkMatterHaloScaleDefinition_"  >
-    !#  <constructor>
-    !#   darkMatterHaloScaleVirialDensityContrastDefinition(                                                                            &amp;
-    !#    &amp;                                             cosmologyParameters_                =self%cosmologyParameters_            , &amp;
-    !#    &amp;                                             cosmologyFunctions_                 =self%cosmologyFunctions_             , &amp;
-    !#    &amp;                                             virialDensityContrast_              =self%virialDensityContrastDefinition_  &amp;
-    !#    &amp;                                            )
-    !#  </constructor>
-    !# </referenceConstruct>
-    !# <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_" >
-    !#  <constructor>
-    !#   darkMatterProfileDMONFW                           (                                                                            &amp;
-    !#    &amp;                                             velocityDispersionUseSeriesExpansion=.true.                               , &amp;
-    !#    &amp;                                             darkMatterHaloScale_                =darkMatterHaloScaleDefinition_         &amp;
-    !#    &amp;                                            )
-    !#  </constructor>
-    !# </referenceConstruct>
-    !# <objectDestructor                name  ="darkMatterHaloScaleDefinition_" />
+    !![
+    <referenceConstruct owner="self" object="virialDensityContrastDefinition_">
+     <constructor>
+      virialDensityContrastFixed                        (                                                                            &amp;
+       &amp;                                             densityContrastValue                =200.0d0                              , &amp;
+       &amp;                                             densityType                         =fixedDensityTypeCritical             , &amp;
+       &amp;                                             turnAroundOverVirialRadius          =2.0d0                                , &amp;
+       &amp;                                             cosmologyParameters_                =self%cosmologyParameters_            , &amp;
+       &amp;                                             cosmologyFunctions_                 =self%cosmologyFunctions_               &amp;
+       &amp;                                            )
+     </constructor>
+    </referenceConstruct>
+    <referenceConstruct              object="darkMatterHaloScaleDefinition_"  >
+     <constructor>
+      darkMatterHaloScaleVirialDensityContrastDefinition(                                                                            &amp;
+       &amp;                                             cosmologyParameters_                =self%cosmologyParameters_            , &amp;
+       &amp;                                             cosmologyFunctions_                 =self%cosmologyFunctions_             , &amp;
+       &amp;                                             virialDensityContrast_              =self%virialDensityContrastDefinition_  &amp;
+       &amp;                                            )
+     </constructor>
+    </referenceConstruct>
+    <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_" >
+     <constructor>
+      darkMatterProfileDMONFW                           (                                                                            &amp;
+       &amp;                                             velocityDispersionUseSeriesExpansion=.true.                               , &amp;
+       &amp;                                             darkMatterHaloScale_                =darkMatterHaloScaleDefinition_         &amp;
+       &amp;                                            )
+     </constructor>
+    </referenceConstruct>
+    <objectDestructor                name  ="darkMatterHaloScaleDefinition_" />
+    !!]
     return
   end function correa2015ConstructorInternal
 
   subroutine correa2015Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily correa2015} dark matter profile concentration class.
+    !!{
+    Destructor for the {\normalfont \ttfamily correa2015} dark matter profile concentration class.
+    !!}
     implicit none
     type(darkMatterProfileConcentrationCorrea2015), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_"            />
-    !# <objectDestructor name="self%cosmologyFunctions_"             />
-    !# <objectDestructor name="self%linearGrowth_"                   />
-    !# <objectDestructor name="self%cosmologicalMassVariance_"       />
-    !# <objectDestructor name="self%virialDensityContrastDefinition_"/>
-    !# <objectDestructor name="self%darkMatterProfileDMODefinition_" />
+    !![
+    <objectDestructor name="self%cosmologyParameters_"            />
+    <objectDestructor name="self%cosmologyFunctions_"             />
+    <objectDestructor name="self%linearGrowth_"                   />
+    <objectDestructor name="self%cosmologicalMassVariance_"       />
+    <objectDestructor name="self%virialDensityContrastDefinition_"/>
+    <objectDestructor name="self%darkMatterProfileDMODefinition_" />
+    !!]
     return
   end subroutine correa2015Destructor
 
   double precision function correa2015Concentration(self,node)
-    !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the
-    !% \cite{correa_accretion_2015} algorithm.
+    !!{
+    Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the
+    \cite{correa_accretion_2015} algorithm.
+    !!}
     use :: Dark_Matter_Halos_Correa2015, only : Dark_Matter_Halo_Correa2015_Fit_Parameters
     use :: Galacticus_Nodes            , only : nodeComponentBasic                        , treeNode
     use :: Root_Finder                 , only : rangeExpandMultiplicative                 , rootFinder
@@ -201,7 +227,9 @@ contains
   contains
 
     double precision function concentrationSolver(concentration)
-      !% Solver used in finding halo concentration using the \cite{correa_accretion_2015} algorithm.
+      !!{
+      Solver used in finding halo concentration using the \cite{correa_accretion_2015} algorithm.
+      !!}
       implicit none
       double precision, intent(in   ) :: concentration
       double precision                :: Y1           , Yc               , &
@@ -256,8 +284,10 @@ contains
   end function correa2015Concentration
 
   function correa2015DensityContrastDefinition(self)
-    !% Return a virial density contrast object defining that used in the definition of concentration in the
-    !% \cite{correa_accretion_2015} algorithm.
+    !!{
+    Return a virial density contrast object defining that used in the definition of concentration in the
+    \cite{correa_accretion_2015} algorithm.
+    !!}
     implicit none
     class(virialDensityContrastClass              ), pointer       :: correa2015DensityContrastDefinition
     class(darkMatterProfileConcentrationCorrea2015), intent(inout) :: self
@@ -268,8 +298,10 @@ contains
   end function correa2015DensityContrastDefinition
 
   function correa2015DarkMatterProfileDefinition(self)
-    !% Return a dark matter density profile object defining that used in the definition of concentration in the
-    !% \cite{correa_accretion_2015} algorithm.
+    !!{
+    Return a dark matter density profile object defining that used in the definition of concentration in the
+    \cite{correa_accretion_2015} algorithm.
+    !!}
     implicit none
     class(darkMatterProfileDMOClass               ), pointer       :: correa2015DarkMatterProfileDefinition
     class(darkMatterProfileConcentrationCorrea2015), intent(inout) :: self

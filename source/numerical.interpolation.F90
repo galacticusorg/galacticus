@@ -17,8 +17,10 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which acts as a simple interface to the \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library}
-!% \href{http://www.gnu.org/software/gsl/manual/html_node/Interpolation.html}{interpolation routines}.
+!!{
+Contains a module which acts as a simple interface to the \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library}
+\href{http://www.gnu.org/software/gsl/manual/html_node/Interpolation.html}{interpolation routines}.
+!!}
 
 ! Specify an explicit dependence on the interface.GSL.C.interpolation.o object file.
 !: $(BUILDPATH)/interface.GSL.C.interpolation.o
@@ -27,8 +29,10 @@
 !; gsl
 
 module Numerical_Interpolation
-  !% A simple interface to the \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library}
-  !% \href{http://www.gnu.org/software/gsl/manual/html_node/Interpolation.html}{interpolation routines}.
+  !!{
+  A simple interface to the \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library}
+  \href{http://www.gnu.org/software/gsl/manual/html_node/Interpolation.html}{interpolation routines}.
+  !!}
   use, intrinsic :: ISO_C_Binding, only : c_ptr, c_size_t, c_int, c_double
   implicit none
   private
@@ -44,7 +48,9 @@ module Numerical_Interpolation
 
   interface
      function gsl_interp_alloc(T,size) bind(c,name='gsl_interp_alloc')
-       !% Template for GSL interface interpolation allocation function.
+       !!{
+       Template for GSL interface interpolation allocation function.
+       !!}
        import c_ptr, c_size_t
        type   (c_ptr   )        :: gsl_interp_alloc
        type   (c_ptr   ), value :: T
@@ -52,7 +58,9 @@ module Numerical_Interpolation
      end function gsl_interp_alloc
 
      function gsl_interp_init(interp,xa,ya,size) bind(c,name='gsl_interp_init')
-       !% Template for GSL interface interpolation initialization function.
+       !!{
+       Template for GSL interface interpolation initialization function.
+       !!}
        import c_ptr, c_size_t, c_int, c_double
        integer(c_int   )               :: gsl_interp_init
        type   (c_ptr   ), value        :: interp
@@ -61,7 +69,9 @@ module Numerical_Interpolation
      end function gsl_interp_init
 
      function gsl_interp_eval_e(interp,xa,ya,x,acc,y) bind(c,name='gsl_interp_eval_e')
-       !% Template for GSL interface interpolation function.
+       !!{
+       Template for GSL interface interpolation function.
+       !!}
        import c_ptr, c_size_t, c_int, c_double
        integer(c_int   )               :: gsl_interp_eval_e
        type   (c_ptr   ), value        :: interp
@@ -72,7 +82,9 @@ module Numerical_Interpolation
      end function gsl_interp_eval_e
      
      function gsl_interp_eval_deriv_e(interp,xa,ya,x,acc,d) bind(c,name='gsl_interp_eval_deriv_e')
-       !% Template for GSL interface interpolation function.
+       !!{
+       Template for GSL interface interpolation function.
+       !!}
        import c_ptr, c_size_t, c_int, c_double
        integer(c_int   )               :: gsl_interp_eval_deriv_e
        type   (c_ptr   ), value        :: interp
@@ -83,19 +95,25 @@ module Numerical_Interpolation
      end function gsl_interp_eval_deriv_e
      
      subroutine gsl_interp_free(interp) bind(c,name='gsl_interp_free')
-       !% Template for GSL interface interpolation free function.
+       !!{
+       Template for GSL interface interpolation free function.
+       !!}
        import c_ptr
        type(c_ptr), value :: interp
      end subroutine gsl_interp_free
 
      function gsl_interp_accel_alloc() bind(c,name='gsl_interp_accel_alloc')
-       !% Template for GSL interface interpolation accelerator allocation function.
+       !!{
+       Template for GSL interface interpolation accelerator allocation function.
+       !!}
        import c_ptr
        type(c_ptr) :: gsl_interp_accel_alloc
      end function gsl_interp_accel_alloc
 
      function gsl_interp_accel_find(a,x_array,size,x) bind(c,name='gsl_interp_accel_find')
-       !% Template for GSL interface interpolation accelerator allocation function.
+       !!{
+       Template for GSL interface interpolation accelerator allocation function.
+       !!}
        import c_ptr, c_size_t, c_double
        integer(c_size_t)               :: gsl_interp_accel_find
        type   (c_ptr   ), value        :: a
@@ -105,34 +123,44 @@ module Numerical_Interpolation
      end function gsl_interp_accel_find
 
      subroutine gsl_interp_accel_free(acc) bind(c,name='gsl_interp_accel_free')
-       !% Template for GSL interface interpolation accelerator free function.
+       !!{
+       Template for GSL interface interpolation accelerator free function.
+       !!}
        import c_ptr
        type(c_ptr), value :: acc
      end subroutine gsl_interp_accel_free
 
      function gsl_interp_type_get(i) bind(c,name='gsl_interp_type_get')
-       !% Template for GSL interface interpolation type function.
+       !!{
+       Template for GSL interface interpolation type function.
+       !!}
        import c_ptr, c_int
        type   (c_ptr)                       :: gsl_interp_type_get
        integer(c_int), intent(in   ), value :: i
      end function gsl_interp_type_get
   end interface
 
-  !# <stateStorable class="interpolator">
-  !#  <interpolator>
-  !#   <restoreTo  variables="initialized" state=".false."/>
-  !#   <methodCall method="GSLReallocate" arguments="gslFree=.true." />
-  !#  </interpolator>
-  !# </stateStorable>
+  !![
+  <stateStorable class="interpolator">
+   <interpolator>
+    <restoreTo  variables="initialized" state=".false."/>
+    <methodCall method="GSLReallocate" arguments="gslFree=.true." />
+   </interpolator>
+  </stateStorable>
+  !!]
 
-  !# <deepCopyActions class="interpolator">
-  !#  <interpolator>
-  !#   <methodCall method="GSLReallocate" arguments="gslFree=.false."/>
-  !#  </interpolator>
-  !# </deepCopyActions>
+  !![
+  <deepCopyActions class="interpolator">
+   <interpolator>
+    <methodCall method="GSLReallocate" arguments="gslFree=.false."/>
+   </interpolator>
+  </deepCopyActions>
+  !!]
 
   type :: interpolator
-     !% Type providing interpolation in 1-D arrays.
+     !!{
+     Type providing interpolation in 1-D arrays.
+     !!}
      private
      type            (c_ptr   ), allocatable               :: gsl_interp       , gsl_interp_accel , &
           &                                                   gsl_interp_type
@@ -141,17 +169,19 @@ module Numerical_Interpolation
      logical                                               :: initialized      , interpolatable
      double precision          , allocatable, dimension(:) :: x                , y 
    contains
-     !# <methods>
-     !#   <method description="Interpolate in the tabulated function." method="interpolate" />
-     !#   <method description="Interpolate the derivative in the tabulated function." method="derivative" />
-     !#   <method description="Locate the position in the array corresponding to the given {\normalfont \ttfamily x}." method="locate" />
-     !#   <method description="Return factors required to perform a linear interpolation." method="linearFactors" />
-     !#   <method description="Return weights required to perform a linear interpolation." method="linearWeights" />
-     !#   <method description="Allocate GSL objects." method="gslAllocate" />
-     !#   <method description="Reallocate GSL objects." method="gslReallocate" />
-     !#   <method description="Initialize GSL interpolator." method="gslInitialize" />
-     !#   <method description="Assert that the data is interpolatable." method="assertInterpolatable" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Interpolate in the tabulated function." method="interpolate" />
+       <method description="Interpolate the derivative in the tabulated function." method="derivative" />
+       <method description="Locate the position in the array corresponding to the given {\normalfont \ttfamily x}." method="locate" />
+       <method description="Return factors required to perform a linear interpolation." method="linearFactors" />
+       <method description="Return weights required to perform a linear interpolation." method="linearWeights" />
+       <method description="Allocate GSL objects." method="gslAllocate" />
+       <method description="Reallocate GSL objects." method="gslReallocate" />
+       <method description="Initialize GSL interpolator." method="gslInitialize" />
+       <method description="Assert that the data is interpolatable." method="assertInterpolatable" />
+     </methods>
+     !!]
      final     ::                         interpolatorDestructorRank0       , &
           &                               interpolatorDestructorRank1       , &
           &                               interpolatorDestructorRank2
@@ -173,14 +203,18 @@ module Numerical_Interpolation
   end type interpolator
 
   interface interpolator
-     !% Constructor for the {\normalfont \ttfamily interpolator} class.
+     !!{
+     Constructor for the {\normalfont \ttfamily interpolator} class.
+     !!}
      module procedure interpolatorConstructor
   end interface interpolator
   
 contains
 
   function interpolatorConstructor(x,y,interpolationType,extrapolationType) result(self)
-    !% Constructor for {\normalfont \ttfamily interpolator} obejcts.
+    !!{
+    Constructor for {\normalfont \ttfamily interpolator} obejcts.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Table_Labels    , only : extrapolationTypeAbort
     implicit none
@@ -188,8 +222,10 @@ contains
     double precision              , intent(in   ), dimension(:)           :: x
     double precision              , intent(in   ), dimension(:), optional :: y
     integer                       , intent(in   )              , optional :: interpolationType, extrapolationType
-    !# <optionalArgument name="interpolationType" defaultsTo="gsl_interp_linear"     />
-    !# <optionalArgument name="extrapolationType" defaultsTo="extrapolationTypeAbort"/>
+    !![
+    <optionalArgument name="interpolationType" defaultsTo="gsl_interp_linear"     />
+    <optionalArgument name="extrapolationType" defaultsTo="extrapolationTypeAbort"/>
+    !!]
     
     ! Validate data.
     if    (size(x) <                       1 ) call Galacticus_Error_Report('"x" must contain at least 1 datapoint'  //{introspection:location})
@@ -218,7 +254,9 @@ contains
   end function interpolatorConstructor
 
   subroutine interpolatorDestructorRank0(self)
-    !% Destructor for rank-0 {\normalfont \ttfamily interpolator} objects.
+    !!{
+    Destructor for rank-0 {\normalfont \ttfamily interpolator} objects.
+    !!}
     implicit none
     type(interpolator), intent(inout) :: self
 
@@ -234,7 +272,9 @@ contains
   end subroutine interpolatorDestructorRank0
   
   subroutine interpolatorDestructorRank1(self)
-    !% Destructor for rank-1 {\normalfont \ttfamily interpolator} objects.
+    !!{
+    Destructor for rank-1 {\normalfont \ttfamily interpolator} objects.
+    !!}
     implicit none
     type   (interpolator), intent(inout), dimension(:) :: self
     integer                                            :: i1
@@ -246,7 +286,9 @@ contains
   end subroutine interpolatorDestructorRank1
   
   subroutine interpolatorDestructorRank2(self)
-    !% Destructor for rank-2 {\normalfont \ttfamily interpolator} objects.
+    !!{
+    Destructor for rank-2 {\normalfont \ttfamily interpolator} objects.
+    !!}
     implicit none
     type   (interpolator), intent(inout), dimension(:,:) :: self
     integer                                              :: i1  , i2
@@ -260,7 +302,9 @@ contains
   end subroutine interpolatorDestructorRank2
   
   subroutine interpolatorGSLAllocate(self)
-    !% Allocate GSL objects.
+    !!{
+    Allocate GSL objects.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Interface_GSL   , only : GSL_Success
     implicit none
@@ -288,7 +332,9 @@ contains
   end subroutine interpolatorGSLAllocate
 
   subroutine interpolatorGSLReallocate(self,gslFree)
-    !% Reallocate GSL objects.
+    !!{
+    Reallocate GSL objects.
+    !!}
     use, intrinsic :: ISO_C_Binding, only : c_null_ptr
     implicit none
     class  (interpolator), intent(inout) :: self
@@ -322,7 +368,9 @@ contains
   end subroutine interpolatorGSLReallocate
 
   subroutine interpolatorGSLInitialize(self,ya)
-    !% Initialize GSL interpoltor.
+    !!{
+    Initialize GSL interpoltor.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Interface_GSL   , only : GSL_Success
     implicit none
@@ -337,7 +385,9 @@ contains
   end subroutine interpolatorGSLInitialize
 
   subroutine interpolatorAssertInterpolatable(self)
-    !% Assert that the data is interpolatable.
+    !!{
+    Assert that the data is interpolatable.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(interpolator), intent(inout) :: self
@@ -347,7 +397,9 @@ contains
   end subroutine interpolatorAssertInterpolatable
   
   subroutine interpolatorLinearFactors(self,x,i,h)
-    !% Return interpolating factors for linear interpolation in the array {\normalfont \ttfamily xArray()} given {\normalfont \ttfamily x}.
+    !!{
+    Return interpolating factors for linear interpolation in the array {\normalfont \ttfamily xArray()} given {\normalfont \ttfamily x}.
+    !!}
     implicit none
     class           (interpolator)                , intent(inout) :: self
     double precision                              , intent(in   ) :: x
@@ -361,7 +413,9 @@ contains
   end subroutine interpolatorLinearFactors
 
   subroutine interpolatorLinearWeights(self,x,i,h)
-    !% Return interpolation weights factors for linear interpolation in the array {\normalfont \ttfamily xArray()} given {\normalfont \ttfamily x} and {\normalfont \ttfamily i}.
+    !!{
+    Return interpolation weights factors for linear interpolation in the array {\normalfont \ttfamily xArray()} given {\normalfont \ttfamily x} and {\normalfont \ttfamily i}.
+    !!}
     implicit none
     class           (interpolator)                , intent(inout) :: self
     double precision                              , intent(in   ) :: x
@@ -376,7 +430,9 @@ contains
   end subroutine interpolatorLinearWeights
 
   double precision function interpolatorInterpolateNoYa(self,x)
-    !% Interpolate a function to {\normalfont \ttfamily x}.
+    !!{
+    Interpolate a function to {\normalfont \ttfamily x}.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (interpolator  ), intent(inout) :: self
@@ -392,7 +448,9 @@ contains
   end function interpolatorInterpolateNoYa
   
   double precision function interpolatorInterpolate(self,x,ya)
-    !% Interpolate a function to {\normalfont \ttfamily x}.
+    !!{
+    Interpolate a function to {\normalfont \ttfamily x}.
+    !!}
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: Interface_GSL     , only : GSL_Success            , GSL_EDom
     use :: ISO_Varying_String, only : assignment(=)          , operator(//)                , varying_string
@@ -473,7 +531,9 @@ contains
   end function interpolatorInterpolate
   
   double precision function interpolatorDerivativeNoYa(self,x)
-    !% Interpolate the derivative of the function to {\normalfont \ttfamily x}.
+    !!{
+    Interpolate the derivative of the function to {\normalfont \ttfamily x}.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (interpolator  ), intent(inout) :: self
@@ -489,7 +549,9 @@ contains
   end function interpolatorDerivativeNoYa
   
   double precision function interpolatorDerivative(self,x,ya)
-    !% Interpolate the derivative of the function to {\normalfont \ttfamily x}.
+    !!{
+    Interpolate the derivative of the function to {\normalfont \ttfamily x}.
+    !!}
     use            :: Galacticus_Error  , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
     use            :: Interface_GSL     , only : GSL_EDom
@@ -532,14 +594,18 @@ contains
   end function interpolatorDerivative
   
   function interpolatorLocate(self,x,closest) result(i)
-    !% Locate the element in the table for interpolation of {\normalfont \ttfamily x}.
+    !!{
+    Locate the element in the table for interpolation of {\normalfont \ttfamily x}.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     integer         (c_size_t    )                          :: i
     class           (interpolator), intent(inout)           :: self
     double precision              , intent(in   )           :: x
     logical                       , intent(in   ), optional :: closest
-    !# <optionalArgument name="closest" defaultsTo=".false."/>
+    !![
+    <optionalArgument name="closest" defaultsTo=".false."/>
+    !!]
     
     ! If array has just one point, always return it.
     if (self%countArray == 1_c_size_t) then

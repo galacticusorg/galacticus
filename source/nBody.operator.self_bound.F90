@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an N-body data operator which determines the subset of particles that are self-bound.
+!!{
+Contains a module which implements an N-body data operator which determines the subset of particles that are self-bound.
+!!}
 
   use, intrinsic :: ISO_C_Binding           , only : c_size_t
   use            :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
-  !# <nbodyOperator name="nbodyOperatorSelfBound">
-  !#  <description>An N-body data operator which determines the subset of particles that are self-bound.</description>
-  !# </nbodyOperator>
+  !![
+  <nbodyOperator name="nbodyOperatorSelfBound">
+   <description>An N-body data operator which determines the subset of particles that are self-bound.</description>
+  </nbodyOperator>
+  !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorSelfBound
-     !% An N-body data operator which determines the subset of particles that are self-bound.
+     !!{
+     An N-body data operator which determines the subset of particles that are self-bound.
+     !!}
      private
      class           (randomNumberGeneratorClass), pointer :: randomNumberGenerator_ => null()
      integer         (c_size_t                  )          :: bootstrapSampleCount
@@ -38,7 +44,9 @@
   end type nbodyOperatorSelfBound
 
   interface nbodyOperatorSelfBound
-     !% Constructors for the ``selfBound'' N-body operator class.
+     !!{
+     Constructors for the ``selfBound'' N-body operator class.
+     !!}
      module procedure selfBoundConstructorParameters
      module procedure selfBoundConstructorInternal
   end interface nbodyOperatorSelfBound
@@ -46,7 +54,9 @@
 contains
 
   function selfBoundConstructorParameters(parameters) result (self)
-    !% Constructor for the ``selfBound'' N-body operator class which takes a parameter set as input.
+    !!{
+    Constructor for the ``selfBound'' N-body operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (nbodyOperatorSelfBound    )                :: self
@@ -56,68 +66,82 @@ contains
     double precision                                            :: tolerance           , bootstrapSampleRate
     logical                                                     :: analyzeAllParticles , useVelocityMostBound
 
-    !# <inputParameter>
-    !#   <name>bootstrapSampleCount</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>30_c_size_t</defaultValue>
-    !#   <description>The number of bootstrap resamples of the particles that should be used.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>tolerance</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>1.0d-2</defaultValue>
-    !#   <description>The tolerance in the summed weight of bound particles which must be attained to declare convergence.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>bootstrapSampleRate</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>1.0d0</defaultValue>
-    !#   <description>The sampling rate for particles.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>analyzeAllParticles</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>If true, all particles are assumed to be self-bound at the beginning of the analysis. Unbound particles at previous times are allowed to become bound in the current snapshot. If false and the self-bound information from the previous snapshot is available, only the particles that are self-bound at the previous snapshot are assumed to be bound at the begnning of the anlysis.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>useVelocityMostBound</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>If true, the velocity of the most bound particle in velocity space is used as the representative velocity of the satellite. If false, use the mass weighted mean velocity (center-of-mass velocity) of self-bound particles instead.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>bootstrapSampleCount</name>
+      <source>parameters</source>
+      <defaultValue>30_c_size_t</defaultValue>
+      <description>The number of bootstrap resamples of the particles that should be used.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>tolerance</name>
+      <source>parameters</source>
+      <defaultValue>1.0d-2</defaultValue>
+      <description>The tolerance in the summed weight of bound particles which must be attained to declare convergence.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>bootstrapSampleRate</name>
+      <source>parameters</source>
+      <defaultValue>1.0d0</defaultValue>
+      <description>The sampling rate for particles.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>analyzeAllParticles</name>
+      <source>parameters</source>
+      <defaultValue>.true.</defaultValue>
+      <description>If true, all particles are assumed to be self-bound at the beginning of the analysis. Unbound particles at previous times are allowed to become bound in the current snapshot. If false and the self-bound information from the previous snapshot is available, only the particles that are self-bound at the previous snapshot are assumed to be bound at the begnning of the anlysis.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>useVelocityMostBound</name>
+      <source>parameters</source>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, the velocity of the most bound particle in velocity space is used as the representative velocity of the satellite. If false, use the mass weighted mean velocity (center-of-mass velocity) of self-bound particles instead.</description>
+    </inputParameter>
+    <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !!]
     self=nbodyOperatorSelfBound(tolerance,bootstrapSampleCount,bootstrapSampleRate,analyzeAllParticles,useVelocityMostBound,randomNumberGenerator_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="randomNumberGenerator_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="randomNumberGenerator_"/>
+    !!]
     return
   end function selfBoundConstructorParameters
 
   function selfBoundConstructorInternal(tolerance,bootstrapSampleCount,bootstrapSampleRate,analyzeAllParticles,useVelocityMostBound,randomNumberGenerator_) result (self)
-    !% Internal constructor for the ``selfBound'' N-body operator class
+    !!{
+    Internal constructor for the ``selfBound'' N-body operator class
+    !!}
     implicit none
     type            (nbodyOperatorSelfBound    )                        :: self
     double precision                            , intent(in   )         :: tolerance             , bootstrapSampleRate
     integer         (c_size_t                  ), intent(in   )         :: bootstrapSampleCount
     logical                                     , intent(in   )         :: analyzeAllParticles   , useVelocityMostBound
     class           (randomNumberGeneratorClass), intent(in   ), target :: randomNumberGenerator_
-    !# <constructorAssign variables="tolerance, bootstrapSampleCount, bootstrapSampleRate, analyzeAllParticles, useVelocityMostBound, *randomNumberGenerator_"/>
+    !![
+    <constructorAssign variables="tolerance, bootstrapSampleCount, bootstrapSampleRate, analyzeAllParticles, useVelocityMostBound, *randomNumberGenerator_"/>
+    !!]
 
     return
   end function selfBoundConstructorInternal
 
   subroutine selfBoundDestructor(self)
-    !% Destructor for the ``selfBound'' N-body operator class.
+    !!{
+    Destructor for the ``selfBound'' N-body operator class.
+    !!}
     implicit none
     type(nbodyOperatorSelfBound), intent(inout) :: self
 
-    !# <objectDestructor name="self%randomNumberGenerator_"/>
+    !![
+    <objectDestructor name="self%randomNumberGenerator_"/>
+    !!]
     return
   end subroutine selfBoundDestructor
   
   subroutine selfBoundOperate(self,simulations)
-    !% Determine the subset of N-body particles which are self-bound.
-    use :: Display                         , only : displayMessage                 , displayIndent  , displayUnindent
+    !!{
+    Determine the subset of N-body particles which are self-bound.
+    !!}
+    use :: Display                         , only : displayIndent                  , displayUnindent, displayMessage
     use :: Galacticus_Error                , only : Galacticus_Error_Report
     use :: ISO_Varying_String              , only : var_str
     use :: String_Handling                 , only : operator(//)
@@ -554,8 +578,10 @@ contains
   end subroutine selfBoundOperate
 
   pure function selfBoundPotential(separation,separationSquared)
-    !% Compute the potential for an array of particle separations. Currently assumes the functional form of the softening used by
-    !% Gadget.
+    !!{
+    Compute the potential for an array of particle separations. Currently assumes the functional form of the softening used by
+    Gadget.
+    !!}
     implicit none
     double precision, intent(in   ), dimension(:               ) :: separation        , separationSquared
     double precision               , dimension(size(separation)) :: selfBoundPotential

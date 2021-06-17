@@ -17,29 +17,39 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of dark matter halo profile scale radii which returns zero radii---useful when scale radii are not
-  !% relevant.
+  !!{
+  An implementation of dark matter halo profile scale radii which returns zero radii---useful when scale radii are not
+  relevant.
+  !!}
 
-  !# <darkMatterProfileScaleRadius name="darkMatterProfileScaleRadiusZero">
-  !#  <description>Dark matter halo scale radii class in which are assumed to be zero.</description>
-  !# </darkMatterProfileScaleRadius>
+  !![
+  <darkMatterProfileScaleRadius name="darkMatterProfileScaleRadiusZero">
+   <description>Dark matter halo scale radii class in which are assumed to be zero.</description>
+  </darkMatterProfileScaleRadius>
+  !!]
   type, extends(darkMatterProfileScaleRadiusClass) :: darkMatterProfileScaleRadiusZero
-     !% A dark matter halo profile scale radius class in which are assumed to be zero.
+     !!{
+     A dark matter halo profile scale radius class in which are assumed to be zero.
+     !!}
      private
    contains
      procedure :: radius => zeroRadius
   end type darkMatterProfileScaleRadiusZero
 
   interface darkMatterProfileScaleRadiusZero
-     !% Constructors for the {\normalfont \ttfamily zero} dark matter halo profile scale radius class.
+     !!{
+     Constructors for the {\normalfont \ttfamily zero} dark matter halo profile scale radius class.
+     !!}
      module procedure zeroConstructorParameters
   end interface darkMatterProfileScaleRadiusZero
 
 contains
 
   function zeroConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily zero} dark matter halo profile scale radius class which takes a
-    !% parameter list as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily zero} dark matter halo profile scale radius class which takes a
+    parameter list as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(darkMatterProfileScaleRadiusZero)                :: self
@@ -51,7 +61,9 @@ contains
   end function zeroConstructorParameters
 
   double precision function zeroRadius(self,node)
-    !% Compute the scale radius of the dark matter profile of {\normalfont \ttfamily node}.
+    !!{
+    Compute the scale radius of the dark matter profile of {\normalfont \ttfamily node}.
+    !!}
     implicit none
     class(darkMatterProfileScaleRadiusZero), intent(inout), target :: self
     type (treeNode                        ), intent(inout), target :: node

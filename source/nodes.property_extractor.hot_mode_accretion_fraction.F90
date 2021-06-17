@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a hot mode accretion fraction rate property extractor class.
+!!{
+Contains a module which implements a hot mode accretion fraction rate property extractor class.
+!!}
 
   use :: Accretion_Halos, only : accretionHalo, accretionHaloClass
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorFractionAccretionHotMode">
-  !#  <description>A hot mode accretion fraction property extractor class.</description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorFractionAccretionHotMode">
+   <description>A hot mode accretion fraction property extractor class.</description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorFractionAccretionHotMode
-     !% A hot mode accretion fraction property extractor class.
+     !!{
+     A hot mode accretion fraction property extractor class.
+     !!}
      private
      class(accretionHaloClass), pointer :: accretionHalo_ => null()
    contains
@@ -38,7 +44,9 @@
   end type nodePropertyExtractorFractionAccretionHotMode
 
   interface nodePropertyExtractorFractionAccretionHotMode
-     !% Constructors for the {\normalfont \ttfamily fractionAccretionHotMode} output analysis class.
+     !!{
+     Constructors for the {\normalfont \ttfamily fractionAccretionHotMode} output analysis class.
+     !!}
      module procedure fractionAccretionHotModeConstructorParameters
      module procedure fractionAccretionHotModeConstructorInternal
   end interface nodePropertyExtractorFractionAccretionHotMode
@@ -46,41 +54,57 @@
 contains
 
   function fractionAccretionHotModeConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily fractionAccretionHotMode} property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily fractionAccretionHotMode} property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (nodePropertyExtractorFractionAccretionHotMode)                :: self
     type (inputParameters                              ), intent(inout) :: parameters
     class(accretionHaloClass                           ), pointer       :: accretionHalo_
 
-    !# <objectBuilder class="accretionHalo" name="accretionHalo_" source="parameters"/>
+    !![
+    <objectBuilder class="accretionHalo" name="accretionHalo_" source="parameters"/>
+    !!]
     self=nodePropertyExtractorFractionAccretionHotMode(accretionHalo_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="accretionHalo_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="accretionHalo_"/>
+    !!]
     return
   end function fractionAccretionHotModeConstructorParameters
 
   function fractionAccretionHotModeConstructorInternal(accretionHalo_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily fractionAccretionHotMode} property extractor class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily fractionAccretionHotMode} property extractor class.
+    !!}
     implicit none
     type (nodePropertyExtractorFractionAccretionHotMode)                        :: self
     class(accretionHaloClass                           ), intent(in   ), target :: accretionHalo_
-    !# <constructorAssign variables="*accretionHalo_"/>
+    !![
+    <constructorAssign variables="*accretionHalo_"/>
+    !!]
 
     return
   end function fractionAccretionHotModeConstructorInternal
 
   subroutine fractionAccretionHotModeDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily fractionAccretionHotMode} property extractor class.
+    !!{
+    Destructor for the {\normalfont \ttfamily fractionAccretionHotMode} property extractor class.
+    !!}
     implicit none
     type(nodePropertyExtractorFractionAccretionHotMode), intent(inout) :: self
 
-    !# <objectDestructor name="self%accretionHalo_"/>
+    !![
+    <objectDestructor name="self%accretionHalo_"/>
+    !!]
     return
   end subroutine fractionAccretionHotModeDestructor
 
   double precision function fractionAccretionHotModeExtract(self,node,instance)
-    !% Implement a {\normalfont \ttfamily fractionAccretionHotMode} property extractor.
+    !!{
+    Implement a {\normalfont \ttfamily fractionAccretionHotMode} property extractor.
+    !!}
     use :: Accretion_Halos, only : accretionModeHot, accretionModeTotal
     implicit none
     class           (nodePropertyExtractorFractionAccretionHotMode), intent(inout)           :: self
@@ -100,7 +124,9 @@ contains
   end function fractionAccretionHotModeExtract
 
   function fractionAccretionHotModeName(self)
-    !% Return the name of the {\normalfont \ttfamily fractionAccretionHotMode} property.
+    !!{
+    Return the name of the {\normalfont \ttfamily fractionAccretionHotMode} property.
+    !!}
     implicit none
     type (varying_string                               )                :: fractionAccretionHotModeName
     class(nodePropertyExtractorFractionAccretionHotMode), intent(inout) :: self
@@ -111,7 +137,9 @@ contains
   end function fractionAccretionHotModeName
 
   function fractionAccretionHotModeDescription(self)
-    !% Return a description of the {\normalfont \ttfamily fractionAccretionHotMode} property.
+    !!{
+    Return a description of the {\normalfont \ttfamily fractionAccretionHotMode} property.
+    !!}
     implicit none
     type (varying_string                               )                :: fractionAccretionHotModeDescription
     class(nodePropertyExtractorFractionAccretionHotMode), intent(inout) :: self
@@ -122,7 +150,9 @@ contains
   end function fractionAccretionHotModeDescription
 
   double precision function fractionAccretionHotModeUnitsInSI(self)
-    !% Return the units of the {\normalfont \ttfamily fractionAccretionHotMode} property in the SI system.
+    !!{
+    Return the units of the {\normalfont \ttfamily fractionAccretionHotMode} property in the SI system.
+    !!}
     implicit none
     class(nodePropertyExtractorFractionAccretionHotMode), intent(inout) :: self
     !$GLC attributes unused :: self
@@ -132,7 +162,9 @@ contains
   end function fractionAccretionHotModeUnitsInSI
 
   integer function fractionAccretionHotModeType(self)
-    !% Return the type of the {\normalfont \ttfamily fractionAccretionHotMode} property.
+    !!{
+    Return the type of the {\normalfont \ttfamily fractionAccretionHotMode} property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorFractionAccretionHotMode), intent(inout) :: self

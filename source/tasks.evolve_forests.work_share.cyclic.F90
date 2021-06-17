@@ -19,11 +19,15 @@
 
   !$ use :: OMP_Lib, only : omp_lock_kind
 
-  !# <evolveForestsWorkShare name="evolveForestsWorkShareCyclic">
-  !#  <description>A forest evolution work sharing class in which forests are assigned by cycling through processes.</description>
-  !# </evolveForestsWorkShare>
+  !![
+  <evolveForestsWorkShare name="evolveForestsWorkShareCyclic">
+   <description>A forest evolution work sharing class in which forests are assigned by cycling through processes.</description>
+  </evolveForestsWorkShare>
+  !!]
   type, extends(evolveForestsWorkShareClass) :: evolveForestsWorkShareCyclic
-     !% Implementation of a forest evolution work sharing class in which forests are assigned by cycling through processes.
+     !!{
+     Implementation of a forest evolution work sharing class in which forests are assigned by cycling through processes.
+     !!}
      private
      !$ integer(omp_lock_kind)                            :: lock
      integer   (c_size_t     ), allocatable, dimension(:) :: treeNumber_
@@ -34,7 +38,9 @@
   end type evolveForestsWorkShareCyclic
 
   interface evolveForestsWorkShareCyclic
-     !% Constructors for the {\normalfont \ttfamily cyclic} forest evolution work sharing class.
+     !!{
+     Constructors for the {\normalfont \ttfamily cyclic} forest evolution work sharing class.
+     !!}
      module procedure cyclicConstructorParameters
      module procedure cyclicConstructorInternal
   end interface evolveForestsWorkShareCyclic
@@ -42,8 +48,10 @@
 contains
 
   function cyclicConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily cyclic} forest evolution work sharing class which takes a parameter set as
-    !% input.
+    !!{
+    Constructor for the {\normalfont \ttfamily cyclic} forest evolution work sharing class which takes a parameter set as
+    input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(evolveForestsWorkShareCyclic)                :: self
@@ -55,7 +63,9 @@ contains
   end function cyclicConstructorParameters
 
   function cyclicConstructorInternal() result(self)
-    !% Internal constructor for the {\normalfont \ttfamily cyclic} forest evolution work sharing class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily cyclic} forest evolution work sharing class.
+    !!}
     implicit none
     type(evolveForestsWorkShareCyclic) :: self
 
@@ -66,7 +76,9 @@ contains
   end function cyclicConstructorInternal
 
   subroutine cyclicDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily cyclic} forest evolution work sharing class.
+    !!{
+    Destructor for the {\normalfont \ttfamily cyclic} forest evolution work sharing class.
+    !!}
     implicit none
     type(evolveForestsWorkShareCyclic), intent(inout) :: self
 
@@ -75,7 +87,9 @@ contains
   end subroutine cyclicDestructor
 
   function cyclicForestNumber(self,utilizeOpenMPThreads)
-    !% Return the number of the next forest to process.
+    !!{
+    Return the number of the next forest to process.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     integer(c_size_t                    )                :: cyclicForestNumber

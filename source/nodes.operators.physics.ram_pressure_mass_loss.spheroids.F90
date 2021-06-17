@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a node operator class that performs ram pressure mass loss in spheroids.
+  !!{
+  Implements a node operator class that performs ram pressure mass loss in spheroids.
+  !!}
 
   use :: Ram_Pressure_Stripping_Mass_Loss_Rate, only : ramPressureStrippingClass
   
-  !# <nodeOperator name="nodeOperatorRamPressureMassLossSpheroids">
-  !#  <description>A node operator class that performs ram pressure mass loss in spheroids.</description>
-  !# </nodeOperator>
+  !![
+  <nodeOperator name="nodeOperatorRamPressureMassLossSpheroids">
+   <description>A node operator class that performs ram pressure mass loss in spheroids.</description>
+  </nodeOperator>
+  !!]
   type, extends(nodeOperatorClass) :: nodeOperatorRamPressureMassLossSpheroids
-     !% A node operator class that performs ram pressure mass loss in spheroids.
+     !!{
+     A node operator class that performs ram pressure mass loss in spheroids.
+     !!}
      private
      class(ramPressureStrippingClass), pointer :: ramPressureStripping_ => null()
    contains
@@ -34,7 +40,9 @@
   end type nodeOperatorRamPressureMassLossSpheroids
   
   interface nodeOperatorRamPressureMassLossSpheroids
-     !% Constructors for the {\normalfont \ttfamily ramPressureMassLossSpheroids} node operator class.
+     !!{
+     Constructors for the {\normalfont \ttfamily ramPressureMassLossSpheroids} node operator class.
+     !!}
      module procedure ramPressureMassLossSpheroidsConstructorParameters
      module procedure ramPressureMassLossSpheroidsConstructorInternal
   end interface nodeOperatorRamPressureMassLossSpheroids
@@ -42,41 +50,57 @@
 contains
 
   function ramPressureMassLossSpheroidsConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily ramPressureMassLossSpheroids} node operator class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily ramPressureMassLossSpheroids} node operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type (nodeOperatorRamPressureMassLossSpheroids)                :: self
     type (inputParameters                         ), intent(inout) :: parameters
     class(ramPressureStrippingClass               ), pointer       :: ramPressureStripping_
     
-    !# <objectBuilder class="ramPressureStripping" name="ramPressureStripping_" source="parameters"/>
+    !![
+    <objectBuilder class="ramPressureStripping" name="ramPressureStripping_" source="parameters"/>
+    !!]
     self=nodeOperatorRamPressureMassLossSpheroids(ramPressureStripping_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="ramPressureStripping_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="ramPressureStripping_"/>
+    !!]
     return
   end function ramPressureMassLossSpheroidsConstructorParameters
 
   function ramPressureMassLossSpheroidsConstructorInternal(ramPressureStripping_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily ramPressureMassLossSpheroids} node operator class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily ramPressureMassLossSpheroids} node operator class.
+    !!}
     implicit none
     type (nodeOperatorRamPressureMassLossSpheroids)                        :: self
     class(ramPressureStrippingClass               ), intent(in   ), target :: ramPressureStripping_
-    !# <constructorAssign variables="*ramPressureStripping_"/>
+    !![
+    <constructorAssign variables="*ramPressureStripping_"/>
+    !!]
 
     return
   end function ramPressureMassLossSpheroidsConstructorInternal
 
   subroutine ramPressureMassLossSpheroidsDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily ramPressureMassLossSpheroids} node operator class.
+    !!{
+    Destructor for the {\normalfont \ttfamily ramPressureMassLossSpheroids} node operator class.
+    !!}
     implicit none
     type(nodeOperatorRamPressureMassLossSpheroids), intent(inout) :: self
 
-    !# <objectDestructor name="self%ramPressureStripping_"/>
+    !![
+    <objectDestructor name="self%ramPressureStripping_"/>
+    !!]
     return
   end subroutine ramPressureMassLossSpheroidsDestructor
   
   subroutine ramPressureMassLossSpheroidsDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !% Perform ram pressure stripping-induced in a spheroid.
+    !!{
+    Perform ram pressure stripping-induced in a spheroid.
+    !!}
     use :: Galacticus_Nodes    , only : propertyTypeInactive, nodeComponentSpheroid, nodeComponentHotHalo
     use :: Abundances_Structure, only : operator(*)
     implicit none

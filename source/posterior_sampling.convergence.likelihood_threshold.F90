@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a posterior sampling convergence class which declares convergence once all likelihoods are above a threshold.
+  !!{
+  Implementation of a posterior sampling convergence class which declares convergence once all likelihoods are above a threshold.
+  !!}
 
-  !# <posteriorSampleConvergence name="posteriorSampleConvergenceLikelihoodThreshold">
-  !#  <description>A posterior sampling convergence class which declares convergence once all likelihoods are above a threshold.</description>
-  !# </posteriorSampleConvergence>
+  !![
+  <posteriorSampleConvergence name="posteriorSampleConvergenceLikelihoodThreshold">
+   <description>A posterior sampling convergence class which declares convergence once all likelihoods are above a threshold.</description>
+  </posteriorSampleConvergence>
+  !!]
   type, extends(posteriorSampleConvergenceClass) :: posteriorSampleConvergenceLikelihoodThreshold
-     !% Implementation of a posterior sampling convergence class which declares convergence once all likelihoods are above a threshold.
+     !!{
+     Implementation of a posterior sampling convergence class which declares convergence once all likelihoods are above a threshold.
+     !!}
      private
      integer                                     :: convergedAtStepCount
      logical                                     :: converged
@@ -38,7 +44,9 @@
   end type posteriorSampleConvergenceLikelihoodThreshold
 
   interface posteriorSampleConvergenceLikelihoodThreshold
-     !% Constructors for the {\normalfont \ttfamily likelihoodThreshold} posterior sampling convergence class.
+     !!{
+     Constructors for the {\normalfont \ttfamily likelihoodThreshold} posterior sampling convergence class.
+     !!}
      module procedure likelihoodThresholdConstructorParameters
      module procedure likelihoodThresholdConstructorInternal
   end interface posteriorSampleConvergenceLikelihoodThreshold
@@ -46,32 +54,42 @@
 contains
 
   function likelihoodThresholdConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily likelihoodThreshold} posterior sampling convergence class which builds the object from a parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily likelihoodThreshold} posterior sampling convergence class which builds the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (posteriorSampleConvergenceLikelihoodThreshold)                :: self
     type            (inputParameters                              ), intent(inout) :: parameters
     double precision                                                               :: likelihoodThreshold
 
-    !# <inputParameter>
-    !#   <name>likelihoodThreshold</name>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>The threshold log-likelihood above which convergence is declared.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>likelihoodThreshold</name>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The threshold log-likelihood above which convergence is declared.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     self=posteriorSampleConvergenceLikelihoodThreshold(likelihoodThreshold)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function likelihoodThresholdConstructorParameters
 
   function likelihoodThresholdConstructorInternal(likelihoodThreshold) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily likelihoodThreshold} posterior sampling convergence class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily likelihoodThreshold} posterior sampling convergence class.
+    !!}
     use :: Memory_Management, only : allocateArray
     use :: MPI_Utilities    , only : mpiSelf
     implicit none
     type            (posteriorSampleConvergenceLikelihoodThreshold)                :: self
     double precision                                               , intent(in   ) :: likelihoodThreshold
-    !# <constructorAssign variables="likelihoodThreshold"/>
+    !![
+    <constructorAssign variables="likelihoodThreshold"/>
+    !!]
 
     self%converged           =.false.
     self%convergedAtStepCount=huge(0)
@@ -80,7 +98,9 @@ contains
   end function likelihoodThresholdConstructorInternal
 
   logical function likelihoodThresholdIsConverged(self,simulationState,logLikelihood)
-    !% Returns true if the posterior sampling is converged (which it likelihoodThreshold is).
+    !!{
+    Returns true if the posterior sampling is converged (which it likelihoodThreshold is).
+    !!}
     use :: MPI_Utilities, only : mpiSelf
     implicit none
     class           (posteriorSampleConvergenceLikelihoodThreshold), intent(inout)               :: self
@@ -107,7 +127,9 @@ contains
   end function likelihoodThresholdIsConverged
 
   integer function likelihoodThresholdConvergedAtStep(self)
-    !% Return the step at which the simulation converged.
+    !!{
+    Return the step at which the simulation converged.
+    !!}
     implicit none
     class(posteriorSampleConvergenceLikelihoodThreshold), intent(inout) :: self
 
@@ -116,7 +138,9 @@ contains
   end function likelihoodThresholdConvergedAtStep
 
   subroutine likelihoodThresholdReset(self)
-    !% Reset the convergence object.
+    !!{
+    Reset the convergence object.
+    !!}
     implicit none
     class(posteriorSampleConvergenceLikelihoodThreshold), intent(inout) :: self
 
@@ -126,7 +150,9 @@ contains
   end subroutine likelihoodThresholdReset
 
   subroutine likelihoodThresholdLogReport(self,fileUnit)
-    !% Write a convergence report to the given {\normalfont \ttfamily fileUnit}.
+    !!{
+    Write a convergence report to the given {\normalfont \ttfamily fileUnit}.
+    !!}
     implicit none
     class  (posteriorSampleConvergenceLikelihoodThreshold), intent(inout) :: self
     integer                                               , intent(in   ) :: fileUnit
@@ -140,7 +166,9 @@ contains
   end subroutine likelihoodThresholdLogReport
 
   logical function likelihoodThresholdStateIsOutlier(self,stateIndex)
-    !% Return true if the specified chain is deemed to be an outlier.
+    !!{
+    Return true if the specified chain is deemed to be an outlier.
+    !!}
     implicit none
     class  (posteriorSampleConvergenceLikelihoodThreshold), intent(inout) :: self
     integer                                               , intent(in   ) :: stateIndex

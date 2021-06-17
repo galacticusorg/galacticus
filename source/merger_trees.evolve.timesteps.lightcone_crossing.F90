@@ -17,18 +17,24 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a merger tree evolution timestep class which limits the step to the next lightcone crossing.
+  !!{
+  Contains a merger tree evolution timestep class which limits the step to the next lightcone crossing.
+  !!}
 
   use :: Geometry_Lightcones   , only : geometryLightconeClass
   use :: Merger_Tree_Outputters, only : mergerTreeOutputterClass
 
-  !# <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepLightconeCrossing">
-  !#  <description>  
-  !#   A merger tree evolution timestepping class which limits the step to the next lightcone crossing.
-  !#  </description>
-  !# </mergerTreeEvolveTimestep>
+  !![
+  <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepLightconeCrossing">
+   <description>  
+    A merger tree evolution timestepping class which limits the step to the next lightcone crossing.
+   </description>
+  </mergerTreeEvolveTimestep>
+  !!]
   type, extends(mergerTreeEvolveTimestepClass) :: mergerTreeEvolveTimestepLightconeCrossing
-     !% Implementation of a merger tree evolution timestep class which limits the step to the next lightcone crossing.
+     !!{
+     Implementation of a merger tree evolution timestep class which limits the step to the next lightcone crossing.
+     !!}
      private
      class           (geometryLightconeClass  ), pointer :: geometryLightcone_   => null()
      class           (mergerTreeOutputterClass), pointer :: mergerTreeOutputter_ => null()
@@ -39,7 +45,9 @@
   end type mergerTreeEvolveTimestepLightconeCrossing
 
   interface mergerTreeEvolveTimestepLightconeCrossing
-     !% Constructors for the {\normalfont \ttfamily lightconeCrossing} merger tree evolution timestep class.
+     !!{
+     Constructors for the {\normalfont \ttfamily lightconeCrossing} merger tree evolution timestep class.
+     !!}
      module procedure lightconeCrossingConstructorParameters
      module procedure lightconeCrossingConstructorInternal
   end interface mergerTreeEvolveTimestepLightconeCrossing
@@ -47,7 +55,9 @@
 contains
   
   function lightconeCrossingConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily lightconeCrossing} merger tree evolution timestep class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily lightconeCrossing} merger tree evolution timestep class which takes a parameter set as input.
+    !!}
     use :: Cosmology_Functions, only : cosmologyFunctionsClass
     use :: Input_Parameters   , only : inputParameter         , inputParameters
     implicit none
@@ -58,45 +68,59 @@ contains
     class           (cosmologyFunctionsClass                  ), pointer       :: cosmologyFunctions_
     double precision                                                           :: redshiftMaximum
     
-    !# <inputParameter>
-    !#   <name>redshiftMaximum</name>
-    !#   <description>The maximum redshift at which to limit timesteps to the next lightcone crossing.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
-    !# <objectBuilder class="geometryLightcone"   name="geometryLightcone_"   source="parameters"/>
-    !# <objectBuilder class="mergerTreeOutputter" name="mergerTreeOutputter_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>redshiftMaximum</name>
+      <description>The maximum redshift at which to limit timesteps to the next lightcone crossing.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    <objectBuilder class="geometryLightcone"   name="geometryLightcone_"   source="parameters"/>
+    <objectBuilder class="mergerTreeOutputter" name="mergerTreeOutputter_" source="parameters"/>
+    !!]
     self=mergerTreeEvolveTimestepLightconeCrossing(cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftMaximum)),geometryLightcone_,mergerTreeOutputter_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"/>
-    !# <objectDestructor name="geometryLightcone_" />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"/>
+    <objectDestructor name="geometryLightcone_" />
+    !!]
     return
   end function lightconeCrossingConstructorParameters
 
   function lightconeCrossingConstructorInternal(timeMinimum,geometryLightcone_,mergerTreeOutputter_) result(self)
-    !% Constructor for the {\normalfont \ttfamily lightconeCrossing} merger tree evolution timestep class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily lightconeCrossing} merger tree evolution timestep class which takes a parameter set as input.
+    !!}
     implicit none
     type            (mergerTreeEvolveTimestepLightconeCrossing)                        :: self
     class           (geometryLightconeClass                   ), intent(in   ), target :: geometryLightcone_
     class           (mergerTreeOutputterClass                 ), intent(in   ), target :: mergerTreeOutputter_
     double precision                                           , intent(in   )         :: timeMinimum
-    !# <constructorAssign variables="timeMinimum, *geometryLightcone_, *mergerTreeOutputter_"/>
+    !![
+    <constructorAssign variables="timeMinimum, *geometryLightcone_, *mergerTreeOutputter_"/>
+    !!]
   
     return
   end function lightconeCrossingConstructorInternal
 
   subroutine lightconeCrossingDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily lightconeCrossing} erger tree evolution timestep class.
+    !!{
+    Destructor for the {\normalfont \ttfamily lightconeCrossing} erger tree evolution timestep class.
+    !!}
     implicit none
     type(mergerTreeEvolveTimestepLightconeCrossing), intent(inout) :: self
 
-    !# <objectDestructor name="self%geometryLightcone_"  />
-    !# <objectDestructor name="self%mergerTreeOutputter_"/>
+    !![
+    <objectDestructor name="self%geometryLightcone_"  />
+    <objectDestructor name="self%mergerTreeOutputter_"/>
+    !!]
     return
   end subroutine lightconeCrossingDestructor
 
   double precision function lightconeCrossingTimeEvolveTo(self,timeEnd,node,task,taskSelf,report,lockNode,lockType)
-    !% Determine a suitable timestep for {\normalfont \ttfamily node} such that it does not exceed the time of the next lightconeCrossing merger.
+    !!{
+    Determine a suitable timestep for {\normalfont \ttfamily node} such that it does not exceed the time of the next lightconeCrossing merger.
+    !!}
     use :: Evolve_To_Time_Reports, only : Evolve_To_Time_Report
     use :: Galacticus_Nodes      , only : nodeComponentPosition, nodeComponentBasic
     implicit none
@@ -155,7 +179,9 @@ contains
   end function lightconeCrossingTimeEvolveTo
   
   subroutine lightconeCrossingProcess(self,tree,node,deadlockStatus)
-    !% Process a lightconeCrossing node which has undergone a merger with its host node.
+    !!{
+    Process a lightconeCrossing node which has undergone a merger with its host node.
+    !!}
     use :: Galacticus_Error                   , only : Galacticus_Error_Report
     use :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsNotDeadlocked
     use mpi_utilities

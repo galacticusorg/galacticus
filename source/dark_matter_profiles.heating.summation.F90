@@ -17,14 +17,18 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% A dark matter halo profile heating class which sums over other heat sources.
+  !!{
+  A dark matter halo profile heating class which sums over other heat sources.
+  !!}
 
-  !# <darkMatterProfileHeating name="darkMatterProfileHeatingSummation">
-  !#  <description>A dark matter profile heating model which sums over other heat sources.</description>
-  !#  <deepCopy>
-  !#   <linkedList type="heatSourceList" variable="heatSources" next="next" object="heatSource" objectType="darkMatterProfileHeatingClass"/>
-  !#  </deepCopy>
-  !# </darkMatterProfileHeating>
+  !![
+  <darkMatterProfileHeating name="darkMatterProfileHeatingSummation">
+   <description>A dark matter profile heating model which sums over other heat sources.</description>
+   <deepCopy>
+    <linkedList type="heatSourceList" variable="heatSources" next="next" object="heatSource" objectType="darkMatterProfileHeatingClass"/>
+   </deepCopy>
+  </darkMatterProfileHeating>
+  !!]
 
   type, public :: heatSourceList
      class(darkMatterProfileHeatingClass), pointer :: heatSource
@@ -32,7 +36,9 @@
   end type heatSourceList
 
   type, extends(darkMatterProfileHeatingClass) :: darkMatterProfileHeatingSummation
-     !% A dark matter profile heating class which sums over other heat sources.
+     !!{
+     A dark matter profile heating class which sums over other heat sources.
+     !!}
      private
      type(heatSourceList), pointer :: heatSources => null()
    contains
@@ -43,7 +49,9 @@
   end type darkMatterProfileHeatingSummation
 
   interface darkMatterProfileHeatingSummation
-     !% Constructors for the {\normalfont \ttfamily summation} dark matter profile heating class.
+     !!{
+     Constructors for the {\normalfont \ttfamily summation} dark matter profile heating class.
+     !!}
      module procedure summationConstructorParameters
      module procedure summationConstructorInternal
   end interface darkMatterProfileHeatingSummation
@@ -51,7 +59,9 @@
 contains
 
   function summationConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily summation} dark matter profile heating class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily summation} dark matter profile heating class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (darkMatterProfileHeatingSummation), target        :: self
@@ -68,13 +78,17 @@ contains
           allocate(self%heatSources)
           heatSource => self%heatSources
        end if
-       !# <objectBuilder class="darkMatterProfileHeating" name="heatSource%heatSource" source="parameters" copy="i" />
+       !![
+       <objectBuilder class="darkMatterProfileHeating" name="heatSource%heatSource" source="parameters" copy="i" />
+       !!]
     end do
     return
   end function summationConstructorParameters
 
   function summationConstructorInternal(heatSources) result(self)
-    !% Internal constructor for the ``summation'' dark matter profile heating class.
+    !!{
+    Internal constructor for the ``summation'' dark matter profile heating class.
+    !!}
     implicit none
     type(darkMatterProfileHeatingSummation)                        :: self
     type(heatSourceList                   ), target, intent(in   ) :: heatSources
@@ -83,14 +97,18 @@ contains
     self       %heatSources => heatSources
     heatSource_             => heatSources
     do while (associated(heatSource_))
-       !# <referenceCountIncrement owner="heatSource_" object="heatSource"/>
+       !![
+       <referenceCountIncrement owner="heatSource_" object="heatSource"/>
+       !!]
        heatSource_ => heatSource_%next
     end do
     return
   end function summationConstructorInternal
 
   subroutine summationDestructor(self)
-    !% Destructor for the ``summation'' dark matter profile heating class.
+    !!{
+    Destructor for the ``summation'' dark matter profile heating class.
+    !!}
     implicit none
     type(darkMatterProfileHeatingSummation), intent(inout) :: self
     type(heatSourceList                   ), pointer       :: heatSource, heatSourceNext
@@ -98,7 +116,9 @@ contains
     heatSource => self%heatSources
     do while (associated(heatSource))
        heatSourceNext => heatSource    %next
-       !# <objectDestructor name="heatSource%heatSource"/>
+       !![
+       <objectDestructor name="heatSource%heatSource"/>
+       !!]
        deallocate(heatSource)
        heatSource => heatSourceNext
     end do
@@ -106,7 +126,9 @@ contains
   end subroutine summationDestructor
 
   double precision function summationSpecificEnergy(self,node,darkMatterProfileDMO_,radius)
-    !% Returns the specific energy of heating in the given {\normalfont \ttfamily node}.
+    !!{
+    Returns the specific energy of heating in the given {\normalfont \ttfamily node}.
+    !!}
     implicit none
     class           (darkMatterProfileHeatingSummation), intent(inout) :: self
     type            (treeNode                         ), intent(inout) :: node
@@ -129,7 +151,9 @@ contains
   end function summationSpecificEnergy
 
   double precision function summationSpecificEnergyGradient(self,node,darkMatterProfileDMO_,radius)
-    !% Returns the gradient of the specific energy of heating in the given {\normalfont \ttfamily node}.
+    !!{
+    Returns the gradient of the specific energy of heating in the given {\normalfont \ttfamily node}.
+    !!}
     implicit none
     class           (darkMatterProfileHeatingSummation), intent(inout) :: self
     type            (treeNode                         ), intent(inout) :: node
@@ -152,7 +176,9 @@ contains
   end function summationSpecificEnergyGradient
 
   logical function summationSpecificEnergyIsEverywhereZero(self,node,darkMatterProfileDMO_)
-    !% Returns true if the specific energy is everywhere zero in the given {\normalfont \ttfamily node}.
+    !!{
+    Returns true if the specific energy is everywhere zero in the given {\normalfont \ttfamily node}.
+    !!}
     implicit none
     class(darkMatterProfileHeatingSummation), intent(inout) :: self
     type (treeNode                         ), intent(inout) :: node

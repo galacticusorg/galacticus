@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements a merger tree operator which prunes branches to end at a fixed time.
+  !!{
+  Contains a module which implements a merger tree operator which prunes branches to end at a fixed time.
+  !!}
 
-  !# <mergerTreeOperator name="mergerTreeOperatorPruneByTime">
-  !#  <description>Provides a merger tree operator which prunes branches to end at a fixed time.</description>
-  !# </mergerTreeOperator>
+  !![
+  <mergerTreeOperator name="mergerTreeOperatorPruneByTime">
+   <description>Provides a merger tree operator which prunes branches to end at a fixed time.</description>
+  </mergerTreeOperator>
+  !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorPruneByTime
-     !% A merger tree operator class which prunes branches to end at a fixed time.
+     !!{
+     A merger tree operator class which prunes branches to end at a fixed time.
+     !!}
      private
      double precision :: massMinimum , massMaximum, &
           &              timeEarliest
@@ -32,7 +38,9 @@
   end type mergerTreeOperatorPruneByTime
 
   interface mergerTreeOperatorPruneByTime
-     !% Constructors for the prune-by-time merger tree operator class.
+     !!{
+     Constructors for the prune-by-time merger tree operator class.
+     !!}
      module procedure pruneByTimeConstructorParameters
      module procedure pruneByTimeConstructorInternal
   end interface mergerTreeOperatorPruneByTime
@@ -40,48 +48,56 @@
 contains
 
   function pruneByTimeConstructorParameters(parameters)
-    !% Constructor for the prune-by-time merger tree operator class which takes a parameter set as input.
+    !!{
+    Constructor for the prune-by-time merger tree operator class which takes a parameter set as input.
+    !!}
     use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
     implicit none
     type (mergerTreeOperatorPruneByTime)                :: pruneByTimeConstructorParameters
     type (inputParameters              ), intent(inout) :: parameters
     class(cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
 
-    !# <inputParameter>
-    !#   <name>redshiftEarliest</name>
-    !#   <source>parameters</source>
-    !#   <variable>pruneByTimeConstructorParameters%timeEarliest</variable>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>Redshift at which to truncate merger tree branches.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massMinimum</name>
-    !#   <source>parameters</source>
-    !#   <variable>pruneByTimeConstructorParameters%massMinimum</variable>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>Minimum mass for which to consider merger tree branches for truncation.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massMaximum</name>
-    !#   <source>parameters</source>
-    !#   <variable>pruneByTimeConstructorParameters%massMaximum</variable>
-    !#   <defaultValue>huge(0.0d0)</defaultValue>
-    !#   <description>Maximum mass for which to consider merger tree branches for truncation.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>redshiftEarliest</name>
+      <source>parameters</source>
+      <variable>pruneByTimeConstructorParameters%timeEarliest</variable>
+      <defaultValue>0.0d0</defaultValue>
+      <description>Redshift at which to truncate merger tree branches.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>massMinimum</name>
+      <source>parameters</source>
+      <variable>pruneByTimeConstructorParameters%massMinimum</variable>
+      <defaultValue>0.0d0</defaultValue>
+      <description>Minimum mass for which to consider merger tree branches for truncation.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>massMaximum</name>
+      <source>parameters</source>
+      <variable>pruneByTimeConstructorParameters%massMaximum</variable>
+      <defaultValue>huge(0.0d0)</defaultValue>
+      <description>Maximum mass for which to consider merger tree branches for truncation.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !!]
     pruneByTimeConstructorParameters%timeEarliest             &
          & =cosmologyFunctions_ %cosmicTime(                  &
          &   cosmologyFunctions_%expansionFactorFromRedshift( &
          &    pruneByTimeConstructorParameters%timeEarliest   &
          &                                                  ) &
          &                                 )
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"/>
+    !!]
     return
   end function pruneByTimeConstructorParameters
 
   function pruneByTimeConstructorInternal(timeEarliest,massMinimum,massMaximum)
-    !% Internal constructor for the prune-by-time merger tree operator class.
+    !!{
+    Internal constructor for the prune-by-time merger tree operator class.
+    !!}
     implicit none
     type            (mergerTreeOperatorPruneByTime)                :: pruneByTimeConstructorInternal
     double precision                               , intent(in   ) :: massMinimum                   , massMaximum, &
@@ -94,7 +110,9 @@ contains
   end function pruneByTimeConstructorInternal
 
   subroutine pruneByTimeOperatePreEvolution(self,tree)
-    !% Perform a prune-by-time operation on a merger tree.
+    !!{
+    Perform a prune-by-time operation on a merger tree.
+    !!}
     use :: Galacticus_Nodes              , only : mergerTree                    , nodeComponentBasic, treeNode
     use :: Merger_Tree_Walkers           , only : mergerTreeWalkerIsolatedNodes
     use :: Merger_Trees_Pruning_Utilities, only : Merger_Tree_Prune_Clean_Branch

@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program which tests dark matter profiles.
+!!{
+Contains a program which tests dark matter profiles.
+!!}
 
 program Test_Dark_Matter_Profiles
-  !% Tests dark matter profiles.
+  !!{
+  Tests dark matter profiles.
+  !!}
   use :: Cosmology_Parameters        , only : cosmologyParametersSimple
   use :: Cosmology_Functions         , only : cosmologyFunctionsMatterLambda
   use :: Dark_Matter_Halo_Scales     , only : darkMatterHaloScaleVirialDensityContrastDefinition
@@ -79,41 +83,43 @@ program Test_Dark_Matter_Profiles
   allocate(darkMatterProfileDMONFW_    )
   allocate(darkMatterProfileDMONFWSeriesExpansion_  )
   allocate(darkMatterProfileDMOFiniteResolution_    )
-  !# <referenceConstruct object="cosmologyParameters_"        >
-  !#  <constructor>
-  !#   cosmologyParametersSimple                                     (                                               &amp;
-  !#    &amp;                                                         OmegaMatter           = 0.2815d0             , &amp;
-  !#    &amp;                                                         OmegaBaryon           = 0.0465d0             , &amp;
-  !#    &amp;                                                         OmegaDarkEnergy       = 0.7185d0             , &amp;
-  !#    &amp;                                                         temperatureCMB        = 2.7800d0             , &amp;
-  !#    &amp;                                                         HubbleConstant        =69.3000d0               &amp;
-  !#    &amp;                                                        )
-  !#  </constructor>
-  !# </referenceConstruct>
-  !# <referenceConstruct object="cosmologyFunctions_"         >
-  !#  <constructor>
-  !#   cosmologyFunctionsMatterLambda                                (                                               &amp;
-  !#    &amp;                                                         cosmologyParameters_  =cosmologyParameters_    &amp;
-  !#    &amp;                                                        )
-  !#  </constructor>
-  !# </referenceConstruct>
-  !# <referenceConstruct object="virialDensityContrast_"      >
-  !#  <constructor>
-  !#   virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(                                               &amp;
-  !#    &amp;                                                         tableStore            =.true.                , &amp;
-  !#    &amp;                                                         cosmologyFunctions_   =cosmologyFunctions_     &amp;
-  !#    &amp;                                                        )
-  !#  </constructor>
-  !# </referenceConstruct>
-  !# <referenceConstruct object="darkMatterHaloScale_"        >
-  !#  <constructor>
-  !#   darkMatterHaloScaleVirialDensityContrastDefinition            (                                               &amp;
-  !#    &amp;                                                         cosmologyParameters_  =cosmologyParameters_  , &amp;
-  !#    &amp;                                                         cosmologyFunctions_   =cosmologyFunctions_   , &amp;
-  !#    &amp;                                                         virialDensityContrast_=virialDensityContrast_  &amp;
-  !#    &amp;                                                        )
-  !#  </constructor>
-  !# </referenceConstruct>
+  !![
+  <referenceConstruct object="cosmologyParameters_"        >
+   <constructor>
+    cosmologyParametersSimple                                     (                                               &amp;
+     &amp;                                                         OmegaMatter           = 0.2815d0             , &amp;
+     &amp;                                                         OmegaBaryon           = 0.0465d0             , &amp;
+     &amp;                                                         OmegaDarkEnergy       = 0.7185d0             , &amp;
+     &amp;                                                         temperatureCMB        = 2.7800d0             , &amp;
+     &amp;                                                         HubbleConstant        =69.3000d0               &amp;
+     &amp;                                                        )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="cosmologyFunctions_"         >
+   <constructor>
+    cosmologyFunctionsMatterLambda                                (                                               &amp;
+     &amp;                                                         cosmologyParameters_  =cosmologyParameters_    &amp;
+     &amp;                                                        )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="virialDensityContrast_"      >
+   <constructor>
+    virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(                                               &amp;
+     &amp;                                                         tableStore            =.true.                , &amp;
+     &amp;                                                         cosmologyFunctions_   =cosmologyFunctions_     &amp;
+     &amp;                                                        )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="darkMatterHaloScale_"        >
+   <constructor>
+    darkMatterHaloScaleVirialDensityContrastDefinition            (                                               &amp;
+     &amp;                                                         cosmologyParameters_  =cosmologyParameters_  , &amp;
+     &amp;                                                         cosmologyFunctions_   =cosmologyFunctions_   , &amp;
+     &amp;                                                         virialDensityContrast_=virialDensityContrast_  &amp;
+     &amp;                                                        )
+   </constructor>
+  </referenceConstruct>
+  !!]
   ! Create a node.
   node      => treeNode                  (                 )
   ! Create components.
@@ -127,42 +133,44 @@ program Test_Dark_Matter_Profiles
        &      /concentration
   call dmProfile%scaleSet(radiusScale)
   ! Build dark matter profiles.
-  !# <referenceConstruct object="darkMatterProfileDMOBurkert_"           >
-  !#  <constructor>
-  !#   darkMatterProfileDMOBurkert         (                                                                  &amp;
-  !#    &amp;                               darkMatterHaloScale_                =darkMatterHaloScale_         &amp;
-  !#    &amp;                              )
-  !#  </constructor>
-  !# </referenceConstruct>
-  !# <referenceConstruct object="darkMatterProfileDMONFW_"               >
-  !#  <constructor>
-  !#   darkMatterProfileDMONFW             (                                                                  &amp;
-  !#    &amp;                               velocityDispersionUseSeriesExpansion=.false.                    , &amp;
-  !#    &amp;                               darkMatterHaloScale_                =darkMatterHaloScale_         &amp;
-  !#    &amp;                              )
-  !#  </constructor>
-  !# </referenceConstruct>
-  !# <referenceConstruct object="darkMatterProfileDMONFWSeriesExpansion_">
-  !#  <constructor>
-  !#   darkMatterProfileDMONFW             (                                                                  &amp;
-  !#    &amp;                               velocityDispersionUseSeriesExpansion=.true.                     , &amp;
-  !#    &amp;                               darkMatterHaloScale_                =darkMatterHaloScale_         &amp;
-  !#    &amp;                              )
-  !#  </constructor>
-  !# </referenceConstruct>  
-  !# <referenceConstruct object="darkMatterProfileDMOFiniteResolution_"  >
-  !#  <constructor>
-  !#   darkMatterProfileDMOFiniteResolution(                                                                  &amp;
-  !#    &amp;                               lengthResolution                    =0.5d0*radiusScale          , &amp;
-  !#    &amp;                               massResolution                      =0.0d0                      , &amp;
-  !#    &amp;                               resolutionIsComoving                =.false.                    , &amp;
-  !#    &amp;                               nonAnalyticSolver                   =nonAnalyticSolversNumerical, &amp;
-  !#    &amp;                               darkMatterProfileDMO_               =darkMatterProfileDMONFW_   , &amp;
-  !#    &amp;                               darkMatterHaloScale_                =darkMatterHaloScale_       , &amp;
-  !#    &amp;                               cosmologyFunctions_                 =cosmologyFunctions_          &amp;
-  !#    &amp;                              )
-  !#  </constructor>
-  !# </referenceConstruct>
+  !![
+  <referenceConstruct object="darkMatterProfileDMOBurkert_"           >
+   <constructor>
+    darkMatterProfileDMOBurkert         (                                                                  &amp;
+     &amp;                               darkMatterHaloScale_                =darkMatterHaloScale_         &amp;
+     &amp;                              )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="darkMatterProfileDMONFW_"               >
+   <constructor>
+    darkMatterProfileDMONFW             (                                                                  &amp;
+     &amp;                               velocityDispersionUseSeriesExpansion=.false.                    , &amp;
+     &amp;                               darkMatterHaloScale_                =darkMatterHaloScale_         &amp;
+     &amp;                              )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="darkMatterProfileDMONFWSeriesExpansion_">
+   <constructor>
+    darkMatterProfileDMONFW             (                                                                  &amp;
+     &amp;                               velocityDispersionUseSeriesExpansion=.true.                     , &amp;
+     &amp;                               darkMatterHaloScale_                =darkMatterHaloScale_         &amp;
+     &amp;                              )
+   </constructor>
+  </referenceConstruct>  
+  <referenceConstruct object="darkMatterProfileDMOFiniteResolution_"  >
+   <constructor>
+    darkMatterProfileDMOFiniteResolution(                                                                  &amp;
+     &amp;                               lengthResolution                    =0.5d0*radiusScale          , &amp;
+     &amp;                               massResolution                      =0.0d0                      , &amp;
+     &amp;                               resolutionIsComoving                =.false.                    , &amp;
+     &amp;                               nonAnalyticSolver                   =nonAnalyticSolversNumerical, &amp;
+     &amp;                               darkMatterProfileDMO_               =darkMatterProfileDMONFW_   , &amp;
+     &amp;                               darkMatterHaloScale_                =darkMatterHaloScale_       , &amp;
+     &amp;                               cosmologyFunctions_                 =cosmologyFunctions_          &amp;
+     &amp;                              )
+   </constructor>
+  </referenceConstruct>
+  !!]
   ! Begin unit tests.
   call Unit_Tests_Begin_Group('Dark matter profiles')
   ! Test Burkert profile.
@@ -338,12 +346,14 @@ program Test_Dark_Matter_Profiles
   call Node_Components_Uninitialize       ()
   call nodeClassHierarchyFinalize         ()
   ! Clean up objects.
-  !# <objectDestructor name="cosmologyParameters_"                   />
-  !# <objectDestructor name="cosmologyFunctions_"                    />
-  !# <objectDestructor name="virialDensityContrast_"                 />
-  !# <objectDestructor name="darkMatterHaloScale_"                   />
-  !# <objectDestructor name="darkMatterProfileDMOBurkert_"           />
-  !# <objectDestructor name="darkMatterProfileDMONFW_"               />
-  !# <objectDestructor name="darkMatterProfileDMONFWSeriesExpansion_"/>
-  !# <objectDestructor name="darkMatterProfileDMOFiniteResolution_"  />
+  !![
+  <objectDestructor name="cosmologyParameters_"                   />
+  <objectDestructor name="cosmologyFunctions_"                    />
+  <objectDestructor name="virialDensityContrast_"                 />
+  <objectDestructor name="darkMatterHaloScale_"                   />
+  <objectDestructor name="darkMatterProfileDMOBurkert_"           />
+  <objectDestructor name="darkMatterProfileDMONFW_"               />
+  <objectDestructor name="darkMatterProfileDMONFWSeriesExpansion_"/>
+  <objectDestructor name="darkMatterProfileDMOFiniteResolution_"  />
+  !!]
 end program Test_Dark_Matter_Profiles

@@ -17,21 +17,27 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Implements a stellar population spectra class which utilizes the FSPS package \citep{conroy_propagation_2009}.
+!!{
+Implements a stellar population spectra class which utilizes the FSPS package \citep{conroy_propagation_2009}.
+!!}
 
   use :: Stellar_Populations_Initial_Mass_Functions, only : initialMassFunction, initialMassFunctionClass
 
-  !# <stellarPopulationSpectra name="stellarPopulationSpectraFSPS">
-  !#  <description>
-  !#   A stellar population spectra class utilizing the FSPS package \citep{conroy_propagation_2009}. If necessary, the
-  !#   \href{https://github.com/cconroy20/fsps}{\normalfont \ttfamily FSPS} code will be downloaded, patched and compiled and run
-  !#   to generate spectra. These tabulations are then stored to file for later re-use. The file name used is {\normalfont
-  !#   \ttfamily datasets/dynamic/stellarPopulations/simpleStellarPopulationsFSPS:v2.5\_$&lt;$descriptor$&gt;$.hdf5} where
-  !#   $&lt;${\normalfont \ttfamily descriptor}$&gt;$ is an MD5 hash descriptor of the selected stellar population.
-  !#  </description>
-  !# </stellarPopulationSpectra>
+  !![
+  <stellarPopulationSpectra name="stellarPopulationSpectraFSPS">
+   <description>
+    A stellar population spectra class utilizing the FSPS package \citep{conroy_propagation_2009}. If necessary, the
+    \href{https://github.com/cconroy20/fsps}{\normalfont \ttfamily FSPS} code will be downloaded, patched and compiled and run
+    to generate spectra. These tabulations are then stored to file for later re-use. The file name used is {\normalfont
+    \ttfamily datasets/dynamic/stellarPopulations/simpleStellarPopulationsFSPS:v2.5\_$&lt;$descriptor$&gt;$.hdf5} where
+    $&lt;${\normalfont \ttfamily descriptor}$&gt;$ is an MD5 hash descriptor of the selected stellar population.
+   </description>
+  </stellarPopulationSpectra>
+  !!]
   type, extends(stellarPopulationSpectraFile) :: stellarPopulationSpectraFSPS
-     !% A stellar population spectra class which utilizes the FSPS package \citep{conroy_propagation_2009}.
+     !!{
+     A stellar population spectra class which utilizes the FSPS package \citep{conroy_propagation_2009}.
+     !!}
      private
      class(initialMassFunctionClass), pointer :: initialMassFunction_ => null()
    contains
@@ -40,7 +46,9 @@
   end type stellarPopulationSpectraFSPS
 
   interface stellarPopulationSpectraFSPS
-     !% Constructors for the FSPS stellar spectra class.
+     !!{
+     Constructors for the FSPS stellar spectra class.
+     !!}
      module procedure fspsConstructorParameters
      module procedure fspsConstructorInternal
   end interface stellarPopulationSpectraFSPS
@@ -48,50 +56,66 @@
 contains
 
   function fspsConstructorParameters(parameters) result(self)
-    !% Constructor for the FSPS stellar spectra class which takes a parameter set as input.
+    !!{
+    Constructor for the FSPS stellar spectra class which takes a parameter set as input.
+    !!}
     implicit none
     type   (stellarPopulationSpectraFSPS)                :: self
     type   (inputParameters             ), intent(inout) :: parameters
     class  (initialMassFunctionClass    ), pointer       :: initialMassFunction_
     logical                                              :: forceZeroMetallicity
 
-    !# <inputParameter>
-    !#   <name>forceZeroMetallicity</name>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <source>parameters</source>
-    !#   <description>Force the use of zero metallicity (or lowest metallicity available) for all stellar populations.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="initialMassFunction" name="initialMassFunction_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>forceZeroMetallicity</name>
+      <defaultValue>.false.</defaultValue>
+      <source>parameters</source>
+      <description>Force the use of zero metallicity (or lowest metallicity available) for all stellar populations.</description>
+    </inputParameter>
+    <objectBuilder class="initialMassFunction" name="initialMassFunction_" source="parameters"/>
+    !!]
     self=stellarPopulationSpectraFSPS(forceZeroMetallicity,initialMassFunction_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="initialMassFunction_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="initialMassFunction_"/>
+    !!]
     return
   end function fspsConstructorParameters
 
   function fspsConstructorInternal(forceZeroMetallicity,initialMassFunction_) result(self)
-    !% Internal constructor for the FSPS stellar spectra class.
+    !!{
+    Internal constructor for the FSPS stellar spectra class.
+    !!}
     use :: Galacticus_Paths, only : galacticusPath, pathTypeDataDynamic
     implicit none
     type   (stellarPopulationSpectraFSPS)                        :: self
     logical                              , intent(in   )         :: forceZeroMetallicity
     class  (initialMassFunctionClass    ), intent(in   ), target :: initialMassFunction_
-    !# <constructorAssign variables="forceZeroMetallicity, *initialMassFunction_"/>
+    !![
+    <constructorAssign variables="forceZeroMetallicity, *initialMassFunction_"/>
+    !!]
 
     self%stellarPopulationSpectraFile=stellarPopulationSpectraFile(forceZeroMetallicity,char(galacticusPath(pathTypeDataDynamic)//'stellarPopulations/simpleStellarPopulationsFSPS:v2.5_'//self%hashedDescriptor(includeSourceDigest=.true.)//'.hdf5'))
     return
   end function fspsConstructorInternal
 
   subroutine fspsDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily FSPS} stellar population class.
+    !!{
+    Destructor for the {\normalfont \ttfamily FSPS} stellar population class.
+    !!}
     implicit none
     type(stellarPopulationSpectraFSPS), intent(inout) :: self
 
-    !# <objectDestructor name="self%initialMassFunction_"/>
+    !![
+    <objectDestructor name="self%initialMassFunction_"/>
+    !!]
     return
   end subroutine fspsDestructor
 
   subroutine fspsReadFile(self)
-    !% Ensure that the requested stellar population has been generated.
+    !!{
+    Ensure that the requested stellar population has been generated.
+    !!}
     use :: File_Utilities , only : File_Exists                 , File_Lock     , File_Unlock, lockDescriptor, &
          &                         File_Path                   , Directory_Make
     use :: IO_HDF5        , only : hdf5Access                  , hdf5Object

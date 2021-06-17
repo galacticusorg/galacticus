@@ -17,17 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a node operator class that performs star formation in disks.
+  !!{
+  Implements a node operator class that performs star formation in disks.
+  !!}
 
   use :: Star_Formation_Rates_Disks    , only : starFormationRateDisksClass
   use :: Stellar_Population_Properties , only : stellarPopulationPropertiesClass
   use :: Star_Formation_Histories      , only : starFormationHistoryClass
 
-  !# <nodeOperator name="nodeOperatorStarFormationDisks">
-  !#  <description>A node operator class that performs star formation.</description>
-  !# </nodeOperator>
+  !![
+  <nodeOperator name="nodeOperatorStarFormationDisks">
+   <description>A node operator class that performs star formation.</description>
+  </nodeOperator>
+  !!]
   type, extends(nodeOperatorClass) :: nodeOperatorStarFormationDisks
-     !% A node operator class that shifts node indices at node promotion.
+     !!{
+     A node operator class that shifts node indices at node promotion.
+     !!}
      private
      class           (starFormationRateDisksClass     ), pointer :: starFormationRateDisks_      => null()
      class           (stellarPopulationPropertiesClass), pointer :: stellarPopulationProperties_ => null()
@@ -42,7 +48,9 @@
   end type nodeOperatorStarFormationDisks
   
   interface nodeOperatorStarFormationDisks
-     !% Constructors for the {\normalfont \ttfamily starFormationDisks} node operator class.
+     !!{
+     Constructors for the {\normalfont \ttfamily starFormationDisks} node operator class.
+     !!}
      module procedure starFormationDisksConstructorParameters
      module procedure starFormationDisksConstructorInternal
   end interface nodeOperatorStarFormationDisks
@@ -50,7 +58,9 @@
 contains
 
   function starFormationDisksConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily starFormation} node operator class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily starFormation} node operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type   (nodeOperatorStarFormationDisks  )                :: self
@@ -60,49 +70,63 @@ contains
     class  (starFormationHistoryClass       ), pointer       :: starFormationHistory_
     logical                                                  :: luminositiesStellarInactive
     
-    !# <inputParameter>
-    !#   <name>luminositiesStellarInactive</name>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <source>parameters</source>
-    !#   <description>If true, stellar luminosities will be treated as inactive properties.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="starFormationRateDisks"      name="starFormationRateDisks_"      source="parameters"/>
-    !# <objectBuilder class="stellarPopulationProperties" name="stellarPopulationProperties_" source="parameters"/>
-    !# <objectBuilder class="starFormationHistory"        name="starFormationHistory_"        source="parameters"/>
+    !![
+    <inputParameter>
+      <name>luminositiesStellarInactive</name>
+      <defaultValue>.false.</defaultValue>
+      <source>parameters</source>
+      <description>If true, stellar luminosities will be treated as inactive properties.</description>
+    </inputParameter>
+    <objectBuilder class="starFormationRateDisks"      name="starFormationRateDisks_"      source="parameters"/>
+    <objectBuilder class="stellarPopulationProperties" name="stellarPopulationProperties_" source="parameters"/>
+    <objectBuilder class="starFormationHistory"        name="starFormationHistory_"        source="parameters"/>
+    !!]
     self=nodeOperatorStarFormationDisks(luminositiesStellarInactive,starFormationRateDisks_,stellarPopulationProperties_,starFormationHistory_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="starFormationRateDisks_"     />
-    !# <objectDestructor name="stellarPopulationProperties_"/>
-    !# <objectDestructor name="starFormationHistory_"       />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="starFormationRateDisks_"     />
+    <objectDestructor name="stellarPopulationProperties_"/>
+    <objectDestructor name="starFormationHistory_"       />
+    !!]
     return
   end function starFormationDisksConstructorParameters
 
   function starFormationDisksConstructorInternal(luminositiesStellarInactive,starFormationRateDisks_,stellarPopulationProperties_,starFormationHistory_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily starFormationDisks} node operator class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily starFormationDisks} node operator class.
+    !!}
     implicit none
     type   (nodeOperatorStarFormationDisks  )                        :: self
     class  (starFormationRateDisksClass     ), intent(in   ), target :: starFormationRateDisks_
     class  (stellarPopulationPropertiesClass), intent(in   ), target :: stellarPopulationProperties_
     class(starFormationHistoryClass         ), intent(in   ), target :: starFormationHistory_
     logical                                  , intent(in   )         :: luminositiesStellarInactive
-    !# <constructorAssign variables="luminositiesStellarInactive, *starFormationRateDisks_, *stellarPopulationProperties_, *starFormationHistory_"/>
+    !![
+    <constructorAssign variables="luminositiesStellarInactive, *starFormationRateDisks_, *stellarPopulationProperties_, *starFormationHistory_"/>
+    !!]
 
     return
   end function starFormationDisksConstructorInternal
 
   subroutine starFormationDisksDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily starFormationDisks} node operator class.
+    !!{
+    Destructor for the {\normalfont \ttfamily starFormationDisks} node operator class.
+    !!}
     implicit none
     type(nodeOperatorStarFormationDisks), intent(inout) :: self
 
-    !# <objectDestructor name="self%starFormationRateDisks_"     />
-    !# <objectDestructor name="self%stellarPopulationProperties_"/>
-    !# <objectDestructor name="self%starFormationHistory_"       />
+    !![
+    <objectDestructor name="self%starFormationRateDisks_"     />
+    <objectDestructor name="self%stellarPopulationProperties_"/>
+    <objectDestructor name="self%starFormationHistory_"       />
+    !!]
     return
   end subroutine starFormationDisksDestructor
   
   subroutine starFormationDisksDifferentialEvolutionPre(self,node)
-    !% Initialize the mass transfer fraction.
+    !!{
+    Initialize the mass transfer fraction.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentDisk
     implicit none
     class(nodeOperatorStarFormationDisks), intent(inout) :: self
@@ -123,8 +147,10 @@ contains
   end subroutine starFormationDisksDifferentialEvolutionPre
 
   subroutine starFormationDisksDifferentialEvolutionStepFinalState(self,node)
-    !% Record the final state of the disk at the end of the timestep prior to begin evaluation of integrals for inactive
-    !% properties.
+    !!{
+    Record the final state of the disk at the end of the timestep prior to begin evaluation of integrals for inactive
+    properties.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentDisk
     implicit none
     class(nodeOperatorStarFormationDisks), intent(inout) :: self
@@ -140,7 +166,9 @@ contains
   end subroutine starFormationDisksDifferentialEvolutionStepFinalState
 
   subroutine starFormationDisksDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !% Perform star formation in a disk.
+    !!{
+    Perform star formation in a disk.
+    !!}
     use :: Abundances_Structure          , only : abundances
     use :: Galacticus_Nodes              , only : propertyTypeInactive , propertyTypeActive, propertyTypeAll, nodeComponentDisk, &
          &                                        nodeComponentSpheroid

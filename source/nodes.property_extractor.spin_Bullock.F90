@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a node property extractor class for the \cite{bullock_profiles_2001} definition of spin parameter.
+!!{
+Contains a module which implements a node property extractor class for the \cite{bullock_profiles_2001} definition of spin parameter.
+!!}
 
   use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScale , darkMatterHaloScaleClass
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO, darkMatterProfileDMOClass
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorSpinBullock">
-  !#  <description>A node property extractor class for the \cite{bullock_profiles_2001} definition of spin parameter.</description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorSpinBullock">
+   <description>A node property extractor class for the \cite{bullock_profiles_2001} definition of spin parameter.</description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorSpinBullock
-     !% A property extractor class for the \cite{bullock_profiles_2001} definition of spin parameter..
+     !!{
+     A property extractor class for the \cite{bullock_profiles_2001} definition of spin parameter..
+     !!}
      private
      class  (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_
      class  (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_
@@ -43,7 +49,9 @@
   end type nodePropertyExtractorSpinBullock
 
   interface nodePropertyExtractorSpinBullock
-     !% Constructors for the ``spinBullock'' output analysis class.
+     !!{
+     Constructors for the ``spinBullock'' output analysis class.
+     !!}
      module procedure spinBullockConstructorParameters
      module procedure spinBullockConstructorInternal
   end interface nodePropertyExtractorSpinBullock
@@ -51,7 +59,9 @@
 contains
 
   function spinBullockConstructorParameters(parameters) result(self)
-    !% Constructor for the y output analysis property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the y output analysis property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (nodePropertyExtractorSpinBullock)                :: self
@@ -59,23 +69,31 @@ contains
     class(darkMatterHaloScaleClass        ), pointer       :: darkMatterHaloScale_
     class(darkMatterProfileDMOClass       ), pointer       :: darkMatterProfileDMO_
 
-    !# <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
-    !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    !![
+    <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
+    <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    !!]
     self=nodePropertyExtractorSpinBullock(darkMatterHaloScale_,darkMatterProfileDMO_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterHaloScale_" />
-    !# <objectDestructor name="darkMatterProfileDMO_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterHaloScale_" />
+    <objectDestructor name="darkMatterProfileDMO_"/>
+    !!]
     return
   end function spinBullockConstructorParameters
 
   function spinBullockConstructorInternal(darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily spinBullock} output analysis property extractor class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily spinBullock} output analysis property extractor class.
+    !!}
     use :: Galacticus_Nodes, only : defaultSpinComponent
     implicit none
     type (nodePropertyExtractorSpinBullock)                        :: self
     class(darkMatterHaloScaleClass        ), intent(in   ), target :: darkMatterHaloScale_
     class(darkMatterProfileDMOClass       ), intent(in   ), target :: darkMatterProfileDMO_
-    !# <constructorAssign variables="*darkMatterHaloScale_, *darkMatterProfileDMO_"/>
+    !![
+    <constructorAssign variables="*darkMatterHaloScale_, *darkMatterProfileDMO_"/>
+    !!]
 
     self%vectorSpinAvailable=defaultSpinComponent%spinVectorIsGettable()
     if (self%vectorSpinAvailable) then
@@ -87,17 +105,23 @@ contains
   end function spinBullockConstructorInternal
 
   subroutine spinBullockDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily spinBullock} output analysis property extractor class.
+    !!{
+    Destructor for the {\normalfont \ttfamily spinBullock} output analysis property extractor class.
+    !!}
     implicit none
     type(nodePropertyExtractorSpinBullock), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterHaloScale_" />
-    !# <objectDestructor name="self%darkMatterProfileDMO_"/>
+    !![
+    <objectDestructor name="self%darkMatterHaloScale_" />
+    <objectDestructor name="self%darkMatterProfileDMO_"/>
+    !!]
     return
   end subroutine spinBullockDestructor
 
   integer function spinBullockElementCount(self,time)
-    !% Return the number of elements in the {\normalfont \ttfamily spinBullock} property extractor.
+    !!{
+    Return the number of elements in the {\normalfont \ttfamily spinBullock} property extractor.
+    !!}
     implicit none
     class           (nodePropertyExtractorSpinBullock), intent(inout) :: self
     double precision                                  , intent(in   ) :: time
@@ -108,7 +132,9 @@ contains
   end function spinBullockElementCount
 
   function spinBullockExtract(self,node,time,instance)
-    !% Implement extraction of the spin parameter under the \cite{bullock_profiles_2001} defintiion.
+    !!{
+    Implement extraction of the spin parameter under the \cite{bullock_profiles_2001} defintiion.
+    !!}
     use :: Dark_Matter_Halo_Spins, only : Dark_Matter_Halo_Angular_Momentum
     use :: Galacticus_Nodes      , only : nodeComponentBasic               , nodeComponentSpin, treeNode
     implicit none
@@ -142,7 +168,9 @@ contains
   end function spinBullockExtract
 
   function spinBullockNames(self,time)
-    !% Return the name of the {\normalfont \ttfamily spinBullock} property.
+    !!{
+    Return the name of the {\normalfont \ttfamily spinBullock} property.
+    !!}
     implicit none
     type            (varying_string                  ), dimension(:) , allocatable :: spinBullockNames
     class           (nodePropertyExtractorSpinBullock), intent(inout)              :: self
@@ -157,7 +185,9 @@ contains
   end function spinBullockNames
 
   function spinBullockDescriptions(self,time)
-    !% Return a description of the {\normalfont \ttfamily spinBullock} property.
+    !!{
+    Return a description of the {\normalfont \ttfamily spinBullock} property.
+    !!}
     implicit none
     type            (varying_string                  ), dimension(:) , allocatable :: spinBullockDescriptions
     class           (nodePropertyExtractorSpinBullock), intent(inout)              :: self
@@ -176,7 +206,9 @@ contains
   end function spinBullockDescriptions
 
   function spinBullockUnitsInSI(self,time)
-    !% Return the units of the {\normalfont \ttfamily spinBullock} property in the SI system.
+    !!{
+    Return the units of the {\normalfont \ttfamily spinBullock} property in the SI system.
+    !!}
     implicit none
     double precision                                  , allocatable  , dimension(:) :: spinBullockUnitsInSI
     class           (nodePropertyExtractorSpinBullock), intent(inout)               :: self
@@ -189,7 +221,9 @@ contains
   end function spinBullockUnitsInSI
 
   integer function spinBullockType(self)
-    !% Return the type of the {\normalfont \ttfamily spinBullock} property.
+    !!{
+    Return the type of the {\normalfont \ttfamily spinBullock} property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorSpinBullock), intent(inout) :: self

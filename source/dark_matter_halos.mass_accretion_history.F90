@@ -17,92 +17,98 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides a class for calculations of dark matter halo mass accretion histories.
+!!{
+Contains a module which provides a class for calculations of dark matter halo mass accretion histories.
+!!}
 
 module Dark_Matter_Halo_Mass_Accretion_Histories
-  !% Provides a class for calculations of dark matter halo mass accretion histories.
+  !!{
+  Provides a class for calculations of dark matter halo mass accretion histories.
+  !!}
   use :: Galacticus_Nodes, only : treeNode
   private
 
-  !# <functionClass>
-  !#  <name>darkMatterHaloMassAccretionHistory</name>
-  !#  <descriptiveName>Dark Matter Halo Mass Accretion Histories</descriptiveName>
-  !#  <description>
-  !#   Class providing dark matter halo mass accretion histories.
-  !#  </description>
-  !#  <default>wechsler2002</default>
-  !#  <method name="time">
-  !#   <description>Returns the time at which the given halo mass was reached.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <selfTarget>yes</selfTarget>
-  !#   <argument>type            (treeNode), intent(inout), target :: node</argument>
-  !#   <argument>double precision          , intent(in   )         :: mass</argument>
-  !#   <modules>Root_Finder Galacticus_Nodes</modules>
-  !#   <code>
-  !#    class  (nodeComponentBasic), pointer :: basic
-  !#    type   (rootFinder        ), save    :: finder
-  !#    logical                    , save    :: finderInitialized=.false.
-  !#    !$omp threadprivate(finder,finderInitialized)
-  !#    if (.not.finderInitialized) then
-  !#      finder=  rootFinder(                                                             &amp;
-  !#       &amp;              rootFunction                 =timeRoot                     , &amp;
-  !#       &amp;              toleranceRelative            =1.0d-3                       , &amp;
-  !#       &amp;              rangeExpandDownward          =0.5d+0                       , &amp;
-  !#       &amp;              rangeExpandUpward            =2.0d+0                       , &amp;
-  !#       &amp;              rangeExpandType              =rangeExpandMultiplicative    , &amp;
-  !#       &amp;              rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &amp;
-  !#       &amp;              rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive  &amp;
-  !#       &amp;             )
-  !#      finderInitialized=.true.
-  !#    end if
-  !#    node_                                  => node
-  !#    self_                                  => self
-  !#    mass_                                  =  mass
-  !#    basic                                  => node  %basic(                      )
-  !#    darkMatterHaloMassAccretionHistoryTime =  finder%find (rootGuess=basic%time())
-  !#   </code>
-  !#  </method>
-  !#  <method name="mass">
-  !#   <description>Returns the halo mass at the given halo time.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <selfTarget>yes</selfTarget>
-  !#   <argument>type            (treeNode), intent(inout), target :: node</argument>
-  !#   <argument>double precision          , intent(in   )         :: time</argument>
-  !#   <modules>Root_Finder Galacticus_Nodes</modules>
-  !#   <code>
-  !#    class  (nodeComponentBasic), pointer :: basic
-  !#    type   (rootFinder        ), save    :: finder
-  !#    logical                    , save    :: finderInitialized=.false.
-  !#    !$omp threadprivate(finder,finderInitialized)
-  !#    if (.not.finderInitialized) then
-  !#      finder=  rootFinder(                                                             &amp;
-  !#       &amp;              rootFunction                 =massRoot                     , &amp;
-  !#       &amp;              toleranceRelative            =1.0d-3                       , &amp;
-  !#       &amp;              rangeExpandDownward          =0.5d+0                       , &amp;
-  !#       &amp;              rangeExpandUpward            =2.0d+0                       , &amp;
-  !#       &amp;              rangeExpandType              =rangeExpandMultiplicative    , &amp;
-  !#       &amp;              rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &amp;
-  !#       &amp;              rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive  &amp;
-  !#       &amp;             )
-  !#      finderInitialized=.true.
-  !#    end if
-  !#    node_                                  => node
-  !#    self_                                  => self
-  !#    time_                                  =  time
-  !#    basic                                  => node  %basic(                      )
-  !#    darkMatterHaloMassAccretionHistoryMass =  finder%find (rootGuess=basic%mass())
-  !#   </code>
-  !#  </method>
-  !#  <method name="massAccretionRate">
-  !#   <description>Returns the mass accretion rate at the specified time.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type            (treeNode), intent(inout) :: node</argument>
-  !#   <argument>double precision          , intent(in   ) :: time</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>darkMatterHaloMassAccretionHistory</name>
+   <descriptiveName>Dark Matter Halo Mass Accretion Histories</descriptiveName>
+   <description>
+    Class providing dark matter halo mass accretion histories.
+   </description>
+   <default>wechsler2002</default>
+   <method name="time">
+    <description>Returns the time at which the given halo mass was reached.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
+    <argument>type            (treeNode), intent(inout), target :: node</argument>
+    <argument>double precision          , intent(in   )         :: mass</argument>
+    <modules>Root_Finder Galacticus_Nodes</modules>
+    <code>
+     class  (nodeComponentBasic), pointer :: basic
+     type   (rootFinder        ), save    :: finder
+     logical                    , save    :: finderInitialized=.false.
+     !$omp threadprivate(finder,finderInitialized)
+     if (.not.finderInitialized) then
+       finder=  rootFinder(                                                             &amp;
+        &amp;              rootFunction                 =timeRoot                     , &amp;
+        &amp;              toleranceRelative            =1.0d-3                       , &amp;
+        &amp;              rangeExpandDownward          =0.5d+0                       , &amp;
+        &amp;              rangeExpandUpward            =2.0d+0                       , &amp;
+        &amp;              rangeExpandType              =rangeExpandMultiplicative    , &amp;
+        &amp;              rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &amp;
+        &amp;              rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive  &amp;
+        &amp;             )
+       finderInitialized=.true.
+     end if
+     node_                                  => node
+     self_                                  => self
+     mass_                                  =  mass
+     basic                                  => node  %basic(                      )
+     darkMatterHaloMassAccretionHistoryTime =  finder%find (rootGuess=basic%time())
+    </code>
+   </method>
+   <method name="mass">
+    <description>Returns the halo mass at the given halo time.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
+    <argument>type            (treeNode), intent(inout), target :: node</argument>
+    <argument>double precision          , intent(in   )         :: time</argument>
+    <modules>Root_Finder Galacticus_Nodes</modules>
+    <code>
+     class  (nodeComponentBasic), pointer :: basic
+     type   (rootFinder        ), save    :: finder
+     logical                    , save    :: finderInitialized=.false.
+     !$omp threadprivate(finder,finderInitialized)
+     if (.not.finderInitialized) then
+       finder=  rootFinder(                                                             &amp;
+        &amp;              rootFunction                 =massRoot                     , &amp;
+        &amp;              toleranceRelative            =1.0d-3                       , &amp;
+        &amp;              rangeExpandDownward          =0.5d+0                       , &amp;
+        &amp;              rangeExpandUpward            =2.0d+0                       , &amp;
+        &amp;              rangeExpandType              =rangeExpandMultiplicative    , &amp;
+        &amp;              rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &amp;
+        &amp;              rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive  &amp;
+        &amp;             )
+       finderInitialized=.true.
+     end if
+     node_                                  => node
+     self_                                  => self
+     time_                                  =  time
+     basic                                  => node  %basic(                      )
+     darkMatterHaloMassAccretionHistoryMass =  finder%find (rootGuess=basic%mass())
+    </code>
+   </method>
+   <method name="massAccretionRate">
+    <description>Returns the mass accretion rate at the specified time.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>type            (treeNode), intent(inout) :: node</argument>
+    <argument>double precision          , intent(in   ) :: time</argument>
+   </method>
+  </functionClass>
+  !!]
 
   ! Module-scope variables used in root-finding.
   class           (darkMatterHaloMassAccretionHistoryClass), pointer :: self_
@@ -113,7 +119,9 @@ module Dark_Matter_Halo_Mass_Accretion_Histories
 contains
 
   double precision function timeRoot(time)
-    !% Root function used for solving for the time at a given mass.
+    !!{
+    Root function used for solving for the time at a given mass.
+    !!}
     implicit none
     double precision, intent(in   ) :: time
 
@@ -122,7 +130,9 @@ contains
   end function timeRoot
   
   double precision function massRoot(mass)
-    !% Root function used for solving for the mass at a given time.
+    !!{
+    Root function used for solving for the mass at a given time.
+    !!}
     implicit none
     double precision, intent(in   ) :: mass
 

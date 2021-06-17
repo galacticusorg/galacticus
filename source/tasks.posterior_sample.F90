@@ -19,11 +19,15 @@
 
   use :: Posterior_Sampling_Simulation, only : posteriorSampleSimulation, posteriorSampleSimulationClass
 
-  !# <task name="taskPosteriorSample">
-  !#  <description>A task which performs sampling from a posterior distribution.</description>
-  !# </task>
+  !![
+  <task name="taskPosteriorSample">
+   <description>A task which performs sampling from a posterior distribution.</description>
+  </task>
+  !!]
   type, extends(taskClass) :: taskPosteriorSample
-     !% Implementation of a task which performs sampling from a posterior distribution.
+     !!{
+     Implementation of a task which performs sampling from a posterior distribution.
+     !!}
      private
      class  (posteriorSampleSimulationClass), pointer :: posteriorSampleSimulation_    => null()
      logical                                          :: nodeClassHierarchyInitialized =  .false.
@@ -33,7 +37,9 @@
   end type taskPosteriorSample
 
   interface taskPosteriorSample
-     !% Constructors for the {\normalfont \ttfamily posteriorSample} task.
+     !!{
+     Constructors for the {\normalfont \ttfamily posteriorSample} task.
+     !!}
      module procedure posteriorSampleConstructorParameters
      module procedure posteriorSampleConstructorInternal
   end interface taskPosteriorSample
@@ -41,7 +47,9 @@
 contains
 
   function posteriorSampleConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily posteriorSample} task class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily posteriorSample} task class which takes a parameter set as input.
+    !!}
     use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize
     use :: Input_Parameters, only : inputParameter              , inputParameters
     use :: Node_Components , only : Node_Components_Initialize  , Node_Components_Thread_Initialize
@@ -52,12 +60,14 @@ contains
     type   (inputParameters               ), pointer       :: parametersRoot
     logical                                                :: initializeNodeClassHierarchy
 
-    !# <inputParameter>
-    !#   <name>initializeNodeClassHierarchy</name>
-    !#   <description>If true then initialize the node class hierarchy in the posterior sampling class. This should be set to false if the likelihood function will instead perform this action.</description>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>initializeNodeClassHierarchy</name>
+      <description>If true then initialize the node class hierarchy in the posterior sampling class. This should be set to false if the likelihood function will instead perform this action.</description>
+      <defaultValue>.true.</defaultValue>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     if (initializeNodeClassHierarchy) then
        if (associated(parameters%parent)) then
           parametersRoot => parameters%parent
@@ -71,31 +81,43 @@ contains
        call Node_Components_Initialize       (parametersRoot)
        call Node_Components_Thread_Initialize(parametersRoot)
     end if
-    !# <objectBuilder class="posteriorSampleSimulation" name="posteriorSampleSimulation_" source="parameters"/>
+    !![
+    <objectBuilder class="posteriorSampleSimulation" name="posteriorSampleSimulation_" source="parameters"/>
+    !!]
     self=taskPosteriorSample(posteriorSampleSimulation_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="posteriorSampleSimulation_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="posteriorSampleSimulation_"/>
+    !!]
     if (initializeNodeClassHierarchy) self%nodeClassHierarchyInitialized=.true.
     return
   end function posteriorSampleConstructorParameters
 
   function posteriorSampleConstructorInternal(posteriorSampleSimulation_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily posteriorSample} task class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily posteriorSample} task class.
+    !!}
     implicit none
     type (taskPosteriorSample           )                        :: self
     class(posteriorSampleSimulationClass), intent(in   ), target :: posteriorSampleSimulation_
-    !# <constructorAssign variables="*posteriorSampleSimulation_"/>
+    !![
+    <constructorAssign variables="*posteriorSampleSimulation_"/>
+    !!]
 
     return
   end function posteriorSampleConstructorInternal
 
   subroutine posteriorSampleDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily posteriorSample} task class.
+    !!{
+    Destructor for the {\normalfont \ttfamily posteriorSample} task class.
+    !!}
     use :: Node_Components, only : Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
     implicit none
     type(taskPosteriorSample), intent(inout) :: self
 
-    !# <objectDestructor name="self%posteriorSampleSimulation_"/>
+    !![
+    <objectDestructor name="self%posteriorSampleSimulation_"/>
+    !!]
     if (self%nodeClassHierarchyInitialized) then
        call Node_Components_Thread_Uninitialize()
        call Node_Components_Uninitialize       ()
@@ -104,7 +126,9 @@ contains
   end subroutine posteriorSampleDestructor
 
   subroutine posteriorSamplePerform(self,status)
-    !% Perform the posterior sampling.
+    !!{
+    Perform the posterior sampling.
+    !!}
     use :: Display         , only : displayIndent     , displayUnindent
     use :: Galacticus_Error, only : errorStatusSuccess
     implicit none

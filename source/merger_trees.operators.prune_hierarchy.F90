@@ -17,21 +17,27 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements a merger tree operator which prunes branches below a
-  !% given level in the substructure hierarchy.
+  !!{
+  Contains a module which implements a merger tree operator which prunes branches below a
+  given level in the substructure hierarchy.
+  !!}
 
-  !# <mergerTreeOperator name="mergerTreeOperatorPruneHierarchy">
-  !#  <description>
-  !#   A merger tree operator ckass module which prunes branches below a given level in the substructure hierarchy. In any tree,
-  !#   the primary progenitor of the base node has substructure hierarchy depth 0. A branch which connects directly to this
-  !#   primary progenitor branch has substructure hierarchy depth 1, while a branch which connects directly to that branch has
-  !#   substructure hierarchy depth 2, and so on. The tree is pruned of all branches of hierarchy depth equal to or greater than
-  !#   the value provided by the {\normalfont \ttfamily [hierarchyDepth]} parameter.
-  !#  </description>
-  !# </mergerTreeOperator>
+  !![
+  <mergerTreeOperator name="mergerTreeOperatorPruneHierarchy">
+   <description>
+    A merger tree operator ckass module which prunes branches below a given level in the substructure hierarchy. In any tree,
+    the primary progenitor of the base node has substructure hierarchy depth 0. A branch which connects directly to this
+    primary progenitor branch has substructure hierarchy depth 1, while a branch which connects directly to that branch has
+    substructure hierarchy depth 2, and so on. The tree is pruned of all branches of hierarchy depth equal to or greater than
+    the value provided by the {\normalfont \ttfamily [hierarchyDepth]} parameter.
+   </description>
+  </mergerTreeOperator>
+  !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorPruneHierarchy
-     !% A merger tree operator class which prunes branches below a given level in the
-     !% substructure hierarchy.
+     !!{
+     A merger tree operator class which prunes branches below a given level in the
+     substructure hierarchy.
+     !!}
      private
      integer :: hierarchyDepth
    contains
@@ -39,7 +45,9 @@
   end type mergerTreeOperatorPruneHierarchy
 
   interface mergerTreeOperatorPruneHierarchy
-     !% Constructors for the prune-hierarchy merger tree operator class.
+     !!{
+     Constructors for the prune-hierarchy merger tree operator class.
+     !!}
      module procedure pruneHierarchyConstructorParameters
      module procedure pruneHierarchyConstructorInternal
   end interface mergerTreeOperatorPruneHierarchy
@@ -47,25 +55,33 @@
 contains
 
   function pruneHierarchyConstructorParameters(parameters)
-    !% Constructor for the prune-hierarchy merger tree operator class which takes a parameter set as input.
+    !!{
+    Constructor for the prune-hierarchy merger tree operator class which takes a parameter set as input.
+    !!}
     implicit none
     type   (mergerTreeOperatorPruneHierarchy)                :: pruneHierarchyConstructorParameters
     type   (inputParameters                 ), intent(inout) :: parameters
     integer                                                  :: hierarchyDepth
 
-    !# <inputParameter>
-    !#   <name>hierarchyDepth</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>1</defaultValue>
-    !#   <description>The depth in the substructure hierarchy at which to prune a tree.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>hierarchyDepth</name>
+      <source>parameters</source>
+      <defaultValue>1</defaultValue>
+      <description>The depth in the substructure hierarchy at which to prune a tree.</description>
+    </inputParameter>
+    !!]
     pruneHierarchyConstructorParameters=pruneHierarchyConstructorInternal(hierarchyDepth)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function pruneHierarchyConstructorParameters
 
   function pruneHierarchyConstructorInternal(hierarchyDepth)
-    !% Internal constructor for the prune-hierarchy merger tree operator class.
+    !!{
+    Internal constructor for the prune-hierarchy merger tree operator class.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type   (mergerTreeOperatorPruneHierarchy)                :: pruneHierarchyConstructorInternal
@@ -77,7 +93,9 @@ contains
   end function pruneHierarchyConstructorInternal
 
   subroutine pruneHierarchyOperatePreEvolution(self,tree)
-    !% Perform a prune-hierarchy operation on a merger tree.
+    !!{
+    Perform a prune-hierarchy operation on a merger tree.
+    !!}
     use :: Galacticus_Nodes              , only : treeNodeLinkedList
     use :: Merger_Tree_Walkers           , only : mergerTreeWalkerIsolatedNodes
     use :: Merger_Trees_Pruning_Utilities, only : Merger_Tree_Prune_Clean_Branch, Merger_Tree_Prune_Uniqueify_IDs, Merger_Tree_Prune_Unlink_Parent

@@ -19,10 +19,14 @@
 
 !+ Contributions to this file made by: Stephanie Dörschner.
 
-!% Contains a module which implements an object to store merger tree data for processing into \glc's preferred file format.
+!!{
+Contains a module which implements an object to store merger tree data for processing into \glc's preferred file format.
+!!}
 
 module Merger_Tree_Data_Structure
-  !% Implements an object to store merger tree data for processing into \glc's preferred file format.
+  !!{
+  Implements an object to store merger tree data for processing into \glc's preferred file format.
+  !!}
   use, intrinsic :: ISO_C_Binding     , only : c_size_t
   use            :: ISO_Varying_String, only : varying_string
   use            :: Kind_Numbers      , only : kind_int8
@@ -31,62 +35,66 @@ module Merger_Tree_Data_Structure
   public :: mergerTreeData
 
   ! Output formats.
-  !# <enumeration>
-  !#  <name>mergerTreeFormat</name>
-  !#  <description>Used to specify which output format to use for merger tree data.</description>
-  !#  <visibility>public</visibility>
-  !#  <validator>yes</validator>
-  !#  <encodeFunction>yes</encodeFunction>
-  !#  <entry label="galacticus" />
-  !#  <entry label="irate"      />
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>mergerTreeFormat</name>
+   <description>Used to specify which output format to use for merger tree data.</description>
+   <visibility>public</visibility>
+   <validator>yes</validator>
+   <encodeFunction>yes</encodeFunction>
+   <entry label="galacticus" />
+   <entry label="irate"      />
+  </enumeration>
+  !!]
 
   ! Property labels.
-  !# <enumeration>
-  !#  <name>propertyType</name>
-  !#  <description>Used to specify properties in a {\normalfont \ttfamily mergerTreeData} structure.</description>
-  !#  <visibility>public</visibility>
-  !#  <validator>yes</validator>
-  !#  <encodeFunction>yes</encodeFunction>
-  !#  <decodeFunction>yes</decodeFunction>
-  !#  <entry label="null"                    />
-  !#  <entry label="treeIndex"               />
-  !#  <entry label="nodeIndex"               />
-  !#  <entry label="descendentIndex"         />
-  !#  <entry label="hostIndex"               />
-  !#  <entry label="redshift"                />
-  !#  <entry label="scaleFactor"             />
-  !#  <entry label="nodeMass"                />
-  !#  <entry label="nodeMass200Mean"         />
-  !#  <entry label="nodeMass200Crit"         />
-  !#  <entry label="particleCount"           />
-  !#  <entry label="positionX"               />
-  !#  <entry label="positionY"               />
-  !#  <entry label="positionZ"               />
-  !#  <entry label="velocityX"               />
-  !#  <entry label="velocityY"               />
-  !#  <entry label="velocityZ"               />
-  !#  <entry label="spinX"                   />
-  !#  <entry label="spinY"                   />
-  !#  <entry label="spinZ"                   />
-  !#  <entry label="spin"                    />
-  !#  <entry label="angularMomentumX"        />
-  !#  <entry label="angularMomentumY"        />
-  !#  <entry label="angularMomentumZ"        />
-  !#  <entry label="angularMomentum"         />
-  !#  <entry label="specificAngularMomentumX"/>
-  !#  <entry label="specificAngularMomentumY"/>
-  !#  <entry label="specificAngularMomentumZ"/>
-  !#  <entry label="specificAngularMomentum" />
-  !#  <entry label="halfMassRadius"          />
-  !#  <entry label="scaleRadius"             />
-  !#  <entry label="particleIndex"           />
-  !#  <entry label="mostBoundParticleIndex"  />
-  !#  <entry label="snapshot"                />
-  !#  <entry label="treeWeight"              />
-  !#  <entry label="velocityMaximum"         />
-  !#  <entry label="velocityDispersion"      />
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>propertyType</name>
+   <description>Used to specify properties in a {\normalfont \ttfamily mergerTreeData} structure.</description>
+   <visibility>public</visibility>
+   <validator>yes</validator>
+   <encodeFunction>yes</encodeFunction>
+   <decodeFunction>yes</decodeFunction>
+   <entry label="null"                    />
+   <entry label="treeIndex"               />
+   <entry label="nodeIndex"               />
+   <entry label="descendentIndex"         />
+   <entry label="hostIndex"               />
+   <entry label="redshift"                />
+   <entry label="scaleFactor"             />
+   <entry label="nodeMass"                />
+   <entry label="nodeMass200Mean"         />
+   <entry label="nodeMass200Crit"         />
+   <entry label="particleCount"           />
+   <entry label="positionX"               />
+   <entry label="positionY"               />
+   <entry label="positionZ"               />
+   <entry label="velocityX"               />
+   <entry label="velocityY"               />
+   <entry label="velocityZ"               />
+   <entry label="spinX"                   />
+   <entry label="spinY"                   />
+   <entry label="spinZ"                   />
+   <entry label="spin"                    />
+   <entry label="angularMomentumX"        />
+   <entry label="angularMomentumY"        />
+   <entry label="angularMomentumZ"        />
+   <entry label="angularMomentum"         />
+   <entry label="specificAngularMomentumX"/>
+   <entry label="specificAngularMomentumY"/>
+   <entry label="specificAngularMomentumZ"/>
+   <entry label="specificAngularMomentum" />
+   <entry label="halfMassRadius"          />
+   <entry label="scaleRadius"             />
+   <entry label="particleIndex"           />
+   <entry label="mostBoundParticleIndex"  />
+   <entry label="snapshot"                />
+   <entry label="treeWeight"              />
+   <entry label="velocityMaximum"         />
+   <entry label="velocityDispersion"      />
+  </enumeration>
+  !!]
 
   ! Names of 3-D datasets (i.e. those which give properties in 3-D space).
   character(len=*), parameter :: propertyNames3D(5)=[ &
@@ -98,52 +106,62 @@ module Merger_Tree_Data_Structure
        &                                            ]
 
   ! Units labels.
-  !# <enumeration>
-  !#  <name>units</name>
-  !#  <description>Used to specify the type of units being stored in a {\normalfont \ttfamily mergerTreeData} structure.</description>
-  !#  <visibility>public</visibility>
-  !#  <validator>yes</validator>
-  !#  <entry label="mass"     />
-  !#  <entry label="length"   />
-  !#  <entry label="time"     />
-  !#  <entry label="velocity" />
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>units</name>
+   <description>Used to specify the type of units being stored in a {\normalfont \ttfamily mergerTreeData} structure.</description>
+   <visibility>public</visibility>
+   <validator>yes</validator>
+   <entry label="mass"     />
+   <entry label="length"   />
+   <entry label="time"     />
+   <entry label="velocity" />
+  </enumeration>
+  !!]
 
   type unitsMetaData
-     !% A structure that holds metadata on units used.
+     !!{
+     A structure that holds metadata on units used.
+     !!}
      double precision                              :: unitsInSI
      integer                                       :: hubbleExponent, scaleFactorExponent
      type            (varying_string), allocatable :: name
   end type unitsMetaData
 
   ! Metadata labels.
-  !# <enumeration>
-  !#  <name>metaDataType</name>
-  !#  <description>Used to specify the type of metadata being stored in a {\normalfont \ttfamily mergerTreeData} structure.</description>
-  !#  <visibility>public</visibility>
-  !#  <validator>yes</validator>
-  !#  <encodeFunction>yes</encodeFunction>
-  !#  <entry label="generic"     />
-  !#  <entry label="cosmology"   />
-  !#  <entry label="simulation"  />
-  !#  <entry label="groupFinder" />
-  !#  <entry label="treeBuilder" />
-  !#  <entry label="provenance"  />
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>metaDataType</name>
+   <description>Used to specify the type of metadata being stored in a {\normalfont \ttfamily mergerTreeData} structure.</description>
+   <visibility>public</visibility>
+   <validator>yes</validator>
+   <encodeFunction>yes</encodeFunction>
+   <entry label="generic"     />
+   <entry label="cosmology"   />
+   <entry label="simulation"  />
+   <entry label="groupFinder" />
+   <entry label="treeBuilder" />
+   <entry label="provenance"  />
+  </enumeration>
+  !!]
 
   ! Data types for metadata.
-  !# <enumeration>
-  !#  <name>dataType</name>
-  !#  <description>Used to specify the type of data being stored in a {\normalfont \ttfamily mergerTreeData} structure metadata entry.</description>
-  !#  <visibility>public</visibility>
-  !#  <entry label="null"    />
-  !#  <entry label="integer" />
-  !#  <entry label="double"  />
-  !#  <entry label="text"    />
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>dataType</name>
+   <description>Used to specify the type of data being stored in a {\normalfont \ttfamily mergerTreeData} structure metadata entry.</description>
+   <visibility>public</visibility>
+   <entry label="null"    />
+   <entry label="integer" />
+   <entry label="double"  />
+   <entry label="text"    />
+  </enumeration>
+  !!]
 
   type treeMetaData
-     !% Structure that holds metadata for the trees.
+     !!{
+     Structure that holds metadata for the trees.
+     !!}
      integer                          :: metadataType
      type            (varying_string) :: label
      integer                          :: dataType
@@ -153,7 +171,9 @@ module Merger_Tree_Data_Structure
   end type treeMetaData
 
   type mergerTreeData
-     !% A structure that holds raw merger tree data.
+     !!{
+     A structure that holds raw merger tree data.
+     !!}
      private
      integer                                                                                   :: dummyHostId                        , nodeCount                        , &
           &                                                                                       particlesCount                     , forestCount
@@ -213,28 +233,30 @@ module Merger_Tree_Data_Structure
      integer                                                                                   :: metaDataCount              =0
      type            (treeMetaData  ), allocatable, dimension(               :               ) :: metaData
    contains
-     !# <methods>
-     !#   <method description="Reset the data structure." method="reset" />
-     !#   <method description="Set the total number of forests in the data structure." method="forestCountSet" />
-     !#   <method description="Set the total number of nodes in the data structure." method="nodeCountSet" />
-     !#   <method description="Set the total number of particles in the data structure." method="particleCountSet" />
-     !#   <method description="Read node data from an ASCII file into the data structure." method="readASCII" />
-     !#   <method description="Read particle data from an ASCII file into the data structure" method="readParticlesASCII" />
-     !#   <method description="Set a node property in the data structure." method="setProperty" />
-     !#   <method description="Set the column in an ASCII data file corresponding to a given node property." method="setPropertyColumn" />
-     !#   <method description="Set the column in an ASCII data file corresponding to a given particle property." method="setParticlePropertyColumn" />
-     !#   <method description="Set the mass of an N-body particle in the simulation from which the trees were derived." method="setParticleMass" />
-     !#   <method description="Specify if trees are self-contained (i.e. contain no cross-links to other trees)." method="setSelfContained" />
-     !#   <method description="Specify if velocities include the Hubble flow." method="setIncludesHubbleFlow" />
-     !#   <method description="Set if positions are periodic." method="setPositionsArePeriodic" />
-     !#   <method description="Set whether halo masses include the masses of the subhalos." method="setIncludesSubhaloMasses" />
-     !#   <method description="Set host ID for self-hosting halos if host ID is not node ID." method="setDummyHostId" />
-     !#   <method description="Set property type and conversion factor to adjust inconsistent units." method="setConversionFactor" />
-     !#   <method description="Set the units used." method="setUnits" />
-     !#   <method description="Add a metadatum to the tree data structure." method="addMetadata" />
-     !#   <method description="Specify whether or not merger tree dataset references should be made." method="makeReferences" />
-     !#   <method description="Export the tree data to an output file." method="export" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Reset the data structure." method="reset" />
+       <method description="Set the total number of forests in the data structure." method="forestCountSet" />
+       <method description="Set the total number of nodes in the data structure." method="nodeCountSet" />
+       <method description="Set the total number of particles in the data structure." method="particleCountSet" />
+       <method description="Read node data from an ASCII file into the data structure." method="readASCII" />
+       <method description="Read particle data from an ASCII file into the data structure" method="readParticlesASCII" />
+       <method description="Set a node property in the data structure." method="setProperty" />
+       <method description="Set the column in an ASCII data file corresponding to a given node property." method="setPropertyColumn" />
+       <method description="Set the column in an ASCII data file corresponding to a given particle property." method="setParticlePropertyColumn" />
+       <method description="Set the mass of an N-body particle in the simulation from which the trees were derived." method="setParticleMass" />
+       <method description="Specify if trees are self-contained (i.e. contain no cross-links to other trees)." method="setSelfContained" />
+       <method description="Specify if velocities include the Hubble flow." method="setIncludesHubbleFlow" />
+       <method description="Set if positions are periodic." method="setPositionsArePeriodic" />
+       <method description="Set whether halo masses include the masses of the subhalos." method="setIncludesSubhaloMasses" />
+       <method description="Set host ID for self-hosting halos if host ID is not node ID." method="setDummyHostId" />
+       <method description="Set property type and conversion factor to adjust inconsistent units." method="setConversionFactor" />
+       <method description="Set the units used." method="setUnits" />
+       <method description="Add a metadatum to the tree data structure." method="addMetadata" />
+       <method description="Specify whether or not merger tree dataset references should be made." method="makeReferences" />
+       <method description="Export the tree data to an output file." method="export" />
+     </methods>
+     !!]
      procedure :: reset                                           =>Merger_Tree_Data_Structure_Reset
      procedure :: forestCountSet                                  =>Merger_Tree_Data_Structure_Set_Forest_Count
      procedure :: nodeCountSet                                    =>Merger_Tree_Data_Structure_Set_Node_Count
@@ -268,7 +290,9 @@ module Merger_Tree_Data_Structure
 contains
 
   subroutine Merger_Tree_Data_Structure_Reset(mergerTrees)
-    !% Reset a merger tree data object.
+    !!{
+    Reset a merger tree data object.
+    !!}
     use :: Memory_Management, only : deallocateArray
     implicit none
     class  (mergerTreeData), intent(inout) :: mergerTrees
@@ -343,7 +367,9 @@ contains
   end subroutine Merger_Tree_Data_Structure_Reset
 
   subroutine Merger_Tree_Data_Structure_Make_References(mergerTrees,makeReferences)
-    !% Specify whether or not to make merger tree dataset references.
+    !!{
+    Specify whether or not to make merger tree dataset references.
+    !!}
     implicit none
     class  (mergerTreeData), intent(inout) :: mergerTrees
     logical                , intent(in   ) :: makeReferences
@@ -353,7 +379,9 @@ contains
   end subroutine Merger_Tree_Data_Structure_Make_References
 
   subroutine Merger_Tree_Data_Structure_Add_Metadata_Double(mergerTrees,metadataType,label,doubleValue)
-    !% Add a double metadatum.
+    !!{
+    Add a double metadatum.
+    !!}
     implicit none
     class           (mergerTreeData), intent(inout) :: mergerTrees
     integer                         , intent(in   ) :: metadataType
@@ -367,7 +395,9 @@ contains
   end subroutine Merger_Tree_Data_Structure_Add_Metadata_Double
 
   subroutine Merger_Tree_Data_Structure_Add_Metadata_Integer(mergerTrees,metadataType,label,integerValue)
-    !% Add an integer metadatum.
+    !!{
+    Add an integer metadatum.
+    !!}
     implicit none
     class    (mergerTreeData), intent(inout) :: mergerTrees
     integer                  , intent(in   ) :: metadataType
@@ -379,7 +409,9 @@ contains
   end subroutine Merger_Tree_Data_Structure_Add_Metadata_Integer
 
   subroutine Merger_Tree_Data_Structure_Add_Metadata_Text(mergerTrees,metadataType,label,textValue)
-    !% Add a double metadatum.
+    !!{
+    Add a double metadatum.
+    !!}
     implicit none
     class    (mergerTreeData), intent(inout) :: mergerTrees
     integer                  , intent(in   ) :: metadataType
@@ -391,7 +423,9 @@ contains
   end subroutine Merger_Tree_Data_Structure_Add_Metadata_Text
 
   subroutine Merger_Tree_Data_Structure_Add_Metadata(mergerTrees,metadataType,label,integerValue,doubleValue,textValue)
-    !% Add a metadatum.
+    !!{
+    Add a metadatum.
+    !!}
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: ISO_Varying_String, only : assignment(=)
     use :: Memory_Management , only : Memory_Usage_Record
@@ -453,7 +487,9 @@ contains
   end subroutine Merger_Tree_Data_Structure_Add_Metadata
 
   subroutine Merger_Tree_Data_Structure_Set_Forest_Count(mergerTrees,forestCount)
-    !% Set the total number of trees in merger trees.
+    !!{
+    Set the total number of trees in merger trees.
+    !!}
     implicit none
     class  (mergerTreeData), intent(inout) :: mergerTrees
     integer                , intent(in   ) :: forestCount
@@ -465,7 +501,9 @@ contains
   end subroutine Merger_Tree_Data_Structure_Set_Forest_Count
 
   subroutine Merger_Tree_Data_Structure_Set_Node_Count(mergerTrees,nodeCount)
-    !% Set the total number of nodes in merger trees.
+    !!{
+    Set the total number of nodes in merger trees.
+    !!}
     implicit none
     class  (mergerTreeData), intent(inout) :: mergerTrees
     integer                , intent(in   ) :: nodeCount
@@ -477,7 +515,9 @@ contains
   end subroutine Merger_Tree_Data_Structure_Set_Node_Count
 
   subroutine Merger_Tree_Data_Structure_Set_Particle_Count(mergerTrees,particleCount)
-    !% Set the total number of particles in merger trees.
+    !!{
+    Set the total number of particles in merger trees.
+    !!}
     implicit none
     class  (mergerTreeData), intent(inout) :: mergerTrees
     integer                , intent(in   ) :: particleCount
@@ -489,7 +529,9 @@ contains
   end subroutine Merger_Tree_Data_Structure_Set_Particle_Count
 
   subroutine Merger_Tree_Data_Structure_Set_Particle_Mass(mergerTrees,particleMass)
-    !% Set the particle mass used in the trees.
+    !!{
+    Set the particle mass used in the trees.
+    !!}
     implicit none
     class           (mergerTreeData), intent(inout) :: mergerTrees
     double precision                , intent(in   ) :: particleMass
@@ -501,7 +543,9 @@ contains
   end subroutine Merger_Tree_Data_Structure_Set_Particle_Mass
 
   subroutine Merger_Tree_Data_Structure_Set_Self_Contained(mergerTrees,areSelfContained)
-    !% Set the particle mass used in the trees.
+    !!{
+    Set the particle mass used in the trees.
+    !!}
     implicit none
     class  (mergerTreeData), intent(inout) :: mergerTrees
     logical                , intent(in   ) :: areSelfContained
@@ -513,7 +557,9 @@ contains
   end subroutine Merger_Tree_Data_Structure_Set_Self_Contained
 
   subroutine Merger_Tree_Data_Structure_Set_Includes_Hubble_Flow(mergerTrees,includesHubbleFlow)
-    !% Set the particle mass used in the trees.
+    !!{
+    Set the particle mass used in the trees.
+    !!}
     implicit none
     class  (mergerTreeData), intent(inout) :: mergerTrees
     logical                , intent(in   ) :: includesHubbleFlow
@@ -525,7 +571,9 @@ contains
   end subroutine Merger_Tree_Data_Structure_Set_Includes_Hubble_Flow
 
   subroutine Merger_Tree_Data_Structure_Set_Is_Periodic(mergerTrees,isPeriodic)
-    !% Set whether or not positions are periodic.
+    !!{
+    Set whether or not positions are periodic.
+    !!}
     implicit none
     class  (mergerTreeData), intent(inout) :: mergerTrees
     logical                , intent(in   ) :: isPeriodic
@@ -537,7 +585,9 @@ contains
   end subroutine Merger_Tree_Data_Structure_Set_Is_Periodic
 
   subroutine Merger_Tree_Data_Structure_Set_Includes_Subhalo_Masses(mergerTrees,includesSubhaloMasses)
-    !% Set the particle mass used in the trees.
+    !!{
+    Set the particle mass used in the trees.
+    !!}
     implicit none
     class  (mergerTreeData), intent(inout) :: mergerTrees
     logical                , intent(in   ) :: includesSubhaloMasses
@@ -549,7 +599,9 @@ contains
   end subroutine Merger_Tree_Data_Structure_Set_Includes_Subhalo_Masses
 
   subroutine Merger_Tree_Data_Structure_Set_Self_Hosting_Halo_Id(mergerTrees,dummyHostId)
-    !% Set the host ID in case of self-hosting halos. Default is host ID = node ID.
+    !!{
+    Set the host ID in case of self-hosting halos. Default is host ID = node ID.
+    !!}
     implicit none
     class  (mergerTreeData), intent(inout) :: mergerTrees
     integer                , intent(in   ) :: dummyHostId
@@ -561,7 +613,9 @@ contains
   end subroutine Merger_Tree_Data_Structure_Set_Self_Hosting_Halo_Id
 
   subroutine Merger_Tree_Data_Structure_Set_Conversion_Factor(mergerTrees,propertyType,conversionFactor)
-    !% Set Conversion factor for property type with inconsistent unit.
+    !!{
+    Set Conversion factor for property type with inconsistent unit.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (mergerTreeData), intent(inout) :: mergerTrees
@@ -577,7 +631,9 @@ contains
   end subroutine Merger_Tree_Data_Structure_Set_Conversion_Factor
 
   subroutine Merger_Tree_Data_Structure_Set_Units(mergerTrees,unitType,unitsInSI,hubbleExponent,scaleFactorExponent,name)
-    !% Set the units system.
+    !!{
+    Set the units system.
+    !!}
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
@@ -624,7 +680,9 @@ contains
   end subroutine Merger_Tree_Data_Structure_Set_Units
 
   subroutine Merger_Tree_Data_Structure_Set_Particle_Property_Column(mergerTrees,propertyType,columnNumber)
-    !% Set column mapping from the input file.
+    !!{
+    Set column mapping from the input file.
+    !!}
     use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class  (mergerTreeData), intent(inout)               :: mergerTrees
@@ -650,7 +708,9 @@ contains
   end subroutine Merger_Tree_Data_Structure_Set_Particle_Property_Column
 
   subroutine Merger_Tree_Data_Structure_Set_Property_Column(mergerTrees,propertyType,columnNumber)
-    !% Set column mapping from the input file.
+    !!{
+    Set column mapping from the input file.
+    !!}
     use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class  (mergerTreeData), intent(inout)               :: mergerTrees
@@ -676,7 +736,9 @@ contains
   end subroutine Merger_Tree_Data_Structure_Set_Property_Column
 
   subroutine Merger_Tree_Data_Structure_Set_Property_Integer8(mergerTrees,propertyType,property)
-    !% Set a property in the merger trees.
+    !!{
+    Set a property in the merger trees.
+    !!}
     use :: Galacticus_Error , only : Galacticus_Error_Report
     use :: Memory_Management, only : allocateArray          , deallocateArray
     implicit none
@@ -722,7 +784,9 @@ contains
   end subroutine Merger_Tree_Data_Structure_Set_Property_Integer8
 
   subroutine Merger_Tree_Data_Structure_Set_Property_Double(mergerTrees,propertyType,property)
-    !% Set a property in the merger trees.
+    !!{
+    Set a property in the merger trees.
+    !!}
     use :: Galacticus_Error , only : Galacticus_Error_Report
     use :: Memory_Management, only : allocateArray          , deallocateArray
     implicit none
@@ -827,7 +891,9 @@ contains
   end subroutine Merger_Tree_Data_Structure_Set_Property_Double
 
   subroutine Merger_Tree_Data_Structure_Read_ASCII(mergerTrees,inputFile,columnHeaders,commentCharacter,separator,maximumRedshift)
-    !% Read in merger tree data from an ASCII file.
+    !!{
+    Read in merger tree data from an ASCII file.
+    !!}
     use :: Display           , only : displayMessage
     use :: File_Utilities    , only : Count_Lines_In_File
     use :: Galacticus_Error  , only : Galacticus_Error_Report
@@ -1201,7 +1267,9 @@ contains
   end subroutine Merger_Tree_Data_Structure_Read_ASCII
 
   subroutine Merger_Tree_Data_Structure_Convert_Property_Units(mergerTrees, propertyType, conversionFactor)
-    !% Convert the property with inconsistent units.
+    !!{
+    Convert the property with inconsistent units.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(mergerTreeData), intent(inout) :: mergerTrees
@@ -1257,7 +1325,9 @@ contains
   end subroutine Merger_Tree_Data_Structure_Convert_Property_Units
 
   subroutine Merger_Tree_Data_Structure_Set_Tree_Indices(mergerTrees)
-    !% Set the merger tree index arrays.
+    !!{
+    Set the merger tree index arrays.
+    !!}
     use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class  (mergerTreeData), intent(inout) :: mergerTrees
@@ -1300,7 +1370,9 @@ contains
   end subroutine Merger_Tree_Data_Structure_Set_Tree_Indices
 
   subroutine Merger_Tree_Data_Structure_Read_Particles_ASCII(mergerTrees,inputFile,columnHeaders,commentCharacter,separator)
-    !% Read in particle data from an ASCII file.
+    !!{
+    Read in particle data from an ASCII file.
+    !!}
     use :: File_Utilities   , only : Count_Lines_In_File
     use :: Galacticus_Error , only : Galacticus_Error_Report
     use :: Memory_Management, only : allocateArray          , deallocateArray
@@ -1437,7 +1509,9 @@ contains
   end subroutine Merger_Tree_Data_Structure_Read_Particles_ASCII
 
   subroutine Merger_Tree_Data_Structure_Export(mergerTrees,outputFileName,outputFormat,hdfChunkSize,hdfCompressionLevel,append)
-    !% Output a set of merger trees to an HDF5 file.
+    !!{
+    Output a set of merger trees to an HDF5 file.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: HDF5            , only : hsize_t
     implicit none
@@ -1465,7 +1539,9 @@ contains
   end subroutine Merger_Tree_Data_Structure_Export
 
   subroutine Merger_Tree_Data_Structure_Export_Galacticus(mergerTrees,outputFileName,hdfChunkSize,hdfCompressionLevel,append)
-    !% Output a set of merger trees to a Galacticus-format HDF5 file.
+    !!{
+    Output a set of merger trees to a Galacticus-format HDF5 file.
+    !!}
     use :: File_Utilities    , only : File_Exists
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: HDF5              , only : HSIZE_T                , hsize_t
@@ -1743,7 +1819,9 @@ contains
   end subroutine Merger_Tree_Data_Structure_Export_Galacticus
 
   subroutine Merger_Tree_Data_Structure_Export_IRATE(mergerTrees,outputFileName,hdfChunkSize,hdfCompressionLevel,append)
-    !% Output a set of merger trees to an IRATE-format HDF5 file.
+    !!{
+    Output a set of merger trees to an IRATE-format HDF5 file.
+    !!}
     use :: Array_Utilities   , only : Array_Index            , Array_Which
     use :: File_Utilities    , only : File_Exists
     use :: Galacticus_Error  , only : Galacticus_Error_Report
@@ -2037,7 +2115,9 @@ contains
   end subroutine Merger_Tree_Data_Structure_Export_IRATE
 
   subroutine Store_Unit_Attributes_Galacticus(unitType,unitLabel,mergerTrees,unitsGroup)
-    !% Store attributes describing the unit system.
+    !!{
+    Store attributes describing the unit system.
+    !!}
     use :: IO_HDF5, only : hdf5Object
     implicit none
     integer                  , intent(in   ) :: unitType
@@ -2052,7 +2132,9 @@ contains
   end subroutine Store_Unit_Attributes_Galacticus
 
   subroutine Store_Unit_Attributes_IRATE(unitType,mergerTrees,dataset)
-    !% Store unit attributes in IRATE format files.
+    !!{
+    Store unit attributes in IRATE format files.
+    !!}
     use :: IO_HDF5                     , only : hdf5Object
     use :: ISO_Varying_String          , only : assignment(=), operator(//)
     use :: Numerical_Constants_Prefixes, only : hecto        , kilo
@@ -2104,7 +2186,9 @@ contains
   end subroutine Store_Unit_Attributes_IRATE
 
   subroutine Merger_Tree_Data_Validate_Trees(mergerTrees)
-    !% Validate the merger trees.
+    !!{
+    Validate the merger trees.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     class(mergerTreeData), intent(in   ) :: mergerTrees
 
@@ -2117,7 +2201,9 @@ contains
   end subroutine Merger_Tree_Data_Validate_Trees
 
   subroutine Merger_Tree_Data_Set_Subhalo_Masses(mergerTrees)
-    !% Set the masses of any subhalos (which have zero mass by default) based on particle count.
+    !!{
+    Set the masses of any subhalos (which have zero mass by default) based on particle count.
+    !!}
     use :: Display         , only : displayMagenta , displayReset
     use :: Galacticus_Error, only : Galacticus_Warn
     class(mergerTreeData), intent(inout) :: mergerTrees
@@ -2132,7 +2218,9 @@ contains
   end subroutine Merger_Tree_Data_Set_Subhalo_Masses
 
   subroutine Merger_Tree_Data_Construct_Particle_Indices(mergerTrees)
-    !% If we have most-bound particle indices and particle data has been read, construct arrays giving position of particle data for each node.
+    !!{
+    If we have most-bound particle indices and particle data has been read, construct arrays giving position of particle data for each node.
+    !!}
     use :: Galacticus_Error , only : Galacticus_Error_Report
     use :: Memory_Management, only : allocateArray          , deallocateArray
     class  (mergerTreeData), intent(inout) :: mergerTrees

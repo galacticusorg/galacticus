@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a merger tree masses class which constructs a subset of another class.
+  !!{
+  Implementation of a merger tree masses class which constructs a subset of another class.
+  !!}
 
   use, intrinsic :: ISO_C_Binding, only : c_size_t
 
-  !# <mergerTreeBuildMasses name="mergerTreeBuildMassesSubset">
-  !#  <description>A merger tree masses class which constructs a subset of another class.</description>
-  !# </mergerTreeBuildMasses>
+  !![
+  <mergerTreeBuildMasses name="mergerTreeBuildMassesSubset">
+   <description>A merger tree masses class which constructs a subset of another class.</description>
+  </mergerTreeBuildMasses>
+  !!]
   type, extends(mergerTreeBuildMassesClass) :: mergerTreeBuildMassesSubset
-     !% Implementation of a merger tree masses class which constructs a subset of another class.
+     !!{
+     Implementation of a merger tree masses class which constructs a subset of another class.
+     !!}
      private
      class  (mergerTreeBuildMassesClass), pointer :: mergerTreeBuildMasses_
      integer(c_size_t                  )          :: subsetBegin           , subsetEnd
@@ -42,8 +48,10 @@
 contains
 
   function subsetConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily subset} merger tree masses class which takes a parameter set
-    !% as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily subset} merger tree masses class which takes a parameter set
+    as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (mergerTreeBuildMassesSubset)                :: self
@@ -51,44 +59,58 @@ contains
     class  (mergerTreeBuildMassesClass ), pointer       :: mergerTreeBuildMasses_
     integer(c_size_t                   )                :: subsetBegin           , subsetEnd
 
-    !# <inputParameter>
-    !#   <name>subsetBegin</name>
-    !#   <description>The first entry in the subset (indexed from 1).</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>subsetEnd</name>
-    !#   <description>The last entry in the subset (indexed from 1).</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="mergerTreeBuildMasses" name="mergerTreeBuildMasses_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>subsetBegin</name>
+      <description>The first entry in the subset (indexed from 1).</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>subsetEnd</name>
+      <description>The last entry in the subset (indexed from 1).</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="mergerTreeBuildMasses" name="mergerTreeBuildMasses_" source="parameters"/>
+    !!]
     self=mergerTreeBuildMassesSubset(subsetBegin,subsetEnd,mergerTreeBuildMasses_)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function subsetConstructorParameters
 
   function subsetConstructorInternal(subsetBegin,subsetEnd,mergerTreeBuildMasses_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily subset} merger tree masses class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily subset} merger tree masses class.
+    !!}
     implicit none
     type   (mergerTreeBuildMassesSubset)                        :: self
     class  (mergerTreeBuildMassesClass ), target, intent(in   ) :: mergerTreeBuildMasses_
     integer(c_size_t                   )        , intent(in   ) :: subsetBegin           , subsetEnd
-    !# <constructorAssign variables="subsetBegin, subsetEnd, *mergerTreeBuildMasses_"/>
+    !![
+    <constructorAssign variables="subsetBegin, subsetEnd, *mergerTreeBuildMasses_"/>
+    !!]
 
     return
   end function subsetConstructorInternal
 
   subroutine subsetDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily subset} merger tree masses class.
+    !!{
+    Destructor for the {\normalfont \ttfamily subset} merger tree masses class.
+    !!}
     implicit none
     type(mergerTreeBuildMassesSubset), intent(inout) :: self
 
-    !# <objectDestructor name="self%mergerTreeBuildMasses_"/>
+    !![
+    <objectDestructor name="self%mergerTreeBuildMasses_"/>
+    !!]
     return
   end subroutine subsetDestructor
 
   subroutine subsetConstruct(self,time,mass,massMinimum,massMaximum,weight)
-    !% Construct a set of merger tree masses by taking a subset from another set.
+    !!{
+    Construct a set of merger tree masses by taking a subset from another set.
+    !!}
     implicit none
     class           (mergerTreeBuildMassesSubset), intent(inout)                            :: self
     double precision                             , intent(in   )                            :: time

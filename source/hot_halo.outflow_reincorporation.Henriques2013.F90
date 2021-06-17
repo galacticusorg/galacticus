@@ -17,22 +17,28 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% An implementation of the hot halo outflow reincorporation class in which implements the model of
-!% \cite{henriques_simulations_2013}.
+!!{
+An implementation of the hot halo outflow reincorporation class in which implements the model of
+\cite{henriques_simulations_2013}.
+!!}
 
   use :: Cosmology_Functions    , only : cosmologyFunctions , cosmologyFunctionsClass
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScale, darkMatterHaloScaleClass
 
-  !# <hotHaloOutflowReincorporation name="hotHaloOutflowReincorporationHenriques2013">
-  !#  <description>
-  !#   An implementation of the hot halo outflow reincorporation class which implements the model of \cite{henriques_simulations_2013}. Specifically, outflowed gas is returned at a rate:
-  !#   \begin{equation}
-  !#    \dot{M}_\mathrm{return} = \gamma (1+z)^{-\delta_1} \left({V_\mathrm{vir}\over 200\hbox{km/s}}\right)^{\delta_2} {M_\mathrm{outflowed} \over \tau_\mathrm{dyn}}
-  !#   \end{equation}
-  !#  </description>
-  !# </hotHaloOutflowReincorporation>
+  !![
+  <hotHaloOutflowReincorporation name="hotHaloOutflowReincorporationHenriques2013">
+   <description>
+    An implementation of the hot halo outflow reincorporation class which implements the model of \cite{henriques_simulations_2013}. Specifically, outflowed gas is returned at a rate:
+    \begin{equation}
+     \dot{M}_\mathrm{return} = \gamma (1+z)^{-\delta_1} \left({V_\mathrm{vir}\over 200\hbox{km/s}}\right)^{\delta_2} {M_\mathrm{outflowed} \over \tau_\mathrm{dyn}}
+    \end{equation}
+   </description>
+  </hotHaloOutflowReincorporation>
+  !!]
   type, extends(hotHaloOutflowReincorporationClass) :: hotHaloOutflowReincorporationHenriques2013
-     !% An implementation of the hot halo outflow reincorporation class which implements the model of \cite{henriques_simulations_2013}.
+     !!{
+     An implementation of the hot halo outflow reincorporation class which implements the model of \cite{henriques_simulations_2013}.
+     !!}
      private
      double precision                                    :: gamma               , delta1, &
           &                                                 delta2
@@ -44,7 +50,9 @@
   end type hotHaloOutflowReincorporationHenriques2013
 
   interface hotHaloOutflowReincorporationHenriques2013
-     !% Constructors for the {\normalfont \ttfamily henriques2013} hot halo outflow reincorporation class.
+     !!{
+     Constructors for the {\normalfont \ttfamily henriques2013} hot halo outflow reincorporation class.
+     !!}
      module procedure henriques2013ConstructorParameters
      module procedure henriques2013ConstructorInternal
   end interface hotHaloOutflowReincorporationHenriques2013
@@ -52,8 +60,10 @@
 contains
 
   function henriques2013ConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily henriques2013} hot halo outflow reincorporation class which takes a parameter set
-    !% as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily henriques2013} hot halo outflow reincorporation class which takes a parameter set
+    as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (hotHaloOutflowReincorporationHenriques2013)                :: self
@@ -63,60 +73,74 @@ contains
     double precision                                                            :: gamma               , delta1, &
           &                                                                        delta2
 
-    !# <inputParameter>
-    !#   <name>gamma</name>
-    !#   <defaultValue>5.0d0</defaultValue>
-    !#   <description>The dimensionless parameter $\gamma$ which multiplier the rate at which reheated mass is returned to the hot phase.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>delta1</name>
-    !#   <defaultValue>2.40d0</defaultValue>
-    !#   <defaultSource>\cite{henriques_simulations_2013}</defaultSource>
-    !#   <description>The exponent of the $(1+z)$ term, $\delta_1$.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>delta2</name>
-    !#   <defaultValue>3.07d0</defaultValue>
-    !#   <defaultSource>\cite{henriques_simulations_2013}</defaultSource>
-    !#   <description>The exponent of the $V_\mathrm{vir}$ term, $\delta_2$.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
-    !# <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
+    !![
+    <inputParameter>
+      <name>gamma</name>
+      <defaultValue>5.0d0</defaultValue>
+      <description>The dimensionless parameter $\gamma$ which multiplier the rate at which reheated mass is returned to the hot phase.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>delta1</name>
+      <defaultValue>2.40d0</defaultValue>
+      <defaultSource>\cite{henriques_simulations_2013}</defaultSource>
+      <description>The exponent of the $(1+z)$ term, $\delta_1$.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>delta2</name>
+      <defaultValue>3.07d0</defaultValue>
+      <defaultSource>\cite{henriques_simulations_2013}</defaultSource>
+      <description>The exponent of the $V_\mathrm{vir}$ term, $\delta_2$.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
+    !!]
     self=hotHaloOutflowReincorporationHenriques2013(gamma,delta1,delta2,cosmologyFunctions_,darkMatterHaloScale_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_" />
-    !# <objectDestructor name="darkMatterHaloScale_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_" />
+    <objectDestructor name="darkMatterHaloScale_"/>
+    !!]
     return
   end function henriques2013ConstructorParameters
 
   function henriques2013ConstructorInternal(gamma,delta1,delta2,cosmologyFunctions_,darkMatterHaloScale_) result(self)
-    !% Default constructor for the {\normalfont \ttfamily henriques2013} hot halo outflow reincorporation class.
+    !!{
+    Default constructor for the {\normalfont \ttfamily henriques2013} hot halo outflow reincorporation class.
+    !!}
     implicit none
     type            (hotHaloOutflowReincorporationHenriques2013)                        :: self
     double precision                                            , intent(in   )         :: gamma               , delta1, &
           &                                                                                delta2
     class           (cosmologyFunctionsClass                   ), intent(in   ), target :: cosmologyFunctions_
     class           (darkMatterHaloScaleClass                  ), intent(in   ), target :: darkMatterHaloScale_
-    !# <constructorAssign variables="gamma, delta1, delta2, *cosmologyFunctions_, *darkMatterHaloScale_"/>
+    !![
+    <constructorAssign variables="gamma, delta1, delta2, *cosmologyFunctions_, *darkMatterHaloScale_"/>
+    !!]
 
     return
   end function henriques2013ConstructorInternal
 
   subroutine henriques2013Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily henriques2013} hot halo outflow reincorporation class.
+    !!{
+    Destructor for the {\normalfont \ttfamily henriques2013} hot halo outflow reincorporation class.
+    !!}
     implicit none
     type(hotHaloOutflowReincorporationHenriques2013), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_" />
-    !# <objectDestructor name="self%darkMatterHaloScale_"/>
+    !![
+    <objectDestructor name="self%cosmologyFunctions_" />
+    <objectDestructor name="self%darkMatterHaloScale_"/>
+    !!]
     return
   end subroutine henriques2013Destructor
 
   double precision function henriques2013Rate(self,node)
-    !% Return the rate of mass reincorporation for outflowed gas in the hot halo.
+    !!{
+    Return the rate of mass reincorporation for outflowed gas in the hot halo.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentHotHalo, treeNode
     implicit none
     class           (hotHaloOutflowReincorporationHenriques2013), intent(inout) :: self

@@ -19,26 +19,32 @@
 
 !+    Contributions to this file made by:  Anthony Pullen, Andrew Benson.
 
-  !% Implementation of a satellite tidal radius class which follows the method of \cite{king_structure_1962}.
+  !!{
+  Implementation of a satellite tidal radius class which follows the method of \cite{king_structure_1962}.
+  !!}
 
   use :: Cosmology_Parameters   , only : cosmologyParametersClass
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
   use :: Kind_Numbers           , only : kind_int8
   use :: Root_Finder            , only : rootFinder
 
-  !# <satelliteTidalStrippingRadius name="satelliteTidalStrippingRadiusKing1962">
-  !#  <description>
-  !#   A satellite tidal radius class which uses the method of \cite{king_structure_1962}:
-  !#   \begin{equation}
-  !#   r_\mathrm{tidal}=\left(\frac{GM_\mathrm{sat}}{\omega^2-d^2\Phi/dr^2}\right)^{1/3},
-  !#   \end{equation}
-  !#   where $\omega$ is the orbital angular velocity of the satellite, and $\Phi(r)$ is the gravitational potential due to the
-  !#   host. The calculation is based on the dark matter only density profile of the satellite---no accounting is made for the
-  !#   baryonic components.
-  !#  </description>
-  !# </satelliteTidalStrippingRadius>
+  !![
+  <satelliteTidalStrippingRadius name="satelliteTidalStrippingRadiusKing1962">
+   <description>
+    A satellite tidal radius class which uses the method of \cite{king_structure_1962}:
+    \begin{equation}
+    r_\mathrm{tidal}=\left(\frac{GM_\mathrm{sat}}{\omega^2-d^2\Phi/dr^2}\right)^{1/3},
+    \end{equation}
+    where $\omega$ is the orbital angular velocity of the satellite, and $\Phi(r)$ is the gravitational potential due to the
+    host. The calculation is based on the dark matter only density profile of the satellite---no accounting is made for the
+    baryonic components.
+   </description>
+  </satelliteTidalStrippingRadius>
+  !!]
   type, extends(satelliteTidalStrippingRadiusClass) :: satelliteTidalStrippingRadiusKing1962
-     !% Implementation of a satellite tidal radius class which follows the method of \cite{king_structure_1962}.
+     !!{
+     Implementation of a satellite tidal radius class which follows the method of \cite{king_structure_1962}.
+     !!}
      private
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
      class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
@@ -47,9 +53,11 @@
      integer         (kind_int8               )          :: lastUniqueID
      type            (rootFinder              )          :: finder
    contains
-     !# <methods>
-     !#   <method description="Reset memoized calculations." method="calculationReset" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Reset memoized calculations." method="calculationReset" />
+     </methods>
+     !!]
      final     ::                     king1962Destructor
      procedure :: autoHook         => king1962AutoHook
      procedure :: calculationReset => king1962CalculationReset
@@ -57,7 +65,9 @@
   end type satelliteTidalStrippingRadiusKing1962
 
   interface satelliteTidalStrippingRadiusKing1962
-     !% Constructors for the {\normalfont \ttfamily king1962} satellite tidal stripping class.
+     !!{
+     Constructors for the {\normalfont \ttfamily king1962} satellite tidal stripping class.
+     !!}
      module procedure king1962ConstructorParameters
      module procedure king1962ConstructorInternal
   end interface satelliteTidalStrippingRadiusKing1962
@@ -70,7 +80,9 @@
 contains
 
   function king1962ConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily king1962} satellite tidaql stripping class which builds the object from a parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily king1962} satellite tidaql stripping class which builds the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (satelliteTidalStrippingRadiusKing1962)                :: self
@@ -78,23 +90,31 @@ contains
     class(cosmologyParametersClass             ), pointer       :: cosmologyParameters_
     class(darkMatterHaloScaleClass             ), pointer       :: darkMatterHaloScale_
 
-    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    !![
+    <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    !!]
     self=satelliteTidalStrippingRadiusKing1962(cosmologyParameters_,darkMatterHaloScale_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"/>
-    !# <objectDestructor name="darkMatterHaloScale_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"/>
+    <objectDestructor name="darkMatterHaloScale_"/>
+    !!]
     return
   end function king1962ConstructorParameters
 
   function king1962ConstructorInternal(cosmologyParameters_,darkMatterHaloScale_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily king1962} satellite tidal stripping class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily king1962} satellite tidal stripping class.
+    !!}
     implicit none
     type            (satelliteTidalStrippingRadiusKing1962)                        :: self
     class           (cosmologyParametersClass             ), intent(in   ), target :: cosmologyParameters_
     class           (darkMatterHaloScaleClass             ), intent(in   ), target :: darkMatterHaloScale_
     double precision                                       , parameter             :: toleranceAbsolute   =0.0d0, toleranceRelative=1.0d-3
-    !# <constructorAssign variables="*cosmologyParameters_, *darkMatterHaloScale_"/>
+    !![
+    <constructorAssign variables="*cosmologyParameters_, *darkMatterHaloScale_"/>
+    !!]
 
     self%fractionDarkMatter=+(                                         & 
          &                    +self%cosmologyParameters_%OmegaMatter() &
@@ -111,7 +131,9 @@ contains
   end function king1962ConstructorInternal
 
   subroutine king1962AutoHook(self)
-    !% Attach to the calculation reset event.
+    !!{
+    Attach to the calculation reset event.
+    !!}
     use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(satelliteTidalStrippingRadiusKing1962), intent(inout) :: self
@@ -121,42 +143,48 @@ contains
   end subroutine king1962AutoHook
 
   subroutine king1962Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily king1962} satellite tidal stripping class.
+    !!{
+    Destructor for the {\normalfont \ttfamily king1962} satellite tidal stripping class.
+    !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none
     type(satelliteTidalStrippingRadiusKing1962), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterHaloScale_"/>
-    !# <objectDestructor name="self%darkMatterHaloScale_"/>
+    !![
+    <objectDestructor name="self%darkMatterHaloScale_"/>
+    <objectDestructor name="self%darkMatterHaloScale_"/>
+    !!]
     call calculationResetEvent%detach(self,king1962CalculationReset)
     return
   end subroutine king1962Destructor
 
   double precision function king1962Radius(self,node)
-    !% Return the tidal radius using the formulation of \cite{king_structure_1962}. To allow for non-spherical mass distributions,
-    !% we proceed as follows to determine the tidal field:
-    !%
-    !% Let $\bm{\mathsf{G}}$ be the gravitational tidal tensor evaluated at the position of the satellite. Consider a unit vector,
-    !% $\boldsymbol{\hat{x}}$ in the satellite. The tidal field along this vector is $\bm{\mathsf{G}} \boldsymbol{\hat{x}}$. The
-    !% radial component of the tidal field in this direction is then $\boldsymbol{\hat{x}} \bm{\mathsf{G}}
-    !% \boldsymbol{\hat{x}}$. We want to find the maximum of the tidal field over all possible directions (i.e. all possible unit
-    !% vectors).
-    !%
-    !% We can write our unit vector as
-    !% \begin{equation}
-    !%  \boldsymbol{\hat{x}} = \sum_{i=1}^3 a_i \boldsymbol{\hat{e}}_i,
-    !% \end{equation}
-    !% where the $\boldsymbol{\hat{e}}_i$ are the eigenvectors of $\bm{\mathsf{G}}$ and $\sum_{i=1}^3 a_i^2 = 1$. Then since, by
-    !% definition, $\bm{\mathsf{G}} \boldsymbol{\hat{e}}_i = \lambda_i \boldsymbol{\hat{e}}_i$, where $\lambda_i$ are the
-    !% eigenvalues of $\bm{\mathsf{G}}$, we have that
-    !% \begin{equation}
-    !%  \boldsymbol{\hat{x}} \bm{\mathsf{G}} \boldsymbol{\hat{x}}= \sum_{i=1}^3 a_i^2 \lambda_i.
-    !% \end{equation}
-    !% The sum on the right hand side of the above is a weighted average of eigenvalues. Any weighted averge is maximized by
-    !% setting the weight of the largest value to $1$, and all other weights to $0$. Therefore, our tidal field is maximized along
-    !% the direction corresponding the eigenvector of $\bm{\mathsf{G}}$ with the largest eigenvalue. (Note that we want the
-    !% largest positive eigenvalue, not the largest absolute eigenvalue as we're interested in stretching tidal fields, not
-    !% compressive ones.)
+    !!{
+    Return the tidal radius using the formulation of \cite{king_structure_1962}. To allow for non-spherical mass distributions,
+    we proceed as follows to determine the tidal field:
+    
+    Let $\bm{\mathsf{G}}$ be the gravitational tidal tensor evaluated at the position of the satellite. Consider a unit vector,
+    $\boldsymbol{\hat{x}}$ in the satellite. The tidal field along this vector is $\bm{\mathsf{G}} \boldsymbol{\hat{x}}$. The
+    radial component of the tidal field in this direction is then $\boldsymbol{\hat{x}} \bm{\mathsf{G}}
+    \boldsymbol{\hat{x}}$. We want to find the maximum of the tidal field over all possible directions (i.e. all possible unit
+    vectors).
+    
+    We can write our unit vector as
+    \begin{equation}
+     \boldsymbol{\hat{x}} = \sum_{i=1}^3 a_i \boldsymbol{\hat{e}}_i,
+    \end{equation}
+    where the $\boldsymbol{\hat{e}}_i$ are the eigenvectors of $\bm{\mathsf{G}}$ and $\sum_{i=1}^3 a_i^2 = 1$. Then since, by
+    definition, $\bm{\mathsf{G}} \boldsymbol{\hat{e}}_i = \lambda_i \boldsymbol{\hat{e}}_i$, where $\lambda_i$ are the
+    eigenvalues of $\bm{\mathsf{G}}$, we have that
+    \begin{equation}
+     \boldsymbol{\hat{x}} \bm{\mathsf{G}} \boldsymbol{\hat{x}}= \sum_{i=1}^3 a_i^2 \lambda_i.
+    \end{equation}
+    The sum on the right hand side of the above is a weighted average of eigenvalues. Any weighted averge is maximized by
+    setting the weight of the largest value to $1$, and all other weights to $0$. Therefore, our tidal field is maximized along
+    the direction corresponding the eigenvector of $\bm{\mathsf{G}}$ with the largest eigenvalue. (Note that we want the
+    largest positive eigenvalue, not the largest absolute eigenvalue as we're interested in stretching tidal fields, not
+    compressive ones.)
+    !!}
     use :: Galacticus_Error                  , only : Galacticus_Error_Report         , errorStatusSuccess
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass, Galactic_Structure_Radius_Enclosing_Mass
     use :: Galactic_Structure_Options        , only : coordinateSystemCartesian       , massTypeDark
@@ -284,7 +312,9 @@ contains
   end function king1962Radius
 
   double precision function king1962TidalRadiusSolver(radius)
-    !% Root function used to find the tidal radius within a subhalo.
+    !!{
+    Root function used to find the tidal radius within a subhalo.
+    !!}
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
     use :: Numerical_Constants_Astronomical  , only : gravitationalConstantGalacticus , gigaYear, megaParsec  
     use :: Numerical_Constants_Prefixes      , only : kilo
@@ -307,7 +337,9 @@ contains
   end function king1962TidalRadiusSolver
 
   subroutine king1962CalculationReset(self,node)
-    !% Reset the stored tidal radii.
+    !!{
+    Reset the stored tidal radii.
+    !!}
     implicit none
     class(satelliteTidalStrippingRadiusKing1962), intent(inout) :: self
     type (treeNode                             ), intent(inout) :: node

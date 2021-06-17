@@ -17,17 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a node operator class that performs star formation in spheroids.
+  !!{
+  Implements a node operator class that performs star formation in spheroids.
+  !!}
 
   use :: Star_Formation_Rates_Spheroids, only : starFormationRateSpheroidsClass
   use :: Stellar_Population_Properties , only : stellarPopulationPropertiesClass
   use :: Star_Formation_Histories      , only : starFormationHistoryClass
 
-  !# <nodeOperator name="nodeOperatorStarFormationSpheroids">
-  !#  <description>A node operator class that performs star formation.</description>
-  !# </nodeOperator>
+  !![
+  <nodeOperator name="nodeOperatorStarFormationSpheroids">
+   <description>A node operator class that performs star formation.</description>
+  </nodeOperator>
+  !!]
   type, extends(nodeOperatorClass) :: nodeOperatorStarFormationSpheroids
-     !% A node operator class that shifts node indices at node promotion.
+     !!{
+     A node operator class that shifts node indices at node promotion.
+     !!}
      private
      class  (starFormationRateSpheroidsClass ), pointer :: starFormationRateSpheroids_  => null()
      class  (stellarPopulationPropertiesClass), pointer :: stellarPopulationProperties_ => null()
@@ -39,7 +45,9 @@
   end type nodeOperatorStarFormationSpheroids
   
   interface nodeOperatorStarFormationSpheroids
-     !% Constructors for the {\normalfont \ttfamily starFormationSpheroids} node operator class.
+     !!{
+     Constructors for the {\normalfont \ttfamily starFormationSpheroids} node operator class.
+     !!}
      module procedure starFormationSpheroidsConstructorParameters
      module procedure starFormationSpheroidsConstructorInternal
   end interface nodeOperatorStarFormationSpheroids
@@ -47,7 +55,9 @@
 contains
 
   function starFormationSpheroidsConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily starFormation} node operator class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily starFormation} node operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type   (nodeOperatorStarFormationSpheroids)                :: self
@@ -57,49 +67,63 @@ contains
     class  (starFormationHistoryClass         ), pointer       :: starFormationHistory_
     logical                                                    :: luminositiesStellarInactive
     
-    !# <inputParameter>
-    !#   <name>luminositiesStellarInactive</name>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <source>parameters</source>
-    !#   <description>If true, stellar luminosities will be treated as inactive properties.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="starFormationRateSpheroids"  name="starFormationRateSpheroids_"  source="parameters"/>
-    !# <objectBuilder class="stellarPopulationProperties" name="stellarPopulationProperties_" source="parameters"/>
-    !# <objectBuilder class="starFormationHistory"        name="starFormationHistory_"        source="parameters"/>
+    !![
+    <inputParameter>
+      <name>luminositiesStellarInactive</name>
+      <defaultValue>.false.</defaultValue>
+      <source>parameters</source>
+      <description>If true, stellar luminosities will be treated as inactive properties.</description>
+    </inputParameter>
+    <objectBuilder class="starFormationRateSpheroids"  name="starFormationRateSpheroids_"  source="parameters"/>
+    <objectBuilder class="stellarPopulationProperties" name="stellarPopulationProperties_" source="parameters"/>
+    <objectBuilder class="starFormationHistory"        name="starFormationHistory_"        source="parameters"/>
+    !!]
     self=nodeOperatorStarFormationSpheroids(luminositiesStellarInactive,starFormationRateSpheroids_,stellarPopulationProperties_,starFormationHistory_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="starFormationRateSpheroids_" />
-    !# <objectDestructor name="stellarPopulationProperties_"/>
-    !# <objectDestructor name="starFormationHistory_"       />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="starFormationRateSpheroids_" />
+    <objectDestructor name="stellarPopulationProperties_"/>
+    <objectDestructor name="starFormationHistory_"       />
+    !!]
     return
   end function starFormationSpheroidsConstructorParameters
 
   function starFormationSpheroidsConstructorInternal(luminositiesStellarInactive,starFormationRateSpheroids_,stellarPopulationProperties_,starFormationHistory_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily starFormationSpheroids} node operator class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily starFormationSpheroids} node operator class.
+    !!}
     implicit none
     type   (nodeOperatorStarFormationSpheroids)                        :: self
     class  (starFormationRateSpheroidsClass   ), intent(in   ), target :: starFormationRateSpheroids_
     class  (stellarPopulationPropertiesClass  ), intent(in   ), target :: stellarPopulationProperties_
     class(starFormationHistoryClass           ), intent(in   ), target :: starFormationHistory_
     logical                                    , intent(in   )         :: luminositiesStellarInactive
-    !# <constructorAssign variables="luminositiesStellarInactive, *starFormationRateSpheroids_, *stellarPopulationProperties_, *starFormationHistory_"/>
+    !![
+    <constructorAssign variables="luminositiesStellarInactive, *starFormationRateSpheroids_, *stellarPopulationProperties_, *starFormationHistory_"/>
+    !!]
 
     return
   end function starFormationSpheroidsConstructorInternal
 
   subroutine starFormationSpheroidsDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily starFormationSpheroids} node operator class.
+    !!{
+    Destructor for the {\normalfont \ttfamily starFormationSpheroids} node operator class.
+    !!}
     implicit none
     type(nodeOperatorStarFormationSpheroids), intent(inout) :: self
 
-    !# <objectDestructor name="self%starFormationRateSpheroids_" />
-    !# <objectDestructor name="self%stellarPopulationProperties_"/>
-    !# <objectDestructor name="self%starFormationHistory_"       />
+    !![
+    <objectDestructor name="self%starFormationRateSpheroids_" />
+    <objectDestructor name="self%stellarPopulationProperties_"/>
+    <objectDestructor name="self%starFormationHistory_"       />
+    !!]
     return
   end subroutine starFormationSpheroidsDestructor
 
   subroutine starFormationSpheroidsDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !% Perform star formation in a spheroid.
+    !!{
+    Perform star formation in a spheroid.
+    !!}
     use :: Abundances_Structure          , only : abundances
     use :: Galacticus_Nodes              , only : propertyTypeInactive, propertyTypeActive, propertyTypeAll, nodeComponentSpheroid
     use :: Histories                     , only : history

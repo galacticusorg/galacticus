@@ -19,25 +19,31 @@
 
   !+    Contributions to this file made by:  Stéphane Mangeon, Andrew Benson.
 
-  !% Implements a class for black hole binary initial separation based on tidal disruption of the satellite galaxy.
+  !!{
+  Implements a class for black hole binary initial separation based on tidal disruption of the satellite galaxy.
+  !!}
 
   use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
 
-  !# <blackHoleBinaryInitialSeparation name="blackHoleBinaryInitialSeparationTidalRadius">
-  !#  <description>
-  !#   A black hole binary initial separation class that assumes an initial separation that corresponds to the distance at which
-  !#   the satellite galaxy is tidally stripped to its half-mass radius, thus only leaving the central massive black
-  !#   hole. Specifically, the initial radius is given by:
-  !#   \begin{equation}
-  !#   {M_\mathrm{sat} \over 2 r_\mathrm{sat,1/2}^3 } = - {\mathrm{d} \over \mathrm{d} r} {M_\mathrm{host}(r_\mathrm{initial})
-  !#   \over r_\mathrm{initial}^2},
-  !#   \end{equation}
-  !#   where $M_\mathrm{sat}$ is the mass of the satellite galaxy, $r_\mathrm{sat,1/2}$ is its half mass radius,
-  !#   $M_\mathrm{host}(r)$ is the mass of the host galaxy within radius $r$ and $r_\mathrm{initial}$ is the initial radius.
-  !#  </description>
-  !# </blackHoleBinaryInitialSeparation>
+  !![
+  <blackHoleBinaryInitialSeparation name="blackHoleBinaryInitialSeparationTidalRadius">
+   <description>
+    A black hole binary initial separation class that assumes an initial separation that corresponds to the distance at which
+    the satellite galaxy is tidally stripped to its half-mass radius, thus only leaving the central massive black
+    hole. Specifically, the initial radius is given by:
+    \begin{equation}
+    {M_\mathrm{sat} \over 2 r_\mathrm{sat,1/2}^3 } = - {\mathrm{d} \over \mathrm{d} r} {M_\mathrm{host}(r_\mathrm{initial})
+    \over r_\mathrm{initial}^2},
+    \end{equation}
+    where $M_\mathrm{sat}$ is the mass of the satellite galaxy, $r_\mathrm{sat,1/2}$ is its half mass radius,
+    $M_\mathrm{host}(r)$ is the mass of the host galaxy within radius $r$ and $r_\mathrm{initial}$ is the initial radius.
+   </description>
+  </blackHoleBinaryInitialSeparation>
+  !!]
   type, extends(blackHoleBinaryInitialSeparationClass) :: blackHoleBinaryInitialSeparationTidalRadius
-     !% A black hole binary initial separation class in which the radius is based on tidal disruption of the satellite galaxy.
+     !!{
+     A black hole binary initial separation class in which the radius is based on tidal disruption of the satellite galaxy.
+     !!}
      private
      type(rootFinder) :: finder
   contains
@@ -45,7 +51,9 @@
   end type blackHoleBinaryInitialSeparationTidalRadius
 
   interface blackHoleBinaryInitialSeparationTidalRadius
-     !% Constructors for the {\normalfont \ttfamily tidalRadius} black hole binary initial radius class.
+     !!{
+     Constructors for the {\normalfont \ttfamily tidalRadius} black hole binary initial radius class.
+     !!}
      module procedure tidalRadiusConstructorParameters
      module procedure tidalRadiusConstructorInternal
   end interface blackHoleBinaryInitialSeparationTidalRadius
@@ -58,8 +66,10 @@
 contains
 
   function tidalRadiusConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily tidalRadius} black hole bianry recoil class which takes a parameter list as
-    !% input.
+    !!{
+    Constructor for the {\normalfont \ttfamily tidalRadius} black hole bianry recoil class which takes a parameter list as
+    input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(blackHoleBinaryInitialSeparationTidalRadius)                :: self
@@ -71,7 +81,9 @@ contains
   end function tidalRadiusConstructorParameters
 
   function tidalRadiusConstructorInternal() result(self)
-    !% Internal constructor for the {\normalfont \ttfamily tidalRadius} black hole bianry recoil class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily tidalRadius} black hole bianry recoil class.
+    !!}
     implicit none
     type(blackHoleBinaryInitialSeparationTidalRadius) :: self
 
@@ -89,7 +101,9 @@ contains
   end function tidalRadiusConstructorInternal
 
   double precision function tidalRadiusSeparationInitial(self,node,nodeHost)
-    !% Returns an initial separation for a binary black holes through tidal disruption.
+    !!{
+    Returns an initial separation for a binary black holes through tidal disruption.
+    !!}
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass, Galactic_Structure_Radius_Enclosing_Mass
     use :: Galactic_Structure_Options        , only : massTypeGalactic
     use :: Galacticus_Nodes                  , only : nodeComponentBlackHole          , treeNode
@@ -124,7 +138,9 @@ contains
   end function tidalRadiusSeparationInitial
 
   double precision function tidalRadiusRoot(radius)
-    !% Root function used in solving for the radius of tidal disruption of a satellite galaxy.
+    !!{
+    Root function used in solving for the radius of tidal disruption of a satellite galaxy.
+    !!}
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
     use :: Galactic_Structure_Options        , only : massTypeGalactic
     implicit none

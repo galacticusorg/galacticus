@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to test the array functions.
+!!{
+Contains a program to test the array functions.
+!!}
 
 program Test_Array_Monotonicity
-  !% Tests that array functions.
+  !!{
+  Tests that array functions.
+  !!}
   use :: Array_Utilities   , only : Array_Cumulate     , Array_Is_Monotonic      , Array_Reverse       , directionDecreasing, &
           &                         directionIncreasing, operator(.intersection.)
   use :: Display           , only : displayVerbositySet, verbosityLevelStandard

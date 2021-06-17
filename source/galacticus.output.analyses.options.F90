@@ -17,35 +17,45 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides options and enuemrations for on-the-fly analyses.
+!!{
+Contains a module which provides options and enuemrations for on-the-fly analyses.
+!!}
 
 module Output_Analyses_Options
-  !% Provides options and enuemrations for on-the-fly analyses.
+  !!{
+  Provides options and enuemrations for on-the-fly analyses.
+  !!}
   public
 
-  !# <enumeration>
-  !#  <name>outputAnalysisPropertyType</name>
-  !#  <description>Property types.</description>
-  !#  <entry label="linear"    />
-  !#  <entry label="log10"     />
-  !#  <entry label="magnitude" />
-  !#  <entry label="unknown"   />
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>outputAnalysisPropertyType</name>
+   <description>Property types.</description>
+   <entry label="linear"    />
+   <entry label="log10"     />
+   <entry label="magnitude" />
+   <entry label="unknown"   />
+  </enumeration>
+  !!]
 
-  !# <enumeration>
-  !#  <name>outputAnalysisPropertyQuantity</name>
-  !#  <description>Property quantities.</description>
-  !#  <entry label="unknown"   />
-  !#  <entry label="mass"      />
-  !#  <entry label="luminosity"/>
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>outputAnalysisPropertyQuantity</name>
+   <description>Property quantities.</description>
+   <entry label="unknown"   />
+   <entry label="mass"      />
+   <entry label="luminosity"/>
+  </enumeration>
+  !!]
 
-  !# <enumeration>
-  !#  <name>outputAnalysisCovarianceModel</name>
-  !#  <description>Output analyses covariance models.</description>
-  !#  <encodeFunction>yes</encodeFunction>
-  !#  <entry label="poisson" />
-  !#  <entry label="binomial"/>
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>outputAnalysisCovarianceModel</name>
+   <description>Output analyses covariance models.</description>
+   <encodeFunction>yes</encodeFunction>
+   <entry label="poisson" />
+   <entry label="binomial"/>
+  </enumeration>
+  !!]
 
 end module Output_Analyses_Options

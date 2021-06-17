@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a node property extractor for the most massive progenitor.
+!!{
+Contains a module which implements a node property extractor for the most massive progenitor.
+!!}
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorMostMassiveProgenitor">
-  !#  <description>
-  !#   A node property extractor class which extracts a value of $1$ for the most massive progenitor node in a tree at each output
-  !#   time and $0$ for all other nodes.
-  !#  </description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorMostMassiveProgenitor">
+   <description>
+    A node property extractor class which extracts a value of $1$ for the most massive progenitor node in a tree at each output
+    time and $0$ for all other nodes.
+   </description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorMostMassiveProgenitor
-     !% A node property extractor for most massive progenitor status.
+     !!{
+     A node property extractor for most massive progenitor status.
+     !!}
      private
      double precision            :: timePrevious
      integer         (kind_int8) :: uniqueIdMatched, uniqueIdPrevious
@@ -38,7 +44,9 @@
   end type nodePropertyExtractorMostMassiveProgenitor
 
   interface nodePropertyExtractorMostMassiveProgenitor
-     !% Constructors for the ``mostMassiveProgenitor'' output analysis class.
+     !!{
+     Constructors for the ``mostMassiveProgenitor'' output analysis class.
+     !!}
      module procedure mostMassiveProgenitorConstructorParameters
      module procedure mostMassiveProgenitorConstructorInternal
   end interface nodePropertyExtractorMostMassiveProgenitor
@@ -46,7 +54,9 @@
 contains
 
   function mostMassiveProgenitorConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily mostMassiveProgenitor} node property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily mostMassiveProgenitor} node property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(nodePropertyExtractorMostMassiveProgenitor)                :: self
@@ -58,7 +68,9 @@ contains
   end function mostMassiveProgenitorConstructorParameters
 
   function mostMassiveProgenitorConstructorInternal() result(self)
-    !% Internal constructor for the {\normalfont \ttfamily mostMassiveProgenitor} node property extractor class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily mostMassiveProgenitor} node property extractor class.
+    !!}
     implicit none
     type(nodePropertyExtractorMostMassiveProgenitor) :: self
 
@@ -69,7 +81,9 @@ contains
   end function mostMassiveProgenitorConstructorInternal
 
   function mostMassiveProgenitorExtract(self,node,time,instance)
-    !% Implement a {\normalfont \ttfamily mostMassiveProgenitor} node property extractor.
+    !!{
+    Implement a {\normalfont \ttfamily mostMassiveProgenitor} node property extractor.
+    !!}
     use :: Galacticus_Nodes   , only : nodeComponentBasic           , treeNode
     use :: Merger_Tree_Walkers, only : mergerTreeWalkerIsolatedNodes
     implicit none
@@ -114,7 +128,9 @@ contains
   end function mostMassiveProgenitorExtract
 
   integer function mostMassiveProgenitorType(self)
-    !% Return the type of the stellar mass property.
+    !!{
+    Return the type of the stellar mass property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorMostMassiveProgenitor), intent(inout) :: self
@@ -125,7 +141,9 @@ contains
   end function mostMassiveProgenitorType
 
   function mostMassiveProgenitorName(self)
-    !% Return the name of the mostMassiveProgenitor property.
+    !!{
+    Return the name of the mostMassiveProgenitor property.
+    !!}
     implicit none
     type (varying_string                            )                :: mostMassiveProgenitorName
     class(nodePropertyExtractorMostMassiveProgenitor), intent(inout) :: self
@@ -136,7 +154,9 @@ contains
   end function mostMassiveProgenitorName
 
   function mostMassiveProgenitorDescription(self)
-    !% Return a description of the mostMassiveProgenitor property.
+    !!{
+    Return a description of the mostMassiveProgenitor property.
+    !!}
     implicit none
     type (varying_string                            )                :: mostMassiveProgenitorDescription
     class(nodePropertyExtractorMostMassiveProgenitor), intent(inout) :: self

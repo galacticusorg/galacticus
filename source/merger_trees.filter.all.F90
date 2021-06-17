@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a merger tree filter class which is the ``all'' combination of a set of other filters.
+!!{
+Contains a module which implements a merger tree filter class which is the ``all'' combination of a set of other filters.
+!!}
 
-  !# <mergerTreeFilter name="mergerTreeFilterAll">
-  !#  <description>A merger tree filter class which is the ``all'' combination of a set of other filters.</description>
-  !#  <deepCopy>
-  !#   <linkedList type="filterList" variable="filters" next="next" object="filter_" objectType="mergerTreeFilterClass"/>
-  !#  </deepCopy>
-  !# </mergerTreeFilter>
+  !![
+  <mergerTreeFilter name="mergerTreeFilterAll">
+   <description>A merger tree filter class which is the ``all'' combination of a set of other filters.</description>
+   <deepCopy>
+    <linkedList type="filterList" variable="filters" next="next" object="filter_" objectType="mergerTreeFilterClass"/>
+   </deepCopy>
+  </mergerTreeFilter>
+  !!]
   type, extends(mergerTreeFilterClass) :: mergerTreeFilterAll
-     !% A merger tree filter class which is the ``all'' combination of a set of other filters.
+     !!{
+     A merger tree filter class which is the ``all'' combination of a set of other filters.
+     !!}
      private
      type(filterList), pointer :: filters => null()
   contains
@@ -35,7 +41,9 @@
   end type mergerTreeFilterAll
 
   interface mergerTreeFilterAll
-     !% Constructors for the all merger tree filter class.
+     !!{
+     Constructors for the all merger tree filter class.
+     !!}
      module procedure allConstructorParameters
      module procedure allConstructorInternal
   end interface mergerTreeFilterAll
@@ -43,7 +51,9 @@
 contains
 
   function allConstructorParameters(parameters) result(self)
-    !% Constructor for the ``all'' merger tree filter class which takes a parameter set as input.
+    !!{
+    Constructor for the ``all'' merger tree filter class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (mergerTreeFilterAll)                :: self
@@ -61,13 +71,17 @@ contains
           allocate(self%filters)
           filter_ => self%filters
        end if
-       !# <objectBuilder class="mergerTreeFilter" name="filter_%filter_" source="parameters" copy="i" />
+       !![
+       <objectBuilder class="mergerTreeFilter" name="filter_%filter_" source="parameters" copy="i" />
+       !!]
     end do
     return
   end function allConstructorParameters
 
   function allConstructorInternal(filters) result(self)
-    !% Internal constructor for the ``all'' filter class.
+    !!{
+    Internal constructor for the ``all'' filter class.
+    !!}
     implicit none
     type(mergerTreeFilterAll)                        :: self
     type(filterList         ), target, intent(in   ) :: filters
@@ -76,14 +90,18 @@ contains
     self   %filters => filters
     filter_         => filters
     do while (associated(filter_))
-       !# <referenceCountIncrement owner="filter_" object="filter_"/>
+       !![
+       <referenceCountIncrement owner="filter_" object="filter_"/>
+       !!]
        filter_ => filter_%next
     end do
     return
   end function allConstructorInternal
 
   subroutine allDestructor(self)
-    !% Destructor for the all merger tree filter class.
+    !!{
+    Destructor for the all merger tree filter class.
+    !!}
     implicit none
     type(mergerTreeFilterAll), intent(inout) :: self
     type(filterList         ), pointer       :: filter_, filterNext
@@ -92,7 +110,9 @@ contains
        filter_ => self%filters
        do while (associated(filter_))
           filterNext => filter_%next
-          !# <objectDestructor name="filter_%filter_"/>
+          !![
+          <objectDestructor name="filter_%filter_"/>
+          !!]
           deallocate(filter_)
           filter_ => filterNext
        end do
@@ -101,7 +121,9 @@ contains
   end subroutine allDestructor
 
   logical function allPasses(self,tree)
-    !% Apply a set of filters to a {\normalfont \ttfamily tree} combined with ``all'' operations.
+    !!{
+    Apply a set of filters to a {\normalfont \ttfamily tree} combined with ``all'' operations.
+    !!}
     implicit none
     class(mergerTreeFilterAll), intent(inout) :: self
     type (mergerTree         ), intent(in   ) :: tree

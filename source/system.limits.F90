@@ -17,13 +17,17 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which sets system resoruce limits.
+!!{
+Contains a module which sets system resoruce limits.
+!!}
 
 ! Specify an explicit dependence on the rlimit.o object file.
 !: $(BUILDPATH)/rlimit.o
 
 module System_Limits
-  !% Set resource limits.
+  !!{
+  Set resource limits.
+  !!}
   use, intrinsic :: ISO_C_Binding, only : c_int, c_long
   implicit none
   private
@@ -31,7 +35,9 @@ module System_Limits
 
   interface
      function setResourceLimit(resource,limit) bind(c,name='setResourceLimit_C')
-       !% Template for a C function that calls {\normalfont \ttfamily setrlimit()} to set a resource limit.
+       !!{
+       Template for a C function that calls {\normalfont \ttfamily setrlimit()} to set a resource limit.
+       !!}
        import
        integer(c_int )        :: setResourceLimit
        integer(c_int ), value :: resource
@@ -44,7 +50,9 @@ module System_Limits
 contains
 
   subroutine System_Limits_Set(parameters)
-    !% Set system resource limits.
+    !!{
+    Set system resource limits.
+    !!}
     use    :: Galacticus_Error, only : Galacticus_Error_Report
     use    :: Input_Parameters, only : inputParameters        , inputParameter
     !$ use :: OMP_Lib         , only : OMP_Get_Max_Threads
@@ -53,12 +61,14 @@ contains
     integer(c_int          )                :: status
     integer(c_long         )                :: cpuLimit
 
-    !# <inputParameter>
-    !#   <name>cpuLimit</name>
-    !#   <defaultValue>0_c_long</defaultValue>
-    !#   <description>The CPU time limit for the run, in seconds.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>cpuLimit</name>
+      <defaultValue>0_c_long</defaultValue>
+      <description>The CPU time limit for the run, in seconds.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     if (cpuLimit > 0_c_long) then
        !$ cpuLimit=cpuLimit*OMP_Get_Max_Threads()
        status=setResourceLimit(rLimitCPU,cpuLimit)

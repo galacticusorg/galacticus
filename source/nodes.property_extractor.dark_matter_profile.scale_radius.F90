@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a dark matter profile scale radius output analysis property extractor class.
+!!{
+Contains a module which implements a dark matter profile scale radius output analysis property extractor class.
+!!}
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorDarkMatterProfileScaleRadius">
-  !#  <description>A  dark matter profile scale radius output analysis property extractor class.</description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorDarkMatterProfileScaleRadius">
+   <description>A  dark matter profile scale radius output analysis property extractor class.</description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorDarkMatterProfileScaleRadius
-     !% A dark matter profile scale radius output property extractor class.
+     !!{
+     A dark matter profile scale radius output property extractor class.
+     !!}
      private
    contains
      procedure :: extract     => darkMatterProfileScaleRadiusExtract
@@ -34,14 +40,18 @@
   end type nodePropertyExtractorDarkMatterProfileScaleRadius
 
   interface nodePropertyExtractorDarkMatterProfileScaleRadius
-     !% Constructors for the ``darkMatterProfileScaleRadius'' output analysis class.
+     !!{
+     Constructors for the ``darkMatterProfileScaleRadius'' output analysis class.
+     !!}
      module procedure darkMatterProfileScaleRadiusConstructorParameters
   end interface nodePropertyExtractorDarkMatterProfileScaleRadius
 
 contains
 
   function darkMatterProfileScaleRadiusConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily darkMatterProfileScaleRadius} output analysis property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily darkMatterProfileScaleRadius} output analysis property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type (nodePropertyExtractorDarkMatterProfileScaleRadius)                :: self
@@ -53,7 +63,9 @@ contains
   end function darkMatterProfileScaleRadiusConstructorParameters
 
   double precision function darkMatterProfileScaleRadiusExtract(self,node,instance)
-    !% Implement a {\normalfont \ttfamily darkMatterProfileScaleRadius} output analysis.
+    !!{
+    Implement a {\normalfont \ttfamily darkMatterProfileScaleRadius} output analysis.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, treeNode
     implicit none
     class(nodePropertyExtractorDarkMatterProfileScaleRadius), intent(inout)           :: self
@@ -68,7 +80,9 @@ contains
   end function darkMatterProfileScaleRadiusExtract
 
   integer function darkMatterProfileScaleRadiusType(self)
-    !% Return the type of the {\normalfont \ttfamily darkMatterProfileScaleRadius} property.
+    !!{
+    Return the type of the {\normalfont \ttfamily darkMatterProfileScaleRadius} property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorDarkMatterProfileScaleRadius), intent(inout) :: self
@@ -79,7 +93,9 @@ contains
   end function darkMatterProfileScaleRadiusType
 
   function darkMatterProfileScaleRadiusName(self)
-    !% Return the name of the {\normalfont \ttfamily darkMatterProfileScaleRadius} property.
+    !!{
+    Return the name of the {\normalfont \ttfamily darkMatterProfileScaleRadius} property.
+    !!}
     implicit none
     type (varying_string                                   )                :: darkMatterProfileScaleRadiusName
     class(nodePropertyExtractorDarkMatterProfileScaleRadius), intent(inout) :: self
@@ -90,7 +106,9 @@ contains
   end function darkMatterProfileScaleRadiusName
 
   function darkMatterProfileScaleRadiusDescription(self)
-    !% Return a description of the {\normalfont \ttfamily darkMatterProfileScaleRadius} property.
+    !!{
+    Return a description of the {\normalfont \ttfamily darkMatterProfileScaleRadius} property.
+    !!}
     implicit none
     type (varying_string                                   )                :: darkMatterProfileScaleRadiusDescription
     class(nodePropertyExtractorDarkMatterProfileScaleRadius), intent(inout) :: self
@@ -101,7 +119,9 @@ contains
   end function darkMatterProfileScaleRadiusDescription
 
   double precision function darkMatterProfileScaleRadiusUnitsInSI(self)
-    !% Return the units of the {\normalfont \ttfamily darkMatterProfileScaleRadius} property in the SI system.
+    !!{
+    Return the units of the {\normalfont \ttfamily darkMatterProfileScaleRadius} property in the SI system.
+    !!}
     use :: Numerical_Constants_Astronomical, only : megaParsec
     implicit none
     class(nodePropertyExtractorDarkMatterProfileScaleRadius), intent(inout) :: self

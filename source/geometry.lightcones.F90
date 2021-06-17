@@ -17,71 +17,77 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements lightcone geometries.
+!!{
+Contains a module which implements lightcone geometries.
+!!}
 
 module Geometry_Lightcones
-  !% Implements geometries of lightcones.
+  !!{
+  Implements geometries of lightcones.
+  !!}
   use            :: Galacticus_Nodes, only : treeNode
   use, intrinsic :: ISO_C_Binding   , only : c_size_t
   private
 
-  !# <functionClass>
-  !#  <name>geometryLightcone</name>
-  !#  <descriptiveName>Lightcone Geometries</descriptiveName>
-  !#  <description>Class providing geometries of lightcones.</description>
-  !#  <default>square</default>
-  !#  <method name="isInLightcone" >
-  !#   <description>Returns true if the provided node lies within the lightcone.</description>
-  !#   <type>logical</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type            (treeNode), intent(inout)           :: node</argument>
-  !#   <argument>logical                   , intent(in   ), optional :: atPresentEpoch</argument>
-  !#   <argument>double precision          , intent(in   ), optional :: radiusBuffer</argument>
-  !#  </method>
-  !#  <method name="replicationCount" >
-  !#   <description>Returns the number of times the given nodes appears in the lightone .</description>
-  !#   <type>integer(c_size_t)</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type   (treeNode), intent(inout) :: node</argument>
-  !#  </method>
-  !#  <method name="solidAngle" >
-  !#   <description>Returns the solid angle subtended by the lightcone (in units of steradians).</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#  </method>
-  !#  <method name="position" >
-  !#   <description>Returns the position vector of a {\normalfont \ttfamily node} (in units of Mpc) in the lightcone coordinate system.</description>
-  !#   <type>double precision, dimension(3)</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type   (treeNode), intent(inout), target :: node</argument>
-  !#   <argument>integer(c_size_t), intent(in   )         :: instance</argument>
-  !#  </method>
-  !#  <method name="velocity" >
-  !#   <description>Returns the velocity vector of a {\normalfont \ttfamily node} (in units of km/s) in the lightcone coordinate system.</description>
-  !#   <type>double precision, dimension(3)</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type   (treeNode), intent(inout) :: node</argument>
-  !#   <argument>integer(c_size_t), intent(in   ) :: instance</argument>
-  !#  </method>
-  !#  <method name="timeLightconeCrossing" >
-  !#   <description>Returns the next time in the interval from the current node time to {\normalfont \ttfamily timeEnd} at which any replicant of this node will cross the lightcone. If no crossing occurs during this interval a very large value is returned instead.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type            (treeNode), intent(inout) :: node   </argument>
-  !#   <argument>double precision          , intent(in   ) :: timeEnd</argument>
-  !#  </method>
-  !#  <method name="positionLightconeCrossing" >
-  !#   <description>Returns the position of the node at the time of lightcone crossing---which must have been previously identified via the {\normalfont \ttfamily timeLightconeCrossing} method.</description>
-  !#   <type>double precision, dimension(3)</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout) :: node</argument>
-  !#  </method>
-  !#  <method name="velocityLightconeCrossing" >
-  !#   <description>Returns the velocity of the node at the time of lightcone crossing---which must have been previously identified via the {\normalfont \ttfamily timeLightconeCrossing} method.</description>
-  !#   <type>double precision, dimension(3)</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout) :: node</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>geometryLightcone</name>
+   <descriptiveName>Lightcone Geometries</descriptiveName>
+   <description>Class providing geometries of lightcones.</description>
+   <default>square</default>
+   <method name="isInLightcone" >
+    <description>Returns true if the provided node lies within the lightcone.</description>
+    <type>logical</type>
+    <pass>yes</pass>
+    <argument>type            (treeNode), intent(inout)           :: node</argument>
+    <argument>logical                   , intent(in   ), optional :: atPresentEpoch</argument>
+    <argument>double precision          , intent(in   ), optional :: radiusBuffer</argument>
+   </method>
+   <method name="replicationCount" >
+    <description>Returns the number of times the given nodes appears in the lightone .</description>
+    <type>integer(c_size_t)</type>
+    <pass>yes</pass>
+    <argument>type   (treeNode), intent(inout) :: node</argument>
+   </method>
+   <method name="solidAngle" >
+    <description>Returns the solid angle subtended by the lightcone (in units of steradians).</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+   </method>
+   <method name="position" >
+    <description>Returns the position vector of a {\normalfont \ttfamily node} (in units of Mpc) in the lightcone coordinate system.</description>
+    <type>double precision, dimension(3)</type>
+    <pass>yes</pass>
+    <argument>type   (treeNode), intent(inout), target :: node</argument>
+    <argument>integer(c_size_t), intent(in   )         :: instance</argument>
+   </method>
+   <method name="velocity" >
+    <description>Returns the velocity vector of a {\normalfont \ttfamily node} (in units of km/s) in the lightcone coordinate system.</description>
+    <type>double precision, dimension(3)</type>
+    <pass>yes</pass>
+    <argument>type   (treeNode), intent(inout) :: node</argument>
+    <argument>integer(c_size_t), intent(in   ) :: instance</argument>
+   </method>
+   <method name="timeLightconeCrossing" >
+    <description>Returns the next time in the interval from the current node time to {\normalfont \ttfamily timeEnd} at which any replicant of this node will cross the lightcone. If no crossing occurs during this interval a very large value is returned instead.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>type            (treeNode), intent(inout) :: node   </argument>
+    <argument>double precision          , intent(in   ) :: timeEnd</argument>
+   </method>
+   <method name="positionLightconeCrossing" >
+    <description>Returns the position of the node at the time of lightcone crossing---which must have been previously identified via the {\normalfont \ttfamily timeLightconeCrossing} method.</description>
+    <type>double precision, dimension(3)</type>
+    <pass>yes</pass>
+    <argument>type(treeNode), intent(inout) :: node</argument>
+   </method>
+   <method name="velocityLightconeCrossing" >
+    <description>Returns the velocity of the node at the time of lightcone crossing---which must have been previously identified via the {\normalfont \ttfamily timeLightconeCrossing} method.</description>
+    <type>double precision, dimension(3)</type>
+    <pass>yes</pass>
+    <argument>type(treeNode), intent(inout) :: node</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Geometry_Lightcones

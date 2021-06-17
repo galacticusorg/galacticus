@@ -68,7 +68,7 @@ foreach my $sourceDirectoryDescriptor ( @sourceDirectoryDescriptors ) {
 	if ( scalar(@functionClasses) > 0 ) {
 	    foreach my $functionClass ( @functionClasses ) {
 		foreach my $functionClassFileName ( &List::ExtraUtils::as_array($locations->{$functionClass->{'name'}}->{'file'}) ) {
-		    my $classTree = &Galacticus::Build::SourceTree::ParseFile($functionClassFileName);
+		    my $classTree  = &Galacticus::Build::SourceTree::ParseFile($functionClassFileName);
 		    my $classNode  = $classTree;
 		    my $classDepth = 0;
 		    my %classes;
@@ -111,9 +111,18 @@ foreach my $sourceDirectoryDescriptor ( @sourceDirectoryDescriptors ) {
 	while ( scalar(@sourceFileNameStack) > 0 ) {
 	    # Open and read the source file.
 	    my $sourceFilePathName = pop(@sourceFileNameStack);
+	    my $inXML              = 0;
+	    my $inLaTeX            = 0;
 	    open(my $sourceFile,$sourceFilePathName) 
 		or die "moduleDepedencies.pl: can not open input file: ".$sourceFilePathName;	    
 	    while ( my $line = <$sourceFile> ) {
+		# Detect leaving LaTeX and XML blocks.
+		$inXML   = 0
+		    if ( $line =~ m/^\s*!!\]/ );
+		$inLaTeX = 0
+		    if ( $line =~ m/^\s*!!\}/ );
+		next
+		    if ( $inXML || $inLaTeX );
 		# Strip comments and trailing space.
 		$line =~ s/\s*(!.*)?$//;
 		# Locate any lines which use the "module" statement and extract the name of that module.
@@ -136,6 +145,11 @@ foreach my $sourceDirectoryDescriptor ( @sourceDirectoryDescriptors ) {
 		    push(@sourceFileNameStack,$includeFileName);
 		    push(@{$modulesPerFile->{$fileIdentifier}->{'files'}},$includeFileName);
 		}
+		# Detect entering LaTeX and XML blocks.
+		$inXML   = 1
+		    if ( $line =~ m/^\s*!!\[/ );
+		$inLaTeX = 1
+		    if ( $line =~ m/^\s*!!\{/ );
 	    }
 	    close($sourceFile);
 	}

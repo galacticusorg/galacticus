@@ -17,28 +17,34 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides a class that implements outflows due to stellar feedback.
+!!{
+Contains a module which provides a class that implements outflows due to stellar feedback.
+!!}
 
 module Stellar_Feedback_Outflows
-  !% Provides a class that implements ejective stellar feedback.
+  !!{
+  Provides a class that implements ejective stellar feedback.
+  !!}
   use :: Galacticus_Nodes, only : nodeComponent
   private
 
-  !# <functionClass>
-  !#  <name>stellarFeedbackOutflows</name>
-  !#  <descriptiveName>Stellar feedback.</descriptiveName>
-  !#  <description>
-  !#   Class providing models of outflows due to stellar feedback.
-  !#  </description>
-  !#  <default>powerLaw</default>
-  !#  <method name="outflowRate" >
-  !#   <description>Returns the outflow rates (both ejective and expulsive) due to stellar feedback in the given {\normalfont \ttfamily component} in units of $M_\odot/$Gyr.</description>
-  !#   <type>void</type>
-  !#   <pass>yes</pass>
-  !#   <argument>class           (nodeComponent), intent(inout) :: component</argument>
-  !#   <argument>double precision               , intent(in   ) :: rateStarFormation  , rateEnergyInput</argument>
-  !#   <argument>double precision               , intent(  out) :: rateOutflowEjective, rateOutflowExpulsive</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>stellarFeedbackOutflows</name>
+   <descriptiveName>Stellar feedback.</descriptiveName>
+   <description>
+    Class providing models of outflows due to stellar feedback.
+   </description>
+   <default>powerLaw</default>
+   <method name="outflowRate" >
+    <description>Returns the outflow rates (both ejective and expulsive) due to stellar feedback in the given {\normalfont \ttfamily component} in units of $M_\odot/$Gyr.</description>
+    <type>void</type>
+    <pass>yes</pass>
+    <argument>class           (nodeComponent), intent(inout) :: component</argument>
+    <argument>double precision               , intent(in   ) :: rateStarFormation  , rateEnergyInput</argument>
+    <argument>double precision               , intent(  out) :: rateOutflowEjective, rateOutflowExpulsive</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Stellar_Feedback_Outflows

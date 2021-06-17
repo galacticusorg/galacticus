@@ -17,18 +17,24 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of dark matter halo mass accretion histories using the \cite{correa_accretion_2015} algorithm.
+  !!{
+  An implementation of dark matter halo mass accretion histories using the \cite{correa_accretion_2015} algorithm.
+  !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
   use :: Linear_Growth             , only : linearGrowthClass
   use :: Root_Finder               , only : rootFinder
 
-  !# <darkMatterHaloMassAccretionHistory name="darkMatterHaloMassAccretionHistoryCorrea2015">
-  !#  <description>Dark matter halo mass accretion histories using the \cite{correa_accretion_2015} algorithm.</description>
-  !# </darkMatterHaloMassAccretionHistory>
+  !![
+  <darkMatterHaloMassAccretionHistory name="darkMatterHaloMassAccretionHistoryCorrea2015">
+   <description>Dark matter halo mass accretion histories using the \cite{correa_accretion_2015} algorithm.</description>
+  </darkMatterHaloMassAccretionHistory>
+  !!]
   type, extends(darkMatterHaloMassAccretionHistoryClass) :: darkMatterHaloMassAccretionHistoryCorrea2015
-     !% A dark matter halo mass accretion historiy class using the \cite{correa_accretion_2015} algorithm.
+     !!{
+     A dark matter halo mass accretion historiy class using the \cite{correa_accretion_2015} algorithm.
+     !!}
      private
      class(cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_       => null()
      class(linearGrowthClass            ), pointer :: linearGrowth_             => null()
@@ -41,7 +47,9 @@
   end type darkMatterHaloMassAccretionHistoryCorrea2015
 
   interface darkMatterHaloMassAccretionHistoryCorrea2015
-     !% Constructors for the {\normalfont \ttfamily correa2015} dark matter halo mass accretion history class.
+     !!{
+     Constructors for the {\normalfont \ttfamily correa2015} dark matter halo mass accretion history class.
+     !!}
      module procedure correa2015ConstructorParameters
      module procedure correa2015ConstructorInternal
   end interface darkMatterHaloMassAccretionHistoryCorrea2015
@@ -49,8 +57,10 @@
 contains
 
   function correa2015ConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily correa2015} dark matter halo mass accretion history class which takes a parameter
-    !% set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily correa2015} dark matter halo mass accretion history class which takes a parameter
+    set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (darkMatterHaloMassAccretionHistoryCorrea2015)                :: self
@@ -59,19 +69,25 @@ contains
     class(linearGrowthClass                           ), pointer       :: linearGrowth_
     class(cosmologicalMassVarianceClass               ), pointer       :: cosmologicalMassVariance_
 
-    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
-    !# <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
-    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    !![
+    <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
+    <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    !!]
     self=darkMatterHaloMassAccretionHistoryCorrea2015(cosmologyFunctions_,linearGrowth_,cosmologicalMassVariance_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"      />
-    !# <objectDestructor name="linearGrowth_"            />
-    !# <objectDestructor name="cosmologicalMassVariance_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"      />
+    <objectDestructor name="linearGrowth_"            />
+    <objectDestructor name="cosmologicalMassVariance_"/>
+    !!]
     return
   end function correa2015ConstructorParameters
 
   function correa2015ConstructorInternal(cosmologyFunctions_,linearGrowth_,cosmologicalMassVariance_) result(self)
-    !% Generic constructor for the {\normalfont \ttfamily correa2015} dark matter halo mass accretion history class.
+    !!{
+    Generic constructor for the {\normalfont \ttfamily correa2015} dark matter halo mass accretion history class.
+    !!}
     use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative
     implicit none
     type            (darkMatterHaloMassAccretionHistoryCorrea2015)                        :: self
@@ -79,7 +95,9 @@ contains
     class           (linearGrowthClass                           ), intent(in   ), target :: linearGrowth_
     class           (cosmologicalMassVarianceClass               ), intent(in   ), target :: cosmologicalMassVariance_
     double precision                                              , parameter             :: toleranceRelative        =1.0d-6,toleranceAbsolute=0.0d+0
-    !# <constructorAssign variables="*cosmologyFunctions_, *linearGrowth_, *cosmologicalMassVariance_"/>
+    !![
+    <constructorAssign variables="*cosmologyFunctions_, *linearGrowth_, *cosmologicalMassVariance_"/>
+    !!]
     
     self%finder=rootFinder(                                                           &
          &                 toleranceAbsolute          =toleranceAbsolute            , &
@@ -92,19 +110,25 @@ contains
   end function correa2015ConstructorInternal
 
   subroutine correa2015Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily correa2015} dark matter halo mass accretion history class.
+    !!{
+    Destructor for the {\normalfont \ttfamily correa2015} dark matter halo mass accretion history class.
+    !!}
     implicit none
     type(darkMatterHaloMassAccretionHistoryCorrea2015), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"      />
-    !# <objectDestructor name="self%linearGrowth_"            />
-    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"      />
+    <objectDestructor name="self%linearGrowth_"            />
+    <objectDestructor name="self%cosmologicalMassVariance_"/>
+    !!]
     return
   end subroutine correa2015Destructor
 
   double precision function correa2015Time(self,node,mass)
-    !% Compute the time corresponding to {\normalfont \ttfamily mass} in the mass accretion history of {\normalfont \ttfamily
-    !% node} using the algorithm of \cite{correa_accretion_2015}.
+    !!{
+    Compute the time corresponding to {\normalfont \ttfamily mass} in the mass accretion history of {\normalfont \ttfamily
+    node} using the algorithm of \cite{correa_accretion_2015}.
+    !!}
     use :: Dark_Matter_Halos_Correa2015, only : Dark_Matter_Halo_Correa2015_Fit_Parameters
     use :: Galacticus_Nodes            , only : nodeComponentBasic                        , treeNode
     implicit none
@@ -141,8 +165,10 @@ contains
   contains
 
     double precision function redshiftMassSolver(redshift)
-      !% Root solver function used in finding the redshift corresponding to a given mass in the \cite{correa_accretion_2015} mass
-      !% accretion history algorithm.
+      !!{
+      Root solver function used in finding the redshift corresponding to a given mass in the \cite{correa_accretion_2015} mass
+      accretion history algorithm.
+      !!}
       implicit none
       double precision, intent(in   ) :: redshift
 
@@ -156,8 +182,10 @@ contains
   end function correa2015Time
 
   double precision function correa2015MassAccretionRate(self,node,time)
-    !% Compute the mass accretion rate at the given time {\normalfont \ttfamily mass} in the mass accretion history of
-    !% {\normalfont \ttfamily node} using the algorithm of \cite{correa_accretion_2015}.
+    !!{
+    Compute the mass accretion rate at the given time {\normalfont \ttfamily mass} in the mass accretion history of
+    {\normalfont \ttfamily node} using the algorithm of \cite{correa_accretion_2015}.
+    !!}
     use :: Dark_Matter_Halos_Correa2015, only : Dark_Matter_Halo_Correa2015_Fit_Parameters
     use :: Galacticus_Nodes            , only : nodeComponentBasic                        , treeNode
     implicit none

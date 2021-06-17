@@ -17,31 +17,37 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module that implements calculations of the freefall radius.
+!!{
+Contains a module that implements calculations of the freefall radius.
+!!}
 
 module Freefall_Radii
-  !% Provides a class that implements calculations of the freefall radius.
+  !!{
+  Provides a class that implements calculations of the freefall radius.
+  !!}
   use :: Galacticus_Nodes, only : treeNode
   implicit none
   private
 
-  !# <functionClass>
-  !#  <name>freefallRadius</name>
-  !#  <descriptiveName>Freefall radii.</descriptiveName>
-  !#  <description>Class providing models of the freefall radius for gas in the hot atmosphere surrounding a galaxy.</description>
-  !#  <default>darkMatterHalo</default>
-  !#  <method name="radius" >
-  !#   <description>Returns the freefall radius for gas in the hot atmosphere surrounding the galaxy in {\normalfont \ttfamily node} in units of Mpc.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout) :: node</argument>
-  !#  </method>
-  !#  <method name="radiusGrowthRate" >
-  !#   <description>Returns the rate of increase of the freefall radius for gas in the hot atmosphere surrounding the galaxy in {\normalfont \ttfamily node} in units of Mpc/Gyr.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout) :: node</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>freefallRadius</name>
+   <descriptiveName>Freefall radii.</descriptiveName>
+   <description>Class providing models of the freefall radius for gas in the hot atmosphere surrounding a galaxy.</description>
+   <default>darkMatterHalo</default>
+   <method name="radius" >
+    <description>Returns the freefall radius for gas in the hot atmosphere surrounding the galaxy in {\normalfont \ttfamily node} in units of Mpc.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>type(treeNode), intent(inout) :: node</argument>
+   </method>
+   <method name="radiusGrowthRate" >
+    <description>Returns the rate of increase of the freefall radius for gas in the hot atmosphere surrounding the galaxy in {\normalfont \ttfamily node} in units of Mpc/Gyr.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>type(treeNode), intent(inout) :: node</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Freefall_Radii

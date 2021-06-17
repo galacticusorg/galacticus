@@ -17,7 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Implements the gravitational lensing distributions of \cite{takahashi_probability_2011}.
+!!{
+Implements the gravitational lensing distributions of \cite{takahashi_probability_2011}.
+!!}
 
   use :: Cosmology_Functions    , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters   , only : cosmologyParametersClass
@@ -25,16 +27,18 @@
   use :: Power_Spectra_Nonlinear, only : powerSpectrumNonlinearClass
   use :: Tables                 , only : table1DGeneric             , table1DLogarithmicLinear
 
-  !# <gravitationalLensing name="gravitationalLensingTakahashi2011">
-  !#  <description>
-  !#   A gravitational lensing distribution class utilizing the fitting functions of \cite{takahashi_probability_2011} to compute
-  !#   the effects of gravitational lensing. Specifically, eqn.~11 of \cite{takahashi_probability_2011} is used. The parameters
-  !#   $\kappa_\mathrm{empty}$ and $\langle \kappa^2 \rangle$ are computed from the assumed cosmology and non-linear power
-  !#   spectrum as described by \cite[][eqns.~5 and 2 respectively]{takahashi_probability_2011}. The parameters, $N_\kappa$,
-  !#   $A_\kappa$, and $\omega_\kappa$ of the lensing convergence distribution are determined using the conditions given by
-  !#   \cite[][eqn.~9]{takahashi_probability_2011}.
-  !#  </description>
-  !# </gravitationalLensing>
+  !![
+  <gravitationalLensing name="gravitationalLensingTakahashi2011">
+   <description>
+    A gravitational lensing distribution class utilizing the fitting functions of \cite{takahashi_probability_2011} to compute
+    the effects of gravitational lensing. Specifically, eqn.~11 of \cite{takahashi_probability_2011} is used. The parameters
+    $\kappa_\mathrm{empty}$ and $\langle \kappa^2 \rangle$ are computed from the assumed cosmology and non-linear power
+    spectrum as described by \cite[][eqns.~5 and 2 respectively]{takahashi_probability_2011}. The parameters, $N_\kappa$,
+    $A_\kappa$, and $\omega_\kappa$ of the lensing convergence distribution are determined using the conditions given by
+    \cite[][eqn.~9]{takahashi_probability_2011}.
+   </description>
+  </gravitationalLensing>
+  !!]
   type, extends(gravitationalLensingClass) :: gravitationalLensingTakahashi2011
      private
      class           (cosmologyParametersClass   ), pointer :: cosmologyParameters_    => null()
@@ -50,10 +54,12 @@
           &                                                    aConvergence                     , omegaConvergence                    , &
           &                                                    scaleSourcePrevious
    contains
-     !# <methods>
-     !#   <method description="Construct the gravitational lensing distribution functions for the specified redshift and source scale." method="lensingDistributionConstruct" />
-     !#   <method description="Returns the gravitational lensing convergence probability density function at the given convergence." method="convergenceDistribution" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Construct the gravitational lensing distribution functions for the specified redshift and source scale." method="lensingDistributionConstruct" />
+       <method description="Returns the gravitational lensing convergence probability density function at the given convergence." method="convergenceDistribution" />
+     </methods>
+     !!]
      final     ::                                 takahashi2011Destructor
      procedure :: magnificationPDF             => takahashi2011MagnificationPDF
      procedure :: magnificationCDF             => takahashi2011MagnificationCDF
@@ -62,7 +68,9 @@
    end type gravitationalLensingTakahashi2011
 
   interface gravitationalLensingTakahashi2011
-     !% Constructors for the \cite{takahashi_probability_2011} gravitational lensing class.
+     !!{
+     Constructors for the \cite{takahashi_probability_2011} gravitational lensing class.
+     !!}
      module procedure takahashi2011ConstructorParameters
      module procedure takahashi2011ConstructorInternal
   end interface gravitationalLensingTakahashi2011
@@ -80,7 +88,9 @@
 contains
 
   function takahashi2011ConstructorParameters(parameters) result(self)
-    !% Constructor for the \cite{takahashi_probability_2011} gravitational lensing class which takes a parameter list as input.
+    !!{
+    Constructor for the \cite{takahashi_probability_2011} gravitational lensing class which takes a parameter list as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (gravitationalLensingTakahashi2011)                :: self
@@ -89,25 +99,33 @@ contains
     class(cosmologyFunctionsClass          ), pointer       :: cosmologyFunctions_
     class(powerSpectrumNonlinearClass      ), pointer       :: powerSpectrumNonlinear_
 
-    !# <objectBuilder class="cosmologyParameters"    name="cosmologyParameters_"    source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"     name="cosmologyFunctions_"     source="parameters"/>
-    !# <objectBuilder class="powerSpectrumNonlinear" name="powerSpectrumNonlinear_" source="parameters"/>
+    !![
+    <objectBuilder class="cosmologyParameters"    name="cosmologyParameters_"    source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"     name="cosmologyFunctions_"     source="parameters"/>
+    <objectBuilder class="powerSpectrumNonlinear" name="powerSpectrumNonlinear_" source="parameters"/>
+    !!]
     self=gravitationalLensingTakahashi2011(cosmologyParameters_,cosmologyFunctions_,powerSpectrumNonlinear_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"   />
-    !# <objectDestructor name="cosmologyFunctions_"    />
-    !# <objectDestructor name="powerSpectrumNonlinear_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"   />
+    <objectDestructor name="cosmologyFunctions_"    />
+    <objectDestructor name="powerSpectrumNonlinear_"/>
+    !!]
     return
   end function takahashi2011ConstructorParameters
 
   function takahashi2011ConstructorInternal(cosmologyParameters_,cosmologyFunctions_,powerSpectrumNonlinear_) result(self)
-    !% Internal for the \cite{takahashi_probability_2011} gravitational lensing class.
+    !!{
+    Internal for the \cite{takahashi_probability_2011} gravitational lensing class.
+    !!}
     implicit none
     type (gravitationalLensingTakahashi2011)                        :: self
     class(cosmologyParametersClass         ), intent(in   ), target :: cosmologyParameters_
     class(cosmologyFunctionsClass          ), intent(in   ), target :: cosmologyFunctions_
     class(powerSpectrumNonlinearClass      ), intent(in   ), target :: powerSpectrumNonlinear_
-    !# <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_, *powerSpectrumNonlinear_"/>
+    !![
+    <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_, *powerSpectrumNonlinear_"/>
+    !!]
 
     self   %tableInitialized=.false.
     self   %cdfInitialized  =.false.
@@ -117,19 +135,25 @@ contains
   end function takahashi2011ConstructorInternal
 
   subroutine takahashi2011Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily takahasi2011} gravitational lensing class.
+    !!{
+    Destructor for the {\normalfont \ttfamily takahasi2011} gravitational lensing class.
+    !!}
     implicit none
     type(gravitationalLensingTakahashi2011), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_"   />
-    !# <objectDestructor name="self%cosmologyFunctions_"    />
-    !# <objectDestructor name="self%powerSpectrumNonlinear_"/>
+    !![
+    <objectDestructor name="self%cosmologyParameters_"   />
+    <objectDestructor name="self%cosmologyFunctions_"    />
+    <objectDestructor name="self%powerSpectrumNonlinear_"/>
+    !!]
     return
   end subroutine takahashi2011Destructor
 
   double precision function takahashi2011MagnificationPDF(self,magnification,redshift,scaleSource)
-    !% Compute the magnification probability density function at the given {\normalfont \ttfamily magnification} and {\normalfont \ttfamily redshift} using the
-    !% \cite{takahashi_probability_2011} formalism.
+    !!{
+    Compute the magnification probability density function at the given {\normalfont \ttfamily magnification} and {\normalfont \ttfamily redshift} using the
+    \cite{takahashi_probability_2011} formalism.
+    !!}
     implicit none
     class           (gravitationalLensingTakahashi2011), intent(inout) :: self
     double precision                                   , intent(in   ) :: magnification, redshift, &
@@ -165,8 +189,10 @@ contains
   end function takahashi2011MagnificationPDF
 
   double precision function takahashi2011MagnificationCDF(self,magnification,redshift,scaleSource)
-    !% Compute the magnification probability density function at the given {\normalfont \ttfamily magnification} and {\normalfont \ttfamily redshift} using the
-    !% \cite{takahashi_probability_2011} formalism.
+    !!{
+    Compute the magnification probability density function at the given {\normalfont \ttfamily magnification} and {\normalfont \ttfamily redshift} using the
+    \cite{takahashi_probability_2011} formalism.
+    !!}
     implicit none
     class           (gravitationalLensingTakahashi2011), intent(inout) :: self
     double precision                                   , intent(in   ) :: magnification, redshift, &
@@ -209,7 +235,9 @@ contains
   contains
 
     double precision function magnificationPDFIntegrand(magnification)
-      !% Integral for the magnification probability distribution function.
+      !!{
+      Integral for the magnification probability distribution function.
+      !!}
       implicit none
       double precision, intent(in   ) :: magnification
 
@@ -220,7 +248,9 @@ contains
   end function takahashi2011MagnificationCDF
 
   double precision function takahashi2011MagnificationDistribution(self,magnification)
-    !% The gravitational lensing magnification distribution from \cite[][eq.~11]{takahashi_probability_2011}.
+    !!{
+    The gravitational lensing magnification distribution from \cite[][eq.~11]{takahashi_probability_2011}.
+    !!}
     implicit none
     class           (gravitationalLensingTakahashi2011), intent(inout) :: self
     double precision                                   , intent(in   ) :: magnification
@@ -267,7 +297,9 @@ contains
   end function takahashi2011MagnificationDistribution
 
   double precision function takahashi2011ConvergenceDistribution(self,convergence)
-    !% The distribution function for gravitational lensing convergence \citep[][eqn.~8]{takahashi_probability_2011}.
+    !!{
+    The distribution function for gravitational lensing convergence \citep[][eqn.~8]{takahashi_probability_2011}.
+    !!}
     implicit none
     class           (gravitationalLensingTakahashi2011), intent(inout) :: self
     double precision                                   , intent(in   ) :: convergence
@@ -309,7 +341,9 @@ contains
   end function takahashi2011ConvergenceDistribution
 
   subroutine takahashi2011LensingDistributionConstruct(self,redshift,scaleSource)
-    !% Construct the lensing distribution function for the \cite{takahashi_probability_2011} formalism.
+    !!{
+    Construct the lensing distribution function for the \cite{takahashi_probability_2011} formalism.
+    !!}
     use :: File_Utilities       , only : Directory_Make              , File_Exists
     use :: Galacticus_Error     , only : Galacticus_Error_Report
     use :: Galacticus_Paths     , only : galacticusPath              , pathTypeDataDynamic
@@ -501,7 +535,9 @@ contains
   contains
 
     double precision function magnificationPDFIntegrand(magnification)
-      !% Integral for the magnification probability distribution function.
+      !!{
+      Integral for the magnification probability distribution function.
+      !!}
       implicit none
       double precision, intent(in   ) :: magnification
 
@@ -510,7 +546,9 @@ contains
     end function magnificationPDFIntegrand
 
     double precision function convergencePdfParameterSolver(a)
-      !% Root function used in finding equivalent circular orbits.
+      !!{
+      Root function used in finding equivalent circular orbits.
+      !!}
       implicit none
       double precision            , intent(in   ) :: a
       type            (integrator)                :: integratorConvergenceDistributionMoment1, integratorConvergenceDistributionMoment2
@@ -529,7 +567,9 @@ contains
     end function convergencePdfParameterSolver
 
     double precision function emptyBeamConvergenceIntegrand(redshiftLens)
-      !% Integral for gravitational lensing convergence in an empty beam.
+      !!{
+      Integral for gravitational lensing convergence in an empty beam.
+      !!}
       use :: Numerical_Constants_Physical, only : speedLight
       use :: Numerical_Constants_Prefixes, only : kilo
       implicit none
@@ -568,7 +608,9 @@ contains
     end function emptyBeamConvergenceIntegrand
 
     double precision function convergenceVarianceIntegrand(redshiftLens)
-      !% Integral for variance in the gravitational lensing convergence.
+      !!{
+      Integral for variance in the gravitational lensing convergence.
+      !!}
       use :: Numerical_Constants_Math    , only : Pi
       use :: Numerical_Constants_Physical, only : speedLight
       use :: Numerical_Constants_Prefixes, only : kilo
@@ -621,7 +663,9 @@ contains
     end function convergenceVarianceIntegrand
 
     double precision function convergenceVariancePowerSpectrumIntegrand(logWavenumber)
-      !% Integral over power spectrum used in computing the variance in the gravitational lensing convergence.
+      !!{
+      Integral over power spectrum used in computing the variance in the gravitational lensing convergence.
+      !!}
       implicit none
       double precision, intent(in   ) :: logWavenumber
       double precision                :: wavenumber
@@ -633,7 +677,9 @@ contains
     end function convergenceVariancePowerSpectrumIntegrand
 
     double precision function convergenceDistributionMoment0Integrand(scaledConvergence)
-      !% Integral over scaled convergence distribution.
+      !!{
+      Integral over scaled convergence distribution.
+      !!}
       implicit none
       double precision, intent(in   ) :: scaledConvergence
 
@@ -642,7 +688,9 @@ contains
     end function convergenceDistributionMoment0Integrand
 
     double precision function convergenceDistributionMoment1Integrand(scaledConvergence)
-      !% Integral of first moment over scaled convergence distribution.
+      !!{
+      Integral of first moment over scaled convergence distribution.
+      !!}
       implicit none
       double precision, intent(in   ) :: scaledConvergence
 
@@ -651,7 +699,9 @@ contains
     end function convergenceDistributionMoment1Integrand
 
     double precision function convergenceDistributionMoment2Integrand(scaledConvergence)
-      !% Integral of second moment over scaled convergence distribution.
+      !!{
+      Integral of second moment over scaled convergence distribution.
+      !!}
       implicit none
       double precision, intent(in   ) :: scaledConvergence
 

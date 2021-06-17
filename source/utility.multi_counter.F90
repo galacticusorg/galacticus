@@ -17,30 +17,38 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements multi-counters - objects which iterate over all combinations of an arbitary number of
-  !% counters, each with an arbitrary range.
+  !!{
+  Contains a module which implements multi-counters - objects which iterate over all combinations of an arbitary number of
+  counters, each with an arbitrary range.
+  !!}
 
 module Multi_Counters
-  !% Implements multi-counters - objects which iterate over all combinations of an arbitary number of counters, each with an
-  !% arbitrary range.
+  !!{
+  Implements multi-counters - objects which iterate over all combinations of an arbitary number of counters, each with an
+  arbitrary range.
+  !!}
   use, intrinsic :: ISO_C_Binding, only : c_size_t
   implicit none
   private
   public :: multiCounter
 
   type :: multiCounter
-     !% Class providing multi-counters - objects which iterate over all combinations of an arbitary number of counters, each with
-     !% an arbitrary range.
+     !!{
+     Class providing multi-counters - objects which iterate over all combinations of an arbitary number of counters, each with
+     an arbitrary range.
+     !!}
      integer(c_size_t), allocatable, dimension(:) :: ranges, values
    contains
-     !# <methods>
-     !#   <method description="Reset the multi-counter back to its initial count state, such that the next increment will return the first count." method="reset" />
-     !#   <method description="Return the number of counters configured in this multi-counter." method="count" />
-     !#   <method description="Append a new counter to the multi-counter, with the specified {\normalfont \ttfamily range}." method="append" />
-     !#   <method description="Increment the state of the multi-counter. Return {\normalfont \ttfamily .false.} if incrementing was not possible (i.e. counter was in the final state), {\normalfont \ttfamily .true.} otherwise." method="increment" />
-     !#   <method description="Return {\normalfont \ttfamily .true.} if the counter is in its final state, {\normalfont \ttfamily .false.} otherwise." method="isFinal" />
-     !#   <method description="Return the state of the {\normalfont \ttfamily i}$^\mathrm{th}$ counter." method="state" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Reset the multi-counter back to its initial count state, such that the next increment will return the first count." method="reset" />
+       <method description="Return the number of counters configured in this multi-counter." method="count" />
+       <method description="Append a new counter to the multi-counter, with the specified {\normalfont \ttfamily range}." method="append" />
+       <method description="Increment the state of the multi-counter. Return {\normalfont \ttfamily .false.} if incrementing was not possible (i.e. counter was in the final state), {\normalfont \ttfamily .true.} otherwise." method="increment" />
+       <method description="Return {\normalfont \ttfamily .true.} if the counter is in its final state, {\normalfont \ttfamily .false.} otherwise." method="isFinal" />
+       <method description="Return the state of the {\normalfont \ttfamily i}$^\mathrm{th}$ counter." method="state" />
+     </methods>
+     !!]
      final     ::              multiCounterDestructor
      procedure :: append    => multiCounterAppend
      procedure :: reset     => multiCounterReset
@@ -51,14 +59,18 @@ module Multi_Counters
   end type multiCounter
 
   interface multiCounter
-     !% Constructors for multi-counters.
+     !!{
+     Constructors for multi-counters.
+     !!}
      module procedure multiCounterConstructor
   end interface multiCounter
 
 contains
 
   function multiCounterConstructor(ranges) result (self)
-    !% Constructor for multi-counters where the ranges are provided.
+    !!{
+    Constructor for multi-counters where the ranges are provided.
+    !!}
     use :: Galacticus_Error , only : Galacticus_Error_Report
     use :: Memory_Management, only : allocateArray
     implicit none
@@ -76,7 +88,9 @@ contains
   end function multiCounterConstructor
 
   subroutine multiCounterDestructor(self)
-    !% Destroy a multi-counter object.
+    !!{
+    Destroy a multi-counter object.
+    !!}
     use :: Memory_Management, only : deallocateArray
     type(multiCounter), intent(inout) :: self
 
@@ -86,7 +100,9 @@ contains
   end subroutine multiCounterDestructor
 
   subroutine multiCounterReset(self)
-    !% Reset the state of the multi-counter.
+    !!{
+    Reset the state of the multi-counter.
+    !!}
     implicit none
     class(multiCounter), intent(inout) :: self
 
@@ -95,7 +111,9 @@ contains
   end subroutine multiCounterReset
 
   function multiCounterCount(self)
-    !% Return the number of counters in the multi-counter.
+    !!{
+    Return the number of counters in the multi-counter.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     integer(c_size_t    )                :: multiCounterCount
@@ -109,7 +127,9 @@ contains
   end function multiCounterCount
 
   function multiCounterState(self,i)
-    !% Return the state of the multi-counter.
+    !!{
+    Return the state of the multi-counter.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     integer(c_size_t    )                :: multiCounterState
@@ -125,7 +145,9 @@ contains
   end function multiCounterState
 
   subroutine multiCounterAppend(self,range)
-    !% Append a new counter with the given {\normalfont \ttfamily range}.
+    !!{
+    Append a new counter with the given {\normalfont \ttfamily range}.
+    !!}
     use :: Galacticus_Error , only : Galacticus_Error_Report
     use :: Memory_Management, only : allocateArray          , deallocateArray
     implicit none
@@ -153,7 +175,9 @@ contains
   end subroutine multiCounterAppend
 
   logical function multiCounterIncrement(self)
-    !% Increment a multi-counter. Return true if increment was possible, false otherwise.
+    !!{
+    Increment a multi-counter. Return true if increment was possible, false otherwise.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (multiCounter), intent(inout) :: self
@@ -184,7 +208,9 @@ contains
   end function multiCounterIncrement
 
   logical function multiCounterIsFinal(self)
-    !% Return true if a multi-counter is in its final state, false otherwise.
+    !!{
+    Return true if a multi-counter is in its final state, false otherwise.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(multiCounter), intent(in   ) :: self

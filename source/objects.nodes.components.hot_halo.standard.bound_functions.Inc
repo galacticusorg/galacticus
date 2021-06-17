@@ -17,11 +17,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains custom functions for the standard hot halo component.
+!!{
+Contains custom functions for the standard hot halo component.
+!!}
 
 subroutine Node_Component_Hot_Halo_Standard_Mass_Removal_Rate(self,massRemovalRate)
-  !% Handle instances of mass removal from the standard hot halo component
-  !% class. For the standard hot halo component type, we do nothing.
+  !!{
+  Handle instances of mass removal from the standard hot halo component
+  class. For the standard hot halo component type, we do nothing.
+  !!}
   implicit none
   class          (nodeComponentHotHaloStandard), intent(inout) :: self
   double precision                             , intent(in   ) :: massRemovalRate
@@ -31,7 +35,9 @@ subroutine Node_Component_Hot_Halo_Standard_Mass_Removal_Rate(self,massRemovalRa
 end subroutine Node_Component_Hot_Halo_Standard_Mass_Removal_Rate
 
 double precision function Node_Component_Hot_Halo_Standard_Mass_Total(self)
-  !% Return the total active mass in the hot halo.
+  !!{
+  Return the total active mass in the hot halo.
+  !!}
   implicit none
   class(nodeComponentHotHaloStandard), intent(inout) :: self
 

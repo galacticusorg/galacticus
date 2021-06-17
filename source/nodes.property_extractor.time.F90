@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a cosmic time output analysis property extractor class.
+!!{
+Contains a module which implements a cosmic time output analysis property extractor class.
+!!}
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorTime">
-  !#  <description>A cosmic time output analysis property extractor class.</description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorTime">
+   <description>A cosmic time output analysis property extractor class.</description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorTime
-     !% A cosmic time property extractor output analysis class.
+     !!{
+     A cosmic time property extractor output analysis class.
+     !!}
      private
    contains
      procedure :: extract     => timeExtract
@@ -34,14 +40,18 @@
   end type nodePropertyExtractorTime
 
   interface nodePropertyExtractorTime
-     !% Constructors for the ``time'' output analysis class.
+     !!{
+     Constructors for the ``time'' output analysis class.
+     !!}
      module procedure timeConstructorParameters
   end interface nodePropertyExtractorTime
 
 contains
 
   function timeConstructorParameters(parameters) result(self)
-    !% Constructor for the ``time'' output analysis property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the ``time'' output analysis property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type (nodePropertyExtractorTime)                :: self
@@ -53,7 +63,9 @@ contains
   end function timeConstructorParameters
 
   double precision function timeExtract(self,node,instance)
-    !% Implement a time output analysis.
+    !!{
+    Implement a time output analysis.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class(nodePropertyExtractorTime), intent(inout)           :: self
@@ -68,7 +80,9 @@ contains
   end function timeExtract
 
   integer function timeType(self)
-    !% Return the type of the halo mass property.
+    !!{
+    Return the type of the halo mass property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorTime), intent(inout) :: self
@@ -79,7 +93,9 @@ contains
   end function timeType
 
   function timeName(self)
-    !% Return the name of the time property.
+    !!{
+    Return the name of the time property.
+    !!}
     implicit none
     type (varying_string           )                :: timeName
     class(nodePropertyExtractorTime), intent(inout) :: self
@@ -90,7 +106,9 @@ contains
   end function timeName
 
   function timeDescription(self)
-    !% Return a description of the time property.
+    !!{
+    Return a description of the time property.
+    !!}
     implicit none
     type (varying_string           )                :: timeDescription
     class(nodePropertyExtractorTime), intent(inout) :: self
@@ -101,7 +119,9 @@ contains
   end function timeDescription
 
   double precision function timeUnitsInSI(self)
-    !% Return the units of the time property in the SI system.
+    !!{
+    Return the units of the time property in the SI system.
+    !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear
     implicit none
     class(nodePropertyExtractorTime), intent(inout) :: self

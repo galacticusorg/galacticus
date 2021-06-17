@@ -17,7 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which interfaces with the system output.
+!!{
+Contains a module which interfaces with the system output.
+!!}
 
 ! Specify an explicit dependence on the C interface files.
 !: $(BUILDPATH)/isatty.o
@@ -30,7 +32,9 @@ module System_Output
 
   interface
      function stdOutIsATTY_() bind(c,name='stdOutIsATTY_')
-       !% Template for a C function that determines if stdout is a TTY.
+       !!{
+       Template for a C function that determines if stdout is a TTY.
+       !!}
        import
        integer(c_int) :: stdOutIsATTY_
      end function stdOutIsATTY_
@@ -39,7 +43,9 @@ module System_Output
 contains
 
   logical function stdOutIsATTY()
-    !% Return {\normalfont \ttfamily true} if stdout is a {\normalfont \ttfamily TTY}.
+    !!{
+    Return {\normalfont \ttfamily true} if stdout is a {\normalfont \ttfamily TTY}.
+    !!}
     implicit none
 
     stdOutIsATTY=stdOutIsATTY_() == 1_c_int

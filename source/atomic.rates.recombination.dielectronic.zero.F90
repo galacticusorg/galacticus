@@ -17,28 +17,38 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements an atomic dielectronic recombination class which assumes zero rate.
+  !!{
+  Implements an atomic dielectronic recombination class which assumes zero rate.
+  !!}
 
-  !# <atomicRecombinationRateDielectronic name="atomicRecombinationRateDielectronicZero">
-  !#  <description>Implements an atomic dielectronic recombination class which assumes zero rate.</description>
-  !# </atomicRecombinationRateDielectronic>
+  !![
+  <atomicRecombinationRateDielectronic name="atomicRecombinationRateDielectronicZero">
+   <description>Implements an atomic dielectronic recombination class which assumes zero rate.</description>
+  </atomicRecombinationRateDielectronic>
+  !!]
   type, extends(atomicRecombinationRateDielectronicClass) :: atomicRecombinationRateDielectronicZero
-     !% Implements an atomic dielectronic recombination class which assumes zero rate.
+     !!{
+     Implements an atomic dielectronic recombination class which assumes zero rate.
+     !!}
      private
    contains
      procedure :: rate => zeroRate
   end type atomicRecombinationRateDielectronicZero
 
   interface atomicRecombinationRateDielectronicZero
-     !% Constructors for the {\normalfont \ttfamily zero} atomic dielectronic recombination rate class.
+     !!{
+     Constructors for the {\normalfont \ttfamily zero} atomic dielectronic recombination rate class.
+     !!}
      module procedure zeroConstructorParameters
   end interface atomicRecombinationRateDielectronicZero
 
 contains
 
   function zeroConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily zero} atomic dielectronic recombiantion class which builds the object from a
-    !% parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily zero} atomic dielectronic recombiantion class which builds the object from a
+    parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(atomicRecombinationRateDielectronicZero)                :: self
@@ -50,7 +60,9 @@ contains
   end function zeroConstructorParameters
 
   double precision function zeroRate(self,atomicNumber,electronNumber,temperature)
-    !% Returns a zero rate of dielectronic recombination.
+    !!{
+    Returns a zero rate of dielectronic recombination.
+    !!}
     implicit none
     class           (atomicRecombinationRateDielectronicZero), intent(inout) :: self
     double precision                                         , intent(in   ) :: temperature

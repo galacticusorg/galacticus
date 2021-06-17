@@ -17,25 +17,31 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides a class that implements initialization of merger trees.
+!!{
+Contains a module which provides a class that implements initialization of merger trees.
+!!}
 
 module Merger_Tree_Initialization
-  !% Provides a class that implements initialization of merger trees.
+  !!{
+  Provides a class that implements initialization of merger trees.
+  !!}
   use :: Galacticus_Nodes, only : mergerTree
   private
 
-  !# <functionClass>
-  !#  <name>mergerTreeInitializor</name>
-  !#  <descriptiveName>Merger Tree Initializors</descriptiveName>
-  !#  <description>Class providing initialization of merger trees.</description>
-  !#  <default>standard</default>
-  !#  <method name="initialize" >
-  !#   <description>Initialize the given tree.</description>
-  !#   <type>void</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type            (mergerTree), intent(inout) :: tree   </argument>
-  !#   <argument>double precision            , intent(in   ) :: timeEnd</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>mergerTreeInitializor</name>
+   <descriptiveName>Merger Tree Initializors</descriptiveName>
+   <description>Class providing initialization of merger trees.</description>
+   <default>standard</default>
+   <method name="initialize" >
+    <description>Initialize the given tree.</description>
+    <type>void</type>
+    <pass>yes</pass>
+    <argument>type            (mergerTree), intent(inout) :: tree   </argument>
+    <argument>double precision            , intent(in   ) :: timeEnd</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Merger_Tree_Initialization

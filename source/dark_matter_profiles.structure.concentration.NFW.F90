@@ -17,7 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of dark matter halo profile concentrations using the \cite{navarro_structure_1996} algorithm.
+  !!{
+  An implementation of dark matter halo profile concentrations using the \cite{navarro_structure_1996} algorithm.
+  !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
@@ -26,35 +28,39 @@
   use :: Virial_Density_Contrast   , only : virialDensityContrast        , virialDensityContrastClass, virialDensityContrastFixed
   use :: Root_Finder               , only : rootFinder
 
-  !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationNFW1996">
-  !#  <description>
-  !#   A dark matter profile concentration class in which the concentration is computed using the algorithm from
-  !#   \cite{navarro_structure_1996}. In this algoritm, for a given halo of mass $M$ at time $t_0$, a formation time is defined as
-  !#   the epoch at which there is a 50\% probability (according to extended Press-Schechter theory) for a progenitor halo to have
-  !#   a mass greater than $fM$, where $f=${\normalfont \ttfamily [f]} is a parameter of the algorithm. This implies formation
-  !#   when the critical overdensity for collapse is
-  !#   \begin{equation}
-  !#    \delta_\mathrm{crit}(t_\mathrm{form}) = \left[ 2 \nu_{1/2}^2 \left\{\sigma(fM)^22-\sigma(M)^2\right\}
-  !#    \right]^{1/2}+\delta_\mathrm{crit}(t_0),
-  !#   \end{equation}
-  !#   where $\nu_{1/2} = [\hbox{erfc}^{-1}(1/2)]^{1/2}$. \cite{navarro_structure_1996} then assume an overdensity at collapse of
-  !#   \begin{equation}
-  !#    \Delta(t_\mathrm{form}) = C  \left[ {a(t_0) \over a(t_\mathrm{form})} \right]^3
-  !#   \end{equation}
-  !#   where $C=${\normalfont \ttfamily [C]} is a parameter of the algorithm. The concentration is then determined by solving
-  !#   \begin{equation}
-  !#    {\Delta(t_\mathrm{form}) \over \Delta_\mathrm{virial}(t_0)} = {c^3 \over 3 [\ln(1+c)-c/(1+c)]}.
-  !#   \end{equation}
-  !#  </description>
-  !#  <deepCopy>
-  !#   <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
-  !#  </deepCopy>
-  !#  <stateStorable>
-  !#   <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
-  !#  </stateStorable>
-  !# </darkMatterProfileConcentration>
+  !![
+  <darkMatterProfileConcentration name="darkMatterProfileConcentrationNFW1996">
+   <description>
+    A dark matter profile concentration class in which the concentration is computed using the algorithm from
+    \cite{navarro_structure_1996}. In this algoritm, for a given halo of mass $M$ at time $t_0$, a formation time is defined as
+    the epoch at which there is a 50\% probability (according to extended Press-Schechter theory) for a progenitor halo to have
+    a mass greater than $fM$, where $f=${\normalfont \ttfamily [f]} is a parameter of the algorithm. This implies formation
+    when the critical overdensity for collapse is
+    \begin{equation}
+     \delta_\mathrm{crit}(t_\mathrm{form}) = \left[ 2 \nu_{1/2}^2 \left\{\sigma(fM)^22-\sigma(M)^2\right\}
+     \right]^{1/2}+\delta_\mathrm{crit}(t_0),
+    \end{equation}
+    where $\nu_{1/2} = [\hbox{erfc}^{-1}(1/2)]^{1/2}$. \cite{navarro_structure_1996} then assume an overdensity at collapse of
+    \begin{equation}
+     \Delta(t_\mathrm{form}) = C  \left[ {a(t_0) \over a(t_\mathrm{form})} \right]^3
+    \end{equation}
+    where $C=${\normalfont \ttfamily [C]} is a parameter of the algorithm. The concentration is then determined by solving
+    \begin{equation}
+     {\Delta(t_\mathrm{form}) \over \Delta_\mathrm{virial}(t_0)} = {c^3 \over 3 [\ln(1+c)-c/(1+c)]}.
+    \end{equation}
+   </description>
+   <deepCopy>
+    <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
+   </deepCopy>
+   <stateStorable>
+    <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
+   </stateStorable>
+  </darkMatterProfileConcentration>
+  !!]
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationNFW1996
-     !% A dark matter halo profile concentration class implementing the algorithm of \cite{navarro_structure_1996}.
+     !!{
+     A dark matter halo profile concentration class implementing the algorithm of \cite{navarro_structure_1996}.
+     !!}
      private
      class           (cosmologyParametersClass     ), pointer :: cosmologyParameters_             => null()
      class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_              => null()
@@ -73,7 +79,9 @@
   end type darkMatterProfileConcentrationNFW1996
 
   interface darkMatterProfileConcentrationNFW1996
-     !% Constructors for the {\normalfont \ttfamily nfw1996} dark matter halo profile concentration class.
+     !!{
+     Constructors for the {\normalfont \ttfamily nfw1996} dark matter halo profile concentration class.
+     !!}
      module procedure nfw1996ConstructorParameters
      module procedure nfw1996ConstructorInternal
   end interface darkMatterProfileConcentrationNFW1996
@@ -85,8 +93,10 @@
 contains
 
   function nfw1996ConstructorParameters(parameters) result(self)
-    !% Default constructor for the {\normalfont \ttfamily nfw1996} dark matter halo profile
-    !% concentration class.
+    !!{
+    Default constructor for the {\normalfont \ttfamily nfw1996} dark matter halo profile
+    concentration class.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (darkMatterProfileConcentrationNFW1996)                :: self
@@ -99,40 +109,46 @@ contains
     double precision                                                       :: f                        , C
 
     ! Check and read parameters.
-    !# <inputParameter>
-    !#   <name>f</name>
-    !#   <source>parameters</source>
-    !#   <variable>f</variable>
-    !#   <defaultValue>0.01d0</defaultValue>
-    !#   <defaultSource>\cite{navarro_structure_1996}</defaultSource>
-    !#   <description>The parameter $f$ appearing in the halo concentration algorithm of \cite{navarro_structure_1996}.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>C</name>
-    !#   <source>parameters</source>
-    !#   <variable>C</variable>
-    !#   <defaultValue>2000.0d0</defaultValue>
-    !#   <defaultSource>\cite{navarro_structure_1996}</defaultSource>
-    !#   <description>The parameter $C$ appearing in the halo concentration algorithm of \cite{navarro_structure_1996}.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
-    !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
-    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
-    !# <objectBuilder class="virialDensityContrast"    name="virialDensityContrast_"    source="parameters"/>
+    !![
+    <inputParameter>
+      <name>f</name>
+      <source>parameters</source>
+      <variable>f</variable>
+      <defaultValue>0.01d0</defaultValue>
+      <defaultSource>\cite{navarro_structure_1996}</defaultSource>
+      <description>The parameter $f$ appearing in the halo concentration algorithm of \cite{navarro_structure_1996}.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>C</name>
+      <source>parameters</source>
+      <variable>C</variable>
+      <defaultValue>2000.0d0</defaultValue>
+      <defaultSource>\cite{navarro_structure_1996}</defaultSource>
+      <description>The parameter $C$ appearing in the halo concentration algorithm of \cite{navarro_structure_1996}.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
+    <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    <objectBuilder class="virialDensityContrast"    name="virialDensityContrast_"    source="parameters"/>
+    !!]
     self=darkMatterProfileConcentrationNFW1996(f,C,cosmologyParameters_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,virialDensityContrast_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"     />
-    !# <objectDestructor name="cosmologyFunctions_"      />
-    !# <objectDestructor name="criticalOverdensity_"     />
-    !# <objectDestructor name="cosmologicalMassVariance_"/>
-    !# <objectDestructor name="virialDensityContrast_"   />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"     />
+    <objectDestructor name="cosmologyFunctions_"      />
+    <objectDestructor name="criticalOverdensity_"     />
+    <objectDestructor name="cosmologicalMassVariance_"/>
+    <objectDestructor name="virialDensityContrast_"   />
+    !!]
     return
   end function nfw1996ConstructorParameters
 
   function nfw1996ConstructorInternal(f,C,cosmologyParameters_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,virialDensityContrast_) result(self)
-    !% Constructor for the {\normalfont \ttfamily nfw1996} dark matter halo profile
-    !% concentration class.
+    !!{
+    Constructor for the {\normalfont \ttfamily nfw1996} dark matter halo profile
+    concentration class.
+    !!}
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
     use :: Virial_Density_Contrast, only : fixedDensityTypeCritical
     use :: Root_Finder            , only : rangeExpandMultiplicative
@@ -146,7 +162,9 @@ contains
     class           (virialDensityContrastClass                        ), intent(in   ), target  :: virialDensityContrast_
     type            (darkMatterHaloScaleVirialDensityContrastDefinition)               , pointer :: darkMatterHaloScaleDefinition_
     double precision                                                    , parameter              :: toleranceAbsolute             =0.0d0, toleranceRelative=1.0d-6
-    !# <constructorAssign variables="f, C, *cosmologyParameters_, *cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_, *virialDensityContrast_"/>
+    !![
+    <constructorAssign variables="f, C, *cosmologyParameters_, *cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_, *virialDensityContrast_"/>
+    !!]
     
     self%finder=rootFinder(                                               &
          &                 rootFunction       =nfw1996ConcentrationRoot , &
@@ -159,56 +177,64 @@ contains
     allocate(self%virialDensityContrastDefinition_)
     allocate(     darkMatterHaloScaleDefinition_  )
     allocate(self%darkMatterProfileDMODefinition_ )
-    !# <referenceConstruct owner="self" object="virialDensityContrastDefinition_">
-    !#  <constructor>
-    !#   virialDensityContrastFixed                        (                                                                            &amp;
-    !#    &amp;                                             densityContrastValue                =200.0d0                              , &amp;
-    !#    &amp;                                             densityType                         =fixedDensityTypeCritical             , &amp;
-    !#    &amp;                                             turnAroundOverVirialRadius          =2.0d0                                , &amp;
-    !#    &amp;                                             cosmologyParameters_                =self%cosmologyParameters_            , &amp;
-    !#    &amp;                                             cosmologyFunctions_                 =self%cosmologyFunctions_               &amp;
-    !#    &amp;                                            )
-    !#  </constructor>
-    !# </referenceConstruct>
-    !# <referenceConstruct              object="darkMatterHaloScaleDefinition_"  >
-    !#  <constructor>
-    !#   darkMatterHaloScaleVirialDensityContrastDefinition(                                                                            &amp;
-    !#    &amp;                                             cosmologyParameters_                =self%cosmologyParameters_            , &amp;
-    !#    &amp;                                             cosmologyFunctions_                 =self%cosmologyFunctions_             , &amp;
-    !#    &amp;                                             virialDensityContrast_              =self%virialDensityContrastDefinition_  &amp;
-    !#    &amp;                                            )
-    !#  </constructor>
-    !# </referenceConstruct>
-    !# <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_" >
-    !#  <constructor>
-    !#   darkMatterProfileDMONFW                           (                                                                            &amp;
-    !#    &amp;                                             velocityDispersionUseSeriesExpansion=.true.                               , &amp;
-    !#    &amp;                                             darkMatterHaloScale_                =darkMatterHaloScaleDefinition_         &amp;
-    !#    &amp;                                            )
-    !#  </constructor>
-    !# </referenceConstruct>
-    !# <objectDestructor                name  ="darkMatterHaloScaleDefinition_" />
+    !![
+    <referenceConstruct owner="self" object="virialDensityContrastDefinition_">
+     <constructor>
+      virialDensityContrastFixed                        (                                                                            &amp;
+       &amp;                                             densityContrastValue                =200.0d0                              , &amp;
+       &amp;                                             densityType                         =fixedDensityTypeCritical             , &amp;
+       &amp;                                             turnAroundOverVirialRadius          =2.0d0                                , &amp;
+       &amp;                                             cosmologyParameters_                =self%cosmologyParameters_            , &amp;
+       &amp;                                             cosmologyFunctions_                 =self%cosmologyFunctions_               &amp;
+       &amp;                                            )
+     </constructor>
+    </referenceConstruct>
+    <referenceConstruct              object="darkMatterHaloScaleDefinition_"  >
+     <constructor>
+      darkMatterHaloScaleVirialDensityContrastDefinition(                                                                            &amp;
+       &amp;                                             cosmologyParameters_                =self%cosmologyParameters_            , &amp;
+       &amp;                                             cosmologyFunctions_                 =self%cosmologyFunctions_             , &amp;
+       &amp;                                             virialDensityContrast_              =self%virialDensityContrastDefinition_  &amp;
+       &amp;                                            )
+     </constructor>
+    </referenceConstruct>
+    <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_" >
+     <constructor>
+      darkMatterProfileDMONFW                           (                                                                            &amp;
+       &amp;                                             velocityDispersionUseSeriesExpansion=.true.                               , &amp;
+       &amp;                                             darkMatterHaloScale_                =darkMatterHaloScaleDefinition_         &amp;
+       &amp;                                            )
+     </constructor>
+    </referenceConstruct>
+    <objectDestructor                name  ="darkMatterHaloScaleDefinition_" />
+    !!]
     return
   end function nfw1996ConstructorInternal
 
   subroutine nfw1996Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily nfw1996} dark matter halo profile concentration class.
+    !!{
+    Destructor for the {\normalfont \ttfamily nfw1996} dark matter halo profile concentration class.
+    !!}
     implicit none
     type(darkMatterProfileConcentrationNFW1996), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_"            />
-    !# <objectDestructor name="self%cosmologyFunctions_"             />
-    !# <objectDestructor name="self%criticalOverdensity_"            />
-    !# <objectDestructor name="self%cosmologicalMassVariance_"       />
-    !# <objectDestructor name="self%virialDensityContrast_"          />
-    !# <objectDestructor name="self%virialDensityContrastDefinition_"/>
-    !# <objectDestructor name="self%darkMatterProfileDMODefinition_" />
+    !![
+    <objectDestructor name="self%cosmologyParameters_"            />
+    <objectDestructor name="self%cosmologyFunctions_"             />
+    <objectDestructor name="self%criticalOverdensity_"            />
+    <objectDestructor name="self%cosmologicalMassVariance_"       />
+    <objectDestructor name="self%virialDensityContrast_"          />
+    <objectDestructor name="self%virialDensityContrastDefinition_"/>
+    <objectDestructor name="self%darkMatterProfileDMODefinition_" />
+    !!]
     return
   end subroutine nfw1996Destructor
 
   double precision function nfw1996Concentration(self,node)
-    !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node}
-    !% using the \cite{navarro_structure_1996} algorithm.
+    !!{
+    Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node}
+    using the \cite{navarro_structure_1996} algorithm.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (darkMatterProfileConcentrationNFW1996), intent(inout), target  :: self
@@ -259,7 +285,9 @@ contains
   end function nfw1996Concentration
 
   double precision function nfw1996ConcentrationRoot(concentration)
-    !% Root function used in finding concentrations in the \cite{navarro_structure_1996} method.
+    !!{
+    Root function used in finding concentrations in the \cite{navarro_structure_1996} method.
+    !!}
     implicit none
     double precision, intent(in   ) :: concentration
 
@@ -268,8 +296,10 @@ contains
   end function nfw1996ConcentrationRoot
 
   function nfw1996DensityContrastDefinition(self)
-    !% Return a virial density contrast object defining that used in the definition of
-    !% concentration in the \cite{navarro_structure_1996} algorithm.
+    !!{
+    Return a virial density contrast object defining that used in the definition of
+    concentration in the \cite{navarro_structure_1996} algorithm.
+    !!}
     implicit none
     class(virialDensityContrastClass           ), pointer       :: nfw1996DensityContrastDefinition
     class(darkMatterProfileConcentrationNfw1996), intent(inout) :: self
@@ -279,8 +309,10 @@ contains
   end function nfw1996DensityContrastDefinition
 
   function nfw1996DarkMatterProfileDefinition(self)
-    !% Return a dark matter density profile object defining that used in the definition of concentration in the
-    !% \cite{navarro_structure_1996} algorithm.
+    !!{
+    Return a dark matter density profile object defining that used in the definition of concentration in the
+    \cite{navarro_structure_1996} algorithm.
+    !!}
     implicit none
     class(darkMatterProfileDMOClass            ), pointer       :: nfw1996DarkMatterProfileDefinition
     class(darkMatterProfileConcentrationNFW1996), intent(inout) :: self

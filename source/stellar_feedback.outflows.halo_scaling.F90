@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of an stellar feedback model which scales with halo velocity.
+  !!{
+  Implementation of an stellar feedback model which scales with halo velocity.
+  !!}
 
   use :: Cosmology_Functions    , only : cosmologyFunctionsClass
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
-  !# <stellarFeedbackOutflows name="stellarFeedbackOutflowsHaloScaling">
-  !#  <description>An stellar feedback model which scales with halo velocity.</description>
-  !# </stellarFeedbackOutflows>
+  !![
+  <stellarFeedbackOutflows name="stellarFeedbackOutflowsHaloScaling">
+   <description>An stellar feedback model which scales with halo velocity.</description>
+  </stellarFeedbackOutflows>
+  !!]
   type, extends(stellarFeedbackOutflowsClass) :: stellarFeedbackOutflowsHaloScaling
-     !% Implementation of an stellar feedback model which scales with halo velocity.
+     !!{
+     Implementation of an stellar feedback model which scales with halo velocity.
+     !!}
      private
      double precision                                    :: fraction                         , exponentRedshift     , &
           &                                                 exponentVelocity                 , normalization        , &
@@ -40,7 +46,9 @@
   end type stellarFeedbackOutflowsHaloScaling
 
   interface stellarFeedbackOutflowsHaloScaling
-     !% Constructors for the halo scaling fraction stellar feedback class.
+     !!{
+     Constructors for the halo scaling fraction stellar feedback class.
+     !!}
      module procedure haloScalingConstructorParameters
      module procedure haloScalingConstructorInternal
   end interface stellarFeedbackOutflowsHaloScaling
@@ -48,7 +56,9 @@
 contains
 
   function haloScalingConstructorParameters(parameters) result(self)
-    !% Constructor for the halo scaling fraction stellar feedback class which takes a parameter set as input.
+    !!{
+    Constructor for the halo scaling fraction stellar feedback class which takes a parameter set as input.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (stellarFeedbackOutflowsHaloScaling)                :: self
@@ -58,35 +68,41 @@ contains
     class           (cosmologyFunctionsClass           ), pointer       :: cosmologyFunctions_
     class           (darkMatterHaloScaleClass          ), pointer       :: darkMatterHaloScale_
 
-    !# <inputParameter>
-    !#   <name>fraction</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>0.01d0</defaultValue>
-    !#   <description>The ratio of outflow rate to star formation rate in disks.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>exponentVelocity</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>-2.0d0</defaultValue>
-    !#   <description>The exponent of virial velocity in the outflow rate in disks.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>exponentRedshift</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>The exponent of redshift in the outflow rate in disks.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
-    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>fraction</name>
+      <source>parameters</source>
+      <defaultValue>0.01d0</defaultValue>
+      <description>The ratio of outflow rate to star formation rate in disks.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>exponentVelocity</name>
+      <source>parameters</source>
+      <defaultValue>-2.0d0</defaultValue>
+      <description>The exponent of virial velocity in the outflow rate in disks.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>exponentRedshift</name>
+      <source>parameters</source>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The exponent of redshift in the outflow rate in disks.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    !!]
     self=stellarFeedbackOutflowsHaloScaling(fraction,exponentRedshift,exponentVelocity,cosmologyFunctions_,darkMatterHaloScale_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_" />
-    !# <objectDestructor name="darkMatterHaloScale_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_" />
+    <objectDestructor name="darkMatterHaloScale_"/>
+    !!]
     return
   end function haloScalingConstructorParameters
 
   function haloScalingConstructorInternal(fraction,exponentRedshift,exponentVelocity,cosmologyFunctions_,darkMatterHaloScale_) result(self)
-    !% Internal constructor for the halo scaling stellar feedback class.
+    !!{
+    Internal constructor for the halo scaling stellar feedback class.
+    !!}
     use :: Stellar_Feedback, only : feedbackEnergyInputAtInfinityCanonical
     implicit none
     type            (stellarFeedbackOutflowsHaloScaling)                        :: self
@@ -96,7 +112,9 @@ contains
     class           (darkMatterHaloScaleClass          ), intent(in   ), target :: darkMatterHaloScale_
     double precision                                    , parameter             :: velocityNormalization=200.0d0
 
-    !# <constructorAssign variables="fraction, exponentRedshift, exponentVelocity, *cosmologyFunctions_, *darkMatterHaloScale_"/>
+    !![
+    <constructorAssign variables="fraction, exponentRedshift, exponentVelocity, *cosmologyFunctions_, *darkMatterHaloScale_"/>
+    !!]
     ! Initialize stored values.
     self%velocityPrevious       =-1.0d0
     self%expansionFactorPrevious=-1.0d0
@@ -110,17 +128,23 @@ contains
   end function haloScalingConstructorInternal
 
   subroutine haloScalingDestructor(self)
-    !% Destructor for the halo scaling stellar feedback class.
+    !!{
+    Destructor for the halo scaling stellar feedback class.
+    !!}
     implicit none
     type(stellarFeedbackOutflowsHaloScaling), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"  />
-    !# <objectDestructor name="self%darkMatterHaloScale_" />
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"  />
+    <objectDestructor name="self%darkMatterHaloScale_" />
+    !!]
     return
   end subroutine haloScalingDestructor
 
   subroutine haloScalingOutflowRate(self,component,rateStarFormation,rateEnergyInput,rateOutflowEjective,rateOutflowExpulsive)
-    !% Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the given {\normalfont \ttfamily component}.
+    !!{
+    Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the given {\normalfont \ttfamily component}.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (stellarFeedbackOutflowsHaloScaling), intent(inout) :: self

@@ -17,25 +17,31 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides a class that implements galactic filters.
+!!{
+Contains a module which provides a class that implements galactic filters.
+!!}
 
 module Galactic_Filters
-  !% Provides an object that implements galactic filters.
+  !!{
+  Provides an object that implements galactic filters.
+  !!}
   use :: Galacticus_Nodes, only : treeNode
   private
 
-  !# <functionClass>
-  !#  <name>galacticFilter</name>
-  !#  <descriptiveName>Galactic Filter</descriptiveName>
-  !#  <description>Object providing boolean filters acting on galaxies.</description>
-  !#  <default>always</default>
-  !#  <method name="passes" >
-  !#   <description>Return true if the given {\normalfont \ttfamily node} passes the filter.</description>
-  !#   <type>logical</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout), target :: node</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>galacticFilter</name>
+   <descriptiveName>Galactic Filter</descriptiveName>
+   <description>Object providing boolean filters acting on galaxies.</description>
+   <default>always</default>
+   <method name="passes" >
+    <description>Return true if the given {\normalfont \ttfamily node} passes the filter.</description>
+    <type>logical</type>
+    <pass>yes</pass>
+    <argument>type(treeNode), intent(inout), target :: node</argument>
+   </method>
+  </functionClass>
+  !!]
 
   type, public :: filterList
      class(galacticFilterClass), pointer :: filter_ => null()

@@ -17,8 +17,10 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a cooling radius class for $\beta$-profile halos, assuming collisional ionization equilibrium such that cooling
-  !% time scales as inverse density.
+  !!{
+  Implementation of a cooling radius class for $\beta$-profile halos, assuming collisional ionization equilibrium such that cooling
+  time scales as inverse density.
+  !!}
 
   use :: Cooling_Times                , only : coolingTimeClass
   use :: Cooling_Times_Available      , only : coolingTimeAvailableClass
@@ -29,26 +31,30 @@
   use :: Kind_Numbers                 , only : kind_int8
   use :: Radiation_Fields             , only : radiationFieldCosmicMicrowaveBackground
 
-  !# <coolingRadius name="coolingRadiusBetaProfile">
-  !#  <description>
-  !#   A cooling radius class for $\beta$-profile halos. Computes the cooling radius by assuming that the hot gas density profile is a
-  !#   $\beta$-profile ($\rho(r) \propto [r^2+r_\mathrm{c}^2]^{-1}$), and that the cooling rate scales as density squared, $\dot{E}\propto
-  !#   \rho^2$, such that the cooling time scales as inverse density, $t_\mathrm{cool} \propto \rho^{-1}$. Consequently, the cooling radius is given by
-  !#   \begin{equation}
-  !#    r_\mathrm{cool} = r_\mathrm{virial} \left( \left[ {t_\mathrm{avail} \over t_0} - 1 \right] \left[ {t_\mathrm{virial} \over t_0} - 1 \right]^{-1} \right)^{1/2},
-  !#   \end{equation}
-  !#   where $t_0$, and $t_\mathrm{virial}$ are the cooling times at zero radius and the virial radius respectively.
-  !#  </description>
-  !#  <deepCopy>
-  !#   <functionClass variables="radiation"/>
-  !#  </deepCopy>
-  !#  <stateStorable>
-  !#   <functionClass variables="radiation"/>
-  !#  </stateStorable>
-  !# </coolingRadius>
+  !![
+  <coolingRadius name="coolingRadiusBetaProfile">
+   <description>
+    A cooling radius class for $\beta$-profile halos. Computes the cooling radius by assuming that the hot gas density profile is a
+    $\beta$-profile ($\rho(r) \propto [r^2+r_\mathrm{c}^2]^{-1}$), and that the cooling rate scales as density squared, $\dot{E}\propto
+    \rho^2$, such that the cooling time scales as inverse density, $t_\mathrm{cool} \propto \rho^{-1}$. Consequently, the cooling radius is given by
+    \begin{equation}
+     r_\mathrm{cool} = r_\mathrm{virial} \left( \left[ {t_\mathrm{avail} \over t_0} - 1 \right] \left[ {t_\mathrm{virial} \over t_0} - 1 \right]^{-1} \right)^{1/2},
+    \end{equation}
+    where $t_0$, and $t_\mathrm{virial}$ are the cooling times at zero radius and the virial radius respectively.
+   </description>
+   <deepCopy>
+    <functionClass variables="radiation"/>
+   </deepCopy>
+   <stateStorable>
+    <functionClass variables="radiation"/>
+   </stateStorable>
+  </coolingRadius>
+  !!]
   type, extends(coolingRadiusClass) :: coolingRadiusBetaProfile
-     !% Implementation of cooling radius class in which the cooling radius is defined as that radius at which the time available
-     !% for cooling equals the cooling time.
+     !!{
+     Implementation of cooling radius class in which the cooling radius is defined as that radius at which the time available
+     for cooling equals the cooling time.
+     !!}
      private
      class           (cosmologyFunctionsClass                ), pointer :: cosmologyFunctions_        => null()
      class           (darkMatterHaloScaleClass               ), pointer :: darkMatterHaloScale_       => null()
@@ -63,9 +69,11 @@
      logical                                                            :: radiusComputed                      , radiusGrowthRateComputed
      double precision                                                   :: radiusGrowthRateStored              , radiusStored
    contains
-     !# <methods>
-     !#   <method description="Reset memoized calculations." method="calculationReset" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Reset memoized calculations." method="calculationReset" />
+     </methods>
+     !!]
      final     ::                     betaProfileDestructor
      procedure :: autoHook         => betaProfileAutoHook
      procedure :: radius           => betaProfileRadius
@@ -74,7 +82,9 @@
   end type coolingRadiusBetaProfile
 
   interface coolingRadiusBetaProfile
-     !% Constructors for the betaProfile cooling radius class.
+     !!{
+     Constructors for the betaProfile cooling radius class.
+     !!}
      module procedure betaProfileConstructorParameters
      module procedure betaProfileConstructorInternal
   end interface coolingRadiusBetaProfile
@@ -82,7 +92,9 @@
 contains
 
   function betaProfileConstructorParameters(parameters) result(self)
-    !% Constructor for the $\beta$-profile cooling radius class which builds the object from a parameter set.
+    !!{
+    Constructor for the $\beta$-profile cooling radius class which builds the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (coolingRadiusBetaProfile      )                :: self
@@ -94,25 +106,31 @@ contains
     class(hotHaloMassDistributionClass  ), pointer       :: hotHaloMassDistribution_
     class(cosmologyFunctionsClass       ), pointer       :: cosmologyFunctions_
 
-    !# <objectBuilder class="cosmologyFunctions"        name="cosmologyFunctions_"        source="parameters"/>
-    !# <objectBuilder class="darkMatterHaloScale"       name="darkMatterHaloScale_"       source="parameters"/>
-    !# <objectBuilder class="coolingTimeAvailable"      name="coolingTimeAvailable_"      source="parameters"/>
-    !# <objectBuilder class="coolingTime"               name="coolingTime_"               source="parameters"/>
-    !# <objectBuilder class="hotHaloTemperatureProfile" name="hotHaloTemperatureProfile_" source="parameters"/>
-    !# <objectBuilder class="hotHaloMassDistribution"   name="hotHaloMassDistribution_"   source="parameters"/>
+    !![
+    <objectBuilder class="cosmologyFunctions"        name="cosmologyFunctions_"        source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale"       name="darkMatterHaloScale_"       source="parameters"/>
+    <objectBuilder class="coolingTimeAvailable"      name="coolingTimeAvailable_"      source="parameters"/>
+    <objectBuilder class="coolingTime"               name="coolingTime_"               source="parameters"/>
+    <objectBuilder class="hotHaloTemperatureProfile" name="hotHaloTemperatureProfile_" source="parameters"/>
+    <objectBuilder class="hotHaloMassDistribution"   name="hotHaloMassDistribution_"   source="parameters"/>
+    !!]
     self=coolingRadiusBetaProfile(cosmologyFunctions_,darkMatterHaloScale_,coolingTimeAvailable_,coolingTime_,hotHaloTemperatureProfile_,hotHaloMassDistribution_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"       />
-    !# <objectDestructor name="darkMatterHaloScale_"      />
-    !# <objectDestructor name="coolingTimeAvailable_"     />
-    !# <objectDestructor name="coolingTime_"              />
-    !# <objectDestructor name="hotHaloTemperatureProfile_"/>
-    !# <objectDestructor name="hotHaloMassDistribution_"  />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"       />
+    <objectDestructor name="darkMatterHaloScale_"      />
+    <objectDestructor name="coolingTimeAvailable_"     />
+    <objectDestructor name="coolingTime_"              />
+    <objectDestructor name="hotHaloTemperatureProfile_"/>
+    <objectDestructor name="hotHaloMassDistribution_"  />
+    !!]
     return
   end function betaProfileConstructorParameters
 
   function betaProfileConstructorInternal(cosmologyFunctions_,darkMatterHaloScale_,coolingTimeAvailable_,coolingTime_,hotHaloTemperatureProfile_,hotHaloMassDistribution_) result(self)
-    !% Internal constructor for the $\beta$-profile cooling radius class.
+    !!{
+    Internal constructor for the $\beta$-profile cooling radius class.
+    !!}
     use :: Abundances_Structure         , only : Abundances_Property_Count         , abundances
     use :: Array_Utilities              , only : operator(.intersection.)
     use :: Chemical_Abundances_Structure, only : Chemicals_Property_Count
@@ -128,7 +146,9 @@ contains
     class(coolingTimeClass              ), intent(in   ), target :: coolingTime_
     class(hotHaloTemperatureProfileClass), intent(in   ), target :: hotHaloTemperatureProfile_
     class(hotHaloMassDistributionClass  ), intent(in   ), target :: hotHaloMassDistribution_
-    !# <constructorAssign variables="*cosmologyFunctions_, *darkMatterHaloScale_, *coolingTimeAvailable_, *coolingTime_, *hotHaloTemperatureProfile_, *hotHaloMassDistribution_"/>
+    !![
+    <constructorAssign variables="*cosmologyFunctions_, *darkMatterHaloScale_, *coolingTimeAvailable_, *coolingTime_, *hotHaloTemperatureProfile_, *hotHaloMassDistribution_"/>
+    !!]
 
     ! Initial state of stored solutions.
     self%radiusComputed          =.false.
@@ -138,7 +158,9 @@ contains
     self%chemicalsCount =Chemicals_Property_Count ()
     ! Initialize radiation field.
     allocate(self%radiation)
-    !# <referenceConstruct isResult="yes" owner="self" object="radiation" constructor="radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)"/>
+    !![
+    <referenceConstruct isResult="yes" owner="self" object="radiation" constructor="radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)"/>
+    !!]
     ! Check that required components are gettable.
     if     (                                                                                                                        &
          &  .not.(                                                                                                                  &
@@ -185,7 +207,9 @@ contains
   end function betaProfileConstructorInternal
 
   subroutine betaProfileAutoHook(self)
-    !% Attach to the calculation reset event.
+    !!{
+    Attach to the calculation reset event.
+    !!}
     use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(coolingRadiusBetaProfile), intent(inout) :: self
@@ -195,24 +219,30 @@ contains
   end subroutine betaProfileAutoHook
 
   subroutine betaProfileDestructor(self)
-    !% Destructor for the $\beta$-profile cooling radius class.
+    !!{
+    Destructor for the $\beta$-profile cooling radius class.
+    !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none
     type(coolingRadiusBetaProfile), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterHaloScale_"      />
-    !# <objectDestructor name="self%coolingTimeAvailable_"     />
-    !# <objectDestructor name="self%coolingTime_"              />
-    !# <objectDestructor name="self%hotHaloTemperatureProfile_"/>
-    !# <objectDestructor name="self%hotHaloMassDistribution_"  />
-    !# <objectDestructor name="self%cosmologyFunctions_"       />
-    !# <objectDestructor name="self%radiation"                 />
+    !![
+    <objectDestructor name="self%darkMatterHaloScale_"      />
+    <objectDestructor name="self%coolingTimeAvailable_"     />
+    <objectDestructor name="self%coolingTime_"              />
+    <objectDestructor name="self%hotHaloTemperatureProfile_"/>
+    <objectDestructor name="self%hotHaloMassDistribution_"  />
+    <objectDestructor name="self%cosmologyFunctions_"       />
+    <objectDestructor name="self%radiation"                 />
+    !!]
     call calculationResetEvent%detach(self,betaProfileCalculationReset)
     return
   end subroutine betaProfileDestructor
 
   subroutine betaProfileCalculationReset(self,node)
-    !% Reset the cooling radius calculation.
+    !!{
+    Reset the cooling radius calculation.
+    !!}
     implicit none
     class(coolingRadiusBetaProfile), intent(inout) :: self
     type (treeNode                ), intent(inout) :: node
@@ -224,7 +254,9 @@ contains
   end subroutine betaProfileCalculationReset
 
   double precision function betaProfileRadiusGrowthRate(self,node)
-    !% Returns the cooling radius growth rate (in Mpc/Gyr) in the hot atmosphere.
+    !!{
+    Returns the cooling radius growth rate (in Mpc/Gyr) in the hot atmosphere.
+    !!}
     use :: Abundances_Structure             , only : abundances
     use :: Chemical_Abundances_Structure    , only : chemicalAbundances
     use :: Chemical_Reaction_Rates_Utilities, only : Chemicals_Mass_To_Density_Conversion
@@ -300,7 +332,9 @@ contains
   end function betaProfileRadiusGrowthRate
 
   double precision function betaProfileRadius(self,node)
-    !% Return the cooling radius in the $\beta$-profile model.
+    !!{
+    Return the cooling radius in the $\beta$-profile model.
+    !!}
     use :: Abundances_Structure             , only : abundances
     use :: Chemical_Abundances_Structure    , only : chemicalAbundances
     use :: Chemical_Reaction_Rates_Utilities, only : Chemicals_Mass_To_Density_Conversion

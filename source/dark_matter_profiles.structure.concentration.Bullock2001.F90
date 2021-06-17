@@ -17,7 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of dark matter halo profile concentrations using the \cite{navarro_structure_1996} algorithm.
+  !!{
+  An implementation of dark matter halo profile concentrations using the \cite{navarro_structure_1996} algorithm.
+  !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass                                  , criticalOverdensityClass
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
@@ -25,17 +27,21 @@
   use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMONFW
   use :: Virial_Density_Contrast   , only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
 
-  !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationBullock2001">
-  !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{bullock_profiles_2001}.</description>
-  !#  <deepCopy>
-  !#   <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
-  !#  </deepCopy>
-  !#  <stateStorable>
-  !#   <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
-  !#  </stateStorable>
-  !# </darkMatterProfileConcentration>
+  !![
+  <darkMatterProfileConcentration name="darkMatterProfileConcentrationBullock2001">
+   <description>Dark matter halo concentrations are computed using the algorithm of \cite{bullock_profiles_2001}.</description>
+   <deepCopy>
+    <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
+   </deepCopy>
+   <stateStorable>
+    <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
+   </stateStorable>
+  </darkMatterProfileConcentration>
+  !!]
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationBullock2001
-     !% A dark matter halo profile concentration class implementing the algorithm of \cite{bullock_profiles_2001}.
+     !!{
+     A dark matter halo profile concentration class implementing the algorithm of \cite{bullock_profiles_2001}.
+     !!}
      private
      class           (cosmologyParametersClass                                      ), pointer :: cosmologyParameters_             => null()
      class           (cosmologyFunctionsClass                                       ), pointer :: cosmologyFunctions_              => null()
@@ -52,7 +58,9 @@
   end type darkMatterProfileConcentrationBullock2001
 
   interface darkMatterProfileConcentrationBullock2001
-     !% Constructors for the {\normalfont \ttfamily bullock2001} dark matter halo profile concentration class.
+     !!{
+     Constructors for the {\normalfont \ttfamily bullock2001} dark matter halo profile concentration class.
+     !!}
      module procedure bullock2001ConstructorParameters
      module procedure bullock2001ConstructorInternal
   end interface darkMatterProfileConcentrationBullock2001
@@ -60,8 +68,10 @@
 contains
 
   function bullock2001ConstructorParameters(parameters) result(self)
-    !% Default constructor for the {\normalfont \ttfamily bullock2001} dark matter halo profile
-    !% concentration class.
+    !!{
+    Default constructor for the {\normalfont \ttfamily bullock2001} dark matter halo profile
+    concentration class.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (darkMatterProfileConcentrationBullock2001)                :: self
@@ -73,36 +83,42 @@ contains
     double precision                                                           :: F                        , K
 
     ! Check and read parameters.
-    !# <inputParameter>
-    !#   <name>F</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>0.01d0</defaultValue>
-    !#   <defaultSource>\cite{bullock_profiles_2001}</defaultSource>
-    !#   <description>The parameter $F$ appearing in the halo concentration algorithm of \cite{bullock_profiles_2001}.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>K</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>4.0d0</defaultValue>
-    !#   <defaultSource>\cite{bullock_profiles_2001}</defaultSource>
-    !#   <description>The parameter $K$ appearing in the halo concentration algorithm of \cite{bullock_profiles_2001}.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
-    !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
-    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>F</name>
+      <source>parameters</source>
+      <defaultValue>0.01d0</defaultValue>
+      <defaultSource>\cite{bullock_profiles_2001}</defaultSource>
+      <description>The parameter $F$ appearing in the halo concentration algorithm of \cite{bullock_profiles_2001}.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>K</name>
+      <source>parameters</source>
+      <defaultValue>4.0d0</defaultValue>
+      <defaultSource>\cite{bullock_profiles_2001}</defaultSource>
+      <description>The parameter $K$ appearing in the halo concentration algorithm of \cite{bullock_profiles_2001}.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
+    <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    !!]
     self=darkMatterProfileConcentrationBullock2001(F,K,cosmologyParameters_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"     />
-    !# <objectDestructor name="cosmologyFunctions_"      />
-    !# <objectDestructor name="criticalOverdensity_"     />
-    !# <objectDestructor name="cosmologicalMassVariance_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"     />
+    <objectDestructor name="cosmologyFunctions_"      />
+    <objectDestructor name="criticalOverdensity_"     />
+    <objectDestructor name="cosmologicalMassVariance_"/>
+    !!]
     return
   end function bullock2001ConstructorParameters
 
   function bullock2001ConstructorInternal(F,K,cosmologyParameters_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_) result(self)
-    !% Constructor for the {\normalfont \ttfamily bullock2001} dark matter halo profile
-    !% concentration class.
+    !!{
+    Constructor for the {\normalfont \ttfamily bullock2001} dark matter halo profile
+    concentration class.
+    !!}
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
     implicit none
     type            (darkMatterProfileConcentrationBullock2001         )                        :: self
@@ -112,57 +128,67 @@ contains
     class           (criticalOverdensityClass                          ), intent(in   ), target :: criticalOverdensity_
     class           (cosmologicalMassVarianceClass                     ), intent(in   ), target :: cosmologicalMassVariance_
     type            (darkMatterHaloScaleVirialDensityContrastDefinition)               , pointer :: darkMatterHaloScaleDefinition_
-    !# <constructorAssign variables="F,K,*cosmologyParameters_,*cosmologyFunctions_,*criticalOverdensity_,*cosmologicalMassVariance_"/>
+    !![
+    <constructorAssign variables="F,K,*cosmologyParameters_,*cosmologyFunctions_,*criticalOverdensity_,*cosmologicalMassVariance_"/>
+    !!]
 
     allocate(self%darkMatterProfileDMODefinition_ )
     allocate(     darkMatterHaloScaleDefinition_  )
     allocate(self%virialDensityContrastDefinition_)
-    !# <referenceConstruct owner="self" object="virialDensityContrastDefinition_">
-    !#  <constructor>
-    !#   virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(                                                                            &amp;
-    !#    &amp;                                                         tableStore                          =.true.                               , &amp;
-    !#    &amp;                                                         cosmologyFunctions_                 =self%cosmologyFunctions_               &amp;
-    !#    &amp;                                                        )
-    !#  </constructor>
-    !# </referenceConstruct>
-    !# <referenceConstruct              object="darkMatterHaloScaleDefinition_"  >
-    !#  <constructor>
-    !#   darkMatterHaloScaleVirialDensityContrastDefinition            (                                                                            &amp;
-    !#    &amp;                                                         cosmologyParameters_                =self%cosmologyParameters_            , &amp;
-    !#    &amp;                                                         cosmologyFunctions_                 =self%cosmologyFunctions_             , &amp;
-    !#    &amp;                                                         virialDensityContrast_              =self%virialDensityContrastDefinition_  &amp;
-    !#    &amp;                                                        )
-    !#  </constructor>
-    !# </referenceConstruct>
-    !# <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_" >
-    !#  <constructor>
-    !#   darkMatterProfileDMONFW                                       (                                                                            &amp;
-    !#    &amp;                                                         velocityDispersionUseSeriesExpansion=.true.                               , &amp;
-    !#    &amp;                                                         darkMatterHaloScale_                =darkMatterHaloScaleDefinition_         &amp;
-    !#    &amp;                                                        )
-    !#  </constructor>
-    !# </referenceConstruct>
-    !# <objectDestructor                name  ="darkMatterHaloScaleDefinition_" />
+    !![
+    <referenceConstruct owner="self" object="virialDensityContrastDefinition_">
+     <constructor>
+      virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(                                                                            &amp;
+       &amp;                                                         tableStore                          =.true.                               , &amp;
+       &amp;                                                         cosmologyFunctions_                 =self%cosmologyFunctions_               &amp;
+       &amp;                                                        )
+     </constructor>
+    </referenceConstruct>
+    <referenceConstruct              object="darkMatterHaloScaleDefinition_"  >
+     <constructor>
+      darkMatterHaloScaleVirialDensityContrastDefinition            (                                                                            &amp;
+       &amp;                                                         cosmologyParameters_                =self%cosmologyParameters_            , &amp;
+       &amp;                                                         cosmologyFunctions_                 =self%cosmologyFunctions_             , &amp;
+       &amp;                                                         virialDensityContrast_              =self%virialDensityContrastDefinition_  &amp;
+       &amp;                                                        )
+     </constructor>
+    </referenceConstruct>
+    <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_" >
+     <constructor>
+      darkMatterProfileDMONFW                                       (                                                                            &amp;
+       &amp;                                                         velocityDispersionUseSeriesExpansion=.true.                               , &amp;
+       &amp;                                                         darkMatterHaloScale_                =darkMatterHaloScaleDefinition_         &amp;
+       &amp;                                                        )
+     </constructor>
+    </referenceConstruct>
+    <objectDestructor                name  ="darkMatterHaloScaleDefinition_" />
+    !!]
     return
   end function bullock2001ConstructorInternal
 
   subroutine bullock2001Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily bullock2001} dark matter halo profile concentration class.
+    !!{
+    Destructor for the {\normalfont \ttfamily bullock2001} dark matter halo profile concentration class.
+    !!}
     implicit none
     type(darkMatterProfileConcentrationBullock2001), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_"            />
-    !# <objectDestructor name="self%cosmologyFunctions_"             />
-    !# <objectDestructor name="self%criticalOverdensity_"            />
-    !# <objectDestructor name="self%cosmologicalMassVariance_"       />
-    !# <objectDestructor name="self%virialDensityContrastDefinition_"/>
-    !# <objectDestructor name="self%darkMatterProfileDMODefinition_" />
+    !![
+    <objectDestructor name="self%cosmologyParameters_"            />
+    <objectDestructor name="self%cosmologyFunctions_"             />
+    <objectDestructor name="self%criticalOverdensity_"            />
+    <objectDestructor name="self%cosmologicalMassVariance_"       />
+    <objectDestructor name="self%virialDensityContrastDefinition_"/>
+    <objectDestructor name="self%darkMatterProfileDMODefinition_" />
+    !!]
     return
   end subroutine bullock2001Destructor
 
   double precision function bullock2001Concentration(self,node)
-    !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node}
-    !% using the \cite{bullock_profiles_2001} algorithm.
+    !!{
+    Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node}
+    using the \cite{bullock_profiles_2001} algorithm.
+    !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
     use :: Virial_Density_Contrast             , only : virialDensityContrastClass
@@ -197,8 +223,10 @@ contains
   end function bullock2001Concentration
 
   function bullock2001DensityContrastDefinition(self)
-    !% Return a virial density contrast object defining that used in the definition of concentration in the
-    !% \cite{bullock_profiles_2001} algorithm.
+    !!{
+    Return a virial density contrast object defining that used in the definition of concentration in the
+    \cite{bullock_profiles_2001} algorithm.
+    !!}
     implicit none
     class(virialDensityContrastClass               ), pointer       :: bullock2001DensityContrastDefinition
     class(darkMatterProfileConcentrationBullock2001), intent(inout) :: self
@@ -208,8 +236,10 @@ contains
   end function bullock2001DensityContrastDefinition
 
   function bullock2001DarkMatterProfileDefinition(self)
-    !% Return a dark matter density profile object defining that used in the definition of concentration in the
-    !% \cite{bullock_profiles_2001} algorithm.
+    !!{
+    Return a dark matter density profile object defining that used in the definition of concentration in the
+    \cite{bullock_profiles_2001} algorithm.
+    !!}
     implicit none
     class(darkMatterProfileDMOClass                ), pointer       :: bullock2001DarkMatterProfileDefinition
     class(darkMatterProfileConcentrationBullock2001), intent(inout) :: self

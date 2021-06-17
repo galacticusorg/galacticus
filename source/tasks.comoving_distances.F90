@@ -20,11 +20,15 @@
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
   use :: Output_Times       , only : outputTimesClass
 
-  !# <task name="taskComovingDistances">
-  !#  <description>A task which computes and outputs the comoving distance to each output.</description>
-  !# </task>
+  !![
+  <task name="taskComovingDistances">
+   <description>A task which computes and outputs the comoving distance to each output.</description>
+  </task>
+  !!]
   type, extends(taskClass) :: taskComovingDistances
-     !% Implementation of a task which computes and outputs the comoving distance to each output.
+     !!{
+     Implementation of a task which computes and outputs the comoving distance to each output.
+     !!}
      private
      class(cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
      class(outputTimesClass       ), pointer :: outputTimes_        => null()
@@ -34,7 +38,9 @@
   end type taskComovingDistances
 
   interface taskComovingDistances
-     !% Constructors for the {\normalfont \ttfamily comovingDistances} task.
+     !!{
+     Constructors for the {\normalfont \ttfamily comovingDistances} task.
+     !!}
      module procedure comovingDistancesConstructorParameters
      module procedure comovingDistancesConstructorInternal
   end interface taskComovingDistances
@@ -42,7 +48,9 @@
 contains
 
   function comovingDistancesConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily comovingDistances} task class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily comovingDistances} task class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (taskComovingDistances  )                :: self
@@ -50,38 +58,52 @@ contains
     class(cosmologyFunctionsClass), pointer       :: cosmologyFunctions_
     class(outputTimesClass       ), pointer       :: outputTimes_
     
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
-    !# <objectBuilder class="outputTimes"        name="outputTimes_"        source="parameters"/>
+    !![
+    <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    <objectBuilder class="outputTimes"        name="outputTimes_"        source="parameters"/>
+    !!]
     self=taskComovingDistances(cosmologyFunctions_,outputTimes_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"/>
-    !# <objectDestructor name="outputTimes_"       />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"/>
+    <objectDestructor name="outputTimes_"       />
+    !!]
     return
   end function comovingDistancesConstructorParameters
 
   function comovingDistancesConstructorInternal(cosmologyFunctions_,outputTimes_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily comovingDistances} task class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily comovingDistances} task class.
+    !!}
     implicit none
     type (taskComovingDistances  )                        :: self
     class(cosmologyFunctionsClass), intent(in   ), target :: cosmologyFunctions_
     class(outputTimesClass       ), intent(in   ), target :: outputTimes_
-    !# <constructorAssign variables="*cosmologyFunctions_, *outputTimes_"/>
+    !![
+    <constructorAssign variables="*cosmologyFunctions_, *outputTimes_"/>
+    !!]
 
     return
   end function comovingDistancesConstructorInternal
 
   subroutine comovingDistancesDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily comovingDistances} task class.
+    !!{
+    Destructor for the {\normalfont \ttfamily comovingDistances} task class.
+    !!}
     implicit none
     type(taskComovingDistances), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"         />
-    !# <objectDestructor name="self%outputTimes_"                />
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"         />
+    <objectDestructor name="self%outputTimes_"                />
+    !!]
     return
   end subroutine comovingDistancesDestructor
 
   subroutine comovingDistancesPerform(self,status)
-    !% Compute and output the comoving distances to each output.
+    !!{
+    Compute and output the comoving distances to each output.
+    !!}
     use            :: Display         , only : displayIndent       , displayUnindent
     use            :: Galacticus_Error, only : errorStatusSuccess
     use            :: Galacticus_HDF5 , only : galacticusOutputFile

@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides an interface to the \gls{cloudy} code for computing tables of cooling functions and chemical state in collisional ionization equilibrium.
+!!{
+Contains a module which provides an interface to the \gls{cloudy} code for computing tables of cooling functions and chemical state in collisional ionization equilibrium.
+!!}
 
 module Interfaces_Cloudy_CIE
-  !% Provides an interface to the \gls{cloudy} code for computing tables of cooling functions and chemical state in collisional ionization equilibrium.
+  !!{
+  Provides an interface to the \gls{cloudy} code for computing tables of cooling functions and chemical state in collisional ionization equilibrium.
+  !!}
   use :: File_Utilities, only : lockDescriptor
   private
   public :: Interface_Cloudy_CIE_Tabulate
@@ -31,7 +35,9 @@ module Interfaces_Cloudy_CIE
 contains
 
   subroutine Interface_Cloudy_CIE_Tabulate(metallicityMaximumLogarithmic,fileNameCoolingFunction,fileNameChemicalState,versionFileFormat,includeContinuum)
-    !% An interface to the \gls{cloudy} code for computing tables of cooling functions and chemical state in collisional ionization equilibrium.
+    !!{
+    An interface to the \gls{cloudy} code for computing tables of cooling functions and chemical state in collisional ionization equilibrium.
+    !!}
     use :: Display                         , only : displayCounter                     , displayCounterClear           , displayIndent       , displayMessage, &
           &                                         displayUnindent                    , verbosityLevelWorking
     use :: File_Utilities                  , only : File_Exists                        , File_Lock                     , File_Remove         , File_Unlock
@@ -78,7 +84,9 @@ contains
     double precision                                                  :: dummy                                  , abundanceHelium                      , &
          &                                                               energy                                 , intensity                            , &
          &                                                               powerTotal
-    !# <optionalArgument name="includeContinuum" defaultsTo=".false."/>
+    !![
+    <optionalArgument name="includeContinuum" defaultsTo=".false."/>
+    !!]
     
     !$omp critical(cloudyCIEFileLock)
     ! Ensure the requested file format version is compatible.

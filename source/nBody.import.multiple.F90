@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an N-body data importer which imports using multiple other importers.
+!!{
+Contains a module which implements an N-body data importer which imports using multiple other importers.
+!!}
   
-  !# <nbodyImporter name="nbodyImporterMultiple">
-  !#  <description>An importer which imports using multiple other importers.</description>
-  !#  <deepCopy>
-  !#   <linkedList type="nbodyImporterList" variable="importers" next="next" object="importer_" objectType="nbodyImporterClass"/>
-  !#  </deepCopy>
-  !# </nbodyImporter>
+  !![
+  <nbodyImporter name="nbodyImporterMultiple">
+   <description>An importer which imports using multiple other importers.</description>
+   <deepCopy>
+    <linkedList type="nbodyImporterList" variable="importers" next="next" object="importer_" objectType="nbodyImporterClass"/>
+   </deepCopy>
+  </nbodyImporter>
+  !!]
   type, extends(nbodyImporterClass) :: nbodyImporterMultiple
-     !% An importer which imports using multiple other importers.
+     !!{
+     An importer which imports using multiple other importers.
+     !!}
      private
      type(nbodyImporterList), pointer :: importers => null()
    contains
@@ -36,7 +42,9 @@
   end type nbodyImporterMultiple
 
   interface nbodyImporterMultiple
-     !% Constructors for the {\normalfont \ttfamily multiple} N-body importer class.
+     !!{
+     Constructors for the {\normalfont \ttfamily multiple} N-body importer class.
+     !!}
      module procedure multipleConstructorParameters
      module procedure multipleConstructorInternal
   end interface nbodyImporterMultiple
@@ -44,7 +52,9 @@
 contains
 
   function multipleConstructorParameters(parameters) result (self)
-    !% Constructor for the {\normalfont \ttfamily multiple} N-body importer class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily multiple} N-body importer class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (nbodyImporterMultiple)                :: self
@@ -62,13 +72,17 @@ contains
           allocate(self%importers)
           importer_ => self%importers
        end if
-       !# <objectBuilder class="nbodyImporter" name="importer_%importer_" source="parameters" copy="i" />
+       !![
+       <objectBuilder class="nbodyImporter" name="importer_%importer_" source="parameters" copy="i" />
+       !!]
     end do
     return
   end function multipleConstructorParameters
 
   function multipleConstructorInternal(importers) result (self)
-    !% Internal constructor for the {\normalfont \ttfamily multiple} N-body importer class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily multiple} N-body importer class.
+    !!}
     implicit none
     type(nbodyImporterMultiple)                        :: self
     type(nbodyImporterList    ), target, intent(in   ) :: importers
@@ -77,14 +91,18 @@ contains
     self     %importers => importers
     importer_           => importers
     do while (associated(importer_))
-       !# <referenceCountIncrement owner="importer_" object="importer_"/>
+       !![
+       <referenceCountIncrement owner="importer_" object="importer_"/>
+       !!]
        importer_ => importer_%next
     end do
     return
   end function multipleConstructorInternal
 
   subroutine multipleDestructor(self)
-    !% Destructor for {\normalfont \ttfamily multiple} importer class.
+    !!{
+    Destructor for {\normalfont \ttfamily multiple} importer class.
+    !!}
     implicit none
     type(nbodyImporterMultiple), intent(inout) :: self
     type(nbodyImporterList    ), pointer       :: importer_, importerNext
@@ -93,7 +111,9 @@ contains
        importer_ => self%importers
        do while (associated(importer_))
           importerNext => importer_%next
-          !# <objectDestructor name="importer_%importer_"/>
+          !![
+          <objectDestructor name="importer_%importer_"/>
+          !!]
           deallocate(importer_)
           importer_ => importerNext
        end do
@@ -102,7 +122,9 @@ contains
   end subroutine multipleDestructor
 
   subroutine multipleImport(self,simulations)
-    !% Import data using multiple importers.
+    !!{
+    Import data using multiple importers.
+    !!}
     use :: Display, only : displayIndent     , displayUnindent         , verbosityLevelStandard
     use :: Hashes , only : rank1DoublePtrHash, rank1IntegerSizeTPtrHash, rank2DoublePtrHash    , rank2IntegerSizeTPtrHash
     implicit none
@@ -147,7 +169,9 @@ contains
   end subroutine multipleImport
 
   logical function multipleIsHDF5(self)
-    !% Return whether or not the imported data is from an HDF5 file.
+    !!{
+    Return whether or not the imported data is from an HDF5 file.
+    !!}
     implicit none
     class(nbodyImporterMultiple), intent(inout) :: self
 

@@ -64,7 +64,9 @@ sub Process_DeepCopyActions {
 	$code::className   = $directive->{'class'};
 	my $deepCopyAction = fill_in_string(<<'CODE', PACKAGE => 'code');
 subroutine {$className}DeepCopyActions(self)
- !% Perform actions needed for deep copy of this object.
+ !!\{
+ Perform actions needed for deep copy of this object.
+ !!\}
  implicit none
  class({$className}), intent(inout) :: self
  select type (self)
@@ -121,9 +123,11 @@ end subroutine {$className}DeepCopyActions
 CODE
 	# Insert type-bindings.
 	my $content = fill_in_string(<<'CODE', PACKAGE => 'code');
-    !# <methods>
-    !#  <method method="deepCopyActions" description="Perform actions needed for deep copy of this object."/>
-    !# </methods>
+    !![
+    <methods>
+     <method method="deepCopyActions" description="Perform actions needed for deep copy of this object."/>
+    </methods>
+    !!]
     procedure :: deepCopyActions => {$className}DeepCopyActions
 CODE
 	my $treeContent = &Galacticus::Build::SourceTree::ParseCode($content,'null');

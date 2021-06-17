@@ -17,24 +17,30 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a merger tree operator class which records and outputs tree processing time information.
+  !!{
+  Implements a merger tree operator class which records and outputs tree processing time information.
+  !!}
 
   use, intrinsic :: ISO_C_Binding, only : c_size_t
   use            :: Kind_Numbers , only : kind_int8
 
-  !# <mergerTreeOperator name="mergerTreeOperatorTreeProcessingTimer">
-  !#  <description>
-  !#   A merger tree operator class which records and outputs tree processing time information. Tree timing data to be recorded
-  !#   and output to the {\normalfont \ttfamily metaData/treeTiming} group. Three datasets are written to this group:
-  !#   \begin{description}
-  !#    \item[{\normalfont \ttfamily treeMasses}] Gives the base node masses of the recorded trees (in units of $M_\odot$);
-  !#    \item[{\normalfont \ttfamily treeConstuctTimes}] Gives the time (in seconds) taken to construct each merger tree;
-  !#    \item[{\normalfont \ttfamily treeEvolveTimes}] Gives the time (in seconds) taken to evolve each merger tree.
-  !#   \end{description}
-  !#  </description>
-  !# </mergerTreeOperator>
+  !![
+  <mergerTreeOperator name="mergerTreeOperatorTreeProcessingTimer">
+   <description>
+    A merger tree operator class which records and outputs tree processing time information. Tree timing data to be recorded
+    and output to the {\normalfont \ttfamily metaData/treeTiming} group. Three datasets are written to this group:
+    \begin{description}
+     \item[{\normalfont \ttfamily treeMasses}] Gives the base node masses of the recorded trees (in units of $M_\odot$);
+     \item[{\normalfont \ttfamily treeConstuctTimes}] Gives the time (in seconds) taken to construct each merger tree;
+     \item[{\normalfont \ttfamily treeEvolveTimes}] Gives the time (in seconds) taken to evolve each merger tree.
+    \end{description}
+   </description>
+  </mergerTreeOperator>
+  !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorTreeProcessingTimer
-     !% A merger tree operator class which records and outputs tree processing time information.
+     !!{
+     A merger tree operator class which records and outputs tree processing time information.
+     !!}
      private
      logical                                                :: collectMemoryUsageData
      double precision                                       :: timePostEvolution     , timePreConstruction, &
@@ -57,7 +63,9 @@
   end type mergerTreeOperatorTreeProcessingTimer
 
   interface mergerTreeOperatorTreeProcessingTimer
-     !% Constructors for the {\normalfont \ttfamily treeProcessingTimer} merger tree operator class.
+     !!{
+     Constructors for the {\normalfont \ttfamily treeProcessingTimer} merger tree operator class.
+     !!}
      module procedure treeProcessingTimerConstructorParameters
      module procedure treeProcessingTimerConstructorInternal
   end interface mergerTreeOperatorTreeProcessingTimer
@@ -68,38 +76,50 @@
 contains
 
   function treeProcessingTimerConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily treeProcessingTimer} merger tree operator class which takes a parameter set as
-    !% input.
+    !!{
+    Constructor for the {\normalfont \ttfamily treeProcessingTimer} merger tree operator class which takes a parameter set as
+    input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type   (mergerTreeOperatorTreeProcessingTimer)                :: self
     type   (inputParameters                      ), intent(inout) :: parameters
     logical                                                       :: collectMemoryUsageData
     
-    !# <inputParameter>
-    !#   <name>collectMemoryUsageData</name>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>Specifies whether or not to collect and output data on the memory used while processing trees.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>collectMemoryUsageData</name>
+      <defaultValue>.false.</defaultValue>
+      <description>Specifies whether or not to collect and output data on the memory used while processing trees.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     self=treeProcessingTimerConstructorInternal(collectMemoryUsageData)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function treeProcessingTimerConstructorParameters
 
   function treeProcessingTimerConstructorInternal(collectMemoryUsageData) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily treeProcessingTimer} merger tree operator class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily treeProcessingTimer} merger tree operator class.
+    !!}
     implicit none
     type (mergerTreeOperatorTreeProcessingTimer)                :: self
     logical                                     , intent(in   ) :: collectMemoryUsageData
-    !# <constructorAssign variables="collectMemoryUsageData"/>
+    !![
+    <constructorAssign variables="collectMemoryUsageData"/>
+    !!]
 
     self%countTrees=0
     return
   end function treeProcessingTimerConstructorInternal
 
   subroutine treeProcessingTimerAutoHook(self)
-    !% Attach to various event hooks.
+    !!{
+    Attach to various event hooks.
+    !!}
     use :: Events_Hooks, only : postEvolveEvent, openMPThreadBindingAtLevel
     implicit none
     class(mergerTreeOperatorTreeProcessingTimer), intent(inout) :: self
@@ -109,7 +129,9 @@ contains
   end subroutine treeProcessingTimerAutoHook
 
   subroutine treeProcessingTimerDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily treeProcessingTimer} merger tree operator class.
+    !!{
+    Destructor for the {\normalfont \ttfamily treeProcessingTimer} merger tree operator class.
+    !!}
     use :: Events_Hooks, only : postEvolveEvent
     implicit none
     type(mergerTreeOperatorTreeProcessingTimer), intent(inout) :: self
@@ -119,7 +141,9 @@ contains
   end subroutine treeProcessingTimerDestructor
 
   subroutine treeProcessingTimerOperatePreConstruction(self)
-    !% Record the CPU time prior to construction of a tree.
+    !!{
+    Record the CPU time prior to construction of a tree.
+    !!}
     !$ use :: OMP_Lib, only : OMP_Get_WTime, OMP_In_Parallel
     implicit none
     class(mergerTreeOperatorTreeProcessingTimer), intent(inout) :: self
@@ -139,7 +163,9 @@ contains
   end subroutine treeProcessingTimerOperatePreConstruction
 
   subroutine treeProcessingTimerOperatePreEvolution(self,tree)
-    !% Record the CPU time prior to evolving {\normalfont \ttfamily tree}.
+    !!{
+    Record the CPU time prior to evolving {\normalfont \ttfamily tree}.
+    !!}
     use    :: Galacticus_Nodes   , only : mergerTree              , nodeComponentBasic, treeNode
     use    :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
     !$ use :: OMP_Lib            , only : OMP_Get_WTime           , OMP_In_Parallel
@@ -174,7 +200,9 @@ contains
   end subroutine treeProcessingTimerOperatePreEvolution
   
   subroutine treeProcessingTimerOperatePostEvolution(self)
-    !% Record the CPU time after evolving a tree.
+    !!{
+    Record the CPU time after evolving a tree.
+    !!}
     use    :: Memory_Management, only : allocateArray, deallocateArray
     !$ use :: OMP_Lib          , only : OMP_Get_WTime, OMP_In_Parallel
     implicit none
@@ -242,7 +270,9 @@ contains
   end subroutine treeProcessingTimerOperatePostEvolution
   
   subroutine treeProcessingTimerPostEvolve(self,node)
-    !% Record memory usage.
+    !!{
+    Record memory usage.
+    !!}
     use :: Galacticus_Nodes   , only : mergerTree              , treeNode
     use :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
     implicit none
@@ -272,7 +302,9 @@ contains
   end subroutine treeProcessingTimerPostEvolve
 
   subroutine treeProcessingTimerFinalize(self)
-    !% Outputs collected meta-data on tree processing times.
+    !!{
+    Outputs collected meta-data on tree processing times.
+    !!}
     use :: Galacticus_HDF5                 , only : galacticusOutputFile
     use :: IO_HDF5                         , only : hdf5Access          , hdf5Object
     use :: HDF5                            , only : hsize_t

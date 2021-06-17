@@ -17,26 +17,32 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a ``fixed'' solver for galactic structure (no self-gravity of baryons, and size simply scales in
-  !% proportion to specific angular momentum).
+  !!{
+  Implementation of a ``fixed'' solver for galactic structure (no self-gravity of baryons, and size simply scales in
+  proportion to specific angular momentum).
+  !!}
 
   use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScale , darkMatterHaloScaleClass
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO, darkMatterProfileDMOClass
 
-  !# <galacticStructureSolver name="galacticStructureSolverFixed">
-  !#  <description>
-  !#   A galactic structure solver that determines the sizes of galactic components by assuming that radius equals
-  !#   \begin{equation}
-  !#    r = f_\mathrm{r} \lambda r_0
-  !#   \end{equation}
-  !#   where $r_0$ is the virial or turnaround radius of the \gls{node} if {\normalfont \ttfamily [radiusFixed]}$=${\normalfont
-  !#   \ttfamily virialRadius} or {\normalfont \ttfamily turnaround} respectively, $\lambda$ is its spin parameter and
-  !#   $f_\mathrm{r}=${\normalfont \ttfamily [radiusFixed]} is a parameter.
-  !#  </description>
-  !# </galacticStructureSolver>
+  !![
+  <galacticStructureSolver name="galacticStructureSolverFixed">
+   <description>
+    A galactic structure solver that determines the sizes of galactic components by assuming that radius equals
+    \begin{equation}
+     r = f_\mathrm{r} \lambda r_0
+    \end{equation}
+    where $r_0$ is the virial or turnaround radius of the \gls{node} if {\normalfont \ttfamily [radiusFixed]}$=${\normalfont
+    \ttfamily virialRadius} or {\normalfont \ttfamily turnaround} respectively, $\lambda$ is its spin parameter and
+    $f_\mathrm{r}=${\normalfont \ttfamily [radiusFixed]} is a parameter.
+   </description>
+  </galacticStructureSolver>
+  !!]
   type, extends(galacticStructureSolverClass) :: galacticStructureSolverFixed
-     !% Implementation of a ``fixed'' solver for galactic structure (no self-gravity of baryons, and size simply scales in
-     !% proportion to specific angular momentum).
+     !!{
+     Implementation of a ``fixed'' solver for galactic structure (no self-gravity of baryons, and size simply scales in
+     proportion to specific angular momentum).
+     !!}
      private
      double precision                                     :: factor
      integer                                              :: radiusFixed
@@ -50,26 +56,32 @@
   end type galacticStructureSolverFixed
 
   interface galacticStructureSolverFixed
-     !% Constructors for the {\normalfont \ttfamily fixed} galactic structure solver class.
+     !!{
+     Constructors for the {\normalfont \ttfamily fixed} galactic structure solver class.
+     !!}
      module procedure fixedConstructorParameters
      module procedure fixedConstructorInternal
   end interface galacticStructureSolverFixed
 
-  !# <enumeration>
-  !#  <name>radiusFixed</name>
-  !#  <description>Enumerates the possible definitions of radius used by the ``fixed'' galactic structure solver.</description>
-  !#  <encodeFunction>yes</encodeFunction>
-  !#  <validator>yes</validator>
-  !#  <visibility>public</visibility>
-  !#  <entry label="virial"    />
-  !#  <entry label="turnaround"/>
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>radiusFixed</name>
+   <description>Enumerates the possible definitions of radius used by the ``fixed'' galactic structure solver.</description>
+   <encodeFunction>yes</encodeFunction>
+   <validator>yes</validator>
+   <visibility>public</visibility>
+   <entry label="virial"    />
+   <entry label="turnaround"/>
+  </enumeration>
+  !!]
 
 contains
 
   function fixedConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily fixed} galactic structure solver class which takes a
-    !% parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily fixed} galactic structure solver class which takes a
+    parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (galacticStructureSolverFixed)                :: self
@@ -79,30 +91,36 @@ contains
     double precision                                              :: factor
     type            (varying_string              )                :: radiusFixed
 
-    !# <inputParameter>
-    !#   <name>factor</name>
-    !#   <defaultSource>\citep{mo_formation_1998}</defaultSource>
-    !#   <defaultValue>sqrt(0.5d0)</defaultValue>
-    !#   <description>The ratio of galaxy radius to $\lambda r_\mathrm{vir}$ in the ``fixed'' galactic structure radius solver algorithm.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>radiusFixed</name>
-    !#   <defaultValue>var_str('virial')</defaultValue>
-    !#   <description>The radius to use in the ``fixed'' galactic structure radius solver algorithm. Allowed options are ``virial'' and ``turnaround''.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
-    !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>factor</name>
+      <defaultSource>\citep{mo_formation_1998}</defaultSource>
+      <defaultValue>sqrt(0.5d0)</defaultValue>
+      <description>The ratio of galaxy radius to $\lambda r_\mathrm{vir}$ in the ``fixed'' galactic structure radius solver algorithm.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>radiusFixed</name>
+      <defaultValue>var_str('virial')</defaultValue>
+      <description>The radius to use in the ``fixed'' galactic structure radius solver algorithm. Allowed options are ``virial'' and ``turnaround''.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
+    <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    !!]
     self=galacticStructureSolverFixed(factor,enumerationRadiusFixedEncode(char(radiusFixed),includesPrefix=.false.),darkMatterHaloScale_,darkMatterProfileDMO_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterHaloScale_" />
-    !# <objectDestructor name="darkMatterProfileDMO_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterHaloScale_" />
+    <objectDestructor name="darkMatterProfileDMO_"/>
+    !!]
     return
   end function fixedConstructorParameters
 
   function fixedConstructorInternal(factor,radiusFixed,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily fixed} galactic structure solver class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily fixed} galactic structure solver class.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Component_List, Galacticus_Error_Report
     use :: Galacticus_Nodes, only : defaultBasicComponent
     implicit none
@@ -111,7 +129,9 @@ contains
     integer                                       , intent(in   )         :: radiusFixed
     class           (darkMatterHaloScaleClass    ), intent(in   ), target :: darkMatterHaloScale_
     class           (darkMatterProfileDMOClass   ), intent(in   ), target :: darkMatterProfileDMO_
-    !# <constructorAssign variables="factor, radiusFixed, *darkMatterHaloScale_, *darkMatterProfileDMO_"/>
+    !![
+    <constructorAssign variables="factor, radiusFixed, *darkMatterHaloScale_, *darkMatterProfileDMO_"/>
+    !!]
 
     if (.not.enumerationRadiusFixedIsValid(radiusFixed)) call Galacticus_Error_Report('invalid radiusFixed'//{introspection:location})
     if (radiusFixed == radiusFixedTurnaround) then
@@ -130,7 +150,9 @@ contains
   end function fixedConstructorInternal
 
   subroutine fixedAutoHook(self)
-    !% Attach to various event hooks.
+    !!{
+    Attach to various event hooks.
+    !!}
     use :: Events_Hooks, only : nodePromotionEvent  , openMPThreadBindingAtLevel, postEvolveEvent, preDerivativeEvent, &
           &                     satelliteMergerEvent, dependencyDirectionAfter  , dependencyRegEx
     implicit none
@@ -146,13 +168,17 @@ contains
   end subroutine fixedAutoHook
 
   subroutine fixedDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily fixed} galactic structure solver class.
+    !!{
+    Destructor for the {\normalfont \ttfamily fixed} galactic structure solver class.
+    !!}
     use :: Events_Hooks, only : nodePromotionEvent, postEvolveEvent, preDerivativeEvent, satelliteMergerEvent
     implicit none
     type(galacticStructureSolverFixed), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterHaloScale_" />
-    !# <objectDestructor name="self%darkMatterProfileDMO_"/>
+    !![
+    <objectDestructor name="self%darkMatterHaloScale_" />
+    <objectDestructor name="self%darkMatterProfileDMO_"/>
+    !!]
     call   preDerivativeEvent%detach(self,fixedSolvePreDeriativeHook)
     call      postEvolveEvent%detach(self,fixedSolveHook            )
     call satelliteMergerEvent%detach(self,fixedSolveHook            )
@@ -161,7 +187,9 @@ contains
   end subroutine fixedDestructor
 
   subroutine fixedSolveHook(self,node)
-    !% Hookable wrapper around the solver.
+    !!{
+    Hookable wrapper around the solver.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(*       ), intent(inout)         :: self
@@ -177,7 +205,9 @@ contains
   end subroutine fixedSolveHook
 
   subroutine fixedSolvePreDeriativeHook(self,node,propertyType)
-    !% Hookable wrapper around the solver.
+    !!{
+    Hookable wrapper around the solver.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (*       ), intent(inout)         :: self
@@ -195,8 +225,10 @@ contains
   end subroutine fixedSolvePreDeriativeHook
 
   subroutine fixedSolve(self,node)
-    !% Solve for the structure of galactic components assuming no self-gravity of baryons, and that size simply scales in
-    !% proportion to specific angular momentum.
+    !!{
+    Solve for the structure of galactic components assuming no self-gravity of baryons, and that size simply scales in
+    proportion to specific angular momentum.
+    !!}
     include 'galactic_structure.radius_solver.tasks.modules.inc'
     include 'galactic_structure.radius_solver.plausible.modules.inc'
     implicit none
@@ -219,7 +251,9 @@ contains
   contains
 
     subroutine radiusSolve(node,specificAngularMomentum,radiusGet,radiusSet,velocityGet,velocitySet)
-      !% Solve for the equilibrium radius of the given component.
+      !!{
+      Solve for the equilibrium radius of the given component.
+      !!}
       use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSpin, treeNode
       implicit none
       type            (treeNode          ), intent(inout)          :: node
@@ -251,7 +285,9 @@ contains
   end subroutine fixedSolve
 
   subroutine fixedRevert(self,node)
-    !% Revert radii for the fixed galactic structure solve. Not necessary for this algorithm.
+    !!{
+    Revert radii for the fixed galactic structure solve. Not necessary for this algorithm.
+    !!}
     implicit none
     class(galacticStructureSolverFixed), intent(inout) :: self
     type (treeNode                     ), intent(inout) :: node

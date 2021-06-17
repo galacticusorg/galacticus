@@ -17,18 +17,24 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a merger tree masses class which constructs the union of other classes.
+  !!{
+  Implementation of a merger tree masses class which constructs the union of other classes.
+  !!}
 
   type, public :: mergerTreeBuildMassesList
      class(mergerTreeBuildMassesClass), pointer :: mergerTreeBuildMasses_
      type (mergerTreeBuildMassesList ), pointer :: next                   => null()
   end type mergerTreeBuildMassesList
 
-  !# <mergerTreeBuildMasses name="mergerTreeBuildMassesUnion">
-  !#  <description>A merger tree masses class which constructs the union of other classes.</description>
-  !# </mergerTreeBuildMasses>
+  !![
+  <mergerTreeBuildMasses name="mergerTreeBuildMassesUnion">
+   <description>A merger tree masses class which constructs the union of other classes.</description>
+  </mergerTreeBuildMasses>
+  !!]
   type, extends(mergerTreeBuildMassesClass) :: mergerTreeBuildMassesUnion
-     !% Implementation of a merger tree masses class which constructs the union of other classes.
+     !!{
+     Implementation of a merger tree masses class which constructs the union of other classes.
+     !!}
      private
      type(mergerTreeBuildMassesList), pointer :: mergerTreeBuildMasses_ => null()
    contains
@@ -44,8 +50,10 @@
 contains
 
   function unionConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily union} merger tree masses class which takes a parameter set
-    !% as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily union} merger tree masses class which takes a parameter set
+    as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type   (mergerTreeBuildMassesUnion)                :: self
@@ -69,17 +77,23 @@ contains
   end function unionConstructorParameters
 
   function unionConstructorInternal(mergerTreeBuildMasses_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily union} merger tree masses class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily union} merger tree masses class.
+    !!}
     implicit none
     type(mergerTreeBuildMassesUnion)                        :: self
     type(mergerTreeBuildMassesList ), target, intent(in   ) :: mergerTreeBuildMasses_
-    !# <constructorAssign variables="*mergerTreeBuildMasses_"/>
+    !![
+    <constructorAssign variables="*mergerTreeBuildMasses_"/>
+    !!]
 
     return
   end function unionConstructorInternal
 
   elemental subroutine unionDestructor(self)
-    !% Destructor for the merger tree mergerTreeBuildMasses function class.
+    !!{
+    Destructor for the merger tree mergerTreeBuildMasses function class.
+    !!}
     implicit none
     type(mergerTreeBuildMassesUnion), intent(inout) :: self
     type(mergerTreeBuildMassesList ), pointer       :: mergerTreeBuildMasses_, mergerTreeBuildMassesNext
@@ -97,7 +111,9 @@ contains
   end subroutine unionDestructor
 
   subroutine unionConstruct(self,time,mass,massMinimum,massMaximum,weight)
-    !% Construct a set of merger tree masses by sampling from a distribution.
+    !!{
+    Construct a set of merger tree masses by sampling from a distribution.
+    !!}
     use            :: Galacticus_Error , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
     use            :: Memory_Management, only : allocateArray          , deallocateArray

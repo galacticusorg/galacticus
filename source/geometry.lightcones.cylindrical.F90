@@ -17,7 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of the lightcone geometry class which assumes a cylindrical ``cone''.
+  !!{
+  An implementation of the lightcone geometry class which assumes a cylindrical ``cone''.
+  !!}
 
   use :: Cosmology_Functions            , only : cosmologyFunctionsClass
   use :: Correlation_Functions_Two_Point, only : correlationFunctionTwoPointClass
@@ -29,14 +31,18 @@
   use :: Output_Times                   , only : outputTimesClass
   use :: Power_Spectra                  , only : powerSpectrumClass
   
-  !# <geometryLightcone name="geometryLightconeCylindrical">
-  !#  <description>
-  !#   A lightcone geometry class which assumes a cylindrical ``cone'', i.e. defined such that a point $(x,y,z)$ is in the survey
-  !#   if $\sqrt{x^2+y^2} &lt; r$, where $r$ is the radius of the ``cone''.
-  !#  </description>
-  !# </geometryLightcone>
+  !![
+  <geometryLightcone name="geometryLightconeCylindrical">
+   <description>
+    A lightcone geometry class which assumes a cylindrical ``cone'', i.e. defined such that a point $(x,y,z)$ is in the survey
+    if $\sqrt{x^2+y^2} &lt; r$, where $r$ is the radius of the ``cone''.
+   </description>
+  </geometryLightcone>
+  !!]
   type, extends(geometryLightconeClass) :: geometryLightconeCylindrical
-     !% A lightcone geometry class which assumes a cylindrical ``cone''.
+     !!{
+     A lightcone geometry class which assumes a cylindrical ``cone''.
+     !!}
      private
      class           (cosmologyFunctionsClass         ), pointer                     :: cosmologyFunctions_          => null()
      class           (outputTimesClass                ), pointer                     :: outputTimes_                 => null()
@@ -59,11 +65,13 @@
      double precision                                  , dimension(:,:), allocatable :: activeCenterPosition                  , activePosition
      integer         (c_size_t                        )                              :: activeOutput
    contains
-     !# <methods>
-     !#  <method method="sampleNode">
-     !#   <description>Determine if, and how many times, the given node appears in the ``lightcone'', and choose positions for each instance.</description>
-     !#  </method>
-     !# </methods>
+     !![
+     <methods>
+      <method method="sampleNode">
+       <description>Determine if, and how many times, the given node appears in the ``lightcone'', and choose positions for each instance.</description>
+      </method>
+     </methods>
+     !!]
      final     ::                              cylindricalDestructor
      procedure :: isInLightcone             => cylindricalIsInLightcone
      procedure :: replicationCount          => cylindricalReplicationCount
@@ -76,7 +84,9 @@
   end type geometryLightconeCylindrical
 
   interface geometryLightconeCylindrical
-     !% Constructors for the {\normalfont \ttfamily cylindrical} dark matter halo spin distribution class.
+     !!{
+     Constructors for the {\normalfont \ttfamily cylindrical} dark matter halo spin distribution class.
+     !!}
      module procedure cylindricalConstructorParameters
      module procedure cylindricalConstructorInternal
   end interface geometryLightconeCylindrical
@@ -87,8 +97,10 @@
 contains
 
   function cylindricalConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily cylindrical} lightcone geometry distribution class which takes a parameter list as
-    !% input.
+    !!{
+    Constructor for the {\normalfont \ttfamily cylindrical} lightcone geometry distribution class which takes a parameter list as
+    input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (geometryLightconeCylindrical    )                :: self
@@ -104,52 +116,58 @@ contains
     double precision                                                  :: radiusCylinderComoving      , radiusBufferComoving, &
          &                                                               massHaloLens                , redshiftLens
     
-    !# <inputParameter>
-    !#   <name>radiusCylinderComoving</name>
-    !#   <source>parameters</source>
-    !#   <description>The comoving radius of the cylinder to populate.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>radiusBufferComoving</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>1.0d0</defaultValue>
-    !#   <description>The comoving buffer radius to add around the cylinder. This is used to ensure that the sample within the cylinder is complete.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massHaloLens</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>-1.0d0</defaultValue>
-    !#   <description>The mass of the primary lens halo (or a negative value for no lens).</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>redshiftLens</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>-1.0d0</defaultValue>
-    !#   <description>The redshift of the primary lens halo (or a negative value for no lens).</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"          source="parameters"/>
-    !# <objectBuilder class="outputTimes"                  name="outputTimes_"                 source="parameters"/>
-    !# <objectBuilder class="randomNumberGenerator"        name="randomNumberGenerator_"       source="parameters"/>
-    !# <objectBuilder class="powerSpectrum"                name="powerSpectrum_"               source="parameters"/>
-    !# <objectBuilder class="linearGrowth"                 name="linearGrowth_"                source="parameters"/>
-    !# <objectBuilder class="darkMatterHaloBias"           name="darkMatterHaloBias_"          source="parameters"/>
-    !# <objectBuilder class="darkMatterHaloScale"          name="darkMatterHaloScale_"         source="parameters"/>
-    !# <objectBuilder class="correlationFunctionTwoPoint"  name="correlationFunctionTwoPoint_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>radiusCylinderComoving</name>
+      <source>parameters</source>
+      <description>The comoving radius of the cylinder to populate.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>radiusBufferComoving</name>
+      <source>parameters</source>
+      <defaultValue>1.0d0</defaultValue>
+      <description>The comoving buffer radius to add around the cylinder. This is used to ensure that the sample within the cylinder is complete.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>massHaloLens</name>
+      <source>parameters</source>
+      <defaultValue>-1.0d0</defaultValue>
+      <description>The mass of the primary lens halo (or a negative value for no lens).</description>
+    </inputParameter>
+    <inputParameter>
+      <name>redshiftLens</name>
+      <source>parameters</source>
+      <defaultValue>-1.0d0</defaultValue>
+      <description>The redshift of the primary lens halo (or a negative value for no lens).</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"          source="parameters"/>
+    <objectBuilder class="outputTimes"                  name="outputTimes_"                 source="parameters"/>
+    <objectBuilder class="randomNumberGenerator"        name="randomNumberGenerator_"       source="parameters"/>
+    <objectBuilder class="powerSpectrum"                name="powerSpectrum_"               source="parameters"/>
+    <objectBuilder class="linearGrowth"                 name="linearGrowth_"                source="parameters"/>
+    <objectBuilder class="darkMatterHaloBias"           name="darkMatterHaloBias_"          source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale"          name="darkMatterHaloScale_"         source="parameters"/>
+    <objectBuilder class="correlationFunctionTwoPoint"  name="correlationFunctionTwoPoint_" source="parameters"/>
+    !!]
     self=geometryLightconeCylindrical(radiusCylinderComoving,radiusBufferComoving,massHaloLens,redshiftLens,cosmologyFunctions_,powerSpectrum_,linearGrowth_,outputTimes_,darkMatterHaloBias_,darkMatterHaloScale_,correlationFunctionTwoPoint_,randomNumberGenerator_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="outputTimes_"                />
-    !# <objectDestructor name="cosmologyFunctions_"         />
-    !# <objectDestructor name="randomNumberGenerator_"      />
-    !# <objectDestructor name="powerSpectrum_"              />
-    !# <objectDestructor name="linearGrowth_"               />
-    !# <objectDestructor name="darkMatterHaloBias_"         />
-    !# <objectDestructor name="darkMatterHaloScale_"        />
-    !# <objectDestructor name="correlationFunctionTwoPoint_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="outputTimes_"                />
+    <objectDestructor name="cosmologyFunctions_"         />
+    <objectDestructor name="randomNumberGenerator_"      />
+    <objectDestructor name="powerSpectrum_"              />
+    <objectDestructor name="linearGrowth_"               />
+    <objectDestructor name="darkMatterHaloBias_"         />
+    <objectDestructor name="darkMatterHaloScale_"        />
+    <objectDestructor name="correlationFunctionTwoPoint_"/>
+    !!]
     return
   end function cylindricalConstructorParameters
 
   function cylindricalConstructorInternal(radiusCylinderComoving,radiusBufferComoving,massHaloLens,redshiftLens,cosmologyFunctions_,powerSpectrum_,linearGrowth_,outputTimes_,darkMatterHaloBias_,darkMatterHaloScale_,correlationFunctionTwoPoint_,randomNumberGenerator_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily cylindrical} lightcone geometry distribution class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily cylindrical} lightcone geometry distribution class.
+    !!}
     use :: File_Utilities          , only : File_Exists   , File_Lock          , File_Unlock  , lockDescriptor
     use :: Galacticus_Nodes        , only : treeNode      , nodeComponentBasic
     use :: Galacticus_Paths        , only : galacticusPath, pathTypeDataDynamic
@@ -192,7 +210,9 @@ contains
     type            (lockDescriptor                  )                              :: fileLock
     type            (varying_string                  )                              :: fileName
     character       (len=18                          )                              :: label
-    !# <constructorAssign variables="radiusCylinderComoving, radiusBufferComoving, massHaloLens, redshiftLens, *cosmologyFunctions_, *powerSpectrum_, *linearGrowth_, *outputTimes_, *darkMatterHaloBias_, *darkMatterHaloScale_, *correlationFunctionTwoPoint_, *randomNumberGenerator_"/>
+    !![
+    <constructorAssign variables="radiusCylinderComoving, radiusBufferComoving, massHaloLens, redshiftLens, *cosmologyFunctions_, *powerSpectrum_, *linearGrowth_, *outputTimes_, *darkMatterHaloBias_, *darkMatterHaloScale_, *correlationFunctionTwoPoint_, *randomNumberGenerator_"/>
+    !!]
     
     ! Find the minimum and maximum distance associated with each output time.
     allocate(self%distanceMinimum(self%outputTimes_%count()))
@@ -340,7 +360,9 @@ contains
   contains
 
     double precision function cosmicVarianceIntegrandVertical(wavenumberVerticalLogarithmic)
-      !% Vertical integrand used in evaluating the cosmic variance.
+      !!{
+      Vertical integrand used in evaluating the cosmic variance.
+      !!}
       use :: Bessel_Functions, only : Bessel_Function_J1_Zero
       implicit none
       double precision, intent(in   ) :: wavenumberVerticalLogarithmic
@@ -369,7 +391,9 @@ contains
     end function cosmicVarianceIntegrandVertical
 
     double precision function cosmicVarianceIntegrandRadial(wavenumberRadial)
-      !% Radial integrand used in evaluating the cosmic variance.
+      !!{
+      Radial integrand used in evaluating the cosmic variance.
+      !!}
       use :: Numerical_Constants_Math, only : Pi
       implicit none
       double precision, intent(in   ) :: wavenumberRadial
@@ -388,7 +412,9 @@ contains
     end function cosmicVarianceIntegrandRadial
 
     double complex function windowFunctionVertical(wavenumberVertical,heightLower,heightUpper)
-      !% Window function used in evaluating the cosmic variance.
+      !!{
+      Window function used in evaluating the cosmic variance.
+      !!}
       use :: Numerical_Constants_Math, only : Pi
       implicit none
       double precision, intent(in   ) :: wavenumberVertical, heightLower, &
@@ -406,7 +432,9 @@ contains
     end function windowFunctionVertical
     
     double precision function windowFunctionRadial(wavenumberRadial,radius)
-      !% Window function used in evaluating the cosmic variance.
+      !!{
+      Window function used in evaluating the cosmic variance.
+      !!}
       use :: Bessel_Functions, only : Bessel_Function_J1
       implicit none
       double precision, intent(in   ) :: wavenumberRadial, radius
@@ -423,23 +451,29 @@ contains
   end function cylindricalConstructorInternal
 
   subroutine cylindricalDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily cylindrical} lightcone geometry distribution class.
+    !!{
+    Destructor for the {\normalfont \ttfamily cylindrical} lightcone geometry distribution class.
+    !!}
     implicit none
     type(geometryLightconeCylindrical), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"         />
-    !# <objectDestructor name="self%outputTimes_"                />
-    !# <objectDestructor name="self%randomNumberGenerator_"      />
-    !# <objectDestructor name="self%powerSpectrum_"              />
-    !# <objectDestructor name="self%linearGrowth_"               />
-    !# <objectDestructor name="self%darkMatterHaloBias_"         />
-    !# <objectDestructor name="self%darkMatterHaloScale_"        />
-    !# <objectDestructor name="self%correlationFunctionTwoPoint_"/>
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"         />
+    <objectDestructor name="self%outputTimes_"                />
+    <objectDestructor name="self%randomNumberGenerator_"      />
+    <objectDestructor name="self%powerSpectrum_"              />
+    <objectDestructor name="self%linearGrowth_"               />
+    <objectDestructor name="self%darkMatterHaloBias_"         />
+    <objectDestructor name="self%darkMatterHaloScale_"        />
+    <objectDestructor name="self%correlationFunctionTwoPoint_"/>
+    !!]
     return
   end subroutine cylindricalDestructor
 
   function cylindricalReplicationCount(self,node)
-    !% Determine the number of times {\normalfont \ttfamily node} appears in the lightcone.
+    !!{
+    Determine the number of times {\normalfont \ttfamily node} appears in the lightcone.
+    !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     integer(c_size_t                    )                :: cylindricalReplicationCount
@@ -452,7 +486,9 @@ contains
   end function cylindricalReplicationCount
   
   logical function cylindricalIsInLightcone(self,node,atPresentEpoch,radiusBuffer)
-    !% Determine if the given {\normalfont \ttfamily node} lies within the lightcone.
+    !!{
+    Determine if the given {\normalfont \ttfamily node} lies within the lightcone.
+    !!}
     use :: Galacticus_Nodes    , only : nodeComponentBasic 
     use :: Numerical_Comparison, only : Values_Agree
     use :: Galacticus_Error    , only : Galacticus_Error_Report
@@ -466,7 +502,9 @@ contains
     character       (len=10                      )                           :: label
     type            (varying_string              )                           :: message
     integer         (c_size_t                    )                           :: output
-    !# <optionalArgument name="atPresentEpoch" defaultsTo=".true." />
+    !![
+    <optionalArgument name="atPresentEpoch" defaultsTo=".true." />
+    !!]
 
     ! Get the basic component.
     basic => node%basic()
@@ -497,7 +535,9 @@ contains
   end function cylindricalIsInLightcone
 
   double precision function cylindricalSolidAngle(self)
-    !% Return the solid angle (in steradians) of a cylindrical lightcone.
+    !!{
+    Return the solid angle (in steradians) of a cylindrical lightcone.
+    !!}
     implicit none
     class(geometryLightconeCylindrical), intent(inout) :: self
     !$GLC attributes unused :: self
@@ -508,7 +548,9 @@ contains
   end function cylindricalSolidAngle
 
   function cylindricalPosition(self,node,instance)
-    !% Return the position of the node in lightcone coordinates.
+    !!{
+    Return the position of the node in lightcone coordinates.
+    !!}
     use            :: Galacticus_Error    , only : Galacticus_Error_Report
     use            :: Galacticus_Nodes    , only : nodeComponentBasic
     use, intrinsic :: ISO_C_Binding       , only : c_size_t
@@ -543,7 +585,9 @@ contains
   end function cylindricalPosition
 
   function cylindricalVelocity(self,node,instance)
-    !% Return the velocity of the node in lightcone coordinates.
+    !!{
+    Return the velocity of the node in lightcone coordinates.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentPosition, treeNode
     implicit none
     double precision                              , dimension(3)  :: cylindricalvelocity
@@ -558,7 +602,9 @@ contains
   end function cylindricalVelocity
 
   double precision function cylindricalTimeLightconeCrossing(self,node,timeEnd)
-    !% Return the time of the next lightcone crossing for this node.
+    !!{
+    Return the time of the next lightcone crossing for this node.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (geometryLightconeCylindrical), intent(inout) :: self
@@ -572,7 +618,9 @@ contains
   end function cylindricalTimeLightconeCrossing
   
   function cylindricalPositionLightconeCrossing(self,node)
-    !% Return the position at the next lightcone crossing for this node.
+    !!{
+    Return the position at the next lightcone crossing for this node.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision                              , dimension(3)  :: cylindricalPositionLightconeCrossing
@@ -586,7 +634,9 @@ contains
   end function cylindricalPositionLightconeCrossing
   
   subroutine cylindricalSampleNode(self,node)
-    !% Determine how many times the given node appears in the ``lightcone''.
+    !!{
+    Determine how many times the given node appears in the ``lightcone''.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Comparison    , only : Values_Agree
     use :: Galacticus_Error        , only : Galacticus_Error_Report

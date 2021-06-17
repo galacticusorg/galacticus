@@ -17,7 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements the standard stellar populations broad band luminosities class.
+  !!{
+  Implements the standard stellar populations broad band luminosities class.
+  !!}
   
   use, intrinsic :: ISO_C_Binding                         , only : c_size_t
   use            :: Locks                                 , only : ompReadWriteLock
@@ -26,7 +28,9 @@
   use            :: Stellar_Population_Spectra_Postprocess, only : stellarPopulationSpectraPostprocessorClass
 
   type luminosityTable
-     !% Structure for holding tables of simple stellar population luminosities.
+     !!{
+     Structure for holding tables of simple stellar population luminosities.
+     !!}
      integer                                                       :: agesCount           , metallicitiesCount
      integer         (c_size_t    )                                :: isTabulatedMaximum=0
      logical                       , allocatable, dimension(:    ) :: isTabulated
@@ -35,11 +39,15 @@
      type            (interpolator)                                :: interpolatorAge     , interpolatorMetallicity
   end type luminosityTable
 
-  !# <stellarPopulationBroadBandLuminosities name="stellarPopulationBroadBandLuminositiesStandard">
-  !#  <description>The standard stellar populations broad band luminosities class.</description>
-  !# </stellarPopulationBroadBandLuminosities>
+  !![
+  <stellarPopulationBroadBandLuminosities name="stellarPopulationBroadBandLuminositiesStandard">
+   <description>The standard stellar populations broad band luminosities class.</description>
+  </stellarPopulationBroadBandLuminosities>
+  !!]
   type, extends(stellarPopulationBroadBandLuminositiesClass) :: stellarPopulationBroadBandLuminositiesStandard
-     !% The standard stellar population broad band luminosities class.
+     !!{
+     The standard stellar population broad band luminosities class.
+     !!}
      private
      type            (luminosityTable ), allocatable, dimension(:) :: luminosityTables
      double precision                                              :: integrationToleranceRelative
@@ -49,16 +57,20 @@
      logical                                                       :: maximumAgeExceededIsFatal
      type            (ompReadWriteLock)                            :: luminosityTableLock
    contains
-     !# <methods>
-     !#   <method description="Tabulate broad band stellar luminosities." method="tabulate" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Tabulate broad band stellar luminosities." method="tabulate" />
+     </methods>
+     !!]
      procedure :: luminosities     => standardLuminosities
      procedure :: luminosityTracks => standardLuminosityTracks
      procedure :: tabulate         => standardTabulate
   end type stellarPopulationBroadBandLuminositiesStandard
 
   interface stellarPopulationBroadBandLuminositiesStandard
-     !% Constructors for the {\normalfont \ttfamily standard} stellar population broad band luminosities class.
+     !!{
+     Constructors for the {\normalfont \ttfamily standard} stellar population broad band luminosities class.
+     !!}
      module procedure standardConstructorParameters
      module procedure standardConstructorInternal
   end interface stellarPopulationBroadBandLuminositiesStandard
@@ -76,8 +88,10 @@
 contains
 
   function standardConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily standard} stellar population broad band luminosities class which takes a
-    !% parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily standard} stellar population broad band luminosities class which takes a
+    parameter set as input.
+    !!}
     use :: Galacticus_Paths, only : galacticusPath , pathTypeDataDynamic
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -88,59 +102,69 @@ contains
          &                                                                             maximumAgeExceededIsFatal
     type            (varying_string                                )                :: storeDirectory
 
-    !# <inputParameter>
-    !#   <name>integrationToleranceRelative</name>
-    !#   <defaultValue>4.0d-3</defaultValue>
-    !#   <description>The relative tolerance used when integrating the flux of stellar populations through filters.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>integrationToleranceDegrade</name>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>If {\normalfont \ttfamily true}, automatically degrade the relative tolerance used when integrating the flux of stellar populations through filters to ensure convergence.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>storeToFile</name>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>Specifies whether or not stellar populations luminosities (integrated under a filter) should be stored to file for rapid reuse.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>storeDirectory</name>
-    !#   <defaultValue>galacticusPath(pathTypeDataDynamic)//'stellarPopulations'</defaultValue>
-    !#   <description>Specifies the directory to which stellar populations luminosities (integrated under a filter) should be stored to file for rapid reuse.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>maximumAgeExceededIsFatal</name>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>Specifies whether or not exceeding the maximum available age of the stellar population is fatal.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>integrationToleranceRelative</name>
+      <defaultValue>4.0d-3</defaultValue>
+      <description>The relative tolerance used when integrating the flux of stellar populations through filters.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>integrationToleranceDegrade</name>
+      <defaultValue>.false.</defaultValue>
+      <description>If {\normalfont \ttfamily true}, automatically degrade the relative tolerance used when integrating the flux of stellar populations through filters to ensure convergence.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>storeToFile</name>
+      <defaultValue>.true.</defaultValue>
+      <description>Specifies whether or not stellar populations luminosities (integrated under a filter) should be stored to file for rapid reuse.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>storeDirectory</name>
+      <defaultValue>galacticusPath(pathTypeDataDynamic)//'stellarPopulations'</defaultValue>
+      <description>Specifies the directory to which stellar populations luminosities (integrated under a filter) should be stored to file for rapid reuse.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>maximumAgeExceededIsFatal</name>
+      <defaultValue>.true.</defaultValue>
+      <description>Specifies whether or not exceeding the maximum available age of the stellar population is fatal.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     self=stellarPopulationBroadBandLuminositiesStandard(integrationToleranceRelative,integrationToleranceDegrade,maximumAgeExceededIsFatal,storeToFile,storeDirectory)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function standardConstructorParameters
 
   function standardConstructorInternal(integrationToleranceRelative,integrationToleranceDegrade,maximumAgeExceededIsFatal,storeToFile,storeDirectory) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily standard} stellar population broad band luminosities class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily standard} stellar population broad band luminosities class.
+    !!}
     implicit none
     type            (stellarPopulationBroadBandLuminositiesStandard)                :: self
     double precision                                                , intent(in   ) :: integrationToleranceRelative
     logical                                                         , intent(in   ) :: storeToFile                 , integrationToleranceDegrade, &
          &                                                                             maximumAgeExceededIsFatal
     type            (varying_string                                ), intent(in   ) :: storeDirectory
-    !# <constructorAssign variables="integrationToleranceRelative, integrationToleranceDegrade, maximumAgeExceededIsFatal,storeToFile,storeDirectory"/>
+    !![
+    <constructorAssign variables="integrationToleranceRelative, integrationToleranceDegrade, maximumAgeExceededIsFatal,storeToFile,storeDirectory"/>
+    !!]
     
     self%luminosityTableLock=ompReadWriteLock()
     return
   end function standardConstructorInternal
 
   function standardLuminosities(self,luminosityIndex,filterIndex,stellarPopulationSpectraPostprocessor_,stellarPopulation_,abundancesStellar,age,redshift)
-    !% Returns the luminosity for a $1 M_\odot$ simple {\normalfont \ttfamily stellarPopulation\_} of given {\normalfont \ttfamily
-    !% abundances} and {\normalfont \ttfamily age} and observed through the filter specified by {\normalfont \ttfamily
-    !% filterIndex}.
+    !!{
+    Returns the luminosity for a $1 M_\odot$ simple {\normalfont \ttfamily stellarPopulation\_} of given {\normalfont \ttfamily
+    abundances} and {\normalfont \ttfamily age} and observed through the filter specified by {\normalfont \ttfamily
+    filterIndex}.
+    !!}
     use            :: Abundances_Structure, only : Abundances_Get_Metallicity, logMetallicityZero, metallicityTypeLogarithmicByMassSolar
     use            :: Galacticus_Error    , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding       , only : c_size_t
@@ -217,9 +241,11 @@ contains
   end function standardLuminosities
 
   subroutine standardLuminosityTracks(self,luminosityIndex,filterIndex,stellarPopulationSpectraPostprocessor_,stellarPopulation_,abundancesStellar,redshift,ages,luminosities)
-    !% Returns the luminosity for a $1 M_\odot$ simple stellar population of given {\normalfont \ttfamily abundances} drawn from
-    !% the given {\normalfont \ttfamily stellarPopulation} and observed through the filter specified by {\normalfont \ttfamily
-    !% filterIndex}, for all available ages.
+    !!{
+    Returns the luminosity for a $1 M_\odot$ simple stellar population of given {\normalfont \ttfamily abundances} drawn from
+    the given {\normalfont \ttfamily stellarPopulation} and observed through the filter specified by {\normalfont \ttfamily
+    filterIndex}, for all available ages.
+    !!}
     use            :: Abundances_Structure, only : Abundances_Get_Metallicity, logMetallicityZero, metallicityTypeLogarithmicByMassSolar
     use, intrinsic :: ISO_C_Binding       , only : c_size_t
     use            :: Memory_Management   , only : allocateArray
@@ -276,7 +302,9 @@ contains
   end subroutine standardLuminosityTracks
 
   subroutine standardTabulate(self,luminosityIndex,filterIndex,stellarPopulationSpectraPostprocessor_,stellarPopulation_,redshift)
-    !% Tabulate stellar population luminosity in the given filters.
+    !!{
+    Tabulate stellar population luminosity in the given filters.
+    !!}
     use            :: Abundances_Structure            , only : logMetallicityZero     , metallicityTypeLogarithmicByMassSolar
     use            :: Display                         , only : displayCounter         , displayCounterClear                  , displayIndent  , displayUnindent   , &
           &                                                    verbosityLevelWorking  , displayMagenta                       , displayGreen   , displayReset
@@ -472,17 +500,21 @@ contains
                       allocate(standardStellarPopulationSpectra             ,mold=stellarPopulationSpectra_                                                                 )
                       allocate(standardStellarPopulationSpectraPostprocessor,mold=stellarPopulationSpectraPostprocessor_(iLuminosity)%stellarPopulationSpectraPostprocessor_)
                       !$omp critical(broadBandLuminositiesDeepCopy)
-                      !# <deepCopyReset variables="stellarPopulationSpectra_"/>
-                      !# <deepCopy source="stellarPopulationSpectra_" destination="standardStellarPopulationSpectra"/>
-                      !# <deepCopyFinalize variables="standardStellarPopulationSpectra"/>
+                      !![
+                      <deepCopyReset variables="stellarPopulationSpectra_"/>
+                      <deepCopy source="stellarPopulationSpectra_" destination="standardStellarPopulationSpectra"/>
+                      <deepCopyFinalize variables="standardStellarPopulationSpectra"/>
+                      !!]
                       !$omp end critical(broadBandLuminositiesDeepCopy)
                    end if
                    ! The postprocessor can differ for each luminosity, so deep copy it always.
                    allocate(standardStellarPopulationSpectraPostprocessor,mold=stellarPopulationSpectraPostprocessor_(iLuminosity)%stellarPopulationSpectraPostprocessor_)
                    !$omp critical(broadBandLuminositiesDeepCopy)
-                   !# <deepCopyReset variables="stellarPopulationSpectraPostprocessor_(iLuminosity)%stellarPopulationSpectraPostprocessor_"/>
-                   !# <deepCopy source="stellarPopulationSpectraPostprocessor_(iLuminosity)%stellarPopulationSpectraPostprocessor_" destination="standardStellarPopulationSpectraPostprocessor"/>
-                   !# <deepCopyFinalize variables="standardStellarPopulationSpectraPostprocessor"/>
+                   !![
+                   <deepCopyReset variables="stellarPopulationSpectraPostprocessor_(iLuminosity)%stellarPopulationSpectraPostprocessor_"/>
+                   <deepCopy source="stellarPopulationSpectraPostprocessor_(iLuminosity)%stellarPopulationSpectraPostprocessor_" destination="standardStellarPopulationSpectraPostprocessor"/>
+                   <deepCopyFinalize variables="standardStellarPopulationSpectraPostprocessor"/>
+                   !!]
                    !$omp end critical(broadBandLuminositiesDeepCopy)
                    ! Get the filter response function as an interpolator.
                    standardFilterResponse => Filter_Response_Function(filterIndex(iLuminosity))
@@ -536,7 +568,9 @@ contains
                       end do
                    end do
                    !$omp end do
-                   !# <objectDestructor name="standardStellarPopulationSpectraPostprocessor"/>
+                   !![
+                   <objectDestructor name="standardStellarPopulationSpectraPostprocessor"/>
+                   !!]
                    !$omp single
                    ! Clear the counter and write a completion message.
                    call displayCounterClear(           verbosityLevelWorking)
@@ -597,7 +631,9 @@ contains
           !$omp end single
           if (copyDone) then
              deallocate(integrator_)
-             !# <objectDestructor name="standardStellarPopulationSpectra"/>
+             !![
+             <objectDestructor name="standardStellarPopulationSpectra"/>
+             !!]
           end if
           !$omp end parallel
           !$omp end critical(broadBandLuminositiesStandardComputeTable)
@@ -611,7 +647,9 @@ contains
   contains
 
     double precision function integrandFilteredLuminosity(wavelength)
-      !% Integrand for the luminosity through a given filter.
+      !!{
+      Integrand for the luminosity through a given filter.
+      !!}
       implicit none
       double precision, intent(in   ) :: wavelength
       double precision                :: wavelengthRedshifted
@@ -632,7 +670,9 @@ contains
     end function integrandFilteredLuminosity
 
     double precision function integrandFilteredLuminosityAB(wavelength)
-      !% Integrand for the luminosity of a zeroth magnitude (AB) source through a given filter.
+      !!{
+      Integrand for the luminosity of a zeroth magnitude (AB) source through a given filter.
+      !!}
       use :: Numerical_Constants_Astronomical, only : luminositySolar, luminosityZeroPointAB
       implicit none
       double precision, intent(in   ) :: wavelength

@@ -17,13 +17,17 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements polylogarithm functions.
+!!{
+Contains a module which implements polylogarithm functions.
+!!}
 
 ! Add dependency on GSL library.
 !; gsl
 
 module Polylogarithms
-  !% Implements polylogarithm functions.
+  !!{
+  Implements polylogarithm functions.
+  !!}
   use, intrinsic :: ISO_C_Binding, only : c_double
   implicit none
   private
@@ -31,7 +35,9 @@ module Polylogarithms
 
   interface
      function gsl_sf_fermi_dirac_1(x) bind(c,name='gsl_sf_fermi_dirac_1')
-       !% Template for the GSL Fermi-Dirac integral of index 1 C function.
+       !!{
+       Template for the GSL Fermi-Dirac integral of index 1 C function.
+       !!}
        import
        real(c_double)        :: gsl_sf_fermi_dirac_1
        real(c_double), value :: x
@@ -40,7 +46,9 @@ module Polylogarithms
 
   interface
      function gsl_sf_fermi_dirac_2(x) bind(c,name='gsl_sf_fermi_dirac_2')
-       !% Template for the GSL Fermi-Dirac integral of index 2 C function.
+       !!{
+       Template for the GSL Fermi-Dirac integral of index 2 C function.
+       !!}
        import
        real(c_double)        :: gsl_sf_fermi_dirac_2
        real(c_double), value :: x
@@ -50,7 +58,9 @@ module Polylogarithms
 contains
 
   double precision function Polylogarithm_2(x)
-    !% Evaluate the polylogarithm function of order 2.
+    !!{
+    Evaluate the polylogarithm function of order 2.
+    !!}
     implicit none
     double precision, intent(in   ) :: x
 
@@ -61,7 +71,9 @@ contains
   end function Polylogarithm_2
 
   double precision function Polylogarithm_3(x)
-    !% Evaluate the polylogarithm function of order 3.
+    !!{
+    Evaluate the polylogarithm function of order 3.
+    !!}
     implicit none
     double precision, intent(in   ) :: x
 

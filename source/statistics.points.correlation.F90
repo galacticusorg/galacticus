@@ -17,17 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which computes correlation statistics from point distributions.
+!!{
+Contains a module which computes correlation statistics from point distributions.
+!!}
 
 module Statistics_Points_Correlations
-  !% Compute correlation statistics from point distributions.
+  !!{
+  Compute correlation statistics from point distributions.
+  !!}
   private
   public :: Statistics_Points_Correlation
 
 contains
 
   subroutine Statistics_Points_Correlation(dataPosition,randomPosition,separationMinimum,separationMaximum,separationCount,separation,correlation,projected,radialSeparationMaximum,halfIntegral)
-    !% Compute the correlation function from a set of points.
+    !!{
+    Compute the correlation function from a set of points.
+    !!}
     use :: Display          , only : displayCounter         , displayCounterClear , displayIndent, displayUnindent
     use :: Galacticus_Error , only : Galacticus_Error_Report
     use :: Kind_Numbers     , only : kind_int8

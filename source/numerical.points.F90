@@ -17,17 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides tools for working with sets of points.
+!!{
+Contains a module which provides tools for working with sets of points.
+!!}
 
 module Points
-  !% Provide tools for working with sets of points.
+  !!{
+  Provide tools for working with sets of points.
+  !!}
   private
   public :: Points_Prune, Points_Translate, Points_Rotate, Points_Replicate, Points_Survey_Geometry
 
 contains
 
   subroutine Points_Prune(points,mask)
-    !% Prune a set of points.
+    !!{
+    Prune a set of points.
+    !!}
     use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     double precision, allocatable, dimension(:,:), intent(inout) :: points
@@ -50,7 +56,9 @@ contains
   end subroutine Points_Prune
 
   subroutine Points_Translate(points,shift,periodicLength)
-    !% Apply a simple translation to a set of points.
+    !!{
+    Apply a simple translation to a set of points.
+    !!}
     implicit none
     double precision, dimension(:,:), intent(inout) :: points
     double precision, dimension(:  ), intent(in   ) :: shift
@@ -76,7 +84,9 @@ contains
   end subroutine Points_Translate
 
   subroutine Points_Replicate(points,periodicLength,replicantStart,replicantEnd)
-    !% Apply a simple translation to a set of points.
+    !!{
+    Apply a simple translation to a set of points.
+    !!}
     use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     double precision, dimension(:,:), allocatable, intent(inout) :: points
@@ -107,7 +117,9 @@ contains
   end subroutine Points_Replicate
 
   subroutine Points_Rotate(points,axis,angle)
-    !% Apply a rotation to a set of points.
+    !!{
+    Apply a rotation to a set of points.
+    !!}
     use :: Vectors, only : Vector_Magnitude
     implicit none
     double precision, dimension(:,:), intent(inout) :: points
@@ -149,7 +161,9 @@ contains
   end subroutine Points_Rotate
 
   subroutine Points_Survey_Geometry(points,surveyGeometry_,mass)
-    !% Select a set of points that lie within a given survey geometry
+    !!{
+    Select a set of points that lie within a given survey geometry
+    !!}
     use :: Display          , only : displayCounter     , displayCounterClear, displayIndent, displayUnindent
     use :: Geometry_Surveys , only : surveyGeometryClass
     use :: Memory_Management, only : allocateArray      , deallocateArray

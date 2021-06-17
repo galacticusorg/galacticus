@@ -17,48 +17,62 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which interfaces with the Local Group database.
+!!{
+Contains a module which interfaces with the Local Group database.
+!!}
 
 module Interface_Local_Group_DB
-  !% Interfaces with the Local Group database.
+  !!{
+  Interfaces with the Local Group database.
+  !!}
   use :: FoX_DOM, only : node
   use :: IO_XML , only : xmlNodeList
   private
   public  :: localGroupDB, vector3D
 
-  !# <generic identifier="Type">
-  !#  <instance label="Double" intrinsic="double precision"                />
-  !#  <instance label="VarStr" intrinsic="type            (varying_string)"/>
-  !#  <instance label="Vector" intrinsic="type            (vector3D      )"/>
-  !# </generic>
+  !![
+  <generic identifier="Type">
+   <instance label="Double" intrinsic="double precision"                />
+   <instance label="VarStr" intrinsic="type            (varying_string)"/>
+   <instance label="Vector" intrinsic="type            (vector3D      )"/>
+  </generic>
+  !!]
 
-  !# <enumeration>
-  !#  <name>comparison</name>
-  !#  <description>Comparison operators.</description>
-  !#  <visibility>public</visibility>
-  !#  <entry label="equals"     />
-  !#  <entry label="greaterThan"/>
-  !#  <entry label="lessThan"   />
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>comparison</name>
+   <description>Comparison operators.</description>
+   <visibility>public</visibility>
+   <entry label="equals"     />
+   <entry label="greaterThan"/>
+   <entry label="lessThan"   />
+  </enumeration>
+  !!]
 
-  !# <enumeration>
-  !#  <name>setOperator</name>
-  !#  <description>Set operators.</description>
-  !#  <visibility>public</visibility>
-  !#  <entry label="intersection"/>
-  !#  <entry label="union"/>
-  !#  <entry label="relativeComplement"/>
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>setOperator</name>
+   <description>Set operators.</description>
+   <visibility>public</visibility>
+   <entry label="intersection"/>
+   <entry label="union"/>
+   <entry label="relativeComplement"/>
+  </enumeration>
+  !!]
 
   type :: vector3D
-     !% Vector type.
+     !!{
+     Vector type.
+     !!}
      double precision, dimension(3) :: x
    contains
-     !# <methods>
-     !#  <method method="operator(==)"   description="Test equality of two 3D vectors."         />
-     !#  <method method="operator(&lt;)" description="Less than operator for two 3D vectors."   />
-     !#  <method method="operator(&gt;)" description="Greater than operator for two 3D vectors."/>
-     !# </methods>
+     !![
+     <methods>
+      <method method="operator(==)"   description="Test equality of two 3D vectors."         />
+      <method method="operator(&lt;)" description="Less than operator for two 3D vectors."   />
+      <method method="operator(&gt;)" description="Greater than operator for two 3D vectors."/>
+     </methods>
+     !!]
      procedure ::                 vector3DEquals
      procedure ::                 vector3DComparisonUnimplemented
      generic   :: operator(==) => vector3DEquals
@@ -67,18 +81,22 @@ module Interface_Local_Group_DB
   end type vector3D
 
   type :: localGroupDB
-     !% Local Group database class.
+     !!{
+     Local Group database class.
+     !!}
      private
      type   (node       ), pointer                   :: database
      type   (xmlNodeList), allocatable, dimension(:) :: galaxies
      logical             , allocatable, dimension(:) :: selected
    contains
-     !# <methods>
-     !#   <method description="Return an array of values of the named property for the current selection." method="getProperty" />
-     !#   <method description="Select all galaxies in the current selection where the named property has the given value." method="select" />
-     !#   <method description="Select all galaxies in the database." method="selectAll" />
-     !#   <method description="Update the database." method="update" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Return an array of values of the named property for the current selection." method="getProperty" />
+       <method description="Select all galaxies in the current selection where the named property has the given value." method="select" />
+       <method description="Select all galaxies in the database." method="selectAll" />
+       <method description="Update the database." method="update" />
+     </methods>
+     !!]
      final     ::                            localGroupDBDestructor
      procedure :: getProperty{Type¦label} => localGroupDBGetProperty{Type¦label}
      generic   :: getProperty             => getProperty{Type¦label}
@@ -89,14 +107,18 @@ module Interface_Local_Group_DB
   end type localGroupDB
 
   interface localGroupDB
-     !% Constructors for the Local Group database class.
+     !!{
+     Constructors for the Local Group database class.
+     !!}
      module procedure localGroupDBConstructorInternal
   end interface localGroupDB
 
 contains
 
   function localGroupDBConstructorInternal() result(self)
-    !% Constructor for the Local Group database class.
+    !!{
+    Constructor for the Local Group database class.
+    !!}
     use :: Galacticus_Paths  , only : galacticusPath              , pathTypeDataStatic
     use :: IO_XML            , only : XML_Get_Elements_By_Tag_Name, XML_Get_First_Element_By_Tag_Name, XML_Parse
     use :: ISO_Varying_String, only : char
@@ -111,7 +133,9 @@ contains
   end function localGroupDBConstructorInternal
 
   subroutine localGroupDBDestructor(self)
-    !% Destructor for the Local Group database class.
+    !!{
+    Destructor for the Local Group database class.
+    !!}
     use :: FoX_DOM, only : destroy
     implicit none
     type(localGroupDB), intent(inout) :: self
@@ -121,7 +145,9 @@ contains
   end subroutine localGroupDBDestructor
 
   subroutine localGroupDBGetProperty{Type¦label}(self,name,property,isPresent)
-    !% Get a named text property from the Local Group database.
+    !!{
+    Get a named text property from the Local Group database.
+    !!}
     use                      :: FoX_DOM           , only : getAttributeNode            , getTextContent                            , hasAttribute
     use                      :: Galacticus_Error  , only : Galacticus_Error_Report
     use                      :: IO_XML            , only : XML_Get_Elements_By_Tag_Name, extractDataContent => extractDataContentTS
@@ -194,7 +220,9 @@ contains
   end subroutine localGroupDBGetProperty{Type¦label}
 
   subroutine localGroupDBSelectAll(self)
-    !% Select all galaxies in the database.
+    !!{
+    Select all galaxies in the database.
+    !!}
     implicit none
     class(localGroupDB), intent(inout) :: self
 
@@ -203,7 +231,9 @@ contains
   end subroutine localGroupDBSelectAll
 
   subroutine localGroupDBSelect{Type¦label}(self,name,value,comparison,setOperator)
-    !% Impose a selection on the database.
+    !!{
+    Impose a selection on the database.
+    !!}
     use                      :: FoX_DOM           , only : getAttributeNode       , getTextContent
     use                      :: Galacticus_Error  , only : Galacticus_Error_Report
     use                      :: ISO_Varying_String, only : varying_string
@@ -257,7 +287,9 @@ contains
   end subroutine localGroupDBSelect{Type¦label}
 
   subroutine localGroupDBUpdate(self)
-    !% Update the database.
+    !!{
+    Update the database.
+    !!}
     use :: FoX_DOM                         , only : appendChild                 , createElementNS                            , setAttribute      , getAttributeNode, &
          &                                          getNamespaceURI             , getTextContent                             , hasAttribute      , serialize
     use :: Galacticus_Error                , only : Galacticus_Error_Report
@@ -528,7 +560,9 @@ contains
   end subroutine localGroupDBUpdate
 
   logical function vector3DEquals(self,other)
-    !% Equality comparison operator for two 3D vectors.
+    !!{
+    Equality comparison operator for two 3D vectors.
+    !!}
     implicit none
     class(vector3D), intent(in   ) :: self, other
 
@@ -537,7 +571,9 @@ contains
   end function vector3DEquals
 
   logical function vector3DComparisonUnimplemented(self,other)
-    !% Unimplemented comparison operators for 3D vectors.
+    !!{
+    Unimplemented comparison operators for 3D vectors.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(vector3D), intent(in   ) :: self, other

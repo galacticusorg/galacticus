@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains custom functions for the bars dynamics statistics component.
+!!{
+Contains custom functions for the bars dynamics statistics component.
+!!}
 
 subroutine Node_Component_Dynamics_Statistics_Bars_Record(self,time,barInstabilityTimescale,adiabaticRatio)
-  !% Record the dynamical state.
+  !!{
+  Record the dynamical state.
+  !!}
   use :: Memory_Management, only : allocateArray, deallocateArray
   implicit none
   class           (nodeComponentDynamicsStatisticsBars), intent(inout)               :: self

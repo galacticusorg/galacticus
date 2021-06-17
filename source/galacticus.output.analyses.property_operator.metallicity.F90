@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements a property operator class which converts a metallicity, assumed to be a mass ratio of a
-  !% given element to hydrogen, to $12+\log_{10}(\mathrm{N}/\mathrm{H})$ form.
+  !!{
+  Contains a module which implements a property operator class which converts a metallicity, assumed to be a mass ratio of a
+  given element to hydrogen, to $12+\log_{10}(\mathrm{N}/\mathrm{H})$ form.
+  !!}
 
-  !# <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorMetallicity12LogNH">
-  !#  <description>A property operator class which converts a metallicity, assumed to be a mass ratio of a given element to hydrogen, to $12+\log_{10}(\mathrm{N}/\mathrm{H})$ form.</description>
-  !# </outputAnalysisPropertyOperator>
+  !![
+  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorMetallicity12LogNH">
+   <description>A property operator class which converts a metallicity, assumed to be a mass ratio of a given element to hydrogen, to $12+\log_{10}(\mathrm{N}/\mathrm{H})$ form.</description>
+  </outputAnalysisPropertyOperator>
+  !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorMetallicity12LogNH
-     !% A metallicity property operator class which converts a metallicity, assumed to be a mass ratio of a given element to
-     !% hydrogen, to $12+\log_{10}(\mathrm{N}/\mathrm{H})$ form.
+     !!{
+     A metallicity property operator class which converts a metallicity, assumed to be a mass ratio of a given element to
+     hydrogen, to $12+\log_{10}(\mathrm{N}/\mathrm{H})$ form.
+     !!}
      private
      double precision :: massElement
    contains
@@ -33,7 +39,9 @@
   end type outputAnalysisPropertyOperatorMetallicity12LogNH
 
   interface outputAnalysisPropertyOperatorMetallicity12LogNH
-     !% Constructors for the ``metallicity'' output analysis class.
+     !!{
+     Constructors for the ``metallicity'' output analysis class.
+     !!}
      module procedure metallicity12LogNHConstructorParameters
      module procedure metallicity12LogNHConstructorInternal
   end interface outputAnalysisPropertyOperatorMetallicity12LogNH
@@ -41,7 +49,9 @@
 contains
 
   function metallicity12LogNHConstructorParameters(parameters) result(self)
-    !% Constructor for the ``metallicity12LogNH'' output analysis property operator class which takes a parameter set as input.
+    !!{
+    Constructor for the ``metallicity12LogNH'' output analysis property operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (outputAnalysisPropertyOperatorMetallicity12LogNH)                :: self
@@ -49,28 +59,38 @@ contains
     double precision                                                                  :: massElement
 
     ! Check and read parameters.
-    !# <inputParameter>
-    !#   <name>massElement</name>
-    !#   <source>parameters</source>
-    !#   <description>The atomic mass of the element used to define metallicity.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>massElement</name>
+      <source>parameters</source>
+      <description>The atomic mass of the element used to define metallicity.</description>
+    </inputParameter>
+    !!]
     self=outputAnalysisPropertyOperatorMetallicity12LogNH(massElement)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function metallicity12LogNHConstructorParameters
 
   function metallicity12LogNHConstructorInternal(massElement) result (self)
-    !% Internal constructor for the ``metallicity12LogNH'' output analysis distribution operator class.
+    !!{
+    Internal constructor for the ``metallicity12LogNH'' output analysis distribution operator class.
+    !!}
     implicit none
     type            (outputAnalysisPropertyOperatorMetallicity12LogNH)                :: self
     double precision                                                  , intent(in   ) :: massElement
-    !# <constructorAssign variables="massElement"/>
+    !![
+    <constructorAssign variables="massElement"/>
+    !!]
 
     return
   end function metallicity12LogNHConstructorInternal
 
   double precision function metallicity12LogNHOperate(self,propertyValue,node,propertyType,outputIndex)
-    !% Implement an metallicity output analysis property operator.
+    !!{
+    Implement an metallicity output analysis property operator.
+    !!}
     use, intrinsic :: ISO_C_Binding             , only : c_size_t
     use            :: Numerical_Constants_Atomic, only : atomicMassHydrogen
     implicit none

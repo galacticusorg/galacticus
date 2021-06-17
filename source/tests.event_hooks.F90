@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program which tests functionality of the event hook infrastructure.
+!!{
+Contains a program which tests functionality of the event hook infrastructure.
+!!}
 
 program Tests_Events_Hooks
-  !% Tests the event hooks infrastructure.
+  !!{
+  Tests the event hooks infrastructure.
+  !!}
   use :: Display                   , only : displayVerbositySet       , verbosityLevelStandard
   use :: Events_Hooks              , only : eventsHooksInitialize
   use :: Tests_Event_Hook_Functions, only : hookedFunctionCalled      , hookedFunctionOrder1After2 , hookedFunctionOrder1After4, hookedFunctionOrder2After3, &
@@ -34,9 +38,11 @@ program Tests_Events_Hooks
   call testEventHooksInitialize      (                 )
   call Unit_Tests_Begin_Group        ("Event hooks"    )
   testValue=99
-  !# <eventHook name="testEvent">
-  !#  <callWith>testValue</callWith>
-  !# </eventHook>
+  !![
+  <eventHook name="testEvent">
+   <callWith>testValue</callWith>
+  </eventHook>
+  !!]
   call Assert("Hooked functions were all called" ,hookedFunctionCalled       ,spread(.true.,1,size(hookedFunctionCalled)))
   call Assert("Hooked function 2 called after 3" ,hookedFunctionOrder2After3 ,       .true.                              )
   call Assert("Hooked function 2 called after 4" ,hookedFunctionOrder2After4 ,       .true.                              )

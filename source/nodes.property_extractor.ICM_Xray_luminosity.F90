@@ -17,7 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an intracluster medium X-ray luminosity property extractor class.
+!!{
+Contains a module which implements an intracluster medium X-ray luminosity property extractor class.
+!!}
 
   use :: Cooling_Functions            , only : coolingFunction          , coolingFunctionClass
   use :: Cosmology_Functions          , only : cosmologyFunctions       , cosmologyFunctionsClass
@@ -25,11 +27,15 @@
   use :: Hot_Halo_Mass_Distributions  , only : hotHaloMassDistribution  , hotHaloMassDistributionClass
   use :: Hot_Halo_Temperature_Profiles, only : hotHaloTemperatureProfile, hotHaloTemperatureProfileClass
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorICMXRayLuminosity">
-  !#  <description>An intracluster medium X-ray luminosity property extractor class.</description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorICMXRayLuminosity">
+   <description>An intracluster medium X-ray luminosity property extractor class.</description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorICMXRayLuminosity
-     !% A icmXRayLuminosity property extractor class.
+     !!{
+     A icmXRayLuminosity property extractor class.
+     !!}
      private
      class(darkMatterHaloScaleClass      ), pointer :: darkMatterHaloScale_       => null()
      class(hotHaloMassDistributionClass  ), pointer :: hotHaloMassDistribution_   => null()
@@ -47,7 +53,9 @@
   end type nodePropertyExtractorICMXRayLuminosity
 
   interface nodePropertyExtractorICMXRayLuminosity
-     !% Constructors for the ``icmXRayLuminosity'' output analysis class.
+     !!{
+     Constructors for the ``icmXRayLuminosity'' output analysis class.
+     !!}
      module procedure icmXRayLuminosityConstructorParameters
      module procedure icmXRayLuminosityConstructorInternal
   end interface nodePropertyExtractorICMXRayLuminosity
@@ -55,7 +63,9 @@
 contains
 
   function icmXRayLuminosityConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily icmXRayLuminosity} property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily icmXRayLuminosity} property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (nodePropertyExtractorICMXRayLuminosity)                :: self
@@ -66,23 +76,29 @@ contains
     class(coolingFunctionClass                  ), pointer       :: coolingFunction_
     class(cosmologyFunctionsClass               ), pointer       :: cosmologyFunctions_
 
-    !# <objectBuilder class="cosmologyFunctions"        name="cosmologyFunctions_"        source="parameters"/>
-    !# <objectBuilder class="darkMatterHaloScale"       name="darkMatterHaloScale_"       source="parameters"/>
-    !# <objectBuilder class="hotHaloMassDistribution"   name="hotHaloMassDistribution_"   source="parameters"/>
-    !# <objectBuilder class="hotHaloTemperatureProfile" name="hotHaloTemperatureProfile_" source="parameters"/>
-    !# <objectBuilder class="coolingFunction"           name="coolingFunction_"           source="parameters"/>
+    !![
+    <objectBuilder class="cosmologyFunctions"        name="cosmologyFunctions_"        source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale"       name="darkMatterHaloScale_"       source="parameters"/>
+    <objectBuilder class="hotHaloMassDistribution"   name="hotHaloMassDistribution_"   source="parameters"/>
+    <objectBuilder class="hotHaloTemperatureProfile" name="hotHaloTemperatureProfile_" source="parameters"/>
+    <objectBuilder class="coolingFunction"           name="coolingFunction_"           source="parameters"/>
+    !!]
     self=nodePropertyExtractorICMXRayLuminosity(cosmologyFunctions_,darkMatterHaloScale_,hotHaloMassDistribution_,hotHaloTemperatureProfile_,coolingFunction_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"       />
-    !# <objectDestructor name="darkMatterHaloScale_"      />
-    !# <objectDestructor name="hotHaloMassDistribution_"  />
-    !# <objectDestructor name="hotHaloTemperatureProfile_"/>
-    !# <objectDestructor name="coolingFunction_"          />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"       />
+    <objectDestructor name="darkMatterHaloScale_"      />
+    <objectDestructor name="hotHaloMassDistribution_"  />
+    <objectDestructor name="hotHaloTemperatureProfile_"/>
+    <objectDestructor name="coolingFunction_"          />
+    !!]
     return
   end function icmXRayLuminosityConstructorParameters
 
   function icmXRayLuminosityConstructorInternal(cosmologyFunctions_,darkMatterHaloScale_,hotHaloMassDistribution_,hotHaloTemperatureProfile_,coolingFunction_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily icmXRayLuminosity} property extractor class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily icmXRayLuminosity} property extractor class.
+    !!}
     implicit none
     type (nodePropertyExtractorICMXRayLuminosity)                        :: self
     class(cosmologyFunctionsClass               ), intent(in   ), target :: cosmologyFunctions_
@@ -90,26 +106,34 @@ contains
     class(hotHaloMassDistributionClass          ), intent(in   ), target :: hotHaloMassDistribution_
     class(hotHaloTemperatureProfileClass        ), intent(in   ), target :: hotHaloTemperatureProfile_
     class(coolingFunctionClass                  ), intent(in   ), target :: coolingFunction_
-    !# <constructorAssign variables="*cosmologyFunctions_, *darkMatterHaloScale_, *hotHaloMassDistribution_, *hotHaloTemperatureProfile_, *coolingFunction_"/>
+    !![
+    <constructorAssign variables="*cosmologyFunctions_, *darkMatterHaloScale_, *hotHaloMassDistribution_, *hotHaloTemperatureProfile_, *coolingFunction_"/>
+    !!]
 
     return
   end function icmXRayLuminosityConstructorInternal
 
   subroutine icmXRayLuminosityDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily icmXRayLuminosity} property extractor class.
+    !!{
+    Destructor for the {\normalfont \ttfamily icmXRayLuminosity} property extractor class.
+    !!}
     implicit none
     type(nodePropertyExtractorICMXRayLuminosity), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"       />
-    !# <objectDestructor name="self%darkMatterHaloScale_"      />
-    !# <objectDestructor name="self%hotHaloMassDistribution_"  />
-    !# <objectDestructor name="self%hotHaloTemperatureProfile_"/>
-    !# <objectDestructor name="self%coolingFunction_"          />
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"       />
+    <objectDestructor name="self%darkMatterHaloScale_"      />
+    <objectDestructor name="self%hotHaloMassDistribution_"  />
+    <objectDestructor name="self%hotHaloTemperatureProfile_"/>
+    <objectDestructor name="self%coolingFunction_"          />
+    !!]
     return
   end subroutine icmXRayLuminosityDestructor
 
   integer function icmXRayLuminosityElementCount(self,time)
-    !% Return the number of elements in the lightconeple property extractors.
+    !!{
+    Return the number of elements in the lightconeple property extractors.
+    !!}
     implicit none
     class           (nodePropertyExtractorICMXRayLuminosity), intent(inout) :: self
     double precision                                        , intent(in   ) :: time
@@ -120,7 +144,9 @@ contains
   end function icmXRayLuminosityElementCount
 
   function icmXRayLuminosityExtract(self,node,time,instance)
-    !% Implement an ICM X-ray properties extractor.
+    !!{
+    Implement an ICM X-ray properties extractor.
+    !!}
     use :: Galacticus_Nodes            , only : nodeComponentHotHalo                   , treeNode
     use :: Numerical_Constants_Physical, only : boltzmannsConstant
     use :: Numerical_Constants_Prefixes, only : kilo
@@ -141,7 +167,9 @@ contains
     allocate(icmXRayLuminosityExtract(2))
     ! Initialize radiation field.
     allocate(radiation_)
-    !# <referenceConstruct object="radiation_" constructor="radiationFieldCosmicMicrowaveBackground(self%cosmologyFunctions_)"/>
+    !![
+    <referenceConstruct object="radiation_" constructor="radiationFieldCosmicMicrowaveBackground(self%cosmologyFunctions_)"/>
+    !!]
     ! Compute luminosity and temperature.
     integratorLuminosity =integrator                     (integrandLuminosityXray ,toleranceRelative                           =1.0d-3)
     integratorTemperature=integrator                     (integrandTemperatureXray,toleranceRelative                           =1.0d-3)
@@ -157,14 +185,18 @@ contains
        luminosity =+0.0d0
        temperature=+0.0d0
     end if
-    !# <objectDestructor name="radiation_"/>
+    !![
+    <objectDestructor name="radiation_"/>
+    !!]
     icmXRayLuminosityExtract=[luminosity,temperature]
     return
 
   contains
 
     double precision function integrandLuminosityXray(radius)
-      !% Integrand function used for computing ICM X-ray luminosities.
+      !!{
+      Integrand function used for computing ICM X-ray luminosities.
+      !!}
       use :: Abundances_Structure             , only : abundances
       use :: Chemical_Abundances_Structure    , only : chemicalAbundances
       use :: Chemical_Reaction_Rates_Utilities, only : Chemicals_Mass_To_Density_Conversion
@@ -220,7 +252,9 @@ contains
     end function integrandLuminosityXray
 
     double precision function integrandTemperatureXray(radius)
-      !% Integrand function used for computing ICM X-ray luminosity-weighted temperatures.
+      !!{
+      Integrand function used for computing ICM X-ray luminosity-weighted temperatures.
+      !!}
       implicit none
       double precision, intent(in   ) :: radius
 
@@ -232,7 +266,9 @@ contains
   end function icmXRayLuminosityExtract
 
   function icmXRayLuminosityNames(self,time)
-    !% Return the names of the {\normalfont \ttfamily icmXRayLuminosity} properties.
+    !!{
+    Return the names of the {\normalfont \ttfamily icmXRayLuminosity} properties.
+    !!}
     implicit none
     type            (varying_string                        ), dimension(:) , allocatable :: icmXRayLuminosityNames
     class           (nodePropertyExtractorICMXRayLuminosity), intent(inout)              :: self
@@ -245,7 +281,9 @@ contains
   end function icmXRayLuminosityNames
 
   function icmXRayLuminosityDescriptions(self,time)
-    !% Return descriptions of the {\normalfont \ttfamily icmXRayLuminosity} properties.
+    !!{
+    Return descriptions of the {\normalfont \ttfamily icmXRayLuminosity} properties.
+    !!}
     implicit none
     type            (varying_string                        ), dimension(:) , allocatable :: icmXRayLuminosityDescriptions
     class           (nodePropertyExtractorICMXRayLuminosity), intent(inout)              :: self
@@ -258,7 +296,9 @@ contains
   end function icmXRayLuminosityDescriptions
 
   function icmXRayLuminosityUnitsInSI(self,time)
-    !% Return the units of the {\normalfont \ttfamily icmXRayLuminosity} properties in the SI system.
+    !!{
+    Return the units of the {\normalfont \ttfamily icmXRayLuminosity} properties in the SI system.
+    !!}
     use :: Numerical_Constants_Prefixes, only : kilo
     use :: Numerical_Constants_Units   , only : electronVolt, ergs
     implicit none
@@ -273,7 +313,9 @@ contains
   end function icmXRayLuminosityUnitsInSI
 
   integer function icmXRayLuminosityType(self)
-    !% Return the type of the {\normalfont \ttfamily icmXRayLuminosity} properties.
+    !!{
+    Return the type of the {\normalfont \ttfamily icmXRayLuminosity} properties.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorICMXRayLuminosity), intent(inout) :: self

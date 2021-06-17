@@ -17,13 +17,17 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Implements survey geometries over the full sky.
+!!{
+Implements survey geometries over the full sky.
+!!}
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
-  !# <surveyGeometry name="surveyGeometryFullSky">
-  !#  <description>Implements survey geometries over the full sky.</description>
-  !# </surveyGeometry>
+  !![
+  <surveyGeometry name="surveyGeometryFullSky">
+   <description>Implements survey geometries over the full sky.</description>
+  </surveyGeometry>
+  !!]
   type, extends(surveyGeometryClass) :: surveyGeometryFullSky
      private
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_  => null()
@@ -41,7 +45,9 @@
   end type surveyGeometryFullSky
 
   interface surveyGeometryFullSky
-     !% Constructors for the full sky survey geometry class.
+     !!{
+     Constructors for the full sky survey geometry class.
+     !!}
      module procedure fullSkyConstructorParameters
      module procedure fullSkyConstructorInternal
   end interface surveyGeometryFullSky
@@ -49,7 +55,9 @@
 contains
 
   function fullSkyConstructorParameters(parameters) result(self)
-    !% Default constructor for the full sky survey geometry.
+    !!{
+    Default constructor for the full sky survey geometry.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (surveyGeometryFullSky  )                :: self
@@ -58,34 +66,42 @@ contains
     double precision                                         :: redshiftMinimum    , redshiftMaximum
 
     ! Check and read parameters.
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
-    !# <inputParameter>
-    !#   <name>redshiftMinimum</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>The minimum redshift for the survey.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>redshiftMaximum</name>
-    !#   <defaultValue>huge(1.0d0)</defaultValue>
-    !#   <source>parameters</source>
-    !#   <description>The maximum redshift for the survey.</description>
-    !# </inputParameter>
+    !![
+    <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    <inputParameter>
+      <name>redshiftMinimum</name>
+      <source>parameters</source>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The minimum redshift for the survey.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>redshiftMaximum</name>
+      <defaultValue>huge(1.0d0)</defaultValue>
+      <source>parameters</source>
+      <description>The maximum redshift for the survey.</description>
+    </inputParameter>
+    !!]
     ! Build the object.
     self=surveyGeometryFullSky(redshiftMinimum,redshiftMaximum,cosmologyFunctions_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"/>
+    !!]
     return
   end function fullSkyConstructorParameters
 
   function fullSkyConstructorInternal(redshiftMinimum,redshiftMaximum,cosmologyFunctions_) result(self)
-    !% Constructor for the full sky survey class which allows specification of minimum and maximum redshifts.
+    !!{
+    Constructor for the full sky survey class which allows specification of minimum and maximum redshifts.
+    !!}
     use :: Cosmology_Functions_Options, only : distanceTypeComoving
     implicit none
     type            (surveyGeometryFullSky  )                        :: self
     double precision                         , intent(in   )         :: redshiftMinimum    , redshiftMaximum
     class           (cosmologyFunctionsClass), intent(in   ), target :: cosmologyFunctions_
-    !# <constructorAssign variables="*cosmologyFunctions_"/>
+    !![
+    <constructorAssign variables="*cosmologyFunctions_"/>
+    !!]
 
     self   %limitDistanceMinimum=self%cosmologyFunctions_%distanceComovingConvert(                               &
          &                                                                        output  =distanceTypeComoving, &
@@ -103,16 +119,22 @@ contains
   end function fullSkyConstructorInternal
 
   subroutine fullSkyDestructor(self)
-    !% Destructor for the ``fullSky'' survey geometry class.
+    !!{
+    Destructor for the ``fullSky'' survey geometry class.
+    !!}
     implicit none
     type(surveyGeometryFullSky), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"/>
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"/>
+    !!]
     return
   end subroutine fullSkyDestructor
 
   double precision function fullSkyDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,field)
-    !% Compute the minimum distance at which a galaxy is visible.
+    !!{
+    Compute the minimum distance at which a galaxy is visible.
+    !!}
     implicit none
     class           (surveyGeometryFullSky), intent(inout)           :: self
     double precision                       , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
@@ -124,7 +146,9 @@ contains
   end function fullSkyDistanceMinimum
 
   double precision function fullSkyDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
-    !% Compute the maximum distance at which a galaxy is visible.
+    !!{
+    Compute the maximum distance at which a galaxy is visible.
+    !!}
     implicit none
     class           (surveyGeometryFullSky), intent(inout)           :: self
     double precision                       , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
@@ -136,7 +160,9 @@ contains
   end function fullSkyDistanceMaximum
 
   double precision function fullSkySolidAngle(self,field)
-    !% Return the solid angle of the \cite{li_distribution_2009} sample.
+    !!{
+    Return the solid angle of the \cite{li_distribution_2009} sample.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (surveyGeometryFullSky), intent(inout)           :: self
@@ -148,7 +174,9 @@ contains
   end function fullSkySolidAngle
 
   logical function fullSkyWindowFunctionAvailable(self)
-    !% Return true to indicate that survey window function is available.
+    !!{
+    Return true to indicate that survey window function is available.
+    !!}
     implicit none
     class(surveyGeometryFullSky), intent(inout) :: self
     !$GLC attributes unused :: self
@@ -158,7 +186,9 @@ contains
   end function fullSkyWindowFunctionAvailable
 
   logical function fullSkyAngularPowerAvailable(self)
-    !% Return true to indicate that survey angular power is available.
+    !!{
+    Return true to indicate that survey angular power is available.
+    !!}
     implicit none
     class(surveyGeometryFullSky), intent(inout) :: self
     !$GLC attributes unused :: self
@@ -168,7 +198,9 @@ contains
   end function fullSkyAngularPowerAvailable
 
   subroutine fullSkyWindowFunctions(self,mass1,mass2,gridCount,boxLength,windowFunction1,windowFunction2)
-    !% Compute the window function for the survey.
+    !!{
+    Compute the window function for the survey.
+    !!}
     use            :: FFTW3           , only : fftw_plan_dft_3d       , FFTW_FORWARD       , FFTW_ESTIMATE, fftw_execute_dft, &
          &                                     fftw_destroy_plan
     use            :: Galacticus_Error, only : Galacticus_Error_Report
@@ -239,7 +271,9 @@ contains
   end subroutine fullSkyWindowFunctions
 
   double precision function fullSkyAngularPower(self,i,j,l)
-    !% Return the angular power for the full sky.
+    !!{
+    Return the angular power for the full sky.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class  (surveyGeometryFullSky), intent(inout) :: self
@@ -255,7 +289,9 @@ contains
   end function fullSkyAngularPower
 
   logical function fullSkyPointIncluded(self,point,mass)
-    !% Return true if a point is included in the survey geometry.
+    !!{
+    Return true if a point is included in the survey geometry.
+    !!}
     use :: Vectors, only : Vector_Magnitude
     implicit none
     class           (surveyGeometryFullSky), intent(inout)               :: self

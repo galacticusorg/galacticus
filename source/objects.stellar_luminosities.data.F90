@@ -19,10 +19,14 @@
 
 !+    Contributions to this file made by:  Alex Merson.
 
-!% Contains a module which holds data for the stellar luminosities class.
+!!{
+Contains a module which holds data for the stellar luminosities class.
+!!}
 
 module Stellar_Luminosities_Data
-  !% Holds data for the stellar luminosities class.
+  !!{
+  Holds data for the stellar luminosities class.
+  !!}
   use, intrinsic :: ISO_C_Binding, only : c_size_t
   implicit none
   public

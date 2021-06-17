@@ -17,20 +17,26 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a node operator class that causes halo spin be interpolated linearly between child and parent nodes.
+  !!{
+  Implements a node operator class that causes halo spin be interpolated linearly between child and parent nodes.
+  !!}
 
-  !# <nodeOperator name="nodeOperatorHaloSpinInterpolate">
-  !#  <description>
-  !#   A node operator class that causes halo spin be interpolated linearly between child and parent nodes. For primary progenitor
-  !#   nodes, if only the scalar spin, $\lambda$, is available then $\dot{\lambda} = (\lambda_{i+1}-\lambda_i)/(t_{i+1}-t_i)$,
-  !#   where $\lambda_i$ is the spin of the node in the initialized tree, $\lambda_{i+1}$ is the spin of its parent node, and
-  !#   $t_i$ and $t_{i+1}$ are the corresponding times. If vector spin is available the same interpolation is applied to each
-  !#   individual component of spin, with the rate of change of the scalar spin computed self-consistently. For non-primary
-  !#   progenitors both scalar and vector spin are assumed to be constant, i.e. $\dot{\lambda}=0$.
-  !#  </description>
-  !# </nodeOperator>
+  !![
+  <nodeOperator name="nodeOperatorHaloSpinInterpolate">
+   <description>
+    A node operator class that causes halo spin be interpolated linearly between child and parent nodes. For primary progenitor
+    nodes, if only the scalar spin, $\lambda$, is available then $\dot{\lambda} = (\lambda_{i+1}-\lambda_i)/(t_{i+1}-t_i)$,
+    where $\lambda_i$ is the spin of the node in the initialized tree, $\lambda_{i+1}$ is the spin of its parent node, and
+    $t_i$ and $t_{i+1}$ are the corresponding times. If vector spin is available the same interpolation is applied to each
+    individual component of spin, with the rate of change of the scalar spin computed self-consistently. For non-primary
+    progenitors both scalar and vector spin are assumed to be constant, i.e. $\dot{\lambda}=0$.
+   </description>
+  </nodeOperator>
+  !!]
   type, extends(nodeOperatorClass) :: nodeOperatorHaloSpinInterpolate
-     !% A node operator class that causes halo spin be interpolated linearly between child and parent nodes.
+     !!{
+     A node operator class that causes halo spin be interpolated linearly between child and parent nodes.
+     !!}
      private
    contains
      procedure :: nodeInitialize        => haloSpinInterpolateNodeInitialize
@@ -38,26 +44,34 @@
   end type nodeOperatorHaloSpinInterpolate
   
   interface nodeOperatorHaloSpinInterpolate
-     !% Constructors for the {\normalfont \ttfamily haloSpinInterpolate} node operator class.
+     !!{
+     Constructors for the {\normalfont \ttfamily haloSpinInterpolate} node operator class.
+     !!}
      module procedure haloSpinInterpolateConstructorParameters
   end interface nodeOperatorHaloSpinInterpolate
   
 contains
   
   function haloSpinInterpolateConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily haloSpinInterpolate} node operator class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily haloSpinInterpolate} node operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(nodeOperatorHaloSpinInterpolate)                :: self
     type(inputParameters                ), intent(inout) :: parameters
      
     self=nodeOperatorHaloSpinInterpolate()
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function haloSpinInterpolateConstructorParameters
 
   subroutine haloSpinInterpolateNodeInitialize(self,node)
-    !% Compute the rate of growth of halo spin assuming a constant growth rate.
+    !!{
+    Compute the rate of growth of halo spin assuming a constant growth rate.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSpin
     implicit none
     class           (nodeOperatorHaloSpinInterpolate), intent(inout)          :: self
@@ -109,7 +123,9 @@ contains
   end subroutine haloSpinInterpolateNodeInitialize
   
   subroutine haloSpinInterpolateDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !% Evolve scalar halo spin at a constant rate, to achieve linear interpolation in time.
+    !!{
+    Evolve scalar halo spin at a constant rate, to achieve linear interpolation in time.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentSpin, propertyTypeInactive
     implicit none
     class    (nodeOperatorHaloSpinInterpolate), intent(inout), target  :: self

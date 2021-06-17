@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a null output analysis class.
+!!{
+Contains a module which implements a null output analysis class.
+!!}
 
-  !# <outputAnalysis name="outputAnalysisNull">
-  !#  <description>A null output analysis class.</description>
-  !# </outputAnalysis>
+  !![
+  <outputAnalysis name="outputAnalysisNull">
+   <description>A null output analysis class.</description>
+  </outputAnalysis>
+  !!]
   type, extends(outputAnalysisClass) :: outputAnalysisNull
-     !% A null output analysis class.
+     !!{
+     A null output analysis class.
+     !!}
      private
    contains
      procedure :: analyze       => nullAnalyze
@@ -33,14 +39,18 @@
   end type outputAnalysisNull
 
   interface outputAnalysisNull
-     !% Constructors for the ``null'' output analysis class.
+     !!{
+     Constructors for the ``null'' output analysis class.
+     !!}
      module procedure nullConstructorParameters
   end interface outputAnalysisNull
 
 contains
 
   function nullConstructorParameters(parameters)
-    !% Constructor for the ``null'' output analysis class which takes a parameter set as input.
+    !!{
+    Constructor for the ``null'' output analysis class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(outputAnalysisNull)                :: nullConstructorParameters
@@ -52,7 +62,9 @@ contains
   end function nullConstructorParameters
 
   subroutine nullAnalyze(self,node,iOutput)
-    !% Implement a null output analysis.
+    !!{
+    Implement a null output analysis.
+    !!}
     implicit none
     class  (outputAnalysisNull), intent(inout) :: self
     type   (treeNode          ), intent(inout) :: node
@@ -63,7 +75,9 @@ contains
   end subroutine nullAnalyze
 
   subroutine nullFinalize(self)
-    !% Implement a null output analysis finalization.
+    !!{
+    Implement a null output analysis finalization.
+    !!}
     implicit none
     class(outputAnalysisNull), intent(inout) :: self
     !$GLC attributes unused :: self
@@ -72,7 +86,9 @@ contains
   end subroutine nullFinalize
 
   subroutine nullReduce(self,reduced)
-    !% Implement a null output analysis reduction.
+    !!{
+    Implement a null output analysis reduction.
+    !!}
     implicit none
     class(outputAnalysisNull ), intent(inout) :: self
     class(outputAnalysisClass), intent(inout) :: reduced
@@ -82,7 +98,9 @@ contains
   end subroutine nullReduce
 
   double precision function nullLogLikelihood(self)
-    !% Return the log-likelihood of a null output analysis.
+    !!{
+    Return the log-likelihood of a null output analysis.
+    !!}
     implicit none
     class(outputAnalysisNull), intent(inout) :: self
     !$GLC attributes unused :: self

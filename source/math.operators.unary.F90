@@ -17,29 +17,35 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module that implements a class of parameter mapping functions.
+!!{
+Contains a module that implements a class of parameter mapping functions.
+!!}
 
 module Math_Operators_Unary
-  !% Implements a class of unary operators.
+  !!{
+  Implements a class of unary operators.
+  !!}
   private
 
-  !# <functionClass>
-  !#  <name>operatorUnary</name>
-  !#  <descriptiveName>Unary Operators</descriptiveName>
-  !#  <description>Class providing unary operators.</description>
-  !#  <default>identity</default>
-  !#  <method name="operate" >
-  !#    <type>double precision</type>
-  !#    <pass>yes</pass>
-  !#    <argument>double precision, intent(in   ) :: x</argument>
-  !#    <description>Operate on the given value.</description>
-  !#  </method>
-  !#  <method name="unoperate" >
-  !#    <type>double precision</type>
-  !#    <pass>yes</pass>
-  !#    <argument>double precision, intent(in   ) :: f</argument>
-  !#    <description>Reverse the operation.</description>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>operatorUnary</name>
+   <descriptiveName>Unary Operators</descriptiveName>
+   <description>Class providing unary operators.</description>
+   <default>identity</default>
+   <method name="operate" >
+     <type>double precision</type>
+     <pass>yes</pass>
+     <argument>double precision, intent(in   ) :: x</argument>
+     <description>Operate on the given value.</description>
+   </method>
+   <method name="unoperate" >
+     <type>double precision</type>
+     <pass>yes</pass>
+     <argument>double precision, intent(in   ) :: f</argument>
+     <description>Reverse the operation.</description>
+   </method>
+  </functionClass>
+  !!]
 
 end module Math_Operators_Unary

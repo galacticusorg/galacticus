@@ -17,7 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An accretion flow class which models the accretion flow using the model of \cite{lam_modeling_2013}.
+  !!{
+  An accretion flow class which models the accretion flow using the model of \cite{lam_modeling_2013}.
+  !!}
 
   use :: Cosmology_Functions            , only : cosmologyFunctionsClass
   use :: Cosmological_Density_Field     , only : criticalOverdensityClass
@@ -27,13 +29,17 @@
   use :: Linear_Growth                  , only : linearGrowthClass
 
   
-  !# <accretionFlows name="accretionFlowsLam2013">
-  !#  <description>
-  !#   An accretion flow class using the model of \cite{lam_modeling_2013}.
-  !#  </description>
-  !# </accretionFlows>
+  !![
+  <accretionFlows name="accretionFlowsLam2013">
+   <description>
+    An accretion flow class using the model of \cite{lam_modeling_2013}.
+   </description>
+  </accretionFlows>
+  !!]
   type, extends(accretionFlowsClass) :: accretionFlowsLam2013
-     !% An accretion flow class which models the accretion flow using the model of \cite{lam_modeling_2013}.
+     !!{
+     An accretion flow class which models the accretion flow using the model of \cite{lam_modeling_2013}.
+     !!}
      private
      class           (cosmologyFunctionsClass         ), pointer :: cosmologyFunctions_          => null()
      class           (criticalOverdensityClass        ), pointer :: criticalOverdensity_         => null()
@@ -49,7 +55,9 @@
   end type accretionFlowsLam2013
 
   interface accretionFlowsLam2013
-     !% Constructors for the {\normalfont \ttfamily lam2013} accretion flows class.
+     !!{
+     Constructors for the {\normalfont \ttfamily lam2013} accretion flows class.
+     !!}
      module procedure lam2013ConstructorParameters
      module procedure lam2013ConstructorInternal
    end interface accretionFlowsLam2013
@@ -57,7 +65,9 @@
 contains
   
   function lam2013ConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily lam2013} accretion flow class that takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily lam2013} accretion flow class that takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (accretionFlowsLam2013)                           :: self
@@ -70,31 +80,37 @@ contains
     class           (linearGrowthClass               ), pointer       :: linearGrowth_
     double precision                                                  :: scaleFactorVelocity
 
-    !# <inputParameter>
-    !#   <name>scaleFactorVelocity</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>1.0d0</defaultValue>
-    !#   <description>A scale factor to be applied to inflow velocities.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions"          name="cosmologyFunctions_"          source="parameters"/>
-    !# <objectBuilder class="criticalOverdensity"         name="criticalOverdensity_"         source="parameters"/>
-    !# <objectBuilder class="linearGrowth"                name="linearGrowth_"                source="parameters"/>
-    !# <objectBuilder class="darkMatterHaloScale"         name="darkMatterHaloScale_"         source="parameters"/>
-    !# <objectBuilder class="darkMatterHaloBias"          name="darkMatterHaloBias_"          source="parameters"/>
-    !# <objectBuilder class="correlationFunctionTwoPoint" name="correlationFunctionTwoPoint_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>scaleFactorVelocity</name>
+      <source>parameters</source>
+      <defaultValue>1.0d0</defaultValue>
+      <description>A scale factor to be applied to inflow velocities.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyFunctions"          name="cosmologyFunctions_"          source="parameters"/>
+    <objectBuilder class="criticalOverdensity"         name="criticalOverdensity_"         source="parameters"/>
+    <objectBuilder class="linearGrowth"                name="linearGrowth_"                source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale"         name="darkMatterHaloScale_"         source="parameters"/>
+    <objectBuilder class="darkMatterHaloBias"          name="darkMatterHaloBias_"          source="parameters"/>
+    <objectBuilder class="correlationFunctionTwoPoint" name="correlationFunctionTwoPoint_" source="parameters"/>
+    !!]
     self=accretionFlowsLam2013(scaleFactorVelocity,cosmologyFunctions_,criticalOverdensity_,darkMatterHaloBias_,darkMatterHaloScale_,correlationFunctionTwoPoint_,linearGrowth_)
-    !# <inputParametersValidate source="parameters"         />
-    !# <objectDestructor name="darkMatterHaloScale_"        />
-    !# <objectDestructor name="darkMatterHaloBias_"         />
-    !# <objectDestructor name="correlationFunctionTwoPoint_"/>
-    !# <objectDestructor name="cosmologyFunctions_"         />
-    !# <objectDestructor name="linearGrowth_"               />
-    !# <objectDestructor name="criticalOverdensity_"        />
+    !![
+    <inputParametersValidate source="parameters"         />
+    <objectDestructor name="darkMatterHaloScale_"        />
+    <objectDestructor name="darkMatterHaloBias_"         />
+    <objectDestructor name="correlationFunctionTwoPoint_"/>
+    <objectDestructor name="cosmologyFunctions_"         />
+    <objectDestructor name="linearGrowth_"               />
+    <objectDestructor name="criticalOverdensity_"        />
+    !!]
     return
   end function lam2013ConstructorParameters
 
   function lam2013ConstructorInternal(scaleFactorVelocity,cosmologyFunctions_,criticalOverdensity_,darkMatterHaloBias_,darkMatterHaloScale_,correlationFunctionTwoPoint_,linearGrowth_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily lam2013} accretion flows class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily lam2013} accretion flows class.
+    !!}
     implicit none
     type            (accretionFlowsLam2013           )                        :: self
     class           (cosmologyFunctionsClass         ), intent(in   ), target :: cosmologyFunctions_
@@ -104,27 +120,35 @@ contains
     class           (correlationFunctionTwoPointClass), intent(in   ), target :: correlationFunctionTwoPoint_
     class           (linearGrowthClass               ), intent(in   ), target :: linearGrowth_
     double precision                                  , intent(in   )         :: scaleFactorVelocity
-   !# <constructorAssign variables="scaleFactorVelocity, *cosmologyFunctions_, *criticalOverdensity_, *darkMatterHaloBias_, *darkMatterHaloScale_, *correlationFunctionTwoPoint_, *linearGrowth_"/>
+   !![
+   <constructorAssign variables="scaleFactorVelocity, *cosmologyFunctions_, *criticalOverdensity_, *darkMatterHaloBias_, *darkMatterHaloScale_, *correlationFunctionTwoPoint_, *linearGrowth_"/>
+   !!]
 
     return
   end function lam2013ConstructorInternal
 
   subroutine lam2013Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily lam2013} accretion flows class.
+    !!{
+    Destructor for the {\normalfont \ttfamily lam2013} accretion flows class.
+    !!}
     implicit none
     type(accretionFlowsLam2013), intent(inout) :: self
     
-    !# <objectDestructor name="self%cosmologyFunctions_"         />
-    !# <objectDestructor name="self%criticalOverdensity_"        />
-    !# <objectDestructor name="self%darkMatterHaloBias_"         />
-    !# <objectDestructor name="self%darkMatterHaloScale_"        />
-    !# <objectDestructor name="self%correlationFunctionTwoPoint_"/>
-    !# <objectDestructor name="self%linearGrowth_"               />
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"         />
+    <objectDestructor name="self%criticalOverdensity_"        />
+    <objectDestructor name="self%darkMatterHaloBias_"         />
+    <objectDestructor name="self%darkMatterHaloScale_"        />
+    <objectDestructor name="self%correlationFunctionTwoPoint_"/>
+    <objectDestructor name="self%linearGrowth_"               />
+    !!]
    return
   end subroutine lam2013Destructor
   
   double precision function lam2013Density(self,node,radius)
-    !% Compute the density of the accretion flow at the given radius.
+    !!{
+    Compute the density of the accretion flow at the given radius.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (accretionFlowsLam2013), intent(inout) :: self
@@ -138,7 +162,9 @@ contains
   end function lam2013Density
 
   double precision function lam2013Velocity(self,node,radius)
-    !% Compute the mean radial velocity of the accretion flow at the given radius.
+    !!{
+    Compute the mean radial velocity of the accretion flow at the given radius.
+    !!}
     use :: Galacticus_Nodes        , only : nodeComponentBasic
     use :: Numerical_Constants_Math, only : Pi
     implicit none

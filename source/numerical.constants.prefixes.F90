@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module of useful numerical prefixes.
+!!{
+Contains a module of useful numerical prefixes.
+!!}
 
 module Numerical_Constants_Prefixes
-  !% Contains useful numerical prefixes.
+  !!{
+  Contains useful numerical prefixes.
+  !!}
   implicit none
   public
 

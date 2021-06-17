@@ -19,29 +19,39 @@
 
 !+    Contributions to this file made by:  Stéphane Mangeon, Andrew Benson.
 
-  !% Implements a black hole binary recoil velocity class in which the recoil velocity is zero.
+  !!{
+  Implements a black hole binary recoil velocity class in which the recoil velocity is zero.
+  !!}
 
-  !# <blackHoleBinaryRecoil name="blackHoleBinaryRecoilZero">
-  !#  <description>
-  !#   A black hole binary recoil class in which the recoil velocity is always zero.
-  !#  </description>
-  !# </blackHoleBinaryRecoil>
+  !![
+  <blackHoleBinaryRecoil name="blackHoleBinaryRecoilZero">
+   <description>
+    A black hole binary recoil class in which the recoil velocity is always zero.
+   </description>
+  </blackHoleBinaryRecoil>
+  !!]
   type, extends(blackHoleBinaryRecoilClass) :: blackHoleBinaryRecoilZero
-     !% A black hole binary recoil class in which the recoil velocity is always zero.
+     !!{
+     A black hole binary recoil class in which the recoil velocity is always zero.
+     !!}
      private
    contains
      procedure :: velocity => zeroVelocity
   end type blackHoleBinaryRecoilZero
 
   interface blackHoleBinaryRecoilZero
-     !% Constructors for the {\normalfont \ttfamily zero} black hole binary recoil class.
+     !!{
+     Constructors for the {\normalfont \ttfamily zero} black hole binary recoil class.
+     !!}
      module procedure zeroConstructorParameters
   end interface blackHoleBinaryRecoilZero
 
 contains
 
   function zeroConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily zero} black hole binary recoil class which takes a parameter list as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily zero} black hole binary recoil class which takes a parameter list as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(blackHoleBinaryRecoilZero)                :: self
@@ -53,7 +63,9 @@ contains
   end function zeroConstructorParameters
 
   double precision function zeroVelocity(self,blackHole1,blackHole2)
-    !% Compute the recoil velocity for a pair of merging black holes.
+    !!{
+    Compute the recoil velocity for a pair of merging black holes.
+    !!}
     implicit none
     class(blackHoleBinaryRecoilZero), intent(inout) :: self
     class(nodeComponentBlackHole   ), intent(inout) :: blackHole1, blackHole2

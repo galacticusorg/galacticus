@@ -17,27 +17,37 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Implements a node operator class that shifts node indices at node promotion.
+!!{
+Implements a node operator class that shifts node indices at node promotion.
+!!}
 
-  !# <nodeOperator name="nodeOperatorIndexShift">
-  !#  <description>A node operator class that shifts node indices at node promotion.</description>
-  !# </nodeOperator>
+  !![
+  <nodeOperator name="nodeOperatorIndexShift">
+   <description>A node operator class that shifts node indices at node promotion.</description>
+  </nodeOperator>
+  !!]
   type, extends(nodeOperatorClass) :: nodeOperatorIndexShift
-     !% A node operator class that shifts node indices at node promotion.
+     !!{
+     A node operator class that shifts node indices at node promotion.
+     !!}
      private
    contains
      procedure :: nodePromote => indexShiftNodePromote
   end type nodeOperatorIndexShift
 
   interface nodeOperatorIndexShift
-     !% Constructors for the {\normalfont \ttfamily indexShift} node operator class.
+     !!{
+     Constructors for the {\normalfont \ttfamily indexShift} node operator class.
+     !!}
      module procedure indexShiftConstructorParameters
   end interface nodeOperatorIndexShift
 
 contains
 
   function indexShiftConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily indexShift} node operator class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily indexShift} node operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(nodeOperatorIndexShift)                :: self
@@ -49,7 +59,9 @@ contains
   end function indexShiftConstructorParameters
 
   subroutine indexShiftNodePromote(self,node)
-    !% Act on node promotion.
+    !!{
+    Act on node promotion.
+    !!}
     implicit none
     class(nodeOperatorIndexShift), intent(inout) :: self
     type (treeNode              ), intent(inout) :: node

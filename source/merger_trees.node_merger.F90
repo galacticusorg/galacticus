@@ -17,26 +17,32 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides a class that implements processing of mergers between nodes.
+!!{
+Contains a module which provides a class that implements processing of mergers between nodes.
+!!}
 
 module Merger_Trees_Merge_Node
-  !% Provides a class that implements processing of mergers between nodes.
+  !!{
+  Provides a class that implements processing of mergers between nodes.
+  !!}
   use :: Galacticus_Nodes, only : treeNode
   private
 
-  !# <functionClass>
-  !#  <name>mergerTreeNodeMerger</name>
-  !#  <descriptiveName>Merger Tree Node Merger Processing</descriptiveName>
-  !#  <description>
-  !#   Class providing processing of merger tree nodes when they become substructures.
-  !#  </description>
-  !#  <default>singleLevelHierarchy</default>
-  !#  <method name="process" >
-  !#   <description>Process the merger between {\normalfont \ttfamily node} and its parent node, then destroy it.</description>
-  !#   <type>void</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout), target :: node</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>mergerTreeNodeMerger</name>
+   <descriptiveName>Merger Tree Node Merger Processing</descriptiveName>
+   <description>
+    Class providing processing of merger tree nodes when they become substructures.
+   </description>
+   <default>singleLevelHierarchy</default>
+   <method name="process" >
+    <description>Process the merger between {\normalfont \ttfamily node} and its parent node, then destroy it.</description>
+    <type>void</type>
+    <pass>yes</pass>
+    <argument>type(treeNode), intent(inout), target :: node</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Merger_Trees_Merge_Node

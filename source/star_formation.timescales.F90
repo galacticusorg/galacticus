@@ -17,26 +17,32 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides a class that implements timescales for star formation.
+!!{
+Contains a module which provides a class that implements timescales for star formation.
+!!}
 
 module Star_Formation_Timescales
-  !% Provides a class that implements calculations of timescales for star formation.
+  !!{
+  Provides a class that implements calculations of timescales for star formation.
+  !!}
   use :: Galacticus_Nodes, only : nodeComponent
   private
 
-  !# <functionClass>
-  !#  <name>starFormationTimescale</name>
-  !#  <descriptiveName>Timescales for star formation</descriptiveName>
-  !#  <description>
-  !#   Class providing models of timescales for star formation.
-  !#  </description>
-  !#  <default>dynamicalTime</default>
-  !#  <method name="timescale" >
-  !#   <description>Returns the timescale (in Gyr) for star formation in the provided {\normalfont \ttfamily component}.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>class(nodeComponent), intent(inout) :: component</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>starFormationTimescale</name>
+   <descriptiveName>Timescales for star formation</descriptiveName>
+   <description>
+    Class providing models of timescales for star formation.
+   </description>
+   <default>dynamicalTime</default>
+   <method name="timescale" >
+    <description>Returns the timescale (in Gyr) for star formation in the provided {\normalfont \ttfamily component}.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>class(nodeComponent), intent(inout) :: component</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Star_Formation_Timescales

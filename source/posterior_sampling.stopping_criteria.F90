@@ -17,24 +17,30 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a stopping criteria class for constraint simulations.
+!!{
+Contains a module which implements a stopping criteria class for constraint simulations.
+!!}
 
 module Posterior_Sampling_Stopping_Criteria
-  !% Implements a stopping criteria class for constraint simulations.
+  !!{
+  Implements a stopping criteria class for constraint simulations.
+  !!}
   use :: Posterior_Sampling_State, only : posteriorSampleStateClass
   private
 
-  !# <functionClass>
-  !#  <name>posteriorSampleStoppingCriterion</name>
-  !#  <descriptiveName>Posterior Sampling Stopping Criteria</descriptiveName>
-  !#  <description>Class providing stopping criteria for posterior sampling simulations.</description>
-  !#  <default>never</default>
-  !#  <method name="stop" >
-  !#   <description>Returns true if the posterior sampling should stop.</description>
-  !#   <type>logical</type>
-  !#   <pass>yes</pass>
-  !#   <argument>class(posteriorSampleStateClass), intent(inout) :: simulationState</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>posteriorSampleStoppingCriterion</name>
+   <descriptiveName>Posterior Sampling Stopping Criteria</descriptiveName>
+   <description>Class providing stopping criteria for posterior sampling simulations.</description>
+   <default>never</default>
+   <method name="stop" >
+    <description>Returns true if the posterior sampling should stop.</description>
+    <type>logical</type>
+    <pass>yes</pass>
+    <argument>class(posteriorSampleStateClass), intent(inout) :: simulationState</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Posterior_Sampling_Stopping_Criteria

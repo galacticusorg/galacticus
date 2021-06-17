@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains custom functions for the standard satellite component.
+!!{
+Contains custom functions for the standard satellite component.
+!!}
 
 double precision function Node_Component_Satellite_Standard_Merge_Time(self)
-  !% Return the {\normalfont \ttfamily mergeTime} property of the {\normalfont \ttfamily satelliteStandard} component.
+  !!{
+  Return the {\normalfont \ttfamily mergeTime} property of the {\normalfont \ttfamily satelliteStandard} component.
+  !!}
   implicit none
   class(nodeComponentSatelliteStandard), intent(inout) :: self
   type (treeNode                      ), pointer       :: selfNode
@@ -35,7 +39,9 @@ double precision function Node_Component_Satellite_Standard_Merge_Time(self)
 end function Node_Component_Satellite_Standard_Merge_Time
 
 double precision function Node_Component_Satellite_Standard_Time_Of_Merging(self)
-  !% Return the {\normalfont \ttfamily timeOfMerging} property of the {\normalfont \ttfamily satelliteStandard} component class.
+  !!{
+  Return the {\normalfont \ttfamily timeOfMerging} property of the {\normalfont \ttfamily satelliteStandard} component class.
+  !!}
   implicit none
   class(nodeComponentSatelliteStandard), intent(inout) :: self
   type (treeNode                      ), pointer       :: selfNode
@@ -52,7 +58,9 @@ double precision function Node_Component_Satellite_Standard_Time_Of_Merging(self
 end function Node_Component_Satellite_Standard_Time_Of_Merging
 
 subroutine Node_Component_Satellite_Standard_Time_Of_Merging_Set(self,setValue)
-  !% Set the {\normalfont \ttfamily timeOfMerging} property of the {\normalfont \ttfamily satelliteStandard} component.
+  !!{
+  Set the {\normalfont \ttfamily timeOfMerging} property of the {\normalfont \ttfamily satelliteStandard} component.
+  !!}
   implicit none
   class           (nodeComponentSatelliteStandard), intent(inout) :: self
   double precision                                , intent(in   ) :: setValue

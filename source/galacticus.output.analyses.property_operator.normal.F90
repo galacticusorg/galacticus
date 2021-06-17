@@ -17,14 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements a property operator class in which the property value is replaced with an integral over a
-  !% normal distribution between given limits, using the property value at the mean of the distribution.
+  !!{
+  Contains a module which implements a property operator class in which the property value is replaced with an integral over a
+  normal distribution between given limits, using the property value at the mean of the distribution.
+  !!}
 
-  !# <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorNormal">
-  !#  <description>A property operator class in which the property value is replaced with an integral over a normal distribution between given limits, using the property value at the mean of the distribution.</description>
-  !# </outputAnalysisPropertyOperator>
+  !![
+  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorNormal">
+   <description>A property operator class in which the property value is replaced with an integral over a normal distribution between given limits, using the property value at the mean of the distribution.</description>
+  </outputAnalysisPropertyOperator>
+  !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorNormal
-     !% A normal property operator class.
+     !!{
+     A normal property operator class.
+     !!}
      private
      double precision :: rangeLower  , rangeUpper , &
           &              extentLower , extentUpper, &
@@ -34,7 +40,9 @@
   end type outputAnalysisPropertyOperatorNormal
 
   interface outputAnalysisPropertyOperatorNormal
-     !% Constructors for the ``normal'' output analysis class.
+     !!{
+     Constructors for the ``normal'' output analysis class.
+     !!}
      module procedure normalConstructorParameters
      module procedure normalConstructorInternal
   end interface outputAnalysisPropertyOperatorNormal
@@ -42,7 +50,9 @@
 contains
 
   function normalConstructorParameters(parameters) result(self)
-    !% Constructor for the ``normal'' output analysis property operator class which takes a parameter set as input.
+    !!{
+    Constructor for the ``normal'' output analysis property operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (outputAnalysisPropertyOperatorNormal)                :: self
@@ -52,52 +62,62 @@ contains
          &                                                                   rootVariance
 
     ! Check and read parameters.
-    !# <inputParameter>
-    !#   <name>rangeLower</name>
-    !#   <source>parameters</source>
-    !#   <description>Lower integration limit for the normal distribution weight operator.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>rangeUpper</name>
-    !#   <source>parameters</source>
-    !#   <description>Upper integration limit for the normal distribution weight operator.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>rootVariance</name>
-    !#   <source>parameters</source>
-    !#   <description>Root variance for the normal distribution weight operator.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>extentLower</name>
-    !#   <defaultValue>-huge(0.0d0)</defaultValue>
-    !#   <source>parameters</source>
-    !#   <description>Lower extent for the normal distribution weight operator.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>extentUpper</name>
-    !#   <defaultValue>+huge(0.0d0)</defaultValue>
-    !#   <source>parameters</source>
-    !#   <description>Upper extent for the normal distribution weight operator.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>rangeLower</name>
+      <source>parameters</source>
+      <description>Lower integration limit for the normal distribution weight operator.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>rangeUpper</name>
+      <source>parameters</source>
+      <description>Upper integration limit for the normal distribution weight operator.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>rootVariance</name>
+      <source>parameters</source>
+      <description>Root variance for the normal distribution weight operator.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>extentLower</name>
+      <defaultValue>-huge(0.0d0)</defaultValue>
+      <source>parameters</source>
+      <description>Lower extent for the normal distribution weight operator.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>extentUpper</name>
+      <defaultValue>+huge(0.0d0)</defaultValue>
+      <source>parameters</source>
+      <description>Upper extent for the normal distribution weight operator.</description>
+    </inputParameter>
+    !!]
     self=outputAnalysisPropertyOperatorNormal(rangeLower,rangeUpper,extentLower,extentUpper,rootVariance)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function normalConstructorParameters
 
   function normalConstructorInternal(rangeLower,rangeUpper,extentLower,extentUpper,rootVariance) result (self)
-    !% Internal constructor for the ``normal'' output analysis distribution operator class.
+    !!{
+    Internal constructor for the ``normal'' output analysis distribution operator class.
+    !!}
     implicit none
     type            (outputAnalysisPropertyOperatorNormal)                :: self
     double precision                                      , intent(in   ) :: rangeLower  , rangeUpper , &
          &                                                                   extentLower , extentUpper, &
          &                                                                   rootVariance
-    !# <constructorAssign variables="rangeLower, rangeUpper, extentLower , extentUpper, rootVariance"/>
+    !![
+    <constructorAssign variables="rangeLower, rangeUpper, extentLower , extentUpper, rootVariance"/>
+    !!]
 
     return
   end function normalConstructorInternal
 
   double precision function normalOperate(self,propertyValue,node,propertyType,outputIndex)
-    !% Implement an normal output analysis property operator.
+    !!{
+    Implement an normal output analysis property operator.
+    !!}
     use            :: Error_Functions, only : Error_Function
     use, intrinsic :: ISO_C_Binding  , only : c_size_t
     implicit none

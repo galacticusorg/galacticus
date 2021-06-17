@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains custom functions for the preset position component.
+!!{
+Contains custom functions for the preset position component.
+!!}
 
 subroutine PositionPresetInterpolatedCheck(self,node,time)
-  !% Check that the requested time does not exceed the maximum time for the current interpolation.
+  !!{
+  Check that the requested time does not exceed the maximum time for the current interpolation.
+  !!}
   use :: Galacticus_Error  , only : Galacticus_Warn, Galacticus_Error_Report
   use :: ISO_Varying_String, only : varying_string , operator(//)           , assignment(=), char
   use :: String_Handling   , only : operator(//)
@@ -60,7 +64,9 @@ subroutine PositionPresetInterpolatedCheck(self,node,time)
 end subroutine PositionPresetInterpolatedCheck
 
 function PositionPresetInterpolatedPosition(self) result(position)
-  !% Return the position of the node.
+  !!{
+  Return the position of the node.
+  !!}
   use :: Galacticus_Error                                , only : Galacticus_Warn
   use :: Node_Component_Position_Preset_Interpolated_Data, only : cosmologyFunctions_, positionPresetBoxLength, isPeriodic
   use :: Numerical_Interpolation                         , only : interpolator
@@ -152,7 +158,9 @@ function PositionPresetInterpolatedPosition(self) result(position)
 end function PositionPresetInterpolatedPosition
 
 function PositionPresetInterpolatedVelocity(self) result (velocity)
-  !% Return the velocity of the node.
+  !!{
+  Return the velocity of the node.
+  !!}
   use :: Node_Component_Position_Preset_Interpolated_Data, only : cosmologyFunctions_
   use :: Numerical_Constants_Astronomical                , only : Mpc_per_km_per_s_To_Gyr
   use :: Numerical_Interpolation                         , only : interpolator

@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of Gaunt factors using the \cite{sutherland_accurate_1998} fitting function.
+  !!{
+  An implementation of Gaunt factors using the \cite{sutherland_accurate_1998} fitting function.
+  !!}
 
   use :: Atomic_Ionization_Potentials, only : atomicIonizationPotentialClass
 
-  !# <gauntFactor name="gauntFactorSutherland1998">
-  !#  <description>Gaunt factors are computed using the fitting function of \cite{sutherland_accurate_1998}.</description>
-  !# </gauntFactor>
+  !![
+  <gauntFactor name="gauntFactorSutherland1998">
+   <description>Gaunt factors are computed using the fitting function of \cite{sutherland_accurate_1998}.</description>
+  </gauntFactor>
+  !!]
   type, extends(gauntFactorClass) :: gauntFactorSutherland1998
-     !% A gaunt factor class implementing the fitting function of \cite{sutherland_accurate_1998}.
+     !!{
+     A gaunt factor class implementing the fitting function of \cite{sutherland_accurate_1998}.
+     !!}
      private
      class(atomicIonizationPotentialClass), pointer :: atomicIonizationPotential_ => null()
    contains
@@ -34,7 +40,9 @@
   end type gauntFactorSutherland1998
 
   interface gauntFactorSutherland1998
-     !% Constructors for the {\normalfont \ttfamily sutherland1998} gaunt factor class.
+     !!{
+     Constructors for the {\normalfont \ttfamily sutherland1998} gaunt factor class.
+     !!}
      module procedure sutherland1998ConstructorParameters
      module procedure sutherland1998ConstructorInternal
   end interface gauntFactorSutherland1998
@@ -110,42 +118,58 @@
 contains
 
   function sutherland1998ConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily sutherland1998} gaunt factor class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily sutherland1998} gaunt factor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (gauntFactorSutherland1998     )                :: self
     type (inputParameters               ), intent(inout) :: parameters
     class(atomicIonizationPotentialClass), pointer       :: atomicIonizationPotential_
 
-    !# <objectBuilder class="atomicIonizationPotential" name="atomicIonizationPotential_" source="parameters"/>
+    !![
+    <objectBuilder class="atomicIonizationPotential" name="atomicIonizationPotential_" source="parameters"/>
+    !!]
     self=gauntFactorSutherland1998(atomicIonizationPotential_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="atomicIonizationPotential_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="atomicIonizationPotential_"/>
+    !!]
     return
   end function sutherland1998ConstructorParameters
 
   function sutherland1998ConstructorInternal(atomicIonizationPotential_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily sutherland1998} gaunt factor class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily sutherland1998} gaunt factor class.
+    !!}
     implicit none
     type (gauntFactorSutherland1998     )                        :: self
     class(atomicIonizationPotentialClass), intent(in   ), target :: atomicIonizationPotential_
-    !# <constructorAssign variables="*atomicIonizationPotential_"/>
+    !![
+    <constructorAssign variables="*atomicIonizationPotential_"/>
+    !!]
 
     return
   end function sutherland1998ConstructorInternal
 
   subroutine sutherland1998Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily sutherland1998} gaunt factor class.
+    !!{
+    Destructor for the {\normalfont \ttfamily sutherland1998} gaunt factor class.
+    !!}
     implicit none
     type(gauntFactorSutherland1998), intent(inout) :: self
 
-    !# <objectDestructor name="self%atomicIonizationPotential_"/>
+    !![
+    <objectDestructor name="self%atomicIonizationPotential_"/>
+    !!]
     return
   end subroutine sutherland1998Destructor
 
   double precision function sutherland1998Total(self,atomicNumber,electronNumber,temperature)
-    !% Compute thermally averaged Gaunt factors for thermal electron distributions using the tabulations and fits of
-    !% \cite{sutherland_accurate_1998}.
+    !!{
+    Compute thermally averaged Gaunt factors for thermal electron distributions using the tabulations and fits of
+    \cite{sutherland_accurate_1998}.
+    !!}
     use            :: Arrays_Search               , only : searchArray
     use            :: Galacticus_Error            , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding               , only : c_size_t

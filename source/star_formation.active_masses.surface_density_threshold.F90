@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of an active mass for star formation class in which the mass of the ISM above a surface density threshold is active.
+  !!{
+  Implementation of an active mass for star formation class in which the mass of the ISM above a surface density threshold is active.
+  !!}
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
   use :: Math_Exponentiation     , only : fastExponentiator
 
-  !# <starFormationActiveMass name="starFormationActiveMassSurfaceDensityThreshold">
-  !#  <description>An active mass for star formation class in which the mass of the ISM above a surface density threshold is active.</description>
-  !# </starFormationActiveMass>
+  !![
+  <starFormationActiveMass name="starFormationActiveMassSurfaceDensityThreshold">
+   <description>An active mass for star formation class in which the mass of the ISM above a surface density threshold is active.</description>
+  </starFormationActiveMass>
+  !!]
   type, extends(starFormationActiveMassClass) :: starFormationActiveMassSurfaceDensityThreshold
-     !% Implementation of an active mass for star formation class in which the mass of the ISM above a surface density threshold is active.
+     !!{
+     Implementation of an active mass for star formation class in which the mass of the ISM above a surface density threshold is active.
+     !!}
      private
      class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_
      double precision                                     :: surfaceDensityThreshold, surfaceDensityNormalization, &
@@ -37,7 +43,9 @@
   end type starFormationActiveMassSurfaceDensityThreshold
 
   interface starFormationActiveMassSurfaceDensityThreshold
-     !% Constructors for the {\normalfont \ttfamily surfaceDensityThreshold} active mass for star formation class.
+     !!{
+     Constructors for the {\normalfont \ttfamily surfaceDensityThreshold} active mass for star formation class.
+     !!}
      module procedure surfaceDensityThresholdConstructorParameters
      module procedure surfaceDensityThresholdConstructorInternal
   end interface starFormationActiveMassSurfaceDensityThreshold
@@ -45,8 +53,10 @@
 contains
 
   function surfaceDensityThresholdConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily surfaceDensityThreshold} active mass for star formation class which takes a parameter set as
-    !% input.
+    !!{
+    Constructor for the {\normalfont \ttfamily surfaceDensityThreshold} active mass for star formation class which takes a parameter set as
+    input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (starFormationActiveMassSurfaceDensityThreshold)                :: self
@@ -54,33 +64,41 @@ contains
     class           (darkMatterProfileDMOClass                     ), pointer       :: darkMatterProfileDMO_
     double precision                                                                :: surfaceDensityThreshold, exponentVelocity
 
-    !# <inputParameter>
-    !#   <name>surfaceDensityThreshold</name>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>The surface density threshold above which ISM gas participates in star formation.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>exponentVelocity</name>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>Tne exponent of velocity in the surface density threshold for star formation.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>surfaceDensityThreshold</name>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The surface density threshold above which ISM gas participates in star formation.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>exponentVelocity</name>
+      <defaultValue>0.0d0</defaultValue>
+      <description>Tne exponent of velocity in the surface density threshold for star formation.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    !!]
     self=starFormationActiveMassSurfaceDensityThreshold(surfaceDensityThreshold,exponentVelocity,darkMatterProfileDMO_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterProfileDMO_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterProfileDMO_"/>
+    !!]
     return
   end function surfaceDensityThresholdConstructorParameters
 
   function surfaceDensityThresholdConstructorInternal(surfaceDensityThreshold,exponentVelocity,darkMatterProfileDMO_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily surfaceDensityThreshold} active mass for star formation class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily surfaceDensityThreshold} active mass for star formation class.
+    !!}
     implicit none
     type            (starFormationActiveMassSurfaceDensityThreshold)                        :: self
     double precision                                                , intent(in   )         :: surfaceDensityThreshold        , exponentVelocity
     class           (darkMatterProfileDMOClass                     ), intent(in   ), target :: darkMatterProfileDMO_
     double precision                                                , parameter             :: velocityNormalization  =200.0d0
-    !# <constructorAssign variables="surfaceDensityThreshold, exponentVelocity, *darkMatterProfileDMO_"/>
+    !![
+    <constructorAssign variables="surfaceDensityThreshold, exponentVelocity, *darkMatterProfileDMO_"/>
+    !!]
     
     ! Initialize exponentiators.
     self%velocityExponentiator=fastExponentiator(1.0d+0,1.0d+3,exponentVelocity,1.0d+1,abortOutsideRange=.false.)
@@ -90,17 +108,23 @@ contains
   end function surfaceDensityThresholdConstructorInternal
 
   subroutine surfaceDensityThresholdDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily surfaceDensityThreshold} active mass for star formation class.
+    !!{
+    Destructor for the {\normalfont \ttfamily surfaceDensityThreshold} active mass for star formation class.
+    !!}
     implicit none
     type(starFormationActiveMassSurfaceDensityThreshold), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterProfileDMO_"/>
+    !![
+    <objectDestructor name="self%darkMatterProfileDMO_"/>
+    !!]
     return
   end subroutine surfaceDensityThresholdDestructor
 
   double precision function surfaceDensityThresholdMassActive(self,component)
-    !% Returns the mass (in $\mathrm{M}_\odot$) of gas actively undergoing star formation in the given {\normalfont \ttfamily
-    !% component} as the mass of gas in the ISM above a given surface density threshold
+    !!{
+    Returns the mass (in $\mathrm{M}_\odot$) of gas actively undergoing star formation in the given {\normalfont \ttfamily
+    component} as the mass of gas in the ISM above a given surface density threshold
+    !!}
     use :: Galacticus_Error                    , only : Galacticus_Error_Report
     use :: Galacticus_Nodes                    , only : nodeComponentDisk
     use :: Galactic_Structure_Enclosed_Masses  , only : Galactic_Structure_Enclosed_Mass

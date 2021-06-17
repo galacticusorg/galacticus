@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements fundamental properties of black holes.
+!!{
+Contains a module which implements fundamental properties of black holes.
+!!}
 
 module Black_Hole_Fundamentals
-  !% Implements fundamental properties of black holes.
+  !!{
+  Implements fundamental properties of black holes.
+  !!}
   implicit none
   private
   public :: Black_Hole_ISCO_Radius                   , Black_Hole_ISCO_Specific_Energy       , Black_Hole_Gravitational_Radius    , Black_Hole_Frame_Dragging_Frequency, &
@@ -72,8 +76,10 @@ module Black_Hole_Fundamentals
 contains
 
   double precision function Black_Hole_ISCO_Radius_Spin(blackHoleSpin,orbit)
-    !% Returns the radius (in gravitational units and for a prograde or retorgrade orbit) of the innermost stable
-    !% circular orbit for a black hole with spin {\normalfont \ttfamily blackHoleSpin}.
+    !!{
+    Returns the radius (in gravitational units and for a prograde or retorgrade orbit) of the innermost stable
+    circular orbit for a black hole with spin {\normalfont \ttfamily blackHoleSpin}.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision      , intent(in   )           :: blackHoleSpin
@@ -116,7 +122,9 @@ contains
   end function Black_Hole_ISCO_Radius_Spin
 
   double precision function Black_Hole_Eddington_Accretion_Rate(blackHole)
-    !% Return the Eddington accretion rate (in $M_\odot$ Gyr$^{-1}$) for the black hole in {\normalfont \ttfamily blackHole}.
+    !!{
+    Return the Eddington accretion rate (in $M_\odot$ Gyr$^{-1}$) for the black hole in {\normalfont \ttfamily blackHole}.
+    !!}
     use :: Galacticus_Nodes                , only : nodeComponentBlackHole
     use :: Numerical_Constants_Astronomical, only : gigaYear
     use :: Numerical_Constants_Atomic      , only : massHydrogenAtom
@@ -131,8 +139,10 @@ contains
   end function Black_Hole_Eddington_Accretion_Rate
 
   double precision function Black_Hole_ISCO_Radius_Node(blackHole,units,orbit)
-    !% Returns the radius (in physical or gravitational units and for a prograde or retorgrade orbit) of the innermost stable
-    !% circular orbit for the black hole in {\normalfont \ttfamily blackHole}.
+    !!{
+    Returns the radius (in physical or gravitational units and for a prograde or retorgrade orbit) of the innermost stable
+    circular orbit for the black hole in {\normalfont \ttfamily blackHole}.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBlackHole
     implicit none
     class           (nodeComponentBlackHole), intent(inout)           :: blackHole
@@ -166,8 +176,10 @@ contains
   end function Black_Hole_ISCO_Radius_Node
 
   double precision function Black_Hole_ISCO_Specific_Energy_Node(blackHole,units,orbit)
-    !% Returns the specific energy (in physical or gravitational units and for a prograde or retorgrade orbit) of the innermost
-    !% stable circular orbit for the given {\normalfont \ttfamily blackHole}.
+    !!{
+    Returns the specific energy (in physical or gravitational units and for a prograde or retorgrade orbit) of the innermost
+    stable circular orbit for the given {\normalfont \ttfamily blackHole}.
+    !!}
     use :: Galacticus_Nodes                , only : nodeComponentBlackHole
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
@@ -196,8 +208,10 @@ contains
   end function Black_Hole_ISCO_Specific_Energy_Node
 
   double precision function Black_Hole_ISCO_Specific_Energy_Spin(blackHoleSpin,orbit)
-    !% Returns the specific energy (in physical or gravitational units and for a prograde or retorgrade orbit) of the innermost
-    !% stable circular orbit for a black hole of given {\normalfont \ttfamily blackHoleSpin}.
+    !!{
+    Returns the specific energy (in physical or gravitational units and for a prograde or retorgrade orbit) of the innermost
+    stable circular orbit for a black hole of given {\normalfont \ttfamily blackHoleSpin}.
+    !!}
     implicit none
     double precision           , intent(inout)           :: blackHoleSpin
     integer                    , intent(in   ), optional :: orbit
@@ -223,8 +237,10 @@ contains
   end function Black_Hole_ISCO_Specific_Energy_Spin
 
   double precision function Black_Hole_ISCO_Specific_Angular_Momentum(blackHole,units,orbit)
-    !% Returns the specific angular momentum (in physical or gravitational units and for a prograde or retorgrade orbit) of the
-    !% innermost stable circular orbit for the black hole in {\normalfont \ttfamily blackHole}.
+    !!{
+    Returns the specific angular momentum (in physical or gravitational units and for a prograde or retorgrade orbit) of the
+    innermost stable circular orbit for the black hole in {\normalfont \ttfamily blackHole}.
+    !!}
     use :: Galacticus_Nodes                , only : nodeComponentBlackHole
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
@@ -271,7 +287,9 @@ contains
   end function Black_Hole_ISCO_Specific_Angular_Momentum
 
   double precision function Black_Hole_Gravitational_Radius(blackHole)
-    !% Computes the gravitational radius (in Mpc) for the {\normalfont \ttfamily blackHole}.
+    !!{
+    Computes the gravitational radius (in Mpc) for the {\normalfont \ttfamily blackHole}.
+    !!}
     use :: Galacticus_Nodes                , only : nodeComponentBlackHole
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use :: Numerical_Constants_Physical    , only : speedLight
@@ -284,7 +302,9 @@ contains
   end function Black_Hole_Gravitational_Radius
 
   double precision function Black_Hole_Frame_Dragging_Frequency_Node(blackHole,radius,units)
-    !% Returns the frame-dragging angular velocity in the Kerr metric.
+    !!{
+    Returns the frame-dragging angular velocity in the Kerr metric.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBlackHole
     implicit none
@@ -320,7 +340,9 @@ contains
   end function Black_Hole_Frame_Dragging_Frequency_Node
 
   double precision function Black_Hole_Frame_Dragging_Frequency_Spin(blackHoleSpin,radius)
-    !% Returns the frame-dragging angular velocity in the Kerr metric.
+    !!{
+    Returns the frame-dragging angular velocity in the Kerr metric.
+    !!}
     implicit none
     double precision, intent(in   ) :: blackHoleSpin, radius
 
@@ -329,7 +351,9 @@ contains
   end function Black_Hole_Frame_Dragging_Frequency_Spin
 
   double precision function Black_Hole_Metric_A_Factor_Node(blackHole,radius,units)
-    !% Returns the $\mathcal{A}$ factor appearing in the Kerr metric for {\normalfont \ttfamily blackHole}.
+    !!{
+    Returns the $\mathcal{A}$ factor appearing in the Kerr metric for {\normalfont \ttfamily blackHole}.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBlackHole
     implicit none
@@ -365,7 +389,9 @@ contains
   end function Black_Hole_Metric_A_Factor_Node
 
   double precision function Black_Hole_Metric_A_Factor_Spin(blackHoleSpin,radius)
-    !% Returns the $\mathcal{A}$ factor appearing in the Kerr metric for spin {\normalfont \ttfamily blackHoleSpin}.
+    !!{
+    Returns the $\mathcal{A}$ factor appearing in the Kerr metric for spin {\normalfont \ttfamily blackHoleSpin}.
+    !!}
     implicit none
     double precision, intent(in   ) :: blackHoleSpin, radius
 
@@ -374,7 +400,9 @@ contains
   end function Black_Hole_Metric_A_Factor_Spin
 
   double precision function Black_Hole_Metric_D_Factor_Node(blackHole,radius,units)
-    !% Returns the $\mathcal{D}$ factor appearing in the Kerr metric for {\normalfont \ttfamily blackHole}.
+    !!{
+    Returns the $\mathcal{D}$ factor appearing in the Kerr metric for {\normalfont \ttfamily blackHole}.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBlackHole
     implicit none
@@ -410,7 +438,9 @@ contains
   end function Black_Hole_Metric_D_Factor_Node
 
   double precision function Black_Hole_Metric_D_Factor_Spin(blackHoleSpin,radius)
-    !% Returns the $\mathcal{D}$ factor appearing in the Kerr metric for spin {\normalfont \ttfamily blackHoleSpin}.
+    !!{
+    Returns the $\mathcal{D}$ factor appearing in the Kerr metric for spin {\normalfont \ttfamily blackHoleSpin}.
+    !!}
     implicit none
     double precision, intent(in   ) :: blackHoleSpin, radius
 
@@ -419,8 +449,10 @@ contains
   end function Black_Hole_Metric_D_Factor_Spin
 
   double precision function Black_Hole_Horizon_Radius_Node(blackHole,units)
-    !% Return the radius of the horizon for a Kerr metric with dimensionless angular momentum {\normalfont \ttfamily j}.
-    !% The radius is in units of the gravitational radius.
+    !!{
+    Return the radius of the horizon for a Kerr metric with dimensionless angular momentum {\normalfont \ttfamily j}.
+    The radius is in units of the gravitational radius.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBlackHole
     implicit none
@@ -453,8 +485,10 @@ contains
   end function Black_Hole_Horizon_Radius_Node
 
   double precision function Black_Hole_Horizon_Radius_Spin(blackHoleSpin)
-    !% Return the radius of the horizon for a Kerr metric with dimensionless angular momentum {\normalfont \ttfamily j}.
-    !% The radius is in units of the gravitational radius.
+    !!{
+    Return the radius of the horizon for a Kerr metric with dimensionless angular momentum {\normalfont \ttfamily j}.
+    The radius is in units of the gravitational radius.
+    !!}
     implicit none
     double precision, intent(in   ) :: blackHoleSpin
 
@@ -463,7 +497,9 @@ contains
   end function Black_Hole_Horizon_Radius_Spin
 
   double precision function Black_Hole_Static_Radius_Node(blackHole,theta,units)
-    !% Return the radius of the static limit for a Kerr metric for the black hole in {\normalfont \ttfamily blackHole} and angle {\normalfont \ttfamily theta}.
+    !!{
+    Return the radius of the static limit for a Kerr metric for the black hole in {\normalfont \ttfamily blackHole} and angle {\normalfont \ttfamily theta}.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBlackHole
     implicit none
@@ -500,7 +536,9 @@ contains
   end function Black_Hole_Static_Radius_Node
 
   double precision function Black_Hole_Static_Radius_Spin(blackHoleSpin,theta)
-    !% Return the radius of the static limit for a Kerr metric for a black hole of given {\normalfont \ttfamily blackHoleSpin} and angle {\normalfont \ttfamily theta}.
+    !!{
+    Return the radius of the static limit for a Kerr metric for a black hole of given {\normalfont \ttfamily blackHoleSpin} and angle {\normalfont \ttfamily theta}.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     double precision, intent(in   )           :: blackHoleSpin
@@ -520,7 +558,9 @@ contains
   end function Black_Hole_Static_Radius_Spin
 
   double precision function A1(blackHoleSpin)
-    !% Return the function $A_1(j)$ that appears in the Kerr metric with spin {\normalfont \ttfamily blackHoleSpin}.
+    !!{
+    Return the function $A_1(j)$ that appears in the Kerr metric with spin {\normalfont \ttfamily blackHoleSpin}.
+    !!}
     implicit none
     double precision, intent(in   ) :: blackHoleSpin
 
@@ -529,7 +569,9 @@ contains
   end function A1
 
   double precision function A2(blackHoleSpin)
-    !% Return the function $A_2(j)$ that appears in the Kerr metric with spin {\normalfont \ttfamily blackHoleSpin}.
+    !!{
+    Return the function $A_2(j)$ that appears in the Kerr metric with spin {\normalfont \ttfamily blackHoleSpin}.
+    !!}
     implicit none
     double precision, intent(in   ) :: blackHoleSpin
 
@@ -538,7 +580,9 @@ contains
   end function A2
 
   double precision function Black_Hole_Rotational_Energy_Spin_Down_Node(blackHole)
-    !% Computes the spin down rate of a black hole due to extraction of rotational energy for the primary black hole.
+    !!{
+    Computes the spin down rate of a black hole due to extraction of rotational energy for the primary black hole.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBlackHole
     implicit none
     class           (nodeComponentBlackHole), intent(inout) :: blackHole
@@ -553,54 +597,56 @@ contains
   end function Black_Hole_Rotational_Energy_Spin_Down_Node
 
   double precision function Black_Hole_Rotational_Energy_Spin_Down_Spin(blackHoleSpin)
-    !% Computes the spin down rate of a black hole due to extraction of rotational energy. Specifically, it returns the factor $S$
-    !% in the relation:
-    !% \begin{equation}
-    !% s = - S {P_\mathrm{rotation} \over \dot M_{\bullet, 0} \clight^2},
-    !% \end{equation}
-    !% where $P_\mathrm{rotation}$ is the power of rotational energy extraction and
-    !% \begin{equation}
-    !% S = [(1+\sqrt{1-j^2})^2+j^2] {\sqrt{1-j^2}\over j},
-    !% \end{equation}
-    !% for black hole spin $j$. This result is derived as follows. Starting from equation~(9) in \cite{benson_maximum_2009}:
-    !% \begin{equation}
-    !%  M_{\bullet,\mathrm{irr}} = \frac{1}{2} M_\bullet \left[ (1+\sqrt{1-j^2})^2 + j^2 \right]^{1/2},
-    !%  \label{eq:blackHoleMassIrreducible}
-    !% \end{equation}
-    !% which we can rearrange to get
-    !% \begin{equation}
-    !%  (1 + \sqrt{1-j^2})^2 + j^2 = 4 (M_{\bullet,\mathrm{irr}}/M_\bullet)^2.
-    !% \end{equation}
-    !% Differentating this gives
-    !% \begin{equation}
-    !% \left[ -2(1 + \sqrt{1-j^2}) \frac{1}{2} (1-j^2)^{-1/2} 2 j + 2 j \right] \frac{\mathrm{d} j}{\mathrm{d} M_\bullet} = - 8 (M_{\bullet,\mathrm{irr}}/M_\bullet)^2 M^{-1}_\bullet,
-    !% \end{equation}
-    !% which simplifies to
-    !% \begin{equation}
-    !% \frac{j}{(1-j^2)^{1/2}} \frac{\mathrm{d} j}{\mathrm{d} M_\bullet} = 4 (M_{\bullet,\mathrm{irr}}/M_\bullet)^2 M^{-1}_\bullet,
-    !% \end{equation}
-    !% and therefore
-    !% \begin{equation}
-    !%  \frac{\mathrm{d} j}{\mathrm{d} M_\bullet} = \frac{4}{M_\bullet} \left(\frac{M_{\bullet,\mathrm{irr}}}{M_\bullet}\right)^2  \frac{(1-j^2)^{1/2}}{j},
-    !% \end{equation}
-    !% which is equation~(10) in \cite{benson_maximum_2009}.
-    !%
-    !% The spin-down rate is then
-    !% \begin{equation}
-    !%  \frac{\mathrm{d}j}{\mathrm{d}t} = - \frac{\mathrm{d}j}{\mathrm{d}M_\bullet} \frac{P_\mathrm{jet}}{\mathrm{c}^2} = - 4 \frac{P_\mathrm{jet}}{M_\bullet \mathrm{c}^2} \left(\frac{M_{\bullet,\mathrm{irr}}}{M_\bullet}\right)^2  \frac{(1-j^2)^{1/2}}{j}.
-    !%  \label{eq:blackHoleJetSpinDownRate}
-    !% \end{equation}
-    !%
-    !% The spin-down parameter is then
-    !% \begin{equation}
-    !%  s_\mathrm{jet} = \frac{M_\bullet}{\dot{M}_{\bullet,0}} \frac{\mathrm{d}j}{\mathrm{d}t}.
-    !% \end{equation}
-    !% Using equations~(\ref{eq:blackHoleMassIrreducible}) and (\ref{eq:blackHoleJetSpinDownRate}) the above becomes
-    !% \begin{equation}
-    !%   s_\mathrm{jet} = - \frac{P_\mathrm{jet}}{\dot{M}_{\bullet,0} \mathrm{c}^2} \left[ (1+\sqrt{1-j^2})^2 + j^2 \right] \frac{(1-j^2)^{1/2}}{j},
-    !% \end{equation}
-    !% which is equation~(12)\footnote{Note that equation~(12) of \cite{benson_maximum_2009} is missing the factor of
-    !% $\dot{M}_{\bullet,0} \mathrm{c}^2$ in the denominator} of \cite{benson_maximum_2009}.
+    !!{
+    Computes the spin down rate of a black hole due to extraction of rotational energy. Specifically, it returns the factor $S$
+    in the relation:
+    \begin{equation}
+    s = - S {P_\mathrm{rotation} \over \dot M_{\bullet, 0} \clight^2},
+    \end{equation}
+    where $P_\mathrm{rotation}$ is the power of rotational energy extraction and
+    \begin{equation}
+    S = [(1+\sqrt{1-j^2})^2+j^2] {\sqrt{1-j^2}\over j},
+    \end{equation}
+    for black hole spin $j$. This result is derived as follows. Starting from equation~(9) in \cite{benson_maximum_2009}:
+    \begin{equation}
+     M_{\bullet,\mathrm{irr}} = \frac{1}{2} M_\bullet \left[ (1+\sqrt{1-j^2})^2 + j^2 \right]^{1/2},
+     \label{eq:blackHoleMassIrreducible}
+    \end{equation}
+    which we can rearrange to get
+    \begin{equation}
+     (1 + \sqrt{1-j^2})^2 + j^2 = 4 (M_{\bullet,\mathrm{irr}}/M_\bullet)^2.
+    \end{equation}
+    Differentating this gives
+    \begin{equation}
+    \left[ -2(1 + \sqrt{1-j^2}) \frac{1}{2} (1-j^2)^{-1/2} 2 j + 2 j \right] \frac{\mathrm{d} j}{\mathrm{d} M_\bullet} = - 8 (M_{\bullet,\mathrm{irr}}/M_\bullet)^2 M^{-1}_\bullet,
+    \end{equation}
+    which simplifies to
+    \begin{equation}
+    \frac{j}{(1-j^2)^{1/2}} \frac{\mathrm{d} j}{\mathrm{d} M_\bullet} = 4 (M_{\bullet,\mathrm{irr}}/M_\bullet)^2 M^{-1}_\bullet,
+    \end{equation}
+    and therefore
+    \begin{equation}
+     \frac{\mathrm{d} j}{\mathrm{d} M_\bullet} = \frac{4}{M_\bullet} \left(\frac{M_{\bullet,\mathrm{irr}}}{M_\bullet}\right)^2  \frac{(1-j^2)^{1/2}}{j},
+    \end{equation}
+    which is equation~(10) in \cite{benson_maximum_2009}.
+    
+    The spin-down rate is then
+    \begin{equation}
+     \frac{\mathrm{d}j}{\mathrm{d}t} = - \frac{\mathrm{d}j}{\mathrm{d}M_\bullet} \frac{P_\mathrm{jet}}{\mathrm{c}^2} = - 4 \frac{P_\mathrm{jet}}{M_\bullet \mathrm{c}^2} \left(\frac{M_{\bullet,\mathrm{irr}}}{M_\bullet}\right)^2  \frac{(1-j^2)^{1/2}}{j}.
+     \label{eq:blackHoleJetSpinDownRate}
+    \end{equation}
+    
+    The spin-down parameter is then
+    \begin{equation}
+     s_\mathrm{jet} = \frac{M_\bullet}{\dot{M}_{\bullet,0}} \frac{\mathrm{d}j}{\mathrm{d}t}.
+    \end{equation}
+    Using equations~(\ref{eq:blackHoleMassIrreducible}) and (\ref{eq:blackHoleJetSpinDownRate}) the above becomes
+    \begin{equation}
+      s_\mathrm{jet} = - \frac{P_\mathrm{jet}}{\dot{M}_{\bullet,0} \mathrm{c}^2} \left[ (1+\sqrt{1-j^2})^2 + j^2 \right] \frac{(1-j^2)^{1/2}}{j},
+    \end{equation}
+    which is equation~(12)\footnote{Note that equation~(12) of \cite{benson_maximum_2009} is missing the factor of
+    $\dot{M}_{\bullet,0} \mathrm{c}^2$ in the denominator} of \cite{benson_maximum_2009}.
+    !!}
     implicit none
     double precision, intent(in   ) :: blackHoleSpin
     double precision, parameter     :: blackHoleSpinMinimum      =5.0d-8

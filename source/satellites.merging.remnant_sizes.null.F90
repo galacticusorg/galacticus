@@ -17,30 +17,40 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a merger remnant size class which takes no action.
+  !!{
+  Implements a merger remnant size class which takes no action.
+  !!}
 
-  !# <mergerRemnantSize name="mergerRemnantSizeNull">
-  !#  <description>
-  !#   A merger remnant size class which does nothing at all. It is useful, for example, when running \glc\ to study dark matter
-  !#   only (i.e. when no galaxy properties are computed).
-  !#  </description>
-  !# </mergerRemnantSize>
+  !![
+  <mergerRemnantSize name="mergerRemnantSizeNull">
+   <description>
+    A merger remnant size class which does nothing at all. It is useful, for example, when running \glc\ to study dark matter
+    only (i.e. when no galaxy properties are computed).
+   </description>
+  </mergerRemnantSize>
+  !!]
   type, extends(mergerRemnantSizeClass) :: mergerRemnantSizeNull
-     !% A merger remnant size class which uses takes no action.
+     !!{
+     A merger remnant size class which uses takes no action.
+     !!}
      private
    contains
      procedure :: get => nullGet
   end type mergerRemnantSizeNull
 
   interface mergerRemnantSizeNull
-     !% Constructors for the {\normalfont \ttfamily null} merger remnant size class.
+     !!{
+     Constructors for the {\normalfont \ttfamily null} merger remnant size class.
+     !!}
      module procedure nullConstructorParameters
   end interface mergerRemnantSizeNull
 
 contains
 
   function nullConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily null} merger remnant size class which takes a parameter list as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily null} merger remnant size class which takes a parameter list as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(mergerRemnantSizeNull)                :: self
@@ -52,7 +62,9 @@ contains
   end function nullConstructorParameters
 
   subroutine nullGet(self,node,radius,velocityCircular,angularMomentumSpecific)
-    !% Do not compute the size of the merger remnant for {\normalfont \ttfamily node}.
+    !!{
+    Do not compute the size of the merger remnant for {\normalfont \ttfamily node}.
+    !!}
     implicit none
     class           (mergerRemnantSizeNull), intent(inout) :: self
     type            (treeNode             ), intent(inout) :: node

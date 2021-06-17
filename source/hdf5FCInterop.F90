@@ -20,11 +20,11 @@
 ! Exclude from "make all".
 !/ exclude
 
-!% Contains a program which determine C interoperable types corresponding to HDF5 types.
+! Contains a program which determine C interoperable types corresponding to HDF5 types.
 
 program hdf5FCInterop
-  !% Determine C interoperable types corresponding to HDF5 types. This allows us to avoid compiler warnings about possible C
-  !% non-interoperability if we were to use the types provided directly by HDF5.
+  ! Determine C interoperable types corresponding to HDF5 types. This allows us to avoid compiler warnings about possible C
+  ! non-interoperability if we were to use the types provided directly by HDF5.
   use            :: HDF5         , only : hid_t, hsize_t, size_t
   use, intrinsic :: ISO_C_Binding, only : c_int, c_long , c_long_long, c_size_t
   implicit none

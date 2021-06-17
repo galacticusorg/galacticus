@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to coordinate system functions.
+!!{
+Contains a program to coordinate system functions.
+!!}
 
 program Test_Coordinate_Systems
-  !% Tests of coordinate system functions.
+  !!{
+  Tests of coordinate system functions.
+  !!}
   use :: Coordinate_Systems      , only : Coordinates_Cartesian_To_Cylindrical, Coordinates_Cartesian_To_Spherical, Coordinates_Cylindrical_To_Spherical, Coordinates_Spherical_To_Cylindrical
   use :: Display                 , only : displayVerbositySet                 , verbosityLevelStandard
   use :: Numerical_Constants_Math, only : Pi

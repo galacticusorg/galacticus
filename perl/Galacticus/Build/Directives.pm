@@ -3,20 +3,32 @@
 package Galacticus::Build::Directives;
 use strict;
 use warnings;
+use XML::Simple;
+use Data::Dumper;
 
 sub Extract_Directive {
     # Extract a named directive from a given file handle.
     my $fileHandle    = shift();
     my $directiveName = shift();
+    my $state         = shift();
     (my %options)     = @_
 	if ( scalar(@_) > 1 );
+    $state->{'inXML'} = 0
+	unless ( exists($state->{'inXML'}) );
     my $directive;
     my $xmlText;
-    my $commentRegEx       = exists($options{'comment'}) ? $options{'comment'} : qr/^\s*\!#/;
-    my $xmlTagRegEx        = $directiveName eq "*" ? qr/^\s*<([a-zA-Z0-9]+).*>/ : qr/^\s*<($directiveName)(>|\s.*>)/; 
-    my $depth              = 0;
+    my $depth = 0;
     while ( my $line = <$fileHandle> ) {
-	if ( $line =~ s/$commentRegEx// || $depth > 0 ) {
+	# Detect the end of an XML section and change state.
+	$state->{'inXML'} = 0
+	    if ( $line =~ m/^\s*!!\]/ );
+	# Skip instrumentation lines.
+	next
+	    if ( $line =~ m/^\!\-\->/ );
+	# If we're actively processing XML content, accumulate the text.	
+	if ( $state->{'inXML'} || $depth > 0 ) {
+	    $line =~ s/^(\!\<)?\s*//
+		if ( $state->{'inXML'} );
 	    $xmlText .= $line;
 	    $depth += () = ( $line =~ /<([a-zA-Z0-9]+)[^\/>]*>/g ); # Increment depth by count of any opening elements.
 	    $depth -= () = ( $line =~ /<\/([a-zA-Z0-9]+)>/g      ); # Decrement depth by count of any closing elements.
@@ -48,6 +60,9 @@ sub Extract_Directive {
 		undef($xmlText  );
 	    }
 	}
+	# Detect the start of an XML section and change state.
+	$state->{'inXML'} = 1
+	    if ( $line =~ m/^\s*!!\[/ );
     }
     # Return the directive.
     return $directive;
@@ -63,8 +78,9 @@ sub Extract_Directives {
     my @directives;
     return
 	unless ( -e $fileName );
+    my %state;
     open(my $fileHandle,$fileName);
-    while ( my $directive = &Extract_Directive($fileHandle,$directiveName,%options) ) {
+    while ( my $directive = &Extract_Directive($fileHandle,$directiveName,\%state,%options) ) {
 	push(@directives,$directive);
     }
     close($fileHandle);

@@ -17,42 +17,48 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides a class that implements broad band luminosities of stellar populations.
+!!{
+Contains a module which provides a class that implements broad band luminosities of stellar populations.
+!!}
 
 module Stellar_Population_Broad_Band_Luminosities
-  !% Provides a class that implements broad band luminosities of stellar populations.
+  !!{
+  Provides a class that implements broad band luminosities of stellar populations.
+  !!}
   use :: Stellar_Populations                   , only : stellarPopulationClass
   use :: Stellar_Population_Spectra_Postprocess, only : stellarPopulationSpectraPostprocessorList
   use :: Abundances_Structure                  , only : abundances
   private
 
-  !# <functionClass>
-  !#  <name>stellarPopulationBroadBandLuminosities</name>
-  !#  <descriptiveName>Stellar Population Broad Band Luminosities</descriptiveName>
-  !#  <description>Class providing broad band luminosities of stellar populations.</description>
-  !#  <default>standard</default>
-  !#  <method name="luminosities" >
-  !#   <description>Returns the luminosity for a $1 M_\odot$ simple {\normalfont \ttfamily stellarPopulation\_} of given {\normalfont \ttfamily abundances} and {\normalfont \ttfamily age} and observed through the filter specified by {\normalfont \ttfamily filterIndex}.</description>
-  !#   <type>double precision, dimension(size(luminosityIndex))</type>
-  !#   <pass>yes</pass>
-  !#   <argument>integer                                                    , intent(in   ), dimension(:  )              :: luminosityIndex                       , filterIndex </argument>
-  !#   <argument>type            (stellarPopulationSpectraPostprocessorList), intent(in   ), dimension(:  )              :: stellarPopulationSpectraPostprocessor_              </argument>
-  !#   <argument>class           (stellarPopulationClass                   ), intent(inout)                              :: stellarPopulation_                                  </argument>
-  !#   <argument>type            (abundances                               ), intent(in   )                              :: abundancesStellar                                   </argument>
-  !#   <argument>double precision                                           , intent(in   ), dimension(:  )              :: age                                   , redshift    </argument>
-  !#  </method>
-  !#  <method name="luminosityTracks" >
-  !#   <description>Returns the luminosity for a $1 M_\odot$ simple stellar population of given {\normalfont \ttfamily abundances} drawn from the given {\normalfont \ttfamily stellarPopulation} and observed through the filter specified by {\normalfont \ttfamily filterIndex}, for all available ages.</description>
-  !#   <type>void</type>
-  !#   <pass>yes</pass>
-  !#   <argument>integer                                                    , intent(in   ), dimension(:  )              :: luminosityIndex                       , filterIndex</argument>
-  !#   <argument>type            (stellarPopulationSpectraPostprocessorList), intent(in   ), dimension(:  )              :: stellarPopulationSpectraPostprocessor_             </argument>
-  !#   <argument>class           (stellarPopulationClass                   ), intent(inout)                              :: stellarPopulation_                                 </argument>
-  !#   <argument>type            (abundances                               ), intent(in   )                              :: abundancesStellar                                  </argument>
-  !#   <argument>double precision                                           , intent(in   ), dimension(:  )              :: redshift                                           </argument>
-  !#   <argument>double precision                                           , intent(  out), dimension(:  ), allocatable :: ages                                               </argument>
-  !#   <argument>double precision                                           , intent(  out), dimension(:,:), allocatable :: luminosities                                       </argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>stellarPopulationBroadBandLuminosities</name>
+   <descriptiveName>Stellar Population Broad Band Luminosities</descriptiveName>
+   <description>Class providing broad band luminosities of stellar populations.</description>
+   <default>standard</default>
+   <method name="luminosities" >
+    <description>Returns the luminosity for a $1 M_\odot$ simple {\normalfont \ttfamily stellarPopulation\_} of given {\normalfont \ttfamily abundances} and {\normalfont \ttfamily age} and observed through the filter specified by {\normalfont \ttfamily filterIndex}.</description>
+    <type>double precision, dimension(size(luminosityIndex))</type>
+    <pass>yes</pass>
+    <argument>integer                                                    , intent(in   ), dimension(:  )              :: luminosityIndex                       , filterIndex </argument>
+    <argument>type            (stellarPopulationSpectraPostprocessorList), intent(in   ), dimension(:  )              :: stellarPopulationSpectraPostprocessor_              </argument>
+    <argument>class           (stellarPopulationClass                   ), intent(inout)                              :: stellarPopulation_                                  </argument>
+    <argument>type            (abundances                               ), intent(in   )                              :: abundancesStellar                                   </argument>
+    <argument>double precision                                           , intent(in   ), dimension(:  )              :: age                                   , redshift    </argument>
+   </method>
+   <method name="luminosityTracks" >
+    <description>Returns the luminosity for a $1 M_\odot$ simple stellar population of given {\normalfont \ttfamily abundances} drawn from the given {\normalfont \ttfamily stellarPopulation} and observed through the filter specified by {\normalfont \ttfamily filterIndex}, for all available ages.</description>
+    <type>void</type>
+    <pass>yes</pass>
+    <argument>integer                                                    , intent(in   ), dimension(:  )              :: luminosityIndex                       , filterIndex</argument>
+    <argument>type            (stellarPopulationSpectraPostprocessorList), intent(in   ), dimension(:  )              :: stellarPopulationSpectraPostprocessor_             </argument>
+    <argument>class           (stellarPopulationClass                   ), intent(inout)                              :: stellarPopulation_                                 </argument>
+    <argument>type            (abundances                               ), intent(in   )                              :: abundancesStellar                                  </argument>
+    <argument>double precision                                           , intent(in   ), dimension(:  )              :: redshift                                           </argument>
+    <argument>double precision                                           , intent(  out), dimension(:  ), allocatable :: ages                                               </argument>
+    <argument>double precision                                           , intent(  out), dimension(:,:), allocatable :: luminosities                                       </argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Stellar_Population_Broad_Band_Luminosities

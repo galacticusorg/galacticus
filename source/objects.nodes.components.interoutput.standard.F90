@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements the standard indices component.
+!!{
+Contains a module which implements the standard indices component.
+!!}
 
 module Node_Component_Inter_Output_Standard
-  !% Implements the standard indices component.
+  !!{
+  Implements the standard indices component.
+  !!}
   use :: Output_Times                    , only : outputTimesClass
   use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
   use :: Star_Formation_Rates_Disks      , only : starFormationRateDisksClass
@@ -31,29 +35,31 @@ module Node_Component_Inter_Output_Standard
        &    Node_Component_Interoutput_Standard_Thread_Uninitialize, Node_Component_Inter_Output_Standard_Scale_Set, &
        &    Node_Component_Interoutput_Standard_Thread_Initialize
 
-  !# <component>
-  !#  <class>interOutput</class>
-  !#  <name>standard</name>
-  !#  <isDefault>false</isDefault>
-  !#  <properties>
-  !#   <property>
-  !#     <name>diskStarFormationRate</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
-  !#     <classDefault>0.0d0</classDefault>
-  !#     <output unitsInSI="massSolar/gigaYear" comment="Disk star formation rate averaged over time between current and previous outputs."/>
-  !#   </property>
-  !#   <property>
-  !#     <name>spheroidStarFormationRate</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
-  !#     <output unitsInSI="massSolar/gigaYear" comment="Spheroid star formation rate averaged over time between current and previous outputs."/>
-  !#     <classDefault>0.0d0</classDefault>
-  !#   </property>
-  !#  </properties>
-  !# </component>
+  !![
+  <component>
+   <class>interOutput</class>
+   <name>standard</name>
+   <isDefault>false</isDefault>
+   <properties>
+    <property>
+      <name>diskStarFormationRate</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
+      <classDefault>0.0d0</classDefault>
+      <output unitsInSI="massSolar/gigaYear" comment="Disk star formation rate averaged over time between current and previous outputs."/>
+    </property>
+    <property>
+      <name>spheroidStarFormationRate</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
+      <output unitsInSI="massSolar/gigaYear" comment="Spheroid star formation rate averaged over time between current and previous outputs."/>
+      <classDefault>0.0d0</classDefault>
+    </property>
+   </properties>
+  </component>
+  !!]
 
   ! Objects used by this component.
   class(outputTimesClass               ), pointer :: outputTimes_
@@ -64,11 +70,15 @@ module Node_Component_Inter_Output_Standard
 
 contains
 
-  !# <nodeComponentThreadInitializationTask>
-  !#  <unitName>Node_Component_Interoutput_Standard_Thread_Initialize</unitName>
-  !# </nodeComponentThreadInitializationTask>
+  !![
+  <nodeComponentThreadInitializationTask>
+   <unitName>Node_Component_Interoutput_Standard_Thread_Initialize</unitName>
+  </nodeComponentThreadInitializationTask>
+  !!]
   subroutine Node_Component_Interoutput_Standard_Thread_Initialize(parameters_)
-    !% Initializes the tree node standard interoutput module.
+    !!{
+    Initializes the tree node standard interoutput module.
+    !!}
     use :: Events_Hooks    , only : satelliteMergerEvent       , openMPThreadBindingAtLevel, dependencyRegEx, dependencyDirectionAfter
     use :: Galacticus_Nodes, only : defaultInteroutputComponent
     use :: Input_Parameters, only : inputParameter             , inputParameters
@@ -79,38 +89,50 @@ contains
     if (defaultInteroutputComponent%standardIsActive()) then
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
        call satelliteMergerEvent%attach(defaultInteroutputComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentInteroutputStandard',dependencies=dependencies)
-       !# <objectBuilder class="outputTimes"                name="outputTimes_"                source="parameters_"/>
-       !# <objectBuilder class="mergerMassMovements"        name="mergerMassMovements_"        source="parameters_"/>
-       !# <objectBuilder class="starFormationRateDisks"     name="starFormationRateDisks_"     source="parameters_"/>
-       !# <objectBuilder class="starFormationRateSpheroids" name="starFormationRateSpheroids_" source="parameters_"/>
+       !![
+       <objectBuilder class="outputTimes"                name="outputTimes_"                source="parameters_"/>
+       <objectBuilder class="mergerMassMovements"        name="mergerMassMovements_"        source="parameters_"/>
+       <objectBuilder class="starFormationRateDisks"     name="starFormationRateDisks_"     source="parameters_"/>
+       <objectBuilder class="starFormationRateSpheroids" name="starFormationRateSpheroids_" source="parameters_"/>
+       !!]
     end if
     return
   end subroutine Node_Component_Interoutput_Standard_Thread_Initialize
 
-  !# <nodeComponentThreadUninitializationTask>
-  !#  <unitName>Node_Component_Interoutput_Standard_Thread_Uninitialize</unitName>
-  !# </nodeComponentThreadUninitializationTask>
+  !![
+  <nodeComponentThreadUninitializationTask>
+   <unitName>Node_Component_Interoutput_Standard_Thread_Uninitialize</unitName>
+  </nodeComponentThreadUninitializationTask>
+  !!]
   subroutine Node_Component_Interoutput_Standard_Thread_Uninitialize()
-    !% Uninitializes the tree node standard interoutput module.
+    !!{
+    Uninitializes the tree node standard interoutput module.
+    !!}
     use :: Events_Hooks    , only : satelliteMergerEvent
     use :: Galacticus_Nodes, only : defaultInteroutputComponent
     implicit none
 
     if (defaultInteroutputComponent%standardIsActive()) then
        call satelliteMergerEvent%detach(defaultInteroutputComponent,satelliteMerger)
-       !# <objectDestructor name="outputTimes_"               />
-       !# <objectDestructor name="mergerMassMovements_"       />
-       !# <objectDestructor name="starFormationRateDisks_"    />
-       !# <objectDestructor name="starFormationRateSpheroids_"/>
+       !![
+       <objectDestructor name="outputTimes_"               />
+       <objectDestructor name="mergerMassMovements_"       />
+       <objectDestructor name="starFormationRateDisks_"    />
+       <objectDestructor name="starFormationRateSpheroids_"/>
+       !!]
     end if
     return
   end subroutine Node_Component_Interoutput_Standard_Thread_Uninitialize
 
-  !# <scaleSetTask>
-  !#  <unitName>Node_Component_Inter_Output_Standard_Scale_Set</unitName>
-  !# </scaleSetTask>
+  !![
+  <scaleSetTask>
+   <unitName>Node_Component_Inter_Output_Standard_Scale_Set</unitName>
+  </scaleSetTask>
+  !!]
   subroutine Node_Component_Inter_Output_Standard_Scale_Set(node)
-    !% Set scales for properties of {\normalfont \ttfamily node}.
+    !!{
+    Set scales for properties of {\normalfont \ttfamily node}.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentInterOutput   , nodeComponentInterOutputStandard, nodeComponentSpheroid, &
           &                         treeNode         , defaultInterOutputComponent
     implicit none
@@ -141,11 +163,15 @@ contains
     return
   end subroutine Node_Component_Inter_Output_Standard_Scale_Set
 
-  !# <rateComputeTask>
-  !#  <unitName>Node_Component_Inter_Output_Standard_Rate_Compute</unitName>
-  !# </rateComputeTask>
+  !![
+  <rateComputeTask>
+   <unitName>Node_Component_Inter_Output_Standard_Rate_Compute</unitName>
+  </rateComputeTask>
+  !!]
   subroutine Node_Component_Inter_Output_Standard_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
-    !% Compute the exponential disk node mass rate of change.
+    !!{
+    Compute the exponential disk node mass rate of change.
+    !!}
     use :: Galacticus_Nodes, only : defaultInteroutputComponent, interruptTask        , nodeComponentBasic  , nodeComponentDisk, &
           &                         nodeComponentInterOutput   , nodeComponentSpheroid, propertyTypeInactive, treeNode
     implicit none
@@ -187,11 +213,15 @@ contains
     return
   end subroutine Node_Component_Inter_Output_Standard_Rate_Compute
 
-  !# <mergerTreeExtraOutputTask>
-  !#  <unitName>Node_Component_Inter_Output_Standard_Reset</unitName>
-  !# </mergerTreeExtraOutputTask>
+  !![
+  <mergerTreeExtraOutputTask>
+   <unitName>Node_Component_Inter_Output_Standard_Reset</unitName>
+  </mergerTreeExtraOutputTask>
+  !!]
   subroutine Node_Component_Inter_Output_Standard_Reset(node,iOutput,treeIndex,nodePassesFilter)
-    !% Reset interoutput accumulated quantities.
+    !!{
+    Reset interoutput accumulated quantities.
+    !!}
     use            :: Galacticus_Nodes, only : nodeComponentInterOutput, nodeComponentInterOutputStandard, treeNode, defaultInterOutputComponent
     use, intrinsic :: ISO_C_Binding   , only : c_size_t
     use            :: Kind_Numbers    , only : kind_int8
@@ -216,7 +246,9 @@ contains
   end subroutine Node_Component_Inter_Output_Standard_Reset
 
   subroutine satelliteMerger(self,node)
-    !% Remove any inter-output quantities associated with {\normalfont \ttfamily node} and add them to the merge target.
+    !!{
+    Remove any inter-output quantities associated with {\normalfont \ttfamily node} and add them to the merge target.
+    !!}
     use :: Galacticus_Error                    , only : Galacticus_Error_Report
     use :: Galacticus_Nodes                    , only : nodeComponentInterOutput, nodeComponentInterOutputStandard, treeNode
     use :: Satellite_Merging_Mass_Movements    , only : destinationMergerDisk   , destinationMergerSpheroid       , destinationMergerUnmoved

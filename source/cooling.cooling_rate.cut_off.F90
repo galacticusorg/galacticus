@@ -17,20 +17,26 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a cooling rate class which modifies another cooling rate by cutting off cooling above some virial velocity.
+  !!{
+  Implementation of a cooling rate class which modifies another cooling rate by cutting off cooling above some virial velocity.
+  !!}
 
   use :: Cosmology_Functions    , only : cosmologyFunctions , cosmologyFunctionsClass
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScale, darkMatterHaloScaleClass
 
-  !# <coolingRate name="coolingRateCutOff">
-  !#  <description>
-  !#   A cooling rate class which sets the cooling rate to zero in halos with virial velocities below {\normalfont \ttfamily
-  !#   [velocityCutOff]} at redshifts below/above {\normalfont \ttfamily [redshiftCutOff]} for {\normalfont \ttfamily
-  !#   [whenCutOff]}$=${\normalfont \ttfamily after/before}. In other halos the cooling rate is not modified.
-  !#  </description>
-  !# </coolingRate>
+  !![
+  <coolingRate name="coolingRateCutOff">
+   <description>
+    A cooling rate class which sets the cooling rate to zero in halos with virial velocities below {\normalfont \ttfamily
+    [velocityCutOff]} at redshifts below/above {\normalfont \ttfamily [redshiftCutOff]} for {\normalfont \ttfamily
+    [whenCutOff]}$=${\normalfont \ttfamily after/before}. In other halos the cooling rate is not modified.
+   </description>
+  </coolingRate>
+  !!]
   type, extends(coolingRateClass) :: coolingRateCutOff
-     !% Implementation of cooling rate class which modifies another cooling rate by cutting off cooling above some virial velocity.
+     !!{
+     Implementation of cooling rate class which modifies another cooling rate by cutting off cooling above some virial velocity.
+     !!}
      private
      class           (coolingRateClass        ), pointer :: coolingRate_         => null()
      class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
@@ -44,25 +50,31 @@
   end type coolingRateCutOff
 
   interface coolingRateCutOff
-     !% Constructors for the cut off cooling rate class.
+     !!{
+     Constructors for the cut off cooling rate class.
+     !!}
      module procedure cutOffConstructorParameters
      module procedure cutOffConstructorInternal
   end interface coolingRateCutOff
 
   ! Enumeration for whether cut off is before or after the given epoch.
-  !# <enumeration>
-  !#  <name>cutOffWhen</name>
-  !#  <description>Specifies whether cooling is cut off before or after the given epoch.</description>
-  !#  <encodeFunction>yes</encodeFunction>
-  !#  <validator>yes</validator>
-  !#  <entry label="before" />
-  !#  <entry label="after"  />
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>cutOffWhen</name>
+   <description>Specifies whether cooling is cut off before or after the given epoch.</description>
+   <encodeFunction>yes</encodeFunction>
+   <validator>yes</validator>
+   <entry label="before" />
+   <entry label="after"  />
+  </enumeration>
+  !!]
 
 contains
 
   function cutOffConstructorParameters(parameters) result(self)
-    !% Constructor for the cut off cooling rate class which builds the object from a parameter set.
+    !!{
+    Constructor for the cut off cooling rate class which builds the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (coolingRateCutOff       )                :: self
@@ -74,33 +86,35 @@ contains
     logical                                                   :: useFormationNode
     type            (varying_string          )                :: whenCutOff
 
-    !# <inputParameter>
-    !#   <name>useFormationNode</name>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <source>parameters</source>
-    !#   <description>Specifies whether to use the virial velocity of the formation node or current node in the cooling rate ``cut-off'' modifier.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>velocityCutOff</name>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <source>parameters</source>
-    !#   <description>The velocity below which cooling is suppressed in the ``cut-off'' cooling rate modifier method.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>redshiftCutOff</name>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <source>parameters</source>
-    !#   <description>The redshift below which cooling is suppressed in the ``cut-off'' cooling rate modifier method.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>whenCutOff</name>
-    !#   <defaultValue>var_str('after')</defaultValue>
-    !#   <source>parameters</source>
-    !#   <description>Specifies whether cooling is cut off before or after {\normalfont \ttfamily [redshiftCutOff]}.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="coolingRate"         name="coolingRate_"         source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
-    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>useFormationNode</name>
+      <defaultValue>.false.</defaultValue>
+      <source>parameters</source>
+      <description>Specifies whether to use the virial velocity of the formation node or current node in the cooling rate ``cut-off'' modifier.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>velocityCutOff</name>
+      <defaultValue>0.0d0</defaultValue>
+      <source>parameters</source>
+      <description>The velocity below which cooling is suppressed in the ``cut-off'' cooling rate modifier method.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>redshiftCutOff</name>
+      <defaultValue>0.0d0</defaultValue>
+      <source>parameters</source>
+      <description>The redshift below which cooling is suppressed in the ``cut-off'' cooling rate modifier method.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>whenCutOff</name>
+      <defaultValue>var_str('after')</defaultValue>
+      <source>parameters</source>
+      <description>Specifies whether cooling is cut off before or after {\normalfont \ttfamily [redshiftCutOff]}.</description>
+    </inputParameter>
+    <objectBuilder class="coolingRate"         name="coolingRate_"         source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    !!]
     self=coolingRateCutOff(                                                                          &
          &                                                                   velocityCutOff        , &
          &                 cosmologyFunctions_ %cosmicTime                 (                         &
@@ -116,15 +130,19 @@ contains
          &                                                                   darkMatterHaloScale_  , &
          &                                                                   coolingRate_            &
          &                )
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"/>
-    !# <objectDestructor name="coolingRate_"        />
-    !# <objectDestructor name="darkMatterHaloScale_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"/>
+    <objectDestructor name="coolingRate_"        />
+    <objectDestructor name="darkMatterHaloScale_"/>
+    !!]
     return
   end function cutOffConstructorParameters
 
   function cutOffConstructorInternal(velocityCutOff,timeCutOff,whenCutOff,useFormationNode,darkMatterHaloScale_,coolingRate_) result(self)
-    !% Internal constructor for the cut off cooling rate class.
+    !!{
+    Internal constructor for the cut off cooling rate class.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (coolingRateCutOff       )                        :: self
@@ -134,25 +152,33 @@ contains
     class           (darkMatterHaloScaleClass), intent(in   ), target :: darkMatterHaloScale_
     class           (coolingRateClass        ), intent(in   ), target :: coolingRate_
 
-    !# <constructorAssign variables="velocityCutOff, timeCutOff, whenCutOff, useFormationNode, *coolingRate_, *darkMatterHaloScale_"/>
+    !![
+    <constructorAssign variables="velocityCutOff, timeCutOff, whenCutOff, useFormationNode, *coolingRate_, *darkMatterHaloScale_"/>
+    !!]
     ! Validate "whenCutOff" argument.
     if (.not.enumerationCutOffWhenIsValid(whenCutOff)) call Galacticus_Error_Report('[whenCutOff] is invalid'//{introspection:location})
     return
   end function cutOffConstructorInternal
 
   subroutine cutOffDestructor(self)
-    !% Destructor for the cut off cooling rate class.
+    !!{
+    Destructor for the cut off cooling rate class.
+    !!}
     implicit none
     type(coolingRateCutOff), intent(inout) :: self
 
-    !# <objectDestructor name="self%coolingRate_"        />
-    !# <objectDestructor name="self%darkMatterHaloScale_"/>
+    !![
+    <objectDestructor name="self%coolingRate_"        />
+    <objectDestructor name="self%darkMatterHaloScale_"/>
+    !!]
     return
   end subroutine cutOffDestructor
 
   double precision function cutOffRate(self,node)
-    !% Returns the cooling rate (in $M_\odot$ Gyr$^{-1}$) in the hot atmosphere for a model in which this rate is cut off
-    !% before/after a given epoch and below a given virial velocity.
+    !!{
+    Returns the cooling rate (in $M_\odot$ Gyr$^{-1}$) in the hot atmosphere for a model in which this rate is cut off
+    before/after a given epoch and below a given virial velocity.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (coolingRateCutOff ), intent(inout) :: self

@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a simple test of mapping a function over all components in a \gls{node}.
+!!{
+Contains a module which implements a simple test of mapping a function over all components in a \gls{node}.
+!!}
 
 module Test_Nodes_Tasks
-  !% Implements a simple test of mapping a function over all components in a \gls{node}.
+  !!{
+  Implements a simple test of mapping a function over all components in a \gls{node}.
+  !!}
   private
   public :: Test_Node_Task
 
@@ -31,7 +35,9 @@ module Test_Nodes_Tasks
 contains
 
   subroutine Test_Node_Task(node)
-    !% Implements simple tests of mapping functions over all components in a \gls{node}.
+    !!{
+    Implements simple tests of mapping functions over all components in a \gls{node}.
+    !!}
     use :: Display         , only : displayVerbositySet, verbosityLevelStandard
     use :: Galacticus_Nodes, only : nodeComponent      , nodeComponentBlackHole, reductionSummation, treeNode
     use :: Unit_Tests      , only : Assert
@@ -62,7 +68,9 @@ contains
   end subroutine Test_Node_Task
 
   subroutine testVoidFunc(component)
-    !% A simple void function used in testing mapping over a function over all components.
+    !!{
+    A simple void function used in testing mapping over a function over all components.
+    !!}
     use :: Galacticus_Nodes  , only : nodeComponent
     use :: ISO_Varying_String, only : operator(==)
     implicit none
@@ -74,8 +82,10 @@ contains
   end subroutine testVoidFunc
 
   double precision function testFuncDouble0(component)
-    !% A simple test function which returns the enclosed mass for a component. Used in testing mapping over a function over all
-    !% components.
+    !!{
+    A simple test function which returns the enclosed mass for a component. Used in testing mapping over a function over all
+    components.
+    !!}
     use :: Galactic_Structure_Options, only : componentTypeAll, massTypeAll, radiusLarge, weightByMass, &
           &                                   weightIndexNull
     use :: Galacticus_Nodes          , only : nodeComponent

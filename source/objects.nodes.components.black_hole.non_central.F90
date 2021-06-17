@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements the standard black hole node component.
+!!{
+Contains a module which implements the standard black hole node component.
+!!}
 
 module Node_Component_Black_Hole_Noncentral
-  !% Implement black hole tree node methods.
+  !!{
+  Implement black hole tree node methods.
+  !!}
   use :: Black_Hole_Binary_Mergers          , only : blackHoleBinaryMergerClass
   use :: Black_Hole_Binary_Recoil_Velocities, only : blackHoleBinaryRecoilClass
   use :: Black_Hole_Binary_Separations      , only : blackHoleBinarySeparationGrowthRateClass
@@ -31,24 +35,26 @@ module Node_Component_Black_Hole_Noncentral
        &    Node_Component_Black_Hole_Noncentral_Initialize         , Node_Component_Black_Hole_Noncentral_Thread_Initialize, &
        &    Node_Component_Black_Hole_Noncentral_Thread_Uninitialize
 
-  !# <component>
-  !#  <class>blackHole</class>
-  !#  <name>nonCentral</name>
-  !#  <extends>
-  !#   <class>blackHole</class>
-  !#   <name>standard</name>
-  !#  </extends>
-  !#  <isDefault>false</isDefault>
-  !#  <output instances="first"/>
-  !#  <properties>
-  !#   <property>
-  !#     <name>radialPosition</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-  !#   </property>
-  !#  </properties>
-  !# </component>
+  !![
+  <component>
+   <class>blackHole</class>
+   <name>nonCentral</name>
+   <extends>
+    <class>blackHole</class>
+    <name>standard</name>
+   </extends>
+   <isDefault>false</isDefault>
+   <output instances="first"/>
+   <properties>
+    <property>
+      <name>radialPosition</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+    </property>
+   </properties>
+  </component>
+  !!]
 
   ! Objects used by this component.
   class(darkMatterHaloScaleClass                ), pointer :: darkMatterHaloScale_
@@ -70,65 +76,87 @@ module Node_Component_Black_Hole_Noncentral
 
 contains
 
-  !# <nodeComponentInitializationTask>
-  !#  <unitName>Node_Component_Black_Hole_Noncentral_Initialize</unitName>
-  !# </nodeComponentInitializationTask>
+  !![
+  <nodeComponentInitializationTask>
+   <unitName>Node_Component_Black_Hole_Noncentral_Initialize</unitName>
+  </nodeComponentInitializationTask>
+  !!]
   subroutine Node_Component_Black_Hole_Noncentral_Initialize(parameters_)
-    !% Initializes the noncentral black hole component module.
+    !!{
+    Initializes the noncentral black hole component module.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
 
-    !# <inputParameter>
-    !#   <name>tripleBlackHoleInteraction</name>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>Determines whether or not triple black hole interactions will be accounted for.</description>
-    !#   <source>parameters_</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>tripleBlackHoleInteraction</name>
+      <defaultValue>.false.</defaultValue>
+      <description>Determines whether or not triple black hole interactions will be accounted for.</description>
+      <source>parameters_</source>
+    </inputParameter>
+    !!]
     return
   end subroutine Node_Component_Black_Hole_Noncentral_Initialize
 
-  !# <nodeComponentThreadInitializationTask>
-  !#  <unitName>Node_Component_Black_Hole_Noncentral_Thread_Initialize</unitName>
-  !# </nodeComponentThreadInitializationTask>
+  !![
+  <nodeComponentThreadInitializationTask>
+   <unitName>Node_Component_Black_Hole_Noncentral_Thread_Initialize</unitName>
+  </nodeComponentThreadInitializationTask>
+  !!]
   subroutine Node_Component_Black_Hole_Noncentral_Thread_Initialize(parameters_)
-    !% Initializes the tree node random spin module.
+    !!{
+    Initializes the tree node random spin module.
+    !!}
     use :: Galacticus_Nodes, only : defaultBlackHoleComponent
     use :: Input_Parameters, only : inputParameter           , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
 
     if (defaultBlackHoleComponent%noncentralIsActive()) then
-       !# <objectBuilder class="darkMatterHaloScale"                 name="darkMatterHaloScale_"                 source="parameters_"/>
-       !# <objectBuilder class="blackHoleBinaryRecoil"               name="blackHoleBinaryRecoil_"               source="parameters_"/>
-       !# <objectBuilder class="blackHoleBinaryMerger"               name="blackHoleBinaryMerger_"               source="parameters_"/>
-       !# <objectBuilder class="blackHoleBinarySeparationGrowthRate" name="blackHoleBinarySeparationGrowthRate_" source="parameters_"/>
+       !![
+       <objectBuilder class="darkMatterHaloScale"                 name="darkMatterHaloScale_"                 source="parameters_"/>
+       <objectBuilder class="blackHoleBinaryRecoil"               name="blackHoleBinaryRecoil_"               source="parameters_"/>
+       <objectBuilder class="blackHoleBinaryMerger"               name="blackHoleBinaryMerger_"               source="parameters_"/>
+       <objectBuilder class="blackHoleBinarySeparationGrowthRate" name="blackHoleBinarySeparationGrowthRate_" source="parameters_"/>
+       !!]
     end if
     return
   end subroutine Node_Component_Black_Hole_Noncentral_Thread_Initialize
 
-  !# <nodeComponentThreadUninitializationTask>
-  !#  <unitName>Node_Component_Black_Hole_Noncentral_Thread_Uninitialize</unitName>
-  !# </nodeComponentThreadUninitializationTask>
+  !![
+  <nodeComponentThreadUninitializationTask>
+   <unitName>Node_Component_Black_Hole_Noncentral_Thread_Uninitialize</unitName>
+  </nodeComponentThreadUninitializationTask>
+  !!]
   subroutine Node_Component_Black_Hole_Noncentral_Thread_Uninitialize()
-    !% Uninitializes the tree node random spin module.
+    !!{
+    Uninitializes the tree node random spin module.
+    !!}
     use :: Galacticus_Nodes, only : defaultBlackHoleComponent
     implicit none
 
     if (defaultBlackHoleComponent%noncentralIsActive()) then
-       !# <objectDestructor name="darkMatterHaloScale_"                />
-       !# <objectDestructor name="blackHoleBinaryRecoil_"              />
-       !# <objectDestructor name="blackHoleBinaryMerger_"              />
-       !# <objectDestructor name="blackHoleBinarySeparationGrowthRate_"/>
+       !![
+       <objectDestructor name="darkMatterHaloScale_"                />
+       <objectDestructor name="blackHoleBinaryRecoil_"              />
+       <objectDestructor name="blackHoleBinaryMerger_"              />
+       <objectDestructor name="blackHoleBinarySeparationGrowthRate_"/>
+       !!]
     end if
     return
   end subroutine Node_Component_Black_Hole_Noncentral_Thread_Uninitialize
 
-  !# <rateComputeTask>
-  !#  <unitName>Node_Component_Black_Hole_Noncentral_Rate_Compute</unitName>
-  !# </rateComputeTask>
+  !![
+  <rateComputeTask>
+   <unitName>Node_Component_Black_Hole_Noncentral_Rate_Compute</unitName>
+  </rateComputeTask>
+  !!]
   subroutine Node_Component_Black_Hole_Noncentral_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
-    !% Compute the black hole node mass rate of change.
+    !!{
+    Compute the black hole node mass rate of change.
+    !!}
     use :: Galacticus_Nodes                , only : defaultBlackHoleComponent      , interruptTask, nodeComponentBlackHole, propertyTypeInactive, &
           &                                         treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
@@ -248,11 +276,15 @@ contains
     return
   end subroutine Node_Component_Black_Hole_Noncentral_Rate_Compute
 
-  !# <scaleSetTask>
-  !#  <unitName>Node_Component_Black_Hole_Noncentral_Scale_Set</unitName>
-  !# </scaleSetTask>
+  !![
+  <scaleSetTask>
+   <unitName>Node_Component_Black_Hole_Noncentral_Scale_Set</unitName>
+  </scaleSetTask>
+  !!]
   subroutine Node_Component_Black_Hole_Noncentral_Scale_Set(node)
-    !% Set scales for properties of {\normalfont \ttfamily node}.
+    !!{
+    Set scales for properties of {\normalfont \ttfamily node}.
+    !!}
     use :: Galacticus_Nodes, only : defaultBlackHoleComponent, nodeComponentBlackHole, nodeComponentSpheroid, treeNode
     implicit none
     type            (treeNode              ), intent(inout), pointer :: node
@@ -286,7 +318,9 @@ contains
   end subroutine Node_Component_Black_Hole_Noncentral_Scale_Set
 
   subroutine Node_Component_Black_Hole_Noncentral_Merge_Black_Holes(node)
-    !% Merge two black holes.
+    !!{
+    Merge two black holes.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBlackHole, treeNode
     implicit none
     type            (treeNode              ), intent(inout), target  :: node
@@ -336,7 +370,9 @@ contains
   end subroutine Node_Component_Black_Hole_Noncentral_Merge_Black_Holes
 
   subroutine Node_Component_Black_Hole_Noncentral_Triple_Interaction(node)
-    !% Handles triple black holes interactions, using conditions similar to those of \cite{volonteri_assembly_2003}.
+    !!{
+    Handles triple black holes interactions, using conditions similar to those of \cite{volonteri_assembly_2003}.
+    !!}
     use :: Galacticus_Nodes            , only : nodeComponentBasic             , nodeComponentBlackHole, treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
@@ -439,7 +475,9 @@ contains
   end subroutine Node_Component_Black_Hole_Noncentral_Triple_Interaction
 
   logical function Node_Component_Black_Hole_Noncentral_Recoil_Escapes(node,recoilVelocity,radius,ignoreCentralBlackHole)
-    !% Return true if the given recoil velocity is sufficient to eject a black hole from the halo.
+    !!{
+    Return true if the given recoil velocity is sufficient to eject a black hole from the halo.
+    !!}
     use :: Galactic_Structure_Options   , only : componentTypeBlackHole
     use :: Galactic_Structure_Potentials, only : Galactic_Structure_Potential
     use :: Galacticus_Nodes             , only : treeNode

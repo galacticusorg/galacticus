@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains custom functions for the standard black hole component.
+!!{
+Contains custom functions for the standard black hole component.
+!!}
 
 double precision function Node_Component_Black_Hole_Standard_Seed_Spin(self)
-  !% Return the seed spin for standard black holes.
+  !!{
+  Return the seed spin for standard black holes.
+  !!}
   implicit none
   class(nodeComponentBlackHoleStandard), intent(inout) :: self
   !$GLC attributes unused :: Self
@@ -30,7 +34,9 @@ double precision function Node_Component_Black_Hole_Standard_Seed_Spin(self)
 end function Node_Component_Black_Hole_Standard_Seed_Spin
 
 double precision function Node_Component_Black_Hole_Standard_Spin(self)
-  !% Return the spin of a standard black hole.
+  !!{
+  Return the spin of a standard black hole.
+  !!}
   implicit none
   class           (nodeComponentBlackHoleStandard), intent(inout) :: self
   double precision                                , parameter     :: blackHoleSpinMaximum=0.9999d0 !  Maximum allowed spin (useful to avoid infinities).
@@ -42,7 +48,9 @@ end function Node_Component_Black_Hole_Standard_Spin
 
 double precision function Node_Component_Black_Hole_Standard_Enclosed_Mass(self,radius,componentType,massType,weightBy&
      &,weightIndex)
-  !% Computes the mass within a given radius for a central black hole. Black hole is treated as a point mass.
+  !!{
+  Computes the mass within a given radius for a central black hole. Black hole is treated as a point mass.
+  !!}
   use :: Galactic_Structure_Options, only : componentTypeAll, componentTypeBlackHole, massTypeAll, massTypeBlackHole, &
           &                                 weightByMass
   implicit none
@@ -64,7 +72,9 @@ double precision function Node_Component_Black_Hole_Standard_Enclosed_Mass(self,
 end function Node_Component_Black_Hole_Standard_Enclosed_Mass
 
  function Node_Component_Black_Hole_Standard_Acceleration(self,positionCartesian,componentType,massType)
-  !% Computes the acceleration due to a central black hole. Black hole is treated as a point mass.
+  !!{
+  Computes the acceleration due to a central black hole. Black hole is treated as a point mass.
+  !!}
   use :: Galactic_Structure_Options      , only : componentTypeAll               , componentTypeBlackHole, massTypeAll, massTypeBlackHole
   use :: Numerical_Constants_Astronomical, only : gigaYear                       , megaParsec
   use :: Numerical_Constants_Astronomical    , only : gravitationalConstantGalacticus
@@ -96,7 +106,9 @@ end function Node_Component_Black_Hole_Standard_Enclosed_Mass
 end function Node_Component_Black_Hole_Standard_Acceleration
 
 function Node_Component_Black_Hole_Standard_Tidal_Tensor(self,positionCartesian,componentType,massType)
-  !% Computes the acceleration due to a central black hole. Black hole is treated as a point mass.
+  !!{
+  Computes the acceleration due to a central black hole. Black hole is treated as a point mass.
+  !!}
   use :: Galactic_Structure_Options  , only : componentTypeAll               , componentTypeBlackHole, massTypeAll          , massTypeBlackHole
   use :: Numerical_Constants_Math    , only : Pi
   use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus

@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module of useful astronomical constants.
+!!{
+Contains a module of useful astronomical constants.
+!!}
 
 module Numerical_Constants_Astronomical
-  !% Contains various useful astronomical constants.
+  !!{
+  Contains various useful astronomical constants.
+  !!}
   use :: Numerical_Constants_Atomic  , only : atomicMassHelium     , atomicMassHydrogen, atomicMassLithium7
   use :: Numerical_Constants_Math    , only : Pi
   use :: Numerical_Constants_Physical, only : gravitationalConstant
@@ -30,7 +34,9 @@ module Numerical_Constants_Astronomical
   public
 
   ! Solar mass (in kg).
-  !# <gslConstant variable="massSolar" gslSymbol="GSL_CONST_MKSA_SOLAR_MASS" gslHeader="gsl_const_mksa"/>
+  !![
+  <gslConstant variable="massSolar" gslSymbol="GSL_CONST_MKSA_SOLAR_MASS" gslHeader="gsl_const_mksa"/>
+  !!]
 
   ! Solar radius (in m; Allen's Astrophysical Quantities, page 340).
   double precision, parameter :: radiusSolar                         =6.95508d8
@@ -55,7 +61,9 @@ module Numerical_Constants_Astronomical
   double precision, parameter :: meanAtomicMassPrimordial            = 1.0d0/(2.0d0*hydrogenByMassPrimordial/atomicMassHydrogen+3.0d0*heliumByMassPrimordial/atomicMassHelium)
 
   ! Parsec and related quantities (in m).
-  !# <gslConstant variable="parsec" gslSymbol="GSL_CONST_MKSA_PARSEC" gslHeader="gsl_const_mksa"/>
+  !![
+  <gslConstant variable="parsec" gslSymbol="GSL_CONST_MKSA_PARSEC" gslHeader="gsl_const_mksa"/>
+  !!]
   double precision, parameter :: kiloParsec                         =kilo*parsec
   double precision, parameter :: megaParsec                         =mega*parsec
 

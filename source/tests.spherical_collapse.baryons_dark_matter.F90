@@ -18,7 +18,9 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 program Tests_Spherical_Collapse_Baryons_Dark_Matter
-  !% Tests linear growth calculations.
+  !!{
+  Tests linear growth calculations.
+  !!}
   use :: Cosmological_Density_Field           , only : cosmologicalMassVarianceFilteredPower                     , criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy      , criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt
   use :: Cosmology_Functions                  , only : cosmologyFunctionsMatterLambda
   use :: Cosmology_Parameters                 , only : cosmologyParametersSimple

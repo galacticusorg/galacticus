@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements calculations of one-dimensional shocks.
+!!{
+Contains a module which implements calculations of one-dimensional shocks.
+!!}
 
 module Shocks_1D
-  !% iImplements calculations of one-dimensional shocks.
+  !!{
+  iImplements calculations of one-dimensional shocks.
+  !!}
   private
   public :: Shocks_1D_Density_Jump
 
@@ -30,7 +34,9 @@ module Shocks_1D
 contains
 
   double precision function Shocks_1D_Density_Jump(adiabaticIndex,machNumberPreShock)
-    !% Computes the density jump across a one-dimensional shock.
+    !!{
+    Computes the density jump across a one-dimensional shock.
+    !!}
     implicit none
     double precision, intent(in   ) :: adiabaticIndex,machNumberPreShock
 

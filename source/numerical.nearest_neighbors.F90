@@ -17,25 +17,33 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which wraps the \href{http://www.cs.umd.edu/~mount/ANN/}{ANN} (Approximate Nearest Neighbor) library.
+!!{
+Contains a module which wraps the \href{http://www.cs.umd.edu/~mount/ANN/}{ANN} (Approximate Nearest Neighbor) library.
+!!}
 
 ! Specify an explicit dependence on the ANN.o object file.
 !: $(BUILDPATH)/ANN.o
 
 module Nearest_Neighbors
-  !% Wraps the \href{http://www.cs.umd.edu/~mount/ANN/}{ANN} (Approximate Nearest Neighbor) library.
+  !!{
+  Wraps the \href{http://www.cs.umd.edu/~mount/ANN/}{ANN} (Approximate Nearest Neighbor) library.
+  !!}
   use, intrinsic :: ISO_C_Binding, only : C_Null_Ptr, c_ptr, c_int, c_double
   private
   public :: nearestNeighbors, nearestNeighborsClose
 
   type :: nearestNeighbors
-     !% Wrapper object for nearest neighbor searching.
+     !!{
+     Wrapper object for nearest neighbor searching.
+     !!}
      type(c_ptr) :: ANNkd_tree=C_Null_Ptr
    contains
-     !# <methods>
-     !#   <method description="Compute indices and distances to the approximate nearest neighbors." method="search" />
-     !#   <method description="Compute indices and distances to the approximate nearest neighbors." method="searchFixedRadius" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Compute indices and distances to the approximate nearest neighbors." method="search" />
+       <method description="Compute indices and distances to the approximate nearest neighbors." method="searchFixedRadius" />
+     </methods>
+     !!]
      final     ::                      nearestNeighborsDestructor
      procedure :: search            => nearestNeighborsSearch
      procedure :: searchFixedRadius => nearestNeighborsSearchFixedRadius
@@ -48,7 +56,9 @@ module Nearest_Neighbors
 #ifdef ANNAVAIL
   interface
      function nearestNeighborsConstructorC(n,d,pa) bind(c,name='nearestNeighborsConstructorC')
-       !% Template for a C function that constructs an {\normalfont \ttfamily ANNkd\_tree}.
+       !!{
+       Template for a C function that constructs an {\normalfont \ttfamily ANNkd\_tree}.
+       !!}
        import
        type   (c_ptr   )                              :: nearestNeighborsConstructorC
        integer(c_int   ), value       , intent(in   ) :: n, d
@@ -58,7 +68,9 @@ module Nearest_Neighbors
 
   interface
     subroutine nearestNeighborsSearchC(ANN,point,neighborCount,tolerance,neighborIndex,neighborDistance) bind(c,name='nearestNeighborsSearchC')
-       !% Template for a C function that searches for nearest neighbors.
+       !!{
+       Template for a C function that searches for nearest neighbors.
+       !!}
       import
       type   (c_ptr   ), value       , intent(in   ) :: ANN
       real   (c_double), dimension(*), intent(in   ) :: point
@@ -71,7 +83,9 @@ module Nearest_Neighbors
 
   interface
      function nearestNeighborsSearchFixedRadiusC(ANN,point,radiusSquared,neighborCount,neighborIndex,neighborDistance,tolerance) bind(c,name='nearestNeighborsSearchFixedRadiusC')
-       !% Template for a C function that searches for nearest neighbors.
+       !!{
+       Template for a C function that searches for nearest neighbors.
+       !!}
        import
        integer(c_int   )                              :: nearestNeighborsSearchFixedRadiusC
        type   (c_ptr   ), value       , intent(in   ) :: ANN
@@ -86,7 +100,9 @@ module Nearest_Neighbors
 
   interface
      subroutine nearestNeighborsDestructorC(ANN) bind(c,name='nearestNeighborsDestructorC')
-       !% Template for a C function that destroys an {\normalfont \ttfamily ANNkd\_tree}.
+       !!{
+       Template for a C function that destroys an {\normalfont \ttfamily ANNkd\_tree}.
+       !!}
        import
        type(c_ptr), intent(in   ), value :: ANN
      end subroutine nearestNeighborsDestructorC
@@ -94,7 +110,9 @@ module Nearest_Neighbors
 
   interface
      subroutine nearestNeighborsCloseC() bind(c,name='nearestNeighborsCloseC')
-       !% Template for a C function that closes the ANN library.
+       !!{
+       Template for a C function that closes the ANN library.
+       !!}
        import
      end subroutine nearestNeighborsCloseC
   end interface
@@ -103,7 +121,9 @@ module Nearest_Neighbors
 contains
 
   function nearestNeighborsConstructor(points)
-    !% Constructs a nearest neighor search object.
+    !!{
+    Constructs a nearest neighor search object.
+    !!}
 #ifndef ANNAVAIL
     use :: Galacticus_Error, only : Galacticus_Error_Report
 #endif
@@ -122,7 +142,9 @@ contains
   end function nearestNeighborsConstructor
 
   subroutine nearestNeighborsDestructor(self)
-    !% Destroys a nearest neighbor search object.
+    !!{
+    Destroys a nearest neighbor search object.
+    !!}
 #ifndef ANNAVAIL
     use :: Galacticus_Error, only : Galacticus_Error_Report
 #endif
@@ -139,7 +161,9 @@ contains
   end subroutine nearestNeighborsDestructor
 
   subroutine nearestNeighborsClose()
-    !% Closes the ANN (Approximate Nearest Neighbor) library.
+    !!{
+    Closes the ANN (Approximate Nearest Neighbor) library.
+    !!}
 #ifndef ANNAVAIL
     use :: Galacticus_Error, only : Galacticus_Error_Report
 #endif
@@ -154,7 +178,9 @@ contains
   end subroutine nearestNeighborsClose
 
   subroutine nearestNeighborsSearch(self,point,neighborCount,tolerance,neighborIndex,neighborDistance)
-    !% Return indices and distances to the (approximate) nearest neighbors.
+    !!{
+    Return indices and distances to the (approximate) nearest neighbors.
+    !!}
 #ifndef ANNAVAIL
     use :: Galacticus_Error, only : Galacticus_Error_Report
 #endif
@@ -181,7 +207,9 @@ contains
   end subroutine nearestNeighborsSearch
 
   subroutine nearestNeighborsSearchFixedRadius(self,point,radius,tolerance,neighborCount,neighborIndex,neighborDistance)
-    !% Return indices and distances to all neighbors within a given {\normalfont \ttfamily radius}.
+    !!{
+    Return indices and distances to all neighbors within a given {\normalfont \ttfamily radius}.
+    !!}
 #ifndef ANNAVAIL
     use :: Galacticus_Error , only : Galacticus_Error_Report
 #endif

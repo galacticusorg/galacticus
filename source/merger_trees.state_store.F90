@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides state store/restore functionality for merger trees.
+!!{
+Contains a module which provides state store/restore functionality for merger trees.
+!!}
 
 module Merger_Tree_State_Store
-  !% Provides state store/restore functionality for merger trees.
+  !!{
+  Provides state store/restore functionality for merger trees.
+  !!}
   use, intrinsic :: ISO_C_Binding, only : c_size_t
   public
 
@@ -29,11 +33,15 @@ module Merger_Tree_State_Store
 
 contains
 
-  !# <galacticusStateStoreTask>
-  !#  <unitName>mergerTreeStateStore</unitName>
-  !# </galacticusStateStoreTask>
+  !![
+  <galacticusStateStoreTask>
+   <unitName>mergerTreeStateStore</unitName>
+  </galacticusStateStoreTask>
+  !!]
   subroutine mergerTreeStateStore(stateFile,gslStateFile,stateOperatorID)
-    !% Write the stored snapshot of the random number state to file.
+    !!{
+    Write the stored snapshot of the random number state to file.
+    !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t, c_ptr
     implicit none
     integer          , intent(in   ) :: stateFile
@@ -45,11 +53,15 @@ contains
     return
   end subroutine mergerTreeStateStore
 
-  !# <galacticusStateRetrieveTask>
-  !#  <unitName>mergerTreeStateRestore</unitName>
-  !# </galacticusStateRetrieveTask>
+  !![
+  <galacticusStateRetrieveTask>
+   <unitName>mergerTreeStateRestore</unitName>
+  </galacticusStateRetrieveTask>
+  !!]
   subroutine mergerTreeStateRestore(stateFile,gslStateFile,stateOperatorID)
-    !% Write the stored snapshot of the random number state to file.
+    !!{
+    Write the stored snapshot of the random number state to file.
+    !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t, c_ptr
     implicit none
     integer          , intent(in   ) :: stateFile

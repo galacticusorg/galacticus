@@ -17,21 +17,27 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Implements a stellar population spectra postprocessor class which applies a sequence of other postprocessors.
+!!{
+Implements a stellar population spectra postprocessor class which applies a sequence of other postprocessors.
+!!}
 
   type, public :: postprocessorList
      class(stellarPopulationSpectraPostprocessorClass), pointer :: postprocessor_
      type (postprocessorList                         ), pointer :: next           => null()
   end type postprocessorList
 
-  !# <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorSequence">
-  !#  <description>A sequence stellar population spectra postprocessor class.</description>
-  !#  <deepCopy>
-  !#   <linkedList type="postprocessorList" variable="postprocessors" next="next" object="postprocessor_" objectType="stellarPopulationSpectraPostprocessorClass"/>
-  !#  </deepCopy>
-  !# </stellarPopulationSpectraPostprocessor>
+  !![
+  <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorSequence">
+   <description>A sequence stellar population spectra postprocessor class.</description>
+   <deepCopy>
+    <linkedList type="postprocessorList" variable="postprocessors" next="next" object="postprocessor_" objectType="stellarPopulationSpectraPostprocessorClass"/>
+   </deepCopy>
+  </stellarPopulationSpectraPostprocessor>
+  !!]
   type, extends(stellarPopulationSpectraPostprocessorClass) :: stellarPopulationSpectraPostprocessorSequence
-     !% A sequence stellar population spectra postprocessor class.
+     !!{
+     A sequence stellar population spectra postprocessor class.
+     !!}
      private
      type(postprocessorList), pointer :: postprocessors => null()
    contains
@@ -41,7 +47,9 @@
   end type stellarPopulationSpectraPostprocessorSequence
 
   interface stellarPopulationSpectraPostprocessorSequence
-     !% Constructors for the ``sequence'' stellar population spectra postprocessor class.
+     !!{
+     Constructors for the ``sequence'' stellar population spectra postprocessor class.
+     !!}
      module procedure sequenceConstructorParameters
      module procedure sequenceConstructorInternal
   end interface stellarPopulationSpectraPostprocessorSequence
@@ -49,7 +57,9 @@
 contains
 
   function sequenceConstructorParameters(parameters) result (self)
-    !% Constructor for the ``sequence'' stellar population spectra postprocessor class which takes a parameter set as input.
+    !!{
+    Constructor for the ``sequence'' stellar population spectra postprocessor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (stellarPopulationSpectraPostprocessorSequence)                :: self
@@ -67,13 +77,17 @@ contains
           allocate(self%postprocessors)
           postprocessor_ => self%postprocessors
        end if
-       !# <objectBuilder class="stellarPopulationSpectraPostprocessor" name="postprocessor_%postprocessor_" source="parameters" copy="i" />
+       !![
+       <objectBuilder class="stellarPopulationSpectraPostprocessor" name="postprocessor_%postprocessor_" source="parameters" copy="i" />
+       !!]
     end do
     return
   end function sequenceConstructorParameters
 
   function sequenceConstructorInternal(postprocessors) result (self)
-    !% Internal constructor for the sequence mstellar population spectra postprocessor class.
+    !!{
+    Internal constructor for the sequence mstellar population spectra postprocessor class.
+    !!}
     implicit none
     type(stellarPopulationSpectraPostprocessorSequence)                        :: self
     type(postprocessorList                            ), target, intent(in   ) :: postprocessors
@@ -82,14 +96,18 @@ contains
     self          %postprocessors => postprocessors
     postprocessor_                => postprocessors
     do while (associated(postprocessor_))
-       !# <referenceCountIncrement owner="postprocessor_" object="postprocessor_"/>
+       !![
+       <referenceCountIncrement owner="postprocessor_" object="postprocessor_"/>
+       !!]
        postprocessor_ => postprocessor_%next
     end do
     return
   end function sequenceConstructorInternal
 
   subroutine sequenceDestructor(self)
-    !% Destructor for the sequence stellar population spectra postprocessor class.
+    !!{
+    Destructor for the sequence stellar population spectra postprocessor class.
+    !!}
     implicit none
     type(stellarPopulationSpectraPostprocessorSequence), intent(inout) :: self
     type(postprocessorList                            ), pointer       :: postprocessor_, postprocessorNext
@@ -98,7 +116,9 @@ contains
        postprocessor_ => self%postprocessors
        do while (associated(postprocessor_))
           postprocessorNext => postprocessor_%next
-          !# <objectDestructor name="postprocessor_%postprocessor_"/>
+          !![
+          <objectDestructor name="postprocessor_%postprocessor_"/>
+          !!]
           deallocate(postprocessor_)
           postprocessor_ => postprocessorNext
        end do
@@ -107,7 +127,9 @@ contains
   end subroutine sequenceDestructor
 
   double precision function sequenceMultiplier(self,wavelength,age,redshift)
-    !% Implement an sequence stellar population spectra postprocessor.
+    !!{
+    Implement an sequence stellar population spectra postprocessor.
+    !!}
     implicit none
     class           (stellarPopulationSpectraPostprocessorSequence), intent(inout) :: self
     double precision                                               , intent(in   ) :: age           , redshift, &
@@ -125,7 +147,9 @@ contains
   end function sequenceMultiplier
 
   subroutine sequenceDescriptor(self,descriptor,includeClass)
-    !% Return an input parameter list descriptor which could be used to recreate this object.
+    !!{
+    Return an input parameter list descriptor which could be used to recreate this object.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     class  (stellarPopulationSpectraPostprocessorSequence), intent(inout)           :: self

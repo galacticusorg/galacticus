@@ -17,18 +17,24 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !# <outputTimes name="outputTimesUniformSpacingInTime">
-  !#  <description>An output times class which generates a set of output times spaced uniformly in time.</description>
-  !# </outputTimes>
+  !![
+  <outputTimes name="outputTimesUniformSpacingInTime">
+   <description>An output times class which generates a set of output times spaced uniformly in time.</description>
+  </outputTimes>
+  !!]
   type, extends(outputTimesList) :: outputTimesUniformSpacingInTime
-     !% Implementation of an output times class which generates a set of output times spaced uniformly in time.
+     !!{
+     Implementation of an output times class which generates a set of output times spaced uniformly in time.
+     !!}
      private
      double precision           :: timeMinimum, timeMaximum
      integer         (c_size_t) :: countTimes
   end type outputTimesUniformSpacingInTime
 
   interface outputTimesUniformSpacingInTime
-     !% Constructors for the {\normalfont \ttfamily uniformSpacingInTime} output times class.
+     !!{
+     Constructors for the {\normalfont \ttfamily uniformSpacingInTime} output times class.
+     !!}
      module procedure uniformSpacingInTimeConstructorParameters
      module procedure uniformSpacingInTimeConstructorInternal
   end interface outputTimesUniformSpacingInTime
@@ -36,7 +42,9 @@
 contains
 
   function uniformSpacingInTimeConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily uniformSpacingInTime} output times class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily uniformSpacingInTime} output times class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (outputTimesUniformSpacingInTime)                :: self
@@ -45,30 +53,36 @@ contains
     double precision                                                 :: timeMinimum        , timeMaximum
     integer         (c_size_t                       )                :: countTimes
 
-    !# <inputParameter>
-    !#   <name>timeMinimum</name>
-    !#   <description>The minimum time at which to output.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>timeMaximum</name>
-    !#   <description>The maximum time at which to output.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>countTimes</name>
-    !#   <description>The number of times at which to output.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>timeMinimum</name>
+      <description>The minimum time at which to output.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>timeMaximum</name>
+      <description>The maximum time at which to output.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>countTimes</name>
+      <description>The number of times at which to output.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !!]
     self=outputTimesUniformSpacingInTime(timeMinimum,timeMaximum,countTimes,cosmologyFunctions_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"/>
+    !!]
     return
   end function uniformSpacingInTimeConstructorParameters
 
   function uniformSpacingInTimeConstructorInternal(timeMinimum,timeMaximum,countTimes,cosmologyFunctions_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily uniformSpacingInTime} output times class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily uniformSpacingInTime} output times class.
+    !!}
     use :: Numerical_Ranges, only : Make_Range, rangeTypeLinear
     implicit none
     type            (outputTimesUniformSpacingInTime)                        :: self
@@ -76,7 +90,9 @@ contains
     integer         (c_size_t                       ), intent(in   )         :: countTimes
     class           (cosmologyFunctionsClass        ), intent(in   ), target :: cosmologyFunctions_
     integer         (c_size_t                       )                        :: i
-    !# <constructorAssign variables="timeMinimum, timeMaximum, countTimes, *cosmologyFunctions_"/>
+    !![
+    <constructorAssign variables="timeMinimum, timeMaximum, countTimes, *cosmologyFunctions_"/>
+    !!]
 
     allocate(self%times    (countTimes))
     allocate(self%redshifts(countTimes))

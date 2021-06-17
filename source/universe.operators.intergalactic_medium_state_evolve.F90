@@ -36,11 +36,15 @@
   use :: Output_Times                                , only : outputTimes                            , outputTimesClass
   use :: Radiation_Fields                            , only : radiationField                         , radiationFieldClass                         , radiationFieldIntergalacticBackground
 
-  !# <universeOperator name="universeOperatorIntergalacticMediumStateEvolve">
-  !#  <description>An operator on universes which attaches hooks to compute evolution of the intergalactic medium.</description>
-  !# </universeOperator>
+  !![
+  <universeOperator name="universeOperatorIntergalacticMediumStateEvolve">
+   <description>An operator on universes which attaches hooks to compute evolution of the intergalactic medium.</description>
+  </universeOperator>
+  !!]
   type, extends(universeOperatorClass) :: universeOperatorIntergalacticMediumStateEvolve
-     !% Implementation of a universeOperator which computes and outputs the power spectrum and related quantities.
+     !!{
+     Implementation of a universeOperator which computes and outputs the power spectrum and related quantities.
+     !!}
      private
      class           (outputTimesClass                            ), pointer                     :: outputTimes_                             => null()
      class           (cosmologyParametersClass                    ), pointer                     :: cosmologyParameters_                     => null()
@@ -67,16 +71,20 @@
      double precision                                              , allocatable, dimension(:,:) :: densityHydrogen                                   , densityHelium  , &
           &                                                                                         massFilteringComposite
    contains
-     !# <methods>
-     !#   <method description="Set the state of the IGM state class up to the given time index." method="stateSet" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Set the state of the IGM state class up to the given time index." method="stateSet" />
+     </methods>
+     !!]
      final     ::             intergalacticMediumStateEvolveDestructor
      procedure :: operate  => intergalacticMediumStateEvolveOperate
      procedure :: stateSet => intergalacticMediumStateEvolveStateSet
   end type universeOperatorIntergalacticMediumStateEvolve
 
   interface universeOperatorIntergalacticMediumStateEvolve
-     !% Constructors for the {\normalfont \ttfamily intergalacticMediumStateEvolve} universeOperator.
+     !!{
+     Constructors for the {\normalfont \ttfamily intergalacticMediumStateEvolve} universeOperator.
+     !!}
      module procedure intergalacticMediumStateEvolveConstructorParameters
      module procedure intergalacticMediumStateEvolveConstructorInternal
   end interface universeOperatorIntergalacticMediumStateEvolve
@@ -88,7 +96,9 @@
 contains
 
   function intergalacticMediumStateEvolveConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily intergalacticMediumStateEvolve} universeOperator class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily intergalacticMediumStateEvolve} universeOperator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (universeOperatorIntergalacticMediumStateEvolve)                :: self
@@ -112,39 +122,41 @@ contains
     double precision                                                                :: redshiftMinimum                         , redshiftMaximum, &
          &                                                                             timeMinimum                             , timeMaximum
 
-    !# <inputParameter>
-    !#   <name>timeCountPerDecade</name>
-    !#   <defaultValue>10</defaultValue>
-    !#   <description>The number of bins per decade of time to use for calculations of the properties of the universe.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>redshiftMinimum</name>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>The minimum redshift to use in calculations.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>redshiftMaximum</name>
-    !#   <defaultValue>400.0d0</defaultValue>
-    !#   <description>The maximum redshift to use in calculations.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters"                     name="cosmologyParameters_"                     source="parameters"                                                      />
-    !# <objectBuilder class="cosmologyFunctions"                      name="cosmologyFunctions_"                      source="parameters"                                                      />
-    !# <objectBuilder class="linearGrowth"                            name="linearGrowth_"                            source="parameters"                                                      />
-    !# <objectBuilder class="cosmologicalMassVariance"                name="cosmologicalMassVariance_"                source="parameters"                                                      />
-    !# <objectBuilder class="outputTimes"                             name="outputTimes_"                             source="parameters"                                                      />
-    !# <objectBuilder class="gauntFactor"                             name="gauntFactor_"                             source="parameters"                                                      />
-    !# <objectBuilder class="atomicCrossSectionIonizationPhoto"       name="atomicCrossSectionIonizationPhoto_"       source="parameters"                                                      />
-    !# <objectBuilder class="atomicIonizationPotential"               name="atomicIonizationPotential_"               source="parameters"                                                      />
-    !# <objectBuilder class="atomicRecombinationRateDielectronic"     name="atomicRecombinationRateDielectronic_"     source="parameters"                                                      />
-    !# <objectBuilder class="atomicRecombinationRateRadiative"        name="atomicRecombinationRateRadiative_"        source="parameters"                                                      />
-    !# <objectBuilder class="atomicRecombinationRateRadiativeCooling" name="atomicRecombinationRateRadiativeCooling_" source="parameters"                                                      />
-    !# <objectBuilder class="atomicIonizationRateCollisional"         name="atomicIonizationRateCollisional_"         source="parameters"                                                      />
-    !# <objectBuilder class="atomicExcitationRateCollisional"         name="atomicExcitationRateCollisional_"         source="parameters"                                                      />
-    !# <objectBuilder class="intergalacticMediumState"                name="intergalacticMediumState_"                source="parameters"                                                      />
-    !# <objectBuilder class="radiationField"                          name="radiationField_"                          source="parameters" parameterName="radiationFieldIntergalacticBackground"/>
+    !![
+    <inputParameter>
+      <name>timeCountPerDecade</name>
+      <defaultValue>10</defaultValue>
+      <description>The number of bins per decade of time to use for calculations of the properties of the universe.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>redshiftMinimum</name>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The minimum redshift to use in calculations.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>redshiftMaximum</name>
+      <defaultValue>400.0d0</defaultValue>
+      <description>The maximum redshift to use in calculations.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="cosmologyParameters"                     name="cosmologyParameters_"                     source="parameters"                                                      />
+    <objectBuilder class="cosmologyFunctions"                      name="cosmologyFunctions_"                      source="parameters"                                                      />
+    <objectBuilder class="linearGrowth"                            name="linearGrowth_"                            source="parameters"                                                      />
+    <objectBuilder class="cosmologicalMassVariance"                name="cosmologicalMassVariance_"                source="parameters"                                                      />
+    <objectBuilder class="outputTimes"                             name="outputTimes_"                             source="parameters"                                                      />
+    <objectBuilder class="gauntFactor"                             name="gauntFactor_"                             source="parameters"                                                      />
+    <objectBuilder class="atomicCrossSectionIonizationPhoto"       name="atomicCrossSectionIonizationPhoto_"       source="parameters"                                                      />
+    <objectBuilder class="atomicIonizationPotential"               name="atomicIonizationPotential_"               source="parameters"                                                      />
+    <objectBuilder class="atomicRecombinationRateDielectronic"     name="atomicRecombinationRateDielectronic_"     source="parameters"                                                      />
+    <objectBuilder class="atomicRecombinationRateRadiative"        name="atomicRecombinationRateRadiative_"        source="parameters"                                                      />
+    <objectBuilder class="atomicRecombinationRateRadiativeCooling" name="atomicRecombinationRateRadiativeCooling_" source="parameters"                                                      />
+    <objectBuilder class="atomicIonizationRateCollisional"         name="atomicIonizationRateCollisional_"         source="parameters"                                                      />
+    <objectBuilder class="atomicExcitationRateCollisional"         name="atomicExcitationRateCollisional_"         source="parameters"                                                      />
+    <objectBuilder class="intergalacticMediumState"                name="intergalacticMediumState_"                source="parameters"                                                      />
+    <objectBuilder class="radiationField"                          name="radiationField_"                          source="parameters" parameterName="radiationFieldIntergalacticBackground"/>
+    !!]
     select type (radiationField_)
     class is (radiationFieldIntergalacticBackground)
        ! This is as expected.
@@ -154,27 +166,31 @@ contains
     timeMinimum=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftMaximum))
     timeMaximum=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftMinimum))
     self=universeOperatorIntergalacticMediumStateEvolve(timeMinimum,timeMaximum,timeCountPerDecade,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,cosmologicalMassVariance_,outputTimes_,gauntFactor_,atomicCrossSectionIonizationPhoto_,atomicIonizationPotential_,atomicRecombinationRateDielectronic_,atomicRecombinationRateRadiative_,atomicRecombinationRateRadiativeCooling_,atomicIonizationRateCollisional_,atomicExcitationRateCollisional_,intergalacticMediumState_,radiationField_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"                    />
-    !# <objectDestructor name="cosmologyFunctions_"                     />
-    !# <objectDestructor name="linearGrowth_"                           />
-    !# <objectDestructor name="cosmologicalMassVariance_"               />
-    !# <objectDestructor name="outputTimes_"                            />
-    !# <objectDestructor name="gauntFactor_"                            />
-    !# <objectDestructor name="atomicCrossSectionIonizationPhoto_"      />
-    !# <objectDestructor name="atomicIonizationPotential_"              />
-    !# <objectDestructor name="atomicRecombinationRateDielectronic_"    />
-    !# <objectDestructor name="atomicRecombinationRateRadiativeCooling_"/>
-    !# <objectDestructor name="atomicRecombinationRateRadiative_"       />
-    !# <objectDestructor name="atomicIonizationRateCollisional_"        />
-    !# <objectDestructor name="atomicExcitationRateCollisional_"        />
-    !# <objectDestructor name="intergalacticMediumState_"               />
-    !# <objectDestructor name="radiationField_"                         />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"                    />
+    <objectDestructor name="cosmologyFunctions_"                     />
+    <objectDestructor name="linearGrowth_"                           />
+    <objectDestructor name="cosmologicalMassVariance_"               />
+    <objectDestructor name="outputTimes_"                            />
+    <objectDestructor name="gauntFactor_"                            />
+    <objectDestructor name="atomicCrossSectionIonizationPhoto_"      />
+    <objectDestructor name="atomicIonizationPotential_"              />
+    <objectDestructor name="atomicRecombinationRateDielectronic_"    />
+    <objectDestructor name="atomicRecombinationRateRadiativeCooling_"/>
+    <objectDestructor name="atomicRecombinationRateRadiative_"       />
+    <objectDestructor name="atomicIonizationRateCollisional_"        />
+    <objectDestructor name="atomicExcitationRateCollisional_"        />
+    <objectDestructor name="intergalacticMediumState_"               />
+    <objectDestructor name="radiationField_"                         />
+    !!]
     return
   end function intergalacticMediumStateEvolveConstructorParameters
 
   function intergalacticMediumStateEvolveConstructorInternal(timeMinimum,timeMaximum,timeCountPerDecade,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,cosmologicalMassVariance_,outputTimes_,gauntFactor_,atomicCrossSectionIonizationPhoto_,atomicIonizationPotential_,atomicRecombinationRateDielectronic_,atomicRecombinationRateRadiative_,atomicRecombinationRateRadiativeCooling_,atomicIonizationRateCollisional_,atomicExcitationRateCollisional_,intergalacticMediumState_,radiationField_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily intergalacticMediumStateEvolve} universeOperator class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily intergalacticMediumStateEvolve} universeOperator class.
+    !!}
     use            :: Galacticus_Error                     , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding                        , only : c_size_t
     use            :: Intergalactic_Medium_Filtering_Masses, only : intergalacticMediumFilteringMassGnedin2000
@@ -209,7 +225,9 @@ contains
     double precision                                                                        :: atomicMass                              , density               , &
           &                                                                                    ionicFraction                           , massFractionPrimordial, &
           &                                                                                    massFilteringVarianceInitial
-    !# <constructorAssign variables="timeMinimum, timeMaximum ,timeCountPerDecade, *cosmologyParameters_, *cosmologyFunctions_, *linearGrowth_, *cosmologicalMassVariance_, *outputTimes_, *gauntFactor_, *atomicCrossSectionIonizationPhoto_, *atomicIonizationPotential_, *atomicRecombinationRateDielectronic_, *atomicRecombinationRateRadiative_, *atomicRecombinationRateRadiative_, *atomicRecombinationRateRadiativeCooling_, *atomicIonizationRateCollisional_, *atomicExcitationRateCollisional_, *intergalacticMediumState_, *radiationField_"/>
+    !![
+    <constructorAssign variables="timeMinimum, timeMaximum ,timeCountPerDecade, *cosmologyParameters_, *cosmologyFunctions_, *linearGrowth_, *cosmologicalMassVariance_, *outputTimes_, *gauntFactor_, *atomicCrossSectionIonizationPhoto_, *atomicIonizationPotential_, *atomicRecombinationRateDielectronic_, *atomicRecombinationRateRadiative_, *atomicRecombinationRateRadiative_, *atomicRecombinationRateRadiativeCooling_, *atomicIonizationRateCollisional_, *atomicExcitationRateCollisional_, *intergalacticMediumState_, *radiationField_"/>
+    !!]
 
     ! Get a RecFast intergalactic medium object for setting initial conditions.
     self%intergalacticMediumStateInitial=intergalacticMediumStateRecFast(cosmologyFunctions_,cosmologyParameters_)
@@ -326,30 +344,36 @@ contains
    end function intergalacticMediumStateEvolveConstructorInternal
 
    subroutine intergalacticMediumStateEvolveDestructor(self)
-     !% Destructor for the {\normalfont \ttfamily intergalacticMediumStateEvolve} universeOperator class.
+     !!{
+     Destructor for the {\normalfont \ttfamily intergalacticMediumStateEvolve} universeOperator class.
+     !!}
      implicit none
      type(universeOperatorIntergalacticMediumStateEvolve), intent(inout) :: self
 
-     !# <objectDestructor name="self%cosmologyParameters_"                    />
-     !# <objectDestructor name="self%cosmologyFunctions_"                     />
-     !# <objectDestructor name="self%linearGrowth_"                           />
-     !# <objectDestructor name="self%cosmologicalMassVariance_"               />
-     !# <objectDestructor name="self%outputTimes_"                            />
-     !# <objectDestructor name="self%radiationField_"                         />
-     !# <objectDestructor name="self%gauntFactor_"                            />
-     !# <objectDestructor name="self%atomicCrossSectionIonizationPhoto_ "     />
-     !# <objectDestructor name="self%atomicIonizationPotential_"              />
-     !# <objectDestructor name="self%atomicRecombinationRateDielectronic_"    />
-     !# <objectDestructor name="self%atomicRecombinationRateRadiative_"       />
-     !# <objectDestructor name="self%atomicRecombinationRateRadiativeCooling_"/>
-     !# <objectDestructor name="self%atomicIonizationRateCollisional_"        />
-     !# <objectDestructor name="self%atomicExcitationRateCollisional_"        />
-     !# <objectDestructor name="self%intergalacticMediumState_"               />
+     !![
+     <objectDestructor name="self%cosmologyParameters_"                    />
+     <objectDestructor name="self%cosmologyFunctions_"                     />
+     <objectDestructor name="self%linearGrowth_"                           />
+     <objectDestructor name="self%cosmologicalMassVariance_"               />
+     <objectDestructor name="self%outputTimes_"                            />
+     <objectDestructor name="self%radiationField_"                         />
+     <objectDestructor name="self%gauntFactor_"                            />
+     <objectDestructor name="self%atomicCrossSectionIonizationPhoto_ "     />
+     <objectDestructor name="self%atomicIonizationPotential_"              />
+     <objectDestructor name="self%atomicRecombinationRateDielectronic_"    />
+     <objectDestructor name="self%atomicRecombinationRateRadiative_"       />
+     <objectDestructor name="self%atomicRecombinationRateRadiativeCooling_"/>
+     <objectDestructor name="self%atomicIonizationRateCollisional_"        />
+     <objectDestructor name="self%atomicExcitationRateCollisional_"        />
+     <objectDestructor name="self%intergalacticMediumState_"               />
+     !!]
      return
    end subroutine intergalacticMediumStateEvolveDestructor
 
    subroutine intergalacticMediumStateEvolveOperate(self,universe_)
-     !% Attach an initial event to a merger tree to cause the properties update function to be called.
+     !!{
+     Attach an initial event to a merger tree to cause the properties update function to be called.
+     !!}
      use :: Galacticus_Nodes, only : universe, universeEvent
      implicit none
      class(universeOperatorIntergalacticMediumStateEvolve), intent(inout), target :: self
@@ -365,7 +389,9 @@ contains
    end subroutine intergalacticMediumStateEvolveOperate
 
    logical function intergalacticMediumStateEvolveUpdate(event,universe_) result (success)
-     !% Update the properties for a given universe.
+     !!{
+     Update the properties for a given universe.
+     !!}
      use            :: Arrays_Search           , only : searchArrayClosest
      use            :: Display                 , only : displayIndent          , displayMessage, displayUnindent
      use            :: Galacticus_Error        , only : Galacticus_Error_Report
@@ -527,7 +553,9 @@ contains
    end function intergalacticMediumStateEvolveUpdate
 
    integer function intergalacticMediumStateEvolveODEs(time,properties,propertiesRateOfChange)
-     !% Evaluates the ODEs controlling the evolution temperature.
+     !!{
+     Evaluates the ODEs controlling the evolution temperature.
+     !!}
      use :: Interface_GSL                        , only : GSL_Success
      use :: Intergalactic_Medium_Filtering_Masses, only : gnedin2000ODES    , gnedin2000ODEs
      use :: Numerical_Constants_Astronomical     , only : gigaYear
@@ -871,7 +899,9 @@ contains
    contains
 
      double precision function integrandPhotoionizationRate(wavelength)
-       !% Integrand function used to compute the rate of photoionizations of an ionic species.
+       !!{
+       Integrand function used to compute the rate of photoionizations of an ionic species.
+       !!}
        use :: Numerical_Constants_Units, only : ergs
        implicit none
        double precision, intent(in   ) :: wavelength
@@ -903,7 +933,9 @@ contains
      end function integrandPhotoionizationRate
 
      double precision function integrandPhotoionizationHeatingRate(wavelength)
-       !% Integrand function used to compute the rate of photoionization heating of an ionic species.
+       !!{
+       Integrand function used to compute the rate of photoionization heating of an ionic species.
+       !!}
        use :: Numerical_Constants_Units, only : ergs
        implicit none
        double precision, intent(in   ) :: wavelength
@@ -953,21 +985,23 @@ contains
      class  (universeOperatorIntergalacticMediumStateEvolve), intent(inout) :: self
      integer(c_size_t                                      ), intent(in   ) :: iNow
 
-     !# <eventHook name="intergalacticMediumStateEvolveUpdate">
-     !#  <interface>
-     !#    double precision, intent(in   ), dimension(:) :: time            , densityHydrogen1
-     !#    double precision, intent(in   ), dimension(:) :: densityHydrogen2, densityHelium1
-     !#    double precision, intent(in   ), dimension(:) :: densityHelium2  , densityHelium3
-     !#    double precision, intent(in   ), dimension(:) :: temperature     , massFiltering
-     !#  </interface>
-     !#  <callWith>self%time           (1:iNow  ), &amp;
-     !#    &amp;   self%densityHydrogen(1:iNow,1), &amp;
-     !#    &amp;   self%densityHydrogen(1:iNow,2), &amp;
-     !#    &amp;   self%densityHelium  (1:iNow,1), &amp;
-     !#    &amp;   self%densityHelium  (1:iNow,2), &amp;
-     !#    &amp;   self%densityHelium  (1:iNow,3), &amp;
-     !#    &amp;   self%temperature    (1:iNow  ), &amp;
-     !#    &amp;   self%massFiltering  (1:iNow  )</callWith>
-     !# </eventHook>
+     !![
+     <eventHook name="intergalacticMediumStateEvolveUpdate">
+      <interface>
+        double precision, intent(in   ), dimension(:) :: time            , densityHydrogen1
+        double precision, intent(in   ), dimension(:) :: densityHydrogen2, densityHelium1
+        double precision, intent(in   ), dimension(:) :: densityHelium2  , densityHelium3
+        double precision, intent(in   ), dimension(:) :: temperature     , massFiltering
+      </interface>
+      <callWith>self%time           (1:iNow  ), &amp;
+        &amp;   self%densityHydrogen(1:iNow,1), &amp;
+        &amp;   self%densityHydrogen(1:iNow,2), &amp;
+        &amp;   self%densityHelium  (1:iNow,1), &amp;
+        &amp;   self%densityHelium  (1:iNow,2), &amp;
+        &amp;   self%densityHelium  (1:iNow,3), &amp;
+        &amp;   self%temperature    (1:iNow  ), &amp;
+        &amp;   self%massFiltering  (1:iNow  )</callWith>
+     </eventHook>
+     !!]
      return
    end subroutine intergalacticMediumStateEvolveStateSet

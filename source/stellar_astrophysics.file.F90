@@ -17,48 +17,54 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a stellar astrophysics class in which the stellar properties are read from file and interpolated.
+  !!{
+  Implements a stellar astrophysics class in which the stellar properties are read from file and interpolated.
+  !!}
 
   use :: Numerical_Interpolation_2D_Irregular, only : interp2dIrregularObject
 
-  !# <stellarAstrophysics name="stellarAstrophysicsFile">
-  !#  <description>
-  !#   A stellar astrophysics class which reads properties of individual stars of different initial mass and metallicity from an
-  !#   XML file and interpolates in them. The stars can be irregularly spaced in the plane of initial mass and metallicity. The
-  !#   XML file should have the following structure:
-  !#   \begin{verbatim}
-  !#    &lt;stars&gt;
-  !#     &lt;star&gt;
-  !#       &lt;initialMass&gt;0.6&lt;/initialMass&gt;
-  !#       &lt;lifetime&gt;28.19&lt;/lifetime&gt;
-  !#       &lt;metallicity&gt;0.0000&lt;/metallicity&gt;
-  !#       &lt;ejectedMass&gt;7.65&lt;/ejectedMass&gt;
-  !#       &lt;metalYieldMass&gt;0.44435954&lt;/metalYieldMass&gt;
-  !#       &lt;elementYieldMassFe&gt;2.2017e-13&lt;/elementYieldMassFe&gt;
-  !#       &lt;source&gt;Table 2 of Tumlinson, Shull &amp; Venkatesan (2003, ApJ, 584, 608)&lt;/source&gt;
-  !#       &lt;url&gt;http://adsabs.harvard.edu/abs/2003ApJ...584..608T&lt;/url&gt;
-  !#     &lt;/star&gt;
-  !#     &lt;star&gt;
-  !#       .
-  !#       .
-  !#       .
-  !#     &lt;/star&gt;
-  !#     .
-  !#     .
-  !#     .
-  !#    &lt;/stars&gt;
-  !#   \end{verbatim}
-  !#   Each {\normalfont \ttfamily star} element must contain the {\normalfont \ttfamily initialMass} (given in $M_\odot$) and
-  !#   {\normalfont \ttfamily metallicity} tags. Other tags are optional. {\normalfont \ttfamily lifetime} gives the lifetime of
-  !#   such a star (in Gyr), {\normalfont \ttfamily ejectedMass} gives the total mass (in $M_\odot$) ejected by such a star during
-  !#   its lifetime, {\normalfont \ttfamily metalYieldMass} gives the total mass of metals yielded by the star during its lifetime
-  !#   while {\normalfont \ttfamily elementYieldMassX} gives the mass of element {\normalfont \ttfamily X} yielded by the star
-  !#   during its lifetime. The {\normalfont \ttfamily source} and {\normalfont \ttfamily url} tags are not used, but are strongly
-  !#   recommended to provide a reference to the origin of the stellar data.
-  !#  </description>
-  !# </stellarAstrophysics>
+  !![
+  <stellarAstrophysics name="stellarAstrophysicsFile">
+   <description>
+    A stellar astrophysics class which reads properties of individual stars of different initial mass and metallicity from an
+    XML file and interpolates in them. The stars can be irregularly spaced in the plane of initial mass and metallicity. The
+    XML file should have the following structure:
+    \begin{verbatim}
+     &lt;stars&gt;
+      &lt;star&gt;
+        &lt;initialMass&gt;0.6&lt;/initialMass&gt;
+        &lt;lifetime&gt;28.19&lt;/lifetime&gt;
+        &lt;metallicity&gt;0.0000&lt;/metallicity&gt;
+        &lt;ejectedMass&gt;7.65&lt;/ejectedMass&gt;
+        &lt;metalYieldMass&gt;0.44435954&lt;/metalYieldMass&gt;
+        &lt;elementYieldMassFe&gt;2.2017e-13&lt;/elementYieldMassFe&gt;
+        &lt;source&gt;Table 2 of Tumlinson, Shull &amp; Venkatesan (2003, ApJ, 584, 608)&lt;/source&gt;
+        &lt;url&gt;http://adsabs.harvard.edu/abs/2003ApJ...584..608T&lt;/url&gt;
+      &lt;/star&gt;
+      &lt;star&gt;
+        .
+        .
+        .
+      &lt;/star&gt;
+      .
+      .
+      .
+     &lt;/stars&gt;
+    \end{verbatim}
+    Each {\normalfont \ttfamily star} element must contain the {\normalfont \ttfamily initialMass} (given in $M_\odot$) and
+    {\normalfont \ttfamily metallicity} tags. Other tags are optional. {\normalfont \ttfamily lifetime} gives the lifetime of
+    such a star (in Gyr), {\normalfont \ttfamily ejectedMass} gives the total mass (in $M_\odot$) ejected by such a star during
+    its lifetime, {\normalfont \ttfamily metalYieldMass} gives the total mass of metals yielded by the star during its lifetime
+    while {\normalfont \ttfamily elementYieldMassX} gives the mass of element {\normalfont \ttfamily X} yielded by the star
+    during its lifetime. The {\normalfont \ttfamily source} and {\normalfont \ttfamily url} tags are not used, but are strongly
+    recommended to provide a reference to the origin of the stellar data.
+   </description>
+  </stellarAstrophysics>
+  !!]
   type, extends(stellarAstrophysicsClass) :: stellarAstrophysicsFile
-     !% A stellar astrophysics class in which the stellar properties are read from file and interpolated.
+     !!{
+     A stellar astrophysics class in which the stellar properties are read from file and interpolated.
+     !!}
      private
      type            (varying_string         )                              :: fileName
      double precision                         , allocatable, dimension(:  ) :: lifetimeLifetime                 , lifetimeMass                   , &
@@ -77,9 +83,11 @@
           &                                                                    interpolationResetMassEjected    , interpolationResetMassYield    , &
           &                                                                    readDone
   contains
-     !# <methods>
-     !#   <method description="Read stellar astrophysics data from file." method="read" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Read stellar astrophysics data from file." method="read" />
+     </methods>
+     !!]
      procedure :: massInitial => fileMassInitial
      procedure :: massEjected => fileMassEjected
      procedure :: massYield   => fileMassYield
@@ -88,7 +96,9 @@
   end type stellarAstrophysicsFile
 
   interface stellarAstrophysicsFile
-     !% Constructors for the {\normalfont \ttfamily file} stellar astrophysics class.
+     !!{
+     Constructors for the {\normalfont \ttfamily file} stellar astrophysics class.
+     !!}
      module procedure fileConstructorParameters
      module procedure fileConstructorInternal
   end interface stellarAstrophysicsFile
@@ -99,7 +109,9 @@
 contains
 
   function fileConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily file} stellar astrophysics class which takes a parameter list as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily file} stellar astrophysics class which takes a parameter list as input.
+    !!}
     use :: Galacticus_Paths, only : galacticusPath, pathTypeDataStatic
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -107,25 +119,33 @@ contains
     type(inputParameters        ), intent(inout) :: parameters
     type(varying_string         )                :: fileName
 
-    !# <inputParameter>
-    !#   <name>fileName</name>
-    !#   <defaultValue>galacticusPath(pathTypeDataStatic)//'stellarAstrophysics/Stellar_Properties_Compilation.xml'</defaultValue>
-    !#   <description>The name of the XML file from which to read stellar properties (ejected masses, yields, etc.).</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>fileName</name>
+      <defaultValue>galacticusPath(pathTypeDataStatic)//'stellarAstrophysics/Stellar_Properties_Compilation.xml'</defaultValue>
+      <description>The name of the XML file from which to read stellar properties (ejected masses, yields, etc.).</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     self=stellarAstrophysicsFile(char(fileName))
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function fileConstructorParameters
 
   function fileConstructorInternal(fileName) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily file} stellar astrophysics class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily file} stellar astrophysics class.
+    !!}
     use :: Atomic_Data      , only : Atomic_Data_Atoms_Count
     use :: Memory_Management, only : allocateArray
     implicit none
     type     (stellarAstrophysicsFile)                :: self
     character(len=*                  ), intent(in   ) :: fileName
-    !# <constructorAssign variables="fileName"/>
+    !![
+    <constructorAssign variables="fileName"/>
+    !!]
 
     ! Allocate array to store number of entries in file for yield of each element.
     call allocateArray(self%countYieldElement,[Atomic_Data_Atoms_Count()])
@@ -139,7 +159,9 @@ contains
   end function fileConstructorInternal
 
   subroutine fileRead(self)
-    !% Read stellar astrophysics data. This is not done during object construction since it can be slow---we only perform the read if the data is actually needed.
+    !!{
+    Read stellar astrophysics data. This is not done during object construction since it can be slow---we only perform the read if the data is actually needed.
+    !!}
     use :: Atomic_Data      , only : Atomic_Short_Label
     use :: FoX_DOM          , only : destroy                          , node
     use :: Galacticus_Error , only : Galacticus_Error_Report
@@ -295,7 +317,9 @@ contains
   end subroutine fileRead
 
   double precision function fileMassInitial(self,lifetime,metallicity)
-    !% Return the initial mass of a star of given {\normalfont \ttfamily lifetime} and {\normalfont \ttfamily metallicity}.
+    !!{
+    Return the initial mass of a star of given {\normalfont \ttfamily lifetime} and {\normalfont \ttfamily metallicity}.
+    !!}
     use :: Numerical_Interpolation_2D_Irregular, only : Interpolate_2D_Irregular
     implicit none
     class           (stellarAstrophysicsFile), intent(inout) :: self
@@ -316,7 +340,9 @@ contains
   end function fileMassInitial
 
   double precision function fileLifetime(self,massInitial,metallicity)
-    !% Return the lifetime of a star (in Gyr) given an {\normalfont \ttfamily massInitial} and {\normalfont \ttfamily metallicity}.
+    !!{
+    Return the lifetime of a star (in Gyr) given an {\normalfont \ttfamily massInitial} and {\normalfont \ttfamily metallicity}.
+    !!}
     use :: Numerical_Interpolation_2D_Irregular, only : Interpolate_2D_Irregular
     implicit none
     class           (stellarAstrophysicsFile), intent(inout) :: self
@@ -336,7 +362,9 @@ contains
   end function fileLifetime
 
   double precision function fileMassEjected(self,massInitial,metallicity)
-    !% Return the mass ejected during the lifetime of a star of given {\normalfont \ttfamily massInitial} and {\normalfont \ttfamily metallicity}.
+    !!{
+    Return the mass ejected during the lifetime of a star of given {\normalfont \ttfamily massInitial} and {\normalfont \ttfamily metallicity}.
+    !!}
     use :: Numerical_Interpolation_2D_Irregular, only : Interpolate_2D_Irregular
     implicit none
     class           (stellarAstrophysicsFile), intent(inout) :: self
@@ -359,7 +387,9 @@ contains
   end function fileMassEjected
 
   double precision function fileMassYield(self,massInitial,metallicity,atomIndex)
-    !% Return the mass of metals yielded by a star of given {\normalfont \ttfamily massInitial} and {\normalfont \ttfamily metallicity}.
+    !!{
+    Return the mass of metals yielded by a star of given {\normalfont \ttfamily massInitial} and {\normalfont \ttfamily metallicity}.
+    !!}
     use :: Numerical_Interpolation_2D_Irregular, only : Interpolate_2D_Irregular
     implicit none
     class           (stellarAstrophysicsFile), intent(inout)           :: self

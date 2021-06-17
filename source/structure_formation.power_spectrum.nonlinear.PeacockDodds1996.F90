@@ -17,17 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a nonlinear power spectrum class in which the nonlinear power spectrum is computed using the
-!% algorithm of \cite{peacock_non-linear_1996}.
+!!{
+Contains a module which implements a nonlinear power spectrum class in which the nonlinear power spectrum is computed using the
+algorithm of \cite{peacock_non-linear_1996}.
+!!}
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
   use :: Power_Spectra      , only : powerSpectrumClass
 
-  !# <powerSpectrumNonlinear name="powerSpectrumNonlinearPeacockDodds1996">
-  !#  <description>Provides a nonlinear power spectrum class in which the power spectrum is computed using the algorithm of \cite{peacock_non-linear_1996}.</description>
-  !# </powerSpectrumNonlinear>
+  !![
+  <powerSpectrumNonlinear name="powerSpectrumNonlinearPeacockDodds1996">
+   <description>Provides a nonlinear power spectrum class in which the power spectrum is computed using the algorithm of \cite{peacock_non-linear_1996}.</description>
+  </powerSpectrumNonlinear>
+  !!]
   type, extends(powerSpectrumNonlinearClass) :: powerSpectrumNonlinearPeacockDodds1996
-     !% A nonlinear power spectrum class in which the power spectrum is computed using the algorithm of \cite{peacock_non-linear_1996}.
+     !!{
+     A nonlinear power spectrum class in which the power spectrum is computed using the algorithm of \cite{peacock_non-linear_1996}.
+     !!}
      private
      double precision                         , dimension(2) :: waveNumberPrevious           , fNLPrevious
      double precision                                        :: timePrevious
@@ -39,7 +45,9 @@
   end type powerSpectrumNonlinearPeacockDodds1996
 
   interface powerSpectrumNonlinearPeacockDodds1996
-     !% Constructors for the {\normalfont \ttfamily PeacockDodds1996} nonlinear power spectrum class.
+     !!{
+     Constructors for the {\normalfont \ttfamily PeacockDodds1996} nonlinear power spectrum class.
+     !!}
      module procedure peacockDodds1996ConstructorParameters
      module procedure peacockDodds1996ConstructorInternal
   end interface powerSpectrumNonlinearPeacockDodds1996
@@ -47,7 +55,9 @@
 contains
 
   function peacockDodds1996ConstructorParameters(parameters) result(self)
-    !% Constructor for the peacockDodds1996 nonlinear power spectrum class which takes a parameter set as input.
+    !!{
+    Constructor for the peacockDodds1996 nonlinear power spectrum class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (powerSpectrumNonlinearPeacockDodds1996)                        :: self
@@ -57,23 +67,31 @@ contains
 
     ! Check and read parameters.
     ! Construct required objects.
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
-    !# <objectBuilder class="powerSpectrum"      name="powerSpectrum_"      source="parameters"/>
+    !![
+    <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    <objectBuilder class="powerSpectrum"      name="powerSpectrum_"      source="parameters"/>
+    !!]
     ! Call the internal constructor.
     self=peacockDodds1996ConstructorInternal(cosmologyFunctions_,powerSpectrum_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"/>
-    !# <objectDestructor name="powerSpectrum_"     />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"/>
+    <objectDestructor name="powerSpectrum_"     />
+    !!]
     return
   end function peacockDodds1996ConstructorParameters
 
   function peacockDodds1996ConstructorInternal(cosmologyFunctions_,powerSpectrum_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily PeacockDodds1996} nonlinear power spectrum class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily PeacockDodds1996} nonlinear power spectrum class.
+    !!}
     implicit none
     type (powerSpectrumNonlinearPeacockDodds1996)                        :: self
     class(cosmologyFunctionsClass               ), intent(in   ), target :: cosmologyFunctions_
     class(powerSpectrumClass                    ), intent(in   ), target :: powerSpectrum_
-    !# <constructorAssign variables="*cosmologyFunctions_, *powerSpectrum_"/>
+    !![
+    <constructorAssign variables="*cosmologyFunctions_, *powerSpectrum_"/>
+    !!]
 
     ! Initialize state.
     self%waveNumberPrevious=-1.0d0
@@ -82,17 +100,23 @@ contains
   end function peacockDodds1996ConstructorInternal
 
   subroutine peacockDodds1996Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily PeacockDodds1996} nonlinear power spectrum class.
+    !!{
+    Destructor for the {\normalfont \ttfamily PeacockDodds1996} nonlinear power spectrum class.
+    !!}
     implicit none
     type(powerSpectrumNonlinearPeacockDodds1996), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"/>
-    !# <objectDestructor name="self%powerSpectrum_"     />
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"/>
+    <objectDestructor name="self%powerSpectrum_"     />
+    !!]
     return
   end subroutine peacockDodds1996Destructor
 
   double precision function peacockDodds1996Value(self,wavenumber,time)
-    !% Return a nonlinear power spectrum equal using the algorithm of \cite{peacock_non-linear_1996}.
+    !!{
+    Return a nonlinear power spectrum equal using the algorithm of \cite{peacock_non-linear_1996}.
+    !!}
     use :: Galacticus_Error        , only : Galacticus_Error_Report
     use :: Numerical_Constants_Math, only : Pi
     implicit none

@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Implements a property extractor for ``in lightcone'' status.
+!!{
+Implements a property extractor for ``in lightcone'' status.
+!!}
 
   use :: Geometry_Lightcones, only : geometryLightconeClass
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorIsInLightcone">
-  !#  <description>An ``in lightcone'' status property extractor.</description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorIsInLightcone">
+   <description>An ``in lightcone'' status property extractor.</description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorIsInLightcone
-     !% An ``in lightcone'' status property extractor.
+     !!{
+     An ``in lightcone'' status property extractor.
+     !!}
      private
      class(geometryLightconeClass), pointer :: geometryLightcone_ => null()
    contains
@@ -37,7 +43,9 @@
   end type nodePropertyExtractorIsInLightcone
 
   interface nodePropertyExtractorIsInLightcone
-     !% Constructors for the ``isInLightcone'' output analysis class.
+     !!{
+     Constructors for the ``isInLightcone'' output analysis class.
+     !!}
      module procedure isInLightconeConstructorParameters
      module procedure isInLightconeConstructorInternal
   end interface nodePropertyExtractorIsInLightcone
@@ -45,41 +53,57 @@
 contains
 
   function isInLightconeConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily isInLightcone} node property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily isInLightcone} node property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (nodePropertyExtractorIsInLightcone)                :: self
     type (inputParameters                   ), intent(inout) :: parameters
     class(geometryLightconeClass            ), pointer       :: geometryLightcone_
 
-    !# <objectBuilder class="geometryLightcone" name="geometryLightcone_" source="parameters"/>
+    !![
+    <objectBuilder class="geometryLightcone" name="geometryLightcone_" source="parameters"/>
+    !!]
     self=nodePropertyExtractorIsInLightcone(geometryLightcone_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="geometryLightcone_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="geometryLightcone_"/>
+    !!]
     return
   end function isInLightconeConstructorParameters
 
   function isInLightconeConstructorInternal(geometryLightcone_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily isInLightcone} node property extractor class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily isInLightcone} node property extractor class.
+    !!}
     implicit none
     type (nodePropertyExtractorIsInLightcone)                        :: self
     class(geometryLightconeClass            ), intent(in   ), target :: geometryLightcone_
-    !# <constructorAssign variables="*geometryLightcone_"/>
+    !![
+    <constructorAssign variables="*geometryLightcone_"/>
+    !!]
     
     return
   end function isInLightconeConstructorInternal
 
   subroutine isInLightconeDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily isInLightcone} node property extractor class.
+    !!{
+    Destructor for the {\normalfont \ttfamily isInLightcone} node property extractor class.
+    !!}
     implicit none
     type(nodePropertyExtractorIsInLightcone), intent(inout) :: self
 
-    !# <objectDestructor name="self%geometryLightcone_"/>
+    !![
+    <objectDestructor name="self%geometryLightcone_"/>
+    !!]
     return
   end subroutine isInLightconeDestructor
 
   function isInLightconeExtract(self,node,time,instance)
-    !% Implement a {\normalfont \ttfamily isInLightcone} node property extractor.
+    !!{
+    Implement a {\normalfont \ttfamily isInLightcone} node property extractor.
+    !!}
     implicit none
     integer         (kind_int8                         )                          :: isInLightconeExtract
     class           (nodePropertyExtractorIsInLightcone), intent(inout)           :: self
@@ -97,7 +121,9 @@ contains
   end function isInLightconeExtract
 
   integer function isInLightconeType(self)
-    !% Return the type of the stellar mass property.
+    !!{
+    Return the type of the stellar mass property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorIsInLightcone), intent(inout) :: self
@@ -108,7 +134,9 @@ contains
   end function isInLightconeType
 
   function isInLightconeName(self)
-    !% Return the name of the ``in lightcone'' property.
+    !!{
+    Return the name of the ``in lightcone'' property.
+    !!}
     implicit none
     type (varying_string                    )                :: isInLightconeName
     class(nodePropertyExtractorIsInLightcone), intent(inout) :: self
@@ -119,7 +147,9 @@ contains
   end function isInLightconeName
 
   function isInLightconeDescription(self)
-    !% Return a description of the ``in lightcone'' property.
+    !!{
+    Return a description of the ``in lightcone'' property.
+    !!}
     implicit none
     type (varying_string                     )                :: isInLightconeDescription
     class(nodePropertyExtractorIsInLightcone), intent(inout) :: self

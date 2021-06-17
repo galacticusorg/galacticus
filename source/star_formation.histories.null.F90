@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a null star formation histories class.
+!!{
+Contains a module which implements a null star formation histories class.
+!!}
 
-  !# <starFormationHistory name="starFormationHistoryNull">
-  !#  <description>A null star formation histories class.</description>
-  !# </starFormationHistory>
+  !![
+  <starFormationHistory name="starFormationHistoryNull">
+   <description>A null star formation histories class.</description>
+  </starFormationHistory>
+  !!]
   type, extends(starFormationHistoryClass) :: starFormationHistoryNull
-     !% A null star formation histories class.
+     !!{
+     A null star formation histories class.
+     !!}
      private
    contains
      procedure :: create                => nullCreate
@@ -34,14 +40,18 @@
   end type starFormationHistoryNull
 
   interface starFormationHistoryNull
-     !% Constructors for the ``null'' star formation history class.
+     !!{
+     Constructors for the ``null'' star formation history class.
+     !!}
      module procedure nullConstructorParameters
   end interface starFormationHistoryNull
 
 contains
 
   function nullConstructorParameters(parameters) result(self)
-    !% Constructor for the ``null'' star formation history class which takes a parameter set as input.
+    !!{
+    Constructor for the ``null'' star formation history class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(starFormationHistoryNull)                :: self
@@ -53,7 +63,9 @@ contains
   end function nullConstructorParameters
 
   subroutine nullCreate(self,node,historyStarFormation,timeBegin)
-    !% Create the history required for storing star formation history.
+    !!{
+    Create the history required for storing star formation history.
+    !!}
     implicit none
     class           (starFormationHistoryNull), intent(inout) :: self
     type            (treeNode                ), intent(inout) :: node
@@ -66,7 +78,9 @@ contains
   end subroutine nullCreate
 
   subroutine nullRate(self,node,historyStarFormation,abundancesFuel,rateStarFormation)
-    !% Set the rate the star formation history for {\normalfont \ttfamily node}.
+    !!{
+    Set the rate the star formation history for {\normalfont \ttfamily node}.
+    !!}
     implicit none
     class           (starFormationHistoryNull), intent(inout) :: self
     type            (treeNode                ), intent(inout) :: node
@@ -81,7 +95,9 @@ contains
   end subroutine nullRate
 
   subroutine nullOutput(self,node,nodePassesFilter,historyStarFormation,indexOutput,indexTree,componentType)
-    !% Output the star formation history for {\normalfont \ttfamily node}.
+    !!{
+    Output the star formation history for {\normalfont \ttfamily node}.
+    !!}
     implicit none
     class  (starFormationHistoryNull), intent(inout)         :: self
     type   (treeNode                ), intent(inout), target :: node
@@ -97,7 +113,9 @@ contains
   end subroutine nullOutput
 
   subroutine nullScales(self,historyStarFormation,massStellar,abundancesStellar)
-    !% Set the scalings for error control on the absolute values of star formation histories.
+    !!{
+    Set the scalings for error control on the absolute values of star formation histories.
+    !!}
     implicit none
     class           (starFormationHistoryNull), intent(inout) :: self
     double precision                          , intent(in   ) :: massStellar
@@ -110,7 +128,9 @@ contains
   end subroutine nullScales
 
   function nullMetallicityBoundaries(self)
-    !% Return the boundaries of the metallicities used in this tabulation.
+    !!{
+    Return the boundaries of the metallicities used in this tabulation.
+    !!}
     implicit none
     double precision                          , allocatable  , dimension(:) :: nullMetallicityBoundaries
     class           (starFormationHistoryNull), intent(inout)               :: self

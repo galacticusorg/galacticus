@@ -19,10 +19,14 @@
 
 !+    Contributions to this file made by:  Stéphane Mangeon, Andrew Benson.
 
-!% Contains a module which implements calculations of the gradient of the rotation curve.
+!!{
+Contains a module which implements calculations of the gradient of the rotation curve.
+!!}
 
 module Galactic_Structure_Rotation_Curve_Gradients
-  !% Implements calculations of the rotation curve gradient
+  !!{
+  Implements calculations of the rotation curve gradient
+  !!}
   private
   public :: Galactic_Structure_Rotation_Curve_Gradient
 
@@ -34,13 +38,19 @@ module Galactic_Structure_Rotation_Curve_Gradients
 contains
 
   double precision function Galactic_Structure_Rotation_Curve_Gradient(node,radius,componentType,massType)
-    !% Solve for the rotation curve gradient at a given radius. Assumes the galactic structure has already been computed.
+    !!{
+    Solve for the rotation curve gradient at a given radius. Assumes the galactic structure has already been computed.
+    !!}
     use :: Galactic_Structure_Options        , only : componentTypeAll                         , massTypeAll
     use :: Galactic_Structure_Rotation_Curves, only : Galactic_Structure_Rotation_Curve
     use :: Galacticus_Nodes                  , only : optimizeForRotationCurveGradientSummation, reductionSummation, treeNode
-    !# <include directive="rotationCurveGradientTask" type="moduleUse">
+    !![
+    <include directive="rotationCurveGradientTask" type="moduleUse">
+    !!]
     include 'galactic_structure.rotation_curve.gradient.tasks.modules.inc'
-    !# </include>
+    !![
+    </include>
+    !!]
     implicit none
     type            (treeNode                         ), intent(inout)           :: node
     integer                                            , intent(in   ), optional :: componentType                         , massType
@@ -66,11 +76,15 @@ contains
     ! d(V^2)/dr so that they can be summed directly.
     componentRotationCurveGradientFunction => Component_Rotation_Curve_Gradient
     Galactic_Structure_Rotation_Curve_Gradient=node%mapDouble0(componentRotationCurveGradientFunction,reductionSummation,optimizeFor=optimizeForRotationCurveGradientSummation)
-    !# <include directive="rotationCurveGradientTask" type="functionCall" functionType="function" returnParameter="componentRotationCurveGradient">
-    !#  <functionArgs>node,radiusShared,massTypeShared,componentTypeShared</functionArgs>
-    !#  <onReturn>Galactic_Structure_Rotation_Curve_Gradient=Galactic_Structure_Rotation_Curve_Gradient+componentRotationCurveGradient</onReturn>
+    !![
+    <include directive="rotationCurveGradientTask" type="functionCall" functionType="function" returnParameter="componentRotationCurveGradient">
+     <functionArgs>node,radiusShared,massTypeShared,componentTypeShared</functionArgs>
+     <onReturn>Galactic_Structure_Rotation_Curve_Gradient=Galactic_Structure_Rotation_Curve_Gradient+componentRotationCurveGradient</onReturn>
+    !!]
     include 'galactic_structure.rotation_curve.gradient.tasks.inc'
-    !# </include>
+    !![
+    </include>
+    !!]
 
     ! Convert the summed d(V^2)/dr to dV/dr.
     Galactic_Structure_Rotation_Curve_Gradient=+0.5d0                                                                          &
@@ -80,7 +94,9 @@ contains
   end function Galactic_Structure_Rotation_Curve_Gradient
 
   double precision function Component_Rotation_Curve_Gradient(component)
-    !% Unary function returning the gradient of the squared rotation curve in a component. Suitable for mapping over components.
+    !!{
+    Unary function returning the gradient of the squared rotation curve in a component. Suitable for mapping over components.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponent
     implicit none
     class(nodeComponent), intent(inout) :: component

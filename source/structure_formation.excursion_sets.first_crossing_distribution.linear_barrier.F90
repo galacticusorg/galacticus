@@ -17,23 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a excursion set first crossing statistics class for linear barriers.
+!!{
+Contains a module which implements a excursion set first crossing statistics class for linear barriers.
+!!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
   use :: Excursion_Sets_Barriers   , only : excursionSetBarrierClass
 
-  !# <excursionSetFirstCrossing name="excursionSetFirstCrossingLinearBarrier">
-  !#  <description>
-  !#   An excursion set first crossing statistics class for linear barriers. Specifically, the first crossing distribution is
-  !#   \begin{equation}
-  !#    f(S,t) = B(0,t) \exp(- B(S,t)^2/2S)/S/\sqrt{2 pi S},
-  !#   \end{equation}
-  !#   where $B(S,t)$ is the (assumed-to-be-linear-in-$S$) barrier at time $t$ and variance $S$. The first crossing rate is
-  !#   computed using a finite difference approximation between two closely-spaced times. The non-crossing rate is zero.
-  !#  </description>
-  !# </excursionSetFirstCrossing>
+  !![
+  <excursionSetFirstCrossing name="excursionSetFirstCrossingLinearBarrier">
+   <description>
+    An excursion set first crossing statistics class for linear barriers. Specifically, the first crossing distribution is
+    \begin{equation}
+     f(S,t) = B(0,t) \exp(- B(S,t)^2/2S)/S/\sqrt{2 pi S},
+    \end{equation}
+    where $B(S,t)$ is the (assumed-to-be-linear-in-$S$) barrier at time $t$ and variance $S$. The first crossing rate is
+    computed using a finite difference approximation between two closely-spaced times. The non-crossing rate is zero.
+   </description>
+  </excursionSetFirstCrossing>
+  !!]
   type, extends(excursionSetFirstCrossingClass) :: excursionSetFirstCrossingLinearBarrier
-     !% A linearBarrier excursion set barrier class.
+     !!{
+     A linearBarrier excursion set barrier class.
+     !!}
      private
      class(excursionSetBarrierClass     ), pointer :: excursionSetBarrier_      => null()
      class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
@@ -45,7 +51,9 @@
   end type excursionSetFirstCrossingLinearBarrier
 
   interface excursionSetFirstCrossingLinearBarrier
-     !% Constructors for the linearBarrier excursion set barrier class.
+     !!{
+     Constructors for the linearBarrier excursion set barrier class.
+     !!}
      module procedure linearBarrierConstructorParameters
      module procedure linearBarrierConstructorInternal
   end interface excursionSetFirstCrossingLinearBarrier
@@ -53,7 +61,9 @@
 contains
 
   function linearBarrierConstructorParameters(parameters) result(self)
-    !% Constructor for the linear barrier excursion set class first crossing class which takes a parameter set as input.
+    !!{
+    Constructor for the linear barrier excursion set class first crossing class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (excursionSetFirstCrossingLinearBarrier)                :: self
@@ -61,38 +71,52 @@ contains
     class(excursionSetBarrierClass              ), pointer       :: excursionSetBarrier_
     class(cosmologicalMassVarianceClass         ), pointer       :: cosmologicalMassVariance_
 
-    !# <objectBuilder class="excursionSetBarrier"      name="excursionSetBarrier_"      source="parameters"/>
-    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    !![
+    <objectBuilder class="excursionSetBarrier"      name="excursionSetBarrier_"      source="parameters"/>
+    <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    !!]
     self=excursionSetFirstCrossingLinearBarrier(excursionSetBarrier_,cosmologicalMassVariance_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="excursionSetBarrier_"     />
-    !# <objectDestructor name="cosmologicalMassVariance_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="excursionSetBarrier_"     />
+    <objectDestructor name="cosmologicalMassVariance_"/>
+    !!]
     return
   end function linearBarrierConstructorParameters
 
   function linearBarrierConstructorInternal(excursionSetBarrier_,cosmologicalMassVariance_) result(self)
-    !% Constructor for the linear barrier excursion set class first crossing class which takes a parameter set as input.
+    !!{
+    Constructor for the linear barrier excursion set class first crossing class which takes a parameter set as input.
+    !!}
     implicit none
     type (excursionSetFirstCrossingLinearBarrier)                        :: self
     class(excursionSetBarrierClass              ), intent(in   ), target :: excursionSetBarrier_
     class(cosmologicalMassVarianceClass         ), intent(in   ), target :: cosmologicalMassVariance_
-    !# <constructorAssign variables="*excursionSetBarrier_, *cosmologicalMassVariance_"/>
+    !![
+    <constructorAssign variables="*excursionSetBarrier_, *cosmologicalMassVariance_"/>
+    !!]
 
     return
   end function linearBarrierConstructorInternal
 
   subroutine linearBarrierDestructor(self)
-    !% Destructor for the critical overdensity excursion set barrier class.
+    !!{
+    Destructor for the critical overdensity excursion set barrier class.
+    !!}
     implicit none
     type(excursionSetFirstCrossingLinearBarrier), intent(inout) :: self
 
-    !# <objectDestructor name="self%excursionSetBarrier_"     />
-    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
+    !![
+    <objectDestructor name="self%excursionSetBarrier_"     />
+    <objectDestructor name="self%cosmologicalMassVariance_"/>
+    !!]
     return
   end subroutine linearBarrierDestructor
 
   double precision function linearBarrierProbability(self,variance,time,node)
-    !% Return the excursion set barrier at the given variance and time.
+    !!{
+    Return the excursion set barrier at the given variance and time.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (excursionSetFirstCrossingLinearBarrier), intent(inout) :: self
@@ -115,7 +139,9 @@ contains
   end function linearBarrierProbability
 
   double precision function linearBarrierRate(self,variance,varianceProgenitor,time,node)
-    !% Return the excursion set barrier at the given variance and time.
+    !!{
+    Return the excursion set barrier at the given variance and time.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (excursionSetFirstCrossingLinearBarrier), intent(inout) :: self
@@ -165,7 +191,9 @@ contains
   contains
 
     double precision function barrierEffective(variance0,time0,variance1,time1)
-      !% The effective barrier for conditional excursion sets.
+      !!{
+      The effective barrier for conditional excursion sets.
+      !!}
       implicit none
       double precision, intent(in   ) :: time1    , time0    , &
            &                             variance1, variance0
@@ -178,9 +206,11 @@ contains
   end function linearBarrierRate
 
   double precision function linearBarrierRateNonCrossing(self,variance,time,node)
-    !% Return the rate for excursion set non-crossing assuming a linearBarrier barrier. For a linearBarrier barrier the integral over the
-    !% crossing probability (from zero to infinite variance) equals unity, so all trajectories cross. The non-crossing rate is
-    !% therefore zero.
+    !!{
+    Return the rate for excursion set non-crossing assuming a linearBarrier barrier. For a linearBarrier barrier the integral over the
+    crossing probability (from zero to infinite variance) equals unity, so all trajectories cross. The non-crossing rate is
+    therefore zero.
+    !!}
     implicit none
     class           (excursionSetFirstCrossingLinearBarrier), intent(inout) :: self
     double precision                                        , intent(in   ) :: time, variance

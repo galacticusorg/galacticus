@@ -17,39 +17,49 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a component class that tracks the maximum host mass seen by each halo.
+!!{
+Contains a module which implements a component class that tracks the maximum host mass seen by each halo.
+!!}
 
 module Node_Component_Host_History_Standard
-  !% Implements a component class that tracks the maximum host mass seen by each halo.
+  !!{
+  Implements a component class that tracks the maximum host mass seen by each halo.
+  !!}
   implicit none
   private
   public :: Node_Component_Host_History_Standard_Merger_Tree_Init   , Node_Component_Host_History_Standard_Thread_Initialize, &
        &    Node_Component_Host_History_Standard_Thread_Uninitialize, Node_Component_Host_History_Standard_Update_History
 
-  !# <component>
-  !#  <class>hostHistory</class>
-  !#  <name>standard</name>
-  !#  <isDefault>false</isDefault>
-  !#  <properties>
-  !#   <property>
-  !#     <name>hostMassMaximum</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#     <classDefault>-1.0d0</classDefault>
-  !#     <output unitsInSI="massSolar" comment="The maximum mass of halo in which this node has ever been hosted. (Or $-1$ if this node has never been a subhalo.)"/>
-  !#   </property>
-  !#  </properties>
-  !# </component>
+  !![
+  <component>
+   <class>hostHistory</class>
+   <name>standard</name>
+   <isDefault>false</isDefault>
+   <properties>
+    <property>
+      <name>hostMassMaximum</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+      <classDefault>-1.0d0</classDefault>
+      <output unitsInSI="massSolar" comment="The maximum mass of halo in which this node has ever been hosted. (Or $-1$ if this node has never been a subhalo.)"/>
+    </property>
+   </properties>
+  </component>
+  !!]
 
 contains
 
-  !# <mergerTreeInitializeTask>
-  !#  <unitName>Node_Component_Host_History_Standard_Merger_Tree_Init</unitName>
-  !# </mergerTreeInitializeTask>
+  !![
+  <mergerTreeInitializeTask>
+   <unitName>Node_Component_Host_History_Standard_Merger_Tree_Init</unitName>
+  </mergerTreeInitializeTask>
+  !!]
   subroutine Node_Component_Host_History_Standard_Merger_Tree_Init(node)
-    !% Initialize the standard host history component by creating components in nodes and assigning
-    !% host mass for satellites.
+    !!{
+    Initialize the standard host history component by creating components in nodes and assigning
+    host mass for satellites.
+    !!}
     use :: Galacticus_Nodes, only : defaultHostHistoryComponent, nodeComponentBasic, nodeComponentHostHistory, nodeComponentHostHistoryStandard, &
           &                         treeNode
     implicit none
@@ -72,11 +82,15 @@ contains
     return
   end subroutine Node_Component_Host_History_Standard_Merger_Tree_Init
   
-  !# <nodeComponentThreadInitializationTask>
-  !#  <unitName>Node_Component_Host_History_Standard_Thread_Initialize</unitName>
-  !# </nodeComponentThreadInitializationTask>
+  !![
+  <nodeComponentThreadInitializationTask>
+   <unitName>Node_Component_Host_History_Standard_Thread_Initialize</unitName>
+  </nodeComponentThreadInitializationTask>
+  !!]
   subroutine Node_Component_Host_History_Standard_Thread_Initialize(parameters_)
-    !% Initializes the tree node scale dark matter profile module.
+    !!{
+    Initializes the tree node scale dark matter profile module.
+    !!}
     use :: Events_Hooks    , only : nodePromotionEvent         , postEvolveEvent, openMPThreadBindingAtLevel
     use :: Galacticus_Nodes, only : defaultHostHistoryComponent
     use :: Input_Parameters, only : inputParameters
@@ -91,11 +105,15 @@ contains
     return
   end subroutine Node_Component_Host_History_Standard_Thread_Initialize
 
-  !# <nodeComponentThreadUninitializationTask>
-  !#  <unitName>Node_Component_Host_History_Standard_Thread_Uninitialize</unitName>
-  !# </nodeComponentThreadUninitializationTask>
+  !![
+  <nodeComponentThreadUninitializationTask>
+   <unitName>Node_Component_Host_History_Standard_Thread_Uninitialize</unitName>
+  </nodeComponentThreadUninitializationTask>
+  !!]
   subroutine Node_Component_Host_History_Standard_Thread_Uninitialize()
-    !% Uninitializes the tree node scale dark matter profile module.
+    !!{
+    Uninitializes the tree node scale dark matter profile module.
+    !!}
     use :: Events_Hooks    , only : nodePromotionEvent         , postEvolveEvent
     use :: Galacticus_Nodes, only : defaultHostHistoryComponent
     implicit none
@@ -108,7 +126,9 @@ contains
   end subroutine Node_Component_Host_History_Standard_Thread_Uninitialize
 
   subroutine nodePromotion(self,node)
-    !% Call the history update function in the event of a node promotion.
+    !!{
+    Call the history update function in the event of a node promotion.
+    !!}
     use :: Galacticus_Nodes, only : treeNode
     implicit none
     class(*       ), intent(inout)         :: self
@@ -120,7 +140,9 @@ contains
   end subroutine nodePromotion
   
   subroutine postEvolve(self,node)
-    !% Wrapper function for the history update function.
+    !!{
+    Wrapper function for the history update function.
+    !!}
     use :: Galacticus_Nodes, only : treeNode
     implicit none
     class(*       ), intent(inout) :: self
@@ -131,11 +153,15 @@ contains
     return
   end subroutine postEvolve
   
-  !# <nodeMergerTask>
-  !#  <unitName>Node_Component_Host_History_Standard_Update_History</unitName>
-  !# </nodeMergerTask>
+  !![
+  <nodeMergerTask>
+   <unitName>Node_Component_Host_History_Standard_Update_History</unitName>
+  </nodeMergerTask>
+  !!]
   subroutine Node_Component_Host_History_Standard_Update_History(node)
-    !% Record any major merger of {\normalfont \ttfamily node}.
+    !!{
+    Record any major merger of {\normalfont \ttfamily node}.
+    !!}
     use :: Galacticus_Nodes, only : defaultHostHistoryComponent, nodeComponentBasic, nodeComponentHostHistory, treeNode
     implicit none
     type (treeNode                ), intent(inout) :: node

@@ -17,34 +17,44 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Implements a radiation field class which sums over other radiation fields.
+!!{
+Implements a radiation field class which sums over other radiation fields.
+!!}
 
   type, public :: radiationFieldList
      class(radiationFieldClass), pointer :: radiationField_
      type (radiationFieldList ), pointer :: next            => null()
   end type radiationFieldList
 
-  !# <radiationField name="radiationFieldSummation">
-  !#  <description>A summation radiation field class.</description>
-  !#  <deepCopy>
-  !#   <linkedList type="radiationFieldList" variable="radiationFields" next="next" object="radiationField_" objectType="radiationFieldClass"/>
-  !#  </deepCopy>
-  !# </radiationField>
+  !![
+  <radiationField name="radiationFieldSummation">
+   <description>A summation radiation field class.</description>
+   <deepCopy>
+    <linkedList type="radiationFieldList" variable="radiationFields" next="next" object="radiationField_" objectType="radiationFieldClass"/>
+   </deepCopy>
+  </radiationField>
+  !!]
   type, extends(radiationFieldClass) :: radiationFieldSummation
-     !% A summation radiation field class.
+     !!{
+     A summation radiation field class.
+     !!}
      private
      type(radiationFieldList), pointer :: radiationFields => null()
    contains
-     !# <methods>
-     !#   <method description="Return a list of all sub-components." method="list" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Return a list of all sub-components." method="list" />
+     </methods>
+     !!]
      final     ::         summationDestructor
      procedure :: flux => summationFlux
      procedure :: list => summationList
   end type radiationFieldSummation
 
   interface radiationFieldSummation
-     !% Constructors for the ``summation'' radiation field class.
+     !!{
+     Constructors for the ``summation'' radiation field class.
+     !!}
      module procedure summationConstructorParameters
      module procedure summationConstructorInternal
   end interface radiationFieldSummation
@@ -52,7 +62,9 @@
 contains
 
   function summationConstructorParameters(parameters) result (self)
-    !% Constructor for the ``summation'' radiation field class which takes a parameter set as input.
+    !!{
+    Constructor for the ``summation'' radiation field class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (radiationFieldSummation)                :: self
@@ -70,13 +82,17 @@ contains
           allocate(self%radiationFields)
           radiationField_ => self%radiationFields
        end if
-       !# <objectBuilder class="radiationField" name="radiationField_%radiationField_" source="parameters" copy="i" />
+       !![
+       <objectBuilder class="radiationField" name="radiationField_%radiationField_" source="parameters" copy="i" />
+       !!]
     end do
     return
   end function summationConstructorParameters
 
   function summationConstructorInternal(radiationFields) result (self)
-    !% Internal constructor for the summation radiation field class.
+    !!{
+    Internal constructor for the summation radiation field class.
+    !!}
     implicit none
     type(radiationFieldSummation)                        :: self
     type(radiationFieldList     ), target, intent(in   ) :: radiationFields
@@ -85,14 +101,18 @@ contains
     self           %radiationFields => radiationFields
     radiationField_                 => radiationFields
     do while (associated(radiationField_))
-       !# <referenceCountIncrement owner="radiationField_" object="radiationField_"/>
+       !![
+       <referenceCountIncrement owner="radiationField_" object="radiationField_"/>
+       !!]
        radiationField_ => radiationField_%next
     end do
     return
   end function summationConstructorInternal
 
   subroutine summationDestructor(self)
-    !% Destructor for the summation radiation field class.
+    !!{
+    Destructor for the summation radiation field class.
+    !!}
     implicit none
     type(radiationFieldSummation), intent(inout) :: self
     type(radiationFieldList     ), pointer       :: radiationField_, radiationFieldNext
@@ -101,7 +121,9 @@ contains
        radiationField_ => self%radiationFields
        do while (associated(radiationField_))
           radiationFieldNext => radiationField_%next
-          !# <objectDestructor name="radiationField_%radiationField_"/>
+          !![
+          <objectDestructor name="radiationField_%radiationField_"/>
+          !!]
           deallocate(radiationField_)
           radiationField_ => radiationFieldNext
        end do
@@ -110,7 +132,9 @@ contains
   end subroutine summationDestructor
 
   double precision function summationFlux(self,wavelength,node)
-    !% Implement a summation radiation field.
+    !!{
+    Implement a summation radiation field.
+    !!}
     implicit none
     class           (radiationFieldSummation), intent(inout) :: self
     double precision                         , intent(in   ) :: wavelength
@@ -128,7 +152,9 @@ contains
   end function summationFlux
 
   function summationList(self)
-    !% Return a list of all components for the {\normalfont \ttfamily summation} radiation field class.
+    !!{
+    Return a list of all components for the {\normalfont \ttfamily summation} radiation field class.
+    !!}
     implicit none
     class(radiationFieldSummation), intent(inout) :: self
     type (radiationFieldList     ), pointer       :: summationList

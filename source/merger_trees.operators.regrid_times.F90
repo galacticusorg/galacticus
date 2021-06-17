@@ -17,24 +17,30 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements a merger tree operator which restructures the tree onto a fixed grid of timesteps.
+  !!{
+  Contains a module which implements a merger tree operator which restructures the tree onto a fixed grid of timesteps.
+  !!}
 
   use :: Output_Times, only : outputTimesClass
 
-  !# <mergerTreeOperator name="mergerTreeOperatorRegridTimes">
-  !#  <description>
-  !#   A merger tree operator class which will interpolate the merger tree structure onto a new array of timesteps. The timestep
-  !#   array is specified via an \refClass{outputTimesClass} object. Along each branch of the tree, new halos are inserted at
-  !#   times corresponding to the times in the resulting array. The masses of these nodes are linearly interpolated between the
-  !#   existing nodes on the branch. Once these new nodes have been added, all other nodes are removed from the tree\footnote{The
-  !#   base node of the tree is never removed, even if it does not lie on one of the times in the constructed array.} The
-  !#   processing is useful to construct representations of trees as they would be if only sparse time sampling were available. As
-  !#   such, it is useful for exploring how the number of snapshots in merger trees extracted from N-body simulations\index{merger
-  !#   tree!N-body} affects the properties of galaxies that form in them.
-  !#  </description>
-  !# </mergerTreeOperator>
+  !![
+  <mergerTreeOperator name="mergerTreeOperatorRegridTimes">
+   <description>
+    A merger tree operator class which will interpolate the merger tree structure onto a new array of timesteps. The timestep
+    array is specified via an \refClass{outputTimesClass} object. Along each branch of the tree, new halos are inserted at
+    times corresponding to the times in the resulting array. The masses of these nodes are linearly interpolated between the
+    existing nodes on the branch. Once these new nodes have been added, all other nodes are removed from the tree\footnote{The
+    base node of the tree is never removed, even if it does not lie on one of the times in the constructed array.} The
+    processing is useful to construct representations of trees as they would be if only sparse time sampling were available. As
+    such, it is useful for exploring how the number of snapshots in merger trees extracted from N-body simulations\index{merger
+    tree!N-body} affects the properties of galaxies that form in them.
+   </description>
+  </mergerTreeOperator>
+  !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorRegridTimes
-     !% A merger tree operator class which restructures the tree onto a fixed grid of timesteps.
+     !!{
+     A merger tree operator class which restructures the tree onto a fixed grid of timesteps.
+     !!}
      private
      class           (outputTimesClass), pointer                   :: outputTimes_  => null()
      logical                                                       :: dumpTrees
@@ -46,7 +52,9 @@
   end type mergerTreeOperatorRegridTimes
 
   interface mergerTreeOperatorRegridTimes
-     !% Constructors for the regrid times merger tree operator class.
+     !!{
+     Constructors for the regrid times merger tree operator class.
+     !!}
      module procedure regridTimesConstructorParameters
      module procedure regridTimesConstructorInternal
   end interface mergerTreeOperatorRegridTimes
@@ -54,7 +62,9 @@
 contains
 
   function regridTimesConstructorParameters(parameters) result(self)
-    !% Constructor for the regrid times merger tree operator class which takes a parameter set as input.
+    !!{
+    Constructor for the regrid times merger tree operator class which takes a parameter set as input.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (mergerTreeOperatorRegridTimes)                :: self
@@ -63,27 +73,33 @@ contains
     logical                                                        :: dumpTrees
     double precision                                               :: snapTolerance
 
-    !# <inputParameter>
-    !#   <name>dumpTrees</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>Specifies whether or not to dump merger trees as they are regridded.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>snapTolerance</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>The fractional tolerance used in deciding if a node should be snapped to a time on the grid.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>dumpTrees</name>
+      <source>parameters</source>
+      <defaultValue>.false.</defaultValue>
+      <description>Specifies whether or not to dump merger trees as they are regridded.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>snapTolerance</name>
+      <source>parameters</source>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The fractional tolerance used in deciding if a node should be snapped to a time on the grid.</description>
+    </inputParameter>
+    <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
+    !!]
     self=mergerTreeOperatorRegridTimes(snapTolerance,dumpTrees,outputTimes_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="outputTimes_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="outputTimes_"/>
+    !!]
     return
   end function regridTimesConstructorParameters
 
   function regridTimesConstructorInternal(snapTolerance,dumpTrees,outputTimes_) result(self)
-    !% Internal constructor for the regrid times merger tree operator class.
+    !!{
+    Internal constructor for the regrid times merger tree operator class.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (mergerTreeOperatorRegridTimes)                        :: self
@@ -91,7 +107,9 @@ contains
     logical                                        , intent(in   )         :: dumpTrees
     class           (outputTimesClass             ), intent(in   ), target :: outputTimes_
     integer         (c_size_t                     )                        :: i
-    !# <constructorAssign variables="dumpTrees, snapTolerance, *outputTimes_"/>
+    !![
+    <constructorAssign variables="dumpTrees, snapTolerance, *outputTimes_"/>
+    !!]
 
     ! Validate arguments.
     if (self%outputTimes_%count() < 2_c_size_t) call Galacticus_Error_Report('2 or more output times are required'//{introspection:location})
@@ -103,16 +121,22 @@ contains
   end function regridTimesConstructorInternal
 
   subroutine regridTimesDestructor(self)
-    !% Destructor for the merger tree operator function class.
+    !!{
+    Destructor for the merger tree operator function class.
+    !!}
     implicit none
     type(mergerTreeOperatorRegridTimes), intent(inout) :: self
 
-    !# <objectDestructor name="self%outputTimes_"/>
+    !![
+    <objectDestructor name="self%outputTimes_"/>
+    !!]
     return
   end subroutine regridTimesDestructor
 
   subroutine regridTimesOperatePreEvolution(self,tree)
-    !% Perform a regrid times operation on a merger tree.
+    !!{
+    Perform a regrid times operation on a merger tree.
+    !!}
     use            :: Display                , only : displayIndent           , displayMessage               , displayUnindent       , verbosityLevelWorking, &
          &                                            displayMagenta          , displayReset
     use            :: Galacticus_Error       , only : Galacticus_Error_Report , Galacticus_Warn

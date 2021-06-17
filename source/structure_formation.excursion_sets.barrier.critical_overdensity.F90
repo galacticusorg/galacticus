@@ -17,17 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a critical overdensity excursion set barrier class.
+!!{
+Contains a module which implements a critical overdensity excursion set barrier class.
+!!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
 
-  !# <excursionSetBarrier name="excursionSetBarrierCriticalOverdensity">
-  !#  <description>
-  !#   A excursion set barrier class that adopts a barrier equal to the critical linear theory overdensity for halo collpase.
-  !#  </description>
-  !# </excursionSetBarrier>
+  !![
+  <excursionSetBarrier name="excursionSetBarrierCriticalOverdensity">
+   <description>
+    A excursion set barrier class that adopts a barrier equal to the critical linear theory overdensity for halo collpase.
+   </description>
+  </excursionSetBarrier>
+  !!]
   type, extends(excursionSetBarrierClass) :: excursionSetBarrierCriticalOverdensity
-     !% A critical overdensity excursion set barrier class.
+     !!{
+     A critical overdensity excursion set barrier class.
+     !!}
      private
      class(criticalOverdensityClass     ), pointer :: criticalOverdensity_      => null()
      class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
@@ -38,7 +44,9 @@
   end type excursionSetBarrierCriticalOverdensity
 
   interface excursionSetBarrierCriticalOverdensity
-     !% Constructors for the critical overdensity excursion set barrier class.
+     !!{
+     Constructors for the critical overdensity excursion set barrier class.
+     !!}
      module procedure criticalOverdensityConstructorParameters
      module procedure criticalOverdensityConstructorInternal
   end interface excursionSetBarrierCriticalOverdensity
@@ -46,7 +54,9 @@
 contains
 
   function criticalOverdensityConstructorParameters(parameters) result(self)
-    !% Constructor for the critical overdensity excursion set class which takes a parameter set as input.
+    !!{
+    Constructor for the critical overdensity excursion set class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (excursionSetBarrierCriticalOverdensity)                :: self
@@ -55,38 +65,52 @@ contains
     class(cosmologicalMassVarianceClass         ), pointer       :: cosmologicalMassVariance_
 
     ! Check and read parameters.
-    !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
-    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    !![
+    <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
+    <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    !!]
     self=excursionSetBarrierCriticalOverdensity(criticalOverdensity_,cosmologicalMassVariance_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="criticalOverdensity_"     />
-    !# <objectDestructor name="cosmologicalMassVariance_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="criticalOverdensity_"     />
+    <objectDestructor name="cosmologicalMassVariance_"/>
+    !!]
     return
   end function criticalOverdensityConstructorParameters
 
   function criticalOverdensityConstructorInternal(criticalOverdensity_,cosmologicalMassVariance_) result(self)
-    !% Internal constructor for the critical overdensity excursion set class.
+    !!{
+    Internal constructor for the critical overdensity excursion set class.
+    !!}
     implicit none
     type (excursionSetBarrierCriticalOverdensity)                        :: self
     class(criticalOverdensityClass              ), intent(in   ), target :: criticalOverdensity_
     class(cosmologicalMassVarianceClass         ), intent(in   ), target :: cosmologicalMassVariance_
-    !# <constructorAssign variables="*criticalOverdensity_, *cosmologicalMassVariance_"/>
+    !![
+    <constructorAssign variables="*criticalOverdensity_, *cosmologicalMassVariance_"/>
+    !!]
 
     return
   end function criticalOverdensityConstructorInternal
 
   subroutine criticalOverdensityDestructor(self)
-    !% Destructor for the critical overdensity excursion set barrier class.
+    !!{
+    Destructor for the critical overdensity excursion set barrier class.
+    !!}
     implicit none
     type(excursionSetBarrierCriticalOverdensity), intent(inout) :: self
 
-    !# <objectDestructor name="self%criticalOverdensity_"     />
-    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
+    !![
+    <objectDestructor name="self%criticalOverdensity_"     />
+    <objectDestructor name="self%cosmologicalMassVariance_"/>
+    !!]
     return
   end subroutine criticalOverdensityDestructor
 
   double precision function criticalOverdensityBarrier(self,variance,time,node,rateCompute)
-    !% Return the excursion set barrier at the given variance and time.
+    !!{
+    Return the excursion set barrier at the given variance and time.
+    !!}
     implicit none
     class           (excursionSetBarrierCriticalOverdensity), intent(inout) :: self
     double precision                                        , intent(in   ) :: variance   , time
@@ -108,7 +132,9 @@ contains
   end function criticalOverdensityBarrier
 
   double precision function criticalOverdensityBarrierGradient(self,variance,time,node,rateCompute)
-    !% Return the gradient with respect to variance of the excursion set barrier at the given variance and time.
+    !!{
+    Return the gradient with respect to variance of the excursion set barrier at the given variance and time.
+    !!}
     implicit none
     class           (excursionSetBarrierCriticalOverdensity), intent(inout) :: self
     double precision                                        , intent(in   ) :: variance   , time

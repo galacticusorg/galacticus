@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains custom functions for the standard disk component.
+!!{
+Contains custom functions for the standard disk component.
+!!}
 
 subroutine Node_Component_Disk_Standard_Attach_Pipes(self)
-  !% Attach cooling pipes to the standard disk component.
+  !!{
+  Attach cooling pipes to the standard disk component.
+  !!}
   use :: Galacticus_Error, only : Galacticus_Error_Report
   implicit none
   class(nodeComponentDiskStandard), intent(in   ) :: self
@@ -40,7 +44,9 @@ subroutine Node_Component_Disk_Standard_Attach_Pipes(self)
 end subroutine Node_Component_Disk_Standard_Attach_Pipes
 
 double precision function Node_Component_Disk_Standard_Half_Mass_Radius(self)
-  !% Return the half-mass radius of the standard disk.
+  !!{
+  Return the half-mass radius of the standard disk.
+  !!}
   use :: Galacticus_Error                 , only : Galacticus_Error_Report
   use :: Mass_Distributions               , only : massDistributionCylindrical
   use :: Node_Component_Disk_Standard_Data, only : diskMassDistribution
@@ -59,7 +65,9 @@ double precision function Node_Component_Disk_Standard_Half_Mass_Radius(self)
 end function Node_Component_Disk_Standard_Half_Mass_Radius
 
 double precision function Node_Component_Disk_Standard_Enclosed_Mass(self,radius,componentType,massType,weightBy,weightIndex)
-  !% Computes the mass within a given radius for an standard disk.
+  !!{
+  Computes the mass within a given radius for an standard disk.
+  !!}
   use :: Galactic_Structure_Options       , only : componentTypeAll    , componentTypeDisk, massTypeAll    , massTypeBaryonic, &
           &                                        massTypeGalactic    , massTypeGaseous  , massTypeStellar, radiusLarge     , &
           &                                        weightByLuminosity  , weightByMass
@@ -109,7 +117,9 @@ double precision function Node_Component_Disk_Standard_Enclosed_Mass(self,radius
 end function Node_Component_Disk_Standard_Enclosed_Mass
 
 function Node_Component_Disk_Standard_Acceleration(self,positionCartesian,componentType,massType)
-  !% Computes the gravitational acceleration at a given position for a standard disk.
+  !!{
+  Computes the gravitational acceleration at a given position for a standard disk.
+  !!}
   use :: Coordinates                      , only : assignment(=)       , coordinateCartesian
   use :: Galactic_Structure_Options       , only : componentTypeAll    , componentTypeDisk  , massTypeAll                    , massTypeBaryonic, &
        &                                           massTypeGalactic    , massTypeGaseous    , massTypeStellar
@@ -154,7 +164,9 @@ function Node_Component_Disk_Standard_Acceleration(self,positionCartesian,compon
 end function Node_Component_Disk_Standard_Acceleration
 
 function Node_Component_Disk_Standard_Tidal_Tensor(self,positionCartesian,componentType,massType)
-  !% Computes the gravitational acceleration at a given position for a standard disk.
+  !!{
+  Computes the gravitational acceleration at a given position for a standard disk.
+  !!}
   use :: Coordinates                      , only : assignment(=)                  , coordinateCartesian
   use :: Galactic_Structure_Options       , only : componentTypeAll               , componentTypeDisk  , massTypeAll    , massTypeBaryonic, &
        &                                           massTypeGalactic               , massTypeGaseous    , massTypeStellar
@@ -196,7 +208,9 @@ function Node_Component_Disk_Standard_Tidal_Tensor(self,positionCartesian,compon
 end function Node_Component_Disk_Standard_Tidal_Tensor
 
 function Node_Component_Disk_Standard_Chandrasekhar_Integral(self,positionCartesian,velocityCartesian,componentType,massType)
-  !% Computes the gravitational acceleration at a given position for a standard disk.
+  !!{
+  Computes the gravitational acceleration at a given position for a standard disk.
+  !!}
   use :: Galactic_Structure_Options  , only : componentTypeAll                 , componentTypeDisk  , massTypeAll        , weightByMass         , &
        &                                      weightIndexNull
   use :: Numerical_Constants_Math    , only : Pi
@@ -313,7 +327,9 @@ function Node_Component_Disk_Standard_Chandrasekhar_Integral(self,positionCartes
 end function Node_Component_Disk_Standard_Chandrasekhar_Integral
 
 double precision function Node_Component_Disk_Standard_Density(self,positionSpherical,componentType,massType,weightBy,weightIndex)
-  !% Computes the density at a given position for an standard disk.
+  !!{
+  Computes the density at a given position for an standard disk.
+  !!}
   use :: Coordinates                      , only : assignment(=)       , coordinateSpherical
   use :: Galactic_Structure_Options       , only : componentTypeAll    , componentTypeDisk  , massTypeAll    , massTypeBaryonic  , &
           &                                        massTypeGalactic    , massTypeGaseous    , massTypeStellar, weightByLuminosity, &
@@ -361,7 +377,9 @@ double precision function Node_Component_Disk_Standard_Density(self,positionSphe
 end function Node_Component_Disk_Standard_Density
 
 double precision function Node_Component_Disk_Standard_Potential(self,radius,componentType,massType,status)
-  !% Compute the gravitational potential due to an standard disk.
+  !!{
+  Compute the gravitational potential due to an standard disk.
+  !!}
   use :: Coordinates                      , only : assignment(=)                  , coordinateCylindrical
   use :: Galactic_Structure_Options       , only : componentTypeAll               , componentTypeDisk    , radiusLarge, weightByMass, &
           &                                        weightIndexNull
@@ -402,7 +420,9 @@ double precision function Node_Component_Disk_Standard_Potential(self,radius,com
 end function Node_Component_Disk_Standard_Potential
 
 double precision function Node_Component_Disk_Standard_Rotation_Curve(self,radius,componentType,massType)
-  !% Computes the rotation curve at a given radius for an standard disk.
+  !!{
+  Computes the rotation curve at a given radius for an standard disk.
+  !!}
   use :: Galactic_Structure_Options       , only : radiusLarge                    , weightByMass, weightIndexNull
   use :: Mass_Distributions               , only : massDistributionCylindrical
   use :: Node_Component_Disk_Standard_Data, only : diskMassDistribution
@@ -437,7 +457,9 @@ double precision function Node_Component_Disk_Standard_Rotation_Curve(self,radiu
 end function Node_Component_Disk_Standard_Rotation_Curve
 
 double precision function Node_Component_Disk_Standard_Rotation_Curve_Gradient(self,radius,componentType,massType)
-  !% Computes the rotation curve gradient for an standard disk.
+  !!{
+  Computes the rotation curve gradient for an standard disk.
+  !!}
   use :: Galactic_Structure_Options       , only : radiusLarge                    , weightByMass, weightIndexNull
   use :: Mass_Distributions               , only : massDistributionCylindrical
   use :: Node_Component_Disk_Standard_Data, only : diskMassDistribution
@@ -473,7 +495,9 @@ double precision function Node_Component_Disk_Standard_Rotation_Curve_Gradient(s
 end function Node_Component_Disk_Standard_Rotation_Curve_Gradient
 
 double precision function Node_Component_Disk_Standard_Surface_Density(self,positionCylindrical,componentType,massType,weightBy,weightIndex)
-  !% Computes the surface density at a given position for an standard disk.
+  !!{
+  Computes the surface density at a given position for an standard disk.
+  !!}
   use :: Coordinates                      , only : coordinateCylindrical
   use :: Galactic_Structure_Options       , only : componentTypeAll                    , componentTypeDisk         , massTypeAll                       , massTypeBaryonic            , &
           &                                        massTypeGalactic                    , massTypeGaseous           , massTypeStellar                   , weightByLuminosity          , &

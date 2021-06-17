@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to test the array functions.
+!!{
+Contains a program to test the array functions.
+!!}
 
 program Test_Meshes
-  !% Test mesh functions.
+  !!{
+  Test mesh functions.
+  !!}
   use            :: Display      , only : displayVerbositySet, verbosityLevelStandard
   use, intrinsic :: ISO_C_Binding, only : c_double_complex
   use            :: Meshes       , only : Meshes_Apply_Point , cloudTypeCubic        , cloudTypePoint      , cloudTypeTriangular

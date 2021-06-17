@@ -17,18 +17,24 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !# <outputTimes name="outputTimesUniformSpacingInRedshift">
-  !#  <description>An output times class which generates a set of output times spaced uniformly in redshift.</description>
-  !# </outputTimes>
+  !![
+  <outputTimes name="outputTimesUniformSpacingInRedshift">
+   <description>An output times class which generates a set of output times spaced uniformly in redshift.</description>
+  </outputTimes>
+  !!]
   type, extends(outputTimesList) :: outputTimesUniformSpacingInRedshift
-     !% Implementation of an output times class which generates a set of output times spaced uniformly in redshift.
+     !!{
+     Implementation of an output times class which generates a set of output times spaced uniformly in redshift.
+     !!}
      private
      double precision           :: redshiftMinimum, redshiftMaximum
      integer         (c_size_t) :: countRedshifts
   end type outputTimesUniformSpacingInRedshift
 
   interface outputTimesUniformSpacingInRedshift
-     !% Constructors for the {\normalfont \ttfamily uniformSpacingInRedshift} output times class.
+     !!{
+     Constructors for the {\normalfont \ttfamily uniformSpacingInRedshift} output times class.
+     !!}
      module procedure uniformSpacingInRedshiftConstructorParameters
      module procedure uniformSpacingInRedshiftConstructorInternal
   end interface outputTimesUniformSpacingInRedshift
@@ -36,7 +42,9 @@
 contains
 
   function uniformSpacingInRedshiftConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily uniformSpacingInRedshift} output times class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily uniformSpacingInRedshift} output times class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (outputTimesUniformSpacingInRedshift)                :: self
@@ -45,30 +53,36 @@ contains
     double precision                                                     :: redshiftMinimum    , redshiftMaximum
     integer         (c_size_t                           )                :: countRedshifts
 
-    !# <inputParameter>
-    !#   <name>redshiftMinimum</name>
-    !#   <description>The minimum redshift at which to output.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>redshiftMaximum</name>
-    !#   <description>The maximum redshift at which to output.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>countRedshifts</name>
-    !#   <description>The number of redshifts at which to output.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>redshiftMinimum</name>
+      <description>The minimum redshift at which to output.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>redshiftMaximum</name>
+      <description>The maximum redshift at which to output.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>countRedshifts</name>
+      <description>The number of redshifts at which to output.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !!]
     self=outputTimesUniformSpacingInRedshift(redshiftMinimum,redshiftMaximum,countRedshifts,cosmologyFunctions_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"/>
+    !!]
     return
   end function uniformSpacingInRedshiftConstructorParameters
 
   function uniformSpacingInRedshiftConstructorInternal(redshiftMinimum,redshiftMaximum,countRedshifts,cosmologyFunctions_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily uniformSpacingInRedshift} output times class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily uniformSpacingInRedshift} output times class.
+    !!}
     use :: Numerical_Ranges, only : Make_Range, rangeTypeLinear
     implicit none
     type            (outputTimesUniformSpacingInRedshift)                        :: self
@@ -76,7 +90,9 @@ contains
     integer         (c_size_t                           ), intent(in   )         :: countRedshifts
     class           (cosmologyFunctionsClass            ), intent(in   ), target :: cosmologyFunctions_
     integer         (c_size_t                           )                        :: i
-    !# <constructorAssign variables="redshiftMinimum, redshiftMaximum, countRedshifts, *cosmologyFunctions_"/>
+    !![
+    <constructorAssign variables="redshiftMinimum, redshiftMaximum, countRedshifts, *cosmologyFunctions_"/>
+    !!]
 
     allocate(self%times    (countRedshifts))
     allocate(self%redshifts(countRedshifts))

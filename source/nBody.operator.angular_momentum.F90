@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an N-body data operator which determines the mean angular momentum of particles.
+!!{
+Contains a module which implements an N-body data operator which determines the mean angular momentum of particles.
+!!}
 
   use, intrinsic :: ISO_C_Binding           , only : c_size_t
   use            :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
   
-  !# <nbodyOperator name="nbodyOperatorAngularMomentum">
-  !#  <description>An N-body data operator which determines the mean angular momentum of particles. Also finds the angular velocity vector for the rotating frame in which the angular momentum would be zero.</description>
-  !# </nbodyOperator>
+  !![
+  <nbodyOperator name="nbodyOperatorAngularMomentum">
+   <description>An N-body data operator which determines the mean angular momentum of particles. Also finds the angular velocity vector for the rotating frame in which the angular momentum would be zero.</description>
+  </nbodyOperator>
+  !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorAngularMomentum
-     !% An N-body data operator which determines the mean angular momentum of particles.
+     !!{
+     An N-body data operator which determines the mean angular momentum of particles.
+     !!}
      private
      logical                                      :: selfBoundParticlesOnly
      integer(c_size_t                  )          :: bootstrapSampleCount
@@ -37,7 +43,9 @@
   end type nbodyOperatorAngularMomentum
 
   interface nbodyOperatorAngularMomentum
-     !% Constructors for the ``angularMomentum'' N-body operator class.
+     !!{
+     Constructors for the ``angularMomentum'' N-body operator class.
+     !!}
      module procedure angularMomentumConstructorParameters
      module procedure angularMomentumConstructorInternal
   end interface nbodyOperatorAngularMomentum
@@ -45,7 +53,9 @@
 contains
 
   function angularMomentumConstructorParameters(parameters) result (self)
-    !% Constructor for the ``angularMomentum'' N-body operator class which takes a parameter set as input.
+    !!{
+    Constructor for the ``angularMomentum'' N-body operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (nbodyOperatorAngularMomentum)                :: self
@@ -54,47 +64,61 @@ contains
     logical                                              :: selfBoundParticlesOnly
     integer(c_size_t                    )                :: bootstrapSampleCount
 
-    !# <inputParameter>
-    !#   <name>selfBoundParticlesOnly</name>
-    !#   <source>parameters</source>
-    !#   <description>If true, the mean angular momentum is computed only for self-bound particles</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>bootstrapSampleCount</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>30_c_size_t</defaultValue>
-    !#   <description>The number of bootstrap resamples of the particles that should be used.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>selfBoundParticlesOnly</name>
+      <source>parameters</source>
+      <description>If true, the mean angular momentum is computed only for self-bound particles</description>
+    </inputParameter>
+    <inputParameter>
+      <name>bootstrapSampleCount</name>
+      <source>parameters</source>
+      <defaultValue>30_c_size_t</defaultValue>
+      <description>The number of bootstrap resamples of the particles that should be used.</description>
+    </inputParameter>
+    <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !!]
     self=nbodyOperatorAngularMomentum(selfBoundParticlesOnly,bootstrapSampleCount,randomNumberGenerator_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="randomNumberGenerator_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="randomNumberGenerator_"/>
+    !!]
     return
   end function angularMomentumConstructorParameters
 
   function angularMomentumConstructorInternal(selfBoundParticlesOnly,bootstrapSampleCount,randomNumberGenerator_) result (self)
-    !% Internal constructor for the ``angularMomentum'' N-body operator class.
+    !!{
+    Internal constructor for the ``angularMomentum'' N-body operator class.
+    !!}
     implicit none
     type   (nbodyOperatorAngularMomentum)                        :: self
     logical                              , intent(in   )         :: selfBoundParticlesOnly
     integer(c_size_t                    ), intent(in   )         :: bootstrapSampleCount
     class  (randomNumberGeneratorClass  ), intent(in   ), target :: randomNumberGenerator_
-    !# <constructorAssign variables="selfBoundParticlesOnly, bootstrapSampleCount, *randomNumberGenerator_"/>
+    !![
+    <constructorAssign variables="selfBoundParticlesOnly, bootstrapSampleCount, *randomNumberGenerator_"/>
+    !!]
 
     return
   end function angularMomentumConstructorInternal
 
   subroutine angularMomentumDestructor(self)
-    !% Destructor for the ``angularMomentum'' N-body operator class.
+    !!{
+    Destructor for the ``angularMomentum'' N-body operator class.
+    !!}
     implicit none
     type(nbodyOperatorAngularMomentum), intent(inout) :: self
 
-    !# <objectDestructor name="self%randomNumberGenerator_"/>
+    !![
+    <objectDestructor name="self%randomNumberGenerator_"/>
+    !!]
     return
   end subroutine angularMomentumDestructor
   
   subroutine angularMomentumOperate(self,simulations)
-    !% Determine the mean position and velocity of N-body particles.
+    !!{
+    Determine the mean position and velocity of N-body particles.
+    !!}
     use :: Galacticus_Error , only : Galacticus_Error_Report
     use :: Linear_Algebra   , only : vector                 , matrix         , assignment(=), operator(*)
     use :: Memory_Management, only : allocateArray          , deallocateArray

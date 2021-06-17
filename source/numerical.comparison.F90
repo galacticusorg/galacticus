@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements comparisons of values.
+!!{
+Contains a module which implements comparisons of values.
+!!}
 
 module Numerical_Comparison
-  !% Implements comparisons of values.
+  !!{
+  Implements comparisons of values.
+  !!}
   implicit none
   private
   public :: Values_Differ, Values_Agree, Values_Less_Than
@@ -44,8 +48,10 @@ module Numerical_Comparison
 contains
 
   elemental logical function Values_Differ_Real(value1,value2,absTol,relTol)
-    !% Returns true if {\normalfont \ttfamily value1} and {\normalfont \ttfamily value2} differ by more than {\normalfont \ttfamily absTol} in absolute terms, or {\normalfont \ttfamily relTol} in
-    !% relative terms.
+    !!{
+    Returns true if {\normalfont \ttfamily value1} and {\normalfont \ttfamily value2} differ by more than {\normalfont \ttfamily absTol} in absolute terms, or {\normalfont \ttfamily relTol} in
+    relative terms.
+    !!}
     implicit none
     real, intent(in   )           :: value1, value2
     real, intent(in   ), optional :: absTol, relTol
@@ -58,8 +64,10 @@ contains
   end function Values_Differ_Real
 
   elemental logical function Values_Differ_Double(value1,value2,absTol,relTol)
-    !% Returns true if {\normalfont \ttfamily value1} and {\normalfont \ttfamily value2} differ by more than {\normalfont \ttfamily absTol} in absolute terms, or {\normalfont \ttfamily relTol} in
-    !% relative terms.
+    !!{
+    Returns true if {\normalfont \ttfamily value1} and {\normalfont \ttfamily value2} differ by more than {\normalfont \ttfamily absTol} in absolute terms, or {\normalfont \ttfamily relTol} in
+    relative terms.
+    !!}
     implicit none
     double precision, intent(in   )           :: value1, value2
     double precision, intent(in   ), optional :: absTol, relTol
@@ -72,8 +80,10 @@ contains
   end function Values_Differ_Double
 
   elemental logical function Values_Differ_Double_Complex(value1,value2,absTol,relTol)
-    !% Returns true if {\normalfont \ttfamily value1} and {\normalfont \ttfamily value2} differ by more than {\normalfont \ttfamily absTol} in absolute terms, or {\normalfont \ttfamily relTol} in
-    !% relative terms.
+    !!{
+    Returns true if {\normalfont \ttfamily value1} and {\normalfont \ttfamily value2} differ by more than {\normalfont \ttfamily absTol} in absolute terms, or {\normalfont \ttfamily relTol} in
+    relative terms.
+    !!}
     implicit none
     double complex, intent(in   )           :: value1, value2
     double complex, intent(in   ), optional :: absTol, relTol
@@ -92,8 +102,10 @@ contains
   end function Values_Differ_Double_Complex
 
   elemental logical function Values_Agree_Real(value1,value2,absTol,relTol)
-    !% Returns true if {\normalfont \ttfamily value1} and {\normalfont \ttfamily value2} agree to within {\normalfont \ttfamily absTol} in absolute terms, or {\normalfont \ttfamily relTol} in
-    !% relative terms.
+    !!{
+    Returns true if {\normalfont \ttfamily value1} and {\normalfont \ttfamily value2} agree to within {\normalfont \ttfamily absTol} in absolute terms, or {\normalfont \ttfamily relTol} in
+    relative terms.
+    !!}
     implicit none
     real   , intent(in   )           :: value1         , value2
     real   , intent(in   ), optional :: absTol         , relTol
@@ -119,8 +131,10 @@ contains
   end function Values_Agree_Real
 
   elemental logical function Values_Agree_Double(value1,value2,absTol,relTol)
-    !% Returns true if {\normalfont \ttfamily value1} and {\normalfont \ttfamily value2} agree to within {\normalfont \ttfamily absTol} in absolute terms, or {\normalfont \ttfamily relTol} in
-    !% relative terms.
+    !!{
+    Returns true if {\normalfont \ttfamily value1} and {\normalfont \ttfamily value2} agree to within {\normalfont \ttfamily absTol} in absolute terms, or {\normalfont \ttfamily relTol} in
+    relative terms.
+    !!}
     implicit none
     double precision, intent(in   )           :: value1         , value2
     double precision, intent(in   ), optional :: absTol         , relTol
@@ -146,8 +160,10 @@ contains
   end function Values_Agree_Double
 
   elemental logical function Values_Agree_Double_Complex(value1,value2,absTol,relTol)
-    !% Returns true if {\normalfont \ttfamily value1} and {\normalfont \ttfamily value2} agree to within {\normalfont \ttfamily absTol} in absolute terms, or {\normalfont \ttfamily relTol} in
-    !% relative terms.
+    !!{
+    Returns true if {\normalfont \ttfamily value1} and {\normalfont \ttfamily value2} agree to within {\normalfont \ttfamily absTol} in absolute terms, or {\normalfont \ttfamily relTol} in
+    relative terms.
+    !!}
     implicit none
     double complex, intent(in   )           :: value1         , value2
     double complex, intent(in   ), optional :: absTol         , relTol
@@ -177,8 +193,10 @@ contains
   end function Values_Agree_Double_Complex
 
   logical function Values_Less_Than_Double(value1,value2,absTol,relTol)
-    !% Returns true if {\normalfont \ttfamily value1} is significantly less than {\normalfont \ttfamily value2}, with tolerance
-    !% {\normalfont \ttfamily absTol} in absolute terms, or {\normalfont \ttfamily relTol} in relative terms.
+    !!{
+    Returns true if {\normalfont \ttfamily value1} is significantly less than {\normalfont \ttfamily value2}, with tolerance
+    {\normalfont \ttfamily absTol} in absolute terms, or {\normalfont \ttfamily relTol} in relative terms.
+    !!}
     implicit none
     double precision, intent(in   )           :: value1         , value2
     double precision, intent(in   ), optional :: absTol         , relTol

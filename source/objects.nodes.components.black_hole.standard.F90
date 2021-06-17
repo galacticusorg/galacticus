@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements the standard black hole node component.
+!!{
+Contains a module which implements the standard black hole node component.
+!!}
 
 module Node_Component_Black_Hole_Standard
-  !% Implement black hole tree node methods.
+  !!{
+  Implement black hole tree node methods.
+  !!}
   use :: Accretion_Disks                     , only : accretionDisksClass
   use :: Black_Hole_Binary_Initial_Separation, only : blackHoleBinaryInitialSeparationClass
   use :: Black_Hole_Binary_Mergers           , only : blackHoleBinaryMergerClass
@@ -38,74 +42,76 @@ module Node_Component_Black_Hole_Standard
        &    Node_Component_Black_Hole_Standard_Output             , Node_Component_Black_Hole_Standard_Initialize       , &
        &    Node_Component_Black_Hole_Standard_Post_Evolve        , Node_Component_Black_Hole_Standard_Thread_Initialize
 
-  !# <component>
-  !#  <class>blackHole</class>
-  !#  <name>standard</name>
-  !#  <isDefault>true</isDefault>
-  !#  <output instances="first"/>
-  !#  <properties>
-  !#   <property>
-  !#     <name>mass</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-  !#     <classDefault>defaultBlackHoleComponent%massSeed()</classDefault>
-  !#     <output unitsInSI="massSolar" comment="Mass of the black hole."/>
-  !#   </property>
-  !#   <property>
-  !#     <name>spin</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-  !#     <getFunction>Node_Component_Black_Hole_Standard_Spin</getFunction>
-  !#     <classDefault>self%spinSeed()</classDefault>
-  !#     <output unitsInSI="0.0d0" comment="Spin of the black hole."/>
-  !#   </property>
-  !#   <property>
-  !#     <name>radialPosition</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#   </property>
-  !#   <property>
-  !#     <name>tripleInteractionTime</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#   </property>
-  !#   <property>
-  !#     <name>massSeed</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" isDeferred="get"  />
-  !#   </property>
-  !#   <property>
-  !#     <name>spinSeed</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
-  !#     <getFunction>Node_Component_Black_Hole_Standard_Seed_Spin</getFunction>
-  !#   </property>
-  !#   <property>
-  !#     <name>accretionRate</name>
-  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" isVirtual="true" />
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#   </property>
-  !#   <property>
-  !#     <name>radiativeEfficiency</name>
-  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" isVirtual="true" />
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#   </property>
-  !#  </properties>
-  !#  <bindings>
-  !#   <binding method="enclosedMass" function="Node_Component_Black_Hole_Standard_Enclosed_Mass" bindsTo="component"/>
-  !#   <binding method="acceleration" function="Node_Component_Black_Hole_Standard_Acceleration"  bindsTo="component"/>
-  !#   <binding method="tidalTensor"  function="Node_Component_Black_Hole_Standard_Tidal_Tensor"  bindsTo="component"/>
-  !#  </bindings>
-  !#  <functions>objects.nodes.components.black_hole.standard.bound_functions.inc</functions>
-  !# </component>
+  !![
+  <component>
+   <class>blackHole</class>
+   <name>standard</name>
+   <isDefault>true</isDefault>
+   <output instances="first"/>
+   <properties>
+    <property>
+      <name>mass</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+      <classDefault>defaultBlackHoleComponent%massSeed()</classDefault>
+      <output unitsInSI="massSolar" comment="Mass of the black hole."/>
+    </property>
+    <property>
+      <name>spin</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+      <getFunction>Node_Component_Black_Hole_Standard_Spin</getFunction>
+      <classDefault>self%spinSeed()</classDefault>
+      <output unitsInSI="0.0d0" comment="Spin of the black hole."/>
+    </property>
+    <property>
+      <name>radialPosition</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+    </property>
+    <property>
+      <name>tripleInteractionTime</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+    </property>
+    <property>
+      <name>massSeed</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" isDeferred="get"  />
+    </property>
+    <property>
+      <name>spinSeed</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
+      <getFunction>Node_Component_Black_Hole_Standard_Seed_Spin</getFunction>
+    </property>
+    <property>
+      <name>accretionRate</name>
+      <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" isVirtual="true" />
+      <type>double</type>
+      <rank>0</rank>
+    </property>
+    <property>
+      <name>radiativeEfficiency</name>
+      <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" isVirtual="true" />
+      <type>double</type>
+      <rank>0</rank>
+    </property>
+   </properties>
+   <bindings>
+    <binding method="enclosedMass" function="Node_Component_Black_Hole_Standard_Enclosed_Mass" bindsTo="component"/>
+    <binding method="acceleration" function="Node_Component_Black_Hole_Standard_Acceleration"  bindsTo="component"/>
+    <binding method="tidalTensor"  function="Node_Component_Black_Hole_Standard_Tidal_Tensor"  bindsTo="component"/>
+   </bindings>
+   <functions>objects.nodes.components.black_hole.standard.bound_functions.inc</functions>
+  </component>
+  !!]
 
   ! Objects used by this component.
   class(cosmologyParametersClass                ), pointer :: cosmologyParameters_
@@ -144,11 +150,15 @@ module Node_Component_Black_Hole_Standard
 
 contains
 
-  !# <nodeComponentInitializationTask>
-  !#  <unitName>Node_Component_Black_Hole_Standard_Initialize</unitName>
-  !# </nodeComponentInitializationTask>
+  !![
+  <nodeComponentInitializationTask>
+   <unitName>Node_Component_Black_Hole_Standard_Initialize</unitName>
+  </nodeComponentInitializationTask>
+  !!]
   subroutine Node_Component_Black_Hole_Standard_Initialize(parameters_)
-    !% Initializes the standard black hole component module.
+    !!{
+    Initializes the standard black hole component module.
+    !!}
     use :: Galacticus_Nodes, only : defaultHotHaloComponent, nodeComponentBlackHoleStandard
     use :: Input_Parameters, only : inputParameter         , inputParameters
     implicit none
@@ -158,90 +168,106 @@ contains
     ! Bind deferred functions.
     call blackHoleStandardComponent%massSeedFunction(Node_Component_Black_Hole_Standard_Seed_Mass)
     ! Get the seed mass
-    !# <inputParameter>
-    !#   <name>blackHoleSeedMass</name>
-    !#   <source>parameters_</source>
-    !#   <defaultValue>100.0d0</defaultValue>
-    !#   <description>The mass of the seed black hole placed at the center of each newly formed galaxy.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>blackHoleSeedMass</name>
+      <source>parameters_</source>
+      <defaultValue>100.0d0</defaultValue>
+      <description>The mass of the seed black hole placed at the center of each newly formed galaxy.</description>
+    </inputParameter>
+    !!]
     ! Get accretion rate enhancement factors.
-    !# <inputParameter>
-    !#   <name>bondiHoyleAccretionEnhancementSpheroid</name>
-    !#   <defaultValue>5.0d0</defaultValue>
-    !#   <description>The factor by which the Bondi-Hoyle accretion rate of spheroid gas onto black holes in enhanced.</description>
-    !#   <source>parameters_</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>bondiHoyleAccretionEnhancementHotHalo</name>
-    !#   <defaultValue>6.0d0</defaultValue>
-    !#   <description>The factor by which the Bondi-Hoyle accretion rate of hot halo gas onto black holes in enhanced.</description>
-    !#   <source>parameters_</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>bondiHoyleAccretionHotModeOnly</name>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>Determines whether accretion from the hot halo should only occur if the halo is in the hot accretion mode.</description>
-    !#   <source>parameters_</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>bondiHoyleAccretionEnhancementSpheroid</name>
+      <defaultValue>5.0d0</defaultValue>
+      <description>The factor by which the Bondi-Hoyle accretion rate of spheroid gas onto black holes in enhanced.</description>
+      <source>parameters_</source>
+    </inputParameter>
+    <inputParameter>
+      <name>bondiHoyleAccretionEnhancementHotHalo</name>
+      <defaultValue>6.0d0</defaultValue>
+      <description>The factor by which the Bondi-Hoyle accretion rate of hot halo gas onto black holes in enhanced.</description>
+      <source>parameters_</source>
+    </inputParameter>
+    <inputParameter>
+      <name>bondiHoyleAccretionHotModeOnly</name>
+      <defaultValue>.true.</defaultValue>
+      <description>Determines whether accretion from the hot halo should only occur if the halo is in the hot accretion mode.</description>
+      <source>parameters_</source>
+    </inputParameter>
+    !!]
 
     ! Get temperature of accreting gas.
-    !# <inputParameter>
-    !#   <name>bondiHoyleAccretionTemperatureSpheroid</name>
-    !#   <defaultValue>1.0d2</defaultValue>
-    !#   <description>The assumed temperature (in Kelvin) of gas in the spheroid when computing Bondi-Hoyle accretion rates onto black holes.</description>
-    !#   <source>parameters_</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>bondiHoyleAccretionTemperatureSpheroid</name>
+      <defaultValue>1.0d2</defaultValue>
+      <description>The assumed temperature (in Kelvin) of gas in the spheroid when computing Bondi-Hoyle accretion rates onto black holes.</description>
+      <source>parameters_</source>
+    </inputParameter>
+    !!]
 
     ! Get wind efficiency and scaling.
-    !# <inputParameter>
-    !#   <name>blackHoleWindEfficiency</name>
-    !#   <defaultValue>2.4d-3</defaultValue>
-    !#   <description>The efficiency of the black hole-driven wind: $L_\mathrm{wind} = \epsilon_\mathrm{wind} \dot{M}_\bullet \clight^2$.</description>
-    !#   <source>parameters_</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>blackHoleWindEfficiencyScalesWithRadiativeEfficiency</name>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>Specifies whether the black hole wind efficiency should scale with the radiative efficiency of the accretion disk.</description>
-    !#   <source>parameters_</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>blackHoleWindEfficiency</name>
+      <defaultValue>2.4d-3</defaultValue>
+      <description>The efficiency of the black hole-driven wind: $L_\mathrm{wind} = \epsilon_\mathrm{wind} \dot{M}_\bullet \clight^2$.</description>
+      <source>parameters_</source>
+    </inputParameter>
+    <inputParameter>
+      <name>blackHoleWindEfficiencyScalesWithRadiativeEfficiency</name>
+      <defaultValue>.false.</defaultValue>
+      <description>Specifies whether the black hole wind efficiency should scale with the radiative efficiency of the accretion disk.</description>
+      <source>parameters_</source>
+    </inputParameter>
+    !!]
 
     ! Options controlling AGN feedback.
-    !# <inputParameter>
-    !#   <name>blackHoleHeatsHotHalo</name>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>Specifies whether or not the black hole launched jets should heat the hot halo.</description>
-    !#   <source>parameters_</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>blackHoleRadioModeFeedbackEfficiency</name>
-    !#   <defaultValue>1.0d0</defaultValue>
-    !#   <description>Efficiency with which radio-mode feedback is coupled to the hot halo.</description>
-    !#   <source>parameters_</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>blackHoleHeatsHotHalo</name>
+      <defaultValue>.true.</defaultValue>
+      <description>Specifies whether or not the black hole launched jets should heat the hot halo.</description>
+      <source>parameters_</source>
+    </inputParameter>
+    <inputParameter>
+      <name>blackHoleRadioModeFeedbackEfficiency</name>
+      <defaultValue>1.0d0</defaultValue>
+      <description>Efficiency with which radio-mode feedback is coupled to the hot halo.</description>
+      <source>parameters_</source>
+    </inputParameter>
+    !!]
 
     ! Get options controlling output.
-    !# <inputParameter>
-    !#   <name>blackHoleOutputAccretion</name>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>Determines whether or not accretion rates and jet powers will be output.</description>
-    !#   <source>parameters_</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>blackHoleOutputAccretion</name>
+      <defaultValue>.false.</defaultValue>
+      <description>Determines whether or not accretion rates and jet powers will be output.</description>
+      <source>parameters_</source>
+    </inputParameter>
+    !!]
 
     ! Get options controlling output.
-    !# <inputParameter>
-    !#   <name>blackHoleOutputData</name>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>Determines whether or not properties for all black holes (rather than just the central black hole) will be output.</description>
-    !#   <source>parameters_</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>blackHoleOutputData</name>
+      <defaultValue>.false.</defaultValue>
+      <description>Determines whether or not properties for all black holes (rather than just the central black hole) will be output.</description>
+      <source>parameters_</source>
+    </inputParameter>
+    !!]
 
-    !# <inputParameter>
-    !#   <name>blackHoleOutputMergers</name>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>Determines whether or not properties of black hole mergers will be output.</description>
-    !#   <source>parameters_</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>blackHoleOutputMergers</name>
+      <defaultValue>.false.</defaultValue>
+      <description>Determines whether or not properties of black hole mergers will be output.</description>
+      <source>parameters_</source>
+    </inputParameter>
+    !!]
 
     ! Check if cold mode is explicitly tracked.
     coldModeTracked=defaultHotHaloComponent%massColdIsGettable()
@@ -251,11 +277,15 @@ contains
     return
   end subroutine Node_Component_Black_Hole_Standard_Initialize
 
-  !# <nodeComponentThreadInitializationTask>
-  !#  <unitName>Node_Component_Black_Hole_Standard_Thread_Initialize</unitName>
-  !# </nodeComponentThreadInitializationTask>
+  !![
+  <nodeComponentThreadInitializationTask>
+   <unitName>Node_Component_Black_Hole_Standard_Thread_Initialize</unitName>
+  </nodeComponentThreadInitializationTask>
+  !!]
   subroutine Node_Component_Black_Hole_Standard_Thread_Initialize(parameters_)
-    !% Initializes the tree node standard black hole module.
+    !!{
+    Initializes the tree node standard black hole module.
+    !!}
     use :: Events_Hooks    , only : satelliteMergerEvent     , openMPThreadBindingAtLevel, dependencyRegEx, dependencyDirectionBefore
     use :: Galacticus_Nodes, only : defaultBlackHoleComponent
     use :: Input_Parameters, only : inputParameter           , inputParameters
@@ -266,48 +296,60 @@ contains
     if (defaultBlackHoleComponent%standardIsActive()) then
        dependencies(1)=dependencyRegEx(dependencyDirectionBefore,'^remnantStructure:')
        call satelliteMergerEvent%attach(defaultBlackHoleComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentBlackHoleStandard',dependencies=dependencies)
-       !# <objectBuilder class="cosmologyParameters"                 name="cosmologyParameters_"                 source="parameters_"/>
-       !# <objectBuilder class="accretionDisks"                      name="accretionDisks_"                      source="parameters_"/>
-       !# <objectBuilder class="blackHoleBinaryRecoil"               name="blackHoleBinaryRecoil_"               source="parameters_"/>
-       !# <objectBuilder class="blackHoleBinaryInitialSeparation"    name="blackHoleBinaryInitialSeparation_"    source="parameters_"/>
-       !# <objectBuilder class="blackHoleBinaryMerger"               name="blackHoleBinaryMerger_"               source="parameters_"/>
-       !# <objectBuilder class="blackHoleBinarySeparationGrowthRate" name="blackHoleBinarySeparationGrowthRate_" source="parameters_"/>
-       !# <objectBuilder class="coolingRadius"                       name="coolingRadius_"                       source="parameters_"/>
-       !# <objectBuilder class="hotHaloTemperatureProfile"           name="hotHaloTemperatureProfile_"           source="parameters_"/>
-       !# <objectBuilder class="darkMatterHaloScale"                 name="darkMatterHaloScale_"                 source="parameters_"/>
+       !![
+       <objectBuilder class="cosmologyParameters"                 name="cosmologyParameters_"                 source="parameters_"/>
+       <objectBuilder class="accretionDisks"                      name="accretionDisks_"                      source="parameters_"/>
+       <objectBuilder class="blackHoleBinaryRecoil"               name="blackHoleBinaryRecoil_"               source="parameters_"/>
+       <objectBuilder class="blackHoleBinaryInitialSeparation"    name="blackHoleBinaryInitialSeparation_"    source="parameters_"/>
+       <objectBuilder class="blackHoleBinaryMerger"               name="blackHoleBinaryMerger_"               source="parameters_"/>
+       <objectBuilder class="blackHoleBinarySeparationGrowthRate" name="blackHoleBinarySeparationGrowthRate_" source="parameters_"/>
+       <objectBuilder class="coolingRadius"                       name="coolingRadius_"                       source="parameters_"/>
+       <objectBuilder class="hotHaloTemperatureProfile"           name="hotHaloTemperatureProfile_"           source="parameters_"/>
+       <objectBuilder class="darkMatterHaloScale"                 name="darkMatterHaloScale_"                 source="parameters_"/>
+       !!]
     end if
     return
   end subroutine Node_Component_Black_Hole_Standard_Thread_Initialize
 
-  !# <nodeComponentThreadUninitializationTask>
-  !#  <unitName>Node_Component_Black_Hole_Standard_Thread_Uninitialize</unitName>
-  !# </nodeComponentThreadUninitializationTask>
+  !![
+  <nodeComponentThreadUninitializationTask>
+   <unitName>Node_Component_Black_Hole_Standard_Thread_Uninitialize</unitName>
+  </nodeComponentThreadUninitializationTask>
+  !!]
   subroutine Node_Component_Black_Hole_Standard_Thread_Uninitialize()
-    !% Uninitializes the tree node standard black hole module.
+    !!{
+    Uninitializes the tree node standard black hole module.
+    !!}
     use :: Events_Hooks    , only : satelliteMergerEvent
     use :: Galacticus_Nodes, only : defaultBlackHoleComponent
     implicit none
 
     if (defaultBlackHoleComponent%standardIsActive()) then
        call satelliteMergerEvent%detach(defaultBlackHoleComponent,satelliteMerger)
-       !# <objectDestructor name="cosmologyParameters_"                />
-       !# <objectDestructor name="accretionDisks_"                     />
-       !# <objectDestructor name="blackHoleBinaryRecoil_"              />
-       !# <objectDestructor name="blackHoleBinaryInitialSeparation_"   />
-       !# <objectDestructor name="blackHoleBinaryMerger_"              />
-       !# <objectDestructor name="blackHoleBinarySeparationGrowthRate_"/>
-       !# <objectDestructor name="coolingRadius_"                      />
-       !# <objectDestructor name="hotHaloTemperatureProfile_"          />
-       !# <objectDestructor name="darkMatterHaloScale_"                />
+       !![
+       <objectDestructor name="cosmologyParameters_"                />
+       <objectDestructor name="accretionDisks_"                     />
+       <objectDestructor name="blackHoleBinaryRecoil_"              />
+       <objectDestructor name="blackHoleBinaryInitialSeparation_"   />
+       <objectDestructor name="blackHoleBinaryMerger_"              />
+       <objectDestructor name="blackHoleBinarySeparationGrowthRate_"/>
+       <objectDestructor name="coolingRadius_"                      />
+       <objectDestructor name="hotHaloTemperatureProfile_"          />
+       <objectDestructor name="darkMatterHaloScale_"                />
+       !!]
     end if
     return
   end subroutine Node_Component_Black_Hole_Standard_Thread_Uninitialize
 
-  !# <rateComputeTask>
-  !#  <unitName>Node_Component_Black_Hole_Standard_Rate_Compute</unitName>
-  !# </rateComputeTask>
+  !![
+  <rateComputeTask>
+   <unitName>Node_Component_Black_Hole_Standard_Rate_Compute</unitName>
+  </rateComputeTask>
+  !!]
   subroutine Node_Component_Black_Hole_Standard_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
-    !% Compute the black hole node mass rate of change.
+    !!{
+    Compute the black hole node mass rate of change.
+    !!}
     use :: Galacticus_Nodes                , only : defaultBlackHoleComponent, interruptTask        , nodeComponentBasic  , nodeComponentBlackHole, &
           &                                         nodeComponentHotHalo     , nodeComponentSpheroid, propertyTypeInactive, treeNode
     use :: Numerical_Constants_Astronomical, only : gigaYear                 , megaParsec
@@ -433,11 +475,15 @@ contains
     return
   end subroutine Node_Component_Black_Hole_Standard_Rate_Compute
 
-  !# <scaleSetTask>
-  !#  <unitName>Node_Component_Black_Hole_Standard_Scale_Set</unitName>
-  !# </scaleSetTask>
+  !![
+  <scaleSetTask>
+   <unitName>Node_Component_Black_Hole_Standard_Scale_Set</unitName>
+  </scaleSetTask>
+  !!]
   subroutine Node_Component_Black_Hole_Standard_Scale_Set(node)
-    !% Set scales for properties of {\normalfont \ttfamily node}.
+    !!{
+    Set scales for properties of {\normalfont \ttfamily node}.
+    !!}
     use :: Galacticus_Nodes, only : defaultBlackHoleComponent, nodeComponentBlackHole, nodeComponentSpheroid, treeNode
     implicit none
     type            (treeNode              ), intent(inout), pointer :: node
@@ -490,7 +536,9 @@ contains
   end subroutine Node_Component_Black_Hole_Standard_Scale_Set
 
   subroutine satelliteMerger(self,node)
-    !% Merge any black hole associated with {\normalfont \ttfamily node} before it merges with its host halo.
+    !!{
+    Merge any black hole associated with {\normalfont \ttfamily node} before it merges with its host halo.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBlackHole, treeNode
     implicit none
     class           (*                     ), intent(inout) :: self
@@ -570,7 +618,9 @@ contains
   end subroutine satelliteMerger
 
   logical function Node_Component_Black_Hole_Standard_Recoil_Escapes(node,recoilVelocity,radius,ignoreCentralBlackHole)
-    !% Return true if the given recoil velocity is sufficient to eject a black hole from the halo.
+    !!{
+    Return true if the given recoil velocity is sufficient to eject a black hole from the halo.
+    !!}
     use :: Galactic_Structure_Options   , only : componentTypeBlackHole
     use :: Galactic_Structure_Potentials, only : Galactic_Structure_Potential
     use :: Galacticus_Nodes             , only : treeNode
@@ -605,7 +655,9 @@ contains
   end function Node_Component_Black_Hole_Standard_Recoil_Escapes
 
   subroutine Node_Component_Black_Hole_Standard_Mass_Accretion_Rate(blackHole,accretionRateSpheroid,accretionRateHotHalo)
-    !% Returns the rate of mass accretion onto the black hole in {\normalfont \ttfamily node}.
+    !!{
+    Returns the rate of mass accretion onto the black hole in {\normalfont \ttfamily node}.
+    !!}
     use :: Black_Hole_Fundamentals         , only : Black_Hole_Eddington_Accretion_Rate
     use :: Bondi_Hoyle_Lyttleton_Accretion , only : Bondi_Hoyle_Lyttleton_Accretion_Radius, Bondi_Hoyle_Lyttleton_Accretion_Rate
     use :: Galactic_Structure_Densities    , only : Galactic_Structure_Density
@@ -754,7 +806,9 @@ contains
   end subroutine Node_Component_Black_Hole_Standard_Mass_Accretion_Rate
 
   subroutine Node_Component_Black_Hole_Standard_Create(node)
-    !% Creates a black hole component for {\normalfont \ttfamily node}.
+    !!{
+    Creates a black hole component for {\normalfont \ttfamily node}.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBlackHole, treeNode
     implicit none
     type (treeNode              ), intent(inout), target  :: node
@@ -769,12 +823,16 @@ contains
     return
   end subroutine Node_Component_Black_Hole_Standard_Create
 
-  !# <mergerTreeOutputNames>
-  !#  <unitName>Node_Component_Black_Hole_Standard_Output_Names</unitName>
-  !#  <sortName>Node_Component_Black_Hole_Standard_Output</sortName>
-  !# </mergerTreeOutputNames>
+  !![
+  <mergerTreeOutputNames>
+   <unitName>Node_Component_Black_Hole_Standard_Output_Names</unitName>
+   <sortName>Node_Component_Black_Hole_Standard_Output</sortName>
+  </mergerTreeOutputNames>
+  !!]
   subroutine Node_Component_Black_Hole_Standard_Output_Names(node,integerProperty,integerProperties,doubleProperty,doubleProperties,time)
-    !% Set names of black hole properties to be written to the \glc\ output file.
+    !!{
+    Set names of black hole properties to be written to the \glc\ output file.
+    !!}
     use :: Galacticus_Nodes                  , only : treeNode
     use :: Numerical_Constants_Astronomical  , only : gigaYear             , massSolar
     use :: Numerical_Constants_Prefixes      , only : kilo
@@ -810,12 +868,16 @@ contains
     return
   end subroutine Node_Component_Black_Hole_Standard_Output_Names
 
-  !# <mergerTreeOutputPropertyCount>
-  !#  <unitName>Node_Component_Black_Hole_Standard_Output_Count</unitName>
-  !#  <sortName>Node_Component_Black_Hole_Standard_Output</sortName>
-  !# </mergerTreeOutputPropertyCount>
+  !![
+  <mergerTreeOutputPropertyCount>
+   <unitName>Node_Component_Black_Hole_Standard_Output_Count</unitName>
+   <sortName>Node_Component_Black_Hole_Standard_Output</sortName>
+  </mergerTreeOutputPropertyCount>
+  !!]
   subroutine Node_Component_Black_Hole_Standard_Output_Count(node,integerPropertyCount,doublePropertyCount,time)
-    !% Account for the number of black hole properties to be written to the the \glc\ output file.
+    !!{
+    Account for the number of black hole properties to be written to the the \glc\ output file.
+    !!}
     use :: Galacticus_Nodes, only : treeNode
     implicit none
     type            (treeNode), intent(inout) :: node
@@ -831,12 +893,16 @@ contains
     return
   end subroutine Node_Component_Black_Hole_Standard_Output_Count
 
-  !# <mergerTreeOutputTask>
-  !#  <unitName>Node_Component_Black_Hole_Standard_Output</unitName>
-  !#  <sortName>Node_Component_Black_Hole_Standard_Output</sortName>
-  !# </mergerTreeOutputTask>
+  !![
+  <mergerTreeOutputTask>
+   <unitName>Node_Component_Black_Hole_Standard_Output</unitName>
+   <sortName>Node_Component_Black_Hole_Standard_Output</sortName>
+  </mergerTreeOutputTask>
+  !!]
   subroutine Node_Component_Black_Hole_Standard_Output(node,integerProperty,integerBufferCount,integerProperties,doubleProperty,doubleBufferCount,doubleProperties,time,instance)
-    !% Store black hole properties in the \glc\ output file buffers.
+    !!{
+    Store black hole properties in the \glc\ output file buffers.
+    !!}
     use :: Galacticus_Nodes                  , only : nodeComponentBlackHole, treeNode
     use :: Kind_Numbers                      , only : kind_int8
     use :: Multi_Counters                    , only : multiCounter
@@ -877,7 +943,9 @@ contains
   end subroutine Node_Component_Black_Hole_Standard_Output
 
   logical function Node_Component_Black_Hole_Standard_Matches(node)
-    !% Return true if the black hole component of {\normalfont \ttfamily node} is a match to the standard implementation.
+    !!{
+    Return true if the black hole component of {\normalfont \ttfamily node} is a match to the standard implementation.
+    !!}
     use :: Galacticus_Nodes, only : defaultBlackHoleComponent, nodeComponentBlackHole, nodeComponentBlackHoleStandard, treeNode
     implicit none
     type (treeNode              ), intent(inout) :: node
@@ -897,7 +965,9 @@ contains
   end function Node_Component_Black_Hole_Standard_Matches
 
   subroutine Node_Component_Black_Hole_Standard_Output_Merger(node,massBlackHole1,massBlackHole2)
-    !% Outputs properties of merging black holes.
+    !!{
+    Outputs properties of merging black holes.
+    !!}
     use :: Galacticus_HDF5 , only : galacticusOutputFile
     use :: Galacticus_Nodes, only : nodeComponentBasic  , treeNode
     use :: IO_HDF5         , only : hdf5Access          , hdf5Object
@@ -930,11 +1000,15 @@ contains
     return
   end subroutine Node_Component_Black_Hole_Standard_Output_Merger
 
-  !# <mergerTreeExtraOutputTask>
-  !#  <unitName>Node_Component_Black_Hole_Standard_Output_Properties</unitName>
-  !# </mergerTreeExtraOutputTask>
+  !![
+  <mergerTreeExtraOutputTask>
+   <unitName>Node_Component_Black_Hole_Standard_Output_Properties</unitName>
+  </mergerTreeExtraOutputTask>
+  !!]
   subroutine Node_Component_Black_Hole_Standard_Output_Properties(node,iOutput,treeIndex,nodePassesFilter)
-    !% Output properties for all black holes in {\normalfont \ttfamily node}.
+    !!{
+    Output properties for all black holes in {\normalfont \ttfamily node}.
+    !!}
     use            :: Galacticus_HDF5   , only : galacticusOutputFile
     use            :: Galacticus_Nodes  , only : nodeComponentBlackHole, treeNode
     use            :: IO_HDF5           , only : hdf5Access            , hdf5Object
@@ -1028,7 +1102,9 @@ contains
   end subroutine Node_Component_Black_Hole_Standard_Output_Properties
 
   double precision function Hot_Mode_Fraction(node)
-    !% A simple interpolating function which is used as a measure of the fraction of a halo which is in the hot accretion mode.
+    !!{
+    A simple interpolating function which is used as a measure of the fraction of a halo which is in the hot accretion mode.
+    !!}
     use :: Galacticus_Nodes, only : treeNode
     implicit none
     type            (treeNode), intent(inout) :: node
@@ -1051,7 +1127,9 @@ contains
   end function Hot_Mode_Fraction
 
   double precision function Node_Component_Black_Hole_Standard_Accretion_Rate(self)
-    !% Return the rest mass accretion rate onto a standard black hole.
+    !!{
+    Return the rest mass accretion rate onto a standard black hole.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBlackHoleStandard
     implicit none
     class           (nodeComponentBlackHoleStandard), intent(inout) :: self
@@ -1063,7 +1141,9 @@ contains
   end function Node_Component_Black_Hole_Standard_Accretion_Rate
 
   double precision function Node_Component_Black_Hole_Standard_Radiative_Efficiency(self)
-    !% Return the radiative efficiency of a standard black hole.
+    !!{
+    Return the radiative efficiency of a standard black hole.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBlackHoleStandard
     implicit none
     class(nodeComponentBlackHoleStandard), intent(inout) :: self
@@ -1072,11 +1152,15 @@ contains
     return
   end function Node_Component_Black_Hole_Standard_Radiative_Efficiency
 
-  !# <postStepTask>
-  !# <unitName>Node_Component_Black_Hole_Standard_Post_Evolve</unitName>
-  !# </postStepTask>
+  !![
+  <postStepTask>
+  <unitName>Node_Component_Black_Hole_Standard_Post_Evolve</unitName>
+  </postStepTask>
+  !!]
   subroutine Node_Component_Black_Hole_Standard_Post_Evolve(node,status)
-    !% Keep black hole spin in physical range.
+    !!{
+    Keep black hole spin in physical range.
+    !!}
     use :: Galacticus_Nodes, only : defaultBlackHoleComponent, nodeComponentBlackHole, treeNode
     use :: Interface_GSL   , only : GSL_Failure
     implicit none
@@ -1108,7 +1192,9 @@ contains
   end subroutine Node_Component_Black_Hole_Standard_Post_Evolve
 
   double precision function Node_Component_Black_Hole_Standard_Seed_Mass(self)
-    !% Return the seed mass for standard black holes.
+    !!{
+    Return the seed mass for standard black holes.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBlackHoleStandard
     implicit none
     class(nodeComponentBlackHoleStandard), intent(inout) :: self

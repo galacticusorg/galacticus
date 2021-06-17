@@ -17,33 +17,43 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a black hole binary merger in which the black hole mass and spin resulting from binary mergers utilizing the
-  !% approximations of \cite{rezzolla_final_2008}.
+  !!{
+  Implements a black hole binary merger in which the black hole mass and spin resulting from binary mergers utilizing the
+  approximations of \cite{rezzolla_final_2008}.
+  !!}
 
-  !# <blackHoleBinaryMerger name="blackHoleBinaryMergerRezzolla2008">
-  !#  <description>
-  !#   A black hole binary merger class that uses the fitting function of \cite{rezzolla_final_2008} to compute the spin of the
-  !#   black hole resulting from a binary merger. The mass of the resulting black hole is assumed to equal the sum of the mass of
-  !#   the initial black holes (i.e. there is negligible energy loss through gravitational waves).
-  !#  </description>
-  !# </blackHoleBinaryMerger>
+  !![
+  <blackHoleBinaryMerger name="blackHoleBinaryMergerRezzolla2008">
+   <description>
+    A black hole binary merger class that uses the fitting function of \cite{rezzolla_final_2008} to compute the spin of the
+    black hole resulting from a binary merger. The mass of the resulting black hole is assumed to equal the sum of the mass of
+    the initial black holes (i.e. there is negligible energy loss through gravitational waves).
+   </description>
+  </blackHoleBinaryMerger>
+  !!]
   type, extends(blackHoleBinaryMergerClass) :: blackHoleBinaryMergerRezzolla2008
-     !% A black hole binary merger class in which the black hole mass and spin resulting from binary mergers utilizing the approximations of \cite{rezzolla_final_2008}.
+     !!{
+     A black hole binary merger class in which the black hole mass and spin resulting from binary mergers utilizing the approximations of \cite{rezzolla_final_2008}.
+     !!}
      private
    contains
      procedure :: merge => rezzolla2008Merge
   end type blackHoleBinaryMergerRezzolla2008
 
   interface blackHoleBinaryMergerRezzolla2008
-     !% Constructors for the {\normalfont \ttfamily rezzolla2008} black hole binary merger class.
+     !!{
+     Constructors for the {\normalfont \ttfamily rezzolla2008} black hole binary merger class.
+     !!}
      module procedure rezzolla2008ConstructorParameters
   end interface blackHoleBinaryMergerRezzolla2008
 
 contains
 
   function rezzolla2008ConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily rezzolla2008} black hole bianry merger class which takes a parameter list as
-    !% input.
+    !!{
+    Constructor for the {\normalfont \ttfamily rezzolla2008} black hole bianry merger class which takes a parameter list as
+    input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(blackHoleBinaryMergerRezzolla2008)                :: self
@@ -55,8 +65,10 @@ contains
   end function rezzolla2008ConstructorParameters
 
   subroutine rezzolla2008Merge(self,blackHoleMassA,blackHoleMassB,blackHoleSpinA,blackHoleSpinB,blackHoleMassFinal,blackHoleSpinFinal)
-    !% Computes the mass and spin of a black hole resulting from a binary merger utilizing the approximations of
-    !% \cite{rezzolla_final_2008}.
+    !!{
+    Computes the mass and spin of a black hole resulting from a binary merger utilizing the approximations of
+    \cite{rezzolla_final_2008}.
+    !!}
     implicit none
     class           (blackHoleBinaryMergerRezzolla2008), intent(inout) :: self
     double precision                                   , intent(in   ) :: blackHoleMassA             , blackHoleMassB             , blackHoleSpinA                 , &
