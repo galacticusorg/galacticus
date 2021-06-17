@@ -1015,6 +1015,21 @@ module Galacticus_Nodes
     return
   end subroutine Node_Component_Generic_Destroy
 
+  integer function Node_Component_Generic_Add_Meta_Property(self,label,name)
+    !!{
+    Add a meta-property to a node component.
+    !!}
+    implicit none
+    class    (nodeComponent ), intent(inout) :: self
+    type     (varying_string), intent(in   ) :: label
+    character(len=*         ), intent(in   ) :: name
+    !$GLC attributes unused :: self, label, name
+
+    Node_Component_Generic_Add_Meta_Property=-1
+    call Galacticus_Error_Report('can not add meta-properties to a generic nodeComponent'//{introspection:location})
+    return
+  end function Node_Component_Generic_Add_Meta_Property
+
   subroutine Node_Component_ODE_Step_Initialize_Null(self)
     !!{
     Initialize a generic tree node component for an ODE solver step.

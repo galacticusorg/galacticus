@@ -545,6 +545,7 @@ contains
           !![
           </include>
           !!]
+          call self%nodeOperator_%differentialEvolutionScales(node)
           call node%serializeScales(self%propertyScalesActive  ,self%propertyTypeODE       )
           call node%serializeScales(self%propertyScalesInactive,self%propertyTypeIntegrator)
           ! Check for zero property scales which will cause floating point overflow in the ODE solver.

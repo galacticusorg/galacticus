@@ -21,10 +21,10 @@ use Galacticus::Build::Components::DataTypes;
 	     [
 	      \&Gather_Classes
 	     ],
-	      types =>
-	      [
-	       \&Build_Component_Classes
-	      ]
+	 types =>
+	     [
+	      \&Build_Component_Classes
+	     ]
      }
     );
 
