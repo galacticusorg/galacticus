@@ -1,6 +1,6 @@
 # Welcome to Galacticus
 
-[![hostedOnDockerHub](https://img.shields.io/docker/cloud/automated/galacticusorg/galacticus)](https://hub.docker.com/repository/docker/galacticusorg/galacticus) [![hostedOnDockerHub](https://img.shields.io/docker/cloud/build/galacticusorg/galacticus)](https://hub.docker.com/repository/docker/galacticusorg/galacticus) [![hostedOnSingularityHub](https://www.singularity-hub.org/static/img/hosted-singularity--hub-%23e32929.svg)](https://singularity-hub.org/collections/4251)
+[![hostedOnDockerHub](https://img.shields.io/docker/cloud/automated/galacticusorg/galacticus)](https://hub.docker.com/repository/docker/galacticusorg/galacticus) [![hostedOnDockerHub](https://img.shields.io/docker/cloud/build/galacticusorg/galacticus)](https://hub.docker.com/repository/docker/galacticusorg/galacticus)
 
 [![binaryBuild](https://img.shields.io/endpoint?url=https://users.obs.carnegiescience.edu/abenson/galacticus/galacticusBinaryBuild.json)](https://github.com/galacticusorg/galacticus/releases/download/masterRelease/galacticus.exe) [![documentation](https://img.shields.io/endpoint?url=https://users.obs.carnegiescience.edu/abenson/galacticus/galacticusDocumentation.json)](https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus.pdf) ![testSuite](https://img.shields.io/endpoint?url=https://users.obs.carnegiescience.edu/abenson/galacticus/galacticusTestSuite.json)
 
