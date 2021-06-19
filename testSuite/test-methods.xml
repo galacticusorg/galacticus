@@ -190,6 +190,58 @@
       <presetSpins value="false"/>
       <presetScaleRadii value="false"/>
     </mergerTreeConstructor>
+
+
+
+    <!-- Tree filtering -->
+    <mergerTreeConstructor value="filter">
+      <mergerTreeConstructor value="build">
+	<redshiftBase value="0.0"/>
+      </mergerTreeConstructor>
+      <!-- Filter trees - keep only those which pass all of the subsequent filters -->
+      <mergerTreeFilter value="all" iterable="no">
+	<!-- Build a filter to select trees with LMCs -->
+	<mergerTreeFilter value="anyNode" iterable="no">
+          <!-- Apply all LMC conditions -->
+          <galacticFilter value="all">
+            <!-- Consider the main branch (i.e. Milky Way halo) of the tree only -->
+            <galacticFilter value="mainBranch" iterable="no"/>
+            <!-- Consider only halos existing in the last 2 Gyr -->
+            <galacticFilter value="highPass" iterable="no">
+              <nodePropertyExtractor value="time"/>
+              <threshold             value="11.8"/>
+            </galacticFilter>
+            <!-- Consider only halos with a rank-2 child with a maximum circular velocity above 55 km/s -->
+            <galacticFilter value="childNode" iterable="no">
+              <childRank value="2"/>
+              <galacticFilter value="highPass">
+		<nodePropertyExtractor value="velocityMaximum"/>
+		<threshold             value="55.0"           />
+              </galacticFilter>
+            </galacticFilter>
+          </galacticFilter>
+	</mergerTreeFilter>
+	<!-- Build a filter to select trees with Gaia-Enceladous mergers -->
+	<mergerTreeFilter value="anyNode" iterable="no">
+          <!-- Apply all Gaia-Enceladus conditions -->
+          <galacticFilter value="all" iterable="no">
+            <!-- Consider the main branch (i.e. Milky Way halo) of the tree only -->
+            <galacticFilter value="mainBranch" iterable="no"/>
+            <!-- Consider only halos existing in the redshift range 1-2 -->
+            <galacticFilter value="intervalPass" iterable="no">
+              <nodePropertyExtractor value="redshift"/>
+              <thresholdLow          value="1.0"/>
+              <thresholdHigh         value="2.0"/>
+            </galacticFilter>
+            <!--Consider only halos which undergo a merger in the mass ratio range 0.15-0.25  -->
+            <galacticFilter value="mergerRatio" iterable="no">
+              <ratioLow              value="0.15"/>
+              <ratioHigh             value="0.25"/>
+            </galacticFilter>
+          </galacticFilter>
+	</mergerTreeFilter>
+      </mergerTreeFilter>
+    </mergerTreeConstructor>
     
     <cosmologyParameters value="simple">
       <HubbleConstant value="73.0"/>
