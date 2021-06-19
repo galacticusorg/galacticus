@@ -38,6 +38,7 @@
      private
      class(mergerTreeConstructorClass), pointer :: mergerTreeConstructor_ => null()
      class(mergerTreeFilterClass     ), pointer :: mergerTreeFilter_      => null()
+     class(nodeOperatorClass         ), pointer :: nodeOperator_          => null()
    contains
      final     ::              filterDestructor
      procedure :: construct => filterConstruct
@@ -63,21 +64,24 @@ contains
     type (inputParameters            ), intent(inout) :: parameters
     class(mergerTreeConstructorClass ), pointer       :: mergerTreeConstructor_
     class(mergerTreeFilterClass      ), pointer       :: mergerTreeFilter_
+    class(nodeOperatorClass          ), pointer       :: nodeOperator_
  
     !![
     <objectBuilder class="mergerTreeConstructor" name="mergerTreeConstructor_" source="parameters"/>
     <objectBuilder class="mergerTreeFilter"      name="mergerTreeFilter_"      source="parameters"/>
+    <objectBuilder class="nodeOperator"          name="nodeOperator_"          source="parameters"/>
     !!]
-    self=mergerTreeConstructorFilter(mergerTreeConstructor_,mergerTreeFilter_)
+    self=mergerTreeConstructorFilter(mergerTreeConstructor_,mergerTreeFilter_,nodeOperator_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="mergerTreeConstructor_"/>
     <objectDestructor name="mergerTreeFilter_"     />
+    <objectDestructor name="nodeOperator_"         />
     !!]
     return
   end function filterConstructorParameters
 
-  function filterConstructorInternal(mergerTreeConstructor_,mergerTreeFilter_) result(self)
+  function filterConstructorInternal(mergerTreeConstructor_,mergerTreeFilter_,nodeOperator_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily augment} merger tree operator class.
     !!}
@@ -85,8 +89,9 @@ contains
     type (mergerTreeConstructorFilter)                        :: self
     class(mergerTreeConstructorClass ), intent(in   ), target :: mergerTreeConstructor_
     class(mergerTreeFilterClass      ), intent(in   ), target :: mergerTreeFilter_
+    class(nodeOperatorClass          ), intent(in   ), target :: nodeOperator_
     !![
-    <constructorAssign variables="*mergerTreeConstructor_, *mergerTreeFilter_"/>
+    <constructorAssign variables="*mergerTreeConstructor_, *mergerTreeFilter_, *nodeOperator_"/>
     !!]
 
     return
@@ -102,6 +107,7 @@ contains
     !![
     <objectDestructor name="self%mergerTreeConstructor_"/>
     <objectDestructor name="self%mergerTreeFilter_"     />
+    <objectDestructor name="self%nodeOperator_"         />
     !!]
     return
   end subroutine filterDestructor
@@ -118,6 +124,8 @@ contains
     
     tree => self%mergerTreeConstructor_%construct(treeNumber,finished)
     if (associated(tree)) then
+       ! Apply any tree initialization operators.
+       call self%nodeOperator_%nodeTreeInitialize(tree%baseNode)
        if (.not.self%mergerTreeFilter_%passes(tree)) then
           call tree%destroy()
           deallocate(tree)
