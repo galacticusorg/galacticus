@@ -124,15 +124,22 @@ sub processFile {
 	    
 	    # Add the file to the list of filenames to process.
 	    (my $preProcessedFile = $fileName) =~ s/\.F90$/.p.F90/;
-	    my @fileNames     = ( $fileName );
-	    my @filePositions = (        -1 );
+	    my @fileStack =
+		(
+		 {
+		     name     => $fileName,
+		     position => -1,
+		     inXML    => 0,
+		     inLaTeX  => 0
+		 }
+		);
 	    
 	    # Process files until none remain.
-	    while ( scalar(@fileNames) > 0 ) {
+	    while ( scalar(@fileStack) > 0 ) {
 
 		# Open the file.
-		open(my $fileHandle,$fileNames[0]);
-		seek($fileHandle,$filePositions[0],SEEK_SET) unless ( $filePositions[0] == -1 );
+		open(my $fileHandle,$fileStack[0]->{'name'});
+		seek($fileHandle,$fileStack[0]->{'position'},SEEK_SET) unless ( $fileStack[0]->{'position'} == -1 );
 		
 		# Process until end of file is reached.
 	      LINE: until ( eof($fileHandle) ) {
@@ -142,6 +149,11 @@ sub processFile {
 		  
 		  # Grab the next Fortran line.
 		  &Fortran::Utils::Get_Fortran_Line($fileHandle,my $rawLine,my $processedLine,my $bufferedComments);
+		  # Detect leaving LaTeX and XML blocks.
+		  $fileStack[0]->{'inXML'  } = 0
+		      if ( $rawLine =~ m/^\s*!!\]/ );
+		  $fileStack[0]->{'inLaTeX'} = 0
+		      if ( $rawLine =~ m/^\s*!!\}/ );
 		  foreach my $unitID ( @unitIdList ) {
 		      ++$units{$unitID}->{"codeLines"};
 		  }
@@ -150,190 +162,213 @@ sub processFile {
 		  if ( $processedLine =~ m/^\s*include\s*['"]([^'"]+)['"]\s*$/ ) {
 		      my $includeFile = $includeFileDirectory."/".$1;
 		      if ( -e $includeFile ) {
-			  $filePositions[0] = tell($fileHandle);
-			  unshift(@fileNames,$includeFile);
-			  unshift(@filePositions,-1);
+			  $fileStack[0]->{'position'} = tell($fileHandle);
+			  unshift(
+			      @fileStack,
+			      {
+				  name     => $includeFile,
+				  position => -1,
+				  inXML    => 0,
+				  inLaTeX  => 0
+			      }
+			      );
 			  last;
 		      }
 		  }
 
 		  # Detect unit opening.
-		  foreach my $unitType ( keys(%unitOpeners) ) {
-		      
-		      # Check for a match to a unit opening regex.
-		      if ( my @matches = $processedLine =~ m/$unitOpeners{$unitType}->{"regEx"}/i ) {
-			  my $matchIndex = $unitOpeners{$unitType}->{"unitName"};
-			  my $unitName   = lc($matches[$matchIndex-1]);
-			  # Get the ID of the parent unit.
-			  my $parentID = $unitIdList[-1];
-			  # Generate identifier for this unit.
-			  my $unitID = $parentID.":".$unitName;
-			  $unitID =~ s/[¦\{\}]//g;
-			  # Add this unit to the "contains" list for its parent.
-			  $units{$parentID}->{"contains"}->{$unitID} = 1;
-			  # Create an entry for this new unit.
-			  push(@unitIdList,$unitID);
-			  $units{$unitID} = {
-			      unitType => $unitType,
-			      unitName => $unitName,
-			      belongsTo => $parentID
-			  };
-			  # Mark line as processed.
-			  $lineProcessed = 1;
+		  unless ( $lineProcessed || $fileStack[0]->{'inXML'} || $fileStack[0]->{'inLaTeX'} ) {
+		      foreach my $unitType ( keys(%unitOpeners) ) {
+			  
+			  # Check for a match to a unit opening regex.
+			  if ( my @matches = $processedLine =~ m/$unitOpeners{$unitType}->{"regEx"}/i ) {
+			      my $matchIndex = $unitOpeners{$unitType}->{"unitName"};
+			      my $unitName   = lc($matches[$matchIndex-1]);
+			      # Get the ID of the parent unit.
+			      my $parentID = $unitIdList[-1];
+			      # Generate identifier for this unit.
+			      my $unitID = $parentID.":".$unitName;
+			      $unitID =~ s/[¦\{\}]//g;
+			      # Add this unit to the "contains" list for its parent.
+			      $units{$parentID}->{"contains"}->{$unitID} = 1;
+			      # Create an entry for this new unit.
+			      push(@unitIdList,$unitID);
+			      $units{$unitID} = {
+				  unitType => $unitType,
+				  unitName => $unitName,
+				  belongsTo => $parentID
+			      };
+			      # Mark line as processed.
+			      $lineProcessed = 1;
+			  }
 		      }
 		  }
-		  if ( $lineProcessed == 1 ) {next LINE};
 
 		  # Detect unit closing.
-		  foreach my $unitType ( keys(%unitClosers) ) {
-		      
-		      # Check for a match to a unit closing regex.
-		      if ( my @matches = $processedLine =~ m/$unitClosers{$unitType}->{"regEx"}/i ) {
-			  my $matchIndex = $unitClosers{$unitType}->{"unitName"};
-			  my $unitName   = lc($matches[$matchIndex-1]);
-			  # Get ID of last unit opening.
-			  my $openerID = $unitIdList[-1];
-			  # Check we have a matching opening.
-			  unless ( $unitType eq $units{$openerID}->{"unitType"} && ( $unitName eq $units{$openerID}->{"unitName"} || $unitType =~ m/interface/i ) ) {
-			      print "Unit close does not match unit open:\n";
-			      print " Closing with: ".$unitType." ".$unitName."\n";
-			      print "  Opened with: ".$units{$openerID}->{"unitType"}." ".$units{$openerID}->{"unitName"}."\n";
-			      print "      In file: ".$fileName."\n";
-			      die;
+		  unless ( $lineProcessed || $fileStack[0]->{'inXML'} || $fileStack[0]->{'inLaTeX'} ) {
+		      foreach my $unitType ( keys(%unitClosers) ) {
+			  # Check for a match to a unit closing regex.
+			  if ( my @matches = $processedLine =~ m/$unitClosers{$unitType}->{"regEx"}/i ) {
+			      my $matchIndex = $unitClosers{$unitType}->{"unitName"};
+			      my $unitName   = lc($matches[$matchIndex-1]);
+			      # Get ID of last unit opening.
+			      my $openerID = $unitIdList[-1];
+			      # Check we have a matching opening.
+			      unless ( $unitType eq $units{$openerID}->{"unitType"} && ( $unitName eq $units{$openerID}->{"unitName"} || $unitType =~ m/interface/i ) ) {
+				  print "Unit close does not match unit open:\n";
+				  print " Closing with: ".$unitType." ".$unitName."\n";
+				  print "  Opened with: ".$units{$openerID}->{"unitType"}." ".$units{$openerID}->{"unitName"}."\n";
+				  print "      In file: ".$fileName."\n";
+				  die;
+			      }
+			      # Remove entry from ID list.
+			      pop(@unitIdList);
+			      # Mark line as processed.
+			      $lineProcessed = 1;
 			  }
-			  # Remove entry from ID list.
-			  pop(@unitIdList);
-			  # Mark line as processed.
-			  $lineProcessed = 1;
 		      }
 		  }
-		  if ( $lineProcessed == 1 ) {next LINE};
 
 		  # Check for source code comments.
-		  if ( $bufferedComments =~ m/^\{/ ) {
-		      my $unitId = $unitIdList[-1];
-		      until ( eof($fileHandle) ) {
-			  my $commentLine = <$fileHandle>;
-			  last
-			      if ( $commentLine =~ m/^\s*!!\}/ );
-			  $commentLine =~ s/^\s*!//;
-			  $units{$unitId}->{"comments"} .= $commentLine;
+		  unless ( $lineProcessed || $fileStack[0]->{'inXML'} ) {
+		      if ( $bufferedComments =~ m/^\{/ ) {
+			  my $unitId = $unitIdList[-1];
+			  until ( eof($fileHandle) ) {
+			      my $commentLine = <$fileHandle>;
+			      last
+				  if ( $commentLine =~ m/^\s*!!\}/ );
+			      $commentLine =~ s/^\s*!//;
+			      $units{$unitId}->{"comments"} .= $commentLine;
+			  }
+			  $fileStack[0]->{'inLaTeX'} = 0;
+			  # Mark line as processed.
+			  $lineProcessed = 1;
 		      }
-		      # Mark line as processed.
-		      $lineProcessed = 1;
 		  }
-		  if ( $lineProcessed == 1 ) {next LINE};
 
 		  # Check for use statements.
-		  if ( $processedLine =~ m/$useRegex/i ) {
-		      my $moduleName = lc($3);
-		      my $unitId = $unitIdList[-1];
-		      $units{$unitId}->{"modulesUsed"}->{$moduleName} = 1;
-		      # Mark line as processed.
-		      $lineProcessed = 1;
+		  unless ( $lineProcessed || $fileStack[0]->{'inXML'} || $fileStack[0]->{'inLaTeX'} ) {
+		      if ( $processedLine =~ m/$useRegex/i ) {
+			  my $moduleName = lc($3);
+			  my $unitId = $unitIdList[-1];
+			  $units{$unitId}->{"modulesUsed"}->{$moduleName} = 1;
+			  # Mark line as processed.
+			  $lineProcessed = 1;
+		      }
 		  }
-		  if ( $lineProcessed == 1 ) {next LINE};
 
 		  # Check for direct subroutine calls.
-		  if ( $processedLine =~ m/$callRegex/i ) {
-		      my $subroutineName = lc($2);
-		      my $unitId = $unitIdList[-1];
-		      $units{$unitId}->{"subroutinesCalled"}->{$subroutineName} = -1;
-		      # Mark line as processed.
-		      $lineProcessed = 1;
+		  unless ( $lineProcessed || $fileStack[0]->{'inXML'} || $fileStack[0]->{'inLaTeX'} ) {
+		      if ( $processedLine =~ m/$callRegex/i ) {
+			  my $subroutineName = lc($2);
+			  my $unitId = $unitIdList[-1];
+			  $units{$unitId}->{"subroutinesCalled"}->{$subroutineName} = -1;
+			  # Mark line as processed.
+			  $lineProcessed = 1;
+		      }
 		  }
-		  if ( $lineProcessed == 1 ) {next LINE};
 
 		  # Check for subroutine calls via type-bound procedures.
-		  if ( $processedLine =~ m/$callTypeBoundRegex/i ) {
-		      my $subroutineName = lc($3);
-		      my $variableName   = lc($2);
-		      my $unitId = $unitIdList[-1];
-		      # Store the name of the type-bound subroutine call, and the name of the variable it was applied to.
-		      $units{$unitId}->{"subroutinesCalled"}->{$subroutineName} = $variableName;
-		      # Mark line as processed.
-		      $lineProcessed = 1;
+		  unless ( $lineProcessed || $fileStack[0]->{'inXML'} || $fileStack[0]->{'inLaTeX'} ) {
+		      if ( $processedLine =~ m/$callTypeBoundRegex/i ) {
+			  my $subroutineName = lc($3);
+			  my $variableName   = lc($2);
+			  my $unitId = $unitIdList[-1];
+			  # Store the name of the type-bound subroutine call, and the name of the variable it was applied to.
+			  $units{$unitId}->{"subroutinesCalled"}->{$subroutineName} = $variableName;
+			  # Mark line as processed.
+			  $lineProcessed = 1;
+		      }
 		  }
-		  if ( $lineProcessed == 1 ) {next LINE};
 
 		  # Check for type-bound procedures.
-		  if ( $units{$unitIdList[-1]}->{"unitType"} eq "type" ) {
-		      if ( $processedLine =~ m/$typeBoundRegex/i ) {
-			  my $methodName = lc($2);
-			  (my $procedureList = lc($3)) =~ s/\s//g;
-			  my @procedures = split(/,/,$procedureList);
-			  my $unitId = $unitIdList[-1];
-			  @{$units{$unitId}->{"methods"}->{$methodName}} = @procedures;
-			  # Mark line as processed.
-			  $lineProcessed = 1;
+		  unless ( $lineProcessed || $fileStack[0]->{'inXML'} || $fileStack[0]->{'inLaTeX'} ) {
+		      if ( $units{$unitIdList[-1]}->{"unitType"} eq "type" ) {
+			  if ( $processedLine =~ m/$typeBoundRegex/i ) {
+			      my $methodName = lc($2);
+			      (my $procedureList = lc($3)) =~ s/\s//g;
+			      my @procedures = split(/,/,$procedureList);
+			      my $unitId = $unitIdList[-1];
+			      @{$units{$unitId}->{"methods"}->{$methodName}} = @procedures;
+			      # Mark line as processed.
+			      $lineProcessed = 1;
+			  }
 		      }
 		  }
-		  if ( $lineProcessed == 1 ) {next LINE};
 
 		  # Detect intrinsic variable declarations.
-		  foreach my $intrinsicType ( keys(%intrinsicDeclarations) ) {
-		      # Check for a match to an intrinsic declaration regex.
-		      if ( my @matches = $processedLine =~ m/$intrinsicDeclarations{$intrinsicType}->{"regEx"}/i ) {
-			  my $matchIndex = $intrinsicDeclarations{$intrinsicType}->{"variables"};
-			  my $variablesList = lc($matches[$matchIndex-1]);
-			  # Get ID of unit.
+		  unless ( $lineProcessed || $fileStack[0]->{'inXML'} || $fileStack[0]->{'inLaTeX'} ) {
+		      foreach my $intrinsicType ( keys(%intrinsicDeclarations) ) {
+			  # Check for a match to an intrinsic declaration regex.
+			  if ( my @matches = $processedLine =~ m/$intrinsicDeclarations{$intrinsicType}->{"regEx"}/i ) {
+			      my $matchIndex = $intrinsicDeclarations{$intrinsicType}->{"variables"};
+			      my $variablesList = lc($matches[$matchIndex-1]);
+			      # Get ID of unit.
+			      my $unitId = $unitIdList[-1];
+			      my @variables = &Fortran::Utils::Extract_Variables($variablesList);
+			      # Store the variable list.
+			      push(@{$units{$unitId}->{$intrinsicType}},@variables);
+			      # Mark line as processed.
+			      $lineProcessed = 1;
+			  }
+		      }
+		  }
+
+		  # Check for derived-type declarations.
+		  unless ( $lineProcessed || $fileStack[0]->{'inXML'} || $fileStack[0]->{'inLaTeX'} ) {
+		      if ( $processedLine =~ m/$derivedTypeRegex/i ) {
+			  my $derivedType = $1;
+			  my $variablesList = $3;
+			  my @variables = &Fortran::Utils::Extract_Variables($variablesList);		    
 			  my $unitId = $unitIdList[-1];
-			  my @variables = &Fortran::Utils::Extract_Variables($variablesList);
-			  # Store the variable list.
-			  push(@{$units{$unitId}->{$intrinsicType}},@variables);
+			  push(@{$units{$unitId}->{"derivedTypesUsed"}->{$derivedType}},@variables);
 			  # Mark line as processed.
 			  $lineProcessed = 1;
 		      }
 		  }
-		  if ( $lineProcessed == 1 ) {next LINE};
-
-		  # Check for derived-type declarations.
-		  if ( $processedLine =~ m/$derivedTypeRegex/i ) {
-		      my $derivedType = $1;
-		      my $variablesList = $3;
-		      my @variables = &Fortran::Utils::Extract_Variables($variablesList);		    
-		      my $unitId = $unitIdList[-1];
-		      push(@{$units{$unitId}->{"derivedTypesUsed"}->{$derivedType}},@variables);
-		      # Mark line as processed.
-		      $lineProcessed = 1;
-		  }
-		  if ( $lineProcessed == 1 ) {next LINE};
 
 		  # Check for module procedures.
-		  if ( $processedLine =~ m/$moduleProcedureRegex/i ) {
-		      my $procedureName = lc($1);
-		      my $unitId = $unitIdList[-1];
-		      $units{$unitId}->{"moduleProcedures"}->{$procedureName} = 1;
-		      # Mark line as processed.
-		      $lineProcessed = 1;
+		  unless ( $lineProcessed || $fileStack[0]->{'inXML'} || $fileStack[0]->{'inLaTeX'} ) {
+		      if ( $processedLine =~ m/$moduleProcedureRegex/i ) {
+			  my $procedureName = lc($1);
+			  my $unitId = $unitIdList[-1];
+			  $units{$unitId}->{"moduleProcedures"}->{$procedureName} = 1;
+			  # Mark line as processed.
+			  $lineProcessed = 1;
+		      }
 		  }
-		  if ( $lineProcessed == 1 ) {next LINE};
 
 		  # Check for function calls.
-		  my $functionSeek = lc($processedLine);
-		  $functionSeek =~ s/''//g;
-		  $functionSeek =~ s/""//g;
-		  $functionSeek =~ s/'[^']+'//g;
-		  $functionSeek =~ s/"[^"]+"//g;
-		  while ( $functionSeek =~ m/\(/ ) {
-		      (my $extracted, my $remainder, my $prefix) = extract_bracketed($functionSeek,"()","[^\\(]+");
-		      if ( $prefix =~ m/(([a-z0-9_]+)\s*\%\s*)([a-z0-9_]+)$/ ) {
-			  my $functionName = lc($3);
-			  (my $derivedType = lc($1)) =~ s/%\s*$//;
-			  if ( $derivedType eq "" ) {$derivedType = -1};
-			  my $unitId = $unitIdList[-1];
-			  $units{$unitId}->{"functionCalls"}->{$functionName} = $derivedType;
+		  unless ( $lineProcessed || $fileStack[0]->{'inXML'} || $fileStack[0]->{'inLaTeX'} ) {
+		      my $functionSeek = lc($processedLine);
+		      $functionSeek =~ s/''//g;
+		      $functionSeek =~ s/""//g;
+		      $functionSeek =~ s/'[^']+'//g;
+		      $functionSeek =~ s/"[^"]+"//g;
+		      while ( $functionSeek =~ m/\(/ ) {
+			  (my $extracted, my $remainder, my $prefix) = extract_bracketed($functionSeek,"()","[^\\(]+");
+			  if ( $prefix =~ m/(([a-z0-9_]+)\s*\%\s*)([a-z0-9_]+)$/ ) {
+			      my $functionName = lc($3);
+			      (my $derivedType = lc($1)) =~ s/%\s*$//;
+			      if ( $derivedType eq "" ) {$derivedType = -1};
+			      my $unitId = $unitIdList[-1];
+			      $units{$unitId}->{"functionCalls"}->{$functionName} = $derivedType;
+			  }
+			  $functionSeek = $remainder;
 		      }
-		      $functionSeek = $remainder;
 		  }
+		  
+		  # Detect entering LaTeX and XML blocks.
+		  $fileStack[0]->{'inXML'  } = 1
+		      if ( $rawLine =~ m/^\s*!!\[/ );
+		  $fileStack[0]->{'inLaTeX'} = 1
+		      if ( $rawLine =~ m/^\s*!!\{/ );
 	      }
-
-		# Close the file and shift the list of filenames.
-		if ( eof($fileHandle) ) {
-		    shift(@fileNames);
-		    shift(@filePositions);
-		}
-		close($fileHandle);
+		
+	      # Close the file and shift the file stack.
+	      shift(@fileStack)
+		  if ( eof($fileHandle) );
+	      close($fileHandle);
 
 	    }
 	}
