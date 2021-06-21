@@ -19,11 +19,15 @@
 
 !+    Contributions to this file made by:  Stéphane Mangeon, Andrew Benson.
 
-!% Contains a module which implements calculations of the velocity dispersions in isotropic spherical systems by solving the Jeans
-!% equation.
+!!{
+Contains a module which implements calculations of the velocity dispersions in isotropic spherical systems by solving the Jeans
+equation.
+!!}
 
 module Galactic_Structure_Velocity_Dispersions
-  !% Implements calculations of the velocity dispersions in isotropic spherical systems by solving the Jeans equation.
+  !!{
+  Implements calculations of the velocity dispersions in isotropic spherical systems by solving the Jeans equation.
+  !!}
   use :: Galacticus_Nodes, only : treeNode
   implicit none
   private
@@ -36,7 +40,9 @@ module Galactic_Structure_Velocity_Dispersions
 contains
 
   double precision function Galactic_Structure_Velocity_Dispersion(node,radius,radiusOuter,componentType,massType)
-    !% Returns the velocity dispersion of the specified {\normalfont \ttfamily componentType} in {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius}.
+    !!{
+    Returns the velocity dispersion of the specified {\normalfont \ttfamily componentType} in {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius}.
+    !!}
     use :: Galactic_Structure_Densities      , only : Galactic_Structure_Density
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
     use :: Galactic_Structure_Options        , only : radiusLarge
@@ -73,7 +79,9 @@ contains
   end function Galactic_Structure_Velocity_Dispersion
 
   double precision function Velocity_Dispersion_Integrand(radius)
-    !% Integrand function used for finding velocity dispersions using Jeans equation.
+    !!{
+    Integrand function used for finding velocity dispersions using Jeans equation.
+    !!}
     use :: Galactic_Structure_Densities      , only : Galactic_Structure_Density
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
     use :: Numerical_Constants_Astronomical      , only : gravitationalConstantGalacticus

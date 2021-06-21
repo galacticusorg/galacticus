@@ -17,32 +17,38 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a class for calculations for progenitor properties for mergers.
+!!{
+Contains a module which implements a class for calculations for progenitor properties for mergers.
+!!}
 
 module Satellite_Merging_Progenitor_Properties
-  !% Implements a class for calculations for progenitor properties for mergers.
+  !!{
+  Implements a class for calculations for progenitor properties for mergers.
+  !!}
   use :: Galacticus_Nodes, only : treeNode
   implicit none
   private
 
-  !# <functionClass>
-  !#  <name>mergerProgenitorProperties</name>
-  !#  <descriptiveName>Merger Progenitor Properties</descriptiveName>
-  !#  <description>
-  !#   Class providing models of the properties of merger progenitors.
-  !#  </description>
-  !#  <default>standard</default>
-  !#  <method name="get" >
-  !#   <description>alculates progenitor properties for merger calculations.</description>
-  !#   <type>void</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type            (treeNode), intent(inout), target :: nodeSatellite            , nodeHost              </argument>
-  !#   <argument>double precision          , intent(  out)         :: massSatellite            , massHost              </argument>
-  !#   <argument>double precision          , intent(  out)         :: massSpheroidSatellite    , massSpheroidHost      </argument>
-  !#   <argument>double precision          , intent(  out)         :: massSpheroidHostPreMerger, radiusSatellite       </argument>
-  !#   <argument>double precision          , intent(  out)         :: radiusHost               , factorAngularMomentum </argument>
-  !#   <argument>double precision          , intent(  out)         :: massSpheroidRemnant      , massGasSpheroidRemnant</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>mergerProgenitorProperties</name>
+   <descriptiveName>Merger Progenitor Properties</descriptiveName>
+   <description>
+    Class providing models of the properties of merger progenitors.
+   </description>
+   <default>standard</default>
+   <method name="get" >
+    <description>alculates progenitor properties for merger calculations.</description>
+    <type>void</type>
+    <pass>yes</pass>
+    <argument>type            (treeNode), intent(inout), target :: nodeSatellite            , nodeHost              </argument>
+    <argument>double precision          , intent(  out)         :: massSatellite            , massHost              </argument>
+    <argument>double precision          , intent(  out)         :: massSpheroidSatellite    , massSpheroidHost      </argument>
+    <argument>double precision          , intent(  out)         :: massSpheroidHostPreMerger, radiusSatellite       </argument>
+    <argument>double precision          , intent(  out)         :: radiusHost               , factorAngularMomentum </argument>
+    <argument>double precision          , intent(  out)         :: massSpheroidRemnant      , massGasSpheroidRemnant</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Satellite_Merging_Progenitor_Properties

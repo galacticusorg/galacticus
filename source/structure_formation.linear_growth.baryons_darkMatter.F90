@@ -17,8 +17,10 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of linear growth of cosmological structure in models containing baryons and dark matter. Assumes no growth
-  !% of radiation perturbations.
+  !!{
+  An implementation of linear growth of cosmological structure in models containing baryons and dark matter. Assumes no growth
+  of radiation perturbations.
+  !!}
 
   use :: Cosmology_Functions       , only : cosmologyFunctions      , cosmologyFunctionsClass
   use :: Cosmology_Parameters      , only : cosmologyParameters     , cosmologyParametersClass     , hubbleUnitsTime
@@ -26,18 +28,22 @@
   use :: Intergalactic_Medium_State, only : intergalacticMediumState, intergalacticMediumStateClass
   use :: Tables                    , only : table2DLogLogLin
 
-  !# <linearGrowth name="linearGrowthBaryonsDarkMatter">
-  !#  <description>Linear growth of cosmological structure in models containing baryons and dark matter. Assumes no growth of radiation perturbations.</description>
-  !#  <deepCopy>
-  !#   <functionClass variables="linearGrowthCollisionlessMatter_"/>
-  !#  </deepCopy>
-  !#  <stateStorable>
-  !#   <functionClass variables="linearGrowthCollisionlessMatter_"/>
-  !#  </stateStorable>
-  !# </linearGrowth>
+  !![
+  <linearGrowth name="linearGrowthBaryonsDarkMatter">
+   <description>Linear growth of cosmological structure in models containing baryons and dark matter. Assumes no growth of radiation perturbations.</description>
+   <deepCopy>
+    <functionClass variables="linearGrowthCollisionlessMatter_"/>
+   </deepCopy>
+   <stateStorable>
+    <functionClass variables="linearGrowthCollisionlessMatter_"/>
+   </stateStorable>
+  </linearGrowth>
+  !!]
   type, extends(linearGrowthClass) :: linearGrowthBaryonsDarkMatter
-     !% A linear growth of cosmological structure contrast class in models containing baryons and dark matter. Assumes no growth
-     !% of radiation perturbations.
+     !!{
+     A linear growth of cosmological structure contrast class in models containing baryons and dark matter. Assumes no growth
+     of radiation perturbations.
+     !!}
      private
      logical                                                    :: tableInitialized
      double precision                                           :: tableTimeMinimum                          , tableTimeMaximum      , &
@@ -53,12 +59,14 @@
      class           (intergalacticMediumStateClass  ), pointer :: intergalacticMediumState_        => null()
      type            (linearGrowthCollisionlessMatter), pointer :: linearGrowthCollisionlessMatter_ => null()
    contains
-     !# <methods>
-     !#   <method description="Tabulate linear growth factor." method="retabulate" />
-     !#   <method description="Read the tabulated mass variance from file." method="fileWrite" />
-     !#   <method description="Read the tabulated mass variance from file." method="fileRead" />
-     !#   <method description="Return true if the table must be remade." method="remakeTable" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Tabulate linear growth factor." method="retabulate" />
+       <method description="Read the tabulated mass variance from file." method="fileWrite" />
+       <method description="Read the tabulated mass variance from file." method="fileRead" />
+       <method description="Return true if the table must be remade." method="remakeTable" />
+     </methods>
+     !!]
      final     ::                                         baryonsDarkMatterDestructor
      procedure :: value                                => baryonsDarkMatterValue
      procedure :: logarithmicDerivativeExpansionFactor => baryonsDarkMatterLogarithmicDerivativeExpansionFactor
@@ -71,7 +79,9 @@
   end type linearGrowthBaryonsDarkMatter
 
   interface linearGrowthBaryonsDarkMatter
-     !% Constructors for the {\normalfont \ttfamily baryonsDarkMatter} linear growth class.
+     !!{
+     Constructors for the {\normalfont \ttfamily baryonsDarkMatter} linear growth class.
+     !!}
      module procedure baryonsDarkMatterConstructorParameters
      module procedure baryonsDarkMatterConstructorInternal
   end interface linearGrowthBaryonsDarkMatter
@@ -99,7 +109,9 @@
 contains
 
   function baryonsDarkMatterConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily baryonsDarkMatter} linear growth class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily baryonsDarkMatter} linear growth class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type            (linearGrowthBaryonsDarkMatter)                :: self
@@ -110,37 +122,43 @@ contains
     double precision                                               :: redshiftInitial          , redshiftInitialDelta
     integer                                                        :: cambCountPerDecade
 
-    !# <inputParameter>
-    !#   <name>redshiftInitial</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>100.0d0</defaultValue>
-    !#   <description>The initial redshift from which integration of linear growth should be begin.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>redshiftInitialDelta</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>1.0d0</defaultValue>
-    !#   <description>The initial step in redshift used to estimate growth rates of perturbations using finite differencing.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>cambCountPerDecade</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>0</defaultValue>
-    !#   <description>The number of points per decade of wavenumber to compute in the CAMB transfer function. A value of 0 allows CAMB to choose what it considers to be optimal spacing of wavenumbers.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
-    !# <objectBuilder class="intergalacticMediumState" name="intergalacticMediumState_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>redshiftInitial</name>
+      <source>parameters</source>
+      <defaultValue>100.0d0</defaultValue>
+      <description>The initial redshift from which integration of linear growth should be begin.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>redshiftInitialDelta</name>
+      <source>parameters</source>
+      <defaultValue>1.0d0</defaultValue>
+      <description>The initial step in redshift used to estimate growth rates of perturbations using finite differencing.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>cambCountPerDecade</name>
+      <source>parameters</source>
+      <defaultValue>0</defaultValue>
+      <description>The number of points per decade of wavenumber to compute in the CAMB transfer function. A value of 0 allows CAMB to choose what it considers to be optimal spacing of wavenumbers.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    <objectBuilder class="intergalacticMediumState" name="intergalacticMediumState_" source="parameters"/>
+    !!]
     self=baryonsDarkMatterConstructorInternal(redshiftInitial,redshiftInitialDelta,cambCountPerDecade,cosmologyParameters_,cosmologyFunctions_,intergalacticMediumState_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"     />
-    !# <objectDestructor name="cosmologyFunctions_"      />
-    !# <objectDestructor name="intergalacticMediumState_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"     />
+    <objectDestructor name="cosmologyFunctions_"      />
+    <objectDestructor name="intergalacticMediumState_"/>
+    !!]
     return
   end function baryonsDarkMatterConstructorParameters
 
   function baryonsDarkMatterConstructorInternal(redshiftInitial,redshiftInitialDelta,cambCountPerDecade,cosmologyParameters_,cosmologyFunctions_,intergalacticMediumState_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily baryonsDarkMatter} linear growth class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily baryonsDarkMatter} linear growth class.
+    !!}
     use :: File_Utilities  , only : Directory_Make         , File_Path
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Paths, only : galacticusPath         , pathTypeDataDynamic
@@ -152,7 +170,9 @@ contains
     class           (cosmologyFunctionsClass      ), target   , intent(in   ) :: cosmologyFunctions_
     class           (intergalacticMediumStateClass), target   , intent(in   ) :: intergalacticMediumState_
     double precision                                                          :: timeBigCrunch            , timeNow
-    !# <constructorAssign variables="redshiftInitial, redshiftInitialDelta, cambCountPerDecade, *cosmologyParameters_, *cosmologyFunctions_, *intergalacticMediumState_"/>
+    !![
+    <constructorAssign variables="redshiftInitial, redshiftInitialDelta, cambCountPerDecade, *cosmologyParameters_, *cosmologyFunctions_, *intergalacticMediumState_"/>
+    !!]
 
     self%tableInitialized      =.false.
     self%tableTimeMinimum      =1.0d+0
@@ -175,7 +195,9 @@ contains
     ! needed for calculations of critical overdensity. The initial conditions we use from CAMB are not pure growing modes, so we
     ! can't compute the normalization from them directly.
     allocate(self%linearGrowthCollisionlessMatter_)
-    !# <referenceConstruct isResult="yes" owner="self" object="linearGrowthCollisionlessMatter_" constructor="linearGrowthCollisionlessMatter(cosmologyParameters_,cosmologyFunctions_)"/>
+    !![
+    <referenceConstruct isResult="yes" owner="self" object="linearGrowthCollisionlessMatter_" constructor="linearGrowthCollisionlessMatter(cosmologyParameters_,cosmologyFunctions_)"/>
+    !!]
     timeNow=self%cosmologyFunctions_%cosmicTime(1.0d0)
     self%normalizationMatterDominated=+self%linearGrowthCollisionlessMatter_%value(timeNow,normalize=normalizeMatterDominated) &
          &                            /self%linearGrowthCollisionlessMatter_%value(timeNow                                   )
@@ -190,21 +212,27 @@ contains
   end function baryonsDarkMatterConstructorInternal
 
   subroutine baryonsDarkMatterDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily baryonsDarkMatter} linear growth class.
+    !!{
+    Destructor for the {\normalfont \ttfamily baryonsDarkMatter} linear growth class.
+    !!}
     implicit none
     type (linearGrowthBaryonsDarkMatter), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_"            />
-    !# <objectDestructor name="self%cosmologyFunctions_"             />
-    !# <objectDestructor name="self%intergalacticMediumState_"       />
-    !# <objectDestructor name="self%linearGrowthCollisionlessMatter_"/>
+    !![
+    <objectDestructor name="self%cosmologyParameters_"            />
+    <objectDestructor name="self%cosmologyFunctions_"             />
+    <objectDestructor name="self%intergalacticMediumState_"       />
+    <objectDestructor name="self%linearGrowthCollisionlessMatter_"/>
+    !!]
     call self%growthFactor%destroy()
     return
   end subroutine baryonsDarkMatterDestructor
 
   subroutine baryonsDarkMatterRetabulate(self,time,wavenumber)
-    !% Returns the linear growth factor $D(a)$ for expansion factor {\normalfont \ttfamily aExpansion}, normalized such that
-    !% $D(1)=1$ for a baryonsDarkMatter matter plus cosmological constant cosmology.
+    !!{
+    Returns the linear growth factor $D(a)$ for expansion factor {\normalfont \ttfamily aExpansion}, normalized such that
+    $D(1)=1$ for a baryonsDarkMatter matter plus cosmological constant cosmology.
+    !!}
     use    :: File_Utilities       , only : File_Lock                       , File_Unlock
     use    :: Galacticus_Error     , only : Galacticus_Error_Report
     use    :: Interface_GSL        , only : GSL_Success
@@ -284,10 +312,12 @@ contains
        allocate(baryonsDarkMatterCosmologyFunctions_      ,mold=self%cosmologyFunctions_      )
        allocate(baryonsDarkMatterIntergalacticMediumState_,mold=self%intergalacticMediumState_)
        !$omp critical(linearGrowthBaryonsDrkMttrDeepCopy)
-       !# <deepCopyReset variables="self%cosmologyFunctions_ self%intergalacticMediumState_"/>
-       !# <deepCopy source="self%cosmologyFunctions_"       destination="baryonsDarkMatterCosmologyFunctions_"      />
-       !# <deepCopy source="self%intergalacticMediumState_" destination="baryonsDarkMatterIntergalacticMediumState_"/>
-       !# <deepCopyFinalize variables="baryonsDarkMatterCosmologyFunctions_ baryonsDarkMatterIntergalacticMediumState_"/>
+       !![
+       <deepCopyReset variables="self%cosmologyFunctions_ self%intergalacticMediumState_"/>
+       <deepCopy source="self%cosmologyFunctions_"       destination="baryonsDarkMatterCosmologyFunctions_"      />
+       <deepCopy source="self%intergalacticMediumState_" destination="baryonsDarkMatterIntergalacticMediumState_"/>
+       <deepCopyFinalize variables="baryonsDarkMatterCosmologyFunctions_ baryonsDarkMatterIntergalacticMediumState_"/>
+       !!]
        !$omp end critical(linearGrowthBaryonsDrkMttrDeepCopy)
        !$omp do
        do j=1,countWavenumbers
@@ -317,8 +347,10 @@ contains
           end do
        end do
        !$omp end do
-       !# <objectDestructor name="baryonsDarkMatterCosmologyFunctions_"      />
-       !# <objectDestructor name="baryonsDarkMatterIntergalacticMediumState_"/>
+       !![
+       <objectDestructor name="baryonsDarkMatterCosmologyFunctions_"      />
+       <objectDestructor name="baryonsDarkMatterIntergalacticMediumState_"/>
+       !!]
        !$omp do
        do j=1,countWavenumbers
           ! Normalize to growth factor of unity at present day.
@@ -342,7 +374,9 @@ contains
   contains
 
     integer function growthFactorODEs(time,values,derivatives)
-      !% System of differential equations to solve for the growth factor.
+      !!{
+      System of differential equations to solve for the growth factor.
+      !!}
       use :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial, hydrogenByMassPrimordial
       use :: Numerical_Constants_Atomic      , only : electronMass          , massHeliumAtom          , massHydrogenAtom
       use :: Numerical_Constants_Physical    , only : boltzmannsConstant
@@ -425,7 +459,9 @@ contains
   end subroutine baryonsDarkMatterRetabulate
 
   double precision function baryonsDarkMatterValue(self,time,expansionFactor,collapsing,normalize,component,wavenumber)
-    !% Return the linear growth factor at the given epoch.
+    !!{
+    Return the linear growth factor at the given epoch.
+    !!}
     implicit none
     class           (linearGrowthBaryonsDarkMatter), intent(inout)           :: self
     double precision                               , intent(in   ), optional :: time      , expansionFactor
@@ -433,7 +469,9 @@ contains
     integer                                        , intent(in   ), optional :: normalize , component
     double precision                               , intent(in   ), optional :: wavenumber
     double precision                                                         :: time_     , wavenumber_
-    !# <optionalArgument name="normalize" defaultsTo="normalizePresentDay" />
+    !![
+    <optionalArgument name="normalize" defaultsTo="normalizePresentDay" />
+    !!]
     !$GLC attributes unused :: component
 
     ! Determine cosmological time.
@@ -459,7 +497,9 @@ contains
   end function baryonsDarkMatterValue
 
   double precision function baryonsDarkMatterLogarithmicDerivativeExpansionFactor(self,time,expansionFactor,collapsing,component,wavenumber)
-    !% Return the logarithmic gradient of linear growth factor with respect to expansion factor at the given epoch.
+    !!{
+    Return the logarithmic gradient of linear growth factor with respect to expansion factor at the given epoch.
+    !!}
     implicit none
     class           (linearGrowthBaryonsDarkMatter), intent(inout)           :: self
     double precision                               , intent(in   ), optional :: time       , expansionFactor
@@ -488,7 +528,9 @@ contains
   end function baryonsDarkMatterLogarithmicDerivativeExpansionFactor
 
   double precision function baryonsDarkMatterLogarithmicDerivativeWavenumber(self,time,expansionFactor,collapsing,component,wavenumber)
-    !% Return the logarithmic gradient of linear growth factor with respect to expansion factor at the given epoch.
+    !!{
+    Return the logarithmic gradient of linear growth factor with respect to expansion factor at the given epoch.
+    !!}
     implicit none
     class           (linearGrowthBaryonsDarkMatter), intent(inout)           :: self
     double precision                               , intent(in   ), optional :: time       , expansionFactor
@@ -517,7 +559,9 @@ contains
   end function baryonsDarkMatterLogarithmicDerivativeWavenumber
 
   logical function baryonsDarkMatterIsWavenumberDependent(self,component)
-    !% Return true indicating that the growth function is wavenumber-dependent.
+    !!{
+    Return true indicating that the growth function is wavenumber-dependent.
+    !!}
     implicit none
     class  (linearGrowthBaryonsDarkMatter), intent(inout)           :: self
     integer                               , intent(in   ), optional :: component
@@ -528,7 +572,9 @@ contains
   end function baryonsDarkMatterIsWavenumberDependent
 
   logical function baryonsDarkMatterRemakeTable(self,time)
-    !% Determine if the table should be remade.
+    !!{
+    Determine if the table should be remade.
+    !!}
     implicit none
     class           (linearGrowthBaryonsDarkMatter), intent(inout) :: self
     double precision                               , intent(in   ) :: time
@@ -542,7 +588,9 @@ contains
   end function baryonsDarkMatterRemakeTable
 
   subroutine baryonsDarkMatterFileRead(self)
-    !% Read tabulated data on linear growth factor from file.
+    !!{
+    Read tabulated data on linear growth factor from file.
+    !!}
     use :: Display       , only : displayMessage        , verbosityLevelWorking
     use :: File_Utilities, only : File_Exists
     use :: IO_HDF5       , only : hdf5Access            , hdf5Object
@@ -582,7 +630,9 @@ contains
   end subroutine baryonsDarkMatterFileRead
 
   subroutine baryonsDarkMatterFileWrite(self)
-    !% Write tabulated data on linear growth factor to file.
+    !!{
+    Write tabulated data on linear growth factor to file.
+    !!}
     use :: Display, only : displayMessage, verbosityLevelWorking
     use :: HDF5   , only : hsize_t
     use :: IO_HDF5, only : hdf5Access    , hdf5Object

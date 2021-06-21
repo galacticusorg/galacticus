@@ -17,7 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of dark matter halo profile concentrations using the \cite{klypin_multidark_2014} algorithm.
+  !!{
+  An implementation of dark matter halo profile concentrations using the \cite{klypin_multidark_2014} algorithm.
+  !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
@@ -25,17 +27,21 @@
   use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMONFW
   use :: Tables                    , only : table1DGeneric
 
-  !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationKlypin2015">
-  !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{klypin_multidark_2014}.</description>
-  !#  <deepCopy>
-  !#   <functionClass variables="darkMatterProfileDMODefinition_"/>
-  !#  </deepCopy>
-  !#  <stateStorable>
-  !#   <functionClass variables="darkMatterProfileDMODefinition_"/>
-  !#  </stateStorable>
-  !# </darkMatterProfileConcentration>
+  !![
+  <darkMatterProfileConcentration name="darkMatterProfileConcentrationKlypin2015">
+   <description>Dark matter halo concentrations are computed using the algorithm of \cite{klypin_multidark_2014}.</description>
+   <deepCopy>
+    <functionClass variables="darkMatterProfileDMODefinition_"/>
+   </deepCopy>
+   <stateStorable>
+    <functionClass variables="darkMatterProfileDMODefinition_"/>
+   </stateStorable>
+  </darkMatterProfileConcentration>
+  !!]
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationKlypin2015
-     !% A dark matter halo profile concentration class implementing the algorithm of \cite{klypin_multidark_2014}.
+     !!{
+     A dark matter halo profile concentration class implementing the algorithm of \cite{klypin_multidark_2014}.
+     !!}
      private
      class  (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_              => null()
      class  (cosmologyParametersClass     ), pointer :: cosmologyParameters_             => null()
@@ -52,59 +58,69 @@
   end type darkMatterProfileConcentrationKlypin2015
 
   interface darkMatterProfileConcentrationKlypin2015
-     !% Constructors for the {\normalfont \ttfamily klypin2015} dark matter halo profile concentration class.
+     !!{
+     Constructors for the {\normalfont \ttfamily klypin2015} dark matter halo profile concentration class.
+     !!}
      module procedure klypin2015ConstructorParameters
      module procedure klypin2015ConstructorInternal
   end interface darkMatterProfileConcentrationKlypin2015
 
   ! Labels for virial density contrast definition.
-  !# <enumeration>
-  !#  <name>klypin2015DensityContrast</name>
-  !#  <description>Enumeration of density contrasts in the {\normalfont \ttfamily klypin2015} dark matter halo profile concentration class.</description>
-  !#  <visibility>private</visibility>
-  !#  <entry label="fixed" />
-  !#  <entry label="virial"/>
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>klypin2015DensityContrast</name>
+   <description>Enumeration of density contrasts in the {\normalfont \ttfamily klypin2015} dark matter halo profile concentration class.</description>
+   <visibility>private</visibility>
+   <entry label="fixed" />
+   <entry label="virial"/>
+  </enumeration>
+  !!]
 
   ! Labels for fitting function type.
-  !# <enumeration>
-  !#  <name>klypin2015FittingFunction</name>
-  !#  <description>Enumeration of fitting functions in the {\normalfont \ttfamily klypin2015} dark matter halo profile concentration class.</description>
-  !#  <visibility>private</visibility>
-  !#  <entry label="eqn24"/>
-  !#  <entry label="eqn25"/>
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>klypin2015FittingFunction</name>
+   <description>Enumeration of fitting functions in the {\normalfont \ttfamily klypin2015} dark matter halo profile concentration class.</description>
+   <visibility>private</visibility>
+   <entry label="eqn24"/>
+   <entry label="eqn25"/>
+  </enumeration>
+  !!]
 
   ! Labels for sample selection.
-  !# <enumeration>
-  !#  <name>klypin2015Sample</name>
-  !#  <description>Enumeration of sample choices available in the {\normalfont \ttfamily klypin2015} dark matter halo profile concentration class.</description>
-  !#  <visibility>private</visibility>
-  !#  <encodeFunction>yes</encodeFunction>
-  !#  <entry label="planck200CritRelaxedMass"   />
-  !#  <entry label="planck200CritAllMass"       />
-  !#  <entry label="planck200CritRelaxedVmax"   />
-  !#  <entry label="planck200CritAllVmax"       />
-  !#  <entry label="planckVirialRelaxedMass"    />
-  !#  <entry label="planckVirialAllMass"        />
-  !#  <entry label="planckVirialRelaxedVmax"    />
-  !#  <entry label="planckVirialAllVmax"        />
-  !#  <entry label="wmap7200CritRelaxedMass"    />
-  !#  <entry label="wmap7200CritAllMass"        />
-  !#  <entry label="wmap7200CritRelaxedVmax"    />
-  !#  <entry label="wmap7VirialRelaxedMass"     />
-  !#  <entry label="wmap7VirialAllMass"         />
-  !#  <entry label="wmap7VirialRelaxedVmax"     />
-  !#  <entry label="planck200CritAllMassUni"    />
-  !#  <entry label="planck200CritRelaxedMassUni"/>
-  !#  <entry label="planckVirialAllMassUni"     />
-  !#  <entry label="planckVirialRelaxedMassUni" />
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>klypin2015Sample</name>
+   <description>Enumeration of sample choices available in the {\normalfont \ttfamily klypin2015} dark matter halo profile concentration class.</description>
+   <visibility>private</visibility>
+   <encodeFunction>yes</encodeFunction>
+   <entry label="planck200CritRelaxedMass"   />
+   <entry label="planck200CritAllMass"       />
+   <entry label="planck200CritRelaxedVmax"   />
+   <entry label="planck200CritAllVmax"       />
+   <entry label="planckVirialRelaxedMass"    />
+   <entry label="planckVirialAllMass"        />
+   <entry label="planckVirialRelaxedVmax"    />
+   <entry label="planckVirialAllVmax"        />
+   <entry label="wmap7200CritRelaxedMass"    />
+   <entry label="wmap7200CritAllMass"        />
+   <entry label="wmap7200CritRelaxedVmax"    />
+   <entry label="wmap7VirialRelaxedMass"     />
+   <entry label="wmap7VirialAllMass"         />
+   <entry label="wmap7VirialRelaxedVmax"     />
+   <entry label="planck200CritAllMassUni"    />
+   <entry label="planck200CritRelaxedMassUni"/>
+   <entry label="planckVirialAllMassUni"     />
+   <entry label="planckVirialRelaxedMassUni" />
+  </enumeration>
+  !!]
 
 contains
 
   function klypin2015ConstructorParameters(parameters) result(self)
-    !% Default constructor for the {\normalfont \ttfamily klypin2015} dark matter halo profile concentration class.
+    !!{
+    Default constructor for the {\normalfont \ttfamily klypin2015} dark matter halo profile concentration class.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type (darkMatterProfileConcentrationKlypin2015)                :: self
@@ -115,26 +131,32 @@ contains
     type (varying_string                          )                :: sample
 
     ! Check and read parameters.
-    !# <inputParameter>
-    !#   <name>sample</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>var_str('planck200CritRelaxedMass')</defaultValue>
-    !#   <description>The sample to use for the halo concentration algorithm of \cite{klypin_multidark_2014}.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
-    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>sample</name>
+      <source>parameters</source>
+      <defaultValue>var_str('planck200CritRelaxedMass')</defaultValue>
+      <description>The sample to use for the halo concentration algorithm of \cite{klypin_multidark_2014}.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    !!]
     ! Construct the object.
     self=darkMatterProfileConcentrationKlypin2015(enumerationKlypin2015SampleEncode(char(sample),includesPrefix=.false.),cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"     />
-    !# <objectDestructor name="cosmologyFunctions_"      />
-    !# <objectDestructor name="cosmologicalMassVariance_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"     />
+    <objectDestructor name="cosmologyFunctions_"      />
+    <objectDestructor name="cosmologicalMassVariance_"/>
+    !!]
     return
   end function klypin2015ConstructorParameters
 
   function klypin2015ConstructorInternal(sample,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_) result(self)
-    !% Constructor for the {\normalfont \ttfamily klypin2015} dark matter halo profile concentration class.
+    !!{
+    Constructor for the {\normalfont \ttfamily klypin2015} dark matter halo profile concentration class.
+    !!}
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
     use :: Table_Labels           , only : extrapolationTypeFix
     use :: Virial_Density_Contrast, only : fixedDensityTypeCritical
@@ -145,7 +167,9 @@ contains
     class  (cosmologyFunctionsClass                           ), intent(in   ), target :: cosmologyFunctions_
     class  (cosmologicalMassVarianceClass                     ), intent(in   ), target :: cosmologicalMassVariance_
     type   (darkMatterHaloScaleVirialDensityContrastDefinition), pointer               :: darkMatterHaloScaleDefinition_
-    !# <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_, *cosmologicalMassVariance_"/>
+    !![
+    <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_, *cosmologicalMassVariance_"/>
+    !!]
 
     select case (sample)
     case (klypin2015SamplePlanck200CritRelaxedMass)
@@ -635,72 +659,84 @@ contains
        allocate(virialDensityContrastFixed                                      :: self%virialDensityContrastDefinition_)
        select type (virialDensityContrastDefinition_ => self%virialDensityContrastDefinition_)
        type is (virialDensityContrastFixed)
-          !# <referenceConstruct object="virialDensityContrastDefinition_">
-          !#  <constructor>
-          !#   virialDensityContrastFixed                                    (                                                                &amp;
-          !#    &amp;                                                         densityContrastValue                =200.0d0                  , &amp;
-          !#    &amp;                                                         densityType                         =fixedDensityTypeCritical , &amp;
-          !#    &amp;                                                         turnAroundOverVirialRadius          =2.0d0                    , &amp;
-          !#    &amp;                                                         cosmologyParameters_                =self%cosmologyParameters_, &amp;
-          !#    &amp;                                                         cosmologyFunctions_                 =self%cosmologyFunctions_   &amp;
-          !#    &amp;                                                        )
-          !#  </constructor>
-          !# </referenceConstruct>
+          !![
+          <referenceConstruct object="virialDensityContrastDefinition_">
+           <constructor>
+            virialDensityContrastFixed                                    (                                                                &amp;
+             &amp;                                                         densityContrastValue                =200.0d0                  , &amp;
+             &amp;                                                         densityType                         =fixedDensityTypeCritical , &amp;
+             &amp;                                                         turnAroundOverVirialRadius          =2.0d0                    , &amp;
+             &amp;                                                         cosmologyParameters_                =self%cosmologyParameters_, &amp;
+             &amp;                                                         cosmologyFunctions_                 =self%cosmologyFunctions_   &amp;
+             &amp;                                                        )
+           </constructor>
+          </referenceConstruct>
+          !!]
        end select
     case (klypin2015DensityContrastVirial)
        allocate(virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt :: self%virialDensityContrastDefinition_)
        select type (virialDensityContrastDefinition_ => self%virialDensityContrastDefinition_)
        type is (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt)
-          !# <referenceConstruct object="virialDensityContrastDefinition_">
-          !#  <constructor>
-          !#   virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(                                                                &amp;
-          !#    &amp;                                                         tableStore                          =.true.                   , &amp;
-          !#    &amp;                                                         cosmologyFunctions_                 =self%cosmologyFunctions_   &amp;
-          !#    &amp;                                                        )
-          !#  </constructor>
-          !# </referenceConstruct>
+          !![
+          <referenceConstruct object="virialDensityContrastDefinition_">
+           <constructor>
+            virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(                                                                &amp;
+             &amp;                                                         tableStore                          =.true.                   , &amp;
+             &amp;                                                         cosmologyFunctions_                 =self%cosmologyFunctions_   &amp;
+             &amp;                                                        )
+           </constructor>
+          </referenceConstruct>
+          !!]
        end select
     end select
     allocate(self%darkMatterProfileDMODefinition_)
     allocate(     darkMatterHaloScaleDefinition_ )
-    !# <referenceConstruct              object="darkMatterHaloScaleDefinition_"  >
-    !#  <constructor>
-    !#   darkMatterHaloScaleVirialDensityContrastDefinition(                                                                            &amp;
-    !#    &amp;                                             cosmologyParameters_                =self%cosmologyParameters_            , &amp;
-    !#    &amp;                                             cosmologyFunctions_                 =self%cosmologyFunctions_             , &amp;
-    !#    &amp;                                             virialDensityContrast_              =self%virialDensityContrastDefinition_  &amp;
-    !#    &amp;                                            )
-    !#  </constructor>
-    !# </referenceConstruct>
-    !# <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_" >
-    !#  <constructor>
-    !#   darkMatterProfileDMONFW                           (                                                                            &amp;
-    !#    &amp;                                             velocityDispersionUseSeriesExpansion=.true.                               , &amp;
-    !#    &amp;                                             darkMatterHaloScale_                =darkMatterHaloScaleDefinition_         &amp;
-    !#    &amp;                                            )
-    !#  </constructor>
-    !# </referenceConstruct>
-    !# <objectDestructor                name  ="darkMatterHaloScaleDefinition_" />
+    !![
+    <referenceConstruct              object="darkMatterHaloScaleDefinition_"  >
+     <constructor>
+      darkMatterHaloScaleVirialDensityContrastDefinition(                                                                            &amp;
+       &amp;                                             cosmologyParameters_                =self%cosmologyParameters_            , &amp;
+       &amp;                                             cosmologyFunctions_                 =self%cosmologyFunctions_             , &amp;
+       &amp;                                             virialDensityContrast_              =self%virialDensityContrastDefinition_  &amp;
+       &amp;                                            )
+     </constructor>
+    </referenceConstruct>
+    <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_" >
+     <constructor>
+      darkMatterProfileDMONFW                           (                                                                            &amp;
+       &amp;                                             velocityDispersionUseSeriesExpansion=.true.                               , &amp;
+       &amp;                                             darkMatterHaloScale_                =darkMatterHaloScaleDefinition_         &amp;
+       &amp;                                            )
+     </constructor>
+    </referenceConstruct>
+    <objectDestructor                name  ="darkMatterHaloScaleDefinition_" />
+    !!]
     return
   end function klypin2015ConstructorInternal
 
   subroutine klypin2015Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily klypin2015} dark matter halo profile concentration class.
+    !!{
+    Destructor for the {\normalfont \ttfamily klypin2015} dark matter halo profile concentration class.
+    !!}
     implicit none
     type(darkMatterProfileConcentrationKlypin2015), intent(inout) :: self
 
     call self%fitParameters%destroy()
-    !# <objectDestructor name="self%cosmologyParameters_"            />
-    !# <objectDestructor name="self%cosmologyFunctions_"             />
-    !# <objectDestructor name="self%cosmologicalMassVariance_"       />
-    !# <objectDestructor name="self%virialDensityContrastDefinition_"/>
-    !# <objectDestructor name="self%darkMatterProfileDMODefinition_" />
+    !![
+    <objectDestructor name="self%cosmologyParameters_"            />
+    <objectDestructor name="self%cosmologyFunctions_"             />
+    <objectDestructor name="self%cosmologicalMassVariance_"       />
+    <objectDestructor name="self%virialDensityContrastDefinition_"/>
+    <objectDestructor name="self%darkMatterProfileDMODefinition_" />
+    !!]
     return
   end subroutine klypin2015Destructor
 
   double precision function klypin2015Concentration(self,node)
-    !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the
-    !% \cite{klypin_multidark_2014} algorithm.
+    !!{
+    Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the
+    \cite{klypin_multidark_2014} algorithm.
+    !!}
     use :: Cosmology_Parameters, only : hubbleUnitsLittleH
     use :: Galacticus_Error    , only : Galacticus_Error_Report
     use :: Galacticus_Nodes    , only : nodeComponentBasic     , treeNode
@@ -770,8 +806,10 @@ contains
   end function klypin2015Concentration
 
   function klypin2015DensityContrastDefinition(self)
-    !% Return a virial density contrast object defining that used in the definition of concentration in the
-    !% \cite{klypin_multidark_2014} algorithm.
+    !!{
+    Return a virial density contrast object defining that used in the definition of concentration in the
+    \cite{klypin_multidark_2014} algorithm.
+    !!}
     implicit none
     class(virialDensityContrastClass              ), pointer       :: klypin2015DensityContrastDefinition
     class(darkMatterProfileConcentrationKlypin2015), intent(inout) :: self
@@ -781,8 +819,10 @@ contains
   end function klypin2015DensityContrastDefinition
 
   function klypin2015DarkMatterProfileDefinition(self)
-    !% Return a dark matter density profile object defining that used in the definition of concentration in the
-    !% \cite{klypin_multidark_2014} algorithm.
+    !!{
+    Return a dark matter density profile object defining that used in the definition of concentration in the
+    \cite{klypin_multidark_2014} algorithm.
+    !!}
     implicit none
     class(darkMatterProfileDMOClass               ), pointer       :: klypin2015DarkMatterProfileDefinition
     class(darkMatterProfileConcentrationKlypin2015), intent(inout) :: self

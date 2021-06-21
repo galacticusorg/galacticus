@@ -17,20 +17,26 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of the \cite{cole_hierarchical_2000} time available for cooling class.
+  !!{
+  Implementation of the \cite{cole_hierarchical_2000} time available for cooling class.
+  !!}
 
-  !# <coolingTimeAvailable name="coolingTimeAvailableFormationTime">
-  !#  <description>
-  !#   A time available for cooling class which implements the algorithm of \cite{cole_hierarchical_2000}, that is, the time
-  !#   available is equal to
-  !#   \begin{equation}
-  !#    t_\mathrm{available} = t - t_\mathrm{form},
-  !#   \end{equation}
-  !#   where $t_\mathrm{form}$ is the time at which the halo formed (see \S\ref{sec:ComponentFormationTimes}).
-  !#  </description>
-  !# </coolingTimeAvailable>
+  !![
+  <coolingTimeAvailable name="coolingTimeAvailableFormationTime">
+   <description>
+    A time available for cooling class which implements the algorithm of \cite{cole_hierarchical_2000}, that is, the time
+    available is equal to
+    \begin{equation}
+     t_\mathrm{available} = t - t_\mathrm{form},
+    \end{equation}
+    where $t_\mathrm{form}$ is the time at which the halo formed (see \S\ref{sec:ComponentFormationTimes}).
+   </description>
+  </coolingTimeAvailable>
+  !!]
   type, extends(coolingTimeAvailableClass) :: coolingTimeAvailableFormationTime
-     !% Implementation of a time available for cooling class which implements the algorithm of \cite{cole_hierarchical_2000}.
+     !!{
+     Implementation of a time available for cooling class which implements the algorithm of \cite{cole_hierarchical_2000}.
+     !!}
      private
    contains
      procedure :: timeAvailable             => formationTimeTimeAvailable
@@ -38,14 +44,18 @@
   end type coolingTimeAvailableFormationTime
 
   interface coolingTimeAvailableFormationTime
-     !% Constructors for the \cite{cole_hierarchical_2000} time available for cooling class.
+     !!{
+     Constructors for the \cite{cole_hierarchical_2000} time available for cooling class.
+     !!}
      module procedure formationTimeConstructorParameters
   end interface coolingTimeAvailableFormationTime
 
 contains
 
   function formationTimeConstructorParameters(parameters) result(self)
-    !% Constructor for the \cite{cole_hierarchical_2000} time available for cooling class which builds the object from a parameter set.
+    !!{
+    Constructor for the \cite{cole_hierarchical_2000} time available for cooling class which builds the object from a parameter set.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Component_List    , Galacticus_Error_Report
     use :: Galacticus_Nodes, only : defaultFormationTimeComponent
     use :: Input_Parameters, only : inputParameters
@@ -71,7 +81,9 @@ contains
   end function formationTimeConstructorParameters
 
   double precision function formationTimeTimeAvailable(self,node)
-    !% Returns the time available for cooling (in units of Gyr) in the hot atmosphere for the \cite{cole_hierarchical_2000} model.
+    !!{
+    Returns the time available for cooling (in units of Gyr) in the hot atmosphere for the \cite{cole_hierarchical_2000} model.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentFormationTime, treeNode
     implicit none
     class(coolingTimeAvailableFormationTime), intent(inout) :: self
@@ -88,8 +100,10 @@ contains
   end function formationTimeTimeAvailable
 
   double precision function formationTimeTimeAvailableIncreaseRate(self,node)
-    !% Compute the rate of increase of the time available for cooling using the \cite{cole_hierarchical_2000} method. We return a rate
-    !% of 1, even though technically it can depend on halo properties.
+    !!{
+    Compute the rate of increase of the time available for cooling using the \cite{cole_hierarchical_2000} method. We return a rate
+    of 1, even though technically it can depend on halo properties.
+    !!}
     implicit none
     class(coolingTimeAvailableFormationTime), intent(inout) :: self
     type (treeNode                         ), intent(inout) :: node

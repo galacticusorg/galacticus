@@ -13,16 +13,14 @@
     <temperatureCMB value="2.72548"/>
   </cosmologyParameters>
 
-  <dblFromC value="1.2434"/>
-  <longFromC value="12434"/>
-
   <cosmologicalMassVariance value="filteredPower" id="myCMV">
     <sigma_8 value="0.912"/>
   </cosmologicalMassVariance>
 
   <cosmologicalMassVariance idRef="myCMV"/>
 
-  <nodeOperator value="multi"><!--Stellar feedback outflows-->
+  <nodeOperator value="multi">
+    <!--Stellar feedback outflows-->
     <nodeOperator value="stellarFeedbackDisks">
       <stellarFeedbackOutflows value="rateLimit">
         <timescaleOutflowFractionalMinimum value="0.001"/>

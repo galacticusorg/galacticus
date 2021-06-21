@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module of functions for root finding unit tests.
+!!{
+Contains a module of functions for root finding unit tests.
+!!}
 
 module Test_Multidimensional_Minimizer_Functions
-  !% Contains functions for root finding unit tests.
+  !!{
+  Contains functions for root finding unit tests.
+  !!}
   implicit none
   private
   public :: minimizerFunction_, minimizeFunctionDerivative_, minimizeFunctionBoth_
@@ -31,7 +35,9 @@ module Test_Multidimensional_Minimizer_Functions
 contains
 
   double precision function minimizerFunction_(x)
-    !% Evaluate the value of a multidimensional function for minimization.
+    !!{
+    Evaluate the value of a multidimensional function for minimization.
+    !!}
     implicit none
     double precision, intent(in   ), dimension(:) :: x
 
@@ -42,7 +48,9 @@ contains
   end function minimizerFunction_
 
   function minimizeFunctionDerivative_(x) result(gradient)
-    !% Evaluate the gradient of a multidimensional function for minimization.
+    !!{
+    Evaluate the gradient of a multidimensional function for minimization.
+    !!}
     implicit none
     double precision, intent(in   ), dimension(     : ) :: x
     double precision               , dimension(size(x)) :: gradient
@@ -53,7 +61,9 @@ contains
   end function minimizeFunctionDerivative_
 
   subroutine minimizeFunctionBoth_(x,functionValue,gradient)
-    !% Evaluate the value and gradient of a multidimensional function for minimization.
+    !!{
+    Evaluate the value and gradient of a multidimensional function for minimization.
+    !!}
     implicit none
     double precision, intent(in   ), dimension(     : ) :: x
     double precision, intent(  out)                     :: functionValue

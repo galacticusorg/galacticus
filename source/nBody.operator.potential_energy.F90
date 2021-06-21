@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an N-body data operator which determines the potential energy of each particle.
+!!{
+Contains a module which implements an N-body data operator which determines the potential energy of each particle.
+!!}
 
   use, intrinsic :: ISO_C_Binding           , only : c_size_t
   use            :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
   
-  !# <nbodyOperator name="nbodyOperatorPotentialEnergy">
-  !#  <description>An N-body data operator which determines the potential energy of each particle.</description>
-  !# </nbodyOperator>
+  !![
+  <nbodyOperator name="nbodyOperatorPotentialEnergy">
+   <description>An N-body data operator which determines the potential energy of each particle.</description>
+  </nbodyOperator>
+  !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorPotentialEnergy
-     !% An N-body data operator which determines the potential energy of each particle.
+     !!{
+     An N-body data operator which determines the potential energy of each particle.
+     !!}
      private
      logical                                               :: selfBoundParticlesOnly
      integer         (c_size_t                  )          :: bootstrapSampleCount
@@ -38,7 +44,9 @@
   end type nbodyOperatorPotentialEnergy
 
   interface nbodyOperatorPotentialEnergy
-     !% Constructors for the ``potentialEnergy'' N-body operator class.
+     !!{
+     Constructors for the ``potentialEnergy'' N-body operator class.
+     !!}
      module procedure potentialEnergyConstructorParameters
      module procedure potentialEnergyConstructorInternal
   end interface nbodyOperatorPotentialEnergy
@@ -46,7 +54,9 @@
 contains
 
   function potentialEnergyConstructorParameters(parameters) result (self)
-    !% Constructor for the ``potentialEnergy'' N-body operator class which takes a parameter set as input.
+    !!{
+    Constructor for the ``potentialEnergy'' N-body operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (nbodyOperatorPotentialEnergy)                :: self
@@ -56,69 +66,82 @@ contains
     integer         (c_size_t                    )                :: bootstrapSampleCount
     double precision                                              :: bootstrapSampleRate   , thetaTolerance 
 
-    !# <inputParameter>
-    !#   <name>selfBoundParticlesOnly</name>
-    !#   <source>parameters</source>
-    !#   <description>If true, the gravitational potential is computed only from self-bound particles.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>bootstrapSampleCount</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>30_c_size_t</defaultValue>
-    !#   <description>The number of bootstrap resamples of the particles that should be used.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>bootstrapSampleRate</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>1.0d0</defaultValue>
-    !#   <description>The sampling rate for particles.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>thetaTolerance</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>0.5d0</defaultValue>
-    !#   <description>The criterion for the opening angle.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>selfBoundParticlesOnly</name>
+      <source>parameters</source>
+      <description>If true, the gravitational potential is computed only from self-bound particles.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>bootstrapSampleCount</name>
+      <source>parameters</source>
+      <defaultValue>30_c_size_t</defaultValue>
+      <description>The number of bootstrap resamples of the particles that should be used.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>bootstrapSampleRate</name>
+      <source>parameters</source>
+      <defaultValue>1.0d0</defaultValue>
+      <description>The sampling rate for particles.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>thetaTolerance</name>
+      <source>parameters</source>
+      <defaultValue>0.5d0</defaultValue>
+      <description>The criterion for the opening angle.</description>
+    </inputParameter>
+    <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !!]
     self=nbodyOperatorPotentialEnergy(selfBoundParticlesOnly,bootstrapSampleCount,bootstrapSampleRate,thetaTolerance,randomNumberGenerator_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="randomNumberGenerator_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="randomNumberGenerator_"/>
+    !!]
     return
   end function potentialEnergyConstructorParameters
 
   function potentialEnergyConstructorInternal(selfBoundParticlesOnly,bootstrapSampleCount,bootstrapSampleRate,thetaTolerance,randomNumberGenerator_) result (self)
-    !% Internal constructor for the ``potentialEnergy'' N-body operator class.
+    !!{
+    Internal constructor for the ``potentialEnergy'' N-body operator class.
+    !!}
     implicit none
     type            (nbodyOperatorPotentialEnergy)                        :: self
     logical                                       , intent(in   )         :: selfBoundParticlesOnly
     integer         (c_size_t                    ), intent(in   )         :: bootstrapSampleCount
     double precision                              , intent(in   )         :: bootstrapSampleRate   , thetaTolerance
     class           (randomNumberGeneratorClass  ), intent(in   ), target :: randomNumberGenerator_
-    !# <constructorAssign variables="selfBoundParticlesOnly, bootstrapSampleCount, bootstrapSampleRate, thetaTolerance, *randomNumberGenerator_"/>
+    !![
+    <constructorAssign variables="selfBoundParticlesOnly, bootstrapSampleCount, bootstrapSampleRate, thetaTolerance, *randomNumberGenerator_"/>
+    !!]
 
     return
   end function potentialEnergyConstructorInternal
 
   subroutine potentialEnergyDestructor(self)
-    !% Destructor for the ``potentialEnergy'' N-body operator class.
+    !!{
+    Destructor for the ``potentialEnergy'' N-body operator class.
+    !!}
     implicit none
     type(nbodyOperatorPotentialEnergy), intent(inout) :: self
 
-    !# <objectDestructor name="self%randomNumberGenerator_"/>
+    !![
+    <objectDestructor name="self%randomNumberGenerator_"/>
+    !!]
     return
   end subroutine potentialEnergyDestructor
   
   subroutine potentialEnergyOperate(self,simulations)
-    !% Determine the acceleration of bound particles from stripped ones.
+    !!{
+    Determine the acceleration of bound particles from stripped ones.
+    !!}
     use :: Galacticus_Error                , only : Galacticus_Error_Report
-    use :: Memory_Management               , only : allocateArray                  , deallocateArray
     use :: Octree_Data_Structure           , only : octreeData
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (nbodyOperatorPotentialEnergy), intent(inout)                 :: self
     type            (nBodyData                   ), intent(inout), dimension(:  ) :: simulations
     type            (octreeData                  )                                :: octreePosition
-    integer                                       , allocatable  , dimension(:,:) :: selfBoundStatus
+    integer         (c_size_t                    ), pointer      , dimension(:,:) :: selfBoundStatus
     double precision                              , pointer      , dimension(:,:) :: position
     double precision                              , allocatable  , dimension(:,:) :: positionRescaled
     double precision                              , allocatable  , dimension(:,:) :: potentialEnergy
@@ -138,12 +161,12 @@ contains
        particleCount=size(position,dim=2,kind=c_size_t)
        ! Determine the particle mask to use.
        if (self%selfBoundParticlesOnly) then
-          if (simulations(iSimulation)%analysis%hasDataset('selfBoundStatus')) then
-             call simulations(iSimulation)%analysis%readDataset('selfBoundStatus',selfBoundStatus)
+          if (simulations(iSimulation)%propertiesIntegerRank1%exists('isBound')) then
+             selfBoundStatus => simulations(iSimulation)%propertiesIntegerRank1%value('isBound')
              if (simulations(iSimulation)%analysis%hasDataset('bootstrapSampleRate')) then
                 call simulations(iSimulation)%analysis%readDataset('bootstrapSampleRate',sampleRate)
              else
-                call allocateArray(sampleRate,[1])
+                allocate(sampleRate(1))
                 sampleRate=1.0d0
              end if
              if (size(selfBoundStatus,dim=2) /= self%bootstrapSampleCount) call Galacticus_Error_Report('number of selfBoundStatus samples must equal number of requested bootstrap samples'//{introspection:location})
@@ -151,8 +174,8 @@ contains
              call Galacticus_Error_Report('self-bound status not available - apply a self-bound operator first'//{introspection:location})
           end if
        else
-          call allocateArray(selfBoundStatus,[particleCount,self%bootstrapSampleCount])
-          call allocateArray(sampleRate     ,[1                                      ])
+          allocate(selfBoundStatus(particleCount,self%bootstrapSampleCount))
+          allocate(sampleRate     (1                                      ))
           sampleRate=self%bootstrapSampleRate
           do i=1,self%bootstrapSampleCount
              do j=1,particleCount
@@ -161,8 +184,8 @@ contains
           end do
        end if
        ! Compute the potential energy.
-       call allocateArray(potentialEnergy ,[           particleCount,self%bootstrapSampleCount])
-       call allocateArray(positionRescaled,[3_c_size_t,particleCount                          ])
+       allocate(potentialEnergy (           particleCount,self%bootstrapSampleCount))
+       allocate(positionRescaled(3_c_size_t,particleCount                          ))
        positionRescaled=position/lengthSoftening
        potentialEnergy =0.0d0
        do i=1,self%bootstrapSampleCount
@@ -190,17 +213,23 @@ contains
        ! Store results to file.
        call simulations(iSimulation)%analysis%writeDataset(potentialEnergy,'energyPotential')
        ! Dealclocate workspace.
-       call deallocateArray(selfBoundStatus )
-       call deallocateArray(positionRescaled)
-       call deallocateArray(potentialEnergy )
-       call deallocateArray(sampleRate      )
+       if (self%selfBoundParticlesOnly) then
+          nullify   (selfBoundStatus )
+       else
+          deallocate(selfBoundStatus )
+       end if
+       deallocate   (positionRescaled)
+       deallocate   (potentialEnergy )
+       deallocate   (sampleRate      )
     end do
     return
   end subroutine potentialEnergyOperate
 
   subroutine potentialEnergyPotential(value,centerOfMass,nodeWeight,relativePosition,separation,separationSquared)
-    !% Compute the potential given the separation between a particle and a node in the octree. Currently assumes the functional form of the softening used by
-    !% Gadget.
+    !!{
+    Compute the potential given the separation between a particle and a node in the octree. Currently assumes the functional form of the softening used by
+    Gadget.
+    !!}
     implicit none
     double precision              , intent(inout) :: value
     double precision, dimension(3), intent(in   ) :: centerOfMass     , relativePosition

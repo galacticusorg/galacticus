@@ -17,7 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements quasi-random sequences.
+!!{
+Contains a module which implements quasi-random sequences.
+!!}
 
 ! Specify an explicit dependence on the interface.GSL.C.quasi_random.o object file.
 !: $(BUILDPATH)/interface.GSL.C.quasi_random.o
@@ -26,7 +28,9 @@
 !; gsl
 
 module Numerical_Quasi_Random_Sequences
-  !% Implements quasi-random sequences.
+  !!{
+  Implements quasi-random sequences.
+  !!}
   use, intrinsic :: ISO_C_Binding, only : c_ptr, c_int, c_double
   implicit none
   private
@@ -40,26 +44,34 @@ module Numerical_Quasi_Random_Sequences
 
   interface
      function gsl_qrng_alloc(T,d) bind(c,name='gsl_qrng_alloc')
-       !% Template for the GSL quasi-random number generator allocator function.
+       !!{
+       Template for the GSL quasi-random number generator allocator function.
+       !!}
        import c_ptr, c_int
        type   (c_ptr)        :: gsl_qrng_alloc
        type   (c_ptr), value :: T
        integer(c_int), value :: d
      end function gsl_qrng_alloc
      subroutine gsl_qrng_free(q) bind(c,name='gsl_qrng_free')
-       !% Template for the GSL quasi-random number generator free function.
+       !!{
+       Template for the GSL quasi-random number generator free function.
+       !!}
        import c_ptr
        type(c_ptr), value :: q
      end subroutine gsl_qrng_free
      function gsl_qrng_get(q,x) bind(c,name='gsl_qrng_get')
-       !% Template for the GSL quasi-random number generator get function.
+       !!{
+       Template for the GSL quasi-random number generator get function.
+       !!}
        import c_ptr, c_double, c_int
        integer(c_int   )               :: gsl_qrng_get
        type   (c_ptr   ), value        :: q
        real   (c_double), dimension(*) :: x
      end function gsl_qrng_get
      function gsl_qrng_type_get(i) bind(c,name='gsl_qrng_type_get')
-       !% Template for GSL interface quasi-random number generator type function.
+       !!{
+       Template for GSL interface quasi-random number generator type function.
+       !!}
        import c_ptr, c_int
        type   (c_ptr)                       :: gsl_qrng_type_get
        integer(c_int), intent(in   ), value :: i
@@ -67,32 +79,42 @@ module Numerical_Quasi_Random_Sequences
   end interface
 
   type :: quasiRandomNumberGenerator
-     !% Type providing quasi-random number generators.
+     !!{
+     Type providing quasi-random number generators.
+     !!}
      private
      type   (c_ptr), allocatable :: gsl_qrng , gsl_qrng_type
      integer                     :: qrngType
    contains
-     !# <methods>
-     !#   <method description="Get numbers from the sequence." method="get" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Get numbers from the sequence." method="get" />
+     </methods>
+     !!]
      final     ::        quasiRandomNumberGeneratorDestructor
      procedure :: get => quasiRandomNumberGeneratorGet
   end type quasiRandomNumberGenerator
   
   interface quasiRandomNumberGenerator
-     !% Constructor for the {\normalfont \ttfamily quasiRandomNumberGenerator} class.
+     !!{
+     Constructor for the {\normalfont \ttfamily quasiRandomNumberGenerator} class.
+     !!}
      module procedure quasiRandomNumberGeneratorConstructor
   end interface quasiRandomNumberGenerator
   
 contains
 
   function quasiRandomNumberGeneratorConstructor(qrngType) result(self)
-    !% Constructor for {\normalfont \ttfamily quasiRandomNumberGenerator} obejcts.
+    !!{
+    Constructor for {\normalfont \ttfamily quasiRandomNumberGenerator} obejcts.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type  (quasiRandomNumberGenerator)                          :: self
     integer                           , intent(in   ), optional :: qrngType
-    !# <optionalArgument name="qrngType" defaultsTo="gsl_qrng_sobol"/>
+    !![
+    <optionalArgument name="qrngType" defaultsTo="gsl_qrng_sobol"/>
+    !!]
     
     ! Get the interpolator type.
     self%qrngType=qrngType_
@@ -105,7 +127,9 @@ contains
   end function quasiRandomNumberGeneratorConstructor
 
   subroutine quasiRandomNumberGeneratorDestructor(self)
-    !% Destructor for {\normalfont \ttfamily quasiRandomNumberGenerator} objects.
+    !!{
+    Destructor for {\normalfont \ttfamily quasiRandomNumberGenerator} objects.
+    !!}
     implicit none
     type(quasiRandomNumberGenerator), intent(inout) :: self
 
@@ -117,7 +141,9 @@ contains
   end subroutine quasiRandomNumberGeneratorDestructor
   
   double precision function quasiRandomNumberGeneratorGet(self)
-    !% Return the next entry in the quasi-random sequence.
+    !!{
+    Return the next entry in the quasi-random sequence.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Interface_GSL   , only : GSL_Success
     implicit none

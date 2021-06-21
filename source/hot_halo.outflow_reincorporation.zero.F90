@@ -17,28 +17,38 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% An implementation of the hot halo outflow reincorporation class which gives zero reincorporation rate.
+!!{
+An implementation of the hot halo outflow reincorporation class which gives zero reincorporation rate.
+!!}
 
-  !# <hotHaloOutflowReincorporation name="hotHaloOutflowReincorporationZero">
-  !#  <description>An implementation of the hot halo outflow reincorporation class which gives zero reincorporation rate.</description>
-  !# </hotHaloOutflowReincorporation>
+  !![
+  <hotHaloOutflowReincorporation name="hotHaloOutflowReincorporationZero">
+   <description>An implementation of the hot halo outflow reincorporation class which gives zero reincorporation rate.</description>
+  </hotHaloOutflowReincorporation>
+  !!]
   type, extends(hotHaloOutflowReincorporationClass) :: hotHaloOutflowReincorporationZero
-     !% An implementation of the hot halo outflow reincorporation class which gives zero reincorporation rate.
+     !!{
+     An implementation of the hot halo outflow reincorporation class which gives zero reincorporation rate.
+     !!}
      private
    contains
      procedure :: rate => zeroRate
   end type hotHaloOutflowReincorporationZero
 
   interface hotHaloOutflowReincorporationZero
-     !% Constructors for the {\normalfont \ttfamily zero} hot halo outflow reincorporation class.
+     !!{
+     Constructors for the {\normalfont \ttfamily zero} hot halo outflow reincorporation class.
+     !!}
      module procedure zeroConstructorParameters
   end interface hotHaloOutflowReincorporationZero
 
 contains
 
   function zeroConstructorParameters(parameters) result(self)
-    !% Default constructor for the {\normalfont \ttfamily zero} hot halo outflow reincorporation class which takes a parameter set
-    !% as input.
+    !!{
+    Default constructor for the {\normalfont \ttfamily zero} hot halo outflow reincorporation class which takes a parameter set
+    as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(hotHaloOutflowReincorporationZero)                :: self
@@ -50,7 +60,9 @@ contains
   end function zeroConstructorParameters
 
   double precision function zeroRate(self,node)
-    !% Return the rate of mass reincorporation for outflowed gas in the hot halo.
+    !!{
+    Return the rate of mass reincorporation for outflowed gas in the hot halo.
+    !!}
     implicit none
     class(hotHaloOutflowReincorporationZero), intent(inout) :: self
     type (treeNode                         ), intent(inout) :: node

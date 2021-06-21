@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to benchmark stellar population luminosity calculations.
+!!{
+Contains a program to benchmark stellar population luminosity calculations.
+!!}
 
 program Benchmark_Stellar_Populations_Luminosities
-  !% Benchmarking of stellar population luminosity calculations.
+  !!{
+  Benchmarking of stellar population luminosity calculations.
+  !!}
   use :: Abundances_Structure                      , only : abundances                                    , metallicityTypeLinearByMassSolar
   use :: Cosmology_Functions                       , only : cosmologyFunctionsMatterLambda
   use :: Cosmology_Parameters                      , only : cosmologyParametersSimple

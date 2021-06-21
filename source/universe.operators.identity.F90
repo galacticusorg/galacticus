@@ -17,25 +17,33 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !# <universeOperator name="universeOperatorIdentity">
-  !#  <description>An identity operator on universes.</description>
-  !# </universeOperator>
+  !![
+  <universeOperator name="universeOperatorIdentity">
+   <description>An identity operator on universes.</description>
+  </universeOperator>
+  !!]
   type, extends(universeOperatorClass) :: universeOperatorIdentity
-     !% Implementation of an identity operator on universes.
+     !!{
+     Implementation of an identity operator on universes.
+     !!}
      private
    contains
      procedure :: operate => identityOperate
   end type universeOperatorIdentity
 
   interface universeOperatorIdentity
-     !% Constructors for the {\normalfont \ttfamily identity} universe operator.
+     !!{
+     Constructors for the {\normalfont \ttfamily identity} universe operator.
+     !!}
      module procedure identityConstructorParameters
   end interface universeOperatorIdentity
 
 contains
 
   function identityConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily identity} universe operator class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily identity} universe operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(universeOperatorIdentity)                :: self
@@ -47,7 +55,9 @@ contains
   end function identityConstructorParameters
 
    subroutine identityOperate(self,universe_)
-     !% Perform an identity operation on a universe.
+     !!{
+     Perform an identity operation on a universe.
+     !!}
      implicit none
      class(universeOperatorIdentity), intent(inout), target :: self
      type (universe                ), intent(inout)         :: universe_

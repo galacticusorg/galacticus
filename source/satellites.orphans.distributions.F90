@@ -17,36 +17,42 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module that provides a class for distributions of orphan satellites.
+!!{
+Contains a module that provides a class for distributions of orphan satellites.
+!!}
 
 module Satellite_Oprhan_Distributions
-  !% Provides a class for dark matter halo spin distributions.
+  !!{
+  Provides a class for dark matter halo spin distributions.
+  !!}
   use :: Galacticus_Nodes, only : treeNode
   private
 
-  !# <functionClass>
-  !#  <name>satelliteOrphanDistribution</name>
-  !#  <descriptiveName>Satellite Orphan Distributions</descriptiveName>
-  !#  <description>Class providing distributions for orphan satellites.</description>
-  !#  <default>traceDarkMatter</default>
-  !#  <method name="extent" >
-  !#   <description>The maximum extent of the distribution, i.e. the radius of a sphere centered on the host halo which encompasses all orphan satellites.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout) :: node</argument>
-  !#  </method>
-  !#  <method name="position" >
-  !#   <description>Return the position of the given orphan in physical coordinates.</description>
-  !#   <type>double precision, dimension(3)</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout) :: node</argument>
-  !#  </method>
-  !#  <method name="velocity" >
-  !#   <description>Return the peculiar velocity of the given orphan in physical coordinates.</description>
-  !#   <type>double precision, dimension(3)</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout) :: node</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>satelliteOrphanDistribution</name>
+   <descriptiveName>Satellite Orphan Distributions</descriptiveName>
+   <description>Class providing distributions for orphan satellites.</description>
+   <default>traceDarkMatter</default>
+   <method name="extent" >
+    <description>The maximum extent of the distribution, i.e. the radius of a sphere centered on the host halo which encompasses all orphan satellites.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>type(treeNode), intent(inout) :: node</argument>
+   </method>
+   <method name="position" >
+    <description>Return the position of the given orphan in physical coordinates.</description>
+    <type>double precision, dimension(3)</type>
+    <pass>yes</pass>
+    <argument>type(treeNode), intent(inout) :: node</argument>
+   </method>
+   <method name="velocity" >
+    <description>Return the peculiar velocity of the given orphan in physical coordinates.</description>
+    <type>double precision, dimension(3)</type>
+    <pass>yes</pass>
+    <argument>type(treeNode), intent(inout) :: node</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Satellite_Oprhan_Distributions

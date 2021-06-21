@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program which tests the Hearin (2021) halo mass formation history.
+!!{
+Contains a program which tests the Hearin (2021) halo mass formation history.
+!!}
 
 program Test_Hearin2021_MAH
-  !% Tests the Hearin (2021) halo mass formation history algorithm.
+  !!{
+  Tests the Hearin (2021) halo mass formation history algorithm.
+  !!}
   use :: Dark_Matter_Halo_Mass_Accretion_Histories, only : darkMatterHaloMassAccretionHistoryHearin2021
   use :: Display                                  , only : displayVerbositySet                         , verbosityLevelStandard
   use :: Events_Hooks                             , only : eventsHooksInitialize
@@ -80,16 +84,18 @@ program Test_Hearin2021_MAH
   timeMaximum=10.0d0**logTimeMaximum
   massMaximum=10.0d0**logMassMaximum
   ! Get required objects.
-  !# <referenceConstruct object="darkMatterHaloMassAccretionHistory_">
-  !#  <constructor>
-  !#   darkMatterHaloMassAccretionHistoryHearin2021(                                        &amp;
-  !#    &amp;                                        powerLawIndexEarly=powerLawIndexEarly, &amp;
-  !#    &amp;                                        powerLawIndexLate=powerLawIndexLate  , &amp;
-  !#    &amp;                                        rateRollOver     =rateRollover       , &amp;
-  !#    &amp;                                        timeMaximum      =timeMaximum          &amp;
-  !#    &amp;                                       )
-  !#  </constructor>
-  !# </referenceConstruct> 
+  !![
+  <referenceConstruct object="darkMatterHaloMassAccretionHistory_">
+   <constructor>
+    darkMatterHaloMassAccretionHistoryHearin2021(                                        &amp;
+     &amp;                                        powerLawIndexEarly=powerLawIndexEarly, &amp;
+     &amp;                                        powerLawIndexLate=powerLawIndexLate  , &amp;
+     &amp;                                        rateRollOver     =rateRollover       , &amp;
+     &amp;                                        timeMaximum      =timeMaximum          &amp;
+     &amp;                                       )
+   </constructor>
+  </referenceConstruct> 
+  !!]
   ! Set node properties.
   call basic%massSet(massMaximum)
   call basic%timeSet(timeMaximum)

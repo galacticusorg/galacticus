@@ -17,7 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a class for intergalactic background light which computes the background internally.
+  !!{
+  Implements a class for intergalactic background light which computes the background internally.
+  !!}
 
   use :: Accretion_Disk_Spectra                , only : accretionDiskSpectraClass
   use :: Atomic_Cross_Sections_Ionization_Photo, only : atomicCrossSectionIonizationPhotoClass
@@ -31,11 +33,15 @@
   use :: Star_Formation_Rates_Spheroids        , only : starFormationRateSpheroidsClass
   use :: Stellar_Population_Selectors          , only : stellarPopulationSelectorClass
 
-  !# <radiationField name="radiationFieldIntergalacticBackgroundInternal">
-  !#  <description>A radiation field class for intergalactic background light with properties computed internally.</description>
-  !# </radiationField>
+  !![
+  <radiationField name="radiationFieldIntergalacticBackgroundInternal">
+   <description>A radiation field class for intergalactic background light with properties computed internally.</description>
+  </radiationField>
+  !!]
   type, extends(radiationFieldIntergalacticBackground) :: radiationFieldIntergalacticBackgroundInternal
-     !% A radiation field class for intergalactic background light with properties computed internally
+     !!{
+     A radiation field class for intergalactic background light with properties computed internally
+     !!}
      private
      class           (cosmologyParametersClass              ), pointer                     :: cosmologyParameters_               => null()
      class           (cosmologyFunctionsClass               ), pointer                     :: cosmologyFunctions_                => null()
@@ -74,14 +80,18 @@
   end type radiationFieldIntergalacticBackgroundInternal
 
   interface radiationFieldIntergalacticBackgroundInternal
-     !% Constructors for the {\normalfont \ttfamily intergalacticBackgroundInternal} radiation field class.
+     !!{
+     Constructors for the {\normalfont \ttfamily intergalacticBackgroundInternal} radiation field class.
+     !!}
      module procedure intergalacticBackgroundInternalConstructorParameters
      module procedure intergalacticBackgroundInternalConstructorInternal
   end interface radiationFieldIntergalacticBackgroundInternal
 
   type :: intergalacticBackgroundInternalState
-     !% Class used to store the state of the intergalactic background radiation field for the internal solver. This will be stored
-     !% as an attribute of the universe object.
+     !!{
+     Class used to store the state of the intergalactic background radiation field for the internal solver. This will be stored
+     as an attribute of the universe object.
+     !!}
      double precision, allocatable, dimension(:,:) :: flux
      double precision                              :: timePrevious, timeNext
   end type intergalacticBackgroundInternalState
@@ -93,7 +103,9 @@
 contains
 
   function intergalacticBackgroundInternalConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily intergalacticBackgroundInternal} radiation field class which takes a parameter list as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily intergalacticBackgroundInternal} radiation field class which takes a parameter list as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (radiationFieldIntergalacticBackgroundInternal)                :: self
@@ -111,67 +123,73 @@ contains
     double precision                                                               :: wavelengthMinimum                 , wavelengthMaximum , &
          &                                                                            redshiftMinimum                   , redshiftMaximum
 
-    !# <inputParameter>
-    !#   <name>wavelengthCountPerDecade</name>
-    !#   <defaultValue>10</defaultValue>
-    !#   <description>The number of bins per decade of wavelength to use for calculations of the cosmic background radiation.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>wavelengthMinimum</name>
-    !#   <defaultValue>100.0d0</defaultValue>
-    !#   <description>The minimum wavelength (in units of \AA) to use in calculations of the cosmic background radiation.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>wavelengthMaximum</name>
-    !#   <defaultValue>100000.0d0</defaultValue>
-    !#   <description>The maximum wavelength (in units of \AA) to use in calculations of the cosmic background radiation.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>timeCountPerDecade</name>
-    !#   <defaultValue>10</defaultValue>
-    !#   <description>The number of bins per decade of time to use for calculations of tge cosmic background radiation.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>redshiftMinimum</name>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>The minimum redshift to use in calculations of the cosmic background radiation.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>redshiftMaximum</name>
-    !#   <defaultValue>30.0d0</defaultValue>
-    !#   <description>The maximum redshift to use in calculations of the cosmic background radiation.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters"               name="cosmologyParameters_"               source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"                name="cosmologyFunctions_"                source="parameters"/>
-    !# <objectBuilder class="intergalacticMediumState"          name="intergalacticMediumState_"          source="parameters"/>
-    !# <objectBuilder class="atomicCrossSectionIonizationPhoto" name="atomicCrossSectionIonizationPhoto_" source="parameters"/>
-    !# <objectBuilder class="accretionDiskSpectra"              name="accretionDiskSpectra_"              source="parameters"/>
-    !# <objectBuilder class="starFormationRateDisks"            name="starFormationRateDisks_"            source="parameters"/>
-    !# <objectBuilder class="starFormationRateSpheroids"        name="starFormationRateSpheroids_"        source="parameters"/>
-    !# <objectBuilder class="stellarPopulationSelector"         name="stellarPopulationSelector_"         source="parameters"/>
-    !# <objectBuilder class="outputTimes"                       name="outputTimes_"                       source="parameters"/>
+    !![
+    <inputParameter>
+      <name>wavelengthCountPerDecade</name>
+      <defaultValue>10</defaultValue>
+      <description>The number of bins per decade of wavelength to use for calculations of the cosmic background radiation.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>wavelengthMinimum</name>
+      <defaultValue>100.0d0</defaultValue>
+      <description>The minimum wavelength (in units of \AA) to use in calculations of the cosmic background radiation.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>wavelengthMaximum</name>
+      <defaultValue>100000.0d0</defaultValue>
+      <description>The maximum wavelength (in units of \AA) to use in calculations of the cosmic background radiation.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>timeCountPerDecade</name>
+      <defaultValue>10</defaultValue>
+      <description>The number of bins per decade of time to use for calculations of tge cosmic background radiation.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>redshiftMinimum</name>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The minimum redshift to use in calculations of the cosmic background radiation.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>redshiftMaximum</name>
+      <defaultValue>30.0d0</defaultValue>
+      <description>The maximum redshift to use in calculations of the cosmic background radiation.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="cosmologyParameters"               name="cosmologyParameters_"               source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"                name="cosmologyFunctions_"                source="parameters"/>
+    <objectBuilder class="intergalacticMediumState"          name="intergalacticMediumState_"          source="parameters"/>
+    <objectBuilder class="atomicCrossSectionIonizationPhoto" name="atomicCrossSectionIonizationPhoto_" source="parameters"/>
+    <objectBuilder class="accretionDiskSpectra"              name="accretionDiskSpectra_"              source="parameters"/>
+    <objectBuilder class="starFormationRateDisks"            name="starFormationRateDisks_"            source="parameters"/>
+    <objectBuilder class="starFormationRateSpheroids"        name="starFormationRateSpheroids_"        source="parameters"/>
+    <objectBuilder class="stellarPopulationSelector"         name="stellarPopulationSelector_"         source="parameters"/>
+    <objectBuilder class="outputTimes"                       name="outputTimes_"                       source="parameters"/>
+    !!]
     self=radiationFieldIntergalacticBackgroundInternal(wavelengthMinimum,wavelengthMaximum,wavelengthCountPerDecade,redshiftMinimum,redshiftMaximum,timeCountPerDecade,cosmologyParameters_,cosmologyFunctions_,intergalacticMediumState_,atomicCrossSectionIonizationPhoto_,accretionDiskSpectra_,starFormationRateDisks_,starFormationRateSpheroids_,stellarPopulationSelector_,outputTimes_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"              />
-    !# <objectDestructor name="cosmologyFunctions_"               />
-    !# <objectDestructor name="intergalacticMediumState_"         />
-    !# <objectDestructor name="atomicCrossSectionIonizationPhoto_"/>
-    !# <objectDestructor name="accretionDiskSpectra_"             />
-    !# <objectDestructor name="starFormationRateDisks_"           />
-    !# <objectDestructor name="starFormationRateSpheroids_"       />
-    !# <objectDestructor name="stellarPopulationSelector_"        />
-    !# <objectDestructor name="outputTimes_"                      />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"              />
+    <objectDestructor name="cosmologyFunctions_"               />
+    <objectDestructor name="intergalacticMediumState_"         />
+    <objectDestructor name="atomicCrossSectionIonizationPhoto_"/>
+    <objectDestructor name="accretionDiskSpectra_"             />
+    <objectDestructor name="starFormationRateDisks_"           />
+    <objectDestructor name="starFormationRateSpheroids_"       />
+    <objectDestructor name="stellarPopulationSelector_"        />
+    <objectDestructor name="outputTimes_"                      />
+    !!]
     return
   end function intergalacticBackgroundInternalConstructorParameters
 
   function intergalacticBackgroundInternalConstructorInternal(wavelengthMinimum,wavelengthMaximum,wavelengthCountPerDecade,redshiftMinimum,redshiftMaximum,timeCountPerDecade,cosmologyParameters_,cosmologyFunctions_,intergalacticMediumState_,atomicCrossSectionIonizationPhoto_,accretionDiskSpectra_,starFormationRateDisks_,starFormationRateSpheroids_,stellarPopulationSelector_,outputTimes_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily intergalacticBackgroundInternal} radiation field class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily intergalacticBackgroundInternal} radiation field class.
+    !!}
     use :: Memory_Management, only : allocateArray
     use :: Numerical_Ranges , only : Make_Range   , rangeTypeLogarithmic
     implicit none
@@ -189,7 +207,9 @@ contains
     class           (stellarPopulationSelectorClass               ), intent(in   ), target :: stellarPopulationSelector_
     class           (outputTimesClass                             ), intent(in   ), target :: outputTimes_
     integer         (c_size_t                                     )                        :: iTime                             , iWavelength
-    !# <constructorAssign variables="wavelengthMinimum, wavelengthMaximum, wavelengthCountPerDecade, redshiftMinimum, redshiftMaximum, timeCountPerDecade, *cosmologyParameters_, *cosmologyFunctions_, *intergalacticMediumState_, *atomicCrossSectionIonizationPhoto_, *accretionDiskSpectra_, *starFormationRateDisks_, *starFormationRateSpheroids_, *stellarPopulationSelector_, *outputTimes_"/>
+    !![
+    <constructorAssign variables="wavelengthMinimum, wavelengthMaximum, wavelengthCountPerDecade, redshiftMinimum, redshiftMaximum, timeCountPerDecade, *cosmologyParameters_, *cosmologyFunctions_, *intergalacticMediumState_, *atomicCrossSectionIonizationPhoto_, *accretionDiskSpectra_, *starFormationRateDisks_, *starFormationRateSpheroids_, *stellarPopulationSelector_, *outputTimes_"/>
+    !!]
 
     ! Build tables of wavelength and time for cosmic background radiation.
     self%timeMaximum=self%cosmologyFunctions_%cosmicTime                 (                      &
@@ -281,24 +301,30 @@ contains
   end subroutine intergalacticBackgroundInternalAutoHook
 
   subroutine intergalacticBackgroundInternalDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily intergalacticBackgroundInternal} radiation field class.
+    !!{
+    Destructor for the {\normalfont \ttfamily intergalacticBackgroundInternal} radiation field class.
+    !!}
     implicit none
     type(radiationFieldIntergalacticBackgroundInternal), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_"              />
-    !# <objectDestructor name="self%cosmologyFunctions_"               />
-    !# <objectDestructor name="self%intergalacticMediumState_"         />
-    !# <objectDestructor name="self%atomicCrossSectionIonizationPhoto_"/>
-    !# <objectDestructor name="self%accretionDiskSpectra_"             />
-    !# <objectDestructor name="self%starFormationRateDisks_"           />
-    !# <objectDestructor name="self%starFormationRateSpheroids_"       />
-    !# <objectDestructor name="self%stellarPopulationSelector_"        />
-    !# <objectDestructor name="self%outputTimes_"                      />
+    !![
+    <objectDestructor name="self%cosmologyParameters_"              />
+    <objectDestructor name="self%cosmologyFunctions_"               />
+    <objectDestructor name="self%intergalacticMediumState_"         />
+    <objectDestructor name="self%atomicCrossSectionIonizationPhoto_"/>
+    <objectDestructor name="self%accretionDiskSpectra_"             />
+    <objectDestructor name="self%starFormationRateDisks_"           />
+    <objectDestructor name="self%starFormationRateSpheroids_"       />
+    <objectDestructor name="self%stellarPopulationSelector_"        />
+    <objectDestructor name="self%outputTimes_"                      />
+    !!]
     return
   end subroutine intergalacticBackgroundInternalDestructor
 
   subroutine intergalacticBackgroundInternalTimeSet(self,time)
-    !% Set the epoch.
+    !!{
+    Set the epoch.
+    !!}
     implicit none
     class           (radiationFieldIntergalacticBackgroundInternal), intent(inout) :: self
     double precision                                               , intent(in   ) :: time
@@ -308,7 +334,9 @@ contains
   end subroutine intergalacticBackgroundInternalTimeSet
 
  double precision function intergalacticBackgroundInternalFlux(self,wavelength,node)
-    !% Return the flux in the internally-computed intergalatic background.
+    !!{
+    Return the flux in the internally-computed intergalatic background.
+    !!}
     use            :: Galacticus_Error, only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding   , only : c_size_t
     implicit none
@@ -371,7 +399,9 @@ contains
   end function intergalacticBackgroundInternalFlux
 
   subroutine intergalacticBackgroundInternalUniversePreEvolve(self,universe_)
-    !% Attach an initial event to the universe to cause the background radiation update function to be called.
+    !!{
+    Attach an initial event to the universe to cause the background radiation update function to be called.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : universe               , universeEvent
     implicit none
@@ -408,7 +438,9 @@ contains
   end subroutine intergalacticBackgroundInternalUniversePreEvolve
 
   logical function intergalacticBackgroundInternalUpdate(event,universe_) result (success)
-    !% Update the radiation background for a given universe.
+    !!{
+    Update the radiation background for a given universe.
+    !!}
     use            :: Abundances_Structure        , only : abundances                   , max
     use            :: Arrays_Search               , only : searchArrayClosest
     use            :: Display                     , only : displayIndent                , displayMessage          , displayUnindent
@@ -630,7 +662,9 @@ contains
   contains
 
     double precision function stellarSpectraConvolution(age)
-      !% Integrand for convolution of stellar spectra.
+      !!{
+      Integrand for convolution of stellar spectra.
+      !!}
       use :: Galacticus_Error, only : errorStatusInputDomain, errorStatusSuccess
       implicit none
       double precision, intent(in   ) :: age
@@ -656,7 +690,9 @@ contains
   end function intergalacticBackgroundInternalUpdate
 
   integer function intergalacticBackgroundInternalODEs(time,spectrum,spectrumRateOfChange)
-    !% Evaluates the ODEs controlling the evolution of cosmic background radiation.
+    !!{
+    Evaluates the ODEs controlling the evolution of cosmic background radiation.
+    !!}
     use :: Interface_GSL                   , only : GSL_Success
     use :: Numerical_Constants_Astronomical, only : gigaYear         , heliumByMassPrimordial, hydrogenByMassPrimordial, luminositySolar, &
           &                                         massSolar        , megaParsec

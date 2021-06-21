@@ -17,21 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of atomic radiative recombination rates based on the
-  !% \href{http://www.pa.uky.edu/~verner/dima/rec/rrfit.f}{code} originally written by Dima Verner.
+  !!{
+  An implementation of atomic radiative recombination rates based on the
+  \href{http://www.pa.uky.edu/~verner/dima/rec/rrfit.f}{code} originally written by Dima Verner.
+  !!}
 
-  !# <atomicRecombinationRateRadiative name="atomicRecombinationRateRadiativeVerner1996">
-  !#  <description>Atomic radiative recombination rates are computed based on the \href{http://www.pa.uky.edu/~verner/dima/rec/rrfit.f}{code} originally written by Dima Verner.</description>
-  !# </atomicRecombinationRateRadiative>
+  !![
+  <atomicRecombinationRateRadiative name="atomicRecombinationRateRadiativeVerner1996">
+   <description>Atomic radiative recombination rates are computed based on the \href{http://www.pa.uky.edu/~verner/dima/rec/rrfit.f}{code} originally written by Dima Verner.</description>
+  </atomicRecombinationRateRadiative>
+  !!]
   type, extends(atomicRecombinationRateRadiativeClass) :: atomicRecombinationRateRadiativeVerner1996
-     !% A radiative recombination rate class based on the \href{http://www.pa.uky.edu/~verner/dima/rec/rrfit.f}{code} originally written by Dima Verner.
+     !!{
+     A radiative recombination rate class based on the \href{http://www.pa.uky.edu/~verner/dima/rec/rrfit.f}{code} originally written by Dima Verner.
+     !!}
      private
    contains
      procedure :: rate => verner1996Rate
   end type atomicRecombinationRateRadiativeVerner1996
 
   interface atomicRecombinationRateRadiativeVerner1996
-     !% Constructors for the {\normalfont \ttfamily verner1996} atomic radiative recombination class.
+     !!{
+     Constructors for the {\normalfont \ttfamily verner1996} atomic radiative recombination class.
+     !!}
      module procedure verner1996ConstructorParameters
   end interface atomicRecombinationRateRadiativeVerner1996
 
@@ -538,7 +546,9 @@
 contains
 
   function verner1996ConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily verner1996} atomic radiative recombination class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily verner1996} atomic radiative recombination class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(atomicRecombinationRateRadiativeVerner1996)                :: self
@@ -550,21 +560,23 @@ contains
   end function verner1996ConstructorParameters
 
   double precision function verner1996Rate(self,atomicNumber,ionizationState,temperature,level)
-    !% Computes the rate coefficient of radiative recombination (in units of cm$^3$ s$^{-1}$) at the specified {\normalfont \ttfamily temperature} for all ions
-    !% of all elements from H through Zn (selected by the {\normalfont \ttfamily atomicNumber} and the {\normalfont \ttfamily ionizationState} \emph{of the recombined
-    !% ion}) use of the following fits:
-    !% \begin{itemize}
-    !% \item H-like, He-like, Li-like, Na-like: \citep{verner_atomic_1996};
-    !% \item Other ions of C, N, O, Ne: \citep{pequignot_total_1991}, refitted by Verner \& Ferland formula to ensure correct asymptotes;
-    !% \item Fe XVII-XXIII: \citep{arnaud_iron_1992};
-    !% \item Fe I-XV: refitted by Verner \& Ferland formula to ensure correct asymptotes;
-    !% \item Other ions of Mg, Si, S, Ar, Ca, Fe, Ni: \citep{shull_ionization_1982};
-    !% \item Other ions of Na, Al: \citep{landini_x-uv_1990};
-    !% \item Other ions of F, P, Cl, K, Ti, Cr, Mn, Co (excluding Ti I-II, Cr I-IV, Mn I-V, Co I): \citep{landini_ion_1991};
-    !% \item All other species: interpolations of the power-law fits.
-    !% \end{itemize}
-    !% Based on the \href{http://www.pa.uky.edu/~verner/dima/rec/rrfit.f}{code} originally written by Dima Verner. The ionization state
-    !% passed to this function should be that of the atom/ion post recombination.
+    !!{
+    Computes the rate coefficient of radiative recombination (in units of cm$^3$ s$^{-1}$) at the specified {\normalfont \ttfamily temperature} for all ions
+    of all elements from H through Zn (selected by the {\normalfont \ttfamily atomicNumber} and the {\normalfont \ttfamily ionizationState} \emph{of the recombined
+    ion}) use of the following fits:
+    \begin{itemize}
+    \item H-like, He-like, Li-like, Na-like: \citep{verner_atomic_1996};
+    \item Other ions of C, N, O, Ne: \citep{pequignot_total_1991}, refitted by Verner \& Ferland formula to ensure correct asymptotes;
+    \item Fe XVII-XXIII: \citep{arnaud_iron_1992};
+    \item Fe I-XV: refitted by Verner \& Ferland formula to ensure correct asymptotes;
+    \item Other ions of Mg, Si, S, Ar, Ca, Fe, Ni: \citep{shull_ionization_1982};
+    \item Other ions of Na, Al: \citep{landini_x-uv_1990};
+    \item Other ions of F, P, Cl, K, Ti, Cr, Mn, Co (excluding Ti I-II, Cr I-IV, Mn I-V, Co I): \citep{landini_ion_1991};
+    \item All other species: interpolations of the power-law fits.
+    \end{itemize}
+    Based on the \href{http://www.pa.uky.edu/~verner/dima/rec/rrfit.f}{code} originally written by Dima Verner. The ionization state
+    passed to this function should be that of the atom/ion post recombination.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (atomicRecombinationRateRadiativeVerner1996), intent(inout)           :: self
@@ -585,7 +597,9 @@ contains
     double precision                                                                      :: temperatureScaled, fitFactor       , &
          &                                                                                   logTemperature
     !$GLC attributes unused :: self
-    !# <optionalArgument name="level" defaultsTo="recombinationCaseA" />
+    !![
+    <optionalArgument name="level" defaultsTo="recombinationCaseA" />
+    !!]
 
     ! Set zero rate by default.
     verner1996Rate=0.0d0

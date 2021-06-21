@@ -103,7 +103,8 @@
   <!-- Output file -->
   <galacticusOutputFileName value="testSuite/outputs/reproducibility/adiabaticContraction.hdf5"/>
 
-  <nodeOperator value="multi"><!--Stellar feedback outflows-->
+  <nodeOperator value="multi">
+    <!--Stellar feedback outflows-->
     <nodeOperator value="stellarFeedbackDisks">
       <stellarFeedbackOutflows value="rateLimit">
         <timescaleOutflowFractionalMinimum value="0.001"/>

@@ -17,29 +17,35 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements algorithms for the proposal size in differential evolution algorithms.
+!!{
+Contains a module which implements algorithms for the proposal size in differential evolution algorithms.
+!!}
 
 module Posterior_Sample_Differential_Proposal_Size
-  !% Implements algorithms for the proposal size in differential evolution algorithms.
+  !!{
+  Implements algorithms for the proposal size in differential evolution algorithms.
+  !!}
   use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
   use :: Posterior_Sampling_State      , only : posteriorSampleStateClass
   private
 
-  !# <functionClass>
-  !#  <name>posteriorSampleDffrntlEvltnProposalSize</name>
-  !#  <descriptiveName>Posterior Sampling Differential Evolution Proposal Size</descriptiveName>
-  !#  <description>
-  !#   Class providing proposal sizes for differential evolution posterior samplers. Specifically, this class provides the proposal
-  !#   size parameter, $\gamma$ (the fraction of the vector connecting to chain state to be used as the proposal for another chain),
-  !#   for use in differential evolution simulations.
-  !#  </description>
-  !#  <method name="gamma" >
-  !#   <description>Sample from the jump distribution.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>class(posteriorSampleStateClass      ), intent(inout) :: simulationState</argument>
-  !#   <argument>class(posteriorSampleConvergenceClass), intent(inout) :: simulationConvergence</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>posteriorSampleDffrntlEvltnProposalSize</name>
+   <descriptiveName>Posterior Sampling Differential Evolution Proposal Size</descriptiveName>
+   <description>
+    Class providing proposal sizes for differential evolution posterior samplers. Specifically, this class provides the proposal
+    size parameter, $\gamma$ (the fraction of the vector connecting to chain state to be used as the proposal for another chain),
+    for use in differential evolution simulations.
+   </description>
+   <method name="gamma" >
+    <description>Sample from the jump distribution.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>class(posteriorSampleStateClass      ), intent(inout) :: simulationState</argument>
+    <argument>class(posteriorSampleConvergenceClass), intent(inout) :: simulationConvergence</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Posterior_Sample_Differential_Proposal_Size

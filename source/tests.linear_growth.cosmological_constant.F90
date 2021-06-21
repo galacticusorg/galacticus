@@ -18,8 +18,10 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 program Tests_Linear_Growth_Cosmological_Constant
-  !% Tests linear growth calculations for a cosmological constant Universe. Growth rates are compared to calculations taken from
-  !% Andrew Hamilton's "growl" code available at: http://casa.colorado.edu/~ajsh/growl/
+  !!{
+  Tests linear growth calculations for a cosmological constant Universe. Growth rates are compared to calculations taken from
+  Andrew Hamilton's "growl" code available at: http://casa.colorado.edu/~ajsh/growl/
+  !!}
   use :: Cosmology_Parameters, only : cosmologyParametersSimple
   use :: Cosmology_Functions , only : cosmologyFunctionsMatterLambda
   use :: Display             , only : displayVerbositySet           , verbosityLevelStandard
@@ -40,32 +42,34 @@ program Tests_Linear_Growth_Cosmological_Constant
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Linear growth: cosmological constant cosmology")
   ! Test growth factor in a dark energy universe.
-  !# <referenceConstruct object="cosmologyParameters_">
-  !#  <constructor>
-  !#   cosmologyParametersSimple      (                                           &amp;
-  !#    &amp;                          OmegaMatter         = 0.30d0             , &amp;
-  !#    &amp;                          OmegaBaryon         = 0.00d0             , &amp;
-  !#    &amp;                          OmegaDarkEnergy     = 0.70d0             , &amp;
-  !#    &amp;                          temperatureCMB      = 2.78d0             , &amp;
-  !#    &amp;                          HubbleConstant      =73.00d0               &amp;
-  !#    &amp;                         )
-  !#  </constructor>
-  !# </referenceConstruct>
-  !# <referenceConstruct object="cosmologyFunctions_" >
-  !#  <constructor>
-  !#   cosmologyFunctionsMatterLambda (                                           &amp;
-  !#    &amp;                          cosmologyParameters_=cosmologyParameters_  &amp;
-  !#    &amp;                         )
-  !#  </constructor>
-  !# </referenceConstruct>
-  !# <referenceConstruct object="linearGrowth_"       >
-  !#  <constructor>
-  !#   linearGrowthCollisionlessMatter(                                           &amp;
-  !#    &amp;                          cosmologyParameters_=cosmologyParameters_, &amp;
-  !#    &amp;                          cosmologyFunctions_ =cosmologyFunctions_   &amp;
-  !#    &amp;                         )
-  !#  </constructor>
-  !# </referenceConstruct>
+  !![
+  <referenceConstruct object="cosmologyParameters_">
+   <constructor>
+    cosmologyParametersSimple      (                                           &amp;
+     &amp;                          OmegaMatter         = 0.30d0             , &amp;
+     &amp;                          OmegaBaryon         = 0.00d0             , &amp;
+     &amp;                          OmegaDarkEnergy     = 0.70d0             , &amp;
+     &amp;                          temperatureCMB      = 2.78d0             , &amp;
+     &amp;                          HubbleConstant      =73.00d0               &amp;
+     &amp;                         )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="cosmologyFunctions_" >
+   <constructor>
+    cosmologyFunctionsMatterLambda (                                           &amp;
+     &amp;                          cosmologyParameters_=cosmologyParameters_  &amp;
+     &amp;                         )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="linearGrowth_"       >
+   <constructor>
+    linearGrowthCollisionlessMatter(                                           &amp;
+     &amp;                          cosmologyParameters_=cosmologyParameters_, &amp;
+     &amp;                          cosmologyFunctions_ =cosmologyFunctions_   &amp;
+     &amp;                         )
+   </constructor>
+  </referenceConstruct>
+  !!]
   do iExpansion=1,size(redshift)
      expansionFactor   =cosmologyFunctions_%expansionFactorFromRedshift(                                                      &
           &                                                                              redshift               (iExpansion)  &

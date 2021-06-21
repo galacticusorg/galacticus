@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to test abundances objects functions.
+!!{
+Contains a program to test abundances objects functions.
+!!}
 
 program Test_Abundances
-  !% Test abundances objects.
+  !!{
+  Test abundances objects.
+  !!}
   use :: Abundances_Structure      , only : abundances                , max
   use :: Display                   , only : displayVerbositySet       , verbosityLevelStandard
   use :: Functions_Global_Utilities, only : Functions_Global_Set

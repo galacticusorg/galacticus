@@ -19,33 +19,39 @@
 
   !+ Contributions to this file made by:  Anthony Pullen, Andrew Benson.
 
-  !% Implementation of a satellite dynamical friction class which applies the core-stalling model of \cite{kaur_stalling_2018} to another dynamical
-  !% friction class.
+  !!{
+  Implementation of a satellite dynamical friction class which applies the core-stalling model of \cite{kaur_stalling_2018} to another dynamical
+  friction class.
+  !!}
 
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
   use :: Numerical_Interpolation , only : interpolator
 
-  !# <satelliteDynamicalFriction name="satelliteDynamicalFrictionKaur2018">
-  !#  <description>
-  !#   A satellite dynamical friction class which applies the core-stalling model of \cite{kaur_stalling_2018} to another dynamical
-  !#   friction class. Specifically, the acceleration due to dynamical friction is given by:
-  !#   \begin{equation}
-  !#    \mathbf{a}_\mathrm{df} = \mathbf{a}^\prime_\mathrm{df} [S_\mathrm{trail}(r/r_*)+S_\mathrm{lead}(r/r_*)],
-  !#   \end{equation}
-  !#   where $\mathbf{a}^\prime_\mathrm{df}$ is the acceleration provided by the child dynamical friction class, and
-  !#   $S_\mathrm{trail}(x)$ and $S_\mathrm{lead}(x)$ are the torque suppression factors defined by
-  !#   \cite[][eqn.~79]{kaur_stalling_2018}. The functional forms for $S(x)$ are taken from Figure~8 of
-  !#   \cite{kaur_stalling_2018}---extrapolation in $\log(S)$ vs. $x$ is used to extend $S(x)$ to lower $x$ than shown in that figure,
-  !#   while for values of $x$ higher than that shown in that figure $S(x)$ is held constant at the maximum value shown.
-  !#
-  !#   The stalling radius, $r_*$, is computed using equation~(55) of \cite{kaur_stalling_2018}. For dark matter halo profiles with a
-  !#   central cusp (for which that equation has no solution), the acceleration provided by the child dynamical friction class is
-  !#   returned unmodified.
-  !#  </description>
-  !# </satelliteDynamicalFriction>
+  !![
+  <satelliteDynamicalFriction name="satelliteDynamicalFrictionKaur2018">
+   <description>
+    A satellite dynamical friction class which applies the core-stalling model of \cite{kaur_stalling_2018} to another dynamical
+    friction class. Specifically, the acceleration due to dynamical friction is given by:
+    \begin{equation}
+     \mathbf{a}_\mathrm{df} = \mathbf{a}^\prime_\mathrm{df} [S_\mathrm{trail}(r/r_*)+S_\mathrm{lead}(r/r_*)],
+    \end{equation}
+    where $\mathbf{a}^\prime_\mathrm{df}$ is the acceleration provided by the child dynamical friction class, and
+    $S_\mathrm{trail}(x)$ and $S_\mathrm{lead}(x)$ are the torque suppression factors defined by
+    \cite[][eqn.~79]{kaur_stalling_2018}. The functional forms for $S(x)$ are taken from Figure~8 of
+    \cite{kaur_stalling_2018}---extrapolation in $\log(S)$ vs. $x$ is used to extend $S(x)$ to lower $x$ than shown in that figure,
+    while for values of $x$ higher than that shown in that figure $S(x)$ is held constant at the maximum value shown.
+  
+    The stalling radius, $r_*$, is computed using equation~(55) of \cite{kaur_stalling_2018}. For dark matter halo profiles with a
+    central cusp (for which that equation has no solution), the acceleration provided by the child dynamical friction class is
+    returned unmodified.
+   </description>
+  </satelliteDynamicalFriction>
+  !!]
   type, extends(satelliteDynamicalFrictionClass) :: satelliteDynamicalFrictionKaur2018
-     !% Implementation of a satellite dynamical friction class which applies the core-stalling model of \cite{kaur_stalling_2018}
-     !% to another dynamical friction class.
+     !!{
+     Implementation of a satellite dynamical friction class which applies the core-stalling model of \cite{kaur_stalling_2018}
+     to another dynamical friction class.
+     !!}
      private
      class           (satelliteDynamicalFrictionClass), pointer :: satelliteDynamicalFriction_        => null()
      class           (darkMatterProfileDMOClass      ), pointer :: darkMatterProfileDMO_              => null()
@@ -57,7 +63,9 @@
   end type satelliteDynamicalFrictionKaur2018
 
   interface satelliteDynamicalFrictionKaur2018
-     !% Constructors for the kaur2018 satellite dynamical friction class.
+     !!{
+     Constructors for the kaur2018 satellite dynamical friction class.
+     !!}
      module procedure kaur2018ConstructorParameters
      module procedure kaur2018ConstructorInternal
   end interface satelliteDynamicalFrictionKaur2018
@@ -65,7 +73,9 @@
 contains
 
   function kaur2018ConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily kaur2018} satellite dynamical friction class which builds the object from a parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily kaur2018} satellite dynamical friction class which builds the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (satelliteDynamicalFrictionKaur2018)                :: self
@@ -73,23 +83,31 @@ contains
     class(darkMatterProfileDMOClass         ), pointer       :: darkMatterProfileDMO_
     class(satelliteDynamicalFrictionClass   ), pointer       :: satelliteDynamicalFriction_
 
-    !# <objectBuilder class="satelliteDynamicalFriction" name="satelliteDynamicalFriction_" source="parameters"/>
-    !# <objectBuilder class="darkMatterProfileDMO"       name="darkMatterProfileDMO_"       source="parameters"/>
+    !![
+    <objectBuilder class="satelliteDynamicalFriction" name="satelliteDynamicalFriction_" source="parameters"/>
+    <objectBuilder class="darkMatterProfileDMO"       name="darkMatterProfileDMO_"       source="parameters"/>
+    !!]
     self=satelliteDynamicalFrictionKaur2018(satelliteDynamicalFriction_,darkMatterProfileDMO_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="satelliteDynamicalFriction_"/>
-    !# <objectDestructor name="darkMatterProfileDMO_"      />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="satelliteDynamicalFriction_"/>
+    <objectDestructor name="darkMatterProfileDMO_"      />
+    !!]
     return
   end function kaur2018ConstructorParameters
 
   function kaur2018ConstructorInternal(satelliteDynamicalFriction_,darkMatterProfileDMO_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily kaur2018} satellite dynamical friction class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily kaur2018} satellite dynamical friction class.
+    !!}
     use :: Table_Labels    , only : extrapolationTypeExtrapolate
     implicit none
     type (satelliteDynamicalFrictionKaur2018)                        :: self
     class(darkMatterProfileDMOClass         ), intent(in   ), target :: darkMatterProfileDMO_
     class(satelliteDynamicalFrictionClass   ), intent(in   ), target :: satelliteDynamicalFriction_
-    !# <constructorAssign variables="*satelliteDynamicalFriction_, *darkMatterProfileDMO_"/>
+    !![
+    <constructorAssign variables="*satelliteDynamicalFriction_, *darkMatterProfileDMO_"/>
+    !!]
     
     ! Build interpolators for the suppression factor as a function of radius. These are extracted directly from the arXiv source
     ! of Figure 8 of Kaur & Sridhar (2018). Specifically we tabulate log₁₀(S) vs. r/r*.
@@ -143,17 +161,23 @@ contains
   end function kaur2018ConstructorInternal
 
   subroutine kaur2018Destructor(self)
-    !% Destructor for the simple cooling radius class.
+    !!{
+    Destructor for the simple cooling radius class.
+    !!}
     implicit none
     type(satelliteDynamicalFrictionKaur2018), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterProfileDMO_"      />
-    !# <objectDestructor name="self%satelliteDynamicalFriction_"/>
+    !![
+    <objectDestructor name="self%darkMatterProfileDMO_"      />
+    <objectDestructor name="self%satelliteDynamicalFriction_"/>
+    !!]
     return
   end subroutine kaur2018Destructor
 
   function kaur2018Acceleration(self,node)
-    !% Return an acceleration for satellites due to dynamical friction using the core-stalling model of \cite{kaur_stalling_2018}.
+    !!{
+    Return an acceleration for satellites due to dynamical friction using the core-stalling model of \cite{kaur_stalling_2018}.
+    !!}
     use :: Galacticus_Nodes            , only : nodeComponentSatellite
     use :: Galactic_Structure_Densities, only : Galactic_Structure_Density
     use :: Galactic_Structure_Options  , only : coordinateSystemCartesian
@@ -216,7 +240,9 @@ contains
   contains
     
     double precision function radiusStallingRoot(radiusStalling)
-      !% Root function used in finding the stalling radius.
+      !!{
+      Root function used in finding the stalling radius.
+      !!}
       use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
       use :: Numerical_Constants_Math          , only : Pi
       implicit none

@@ -17,34 +17,44 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a sequence output analysis property operator class.
+!!{
+Contains a module which implements a sequence output analysis property operator class.
+!!}
 
   type, public :: propertyOperatorList
      class(outputAnalysisPropertyOperatorClass), pointer :: operator_ => null()
      type (propertyOperatorList               ), pointer :: next      => null()
   end type propertyOperatorList
 
-  !# <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorSequence">
-  !#  <description>A sequence output analysis property operator class.</description>
-  !#  <deepCopy>
-  !#   <linkedList type="propertyOperatorList" variable="operators" next="next" object="operator_" objectType="outputAnalysisPropertyOperatorClass"/>
-  !#  </deepCopy>
-  !# </outputAnalysisPropertyOperator>
+  !![
+  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorSequence">
+   <description>A sequence output analysis property operator class.</description>
+   <deepCopy>
+    <linkedList type="propertyOperatorList" variable="operators" next="next" object="operator_" objectType="outputAnalysisPropertyOperatorClass"/>
+   </deepCopy>
+  </outputAnalysisPropertyOperator>
+  !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorSequence
-     !% A sequence output property operator class.
+     !!{
+     A sequence output property operator class.
+     !!}
      private
      type(propertyOperatorList), pointer :: operators => null()
    contains
-     !# <methods>
-     !#   <method description="Prepend an operator to a sequence of property operators." method="prepend" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Prepend an operator to a sequence of property operators." method="prepend" />
+     </methods>
+     !!]
      final     ::            sequenceDestructor
      procedure :: operate => sequenceOperate
      procedure :: prepend => sequencePrepend
   end type outputAnalysisPropertyOperatorSequence
 
   interface outputAnalysisPropertyOperatorSequence
-     !% Constructors for the ``sequence'' output analysis class.
+     !!{
+     Constructors for the ``sequence'' output analysis class.
+     !!}
      module procedure sequenceConstructorParameters
      module procedure sequenceConstructorInternal
   end interface outputAnalysisPropertyOperatorSequence
@@ -52,7 +62,9 @@
 contains
 
   function sequenceConstructorParameters(parameters) result (self)
-    !% Constructor for the ``sequence'' output analysis property operator class which takes a parameter set as input.
+    !!{
+    Constructor for the ``sequence'' output analysis property operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (outputAnalysisPropertyOperatorSequence)                :: self
@@ -70,13 +82,17 @@ contains
           allocate(self%operators)
           operator_ => self%operators
        end if
-       !# <objectBuilder class="outputAnalysisPropertyOperator" name="operator_%operator_" source="parameters" copy="i" />
+       !![
+       <objectBuilder class="outputAnalysisPropertyOperator" name="operator_%operator_" source="parameters" copy="i" />
+       !!]
     end do
     return
   end function sequenceConstructorParameters
 
   function sequenceConstructorInternal(operators) result (self)
-    !% Internal constructor for the sequence merger tree normalizer class.
+    !!{
+    Internal constructor for the sequence merger tree normalizer class.
+    !!}
     implicit none
     type(outputAnalysisPropertyOperatorSequence)                        :: self
     type(propertyOperatorList                  ), target, intent(in   ) :: operators
@@ -85,14 +101,18 @@ contains
     self     %operators => operators
     operator_           => operators
     do while (associated(operator_))
-       !# <referenceCountIncrement owner="operator_" object="operator_"/>
+       !![
+       <referenceCountIncrement owner="operator_" object="operator_"/>
+       !!]
        operator_ => operator_%next
     end do
     return
   end function sequenceConstructorInternal
 
   subroutine sequenceDestructor(self)
-    !% Destructor for the sequence property operator class.
+    !!{
+    Destructor for the sequence property operator class.
+    !!}
     implicit none
     type(outputAnalysisPropertyOperatorSequence), intent(inout) :: self
     type(propertyOperatorList                  ), pointer       :: operator_, operatorNext
@@ -101,7 +121,9 @@ contains
        operator_ => self%operators
        do while (associated(operator_))
           operatorNext => operator_%next
-          !# <objectDestructor name="operator_%operator_"/>
+          !![
+          <objectDestructor name="operator_%operator_"/>
+          !!]
           deallocate(operator_)
           operator_ => operatorNext
        end do
@@ -110,7 +132,9 @@ contains
   end subroutine sequenceDestructor
 
   double precision function sequenceOperate(self,propertyValue,node,propertyType,outputIndex)
-    !% Implement an sequence output analysis property operator.
+    !!{
+    Implement an sequence output analysis property operator.
+    !!}
     implicit none
     class           (outputAnalysisPropertyOperatorSequence), intent(inout)           :: self
     double precision                                        , intent(in   )           :: propertyValue
@@ -129,7 +153,9 @@ contains
   end function sequenceOperate
 
   subroutine sequencePrepend(self,operator_)
-    !% Prepend an operator to the sequence.
+    !!{
+    Prepend an operator to the sequence.
+    !!}
     implicit none
     class(outputAnalysisPropertyOperatorSequence), intent(inout)          :: self
     class(outputAnalysisPropertyOperatorClass   ), intent(in   ), target  :: operator_

@@ -17,29 +17,37 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a cooling function class which utilizes the {\normalfont \scshape Cloudy} code to
-  !% compute cooling in collisional ionization equilibrium.
+  !!{
+  Implements a cooling function class which utilizes the {\normalfont \scshape Cloudy} code to
+  compute cooling in collisional ionization equilibrium.
+  !!}
 
-  !# <coolingFunction name="coolingFunctionAtomicCIECloudy">
-  !#  <description>
-  !#   A cooling function class that computes the cooling function using the {\normalfont \scshape Cloudy} code and under the
-  !#   assumption of collisional ionization equilibrium with no molecular contribution. Abundances are Solar, except for zero
-  !#   metallicity calculations which use {\normalfont \scshape Cloudy}'s ``primordial'' metallicity. The helium abundance for
-  !#   non-zero metallicity is scaled between primordial and Solar values linearly with metallicity. The {\normalfont \scshape
-  !#   Cloudy} code will be downloaded and run to compute the cooling function as needed, which will then be stored for future
-  !#   use. As this process is slow, a precomputed table is provided with \glc. If metallicities outside the range tabulated in
-  !#   this file are required it will be regenerated with an appropriate range.
-  !#  </description>
-  !# </coolingFunction>
+  !![
+  <coolingFunction name="coolingFunctionAtomicCIECloudy">
+   <description>
+    A cooling function class that computes the cooling function using the {\normalfont \scshape Cloudy} code and under the
+    assumption of collisional ionization equilibrium with no molecular contribution. Abundances are Solar, except for zero
+    metallicity calculations which use {\normalfont \scshape Cloudy}'s ``primordial'' metallicity. The helium abundance for
+    non-zero metallicity is scaled between primordial and Solar values linearly with metallicity. The {\normalfont \scshape
+    Cloudy} code will be downloaded and run to compute the cooling function as needed, which will then be stored for future
+    use. As this process is slow, a precomputed table is provided with \glc. If metallicities outside the range tabulated in
+    this file are required it will be regenerated with an appropriate range.
+   </description>
+  </coolingFunction>
+  !!]
   type, extends(coolingFunctionCIEFile) :: coolingFunctionAtomicCIECloudy
-     !% A cooling function class which utilizes the {\normalfont \scshape Cloudy} code to compute
-     !% the cooling function in collisional ionization equilibrium.
+     !!{
+     A cooling function class which utilizes the {\normalfont \scshape Cloudy} code to compute
+     the cooling function in collisional ionization equilibrium.
+     !!}
      private
      logical :: initialized
    contains
-     !# <methods>
-     !#   <method description="Run {\normalfont \scshape Cloudy} to tabulate the cooling function as necessary." method="tabulate" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Run {\normalfont \scshape Cloudy} to tabulate the cooling function as necessary." method="tabulate" />
+     </methods>
+     !!]
      final     ::                                       atomicCIECloudyDestructor
      procedure :: tabulate                           => atomicCIECloudyTabulate
      procedure :: coolingFunction                    => atomicCIECloudyCoolingFunction
@@ -49,7 +57,9 @@
   end type coolingFunctionAtomicCIECloudy
 
   interface coolingFunctionAtomicCIECloudy
-     !% Constructors for the ``atomic CIE Cloudy'' cooling function class.
+     !!{
+     Constructors for the ``atomic CIE Cloudy'' cooling function class.
+     !!}
      module procedure atomicCIECloudyConstructorParameters
      module procedure atomicCIECloudyConstructorInternal
   end interface coolingFunctionAtomicCIECloudy
@@ -70,7 +80,9 @@
 contains
 
   function atomicCIECloudyConstructorParameters(parameters) result(self)
-    !% Constructor for the ``atomic CIE Cloudy'' cooling function class which takes a parameter set as input.
+    !!{
+    Constructor for the ``atomic CIE Cloudy'' cooling function class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(coolingFunctionAtomicCIECloudy)                :: self
@@ -82,7 +94,9 @@ contains
   end function atomicCIECloudyConstructorParameters
 
   function atomicCIECloudyConstructorInternal() result(self)
-    !% Internal constructor for the ``atomic CIE Cloudy'' cooling function class.
+    !!{
+    Internal constructor for the ``atomic CIE Cloudy'' cooling function class.
+    !!}
     implicit none
     type(coolingFunctionAtomicCIECloudy) :: self
 
@@ -96,7 +110,9 @@ contains
   end function atomicCIECloudyConstructorInternal
 
   subroutine atomicCIECloudyDestructor(self)
-    !% Destructor for the ``atomic CIE Cloudy'' cooling function class.
+    !!{
+    Destructor for the ``atomic CIE Cloudy'' cooling function class.
+    !!}
     implicit none
     type(coolingFunctionAtomicCIECloudy), intent(inout) :: self
     !$GLC attributes unused :: self
@@ -106,7 +122,9 @@ contains
   end subroutine atomicCIECloudyDestructor
 
   subroutine atomicCIECloudyTabulate(self,gasAbundances)
-    !% Create the cooling function.
+    !!{
+    Create the cooling function.
+    !!}
     use :: Abundances_Structure , only : Abundances_Get_Metallicity   , metallicityTypeLinearByMassSolar
     use :: File_Utilities       , only : File_Remove
     use :: Galacticus_Paths     , only : galacticusPath               , pathTypeDataStatic
@@ -167,8 +185,10 @@ contains
   end subroutine atomicCIECloudyTabulate
 
   double precision function atomicCIECloudyCoolingFunction(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
-    !% Return the cooling function for collisional ionization equilibrium as computed by
-    !% {\normalfont \scshape Cloudy}.
+    !!{
+    Return the cooling function for collisional ionization equilibrium as computed by
+    {\normalfont \scshape Cloudy}.
+    !!}
     implicit none
     class           (coolingFunctionAtomicCIECloudy), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
@@ -183,8 +203,10 @@ contains
   end function atomicCIECloudyCoolingFunction
 
   double precision function atomicCIECloudyCoolingFunctionFractionInBand(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation,energyLow,energyHigh)
-    !% Return the fraction of the cooling luminosity due to emission in the given energy range as computed by
-    !% {\normalfont \scshape Cloudy}.
+    !!{
+    Return the fraction of the cooling luminosity due to emission in the given energy range as computed by
+    {\normalfont \scshape Cloudy}.
+    !!}
     implicit none
     class           (coolingFunctionAtomicCIECloudy), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
@@ -200,9 +222,11 @@ contains
   end function atomicCIECloudyCoolingFunctionFractionInBand
 
   double precision function atomicCIECloudyCoolingFunctionTemperatureLogSlope(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
-    !% Return the logarithmic slope of the cooling function with respect to temperature for
-    !% collisional ionization equilibrium as computed by {\normalfont \scshape Cloudy}.  read
-    !% from a file.
+    !!{
+    Return the logarithmic slope of the cooling function with respect to temperature for
+    collisional ionization equilibrium as computed by {\normalfont \scshape Cloudy}.  read
+    from a file.
+    !!}
     implicit none
     class           (coolingFunctionAtomicCIECloudy), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
@@ -217,8 +241,10 @@ contains
   end function atomicCIECloudyCoolingFunctionTemperatureLogSlope
 
   double precision function atomicCIECloudyCoolingFunctionDensityLogSlope(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
-    !% Return the logarithmic slope of the cooling function with respect to density for
-    !% collisional ionization equilibrium as computed by {\normalfont \scshape Cloudy}.
+    !!{
+    Return the logarithmic slope of the cooling function with respect to density for
+    collisional ionization equilibrium as computed by {\normalfont \scshape Cloudy}.
+    !!}
     implicit none
     class           (coolingFunctionAtomicCIECloudy), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node

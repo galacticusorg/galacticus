@@ -17,41 +17,49 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a class for empirical models of conditional mass functions.
+!!{
+Contains a module which implements a class for empirical models of conditional mass functions.
+!!}
 
 module Conditional_Mass_Functions
-  !% Implements empirical models of conditional mass functions.
+  !!{
+  Implements empirical models of conditional mass functions.
+  !!}
   private
 
-  !# <functionClass>
-  !#  <name>conditionalMassFunction</name>
-  !#  <descriptiveName>Conditional Mass Function</descriptiveName>
-  !#  <description>
-  !#   Class providing empirical models of conditional mass functions.
-  !#  </description>
-  !#  <default>behroozi2010</default>
-  !#  <method name="massFunction" >
-  !#   <description>Return the cumulative conditional mass function, $\langle N(M_\star|M_\mathrm{halo}) \rangle \equiv \phi(M_\star|M_\mathrm{halo})$.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   )           :: massHalo  , mass</argument>
-  !#   <argument>integer         , intent(in   ), optional :: galaxyType</argument>
-  !#  </method>
-  !#  <method name="massFunctionVariance" >
-  !#   <description>Return the variance in the cumulative conditional mass function, $\langle N(M_\star|M_\mathrm{halo}) \rangle \equiv \phi(M_\star|M_\mathrm{halo})$.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ) :: massHalo,massLow,massHigh</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>conditionalMassFunction</name>
+   <descriptiveName>Conditional Mass Function</descriptiveName>
+   <description>
+    Class providing empirical models of conditional mass functions.
+   </description>
+   <default>behroozi2010</default>
+   <method name="massFunction" >
+    <description>Return the cumulative conditional mass function, $\langle N(M_\star|M_\mathrm{halo}) \rangle \equiv \phi(M_\star|M_\mathrm{halo})$.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision, intent(in   )           :: massHalo  , mass</argument>
+    <argument>integer         , intent(in   ), optional :: galaxyType</argument>
+   </method>
+   <method name="massFunctionVariance" >
+    <description>Return the variance in the cumulative conditional mass function, $\langle N(M_\star|M_\mathrm{halo}) \rangle \equiv \phi(M_\star|M_\mathrm{halo})$.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision, intent(in   ) :: massHalo,massLow,massHigh</argument>
+   </method>
+  </functionClass>
+  !!]
 
-  !# <enumeration>
-  !#  <name>haloModelGalaxyType</name>
-  !#  <description>Used to specify galaxy types in the halo model.</description>
-  !#  <visibility>public</visibility>
-  !#  <entry label="all"      />
-  !#  <entry label="central"  />
-  !#  <entry label="satellite"/>
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>haloModelGalaxyType</name>
+   <description>Used to specify galaxy types in the halo model.</description>
+   <visibility>public</visibility>
+   <entry label="all"      />
+   <entry label="central"  />
+   <entry label="satellite"/>
+  </enumeration>
+  !!]
 
 end module Conditional_Mass_Functions

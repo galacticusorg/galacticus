@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a code to test the radiative transfer state solver.
+!!{
+Contains a code to test the radiative transfer state solver.
+!!}
 
 program Test_Radiative_Transfer_State_Solver
-  !% Test the radiative transfer state solver.
+  !!{
+  Test the radiative transfer state solver.
+  !!}
   use :: Atomic_Cross_Sections_Ionization_Photo      , only : atomicCrossSectionIonizationPhotoVerner
   use :: Atomic_Ionization_Potentials                , only : atomicIonizationPotentialVerner
   use :: Atomic_Radiation_Gaunt_Factors              , only : gauntFactorVanHoof2014
@@ -87,114 +91,118 @@ program Test_Radiative_Transfer_State_Solver
   allocate(atomicRecombinationRateRadiativeCoolingFixed_ )
   allocate(atomicRecombinationRateRadiativeCoolingHummer_)
   allocate(massDistribution_                             )
-  !# <referenceConstruct object="atomicCrossSectionIonizationPhoto_"            >
-  !#  <constructor>
-  !#   atomicCrossSectionIonizationPhotoVerner         (                                                                               &amp;
-  !#     &amp;                                         )
-  !#  </constructor>
-  !# </referenceConstruct>
-  !# <referenceConstruct object="atomicIonizationPotential_"                    >
-  !#  <constructor>
-  !#   atomicIonizationPotentialVerner                 (                                                                               &amp;
-  !#     &amp;                                         )
-  !#  </constructor>
-  !# </referenceConstruct>
-  !# <referenceConstruct object="atomicExcitationRateCollisional_"              >
-  !#  <constructor>
-  !#   atomicExcitationRateCollisionalScholzWalters1991(                                                                               &amp;
-  !#     &amp;                                         )
-  !#  </constructor>
-  !# </referenceConstruct>
-  !# <referenceConstruct object="gauntFactor_"                                  >
-  !#  <constructor>
-  !#   gauntFactorVanHoof2014                          (                                                                               &amp;
-  !#     &amp;                                          atomicIonizationPotential_       =atomicIonizationPotential_                   &amp;
-  !#     &amp;                                         )
-  !#  </constructor>
-  !# </referenceConstruct>
-  !# <referenceConstruct object="atomicRecombinationRateDielectronicZero_"      >
-  !#  <constructor>
-  !#   atomicRecombinationRateDielectronicZero         (                                                                               &amp;
-  !#     &amp;                                         )
-  !#  </constructor>
-  !# </referenceConstruct>
-  !# <referenceConstruct object="atomicRecombinationRateDielectronicArnaud1985_">
-  !#  <constructor>
-  !#   atomicRecombinationRateDielectronicArnaud1985   (                                                                               &amp;
-  !#     &amp;                                         )
-  !#  </constructor>
-  !# </referenceConstruct>
-  !# <referenceConstruct object="atomicRecombinationRateRadiativeFixed_"        >
-  !#  <constructor>
-  !#   atomicRecombinationRateRadiativeFixed           (                                                                               &amp;
-  !#     &amp;                                          rateCoefficient                  =2.0d-13                                      &amp;
-  !#     &amp;                                         )
-  !#  </constructor>
-  !# </referenceConstruct>
-  !# <referenceConstruct object="atomicRecombinationRateRadiativeVerner1996_"   >
-  !#  <constructor>
-  !#   atomicRecombinationRateRadiativeVerner1996      (                                                                               &amp;
-  !#     &amp;                                         )
-  !#  </constructor>
-  !# </referenceConstruct>
-  !# <referenceConstruct object="atomicRecombinationRateRadiativeCoolingFixed_" >
-  !#  <constructor>
-  !#   atomicRecombinationRateRadiativeCoolingFixed    (                                                                               &amp;
-  !#     &amp;                                          atomicRecombinationRateRadiative_=atomicRecombinationRateRadiativeFixed_     , &amp;
-  !#     &amp;                                          gamma=0.75d0                                                                   &amp;
-  !#     &amp;                                         )
-  !#  </constructor>
-  !# </referenceConstruct>
-  !# <referenceConstruct object="atomicRecombinationRateRadiativeCoolingHummer_">
-  !#  <constructor>
-  !#   atomicRecombinationRateRadiativeCoolingHummer   (                                                                               &amp;
-  !#     &amp;                                          atomicRecombinationRateRadiative_=atomicRecombinationRateRadiativeVerner1996_, &amp;
-  !#     &amp;                                          gamma=0.67d0                                                                   &amp;
-  !#     &amp;                                         )
-  !#  </constructor>
-  !# </referenceConstruct>
-  !# <referenceConstruct object="atomicIonizationRateCollisional_"             >
-  !#  <constructor>
-  !#   atomicIonizationRateCollisionalVerner1996       (                                                                               &amp;
-  !#     &amp;                                         )
-  !#  </constructor>
-  !# </referenceConstruct>
-  !# <referenceConstruct object="massDistribution_"                            >
-  !#  <constructor>
-  !#   massDistributionConstantDensityCloud            (                                                                               &amp;
-  !#     &amp;                                          mass                             =1.0d0                                      , &amp;
-  !#     &amp;                                          radius                           =1.0d0                                        &amp;
-  !#     &amp;                                         )
-  !#  </constructor>
-  !# </referenceConstruct>
+  !![
+  <referenceConstruct object="atomicCrossSectionIonizationPhoto_"            >
+   <constructor>
+    atomicCrossSectionIonizationPhotoVerner         (                                                                               &amp;
+      &amp;                                         )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="atomicIonizationPotential_"                    >
+   <constructor>
+    atomicIonizationPotentialVerner                 (                                                                               &amp;
+      &amp;                                         )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="atomicExcitationRateCollisional_"              >
+   <constructor>
+    atomicExcitationRateCollisionalScholzWalters1991(                                                                               &amp;
+      &amp;                                         )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="gauntFactor_"                                  >
+   <constructor>
+    gauntFactorVanHoof2014                          (                                                                               &amp;
+      &amp;                                          atomicIonizationPotential_       =atomicIonizationPotential_                   &amp;
+      &amp;                                         )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="atomicRecombinationRateDielectronicZero_"      >
+   <constructor>
+    atomicRecombinationRateDielectronicZero         (                                                                               &amp;
+      &amp;                                         )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="atomicRecombinationRateDielectronicArnaud1985_">
+   <constructor>
+    atomicRecombinationRateDielectronicArnaud1985   (                                                                               &amp;
+      &amp;                                         )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="atomicRecombinationRateRadiativeFixed_"        >
+   <constructor>
+    atomicRecombinationRateRadiativeFixed           (                                                                               &amp;
+      &amp;                                          rateCoefficient                  =2.0d-13                                      &amp;
+      &amp;                                         )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="atomicRecombinationRateRadiativeVerner1996_"   >
+   <constructor>
+    atomicRecombinationRateRadiativeVerner1996      (                                                                               &amp;
+      &amp;                                         )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="atomicRecombinationRateRadiativeCoolingFixed_" >
+   <constructor>
+    atomicRecombinationRateRadiativeCoolingFixed    (                                                                               &amp;
+      &amp;                                          atomicRecombinationRateRadiative_=atomicRecombinationRateRadiativeFixed_     , &amp;
+      &amp;                                          gamma=0.75d0                                                                   &amp;
+      &amp;                                         )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="atomicRecombinationRateRadiativeCoolingHummer_">
+   <constructor>
+    atomicRecombinationRateRadiativeCoolingHummer   (                                                                               &amp;
+      &amp;                                          atomicRecombinationRateRadiative_=atomicRecombinationRateRadiativeVerner1996_, &amp;
+      &amp;                                          gamma=0.67d0                                                                   &amp;
+      &amp;                                         )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="atomicIonizationRateCollisional_"             >
+   <constructor>
+    atomicIonizationRateCollisionalVerner1996       (                                                                               &amp;
+      &amp;                                         )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="massDistribution_"                            >
+   <constructor>
+    massDistributionConstantDensityCloud            (                                                                               &amp;
+      &amp;                                          mass                             =1.0d0                                      , &amp;
+      &amp;                                          radius                           =1.0d0                                        &amp;
+      &amp;                                         )
+   </constructor>
+  </referenceConstruct>
+  !!]
   ! Tests on atomic matter - H only.
   call Unit_Tests_Begin_Group("Atomic matter - H only")
   ! Initialize the properties of the solver and the atomic matter.
   allocate(radiativeTransferMatter_)
   allocate(properties              )
-  !# <referenceConstruct object="radiativeTransferMatter_">
-  !#  <constructor>
-  !#   radiativeTransferMatterAtomic(                                                                                        &amp;
-  !#     &amp;                       abundancePattern                        =var_str('solar')                             , &amp;
-  !#     &amp;                       metallicity                             =0.0d0                                        , &amp;
-  !#     &amp;                       elements                                =['H ']                                       , &amp;
-  !#     &amp;                       iterationAverageCount                   =1                                            , &amp;
-  !#     &amp;                       temperatureMinimum                      =3.0d0                                        , &amp;
-  !#     &amp;                       outputRates                             =.false.                                      , &amp;
-  !#     &amp;                       outputAbsorptionCoefficients            =.false.                                      , &amp;
-  !#     &amp;                       convergencePercentile                   =0.9d0                                        , &amp;
-  !#     &amp;                       massDistribution_                       =massDistribution_                            , &amp;
-  !#     &amp;                       atomicCrossSectionIonizationPhoto_      =atomicCrossSectionIonizationPhoto_           , &amp;
-  !#     &amp;                       atomicRecombinationRateRadiative_       =atomicRecombinationRateRadiativeFixed_       , &amp;
-  !#     &amp;                       atomicRecombinationRateRadiativeCooling_=atomicRecombinationRateRadiativeCoolingFixed_, &amp;  
-  !#     &amp;                       atomicIonizationRateCollisional_        =atomicIonizationRateCollisional_             , &amp;
-  !#     &amp;                       atomicRecombinationRateDielectronic_    =atomicRecombinationRateDielectronicZero_     , &amp;
-  !#     &amp;                       atomicIonizationPotential_              =atomicIonizationPotential_                   , &amp;
-  !#     &amp;                       atomicExcitationRateCollisional_        =atomicExcitationRateCollisional_             , &amp;
-  !#     &amp;                       gauntFactor_                            =gauntFactor_                                   &amp;
-  !#     &amp;                      )
-  !#  </constructor>
-  !# </referenceConstruct>
+  !![
+  <referenceConstruct object="radiativeTransferMatter_">
+   <constructor>
+    radiativeTransferMatterAtomic(                                                                                        &amp;
+      &amp;                       abundancePattern                        =var_str('solar')                             , &amp;
+      &amp;                       metallicity                             =0.0d0                                        , &amp;
+      &amp;                       elements                                =['H ']                                       , &amp;
+      &amp;                       iterationAverageCount                   =1                                            , &amp;
+      &amp;                       temperatureMinimum                      =3.0d0                                        , &amp;
+      &amp;                       outputRates                             =.false.                                      , &amp;
+      &amp;                       outputAbsorptionCoefficients            =.false.                                      , &amp;
+      &amp;                       convergencePercentile                   =0.9d0                                        , &amp;
+      &amp;                       massDistribution_                       =massDistribution_                            , &amp;
+      &amp;                       atomicCrossSectionIonizationPhoto_      =atomicCrossSectionIonizationPhoto_           , &amp;
+      &amp;                       atomicRecombinationRateRadiative_       =atomicRecombinationRateRadiativeFixed_       , &amp;
+      &amp;                       atomicRecombinationRateRadiativeCooling_=atomicRecombinationRateRadiativeCoolingFixed_, &amp;  
+      &amp;                       atomicIonizationRateCollisional_        =atomicIonizationRateCollisional_             , &amp;
+      &amp;                       atomicRecombinationRateDielectronic_    =atomicRecombinationRateDielectronicZero_     , &amp;
+      &amp;                       atomicIonizationPotential_              =atomicIonizationPotential_                   , &amp;
+      &amp;                       atomicExcitationRateCollisional_        =atomicExcitationRateCollisional_             , &amp;
+      &amp;                       gauntFactor_                            =gauntFactor_                                   &amp;
+      &amp;                      )
+   </constructor>
+  </referenceConstruct>
+  !!]
   allocate(properties%elements(1)                                      )
   allocate(properties%elements(1)%photoIonizationRateHistory    (1,0:0))
   allocate(properties%elements(1)%photoHeatingRateHistory       (1,0:0))
@@ -257,35 +265,39 @@ program Test_Radiative_Transfer_State_Solver
   ! Done with atomic matter - H only.
   call Unit_Tests_End_Group()
   deallocate(properties)
-  !# <objectDestructor name="radiativeTransferMatter_"/>
+  !![
+  <objectDestructor name="radiativeTransferMatter_"/>
+  !!]
   ! Tests on atomic matter - H, He, O.
   call Unit_Tests_Begin_Group("Atomic matter - H, He, O (fixed recombination coefficient)")
   ! Initialize the properties of the solver and the atomic matter.
   allocate(radiativeTransferMatter_)
   allocate(properties              )
-  !# <referenceConstruct object="radiativeTransferMatter_">
-  !#  <constructor>
-  !#   radiativeTransferMatterAtomic(                                                                                        &amp;
-  !#     &amp;                       abundancePattern                        =var_str('solar')                             , &amp;
-  !#     &amp;                       metallicity                             =1.0d0                                        , &amp;
-  !#     &amp;                       elements                                =['H ','He','O ']                             , &amp;
-  !#     &amp;                       iterationAverageCount                   =2                                            , &amp;
-  !#     &amp;                       temperatureMinimum                      =3.0d0                                        , &amp;
-  !#     &amp;                       outputRates                             =.false.                                      , &amp;
-  !#     &amp;                       outputAbsorptionCoefficients            =.false.                                      , &amp;
-  !#     &amp;                       convergencePercentile                   =0.9d0                                        , &amp;
-  !#     &amp;                       massDistribution_                       =massDistribution_                            , &amp;
-  !#     &amp;                       atomicCrossSectionIonizationPhoto_      =atomicCrossSectionIonizationPhoto_           , &amp;
-  !#     &amp;                       atomicRecombinationRateRadiative_       =atomicRecombinationRateRadiativeFixed_       , &amp;
-  !#     &amp;                       atomicRecombinationRateRadiativeCooling_=atomicRecombinationRateRadiativeCoolingFixed_, &amp;  
-  !#     &amp;                       atomicIonizationRateCollisional_        =atomicIonizationRateCollisional_             , &amp;
-  !#     &amp;                       atomicRecombinationRateDielectronic_    =atomicRecombinationRateDielectronicZero_     , &amp;
-  !#     &amp;                       atomicIonizationPotential_              =atomicIonizationPotential_                   , &amp;
-  !#     &amp;                       atomicExcitationRateCollisional_        =atomicExcitationRateCollisional_             , &amp;
-  !#     &amp;                       gauntFactor_                            =gauntFactor_                                   &amp;
-  !#     &amp;                      )
-  !#  </constructor>
-  !# </referenceConstruct>
+  !![
+  <referenceConstruct object="radiativeTransferMatter_">
+   <constructor>
+    radiativeTransferMatterAtomic(                                                                                        &amp;
+      &amp;                       abundancePattern                        =var_str('solar')                             , &amp;
+      &amp;                       metallicity                             =1.0d0                                        , &amp;
+      &amp;                       elements                                =['H ','He','O ']                             , &amp;
+      &amp;                       iterationAverageCount                   =2                                            , &amp;
+      &amp;                       temperatureMinimum                      =3.0d0                                        , &amp;
+      &amp;                       outputRates                             =.false.                                      , &amp;
+      &amp;                       outputAbsorptionCoefficients            =.false.                                      , &amp;
+      &amp;                       convergencePercentile                   =0.9d0                                        , &amp;
+      &amp;                       massDistribution_                       =massDistribution_                            , &amp;
+      &amp;                       atomicCrossSectionIonizationPhoto_      =atomicCrossSectionIonizationPhoto_           , &amp;
+      &amp;                       atomicRecombinationRateRadiative_       =atomicRecombinationRateRadiativeFixed_       , &amp;
+      &amp;                       atomicRecombinationRateRadiativeCooling_=atomicRecombinationRateRadiativeCoolingFixed_, &amp;  
+      &amp;                       atomicIonizationRateCollisional_        =atomicIonizationRateCollisional_             , &amp;
+      &amp;                       atomicRecombinationRateDielectronic_    =atomicRecombinationRateDielectronicZero_     , &amp;
+      &amp;                       atomicIonizationPotential_              =atomicIonizationPotential_                   , &amp;
+      &amp;                       atomicExcitationRateCollisional_        =atomicExcitationRateCollisional_             , &amp;
+      &amp;                       gauntFactor_                            =gauntFactor_                                   &amp;
+      &amp;                      )
+   </constructor>
+  </referenceConstruct>
+  !!]
   allocate(properties%elements(3)                                      )
   allocate(properties%elements(1)%photoIonizationRateHistory    (2,0:0))
   allocate(properties%elements(1)%photoHeatingRateHistory       (2,0:0))
@@ -388,45 +400,49 @@ program Test_Radiative_Transfer_State_Solver
   ! Done with atomic matter - H, He, O.
   call Unit_Tests_End_Group()
   deallocate(properties)
-  !# <objectDestructor name="radiativeTransferMatter_"                     />
-  !# <objectDestructor name="atomicRecombinationRateRadiativeCoolingFixed_"/>
+  !![
+  <objectDestructor name="radiativeTransferMatter_"                     />
+  <objectDestructor name="atomicRecombinationRateRadiativeCoolingFixed_"/>
+  !!]
   ! Tests on atomic matter - H, He, O.
   call Unit_Tests_Begin_Group("Atomic matter - H, He, O")
   ! Initialize the properties of the solver and the atomic matter.
   allocate(radiativeTransferMatter_                     )
   allocate(atomicRecombinationRateRadiativeCoolingFixed_)
   allocate(properties                                   )
-  !# <referenceConstruct object="atomicRecombinationRateRadiativeCoolingFixed_">
-  !#  <constructor>
-  !#   atomicRecombinationRateRadiativeCoolingFixed(                                                                               &amp;
-  !#     &amp;                                      atomicRecombinationRateRadiative_=atomicRecombinationRateRadiativeVerner1996_, &amp;
-  !#     &amp;                                      gamma=0.75d0                                                                   &amp;
-  !#     &amp;                                     )
-  !#  </constructor>
-  !# </referenceConstruct>
-  !# <referenceConstruct object="radiativeTransferMatter_">
-  !#  <constructor>
-  !#   radiativeTransferMatterAtomic(                                                                                        &amp;
-  !#     &amp;                       abundancePattern                        =var_str('solar')                             , &amp;
-  !#     &amp;                       metallicity                             =1.0d0                                        , &amp;
-  !#     &amp;                       elements                                =['H ','He','O ']                             , &amp;
-  !#     &amp;                       iterationAverageCount                   =2                                            , &amp;
-  !#     &amp;                       temperatureMinimum                      =3.0d0                                        , &amp;
-  !#     &amp;                       outputRates                             =.false.                                      , &amp;
-  !#     &amp;                       outputAbsorptionCoefficients            =.false.                                      , &amp;
-  !#     &amp;                       convergencePercentile                   =0.9d0                                        , &amp;
-  !#     &amp;                       massDistribution_                       =massDistribution_                            , &amp;
-  !#     &amp;                       atomicCrossSectionIonizationPhoto_      =atomicCrossSectionIonizationPhoto_           , &amp;
-  !#     &amp;                       atomicRecombinationRateRadiative_       =atomicRecombinationRateRadiativeVerner1996_  , &amp;
-  !#     &amp;                       atomicRecombinationRateRadiativeCooling_=atomicRecombinationRateRadiativeCoolingFixed_, &amp;  
-  !#     &amp;                       atomicIonizationRateCollisional_        =atomicIonizationRateCollisional_             , &amp;
-  !#     &amp;                       atomicRecombinationRateDielectronic_    =atomicRecombinationRateDielectronicZero_     , &amp;
-  !#     &amp;                       atomicIonizationPotential_              =atomicIonizationPotential_                   , &amp;
-  !#     &amp;                       atomicExcitationRateCollisional_        =atomicExcitationRateCollisional_             , &amp;
-  !#     &amp;                       gauntFactor_                            =gauntFactor_                                   &amp;
-  !#     &amp;                      )
-  !#  </constructor>
-  !# </referenceConstruct>
+  !![
+  <referenceConstruct object="atomicRecombinationRateRadiativeCoolingFixed_">
+   <constructor>
+    atomicRecombinationRateRadiativeCoolingFixed(                                                                               &amp;
+      &amp;                                      atomicRecombinationRateRadiative_=atomicRecombinationRateRadiativeVerner1996_, &amp;
+      &amp;                                      gamma=0.75d0                                                                   &amp;
+      &amp;                                     )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="radiativeTransferMatter_">
+   <constructor>
+    radiativeTransferMatterAtomic(                                                                                        &amp;
+      &amp;                       abundancePattern                        =var_str('solar')                             , &amp;
+      &amp;                       metallicity                             =1.0d0                                        , &amp;
+      &amp;                       elements                                =['H ','He','O ']                             , &amp;
+      &amp;                       iterationAverageCount                   =2                                            , &amp;
+      &amp;                       temperatureMinimum                      =3.0d0                                        , &amp;
+      &amp;                       outputRates                             =.false.                                      , &amp;
+      &amp;                       outputAbsorptionCoefficients            =.false.                                      , &amp;
+      &amp;                       convergencePercentile                   =0.9d0                                        , &amp;
+      &amp;                       massDistribution_                       =massDistribution_                            , &amp;
+      &amp;                       atomicCrossSectionIonizationPhoto_      =atomicCrossSectionIonizationPhoto_           , &amp;
+      &amp;                       atomicRecombinationRateRadiative_       =atomicRecombinationRateRadiativeVerner1996_  , &amp;
+      &amp;                       atomicRecombinationRateRadiativeCooling_=atomicRecombinationRateRadiativeCoolingFixed_, &amp;  
+      &amp;                       atomicIonizationRateCollisional_        =atomicIonizationRateCollisional_             , &amp;
+      &amp;                       atomicRecombinationRateDielectronic_    =atomicRecombinationRateDielectronicZero_     , &amp;
+      &amp;                       atomicIonizationPotential_              =atomicIonizationPotential_                   , &amp;
+      &amp;                       atomicExcitationRateCollisional_        =atomicExcitationRateCollisional_             , &amp;
+      &amp;                       gauntFactor_                            =gauntFactor_                                   &amp;
+      &amp;                      )
+   </constructor>
+  </referenceConstruct>
+  !!]
   allocate(properties%elements(3)                                      )
   allocate(properties%elements(1)%photoIonizationRateHistory    (2,0:0))
   allocate(properties%elements(1)%photoHeatingRateHistory       (2,0:0))
@@ -481,36 +497,40 @@ program Test_Radiative_Transfer_State_Solver
   ! Done with atomic matter - H, He, O.
   call Unit_Tests_End_Group()
   deallocate(properties)
-  !# <objectDestructor name="radiativeTransferMatter_"                     />
-  !# <objectDestructor name="atomicRecombinationRateRadiativeCoolingFixed_"/>
+  !![
+  <objectDestructor name="radiativeTransferMatter_"                     />
+  <objectDestructor name="atomicRecombinationRateRadiativeCoolingFixed_"/>
+  !!]
   ! Tests on atomic matter - H, He, C, O.
   call Unit_Tests_Begin_Group("Atomic matter - H, He, C, O")
   ! Initialize the properties of the solver and the atomic matter.
   allocate(radiativeTransferMatter_                     )
   allocate(properties                                   )
-  !# <referenceConstruct object="radiativeTransferMatter_">
-  !#  <constructor>
-  !#   radiativeTransferMatterAtomic(                                                                                         &amp;
-  !#     &amp;                       abundancePattern                        =var_str('solar')                              , &amp;
-  !#     &amp;                       metallicity                             =1.0d0                                         , &amp;
-  !#     &amp;                       elements                                =['H ','He','C ','O ']                         , &amp;
-  !#     &amp;                       iterationAverageCount                   =2                                             , &amp;
-  !#     &amp;                       temperatureMinimum                      =3.0d0                                         , &amp;
-  !#     &amp;                       outputRates                             =.false.                                       , &amp;
-  !#     &amp;                       outputAbsorptionCoefficients            =.false.                                       , &amp;
-  !#     &amp;                       convergencePercentile                   =0.9d0                                         , &amp;
-  !#     &amp;                       massDistribution_                       =massDistribution_                             , &amp;
-  !#     &amp;                       atomicCrossSectionIonizationPhoto_      =atomicCrossSectionIonizationPhoto_            , &amp;
-  !#     &amp;                       atomicRecombinationRateRadiative_       =atomicRecombinationRateRadiativeVerner1996_   , &amp;
-  !#     &amp;                       atomicRecombinationRateRadiativeCooling_=atomicRecombinationRateRadiativeCoolingHummer_, &amp;  
-  !#     &amp;                       atomicIonizationRateCollisional_        =atomicIonizationRateCollisional_              , &amp;
-  !#     &amp;                       atomicRecombinationRateDielectronic_    =atomicRecombinationRateDielectronicArnaud1985_, &amp;
-  !#     &amp;                       atomicIonizationPotential_              =atomicIonizationPotential_                    , &amp;
-  !#     &amp;                       atomicExcitationRateCollisional_        =atomicExcitationRateCollisional_              , &amp;
-  !#     &amp;                       gauntFactor_                            =gauntFactor_                                    &amp;
-  !#     &amp;                      )
-  !#  </constructor>
-  !# </referenceConstruct>
+  !![
+  <referenceConstruct object="radiativeTransferMatter_">
+   <constructor>
+    radiativeTransferMatterAtomic(                                                                                         &amp;
+      &amp;                       abundancePattern                        =var_str('solar')                              , &amp;
+      &amp;                       metallicity                             =1.0d0                                         , &amp;
+      &amp;                       elements                                =['H ','He','C ','O ']                         , &amp;
+      &amp;                       iterationAverageCount                   =2                                             , &amp;
+      &amp;                       temperatureMinimum                      =3.0d0                                         , &amp;
+      &amp;                       outputRates                             =.false.                                       , &amp;
+      &amp;                       outputAbsorptionCoefficients            =.false.                                       , &amp;
+      &amp;                       convergencePercentile                   =0.9d0                                         , &amp;
+      &amp;                       massDistribution_                       =massDistribution_                             , &amp;
+      &amp;                       atomicCrossSectionIonizationPhoto_      =atomicCrossSectionIonizationPhoto_            , &amp;
+      &amp;                       atomicRecombinationRateRadiative_       =atomicRecombinationRateRadiativeVerner1996_   , &amp;
+      &amp;                       atomicRecombinationRateRadiativeCooling_=atomicRecombinationRateRadiativeCoolingHummer_, &amp;  
+      &amp;                       atomicIonizationRateCollisional_        =atomicIonizationRateCollisional_              , &amp;
+      &amp;                       atomicRecombinationRateDielectronic_    =atomicRecombinationRateDielectronicArnaud1985_, &amp;
+      &amp;                       atomicIonizationPotential_              =atomicIonizationPotential_                    , &amp;
+      &amp;                       atomicExcitationRateCollisional_        =atomicExcitationRateCollisional_              , &amp;
+      &amp;                       gauntFactor_                            =gauntFactor_                                    &amp;
+      &amp;                      )
+   </constructor>
+  </referenceConstruct>
+  !!]
   allocate(properties%elements(4)                                    )
   allocate(properties%elements(1)%photoIonizationRateHistory    (2,0: 0))
   allocate(properties%elements(1)%photoHeatingRateHistory       (2,0: 0))
@@ -609,35 +629,39 @@ program Test_Radiative_Transfer_State_Solver
   ! Done with atomic matter - H, He, C, O.
   call Unit_Tests_End_Group()
   deallocate(properties)
-  !# <objectDestructor name="radiativeTransferMatter_"/>
+  !![
+  <objectDestructor name="radiativeTransferMatter_"/>
+  !!]
   ! Tests on atomic matter - H, He, C, O, Si, Fe.
   call Unit_Tests_Begin_Group("Atomic matter - H, He, C, O, Si, Fe")
   ! Initialize the properties of the solver and the atomic matter.
   allocate(radiativeTransferMatter_                     )
   allocate(properties                                   )
-  !# <referenceConstruct object="radiativeTransferMatter_">
-  !#  <constructor>
-  !#   radiativeTransferMatterAtomic(                                                                                         &amp;
-  !#     &amp;                       abundancePattern                        =var_str('solar')                              , &amp;
-  !#     &amp;                       metallicity                             =1.0d0                                         , &amp;
-  !#     &amp;                       elements                                =['H ','He','C ','O ','Si','Fe']               , &amp;
-  !#     &amp;                       iterationAverageCount                   =2                                             , &amp;
-  !#     &amp;                       temperatureMinimum                      =3.0d0                                         , &amp;
-  !#     &amp;                       outputRates                             =.false.                                       , &amp;
-  !#     &amp;                       outputAbsorptionCoefficients            =.false.                                       , &amp;
-  !#     &amp;                       convergencePercentile                   =0.9d0                                         , &amp;
-  !#     &amp;                       massDistribution_                       =massDistribution_                             , &amp;
-  !#     &amp;                       atomicCrossSectionIonizationPhoto_      =atomicCrossSectionIonizationPhoto_            , &amp;
-  !#     &amp;                       atomicRecombinationRateRadiative_       =atomicRecombinationRateRadiativeVerner1996_   , &amp;
-  !#     &amp;                       atomicRecombinationRateRadiativeCooling_=atomicRecombinationRateRadiativeCoolingHummer_, &amp;  
-  !#     &amp;                       atomicIonizationRateCollisional_        =atomicIonizationRateCollisional_              , &amp;
-  !#     &amp;                       atomicRecombinationRateDielectronic_    =atomicRecombinationRateDielectronicArnaud1985_, &amp;
-  !#     &amp;                       atomicIonizationPotential_              =atomicIonizationPotential_                    , &amp;
-  !#     &amp;                       atomicExcitationRateCollisional_        =atomicExcitationRateCollisional_              , &amp;
-  !#     &amp;                       gauntFactor_                            =gauntFactor_                                    &amp;
-  !#     &amp;                      )
-  !#  </constructor>
-  !# </referenceConstruct>
+  !![
+  <referenceConstruct object="radiativeTransferMatter_">
+   <constructor>
+    radiativeTransferMatterAtomic(                                                                                         &amp;
+      &amp;                       abundancePattern                        =var_str('solar')                              , &amp;
+      &amp;                       metallicity                             =1.0d0                                         , &amp;
+      &amp;                       elements                                =['H ','He','C ','O ','Si','Fe']               , &amp;
+      &amp;                       iterationAverageCount                   =2                                             , &amp;
+      &amp;                       temperatureMinimum                      =3.0d0                                         , &amp;
+      &amp;                       outputRates                             =.false.                                       , &amp;
+      &amp;                       outputAbsorptionCoefficients            =.false.                                       , &amp;
+      &amp;                       convergencePercentile                   =0.9d0                                         , &amp;
+      &amp;                       massDistribution_                       =massDistribution_                             , &amp;
+      &amp;                       atomicCrossSectionIonizationPhoto_      =atomicCrossSectionIonizationPhoto_            , &amp;
+      &amp;                       atomicRecombinationRateRadiative_       =atomicRecombinationRateRadiativeVerner1996_   , &amp;
+      &amp;                       atomicRecombinationRateRadiativeCooling_=atomicRecombinationRateRadiativeCoolingHummer_, &amp;  
+      &amp;                       atomicIonizationRateCollisional_        =atomicIonizationRateCollisional_              , &amp;
+      &amp;                       atomicRecombinationRateDielectronic_    =atomicRecombinationRateDielectronicArnaud1985_, &amp;
+      &amp;                       atomicIonizationPotential_              =atomicIonizationPotential_                    , &amp;
+      &amp;                       atomicExcitationRateCollisional_        =atomicExcitationRateCollisional_              , &amp;
+      &amp;                       gauntFactor_                            =gauntFactor_                                    &amp;
+      &amp;                      )
+   </constructor>
+  </referenceConstruct>
+  !!]
   allocate(properties%elements(6)                                       )
   allocate(properties%elements(1)%photoIonizationRateHistory    (2,0: 0))
   allocate(properties%elements(1)%photoHeatingRateHistory       (2,0: 0))
@@ -860,18 +884,20 @@ program Test_Radiative_Transfer_State_Solver
   ! Done with atomic matter - H, He, C, O, Si, Fe.
   call Unit_Tests_End_Group()
   deallocate(properties)
-  !# <objectDestructor name="radiativeTransferMatter_"                      />
-  !# <objectDestructor name="atomicCrossSectionIonizationPhoto_"            />
-  !# <objectDestructor name="atomicIonizationPotential_"                    />
-  !# <objectDestructor name="atomicExcitationRateCollisional_"              />
-  !# <objectDestructor name="gauntFactor_"                                  />
-  !# <objectDestructor name="atomicRecombinationRateDielectronicZero_"      />
-  !# <objectDestructor name="atomicRecombinationRateDielectronicArnaud1985_"/>
-  !# <objectDestructor name="atomicRecombinationRateRadiativeFixed_"        />
-  !# <objectDestructor name="atomicRecombinationRateRadiativeVerner1996_"   />
-  !# <objectDestructor name="atomicRecombinationRateRadiativeCoolingHummer_"/>
-  !# <objectDestructor name="atomicIonizationRateCollisional_"              />
-  !# <objectDestructor name="massDistribution_"                             />
+  !![
+  <objectDestructor name="radiativeTransferMatter_"                      />
+  <objectDestructor name="atomicCrossSectionIonizationPhoto_"            />
+  <objectDestructor name="atomicIonizationPotential_"                    />
+  <objectDestructor name="atomicExcitationRateCollisional_"              />
+  <objectDestructor name="gauntFactor_"                                  />
+  <objectDestructor name="atomicRecombinationRateDielectronicZero_"      />
+  <objectDestructor name="atomicRecombinationRateDielectronicArnaud1985_"/>
+  <objectDestructor name="atomicRecombinationRateRadiativeFixed_"        />
+  <objectDestructor name="atomicRecombinationRateRadiativeVerner1996_"   />
+  <objectDestructor name="atomicRecombinationRateRadiativeCoolingHummer_"/>
+  <objectDestructor name="atomicIonizationRateCollisional_"              />
+  <objectDestructor name="massDistribution_"                             />
+  !!]
   ! Done with unit tests.
   call Unit_Tests_Finish()
   call Node_Components_Uninitialize()

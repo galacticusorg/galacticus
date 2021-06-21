@@ -17,24 +17,30 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a cosmological angular distance corrector analysis property operator class.
+!!{
+Contains a module which implements a cosmological angular distance corrector analysis property operator class.
+!!}
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
   use :: Output_Times       , only : outputTimesClass
 
-  !# <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorCsmlgyAnglrDstnc">
-  !#  <description>
-  !#  An output analysis property operator class which corrects properties for the difference in cosmological angular diameter
-  !#  distance between true and assumed (i.e. in the observational analysis) cosmologies. Typically the observational data will have
-  !#  been analyzed assuming some specific set of cosmological parameters which will differ from that in the current
-  !#  model. Therefore, the size of a galaxy must be adjusted to match what would be inferred if they were assessed using the same
-  !#  cosmological parameters as were used for the observational data. Typically, this will mean that sizes are scaled in proportion
-  !#  to $D^\prime_\mathrm{A}(z)/D_\mathrm{A}(z)$, where $D_\mathrm{A}(z)$ and $D^\prime_\mathrm{A}(z)$ are the luminosity distances
-  !#  to redshift $z$ in the true and assumed cosmologies respectively.
-  !# </description>
-  !# </outputAnalysisPropertyOperator>
+  !![
+  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorCsmlgyAnglrDstnc">
+   <description>
+   An output analysis property operator class which corrects properties for the difference in cosmological angular diameter
+   distance between true and assumed (i.e. in the observational analysis) cosmologies. Typically the observational data will have
+   been analyzed assuming some specific set of cosmological parameters which will differ from that in the current
+   model. Therefore, the size of a galaxy must be adjusted to match what would be inferred if they were assessed using the same
+   cosmological parameters as were used for the observational data. Typically, this will mean that sizes are scaled in proportion
+   to $D^\prime_\mathrm{A}(z)/D_\mathrm{A}(z)$, where $D_\mathrm{A}(z)$ and $D^\prime_\mathrm{A}(z)$ are the luminosity distances
+   to redshift $z$ in the true and assumed cosmologies respectively.
+  </description>
+  </outputAnalysisPropertyOperator>
+  !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorCsmlgyAnglrDstnc
-     !% A cosmological angular distance corrector analysis property operator class.
+     !!{
+     A cosmological angular distance corrector analysis property operator class.
+     !!}
      private
      class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctionsModel => null(), cosmologyFunctionsData => null()
      class           (outputTimesClass       ), pointer                   :: outputTimes_            => null()
@@ -45,7 +51,9 @@
   end type outputAnalysisPropertyOperatorCsmlgyAnglrDstnc
 
   interface outputAnalysisPropertyOperatorCsmlgyAnglrDstnc
-     !% Constructors for the ``csmlgyAngularDistance'' output analysis class.
+     !!{
+     Constructors for the ``csmlgyAngularDistance'' output analysis class.
+     !!}
      module procedure csmlgyAngularDistanceConstructorParameters
      module procedure csmlgyAngularDistanceConstructorInternal
   end interface outputAnalysisPropertyOperatorCsmlgyAnglrDstnc
@@ -53,7 +61,9 @@
 contains
 
   function csmlgyAngularDistanceConstructorParameters(parameters) result(self)
-    !% Constructor for the ``csmlgyAngularDistance'' output analysis property operator class which takes a parameter set as input.
+    !!{
+    Constructor for the ``csmlgyAngularDistance'' output analysis property operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (outputAnalysisPropertyOperatorCsmlgyAnglrDstnc)                :: self
@@ -64,20 +74,26 @@ contains
 
     ! Check and read parameters.
     dataAnalysisParameters=parameters%subParameters('dataAnalysis',requirePresent=.false.,requireValue=.false.)
-    !# <objectBuilder class="outputTimes"        name="outputTimes_"            source="parameters"            />
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctionsModel" source="parameters"            />
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctionsData"  source="dataAnalysisParameters"/>
+    !![
+    <objectBuilder class="outputTimes"        name="outputTimes_"            source="parameters"            />
+    <objectBuilder class="cosmologyFunctions" name="cosmologyFunctionsModel" source="parameters"            />
+    <objectBuilder class="cosmologyFunctions" name="cosmologyFunctionsData"  source="dataAnalysisParameters"/>
+    !!]
     ! Construct the object.
     self=outputAnalysisPropertyOperatorCsmlgyAnglrDstnc(cosmologyFunctionsModel,cosmologyFunctionsData,outputTimes_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="outputTimes_"           />
-    !# <objectDestructor name="cosmologyFunctionsModel"/>
-    !# <objectDestructor name="cosmologyFunctionsData" />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="outputTimes_"           />
+    <objectDestructor name="cosmologyFunctionsModel"/>
+    <objectDestructor name="cosmologyFunctionsData" />
+    !!]
     return
   end function csmlgyAngularDistanceConstructorParameters
 
   function csmlgyAngularDistanceConstructorInternal(cosmologyFunctionsModel,cosmologyFunctionsData,outputTimes_) result(self)
-    !% Internal constructor for the ``randomErrorPolynomial'' output analysis property operator class.
+    !!{
+    Internal constructor for the ``randomErrorPolynomial'' output analysis property operator class.
+    !!}
     use            :: Galacticus_Error , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
     use            :: Memory_Management, only : allocateArray
@@ -90,7 +106,9 @@ contains
     double precision                                                                        :: redshift                      , timeData              , &
          &                                                                                     timeModel                     , distanceData          , &
          &                                                                                     distanceModel
-    !# <constructorAssign variables="*cosmologyFunctionsModel, *cosmologyFunctionsData, *outputTimes_"/>
+    !![
+    <constructorAssign variables="*cosmologyFunctionsModel, *cosmologyFunctionsData, *outputTimes_"/>
+    !!]
 
     call allocateArray(self%correctionFactor,[self%outputTimes_%count()])
     do outputIndex=1,self%outputTimes_%count()
@@ -127,20 +145,26 @@ contains
   end function csmlgyAngularDistanceConstructorInternal
 
   subroutine csmlgyAngularDistanceDestructor(self)
-    !% Destructor for the ``csmlgyAnglrDstnc'' output analysis property operator class.
+    !!{
+    Destructor for the ``csmlgyAnglrDstnc'' output analysis property operator class.
+    !!}
     use :: Memory_Management, only : deallocateArray
     implicit none
     type(outputAnalysisPropertyOperatorCsmlgyAnglrDstnc), intent(inout) :: self
 
     call deallocateArray(self%correctionFactor)
-    !# <objectDestructor name="self%cosmologyFunctionsModel"/>
-    !# <objectDestructor name="self%cosmologyFunctionsData" />
-    !# <objectDestructor name="self%outputTimes_"           />
+    !![
+    <objectDestructor name="self%cosmologyFunctionsModel"/>
+    <objectDestructor name="self%cosmologyFunctionsData" />
+    <objectDestructor name="self%outputTimes_"           />
+    !!]
     return
   end subroutine csmlgyAngularDistanceDestructor
 
   double precision function csmlgyAngularDistanceOperate(self,propertyValue,node,propertyType,outputIndex)
-    !% Implement an csmlgyAngularDistance output analysis property operator.
+    !!{
+    Implement an csmlgyAngularDistance output analysis property operator.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (outputAnalysisPropertyOperatorCsmlgyAnglrDstnc), intent(inout)           :: self

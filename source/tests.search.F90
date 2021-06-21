@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to test array search functions.
+!!{
+Contains a program to test array search functions.
+!!}
 
 program Test_Search
-  !% Tests that array search functions work.
+  !!{
+  Tests that array search functions work.
+  !!}
   use :: Arrays_Search     , only : searchArray        , searchArrayClosest
   use :: Display           , only : displayVerbositySet, verbosityLevelStandard
   use :: ISO_Varying_String, only : assignment(=)      , var_str               , varying_string

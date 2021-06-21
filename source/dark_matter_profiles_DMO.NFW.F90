@@ -17,24 +17,30 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of \cite{navarro_universal_1997} dark matter halo profiles.
+  !!{
+  An implementation of \cite{navarro_universal_1997} dark matter halo profiles.
+  !!}
 
   use :: Kind_Numbers, only : kind_int8
   use :: Tables      , only : table1D  , table1DLogarithmicLinear
 
-  !# <darkMatterProfileDMO name="darkMatterProfileDMONFW">
-  !#  <description>
-  !#   A dark matter profile DMO class which implements the \gls{nfw} density profile \citep{navarro_universal_1997}:
-  !#   \begin{equation}
-  !#     \rho_\mathrm{dark matter}(r) \propto \left({r\over r_\mathrm{s}}\right)^{-1} \left[1 + \left({r\over r_\mathrm{s}}\right)
-  !#     \right]^{-2},
-  !#   \end{equation}
-  !#   normalized such that the total mass of the \gls{node} is enclosed with the virial radius and with the scale length
-  !#   $r_\mathrm{s} = r_\mathrm{virial}/c$ where $c$ is the halo concentration (see \refPhysics{darkMatterProfileConcentration}).
-  !#  </description>
-  !# </darkMatterProfileDMO>
+  !![
+  <darkMatterProfileDMO name="darkMatterProfileDMONFW">
+   <description>
+    A dark matter profile DMO class which implements the \gls{nfw} density profile \citep{navarro_universal_1997}:
+    \begin{equation}
+      \rho_\mathrm{dark matter}(r) \propto \left({r\over r_\mathrm{s}}\right)^{-1} \left[1 + \left({r\over r_\mathrm{s}}\right)
+      \right]^{-2},
+    \end{equation}
+    normalized such that the total mass of the \gls{node} is enclosed with the virial radius and with the scale length
+    $r_\mathrm{s} = r_\mathrm{virial}/c$ where $c$ is the halo concentration (see \refPhysics{darkMatterProfileConcentration}).
+   </description>
+  </darkMatterProfileDMO>
+  !!]
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMONFW
-     !% A dark matter halo profile class implementing \cite{navarro_universal_1997} dark matter halos.
+     !!{
+     A dark matter halo profile class implementing \cite{navarro_universal_1997} dark matter halos.
+     !!}
      private
      ! Minimum and maximum concentrations to tabulate.
      double precision                                        :: concentrationMinimum                   , concentrationMaximum
@@ -73,22 +79,24 @@
           &                                                     radialVelocityDispersionRadiusPrevious
      logical                                                 :: velocityDispersionUseSeriesExpansion
    contains
-     !# <methods>
-     !#   <method description="Reset memoized calculations." method="calculationReset" />
-     !#   <method description="Returns the density (in units such that the virial mass and scale length are unity) in an NFW dark matter profile with given {\normalfont \ttfamily concentration} and {\normalfont \ttfamily alpha} at the given {\normalfont \ttfamily radius} (given in units of the scale radius)." method="densityScaleFree" />
-     !#   <method description="Returns the enclosed mass (in units of the virial mass) in an NFW dark matter profile with given {\normalfont \ttfamily concentration} at the given {\normalfont \ttfamily radius} (given in units of the scale radius)." method="enclosedMassScaleFree" />
-     !#   <method description="Returns the density (in units of the virial mass per cubic scale radius) in an NFW dark matter profile with given {\normalfont \ttfamily concentration} which is enclosed a given radius (in units of the scale radius)." method="densityEnclosedByRadiusScaleFree" />
-     !#   <method description="Returns the radial velocity dispersion (in units of the virial velocity) in an NFW dark matter profile with given {\normalfont \ttfamily concentration} at the given {\normalfont \ttfamily radius} (given in units of the scale radius)." method="radialVelocityDispersionScaleFree" />
-     !#   <method description="Returns the radial velocity dispersion (in units of the virial velocity) in an NFW dark matter profile with given {\normalfont \ttfamily concentration} at the given {\normalfont \ttfamily radius} (given in units of the scale radius). The analytic solution is approximated by series expansions to achieve an accuracy better than $10^{-5}$." method="radialVelocityDispersionScaleFreeSeriesExpansion" />
-     !#   <method description="Tabulates the freefall time vs. freefall radius for NFW halos." method="freefallTabulate" />
-     !#   <method description="Compute the freefall time in a scale-free NFW halo." method="freefallTimeScaleFree" />
-     !#   <method description="Returns the total angular momentum in an NFW dark matter profile with given {\normalfont \ttfamily concentration}." method="angularMomentumScaleFree" />
-     !#   <method description="Tabulates the specific angular momentum vs. radius in an NFW profile for rapid inversion." method="inverseAngularMomentum" />
-     !#   <method description="Computes the total energy of an NFW profile halo of given {\normalfont \ttfamily concentration}." method="profileEnergy" />
-     !#   <method description="Returns the specific angular momentum, normalized to unit scale length and unit velocity at the scale radius, at position {\normalfont \ttfamily radius} (in units of the scale radius) in an NFW profile." method="specificAngularMomentumScaleFree" />
-     !#   <method description="Tabulate properties of the NFW halo profile which must be computed numerically." method="tabulate" />
-     !#   <method description="Tabulate the density enclosed within a given radius for the NFW profile." method="enclosedDensityTabulate" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Reset memoized calculations." method="calculationReset" />
+       <method description="Returns the density (in units such that the virial mass and scale length are unity) in an NFW dark matter profile with given {\normalfont \ttfamily concentration} and {\normalfont \ttfamily alpha} at the given {\normalfont \ttfamily radius} (given in units of the scale radius)." method="densityScaleFree" />
+       <method description="Returns the enclosed mass (in units of the virial mass) in an NFW dark matter profile with given {\normalfont \ttfamily concentration} at the given {\normalfont \ttfamily radius} (given in units of the scale radius)." method="enclosedMassScaleFree" />
+       <method description="Returns the density (in units of the virial mass per cubic scale radius) in an NFW dark matter profile with given {\normalfont \ttfamily concentration} which is enclosed a given radius (in units of the scale radius)." method="densityEnclosedByRadiusScaleFree" />
+       <method description="Returns the radial velocity dispersion (in units of the virial velocity) in an NFW dark matter profile with given {\normalfont \ttfamily concentration} at the given {\normalfont \ttfamily radius} (given in units of the scale radius)." method="radialVelocityDispersionScaleFree" />
+       <method description="Returns the radial velocity dispersion (in units of the virial velocity) in an NFW dark matter profile with given {\normalfont \ttfamily concentration} at the given {\normalfont \ttfamily radius} (given in units of the scale radius). The analytic solution is approximated by series expansions to achieve an accuracy better than $10^{-5}$." method="radialVelocityDispersionScaleFreeSeriesExpansion" />
+       <method description="Tabulates the freefall time vs. freefall radius for NFW halos." method="freefallTabulate" />
+       <method description="Compute the freefall time in a scale-free NFW halo." method="freefallTimeScaleFree" />
+       <method description="Returns the total angular momentum in an NFW dark matter profile with given {\normalfont \ttfamily concentration}." method="angularMomentumScaleFree" />
+       <method description="Tabulates the specific angular momentum vs. radius in an NFW profile for rapid inversion." method="inverseAngularMomentum" />
+       <method description="Computes the total energy of an NFW profile halo of given {\normalfont \ttfamily concentration}." method="profileEnergy" />
+       <method description="Returns the specific angular momentum, normalized to unit scale length and unit velocity at the scale radius, at position {\normalfont \ttfamily radius} (in units of the scale radius) in an NFW profile." method="specificAngularMomentumScaleFree" />
+       <method description="Tabulate properties of the NFW halo profile which must be computed numerically." method="tabulate" />
+       <method description="Tabulate the density enclosed within a given radius for the NFW profile." method="enclosedDensityTabulate" />
+     </methods>
+     !!]
      final     ::                                                     nfwDestructor
      procedure :: autoHook                                         => nfwAutoHook
      procedure :: calculationReset                                 => nfwCalculationReset
@@ -126,7 +134,9 @@
   end type darkMatterProfileDMONFW
 
   interface darkMatterProfileDMONFW
-     !% Constructors for the {\normalfont \ttfamily nfw} dark matter halo profile class.
+     !!{
+     Constructors for the {\normalfont \ttfamily nfw} dark matter halo profile class.
+     !!}
      module procedure nfwConstructorParameters
      module procedure nfwConstructorInternal
   end interface darkMatterProfileDMONFW
@@ -142,7 +152,9 @@
 contains
 
   function nfwConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily nfw} dark matter halo profile class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily nfw} dark matter halo profile class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (darkMatterProfileDMONFW )                :: self
@@ -150,28 +162,36 @@ contains
     class  (darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
     logical                                          :: velocityDispersionUseSeriesExpansion
 
-    !# <inputParameter>
-    !#   <name>velocityDispersionUseSeriesExpansion</name>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <source>parameters</source>
-    !#   <description>If {\normalfont \ttfamily true}, radial velocity dispersion is computed using series expansion.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>velocityDispersionUseSeriesExpansion</name>
+      <defaultValue>.true.</defaultValue>
+      <source>parameters</source>
+      <description>If {\normalfont \ttfamily true}, radial velocity dispersion is computed using series expansion.</description>
+    </inputParameter>
+    <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    !!]
     self=darkMatterProfileDMONFW(velocityDispersionUseSeriesExpansion,darkMatterHaloScale_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterHaloScale_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterHaloScale_"/>
+    !!]
     return
   end function nfwConstructorParameters
 
   function nfwConstructorInternal(velocityDispersionUseSeriesExpansion,darkMatterHaloScale_) result(self)
-    !% Generic constructor for the {\normalfont \ttfamily nfw} dark matter halo profile class.
+    !!{
+    Generic constructor for the {\normalfont \ttfamily nfw} dark matter halo profile class.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Component_List        , Galacticus_Error_Report
     use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent
     implicit none
     type   (darkMatterProfileDMONFW )                        :: self
     class  (darkMatterHaloScaleClass), intent(in   ), target :: darkMatterHaloScale_
     logical                          , intent(in   )         :: velocityDispersionUseSeriesExpansion
-    !# <constructorAssign variables="velocityDispersionUseSeriesExpansion,*darkMatterHaloScale_"/>
+    !![
+    <constructorAssign variables="velocityDispersionUseSeriesExpansion,*darkMatterHaloScale_"/>
+    !!]
 
     self%concentrationPrevious             =-1.0d+0
     self%concentrationMinimum              = 1.0d+0
@@ -205,7 +225,9 @@ contains
   end function nfwConstructorInternal
 
   subroutine nfwAutoHook(self)
-    !% Attach to the calculation reset event.
+    !!{
+    Attach to the calculation reset event.
+    !!}
     use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(darkMatterProfileDMONFW), intent(inout) :: self
@@ -215,7 +237,9 @@ contains
   end subroutine nfwAutoHook
 
   subroutine nfwDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily nfw} dark matter halo profile class.
+    !!{
+    Destructor for the {\normalfont \ttfamily nfw} dark matter halo profile class.
+    !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none
     type(darkMatterProfileDMONFW), intent(inout) :: self
@@ -238,13 +262,17 @@ contains
     if (self%nfwTableInitialized        ) then
        call self%nfwConcentrationTable            %destroy()
     end if
-    !# <objectDestructor name="self%darkMatterHaloScale_" />
+    !![
+    <objectDestructor name="self%darkMatterHaloScale_" />
+    !!]
     call calculationResetEvent%detach(self,nfwCalculationReset)
     return
   end subroutine nfwDestructor
 
   subroutine nfwCalculationReset(self,node)
-    !% Reset the dark matter profile calculation.
+    !!{
+    Reset the dark matter profile calculation.
+    !!}
     implicit none
     class(darkMatterProfileDMONFW), intent(inout) :: self
     type (treeNode               ), intent(inout) :: node
@@ -262,7 +290,9 @@ contains
   end subroutine nfwCalculationReset
 
   subroutine nfwTabulate(self,concentration)
-    !% Tabulate properties of the NFW halo profile which must be computed numerically.
+    !!{
+    Tabulate properties of the NFW halo profile which must be computed numerically.
+    !!}
     implicit none
     class           (darkMatterProfileDMONFW), intent(inout)           :: self
     double precision                         , intent(in   ), optional :: concentration
@@ -299,7 +329,9 @@ contains
   end subroutine nfwTabulate
 
   subroutine nfwInverseAngularMomentum(self,specificAngularMomentum)
-    !% Tabulates the specific angular momentum vs. radius in an NFW profile for rapid inversion.
+    !!{
+    Tabulates the specific angular momentum vs. radius in an NFW profile for rapid inversion.
+    !!}
     implicit none
     class           (darkMatterProfileDMONFW), intent(inout)           :: self
     double precision                         , intent(in   ), optional :: specificAngularMomentum
@@ -346,8 +378,10 @@ contains
   end subroutine nfwInverseAngularMomentum
 
   double precision function nfwDensity(self,node,radius)
-    !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given
-    !% in units of Mpc).
+    !!{
+    Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given
+    in units of Mpc).
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile, treeNode
     implicit none
     class           (darkMatterProfileDMONFW       ), intent(inout) :: self
@@ -370,8 +404,10 @@ contains
   end function nfwDensity
 
   double precision function nfwDensityLogSlope(self,node,radius)
-    !% Returns the logarithmic slope of the density in the dark matter profile of {\normalfont \ttfamily node} at the given
-    !% {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!{
+    Returns the logarithmic slope of the density in the dark matter profile of {\normalfont \ttfamily node} at the given
+    {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile, treeNode
     implicit none
     class           (darkMatterProfileDMONFW       ), intent(inout) :: self
@@ -392,8 +428,10 @@ contains
   end function nfwDensityLogSlope
 
   double precision function nfwRadialMoment(self,node,moment,radiusMinimum,radiusMaximum)
-    !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given
-    !% in units of Mpc).
+    !!{
+    Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given
+    in units of Mpc).
+    !!}
     use :: Galacticus_Nodes        , only : nodeComponentBasic, nodeComponentDarkMatterProfile, treeNode
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -432,7 +470,9 @@ contains
   contains
 
     double precision function nfwRadialMomentScaleFree(radius)
-      !% Provides the scale-free part of the radial moment of the NFW density profile.
+      !!{
+      Provides the scale-free part of the radial moment of the NFW density profile.
+      !!}
       use :: Hypergeometric_Functions, only : Hypergeometric_2F1
       use :: Numerical_Comparison    , only : Values_Agree
       implicit none
@@ -473,8 +513,10 @@ contains
   end function nfwRadialMoment
 
   double precision function nfwEnclosedMass(self,node,radius)
-    !% Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
-    !% units of Mpc).
+    !!{
+    Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
+    units of Mpc).
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile, treeNode
     implicit none
     class           (darkMatterProfileDMONFW       ), intent(inout) :: self
@@ -496,8 +538,10 @@ contains
   end function nfwEnclosedMass
 
   double precision function nfwPotential(self,node,radius,status)
-    !% Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
-    !% units of Mpc).
+    !!{
+    Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
+    units of Mpc).
+    !!}
     use :: Galactic_Structure_Options, only : structureErrorCodeSuccess
     use :: Galacticus_Nodes          , only : nodeComponentDarkMatterProfile, treeNode
     implicit none
@@ -533,8 +577,10 @@ contains
   end function nfwPotential
 
   double precision function nfwCircularVelocity(self,node,radius)
-    !% Returns the circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
-    !% units of Mpc).
+    !!{
+    Returns the circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
+    units of Mpc).
+    !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (darkMatterProfileDMONFW), intent(inout) :: self
@@ -557,7 +603,9 @@ contains
   end function nfwCircularVelocity
 
   double precision function nfwRadiusCircularVelocityMaximum(self,node)
-    !% Returns the radius (in Mpc) at which the maximum circular velocity is achieved in the dark matter profile of {\normalfont \ttfamily node}.
+    !!{
+    Returns the radius (in Mpc) at which the maximum circular velocity is achieved in the dark matter profile of {\normalfont \ttfamily node}.
+    !!}
     use :: Galacticus_Nodes                , only : nodeComponentDarkMatterProfile , treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
@@ -576,7 +624,9 @@ contains
   end function nfwRadiusCircularVelocityMaximum
 
   double precision function nfwCircularVelocityMaximum(self,node)
-    !% Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}.
+    !!{
+    Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}.
+    !!}
     use :: Galacticus_Nodes                , only : nodeComponentBasic             , nodeComponentDarkMatterProfile, treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
@@ -612,8 +662,10 @@ contains
   end function nfwCircularVelocityMaximum
 
   double precision function nfwRadialVelocityDispersion(self,node,radius)
-    !% Returns the radial velocity dispersion (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
-    !% {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!{
+    Returns the radial velocity dispersion (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
+    {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, treeNode
     implicit none
     class           (darkMatterProfileDMONFW       ), intent(inout)          :: self
@@ -648,8 +700,10 @@ contains
   end function nfwRadialVelocityDispersion
 
   double precision function nfwRadiusFromSpecificAngularMomentum(self,node,specificAngularMomentum)
-    !% Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentum} (given
-    !% in units of km s$^{-1}$ Mpc).
+    !!{
+    Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentum} (given
+    in units of km s$^{-1}$ Mpc).
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, treeNode
     implicit none
     class           (darkMatterProfileDMONFW       ), intent(inout) :: self
@@ -696,7 +750,9 @@ contains
   end function nfwRadiusFromSpecificAngularMomentum
 
   double precision function nfwRotationNormalization(self,node)
-    !% Return the normalization of the rotation velocity vs. specific angular momentum relation.
+    !!{
+    Return the normalization of the rotation velocity vs. specific angular momentum relation.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, treeNode
     implicit none
     class           (darkMatterProfileDMONFW       ), intent(inout) :: self
@@ -720,7 +776,9 @@ contains
   end function nfwRotationNormalization
 
   double precision function nfwEnergy(self,node)
-    !% Return the energy of an NFW halo density profile.
+    !!{
+    Return the energy of an NFW halo density profile.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile, treeNode
     implicit none
     class           (darkMatterProfileDMONFW       ), intent(inout) :: self
@@ -747,7 +805,9 @@ contains
   end function nfwEnergy
 
   double precision function nfwEnergyGrowthRate(self,node)
-    !% Return the rate of change of the energy of an NFW halo density profile.
+    !!{
+    Return the rate of change of the energy of an NFW halo density profile.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile, treeNode
     implicit none
     class           (darkMatterProfileDMONFW       ), intent(inout)          :: self
@@ -794,15 +854,17 @@ contains
   end function nfwEnergyGrowthRate
 
   double precision function nfwAngularMomentumScaleFree(self,concentration)
-    !% Returns the total angular momentum (in units of the virial mass times scale radius times [assumed constant] rotation speed)
-    !% in an NFW dark matter profile with given {\normalfont \ttfamily concentration}. This is given by:
-    !% \begin{equation}
-    !% J = \left. \int_0^c 4 \pi x^3 \rho(x) \d x \right/ \int_0^c 4 \pi x^2 \rho(x) \d x,
-    !% \end{equation}
-    !% where $x$ is radius in units of the scale radius and $c$ is concentration. This can be evaluated to give
-    !% \begin{equation}
-    !% J = \left. \left[ 1 + c - 2 \ln (1+c) - {1 \over 1+c} \right] \right/ \left[ \ln(1+c)-{c\over 1+c} \right].
-    !% \end{equation}
+    !!{
+    Returns the total angular momentum (in units of the virial mass times scale radius times [assumed constant] rotation speed)
+    in an NFW dark matter profile with given {\normalfont \ttfamily concentration}. This is given by:
+    \begin{equation}
+    J = \left. \int_0^c 4 \pi x^3 \rho(x) \d x \right/ \int_0^c 4 \pi x^2 \rho(x) \d x,
+    \end{equation}
+    where $x$ is radius in units of the scale radius and $c$ is concentration. This can be evaluated to give
+    \begin{equation}
+    J = \left. \left[ 1 + c - 2 \ln (1+c) - {1 \over 1+c} \right] \right/ \left[ \ln(1+c)-{c\over 1+c} \right].
+    \end{equation}
+    !!}
     implicit none
     class           (darkMatterProfileDMONFW), intent(inout) :: self
     double precision                         , intent(in   ) :: concentration
@@ -814,8 +876,10 @@ contains
   end function nfwAngularMomentumScaleFree
 
   double precision function nfwSpecificAngularMomentumScaleFree(self,radius)
-    !% Returns the specific angular momentum, normalized to unit scale length and unit velocity at the scale radius, at position
-    !% {\normalfont \ttfamily radius} (in units of the scale radius) in an NFW profile.
+    !!{
+    Returns the specific angular momentum, normalized to unit scale length and unit velocity at the scale radius, at position
+    {\normalfont \ttfamily radius} (in units of the scale radius) in an NFW profile.
+    !!}
     implicit none
     class           (darkMatterProfileDMONFW), intent(inout) :: self
     double precision                         , intent(in   ) :: radius
@@ -857,8 +921,10 @@ contains
   end function nfwSpecificAngularMomentumScaleFree
 
   double precision function nfwEnclosedMassScaleFree(self,radius,concentration)
-    !% Returns the enclosed mass (in units of the virial mass) in an NFW dark matter profile with given {\normalfont \ttfamily concentration} at the
-    !% given {\normalfont \ttfamily radius} (given in units of the scale radius).
+    !!{
+    Returns the enclosed mass (in units of the virial mass) in an NFW dark matter profile with given {\normalfont \ttfamily concentration} at the
+    given {\normalfont \ttfamily radius} (given in units of the scale radius).
+    !!}
     implicit none
     class           (darkMatterProfileDMONFW), intent(inout) :: self
     double precision                         , intent(in   ) :: concentration                                                   , radius
@@ -881,7 +947,9 @@ contains
   end function nfwEnclosedMassScaleFree
 
   subroutine nfwMassNormalizationFactor(self,concentration)
-    !% Compute the normalization factor for the NFW mass profile.
+    !!{
+    Compute the normalization factor for the NFW mass profile.
+    !!}
     implicit none
     class           (darkMatterProfileDMONFW), intent(inout) :: self
     double precision                         , intent(in   ) :: concentration
@@ -902,8 +970,10 @@ contains
   end subroutine nfwMassNormalizationFactor
 
   double precision function nfwRadiusEnclosingDensity(self,node,density)
-    !% Returns the radius (in units of the scale radius) in an NFW dark matter profile with given {\normalfont \ttfamily
-    !% concentration} which encloses a given density (in units of the virial mass per cubic scale radius).
+    !!{
+    Returns the radius (in units of the scale radius) in an NFW dark matter profile with given {\normalfont \ttfamily
+    concentration} which encloses a given density (in units of the virial mass per cubic scale radius).
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile, treeNode
     implicit none
     class           (darkMatterProfileDMONFW       ), intent(inout), target :: self
@@ -947,8 +1017,10 @@ contains
   end function nfwRadiusEnclosingDensity
 
   double precision function nfwRadiusEnclosingMass(self,node,mass)
-    !% Returns the radius (in Mpc) in an NFW dark matter profile with given {\normalfont \ttfamily
-    !% concentration} which encloses a given mass (in $M_\odot$).
+    !!{
+    Returns the radius (in Mpc) in an NFW dark matter profile with given {\normalfont \ttfamily
+    concentration} which encloses a given mass (in $M_\odot$).
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile, treeNode
     use :: Lambert_Ws      , only : Lambert_W0
     implicit none
@@ -995,8 +1067,10 @@ contains
   end function nfwRadiusEnclosingMass
 
   double precision function nfwDensityEnclosedByRadiusScaleFree(self,radius)
-    !% Returns the density (in units of the virial mass per cubic scale radius) in an NFW dark matter profile with given {\normalfont \ttfamily
-    !% concentration} which is enclosed a given radius (in units of the scale radius).
+    !!{
+    Returns the density (in units of the virial mass per cubic scale radius) in an NFW dark matter profile with given {\normalfont \ttfamily
+    concentration} which is enclosed a given radius (in units of the scale radius).
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (darkMatterProfileDMONFW), intent(inout) :: self
@@ -1011,7 +1085,9 @@ contains
   end function nfwDensityEnclosedByRadiusScaleFree
 
   subroutine nfwEnclosedDensityTabulate(self,enclosedDensityScaleFree)
-    !% Tabulates the enclosed density vs. radius for NFW halos.
+    !!{
+    Tabulates the enclosed density vs. radius for NFW halos.
+    !!}
     implicit none
     class           (darkMatterProfileDMONFW), intent(inout) :: self
     double precision                         , intent(in   ) :: enclosedDensityScaleFree
@@ -1056,8 +1132,10 @@ contains
   end subroutine nfwEnclosedDensityTabulate
 
   double precision function nfwDensityScaleFree(self,radius,concentration)
-    !% Returns the density (in units such that the virial mass and scale length are unity) in an NFW dark matter profile with
-    !% given {\normalfont \ttfamily concentration} at the given {\normalfont \ttfamily radius} (given in units of the scale radius).
+    !!{
+    Returns the density (in units such that the virial mass and scale length are unity) in an NFW dark matter profile with
+    given {\normalfont \ttfamily concentration} at the given {\normalfont \ttfamily radius} (given in units of the scale radius).
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (darkMatterProfileDMONFW), intent(inout) :: self
@@ -1069,10 +1147,12 @@ contains
   end function nfwDensityScaleFree
 
   double precision function nfwRadialVelocityDispersionScaleFree(self,radius,concentration)
-    !% Returns the radial velocity dispersion (in units of the virial velocity) in an NFW dark matter profile with given
-    !% {\normalfont \ttfamily concentration} at the given {\normalfont \ttfamily radius} (given in units of the scale radius)
-    !% using the result derived by \citeauthor{lokas_properties_2001}~(\citeyear{lokas_properties_2001}; eqn.~14). Note that
-    !% approximate solutions are used at small and large radii.
+    !!{
+    Returns the radial velocity dispersion (in units of the virial velocity) in an NFW dark matter profile with given
+    {\normalfont \ttfamily concentration} at the given {\normalfont \ttfamily radius} (given in units of the scale radius)
+    using the result derived by \citeauthor{lokas_properties_2001}~(\citeyear{lokas_properties_2001}; eqn.~14). Note that
+    approximate solutions are used at small and large radii.
+    !!}
     use :: Dilogarithms            , only : Dilogarithm
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -1143,11 +1223,13 @@ contains
   end function nfwRadialVelocityDispersionScaleFree
 
   double precision function nfwRadialVelocityDispersionScaleFreeSeriesExpansion(self,radius,concentration)
-    !% Returns the radial velocity dispersion (in units of the virial velocity) in an NFW dark matter profile with given
-    !% {\normalfont \ttfamily concentration} at the given {\normalfont \ttfamily radius} (given in units of the scale radius)
-    !% using the result derived by \citeauthor{lokas_properties_2001}~(\citeyear{lokas_properties_2001}; eqn.~14). The
-    !% analytic solution is expanded around 0, 1/2, 1, 2, and infinity. The relative error of the approximate series is less
-    !% than $10^{-5}$.
+    !!{
+    Returns the radial velocity dispersion (in units of the virial velocity) in an NFW dark matter profile with given
+    {\normalfont \ttfamily concentration} at the given {\normalfont \ttfamily radius} (given in units of the scale radius)
+    using the result derived by \citeauthor{lokas_properties_2001}~(\citeyear{lokas_properties_2001}; eqn.~14). The
+    analytic solution is expanded around 0, 1/2, 1, 2, and infinity. The relative error of the approximate series is less
+    than $10^{-5}$.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (darkMatterProfileDMONFW)                                    , intent(inout) :: self
@@ -1242,9 +1324,11 @@ contains
   end function nfwRadialVelocityDispersionScaleFreeSeriesExpansion
 
   double precision function nfwProfileEnergy(self,concentration)
-    !% Computes the total energy of an NFW profile halo of given {\normalfont \ttfamily concentration} using the methods of
-    !% \citeauthor{cole_hierarchical_2000}~(\citeyear{cole_hierarchical_2000}; their Appendix~A), except for potential energy
-    !% which is computed using the result derived by \citeauthor{mo_formation_1998}~(\citeyear{mo_formation_1998}; eqn.~23).
+    !!{
+    Computes the total energy of an NFW profile halo of given {\normalfont \ttfamily concentration} using the methods of
+    \citeauthor{cole_hierarchical_2000}~(\citeyear{cole_hierarchical_2000}; their Appendix~A), except for potential energy
+    which is computed using the result derived by \citeauthor{mo_formation_1998}~(\citeyear{mo_formation_1998}; eqn.~23).
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Integration   , only : integrator
     implicit none
@@ -1290,7 +1374,9 @@ contains
   contains
 
     double precision function nfwKineticEnergyIntegrand(radius)
-      !% Integrand for NFW profile kinetic energy.
+      !!{
+      Integrand for NFW profile kinetic energy.
+      !!}
       implicit none
       double precision, intent(in   ) :: radius
 
@@ -1301,7 +1387,9 @@ contains
     end function nfwKineticEnergyIntegrand
 
     double precision function nfwJeansEquationIntegrand(radius)
-      !% Integrand for NFW profile Jeans equation.
+      !!{
+      Integrand for NFW profile Jeans equation.
+      !!}
       implicit none
       double precision, intent(in   ) :: radius
 
@@ -1314,8 +1402,10 @@ contains
   end function nfwProfileEnergy
 
   double precision function nfwKSpace(self,node,waveNumber)
-    !% Returns the Fourier transform of the NFW density profile at the specified {\normalfont \ttfamily waveNumber} (given in Mpc$^{-1}$), using the
-    !% expression given in \citeauthor{cooray_halo_2002}~(\citeyear{cooray_halo_2002}; eqn.~81).
+    !!{
+    Returns the Fourier transform of the NFW density profile at the specified {\normalfont \ttfamily waveNumber} (given in Mpc$^{-1}$), using the
+    expression given in \citeauthor{cooray_halo_2002}~(\citeyear{cooray_halo_2002}; eqn.~81).
+    !!}
     use :: Exponential_Integrals, only : Cosine_Integral               , Sine_Integral
     use :: Galacticus_Nodes     , only : nodeComponentDarkMatterProfile, treeNode
     implicit none
@@ -1349,7 +1439,9 @@ contains
   end function nfwKSpace
 
   double precision function nfwFreefallRadius(self,node,time)
-    !% Returns the freefall radius in the NFW density profile at the specified {\normalfont \ttfamily time} (given in Gyr).
+    !!{
+    Returns the freefall radius in the NFW density profile at the specified {\normalfont \ttfamily time} (given in Gyr).
+    !!}
     use :: Galacticus_Nodes                , only : nodeComponentDarkMatterProfile, treeNode
     use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
     implicit none
@@ -1397,8 +1489,10 @@ contains
   end function nfwFreefallRadius
 
   double precision function nfwFreefallRadiusIncreaseRate(self,node,time)
-    !% Returns the rate of increase of the freefall radius in the NFW density profile at the specified {\normalfont \ttfamily time} (given in
-    !% Gyr).
+    !!{
+    Returns the rate of increase of the freefall radius in the NFW density profile at the specified {\normalfont \ttfamily time} (given in
+    Gyr).
+    !!}
     use :: Galacticus_Nodes                , only : nodeComponentDarkMatterProfile, treeNode
     use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
     implicit none
@@ -1446,7 +1540,9 @@ contains
   end function nfwFreefallRadiusIncreaseRate
 
   subroutine nfwFreefallTabulate(self,freefallTimeScaleFree)
-    !% Tabulates the freefall time vs. freefall radius for NFW halos.
+    !!{
+    Tabulates the freefall time vs. freefall radius for NFW halos.
+    !!}
     implicit none
     class           (darkMatterProfileDMONFW), intent(inout) :: self
     double precision                         , intent(in   ) :: freefallTimeScaleFree
@@ -1491,7 +1587,9 @@ contains
   end subroutine nfwFreefallTabulate
 
   double precision function nfwFreefallTimeScaleFree(self,radius)
-    !% Compute the freefall time in a scale-free NFW halo.
+    !!{
+    Compute the freefall time in a scale-free NFW halo.
+    !!}
     use :: Numerical_Integration, only : integrator
     implicit none
     class           (darkMatterProfileDMONFW), intent(inout) :: self
@@ -1517,7 +1615,9 @@ contains
   contains
 
     double precision function nfwFreefallTimeScaleFreeIntegrand(radius)
-      !% Integrand function used for finding the free-fall time in NFW halos.
+      !!{
+      Integrand function used for finding the free-fall time in NFW halos.
+      !!}
       implicit none
       double precision, intent(in   ) :: radius
       double precision, parameter     :: radiusSmall        =1.0d-6

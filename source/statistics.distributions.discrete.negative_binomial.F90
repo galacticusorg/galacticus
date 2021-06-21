@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a negative binomial 1D discrete distibution function.
+  !!{
+  Implementation of a negative binomial 1D discrete distibution function.
+  !!}
 
-  !# <distributionFunctionDiscrete1D name="distributionFunctionDiscrete1DNegativeBinomial">
-  !#  <description>A negative binomial 1D discrete distribution function class.</description>
-  !# </distributionFunctionDiscrete1D>
+  !![
+  <distributionFunctionDiscrete1D name="distributionFunctionDiscrete1DNegativeBinomial">
+   <description>A negative binomial 1D discrete distribution function class.</description>
+  </distributionFunctionDiscrete1D>
+  !!]
   type, extends(distributionFunctionDiscrete1DClass) :: distributionFunctionDiscrete1DNegativeBinomial
-     !% Implementation of a negativeBinomial 1D discrete distibution function.
+     !!{
+     Implementation of a negativeBinomial 1D discrete distibution function.
+     !!}
      private
      double precision :: probabilitySuccess, countFailures
    contains
@@ -36,7 +42,9 @@
   end type distributionFunctionDiscrete1DNegativeBinomial
 
   interface distributionFunctionDiscrete1DNegativeBinomial
-     !% Constructors for the {\normalfont \ttfamily negativeBinomial} 1D discrete distribution function class.
+     !!{
+     Constructors for the {\normalfont \ttfamily negativeBinomial} 1D discrete distribution function class.
+     !!}
      module procedure negativeBinomialConstructorParameters
      module procedure negativeBinomialConstructorInternal
   end interface distributionFunctionDiscrete1DNegativeBinomial
@@ -44,8 +52,10 @@
 contains
 
   function negativeBinomialConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily negativeBinomial} 1D discrete distribution function class which builds
-    !% the object from a parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily negativeBinomial} 1D discrete distribution function class which builds
+    the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (distributionFunctionDiscrete1DNegativeBinomial)                :: self
@@ -53,31 +63,39 @@ contains
     class           (randomNumberGeneratorClass                    ), pointer       :: randomNumberGenerator_
     double precision                                                                :: probabilitySuccess    , countFailures
 
-    !# <inputParameter>
-    !#   <name>probabilitySuccess</name>
-    !#   <description>The probability of success for a single trial.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>countFailures</name>
-    !#   <description>The number of failures.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>probabilitySuccess</name>
+      <description>The probability of success for a single trial.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>countFailures</name>
+      <description>The number of failures.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !!]
     self=distributionFunctionDiscrete1DNegativeBinomial(probabilitySuccess,countFailures,randomNumberGenerator_)
-    !# <objectDestructor name="randomNumberGenerator_"/>
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <objectDestructor name="randomNumberGenerator_"/>
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function negativeBinomialConstructorParameters
 
   function negativeBinomialConstructorInternal(probabilitySuccess,countFailures,randomNumberGenerator_) result(self)
-    !% Constructor for ``negativeBinomial'' 1D distribution function class.
+    !!{
+    Constructor for ``negativeBinomial'' 1D distribution function class.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (distributionFunctionDiscrete1DNegativeBinomial)                                  :: self
     double precision                                                , intent(in   )                   :: probabilitySuccess    , countFailures
     class           (randomNumberGeneratorClass                    ), intent(in   ), target, optional :: randomNumberGenerator_
-    !# <constructorAssign variables="probabilitySuccess, countFailures, *randomNumberGenerator_"/>
+    !![
+    <constructorAssign variables="probabilitySuccess, countFailures, *randomNumberGenerator_"/>
+    !!]
 
     if (probabilitySuccess <  0.0d0 .or. probabilitySuccess > 1.0d0) call Galacticus_Error_Report('p ∈ [0,1]'//{introspection:location})
     if (countFailures      <= 0.0d0                                ) call Galacticus_Error_Report('r ∈ (0,∞]'//{introspection:location})
@@ -85,7 +103,9 @@ contains
   end function negativeBinomialConstructorInternal
 
   double precision function negativeBinomialMass(self,x)
-    !% Return the mass of a negative binomial discrete distribution.
+    !!{
+    Return the mass of a negative binomial discrete distribution.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Gamma_Functions , only : Gamma_Function_Logarithmic
     implicit none
@@ -104,7 +124,9 @@ contains
   end function negativeBinomialMass
 
   double precision function negativeBinomialMassLogarithmic(self,x)
-    !% Return the logarithmic mass of a negative binomial discrete distribution.
+    !!{
+    Return the logarithmic mass of a negative binomial discrete distribution.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Gamma_Functions , only : Gamma_Function_Logarithmic
     implicit none
@@ -121,7 +143,9 @@ contains
   end function negativeBinomialMassLogarithmic
 
   double precision function negativeBinomialCumulative(self,x)
-    !% Return the cumulative probability of a negativeBinomial discrete distribution.
+    !!{
+    Return the cumulative probability of a negativeBinomial discrete distribution.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (distributionFunctionDiscrete1DNegativeBinomial), intent(inout) :: self
@@ -134,7 +158,9 @@ contains
   end function negativeBinomialCumulative
 
   integer function negativeBinomialInverse(self,p)
-    !% Return the inverse of a negative binomial discrete distribution.
+    !!{
+    Return the inverse of a negative binomial discrete distribution.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (distributionFunctionDiscrete1DNegativeBinomial), intent(inout) :: self
@@ -147,7 +173,9 @@ contains
   end function negativeBinomialInverse
 
   integer function negativeBinomialMinimum(self)
-    !% Return the minimum possible value in a negative binomial discrete distribution.
+    !!{
+    Return the minimum possible value in a negative binomial discrete distribution.
+    !!}
     implicit none
     class(distributionFunctionDiscrete1DNegativeBinomial), intent(inout) :: self
     !$GLC attributes unused :: self
@@ -157,7 +185,9 @@ contains
   end function negativeBinomialMinimum
 
   integer function negativeBinomialMaximum(self)
-    !% Return the maximum possible value in a negative binomial discrete distribution.
+    !!{
+    Return the maximum possible value in a negative binomial discrete distribution.
+    !!}
     implicit none
     class(distributionFunctionDiscrete1DNegativeBinomial), intent(inout) :: self
     !$GLC attributes unused :: self

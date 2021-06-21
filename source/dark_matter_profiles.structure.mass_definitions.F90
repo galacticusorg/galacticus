@@ -17,17 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements conversions of total halo mass between different definitions.
+!!{
+Contains a module which implements conversions of total halo mass between different definitions.
+!!}
 
 module Dark_Matter_Profile_Mass_Definitions
-  !% Implements calculations of dark matter profile scale radii from concentrations.
+  !!{
+  Implements calculations of dark matter profile scale radii from concentrations.
+  !!}
   private
   public :: Dark_Matter_Profile_Mass_Definition
 
 contains
 
   function Dark_Matter_Profile_Mass_Definition(node,densityContrast,radius,velocity) result(massHalo)
-    !% Compute the mass of {\normalfont \ttfamily node} under the given density contrast definition.
+    !!{
+    Compute the mass of {\normalfont \ttfamily node} under the given density contrast definition.
+    !!}
     use :: Cosmology_Functions         , only : cosmologyFunctions             , cosmologyFunctionsClass
     use :: Cosmology_Parameters        , only : cosmologyParameters            , cosmologyParametersClass
     use :: Dark_Matter_Profiles_DMO    , only : darkMatterProfileDMO           , darkMatterProfileDMOClass

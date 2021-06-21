@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module of data for standard spheroid components.
+!!{
+Contains a module of data for standard spheroid components.
+!!}
 
 module Node_Component_Spheroid_Standard_Data
-  !% Contains data for standard spheroid components.
+  !!{
+  Contains data for standard spheroid components.
+  !!}
   use :: Mass_Distributions, only : massDistributionClass
   implicit none
   public

@@ -17,23 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of the \cite{baugh_can_2005} timescale for star formation.
+  !!{
+  Implementation of the \cite{baugh_can_2005} timescale for star formation.
+  !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
-  !# <starFormationTimescale name="starFormationTimescaleBaugh2005">
-  !#  <description>
-  !#   A star formation timescale class which adopts the star formation rate given by a modified version of the
-  !#   \cite{baugh_can_2005} prescription:
-  !#   \begin{equation}
-  !#   \tau_\star = \tau_0 (V_\mathrm{disk}/200\hbox{km/s})^\alpha a^\beta
-  !#   \end{equation}
-  !#   where $\tau_0=${\normalfont \ttfamily [timescale]}, $\alpha=${\normalfont \ttfamily [exponentVelocity]} and
-  !#   $\beta=${\normalfont \ttfamily [exponentExpansionFactor]}.
-  !#  </description>
-  !# </starFormationTimescale>
+  !![
+  <starFormationTimescale name="starFormationTimescaleBaugh2005">
+   <description>
+    A star formation timescale class which adopts the star formation rate given by a modified version of the
+    \cite{baugh_can_2005} prescription:
+    \begin{equation}
+    \tau_\star = \tau_0 (V_\mathrm{disk}/200\hbox{km/s})^\alpha a^\beta
+    \end{equation}
+    where $\tau_0=${\normalfont \ttfamily [timescale]}, $\alpha=${\normalfont \ttfamily [exponentVelocity]} and
+    $\beta=${\normalfont \ttfamily [exponentExpansionFactor]}.
+   </description>
+  </starFormationTimescale>
+  !!]
   type, extends(starFormationTimescaleClass) :: starFormationTimescaleBaugh2005
-     !% Implementation of the \cite{baugh_can_2005} timescale for star formation.
+     !!{
+     Implementation of the \cite{baugh_can_2005} timescale for star formation.
+     !!}
      private
      class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_    => null()
      double precision                                    :: timescaleValue                  , exponentVelocity, &
@@ -44,7 +50,9 @@
   end type starFormationTimescaleBaugh2005
 
   interface starFormationTimescaleBaugh2005
-     !% Constructors for the {\normalfont \ttfamily baugh2005} timescale for star formation class.
+     !!{
+     Constructors for the {\normalfont \ttfamily baugh2005} timescale for star formation class.
+     !!}
      module procedure baugh2005ConstructorParameters
      module procedure baugh2005ConstructorInternal
   end interface starFormationTimescaleBaugh2005
@@ -54,8 +62,10 @@
 contains
 
   function baugh2005ConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily baugh2005} timescale for star formation class which takes a parameter set as
-    !% input.
+    !!{
+    Constructor for the {\normalfont \ttfamily baugh2005} timescale for star formation class which takes a parameter set as
+    input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (starFormationTimescaleBaugh2005)                :: self
@@ -64,56 +74,70 @@ contains
     double precision                                                 :: timescale              , exponentVelocity, &
          &                                                              exponentExpansionFactor
 
-    !# <inputParameter>
-    !#   <name>timescale</name>
-    !#   <defaultValue>8.0d0</defaultValue>
-    !#   <description>The timescale (in Gyr) for star formation in the \cite{baugh_can_2005} prescription.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>exponentVelocity</name>
-    !#   <defaultValue>-3.0d0</defaultValue>
-    !#   <description>The exponent for velocity in the \cite{baugh_can_2005} prescription for star formation.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>exponentExpansionFactor</name>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>The exponent for expansion factor in the \cite{baugh_can_2005} prescription for star formation.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>timescale</name>
+      <defaultValue>8.0d0</defaultValue>
+      <description>The timescale (in Gyr) for star formation in the \cite{baugh_can_2005} prescription.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>exponentVelocity</name>
+      <defaultValue>-3.0d0</defaultValue>
+      <description>The exponent for velocity in the \cite{baugh_can_2005} prescription for star formation.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>exponentExpansionFactor</name>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The exponent for expansion factor in the \cite{baugh_can_2005} prescription for star formation.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !!]
     self=starFormationTimescaleBaugh2005(timescale,exponentVelocity,exponentExpansionFactor,cosmologyFunctions_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"/>
+    !!]
     return
   end function baugh2005ConstructorParameters
 
   function baugh2005ConstructorInternal(timescale,exponentVelocity,exponentExpansionFactor,cosmologyFunctions_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily baugh2005} timescale for star formation class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily baugh2005} timescale for star formation class.
+    !!}
     implicit none
     type            (starFormationTimescaleBaugh2005)                        :: self
     double precision                                 , intent(in   )         :: timescale              , exponentVelocity, &
          &                                                                      exponentExpansionFactor
     class           (cosmologyFunctionsClass        ), intent(in   ), target :: cosmologyFunctions_
-    !# <constructorAssign variables="exponentVelocity, exponentExpansionFactor, *cosmologyFunctions_"/>
+    !![
+    <constructorAssign variables="exponentVelocity, exponentExpansionFactor, *cosmologyFunctions_"/>
+    !!]
 
     self%timescaleValue=timescale
     return
   end function baugh2005ConstructorInternal
 
   subroutine baugh2005Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily baugh2005} timescale for star formation class.
+    !!{
+    Destructor for the {\normalfont \ttfamily baugh2005} timescale for star formation class.
+    !!}
     implicit none
     type(starFormationTimescaleBaugh2005), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"/>
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"/>
+    !!]
     return
   end subroutine baugh2005Destructor
 
   double precision function baugh2005Timescale(self,component)
-    !% Returns the timescale (in Gyr) for star formation in the given {\normalfont \ttfamily component} in the {\normalfont
-    !% \ttfamily baugh2005} timescale model.
+    !!{
+    Returns the timescale (in Gyr) for star formation in the given {\normalfont \ttfamily component} in the {\normalfont
+    \ttfamily baugh2005} timescale model.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic     , nodeComponent, nodeComponentDisk, nodeComponentSpheroid
     implicit none

@@ -17,27 +17,37 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a merger tree filter which always passes.
+!!{
+Contains a module which implements a merger tree filter which always passes.
+!!}
 
-  !# <mergerTreeFilter name="mergerTreeFilterAlways">
-  !#  <description>A merger tree filter which always passes. (Used mostly for testing purposes.)</description>
-  !# </mergerTreeFilter>
+  !![
+  <mergerTreeFilter name="mergerTreeFilterAlways">
+   <description>A merger tree filter which always passes. (Used mostly for testing purposes.)</description>
+  </mergerTreeFilter>
+  !!]
   type, extends(mergerTreeFilterClass) :: mergerTreeFilterAlways
-     !% A merger tree filter class which always passes.
+     !!{
+     A merger tree filter class which always passes.
+     !!}
      private
    contains
      procedure :: passes => alwaysPasses
   end type mergerTreeFilterAlways
 
   interface mergerTreeFilterAlways
-     !% Constructors for the ``always'' merger tree filter class.
+     !!{
+     Constructors for the ``always'' merger tree filter class.
+     !!}
      module procedure alwaysConstructorParameters
   end interface mergerTreeFilterAlways
 
 contains
 
   function alwaysConstructorParameters(parameters)
-    !% Constructor for the ``always'' merger tree filter class which takes a parameter set as input.
+    !!{
+    Constructor for the ``always'' merger tree filter class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(mergerTreeFilterAlways)                :: alwaysConstructorParameters
@@ -49,7 +59,9 @@ contains
   end function alwaysConstructorParameters
 
   logical function alwaysPasses(self,tree)
-    !% Implement an always-pass merger tree filter.
+    !!{
+    Implement an always-pass merger tree filter.
+    !!}
     implicit none
     class(mergerTreeFilterAlways), intent(inout) :: self
     type (mergerTree            ), intent(in   ) :: tree

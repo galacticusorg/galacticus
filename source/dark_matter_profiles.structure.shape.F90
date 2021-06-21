@@ -17,26 +17,32 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides a class that implements concentrations of dark matter halo profiles.
+!!{
+Contains a module which provides a class that implements concentrations of dark matter halo profiles.
+!!}
 
 module Dark_Matter_Profiles_Shape
-  !% Provides a class that implements shape parameters of dark matter halo profiles.
+  !!{
+  Provides a class that implements shape parameters of dark matter halo profiles.
+  !!}
   use :: Galacticus_Nodes, only : treeNode
   private
 
-  !# <functionClass>
-  !#  <name>darkMatterProfileShape</name>
-  !#  <descriptiveName>Dark Matter Profile Shapes</descriptiveName>
-  !#  <description>
-  !#   Class providing dark matter profile shape parameters.
-  !#  </description>
-  !#  <default>gao2008</default>
-  !#  <method name="shape" >
-  !#   <description>Returns the shape parameter for the given {\normalfont \ttfamily node}.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout) :: node</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>darkMatterProfileShape</name>
+   <descriptiveName>Dark Matter Profile Shapes</descriptiveName>
+   <description>
+    Class providing dark matter profile shape parameters.
+   </description>
+   <default>gao2008</default>
+   <method name="shape" >
+    <description>Returns the shape parameter for the given {\normalfont \ttfamily node}.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>type(treeNode), intent(inout) :: node</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Dark_Matter_Profiles_Shape

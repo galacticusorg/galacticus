@@ -17,11 +17,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !# <computationalDomainVolumeIntegrator name="computationalDomainVolumeIntegratorSpherical">
-  !#  <description>A computational domain volume integrator for spherical cells.</description>
-  !# </computationalDomainVolumeIntegrator>
+  !![
+  <computationalDomainVolumeIntegrator name="computationalDomainVolumeIntegratorSpherical">
+   <description>A computational domain volume integrator for spherical cells.</description>
+  </computationalDomainVolumeIntegrator>
+  !!]
   type, extends(computationalDomainVolumeIntegratorClass) :: computationalDomainVolumeIntegratorSpherical
-     !% Implementation of a computational domain for spherical cells.
+     !!{
+     Implementation of a computational domain for spherical cells.
+     !!}
      private
      double precision, dimension(2) :: boundaries
      double precision               :: volume_
@@ -31,7 +35,9 @@
   end type computationalDomainVolumeIntegratorSpherical
 
   interface computationalDomainVolumeIntegratorSpherical
-     !% Constructors for the {\normalfont \ttfamily spherical} computational domain.
+     !!{
+     Constructors for the {\normalfont \ttfamily spherical} computational domain.
+     !!}
      module procedure sphericalConstructorParameters
      module procedure sphericalConstructorInternal
   end interface computationalDomainVolumeIntegratorSpherical
@@ -39,32 +45,42 @@
 contains
 
   function sphericalConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily spherical} computational domain volume integrator class which takes a
-    !% parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily spherical} computational domain volume integrator class which takes a
+    parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type            (computationalDomainVolumeIntegratorSpherical)                 :: self
     type            (inputParameters                             ), intent(inout)  :: parameters
     double precision                                              , dimension(  2) :: boundaries
 
-    !# <inputParameter>
-    !#   <name>boundaries</name>
-    !#   <defaultValue>[0.0d0,1.0d0]</defaultValue>
-    !#   <description>The $r$-interval spanned by the computational domain.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>boundaries</name>
+      <defaultValue>[0.0d0,1.0d0]</defaultValue>
+      <description>The $r$-interval spanned by the computational domain.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
      self=computationalDomainVolumeIntegratorSpherical(boundaries)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function sphericalConstructorParameters
   
   function sphericalConstructorInternal(boundaries) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily spherical} computational domain volume integrator class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily spherical} computational domain volume integrator class.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     type            (computationalDomainVolumeIntegratorSpherical)                              :: self
     double precision                                              , dimension(2), intent(in   ) :: boundaries
-    !# <constructorAssign variables="boundaries"/>
+    !![
+    <constructorAssign variables="boundaries"/>
+    !!]
 
     self%volume_=+4.0d0              &
          &       *Pi                 &
@@ -77,7 +93,9 @@ contains
   end function sphericalConstructorInternal
 
   double precision function sphericalVolume(self)
-    !% Return the volume of the computational domain cell.
+    !!{
+    Return the volume of the computational domain cell.
+    !!}
     implicit none
     class(computationalDomainVolumeIntegratorSpherical), intent(inout) :: self
 
@@ -86,7 +104,9 @@ contains
   end function sphericalVolume
 
   double precision function sphericalIntegrate(self,integrand)
-    !% Integrate over the computational domain cell.
+    !!{
+    Integrate over the computational domain cell.
+    !!}
     use :: Numerical_Integration, only : integrator
     use :: Coordinates          , only : coordinateSpherical
     implicit none
@@ -108,7 +128,9 @@ contains
   contains
     
     double precision function sphericalIntegrandR(r)
-      !% $r$-integrand over spherical computational domain cells.
+      !!{
+      $r$-integrand over spherical computational domain cells.
+      !!}
       use :: Numerical_Constants_Math, only : Pi
       implicit none
       double precision            , intent(in   ) :: r
@@ -128,7 +150,9 @@ contains
     end function sphericalIntegrandR
 
     double precision function sphericalIntegrandTheta(theta)
-      !% $\theta$-integrand over spherical computational domain cells.
+      !!{
+      $\theta$-integrand over spherical computational domain cells.
+      !!}
       use :: Numerical_Constants_Math, only : Pi
       implicit none
       double precision            , intent(in   ) :: theta
@@ -148,7 +172,9 @@ contains
     end function sphericalIntegrandTheta
 
     double precision function sphericalIntegrandPhi(phi)
-      !% $\phi$-integrand over spherical computational domain cells.
+      !!{
+      $\phi$-integrand over spherical computational domain cells.
+      !!}
       implicit none
       double precision, intent(in   ) :: phi
 

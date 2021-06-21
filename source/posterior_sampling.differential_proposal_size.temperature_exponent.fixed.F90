@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a posterior sampling differential evolution proposal size temperature exponent class in which the exponent
-  !% is fixed.
+  !!{
+  Implementation of a posterior sampling differential evolution proposal size temperature exponent class in which the exponent
+  is fixed.
+  !!}
 
-  !# <posteriorSampleDffrntlEvltnPrpslSzTmpExp name="posteriorSampleDffrntlEvltnPrpslSzTmpExpFixed">
-  !#  <description>
-  !#   This class uses a fixed $\alpha=${\normalfont \ttfamily [alpha]}.
-  !#  </description>
-  !# </posteriorSampleDffrntlEvltnPrpslSzTmpExp>
+  !![
+  <posteriorSampleDffrntlEvltnPrpslSzTmpExp name="posteriorSampleDffrntlEvltnPrpslSzTmpExpFixed">
+   <description>
+    This class uses a fixed $\alpha=${\normalfont \ttfamily [alpha]}.
+   </description>
+  </posteriorSampleDffrntlEvltnPrpslSzTmpExp>
+  !!]
   type, extends(posteriorSampleDffrntlEvltnPrpslSzTmpExpClass) :: posteriorSampleDffrntlEvltnPrpslSzTmpExpFixed
-     !% Implementation of a posterior sampling differential evolution proposal size class in which the exponent is fixed.
+     !!{
+     Implementation of a posterior sampling differential evolution proposal size class in which the exponent is fixed.
+     !!}
      private
      double precision :: exponentValue
    contains
@@ -34,7 +40,9 @@
   end type posteriorSampleDffrntlEvltnPrpslSzTmpExpFixed
 
   interface posteriorSampleDffrntlEvltnPrpslSzTmpExpFixed
-     !% Constructors for the {\normalfont \ttfamily fixed} posterior sampling differential evolution random jump class.
+     !!{
+     Constructors for the {\normalfont \ttfamily fixed} posterior sampling differential evolution random jump class.
+     !!}
      module procedure fixedConstructorParameters
      module procedure fixedConstructorInternal
   end interface posteriorSampleDffrntlEvltnPrpslSzTmpExpFixed
@@ -42,37 +50,49 @@
 contains
 
   function fixedConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily fixed} posterior sampling differential evolution random jump class which builds
-    !% the object from a parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily fixed} posterior sampling differential evolution random jump class which builds
+    the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (posteriorSampleDffrntlEvltnPrpslSzTmpExpFixed)                 :: self
     type            (inputParameters                              ), intent(inout)  :: parameters
     double precision                                                                :: exponentValue
 
-    !# <inputParameter>
-    !#   <name>exponentValue</name>
-    !#   <description>The exponent of temperature.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>exponentValue</name>
+      <description>The exponent of temperature.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     self=posteriorSampleDffrntlEvltnPrpslSzTmpExpFixed(exponentValue)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function fixedConstructorParameters
 
   function fixedConstructorInternal(exponentValue) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily fixed} posterior sampling differential evolution proposal size
-    !% temperature exponent class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily fixed} posterior sampling differential evolution proposal size
+    temperature exponent class.
+    !!}
     implicit none
     type            (posteriorSampleDffrntlEvltnPrpslSzTmpExpFixed)                :: self
     double precision                                               , intent(in   ) :: exponentValue
-    !# <constructorAssign variables="exponentValue"/>
+    !![
+    <constructorAssign variables="exponentValue"/>
+    !!]
 
     return
   end function fixedConstructorInternal
 
   double precision function fixedExponent(self,temperedStates,temperatures,simulationState,simulationConvergence)
-    !% Return the fixed differential evolution proposal size temperature exponent.
+    !!{
+    Return the fixed differential evolution proposal size temperature exponent.
+    !!}
     implicit none
     class           (posteriorSampleDffrntlEvltnPrpslSzTmpExpFixed), intent(inout)               :: self
     class           (posteriorSampleStateClass                    ), intent(inout)               :: simulationState

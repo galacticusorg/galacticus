@@ -17,19 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements a node property extractor which reports if a node is on the main branch of its merger
-  !% tree.
+  !!{
+  Contains a module which implements a node property extractor which reports if a node is on the main branch of its merger
+  tree.
+  !!}
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorMainBranchStatus">
-  !#  <description>
-  !#   A node property extractor class which extracts the status of each node with respect to the main branch of its merger
-  !#   tree. The status will be extracted as {\normalfont \ttfamily nodeIsOnMainBranch}, with a value of 1 indicating that the
-  !#   node is a primary progenitor of the final halo (i.e. is on the main branch of the tree) and a value of 0 indicating that it
-  !#   is not.
-  !#  </description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorMainBranchStatus">
+   <description>
+    A node property extractor class which extracts the status of each node with respect to the main branch of its merger
+    tree. The status will be extracted as {\normalfont \ttfamily nodeIsOnMainBranch}, with a value of 1 indicating that the
+    node is a primary progenitor of the final halo (i.e. is on the main branch of the tree) and a value of 0 indicating that it
+    is not.
+   </description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorMainBranchStatus
-     !% A stelalr mass output analysis class.
+     !!{
+     A stelalr mass output analysis class.
+     !!}
      private
    contains
      procedure :: extract     => mainBranchStatusExtract
@@ -39,14 +45,18 @@
   end type nodePropertyExtractorMainBranchStatus
 
   interface nodePropertyExtractorMainBranchStatus
-     !% Constructors for the ``mainBranchStatus'' output analysis class.
+     !!{
+     Constructors for the ``mainBranchStatus'' output analysis class.
+     !!}
      module procedure mainBranchStatusConstructorParameters
   end interface nodePropertyExtractorMainBranchStatus
 
 contains
 
   function mainBranchStatusConstructorParameters(parameters)
-    !% Constructor for the {\normalfont \ttfamily mainBranchStatus} node property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily mainBranchStatus} node property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(nodePropertyExtractorMainBranchStatus)                :: mainBranchStatusConstructorParameters
@@ -58,7 +68,9 @@ contains
   end function mainBranchStatusConstructorParameters
 
   function mainBranchStatusExtract(self,node,time,instance)
-    !% Implement a {\normalfont \ttfamily mainBranchStatus} node property extractor.
+    !!{
+    Implement a {\normalfont \ttfamily mainBranchStatus} node property extractor.
+    !!}
     implicit none
     integer         (kind_int8                            )                          :: mainBranchStatusExtract
     class           (nodePropertyExtractorMainBranchStatus), intent(inout)           :: self
@@ -76,7 +88,9 @@ contains
   end function mainBranchStatusExtract
 
   integer function mainBranchStatusType(self)
-    !% Return the type of the stellar mass property.
+    !!{
+    Return the type of the stellar mass property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorMainBranchStatus), intent(inout) :: self
@@ -87,7 +101,9 @@ contains
   end function mainBranchStatusType
 
   function mainBranchStatusName(self)
-    !% Return the name of the mainBranchStatus property.
+    !!{
+    Return the name of the mainBranchStatus property.
+    !!}
     implicit none
     type (varying_string                       )                :: mainBranchStatusName
     class(nodePropertyExtractorMainBranchStatus), intent(inout) :: self
@@ -98,7 +114,9 @@ contains
   end function mainBranchStatusName
 
   function mainBranchStatusDescription(self)
-    !% Return a description of the mainBranchStatus property.
+    !!{
+    Return a description of the mainBranchStatus property.
+    !!}
     implicit none
     type (varying_string                       )                :: mainBranchStatusDescription
     class(nodePropertyExtractorMainBranchStatus), intent(inout) :: self

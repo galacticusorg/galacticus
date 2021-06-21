@@ -17,49 +17,55 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a class for stellar initial mass functions.
+!!{
+Contains a module which implements a class for stellar initial mass functions.
+!!}
 
 module Stellar_Populations_Initial_Mass_Functions
-  !% Implements a class for stellar initial mass functions.
+  !!{
+  Implements a class for stellar initial mass functions.
+  !!}
   use :: Tables, only : table1D
   implicit none
   private
 
-  !# <functionClass>
-  !#  <name>initialMassFunction</name>
-  !#  <descriptiveName>Initial Mass Functions</descriptiveName>
-  !#  <description>
-  !#   Class providing stellar initial mass functions. All IMFs are assumed to be continuous in $M$, unless otherwise noted and
-  !#   normalized to unit mass.
-  !#  </description>
-  !#  <default>chabrier2001</default>
-  !#  <method name="massMinimum" >
-  !#   <description>Return the minimum mass in the initial mass function.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#  </method>
-  !#  <method name="massMaximum" >
-  !#   <description>Return the maximum mass in the initial mass function.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#  </method>
-  !#  <method name="phi" >
-  !#   <description>Return the initial mass function, $\phi(M)=\mathrm{d}N/\mathrm{d}M$, at the given mass $M=${\normalfont \ttfamily massInitial}.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ) :: massInitial</argument>
-  !#  </method>
-  !#  <method name="tabulate" >
-  !#   <description>Return the initial mass function, $\phi(M)=\mathrm{d}N/\mathrm{d}M$, at the given mass $M=${\normalfont \ttfamily initialMass}.</description>
-  !#   <type>void</type>
-  !#   <argument>class(table1D), allocatable, intent(inout) :: imfTable</argument>
-  !#   <pass>yes</pass>
-  !#  </method>
-  !#  <method name="label" >
-  !#   <description>Return the label for this \gls{imf}.</description>
-  !#   <type>type(varying_string)</type>
-  !#   <pass>yes</pass>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>initialMassFunction</name>
+   <descriptiveName>Initial Mass Functions</descriptiveName>
+   <description>
+    Class providing stellar initial mass functions. All IMFs are assumed to be continuous in $M$, unless otherwise noted and
+    normalized to unit mass.
+   </description>
+   <default>chabrier2001</default>
+   <method name="massMinimum" >
+    <description>Return the minimum mass in the initial mass function.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+   </method>
+   <method name="massMaximum" >
+    <description>Return the maximum mass in the initial mass function.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+   </method>
+   <method name="phi" >
+    <description>Return the initial mass function, $\phi(M)=\mathrm{d}N/\mathrm{d}M$, at the given mass $M=${\normalfont \ttfamily massInitial}.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision, intent(in   ) :: massInitial</argument>
+   </method>
+   <method name="tabulate" >
+    <description>Return the initial mass function, $\phi(M)=\mathrm{d}N/\mathrm{d}M$, at the given mass $M=${\normalfont \ttfamily initialMass}.</description>
+    <type>void</type>
+    <argument>class(table1D), allocatable, intent(inout) :: imfTable</argument>
+    <pass>yes</pass>
+   </method>
+   <method name="label" >
+    <description>Return the label for this \gls{imf}.</description>
+    <type>type(varying_string)</type>
+    <pass>yes</pass>
+   </method>
+  </functionClass>
+  !!]
 
 end module Stellar_Populations_Initial_Mass_Functions

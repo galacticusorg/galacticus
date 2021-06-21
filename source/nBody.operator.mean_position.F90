@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an N-body data operator which determines the mean position and velocity of particles.
+!!{
+Contains a module which implements an N-body data operator which determines the mean position and velocity of particles.
+!!}
 
   use, intrinsic :: ISO_C_Binding           , only : c_size_t
   use            :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
   
-  !# <nbodyOperator name="nbodyOperatorMeanPosition">
-  !#  <description>An N-body data operator which determines the mean position and velocity of particles.</description>
-  !# </nbodyOperator>
+  !![
+  <nbodyOperator name="nbodyOperatorMeanPosition">
+   <description>An N-body data operator which determines the mean position and velocity of particles.</description>
+  </nbodyOperator>
+  !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorMeanPosition
-     !% An N-body data operator which determines the mean position and velocity of particles.
+     !!{
+     An N-body data operator which determines the mean position and velocity of particles.
+     !!}
      private
      logical                                      :: selfBoundParticlesOnly
      integer(c_size_t                  )          :: bootstrapSampleCount
@@ -37,7 +43,9 @@
   end type nbodyOperatorMeanPosition
 
   interface nbodyOperatorMeanPosition
-     !% Constructors for the ``meanPosition'' N-body operator class.
+     !!{
+     Constructors for the ``meanPosition'' N-body operator class.
+     !!}
      module procedure meanPositionConstructorParameters
      module procedure meanPositionConstructorInternal
   end interface nbodyOperatorMeanPosition
@@ -45,7 +53,9 @@
 contains
 
   function meanPositionConstructorParameters(parameters) result (self)
-    !% Constructor for the ``meanPosition'' N-body operator class which takes a parameter set as input.
+    !!{
+    Constructor for the ``meanPosition'' N-body operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (nbodyOperatorMeanPosition )                :: self
@@ -54,55 +64,69 @@ contains
     logical                                            :: selfBoundParticlesOnly
     integer(c_size_t                  )                :: bootstrapSampleCount
 
-    !# <inputParameter>
-    !#   <name>selfBoundParticlesOnly</name>
-    !#   <source>parameters</source>
-    !#   <description>If true, the mean position and velocity are computed only for self-bound particles</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>bootstrapSampleCount</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>30_c_size_t</defaultValue>
-    !#   <description>The number of bootstrap resamples of the particles that should be used.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>selfBoundParticlesOnly</name>
+      <source>parameters</source>
+      <description>If true, the mean position and velocity are computed only for self-bound particles</description>
+    </inputParameter>
+    <inputParameter>
+      <name>bootstrapSampleCount</name>
+      <source>parameters</source>
+      <defaultValue>30_c_size_t</defaultValue>
+      <description>The number of bootstrap resamples of the particles that should be used.</description>
+    </inputParameter>
+    <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !!]
     self=nbodyOperatorMeanPosition(selfBoundParticlesOnly,bootstrapSampleCount,randomNumberGenerator_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="randomNumberGenerator_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="randomNumberGenerator_"/>
+    !!]
     return
   end function meanPositionConstructorParameters
 
   function meanPositionConstructorInternal(selfBoundParticlesOnly,bootstrapSampleCount,randomNumberGenerator_) result (self)
-    !% Internal constructor for the ``meanPosition'' N-body operator class.
+    !!{
+    Internal constructor for the ``meanPosition'' N-body operator class.
+    !!}
     implicit none
     type   (nbodyOperatorMeanPosition)                         :: self
     logical                            , intent(in   )         :: selfBoundParticlesOnly
     integer(c_size_t                  ), intent(in   )         :: bootstrapSampleCount
     class  (randomNumberGeneratorClass), intent(in   ), target :: randomNumberGenerator_
-    !# <constructorAssign variables="selfBoundParticlesOnly, bootstrapSampleCount, *randomNumberGenerator_"/>
+    !![
+    <constructorAssign variables="selfBoundParticlesOnly, bootstrapSampleCount, *randomNumberGenerator_"/>
+    !!]
 
     return
   end function meanPositionConstructorInternal
 
   subroutine meanPositionDestructor(self)
-    !% Destructor for the ``meanPosition'' N-body operator class.
+    !!{
+    Destructor for the ``meanPosition'' N-body operator class.
+    !!}
     implicit none
     type(nbodyOperatorMeanPosition), intent(inout) :: self
 
-    !# <objectDestructor name="self%randomNumberGenerator_"/>
+    !![
+    <objectDestructor name="self%randomNumberGenerator_"/>
+    !!]
     return
   end subroutine meanPositionDestructor
   
   subroutine meanPositionOperate(self,simulations)
-    !% Determine the mean position and velocity of N-body particles.
+    !!{
+    Determine the mean position and velocity of N-body particles.
+    !!}
     use :: Galacticus_Error , only : Galacticus_Error_Report
     use :: Memory_Management, only : allocateArray          , deallocateArray
     implicit none
     class          (nbodyOperatorMeanPosition), intent(inout)                 :: self
     type           (nBodyData                ), intent(inout), dimension(:  ) :: simulations
-    integer                                   , allocatable  , dimension(:,:) :: selfBoundStatus
+    integer         (c_size_t                ), pointer      , dimension(:,:) :: selfBoundStatus
     double precision                          , parameter                     :: sampleRate          =1.0d0
-    double precision                          , allocatable  , dimension(:,:) :: positionMean               , velocityMean
+    double precision                          , pointer      , dimension(:,:) :: positionMean               , velocityMean
     double precision                          , pointer      , dimension(:,:) :: position                   , velocity
     double precision                                                          :: weight
     integer         (c_size_t                )                                :: i                          , j           , &
@@ -111,15 +135,15 @@ contains
     do iSimulation=1,size(simulations)
        ! Determine the particle mask to use.
        if (self%selfBoundParticlesOnly) then
-          if (simulations(iSimulation)%analysis%hasDataset('selfBoundStatus')) then
-             call simulations(iSimulation)%analysis%readDataset('selfBoundStatus',selfBoundStatus)
+          if (simulations(iSimulation)%propertiesIntegerRank1%exists('isBound')) then
+             selfBoundStatus => simulations(iSimulation)%propertiesIntegerRank1%value('isBound')
              if (size(selfBoundStatus,dim=2) /= self%bootstrapSampleCount) call Galacticus_Error_Report('number of selfBoundStatus samples must equal number of requested bootstrap samples'//{introspection:location})
           else
              call Galacticus_Error_Report('self-bound status not available - apply a self-bound operator first'//{introspection:location})
           end if
        else
           position => simulations(iSimulation)%propertiesRealRank1%value('position')
-          call allocateArray(selfBoundStatus,[size(position,dim=2,kind=c_size_t),self%bootstrapSampleCount])
+          allocate(selfBoundStatus(size(position,dim=2,kind=c_size_t),self%bootstrapSampleCount))
           do i=1,self%bootstrapSampleCount
              do j=1,size(position,dim=2)
                 selfBoundStatus(j,i)=self%randomNumberGenerator_%poissonSample(sampleRate)
@@ -129,8 +153,8 @@ contains
        ! Compute mean position and velocity.
        position => simulations(iSimulation)%propertiesRealRank1%value('position')
        velocity => simulations(iSimulation)%propertiesRealRank1%value('velocity')
-       call allocateArray(positionMean,[3_c_size_t,self%bootstrapSampleCount])
-       call allocateArray(velocityMean,[3_c_size_t,self%bootstrapSampleCount])
+       allocate(positionMean(3_c_size_t,self%bootstrapSampleCount))
+       allocate(velocityMean(3_c_size_t,self%bootstrapSampleCount))
        do i=1,self%bootstrapSampleCount
           !$omp parallel workshare
           weight=dble(sum(selfBoundStatus(:,i)))
@@ -142,13 +166,20 @@ contains
           end forall
           !$omp end parallel workshare
        end do
+       ! Store the results.
+       call simulations(iSimulation)%propertiesRealRank1%set('positionMean',positionMean)
+       call simulations(iSimulation)%propertiesRealRank1%set('velocityMean',velocityMean)
        ! Store results to file.
        call simulations(iSimulation)%analysis%writeDataset(positionMean,'positionMean')
        call simulations(iSimulation)%analysis%writeDataset(velocityMean,'velocityMean')
        ! Deallocate workspace.
-       call deallocateArray(selfBoundStatus)
-       call deallocateArray(positionMean   )
-       call deallocateArray(velocityMean   )
+       if (self%selfBoundParticlesOnly) then
+          nullify   (selfBoundStatus)
+       else
+          deallocate(selfBoundStatus)
+       end if
+       nullify      (positionMean   )
+       nullify      (velocityMean   )
     end do
     return
   end subroutine meanPositionOperate

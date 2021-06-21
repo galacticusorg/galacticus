@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements satellite orbital extrema property extractor class.
+!!{
+Contains a module which implements satellite orbital extrema property extractor class.
+!!}
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorSatelliteOrbitalExtrema">
-  !#  <description>
-  !#   A node property extractor which extracts the radii of a satellite's orbital extrema (i.e. pericenter and apocenter) as
-  !#   {\normalfont \ttfamily satellitePericenterRadius} and {\normalfont \ttfamily satellitePericenterVelocity}.
-  !#  </description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorSatelliteOrbitalExtrema">
+   <description>
+    A node property extractor which extracts the radii of a satellite's orbital extrema (i.e. pericenter and apocenter) as
+    {\normalfont \ttfamily satellitePericenterRadius} and {\normalfont \ttfamily satellitePericenterVelocity}.
+   </description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorSatelliteOrbitalExtrema
-     !% A satellite orbital extrema property extractor class.
+     !!{
+     A satellite orbital extrema property extractor class.
+     !!}
      private
      integer :: offsetPericenter , offsetApocenter , &
           &     elementCount_
@@ -41,7 +47,9 @@
   end type nodePropertyExtractorSatelliteOrbitalExtrema
 
   interface nodePropertyExtractorSatelliteOrbitalExtrema
-     !% Constructors for the ``satelliteOrbitalExtrema'' output analysis class.
+     !!{
+     Constructors for the ``satelliteOrbitalExtrema'' output analysis class.
+     !!}
      module procedure satelliteOrbitalExtremaConstructorParameters
      module procedure satelliteOrbitalExtremaConstructorInternal
   end interface nodePropertyExtractorSatelliteOrbitalExtrema
@@ -49,37 +57,47 @@
 contains
 
   function satelliteOrbitalExtremaConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily satelliteOrbitalExtrema} property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily satelliteOrbitalExtrema} property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (nodePropertyExtractorSatelliteOrbitalExtrema)                :: self
     type   (inputParameters                             ), intent(inout) :: parameters
     logical                                                              :: extractPericenter, extractApocenter
 
-    !# <inputParameter>
-    !#   <name>extractPericenter</name>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>Specifies whether or not satellite orbital pericenter data (radius, velocity) should be extracted.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>extractApocenter</name>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>Specifies whether or not satellite orbital apocenter data (radius, velocity) should be extracted.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>extractPericenter</name>
+      <defaultValue>.false.</defaultValue>
+      <description>Specifies whether or not satellite orbital pericenter data (radius, velocity) should be extracted.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>extractApocenter</name>
+      <defaultValue>.false.</defaultValue>
+      <description>Specifies whether or not satellite orbital apocenter data (radius, velocity) should be extracted.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     self=nodePropertyExtractorSatelliteOrbitalExtrema(extractPericenter,extractApocenter)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function satelliteOrbitalExtremaConstructorParameters
 
   function satelliteOrbitalExtremaConstructorInternal(extractPericenter, extractApocenter) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily satelliteOrbitalExtrema} property extractor class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily satelliteOrbitalExtrema} property extractor class.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type (nodePropertyExtractorSatelliteOrbitalExtrema)                :: self
     logical                                            , intent(in   ) :: extractPericenter, extractApocenter
-    !# <constructorAssign variables="extractPericenter, extractApocenter"/>
+    !![
+    <constructorAssign variables="extractPericenter, extractApocenter"/>
+    !!]
 
     self%elementCount_=0
     if (extractPericenter) then
@@ -95,7 +113,9 @@ contains
   end function satelliteOrbitalExtremaConstructorInternal
 
   integer function satelliteOrbitalExtremaElementCount(self,time)
-    !% Return the number of elements in the {\normalfont \ttfamily satelliteOrbitalExtrema} property extractor class.
+    !!{
+    Return the number of elements in the {\normalfont \ttfamily satelliteOrbitalExtrema} property extractor class.
+    !!}
     implicit none
     class           (nodePropertyExtractorSatelliteOrbitalExtrema), intent(inout) :: self
     double precision                                              , intent(in   ) :: time
@@ -106,7 +126,9 @@ contains
   end function satelliteOrbitalExtremaElementCount
 
   function satelliteOrbitalExtremaExtract(self,node,time,instance)
-    !% Implement a {\normalfont \ttfamily satelliteOrbitalExtrema} property extractor
+    !!{
+    Implement a {\normalfont \ttfamily satelliteOrbitalExtrema} property extractor
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite                          , treeNode
     use :: Kepler_Orbits   , only : keplerOrbit
     use :: Satellite_Orbits, only : Satellite_Orbit_Extremum_Phase_Space_Coordinates, extremumApocenter, extremumPericenter
@@ -151,7 +173,9 @@ contains
   end function satelliteOrbitalExtremaExtract
 
   function satelliteOrbitalExtremaNames(self,time)
-    !% Return the name of the {\normalfont \ttfamily satelliteOrbitalExtrema} property.
+    !!{
+    Return the name of the {\normalfont \ttfamily satelliteOrbitalExtrema} property.
+    !!}
     implicit none
     type            (varying_string                              ), dimension(:) , allocatable :: satelliteOrbitalExtremaNames
     class           (nodePropertyExtractorSatelliteOrbitalExtrema), intent(inout)              :: self
@@ -165,7 +189,9 @@ contains
   end function satelliteOrbitalExtremaNames
 
   function satelliteOrbitalExtremaDescriptions(self,time)
-    !% Return a description of the satelliteOrbitalExtrema property.
+    !!{
+    Return a description of the satelliteOrbitalExtrema property.
+    !!}
     implicit none
     type            (varying_string                              ), dimension(:) , allocatable :: satelliteOrbitalExtremaDescriptions
     class           (nodePropertyExtractorSatelliteOrbitalExtrema), intent(inout)              :: self
@@ -179,7 +205,9 @@ contains
   end function satelliteOrbitalExtremaDescriptions
 
   function satelliteOrbitalExtremaUnitsInSI(self,time)
-    !% Return the units of the {\normalfont \ttfamily satelliteOrbitalExtrema} property in the SI system.
+    !!{
+    Return the units of the {\normalfont \ttfamily satelliteOrbitalExtrema} property in the SI system.
+    !!}
     use :: Numerical_Constants_Astronomical, only : megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
@@ -195,7 +223,9 @@ contains
   end function satelliteOrbitalExtremaUnitsInSI
 
   integer function satelliteOrbitalExtremaType(self)
-    !% Return the type of the {\normalfont \ttfamily satelliteOrbitalExtrema} property.
+    !!{
+    Return the type of the {\normalfont \ttfamily satelliteOrbitalExtrema} property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorSatelliteOrbitalExtrema), intent(inout) :: self

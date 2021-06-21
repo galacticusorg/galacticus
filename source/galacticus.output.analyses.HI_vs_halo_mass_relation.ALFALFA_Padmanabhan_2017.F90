@@ -17,21 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements an HI vs halo mass relation analysis class.
+  !!{
+  Contains a module which implements an HI vs halo mass relation analysis class.
+  !!}
 
   use, intrinsic :: ISO_C_Binding, only : c_size_t
 
-  !# <outputAnalysis name="outputAnalysisHIVsHaloMassRelationPadmanabhan2017">
-  !#  <description>An HI vs halo mass relation output analysis class.</description>
-  !# </outputAnalysis>
+  !![
+  <outputAnalysis name="outputAnalysisHIVsHaloMassRelationPadmanabhan2017">
+   <description>An HI vs halo mass relation output analysis class.</description>
+  </outputAnalysis>
+  !!]
   type, extends(outputAnalysisMeanFunction1D) :: outputAnalysisHIVsHaloMassRelationPadmanabhan2017
-     !% An HI vs halo mass relation output analysis class.
+     !!{
+     An HI vs halo mass relation output analysis class.
+     !!}
      private
      integer(c_size_t) :: likelihoodBin
   end type outputAnalysisHIVsHaloMassRelationPadmanabhan2017
 
   interface outputAnalysisHIVsHaloMassRelationPadmanabhan2017
-     !% Constructors for the ``hiVsHaloMassRelationPadmanabhan2017'' output analysis class.
+     !!{
+     Constructors for the ``hiVsHaloMassRelationPadmanabhan2017'' output analysis class.
+     !!}
      module procedure hiVsHaloMassRelationPadmanabhan2017ConstructorParameters
      module procedure hiVsHaloMassRelationPadmanabhan2017ConstructorInternal
   end interface outputAnalysisHIVsHaloMassRelationPadmanabhan2017
@@ -39,7 +47,9 @@
 contains
 
   function hiVsHaloMassRelationPadmanabhan2017ConstructorParameters(parameters) result (self)
-    !% Constructor for the ``hiVsHaloMassRelationPadmanabhan2017'' output analysis class which takes a parameter set as input.
+    !!{
+    Constructor for the ``hiVsHaloMassRelationPadmanabhan2017'' output analysis class which takes a parameter set as input.
+    !!}
     use :: Cosmology_Functions             , only : cosmologyFunctions                                      , cosmologyFunctionsClass
     use :: Cosmology_Parameters            , only : cosmologyParameters                                     , cosmologyParametersClass
     use :: Functions_Global                , only : Virial_Density_Contrast_Percolation_Objects_Constructor_
@@ -62,35 +72,41 @@ contains
     else
        allocate(systematicErrorPolynomialCoefficient(1                                                   ))
     end if
-    !# <inputParameter>
-    !#   <name>systematicErrorPolynomialCoefficient</name>
-    !#   <source>parameters</source>
-    !#   <variable>systematicErrorPolynomialCoefficient</variable>
-    !#   <defaultValue>[0.0d0]</defaultValue>
-    !#   <description>The coefficients of the systematic error polynomial for HI vs halo mass relation.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>likelihoodBin</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>0_c_size_t</defaultValue>
-    !#   <description>If $>0$ then use only the mass bin given by this value in the likelihood calculation.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters"          name="cosmologyParameters_"          source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
-    !# <objectBuilder class="outputTimes"                  name="outputTimes_"                  source="parameters"/>
-    !# <objectBuilder class="outputAnalysisMolecularRatio" name="outputAnalysisMolecularRatio_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>systematicErrorPolynomialCoefficient</name>
+      <source>parameters</source>
+      <variable>systematicErrorPolynomialCoefficient</variable>
+      <defaultValue>[0.0d0]</defaultValue>
+      <description>The coefficients of the systematic error polynomial for HI vs halo mass relation.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>likelihoodBin</name>
+      <source>parameters</source>
+      <defaultValue>0_c_size_t</defaultValue>
+      <description>If $>0$ then use only the mass bin given by this value in the likelihood calculation.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyParameters"          name="cosmologyParameters_"          source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
+    <objectBuilder class="outputTimes"                  name="outputTimes_"                  source="parameters"/>
+    <objectBuilder class="outputAnalysisMolecularRatio" name="outputAnalysisMolecularRatio_" source="parameters"/>
+    !!]
     percolationObjects_ => Virial_Density_Contrast_Percolation_Objects_Constructor_(parameters)
     self                =  outputAnalysisHIVsHaloMassRelationPadmanabhan2017(likelihoodBin,systematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,outputAnalysisMolecularRatio_,outputTimes_,percolationObjects_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"         />
-    !# <objectDestructor name="cosmologyFunctions_"          />
-    !# <objectDestructor name="outputTimes_"                 />
-    !# <objectDestructor name="outputAnalysisMolecularRatio_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"         />
+    <objectDestructor name="cosmologyFunctions_"          />
+    <objectDestructor name="outputTimes_"                 />
+    <objectDestructor name="outputAnalysisMolecularRatio_"/>
+    !!]
     return
   end function hiVsHaloMassRelationPadmanabhan2017ConstructorParameters
 
   function hiVsHaloMassRelationPadmanabhan2017ConstructorInternal(likelihoodBin,systematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,outputAnalysisMolecularRatio_,outputTimes_,percolationObjects_) result (self)
-    !% Constructor for the ``hiVsHaloMassRelationPadmanabhan2017'' output analysis class for internal use.
+    !!{
+    Constructor for the ``hiVsHaloMassRelationPadmanabhan2017'' output analysis class for internal use.
+    !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                           , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersClass                          , cosmologyParametersSimple                      , hubbleUnitsLittleH
     use :: Dark_Matter_Halo_Scales               , only : darkMatterHaloScaleVirialDensityContrastDefinition
@@ -169,7 +185,9 @@ contains
 
     ! Construct survey geometry.
     allocate(surveyGeometry_)
-    !# <referenceConstruct object="surveyGeometry_" constructor="surveyGeometryMartin2010ALFALFA(cosmologyParameters_)"/>
+    !![
+    <referenceConstruct object="surveyGeometry_" constructor="surveyGeometryMartin2010ALFALFA(cosmologyParameters_)"/>
+    !!]
     ! Create output time weights.
     call allocateArray(outputWeight,[massHaloCount,outputTimes_%count()])
     outputWeight(1,:)=Output_Analysis_Output_Weight_Survey_Volume(surveyGeometry_,cosmologyFunctions_,outputTimes_,massHILimit,allowSingleEpoch=.true.)
@@ -179,24 +197,26 @@ contains
     ! Create cosmological model in which data were analyzed.
     allocate(cosmologyParametersData)
     allocate(cosmologyFunctionsData )
-    !# <referenceConstruct object="cosmologyParametersData">
-    !#  <constructor>
-    !#   cosmologyParametersSimple     (                            &amp;
-    !#      &amp;                       OmegaMatter    = 0.28100d0, &amp;
-    !#      &amp;                       OmegaDarkEnergy= 0.71900d0, &amp;
-    !#      &amp;                       HubbleConstant =71.00000d0, &amp;
-    !#      &amp;                       temperatureCMB = 2.72548d0, &amp;
-    !#      &amp;                       OmegaBaryon    = 0.04620d0  &amp;
-    !#      &amp;                      )
-    !#  </constructor>
-    !# </referenceConstruct>
-    !# <referenceConstruct object="cosmologyFunctionsData">
-    !#  <constructor>
-    !#   cosmologyFunctionsMatterLambda(                            &amp;
-    !#      &amp;                       cosmologyParametersData     &amp;
-    !#      &amp;                      )
-    !#  </constructor>
-    !# </referenceConstruct>
+    !![
+    <referenceConstruct object="cosmologyParametersData">
+     <constructor>
+      cosmologyParametersSimple     (                            &amp;
+         &amp;                       OmegaMatter    = 0.28100d0, &amp;
+         &amp;                       OmegaDarkEnergy= 0.71900d0, &amp;
+         &amp;                       HubbleConstant =71.00000d0, &amp;
+         &amp;                       temperatureCMB = 2.72548d0, &amp;
+         &amp;                       OmegaBaryon    = 0.04620d0  &amp;
+         &amp;                      )
+     </constructor>
+    </referenceConstruct>
+    <referenceConstruct object="cosmologyFunctionsData">
+     <constructor>
+      cosmologyFunctionsMatterLambda(                            &amp;
+         &amp;                       cosmologyParametersData     &amp;
+         &amp;                      )
+     </constructor>
+    </referenceConstruct>
+    !!]
     ! Create bins in halo mass.
     massHaloLogarithmic=Make_Range(log10(massHaloMinimum),log10(massHaloMaximum),int(massHaloCount),rangeType=rangeTypeLinear)
     massHalo           =10.0d0**massHaloLogarithmic
@@ -208,33 +228,55 @@ contains
     allocate(filters_                   %next)
     filters_     %filter_ => galacticFilterHaloIsolated_
     filters_%next%filter_ => galacticFilterISMMass_
-    !# <referenceConstruct object="galacticFilterISMMass_"      constructor="galacticFilterISMMass      (massThreshold=1.0d4   )"/>
-    !# <referenceConstruct object="galacticFilterHaloIsolated_" constructor="galacticFilterHaloIsolated (                      )"/>
-    !# <referenceConstruct object="galacticFilterAll_"          constructor="galacticFilterAll          (              filters_)"/>
+    !![
+    <referenceConstruct object="galacticFilterISMMass_"      constructor="galacticFilterISMMass      (massThreshold=1.0d4   )"/>
+    <referenceConstruct object="galacticFilterHaloIsolated_" constructor="galacticFilterHaloIsolated (                      )"/>
+    <referenceConstruct object="galacticFilterAll_"          constructor="galacticFilterAll          (              filters_)"/>
+    !!]
     ! Build identity distribution operator.
     allocate(outputAnalysisDistributionOperator_                   )
-    !# <referenceConstruct object="outputAnalysisDistributionOperator_"                    constructor="outputAnalysisDistributionOperatorIdentity            (                                                                                  )"/>
+    !![
+    <referenceConstruct object="outputAnalysisDistributionOperator_"                    constructor="outputAnalysisDistributionOperatorIdentity            (                                                                                  )"/>
+    !!]
     ! Build identity weight operator.
     allocate(outputAnalysisWeightOperator_                         )
-    !# <referenceConstruct object="outputAnalysisWeightOperator_"                          constructor="outputAnalysisWeightOperatorIdentity                  (                                                                                  )"/>
+    !![
+    <referenceConstruct object="outputAnalysisWeightOperator_"                          constructor="outputAnalysisWeightOperatorIdentity                  (                                                                                  )"/>
+    !!]
     ! Build log10() property operator.
     allocate(outputAnalysisPropertyOperator_                       )
-    !# <referenceConstruct object="outputAnalysisPropertyOperator_"                        constructor="outputAnalysisPropertyOperatorLog10                   (                                                                                  )"/>
+    !![
+    <referenceConstruct object="outputAnalysisPropertyOperator_"                        constructor="outputAnalysisPropertyOperatorLog10                   (                                                                                  )"/>
+    !!]
     ! Build a sequence (HI mass, log10, polynomial systematic, anti-log10, cosmological luminosity distance, high-pass filter) of weight property operators.
     allocate(outputAnalysisWeightPropertyOperatorFilterHighPass_)
-    !# <referenceConstruct object="outputAnalysisWeightPropertyOperatorFilterHighPass_"    constructor="outputAnalysisPropertyOperatorFilterHighPass          (log10(massHILimit)                                                                )"/>
+    !![
+    <referenceConstruct object="outputAnalysisWeightPropertyOperatorFilterHighPass_"    constructor="outputAnalysisPropertyOperatorFilterHighPass          (log10(massHILimit)                                                                )"/>
+    !!]
     allocate(outputAnalysisWeightPropertyOperatorCsmlgyLmnstyDstnc_)
-    !# <referenceConstruct object="outputAnalysisWeightPropertyOperatorCsmlgyLmnstyDstnc_" constructor="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc       (cosmologyFunctions_          ,cosmologyFunctionsData              ,outputTimes_   )"/>
+    !![
+    <referenceConstruct object="outputAnalysisWeightPropertyOperatorCsmlgyLmnstyDstnc_" constructor="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc       (cosmologyFunctions_          ,cosmologyFunctionsData              ,outputTimes_   )"/>
+    !!]
     allocate(outputAnalysisWeightPropertyOperatorSystmtcPolynomial_)
-    !# <referenceConstruct object="outputAnalysisWeightPropertyOperatorSystmtcPolynomial_" constructor="outputAnalysisPropertyOperatorSystmtcPolynomial       (errorPolynomialZeroPoint     ,systematicErrorPolynomialCoefficient                )"/>
+    !![
+    <referenceConstruct object="outputAnalysisWeightPropertyOperatorSystmtcPolynomial_" constructor="outputAnalysisPropertyOperatorSystmtcPolynomial       (errorPolynomialZeroPoint     ,systematicErrorPolynomialCoefficient                )"/>
+    !!]
     allocate(outputAnalysisWeightPropertyOperatorHIMass_           )
-    !# <referenceConstruct object="outputAnalysisWeightPropertyOperatorHIMass_"            constructor="outputAnalysisPropertyOperatorHIMass                  (outputAnalysisMolecularRatio_                                                     )"/>
+    !![
+    <referenceConstruct object="outputAnalysisWeightPropertyOperatorHIMass_"            constructor="outputAnalysisPropertyOperatorHIMass                  (outputAnalysisMolecularRatio_                                                     )"/>
+    !!]
     allocate(outputAnalysisWeightPropertyOperatorLog10_            )
-    !# <referenceConstruct object="outputAnalysisWeightPropertyOperatorLog10_"             constructor="outputAnalysisPropertyOperatorLog10                   (                                                                                  )"/>
+    !![
+    <referenceConstruct object="outputAnalysisWeightPropertyOperatorLog10_"             constructor="outputAnalysisPropertyOperatorLog10                   (                                                                                  )"/>
+    !!]
     allocate(outputAnalysisWeightPropertyOperatorLog10Second_      )
-    !# <referenceConstruct object="outputAnalysisWeightPropertyOperatorLog10Second_"       constructor="outputAnalysisPropertyOperatorLog10                   (                                                                                  )"/>
+    !![
+    <referenceConstruct object="outputAnalysisWeightPropertyOperatorLog10Second_"       constructor="outputAnalysisPropertyOperatorLog10                   (                                                                                  )"/>
+    !!]
     allocate(outputAnalysisWeightPropertyOperatorAntiLog10_        )
-    !# <referenceConstruct object="outputAnalysisWeightPropertyOperatorAntiLog10_"         constructor="outputAnalysisPropertyOperatorAntiLog10               (                                                                                  )"/>
+    !![
+    <referenceConstruct object="outputAnalysisWeightPropertyOperatorAntiLog10_"         constructor="outputAnalysisPropertyOperatorAntiLog10               (                                                                                  )"/>
+    !!]
     allocate(propertyOperators_                              )
     allocate(propertyOperators_%next                         )
     allocate(propertyOperators_%next%next                    )
@@ -250,28 +292,42 @@ contains
     propertyOperators_%next%next%next%next%next     %operator_ => outputAnalysisWeightPropertyOperatorLog10Second_
     propertyOperators_%next%next%next%next%next%next%operator_ => outputAnalysisWeightPropertyOperatorFilterHighPass_
     allocate(outputAnalysisWeightPropertyOperator_                 )
-    !# <referenceConstruct object="outputAnalysisWeightPropertyOperator_"                  constructor="outputAnalysisPropertyOperatorSequence                (propertyOperators_                                                                )"/>
+    !![
+    <referenceConstruct object="outputAnalysisWeightPropertyOperator_"                  constructor="outputAnalysisPropertyOperatorSequence                (propertyOperators_                                                                )"/>
+    !!]
     ! Build anti-log10() property operator.
     allocate(outputAnalysisPropertyUnoperator_                     )
-    !# <referenceConstruct object="outputAnalysisPropertyUnoperator_"                      constructor="outputAnalysisPropertyOperatorAntiLog10               (                                                                                  )"/>
+    !![
+    <referenceConstruct object="outputAnalysisPropertyUnoperator_"                      constructor="outputAnalysisPropertyOperatorAntiLog10               (                                                                                  )"/>
+    !!]
     ! Create an HI mass weight property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_                )
-    !# <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"                 constructor="nodePropertyExtractorMassISM                          (                                                                                  )"/>
+    !![
+    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"                 constructor="nodePropertyExtractorMassISM                          (                                                                                  )"/>
+    !!]
     ! Create a halo mass weight property extractor. The virial density contrast is chosen to equal that expected for a
     ! friends-of-friends algorithm with linking length parameter b=0.2 since that is what was used by Sheth, Mo & Tormen (2001) in
     ! their original calibration of their halo mass function (as used by Padmanabhan & Refregier 2017).
     allocate(virialDensityContrast_                                )
-    !# <referenceConstruct object="virialDensityContrast_"                                 constructor="virialDensityContrastPercolation                      (0.2d0                        ,cosmologyFunctions_       ,percolationObjects_      )"/>
+    !![
+    <referenceConstruct object="virialDensityContrast_"                                 constructor="virialDensityContrastPercolation                      (0.2d0                        ,cosmologyFunctions_       ,percolationObjects_      )"/>
+    !!]
     allocate(nodePropertyExtractor_                      )
-    !# <referenceConstruct object="nodePropertyExtractor_"                                 constructor="nodePropertyExtractorMassHalo                         (virialDensityContrast_                                                            )"/>
+    !![
+    <referenceConstruct object="nodePropertyExtractor_"                                 constructor="nodePropertyExtractorMassHalo                         (virialDensityContrast_                                                            )"/>
+    !!]
     ! Create a halo scale object from which to compute virial velocities. Padmanabhan & Refrigier use the Bryan & Norman (1998)
     ! virial density contrast definition. However (Padmanabhan, private communication), they assume it gives the density contrast
     ! relative to mean density, instead of critical density (as was used by Bryan & Norman). This means that virial velocities are
     ! lower by a factor Ωₘ^⅙ than they should be. We explicitly account for this factor when computing virial velocity below.
     allocate(virialDensityContrastData                             )
-    !# <referenceConstruct object="virialDensityContrastData"                              constructor="virialDensityContrastBryanNorman1998                  (cosmologyParametersData      ,cosmologyFunctionsData                              )"/>
+    !![
+    <referenceConstruct object="virialDensityContrastData"                              constructor="virialDensityContrastBryanNorman1998                  (cosmologyParametersData      ,cosmologyFunctionsData                              )"/>
+    !!]
     allocate(darkMatterHaloScaleData)
-    !# <referenceConstruct object="darkMatterHaloScaleData"                                constructor="darkMatterHaloScaleVirialDensityContrastDefinition    (cosmologyParametersData      ,cosmologyFunctionsData    ,virialDensityContrastData)"/>
+    !![
+    <referenceConstruct object="darkMatterHaloScaleData"                                constructor="darkMatterHaloScaleVirialDensityContrastDefinition    (cosmologyParametersData      ,cosmologyFunctionsData    ,virialDensityContrastData)"/>
+    !!]
     ! Generate the target dataset.
     allocate(massHILogarithmicTarget          (massHaloCount              ))
     allocate(massHILogarithmicCovarianceTarget(massHaloCount,massHaloCount))
@@ -365,29 +421,31 @@ contains
          &                                                         massHILogarithmicCovarianceTarget                       &
          &                                                        )
     ! Clean up.
-    !# <objectDestructor name="surveyGeometry_"                                       />
-    !# <objectDestructor name="galacticFilterAll_"                                    />
-    !# <objectDestructor name="galacticFilterISMMass_"                                />
-    !# <objectDestructor name="galacticFilterHaloIsolated_"                           />
-    !# <objectDestructor name="outputAnalysisDistributionOperator_"                   />
-    !# <objectDestructor name="outputAnalysisWeightOperator_"                         />
-    !# <objectDestructor name="outputAnalysisPropertyOperator_"                       />
-    !# <objectDestructor name="outputAnalysisPropertyUnoperator_"                     />
-    !# <objectDestructor name="outputAnalysisWeightPropertyOperator_"                 />
-    !# <objectDestructor name="outputAnalysisWeightPropertyExtractor_"                />
-    !# <objectDestructor name="nodePropertyExtractor_"                                />
-    !# <objectDestructor name="outputAnalysisWeightPropertyOperatorFilterHighPass_"   />
-    !# <objectDestructor name="outputAnalysisWeightPropertyOperatorCsmlgyLmnstyDstnc_"/>
-    !# <objectDestructor name="outputAnalysisWeightPropertyOperatorSystmtcPolynomial_"/>
-    !# <objectDestructor name="outputAnalysisWeightPropertyOperatorHIMass_"           />
-    !# <objectDestructor name="outputAnalysisWeightPropertyOperatorLog10_"            />
-    !# <objectDestructor name="outputAnalysisWeightPropertyOperatorLog10Second_"      />
-    !# <objectDestructor name="outputAnalysisWeightPropertyOperatorAntiLog10_"        />
-    !# <objectDestructor name="cosmologyParametersData"                               />
-    !# <objectDestructor name="cosmologyFunctionsData"                                />
-    !# <objectDestructor name="virialDensityContrast_"                                />
-    !# <objectDestructor name="virialDensityContrastData"                             />
-    !# <objectDestructor name="darkMatterHaloScaleData"                               />
+    !![
+    <objectDestructor name="surveyGeometry_"                                       />
+    <objectDestructor name="galacticFilterAll_"                                    />
+    <objectDestructor name="galacticFilterISMMass_"                                />
+    <objectDestructor name="galacticFilterHaloIsolated_"                           />
+    <objectDestructor name="outputAnalysisDistributionOperator_"                   />
+    <objectDestructor name="outputAnalysisWeightOperator_"                         />
+    <objectDestructor name="outputAnalysisPropertyOperator_"                       />
+    <objectDestructor name="outputAnalysisPropertyUnoperator_"                     />
+    <objectDestructor name="outputAnalysisWeightPropertyOperator_"                 />
+    <objectDestructor name="outputAnalysisWeightPropertyExtractor_"                />
+    <objectDestructor name="nodePropertyExtractor_"                                />
+    <objectDestructor name="outputAnalysisWeightPropertyOperatorFilterHighPass_"   />
+    <objectDestructor name="outputAnalysisWeightPropertyOperatorCsmlgyLmnstyDstnc_"/>
+    <objectDestructor name="outputAnalysisWeightPropertyOperatorSystmtcPolynomial_"/>
+    <objectDestructor name="outputAnalysisWeightPropertyOperatorHIMass_"           />
+    <objectDestructor name="outputAnalysisWeightPropertyOperatorLog10_"            />
+    <objectDestructor name="outputAnalysisWeightPropertyOperatorLog10Second_"      />
+    <objectDestructor name="outputAnalysisWeightPropertyOperatorAntiLog10_"        />
+    <objectDestructor name="cosmologyParametersData"                               />
+    <objectDestructor name="cosmologyFunctionsData"                                />
+    <objectDestructor name="virialDensityContrast_"                                />
+    <objectDestructor name="virialDensityContrastData"                             />
+    <objectDestructor name="darkMatterHaloScaleData"                               />
+    !!]
     nullify(filters_          )
     nullify(propertyOperators_)
     return

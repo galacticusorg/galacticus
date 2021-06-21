@@ -17,22 +17,28 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements a critical overdensity class based on the fitting functions of
-  !% \cite{kitayama_semianalytic_1996}.
+  !!{
+  Contains a module which implements a critical overdensity class based on the fitting functions of
+  \cite{kitayama_semianalytic_1996}.
+  !!}
 
   use :: Dark_Matter_Particles, only : darkMatterParticleClass
 
-  !# <criticalOverdensity name="criticalOverdensityKitayamaSuto1996">
-  !#  <description>
-  !#   A critical overdensity class based on the fitting functions of \cite{kitayama_semianalytic_1996}, which is therefore valid
-  !#   only for flat cosmological models (an error will be reported in non-flat models). Specifically,
-  !#   \begin{equation}
-  !#    \delta_\mathrm{crit} (t) = {3 (12 \pi)^{2/3} \over 20} [1 + 0.0123 \log_{10}\left\{\Omega_\mathrm{matter}(t)\right\}]/D(t).
-  !#   \end{equation}
-  !#  </description>
-  !# </criticalOverdensity>
+  !![
+  <criticalOverdensity name="criticalOverdensityKitayamaSuto1996">
+   <description>
+    A critical overdensity class based on the fitting functions of \cite{kitayama_semianalytic_1996}, which is therefore valid
+    only for flat cosmological models (an error will be reported in non-flat models). Specifically,
+    \begin{equation}
+     \delta_\mathrm{crit} (t) = {3 (12 \pi)^{2/3} \over 20} [1 + 0.0123 \log_{10}\left\{\Omega_\mathrm{matter}(t)\right\}]/D(t).
+    \end{equation}
+   </description>
+  </criticalOverdensity>
+  !!]
   type, extends(criticalOverdensityClass) :: criticalOverdensityKitayamaSuto1996
-     !% A critical overdensity class based on the fitting functions of \cite{kitayama_semianalytic_1996}.
+     !!{
+     A critical overdensity class based on the fitting functions of \cite{kitayama_semianalytic_1996}.
+     !!}
      private
      double precision                                   :: timePrevious                 , valuePrevious
      class           (darkMatterParticleClass), pointer :: darkMatterParticle_ => null()
@@ -46,7 +52,9 @@
   end type criticalOverdensityKitayamaSuto1996
 
   interface criticalOverdensityKitayamaSuto1996
-     !% Constructors for the {\normalfont \ttfamily kitayamaSuto1996} critical overdensity class.
+     !!{
+     Constructors for the {\normalfont \ttfamily kitayamaSuto1996} critical overdensity class.
+     !!}
      module procedure kitayamaSuto1996ConstructorParameters
      module procedure kitayamaSuto1996ConstructorInternal
   end interface criticalOverdensityKitayamaSuto1996
@@ -54,8 +62,10 @@
 contains
 
   function kitayamaSuto1996ConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily kitayamaSuto1996} critical overdensity class
-    !% which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily kitayamaSuto1996} critical overdensity class
+    which takes a parameter set as input.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Input_Parameters, only : inputParameter         , inputParameters
     implicit none
@@ -66,21 +76,27 @@ contains
     class(cosmologicalMassVarianceClass      ), pointer       :: cosmologicalMassVariance_
     class(darkMatterParticleClass            ), pointer       :: darkMatterParticle_
 
-    !# <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
-    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
-    !# <objectBuilder class="darkMatterParticle"       name="darkMatterParticle_"       source="parameters"/>
+    !![
+    <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    <objectBuilder class="darkMatterParticle"       name="darkMatterParticle_"       source="parameters"/>
+    !!]
     self=criticalOverdensityKitayamaSuto1996(linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="linearGrowth_"            />
-    !# <objectDestructor name="cosmologyFunctions_"      />
-    !# <objectDestructor name="cosmologicalMassVariance_"/>
-    !# <objectDestructor name="darkMatterParticle_"      />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="linearGrowth_"            />
+    <objectDestructor name="cosmologyFunctions_"      />
+    <objectDestructor name="cosmologicalMassVariance_"/>
+    <objectDestructor name="darkMatterParticle_"      />
+    !!]
     return
   end function kitayamaSuto1996ConstructorParameters
 
   function kitayamaSuto1996ConstructorInternal(linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily kitayamaSuto1996} critical overdensity class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily kitayamaSuto1996} critical overdensity class.
+    !!}
     use :: Dark_Matter_Particles, only : darkMatterParticleCDM  , darkMatterParticleClass
     use :: Galacticus_Error     , only : Galacticus_Error_Report
     implicit none
@@ -89,7 +105,9 @@ contains
     class(linearGrowthClass                  ), target, intent(in   ) :: linearGrowth_
     class(cosmologicalMassVarianceClass      ), target, intent(in   ) :: cosmologicalMassVariance_
     class(darkMatterParticleClass            ), target, intent(in   ) :: darkMatterParticle_
-    !# <constructorAssign variables="*linearGrowth_, *cosmologyFunctions_, *cosmologicalMassVariance_, *darkMatterParticle_"/>
+    !![
+    <constructorAssign variables="*linearGrowth_, *cosmologyFunctions_, *cosmologicalMassVariance_, *darkMatterParticle_"/>
+    !!]
 
     self%timePrevious=-1.0d0
     ! Require that the dark matter be cold dark matter.
@@ -103,19 +121,25 @@ contains
   end function kitayamaSuto1996ConstructorInternal
 
   subroutine kitayamaSuto1996Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily kitayamaSuto1996} critical overdensity class.
+    !!{
+    Destructor for the {\normalfont \ttfamily kitayamaSuto1996} critical overdensity class.
+    !!}
     implicit none
     type(criticalOverdensityKitayamaSuto1996), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"      />
-    !# <objectDestructor name="self%linearGrowth_"            />
-    !# <objectDestructor name="self%darkMatterParticle_"      />
-    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"      />
+    <objectDestructor name="self%linearGrowth_"            />
+    <objectDestructor name="self%darkMatterParticle_"      />
+    <objectDestructor name="self%cosmologicalMassVariance_"/>
+    !!]
     return
   end subroutine kitayamaSuto1996Destructor
 
   double precision function kitayamaSuto1996Value(self,time,expansionFactor,collapsing,mass,node)
-    !% Return the critical overdensity at the given time and mass.
+    !!{
+    Return the critical overdensity at the given time and mass.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (criticalOverdensityKitayamaSuto1996), intent(inout)           :: self
@@ -135,7 +159,9 @@ contains
   end function kitayamaSuto1996Value
 
   double precision function kitayamaSuto1996GradientTime(self,time,expansionFactor,collapsing,mass,node)
-    !% Return the gradient with respect to time of critical overdensity at the given time and mass.
+    !!{
+    Return the gradient with respect to time of critical overdensity at the given time and mass.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (criticalOverdensityKitayamaSuto1996), intent(inout)           :: self
@@ -157,7 +183,9 @@ contains
   end function kitayamaSuto1996GradientTime
 
   double precision function kitayamaSuto1996GradientMass(self,time,expansionFactor,collapsing,mass,node)
-    !% Return the gradient with respect to mass of critical overdensity at the given time and mass.
+    !!{
+    Return the gradient with respect to mass of critical overdensity at the given time and mass.
+    !!}
     implicit none
     class           (criticalOverdensityKitayamaSuto1996), intent(inout)           :: self
     double precision                                     , intent(in   ), optional :: time      , expansionFactor
@@ -171,7 +199,9 @@ contains
   end function kitayamaSuto1996GradientMass
 
   logical function kitayamaSuto1996IsMassDependent(self)
-    !% Return whether the critical overdensity is mass dependent.
+    !!{
+    Return whether the critical overdensity is mass dependent.
+    !!}
     implicit none
     class(criticalOverdensityKitayamaSuto1996), intent(inout) :: self
     !$GLC attributes unused :: self
@@ -181,7 +211,9 @@ contains
   end function kitayamaSuto1996IsMassDependent
 
   logical function kitayamaSuto1996IsNodeDependent(self)
-    !% Return whether the critical overdensity is node dependent.
+    !!{
+    Return whether the critical overdensity is node dependent.
+    !!}
     implicit none
     class(criticalOverdensityKitayamaSuto1996), intent(inout) :: self
     !$GLC attributes unused :: self

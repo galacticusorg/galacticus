@@ -17,19 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a simple cooling rate class.
+  !!{
+  Implementation of a simple cooling rate class.
+  !!}
 
-  !# <coolingRate name="coolingRateSimple">
-  !#  <description>
-  !#   A cooling rate class in which the cooling rate equals the mass of hot gas divided by a fixed timescale. Specifically,
-  !#   \begin{equation}
-  !#   \dot{M}_\mathrm{cool} = M_\mathrm{hot}/\tau_\mathrm{cool} ,
-  !#   \end{equation}
-  !#   where $\tau_\mathrm{cool}=${\normalfont \ttfamily [timeScale]}.
-  !#  </description>
-  !# </coolingRate>
+  !![
+  <coolingRate name="coolingRateSimple">
+   <description>
+    A cooling rate class in which the cooling rate equals the mass of hot gas divided by a fixed timescale. Specifically,
+    \begin{equation}
+    \dot{M}_\mathrm{cool} = M_\mathrm{hot}/\tau_\mathrm{cool} ,
+    \end{equation}
+    where $\tau_\mathrm{cool}=${\normalfont \ttfamily [timeScale]}.
+   </description>
+  </coolingRate>
+  !!]
   type, extends(coolingRateClass) :: coolingRateSimple
-     !% Implementation of cooling rate class in which the cooling rate equals the mass of hot gas divided by a fixed timescale.
+     !!{
+     Implementation of cooling rate class in which the cooling rate equals the mass of hot gas divided by a fixed timescale.
+     !!}
      private
      double precision :: timeScale
    contains
@@ -37,7 +43,9 @@
   end type coolingRateSimple
 
   interface coolingRateSimple
-     !% Constructors for the simple cooling rate class.
+     !!{
+     Constructors for the simple cooling rate class.
+     !!}
      module procedure simpleConstructorParameters
      module procedure simpleConstructorInternal
   end interface coolingRateSimple
@@ -45,36 +53,48 @@
 contains
 
   function simpleConstructorParameters(parameters) result(self)
-    !% Constructor for the simple cooling rate class which builds the object from a parameter set.
+    !!{
+    Constructor for the simple cooling rate class which builds the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (coolingRateSimple)                :: self
     type            (inputParameters  ), intent(inout) :: parameters
     double precision                                   :: timeScale
 
-    !# <inputParameter>
-    !#   <name>timeScale</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>1.0d0</defaultValue>
-    !#   <description>The timescale (in Gyr) for cooling in the simple cooling rate model.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>timeScale</name>
+      <source>parameters</source>
+      <defaultValue>1.0d0</defaultValue>
+      <description>The timescale (in Gyr) for cooling in the simple cooling rate model.</description>
+    </inputParameter>
+    !!]
     self=coolingRateSimple(timeScale)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function simpleConstructorParameters
 
   function simpleConstructorInternal(timeScale) result(self)
-    !% Internal constructor for the simple cooling rate class.
+    !!{
+    Internal constructor for the simple cooling rate class.
+    !!}
     implicit none
     type            (coolingRateSimple)                :: self
     double precision                   , intent(in   ) :: timeScale
 
-    !# <constructorAssign variables="timeScale"/>
+    !![
+    <constructorAssign variables="timeScale"/>
+    !!]
     return
   end function simpleConstructorInternal
 
   double precision function simpleRate(self,node)
-    !% Returns the cooling rate (in $M_\odot$ Gyr$^{-1}$) in the hot atmosphere for a model in which this rate is always simple.
+    !!{
+    Returns the cooling rate (in $M_\odot$ Gyr$^{-1}$) in the hot atmosphere for a model in which this rate is always simple.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentHotHalo, treeNode
     implicit none
     class(coolingRateSimple   ), intent(inout) :: self

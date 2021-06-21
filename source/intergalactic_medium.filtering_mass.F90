@@ -17,47 +17,53 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides a class for filtering masses.
+!!{
+Contains a module which provides a class for filtering masses.
+!!}
 
 module Intergalactic_Medium_Filtering_Masses
-  !% Provides a class for filtering masses.
+  !!{
+  Provides a class for filtering masses.
+  !!}
   private
 
-  !# <functionClass>
-  !#  <name>intergalacticMediumFilteringMass</name>
-  !#  <descriptiveName>Intergalactic Medium Filtering Mass</descriptiveName>
-  !#  <description>Class providing intergalactic medium filtering mass.</description>
-  !#  <default>gnedin2000</default>
-  !#  <method name="massFiltering" >
-  !#   <description>Return the filtering mass at the given {\normalfont \ttfamily time}.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ) :: time</argument>
-  !#  </method>
-  !#  <method name="massFilteringRateOfChange" >
-  !#   <description>Return the rate of change of the filtering mass at the given {\normalfont \ttfamily time}.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ) :: time</argument>
-  !#  </method>
-  !#  <method name="fractionBaryons" >
-  !#   <description>Return the fraction of baryons accreted into a halo of the given {\normalfont \ttfamily mass} at the {\normalfont \ttfamily time}.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ) :: mass, time</argument>
-  !#  </method>
-  !#  <method name="fractionBaryonsGradientMass" >
-  !#   <description>Return the gradient with respect to mass of the fraction of baryons accreted into a halo of the given {\normalfont \ttfamily mass} at the {\normalfont \ttfamily time}.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ) :: mass, time</argument>
-  !#  </method>
-  !#  <method name="fractionBaryonsRateOfChange" >
-  !#   <description>Return the rate of change of the fraction of baryons accreted into a halo of the given {\normalfont \ttfamily mass} at the {\normalfont \ttfamily time}.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ) :: mass, time</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>intergalacticMediumFilteringMass</name>
+   <descriptiveName>Intergalactic Medium Filtering Mass</descriptiveName>
+   <description>Class providing intergalactic medium filtering mass.</description>
+   <default>gnedin2000</default>
+   <method name="massFiltering" >
+    <description>Return the filtering mass at the given {\normalfont \ttfamily time}.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision, intent(in   ) :: time</argument>
+   </method>
+   <method name="massFilteringRateOfChange" >
+    <description>Return the rate of change of the filtering mass at the given {\normalfont \ttfamily time}.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision, intent(in   ) :: time</argument>
+   </method>
+   <method name="fractionBaryons" >
+    <description>Return the fraction of baryons accreted into a halo of the given {\normalfont \ttfamily mass} at the {\normalfont \ttfamily time}.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision, intent(in   ) :: mass, time</argument>
+   </method>
+   <method name="fractionBaryonsGradientMass" >
+    <description>Return the gradient with respect to mass of the fraction of baryons accreted into a halo of the given {\normalfont \ttfamily mass} at the {\normalfont \ttfamily time}.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision, intent(in   ) :: mass, time</argument>
+   </method>
+   <method name="fractionBaryonsRateOfChange" >
+    <description>Return the rate of change of the fraction of baryons accreted into a halo of the given {\normalfont \ttfamily mass} at the {\normalfont \ttfamily time}.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision, intent(in   ) :: mass, time</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Intergalactic_Medium_Filtering_Masses

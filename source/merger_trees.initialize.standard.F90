@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements the standard class for initializing merger trees.
+  !!{
+  Implements the standard class for initializing merger trees.
+  !!}
 
   use :: Nodes_Operators, only : nodeOperatorClass
   
-  !# <mergerTreeInitializor name="mergerTreeInitializorStandard">
-  !#  <description>The standard merger tree initializor.</description>
-  !# </mergerTreeInitializor>
+  !![
+  <mergerTreeInitializor name="mergerTreeInitializorStandard">
+   <description>The standard merger tree initializor.</description>
+  </mergerTreeInitializor>
+  !!]
   type, extends(mergerTreeInitializorClass) :: mergerTreeInitializorStandard
-     !% Implementation of the standard merger tree initializor.
+     !!{
+     Implementation of the standard merger tree initializor.
+     !!}
      private
      class(nodeOperatorClass), pointer :: nodeOperator_ => null()
    contains
@@ -34,7 +40,9 @@
   end type mergerTreeInitializorStandard
 
   interface mergerTreeInitializorStandard
-     !% Constructors for the {\normalfont \ttfamily standard} merger tree initializor.
+     !!{
+     Constructors for the {\normalfont \ttfamily standard} merger tree initializor.
+     !!}
      module procedure standardConstructorParameters
      module procedure standardConstructorInternal
   end interface mergerTreeInitializorStandard
@@ -42,7 +50,9 @@
 contains
 
   function standardConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily standard} merger tree initializor class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily standard} merger tree initializor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (mergerTreeInitializorStandard)                :: self
@@ -50,39 +60,57 @@ contains
     class(nodeOperatorClass            ), pointer       :: nodeOperator_
 
 
-    !# <objectBuilder class="nodeOperator" name="nodeOperator_" source="parameters"/>
+    !![
+    <objectBuilder class="nodeOperator" name="nodeOperator_" source="parameters"/>
+    !!]
     self=mergerTreeInitializorStandard(nodeOperator_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="nodeOperator_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="nodeOperator_"/>
+    !!]
     return
   end function standardConstructorParameters
 
    function standardConstructorInternal(nodeOperator_) result(self)
-     !% Internal constructor for the {\normalfont \ttfamily standard} merger tree initializor class.
+     !!{
+     Internal constructor for the {\normalfont \ttfamily standard} merger tree initializor class.
+     !!}
      implicit none
      type (mergerTreeInitializorStandard)                        :: self
      class(nodeOperatorClass            ), intent(in   ), target :: nodeOperator_
-     !# <constructorAssign variables="*nodeOperator_"/>
+     !![
+     <constructorAssign variables="*nodeOperator_"/>
+     !!]
 
      return
    end function standardConstructorInternal
 
   subroutine standardDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily standard} merger tree initializor class.
+    !!{
+    Destructor for the {\normalfont \ttfamily standard} merger tree initializor class.
+    !!}
     implicit none
     type(mergerTreeInitializorStandard), intent(inout) :: self
 
-    !# <objectDestructor name="self%nodeOperator_"/>
+    !![
+    <objectDestructor name="self%nodeOperator_"/>
+    !!]
     return
   end subroutine standardDestructor
 
   subroutine standardInitialize(self,tree,timeEnd)
-    !% Walk through all nodes of a tree and call any routines that requested to perform initialization tasks.
+    !!{
+    Walk through all nodes of a tree and call any routines that requested to perform initialization tasks.
+    !!}
     use :: Galacticus_Nodes   , only : nodeComponentBasic, treeNode
     use :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
-    !# <include directive="mergerTreeInitializeTask" type="moduleUse">
+    !![
+    <include directive="mergerTreeInitializeTask" type="moduleUse">
+    !!]
     include 'merger_trees.initialize.tasks.modules.inc'
-    !# </include>
+    !![
+    </include>
+    !!]
     implicit none
     class           (mergerTreeInitializorStandard), intent(inout) :: self
     type            (mergerTree                   ), intent(inout) :: tree
@@ -101,10 +129,14 @@ contains
           ! within node components.
           call self%nodeOperator_%nodeInitialize(node)
           ! Call subroutines to perform any necessary initialization of this node.
-          !# <include directive="mergerTreeInitializeTask" type="functionCall" functionType="void">
-          !#  <functionArgs>node</functionArgs>
+          !![
+          <include directive="mergerTreeInitializeTask" type="functionCall" functionType="void">
+           <functionArgs>node</functionArgs>
+          !!]
 	  include 'merger_trees.initialize.tasks.inc'
-          !# </include>
+          !![
+          </include>
+          !!]
        end if
     end do
     tree%initializedUntil=timeEnd

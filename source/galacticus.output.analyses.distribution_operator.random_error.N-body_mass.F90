@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements a random error output analysis distribution operator class providing errors in $\log_{10}$
-  !% of N-body halo mass.
+  !!{
+  Contains a module which implements a random error output analysis distribution operator class providing errors in $\log_{10}$
+  of N-body halo mass.
+  !!}
 
   use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass
 
-  !# <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorRndmErrNbodyMass">
-  !#  <description>A random error output analysis distribution operator class providing errors in $\log_{10}$ of N-body halo mass.</description>
-  !# </outputAnalysisDistributionOperator>
+  !![
+  <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorRndmErrNbodyMass">
+   <description>A random error output analysis distribution operator class providing errors in $\log_{10}$ of N-body halo mass.</description>
+  </outputAnalysisDistributionOperator>
+  !!]
   type, extends(outputAnalysisDistributionOperatorRandomError) :: outputAnalysisDistributionOperatorRndmErrNbodyMass
-     !% A random error output distribution operator class providing errors in $\log_{10}$ of N-body halo mass.
+     !!{
+     A random error output distribution operator class providing errors in $\log_{10}$ of N-body halo mass.
+     !!}
      private
      class(nbodyHaloMassErrorClass), pointer :: nbodyHaloMassError_ => null()
    contains
@@ -35,7 +41,9 @@
   end type outputAnalysisDistributionOperatorRndmErrNbodyMass
 
   interface outputAnalysisDistributionOperatorRndmErrNbodyMass
-     !% Constructors for the ``randomErrorNbodyMass'' output analysis distribution operator class.
+     !!{
+     Constructors for the ``randomErrorNbodyMass'' output analysis distribution operator class.
+     !!}
      module procedure randomErrorNbodyMassConstructorParameters
      module procedure randomErrorNbodyMassConstructorInternal
   end interface outputAnalysisDistributionOperatorRndmErrNbodyMass
@@ -43,41 +51,57 @@
 contains
 
   function randomErrorNbodyMassConstructorParameters(parameters) result(self)
-    !% Constructor for the ``randomErrorNbodyMass'' output analysis distribution operator class which takes a parameter set as input.
+    !!{
+    Constructor for the ``randomErrorNbodyMass'' output analysis distribution operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (outputAnalysisDistributionOperatorRndmErrNbodyMass)                :: self
     type            (inputParameters                                   ), intent(inout) :: parameters
     class           (nbodyHaloMassErrorClass                           ), pointer       :: nbodyHaloMassError_
 
-    !# <objectBuilder class="nbodyHaloMassError" name="nbodyHaloMassError_" source="parameters"/>
+    !![
+    <objectBuilder class="nbodyHaloMassError" name="nbodyHaloMassError_" source="parameters"/>
+    !!]
     self=outputAnalysisDistributionOperatorRndmErrNbodyMass(nbodyHaloMassError_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="nbodyHaloMassError_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="nbodyHaloMassError_"/>
+    !!]
     return
   end function randomErrorNbodyMassConstructorParameters
 
   function randomErrorNbodyMassConstructorInternal(nbodyHaloMassError_) result(self)
-    !% Internal constructor for the ``randomErrorNbodyMass'' output analysis distribution operator class.
+    !!{
+    Internal constructor for the ``randomErrorNbodyMass'' output analysis distribution operator class.
+    !!}
     implicit none
     type (outputAnalysisDistributionOperatorRndmErrNbodyMass)                        :: self
     class(nbodyHaloMassErrorClass                           ), intent(in   ), target :: nbodyHaloMassError_
-    !# <constructorAssign variables="*nbodyHaloMassError_"/>
+    !![
+    <constructorAssign variables="*nbodyHaloMassError_"/>
+    !!]
 
     return
   end function randomErrorNbodyMassConstructorInternal
 
   subroutine randomErrorNbodyMassDestructor(self)
-    !% Destructor for the ``randomErrorNbodyMass'' output analysis distribution operator class.
+    !!{
+    Destructor for the ``randomErrorNbodyMass'' output analysis distribution operator class.
+    !!}
     implicit none
     type(outputAnalysisDistributionOperatorRndmErrNbodyMass), intent(inout) :: self
 
-    !# <objectDestructor name="self%nbodyHaloMassError_" />
+    !![
+    <objectDestructor name="self%nbodyHaloMassError_" />
+    !!]
     return
   end subroutine randomErrorNbodyMassDestructor
 
   double precision function randomErrorNbodyMassRootVariance(self,propertyValue,node)
-    !% Computes errors on $\log_{10}($halo masses$)$ for N-body halos.
+    !!{
+    Computes errors on $\log_{10}($halo masses$)$ for N-body halos.
+    !!}
     implicit none
     class           (outputAnalysisDistributionOperatorRndmErrNbodyMass), intent(inout) :: self
     double precision                                                    , intent(in   ) :: propertyValue

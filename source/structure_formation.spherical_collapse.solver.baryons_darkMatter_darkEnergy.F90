@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% A spherical collapse solver class for universes consisting of baryons, collisionless matter, and dark energy.
+  !!{
+  A spherical collapse solver class for universes consisting of baryons, collisionless matter, and dark energy.
+  !!}
 
   use :: Cosmology_Parameters, only : cosmologyParameters, cosmologyParametersClass
 
-  !# <sphericalCollapseSolver name="sphericalCollapseSolverBaryonsDarkMatterDarkEnergy">
-  !#  <description>A spherical collapse solver for universes consisting of baryons, collisionless matter, and dark energy.</description>
-  !# </sphericalCollapseSolver>
+  !![
+  <sphericalCollapseSolver name="sphericalCollapseSolverBaryonsDarkMatterDarkEnergy">
+   <description>A spherical collapse solver for universes consisting of baryons, collisionless matter, and dark energy.</description>
+  </sphericalCollapseSolver>
+  !!]
   type, extends(sphericalCollapseSolverCllsnlssMttrDarkEnergy) :: sphericalCollapseSolverBaryonsDarkMatterDarkEnergy
-     !% A spherical collapse solver for universes consisting of baryons, collisionless matter, and dark energy.
+     !!{
+     A spherical collapse solver for universes consisting of baryons, collisionless matter, and dark energy.
+     !!}
      private
      class  (cosmologyParametersClass), pointer :: cosmologyParameters_
      logical                                    :: baryonsCluster
@@ -35,7 +41,9 @@
   end type sphericalCollapseSolverBaryonsDarkMatterDarkEnergy
 
   interface sphericalCollapseSolverBaryonsDarkMatterDarkEnergy
-     !% Constructors for the {\normalfont \ttfamily baryonsDarkMatterDarkEnergy} spherical collapse solver class.
+     !!{
+     Constructors for the {\normalfont \ttfamily baryonsDarkMatterDarkEnergy} spherical collapse solver class.
+     !!}
      module procedure baryonsDarkMatterDarkEnergyConstructorParameters
      module procedure baryonsDarkMatterDarkEnergyConstructorInternal
   end interface sphericalCollapseSolverBaryonsDarkMatterDarkEnergy
@@ -48,8 +56,10 @@
 contains
 
   function baryonsDarkMatterDarkEnergyConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily baryonsDarkMatterDarkEnergy} spherical collapse solver class that takes a parameter set as
-    !% input.
+    !!{
+    Constructor for the {\normalfont \ttfamily baryonsDarkMatterDarkEnergy} spherical collapse solver class that takes a parameter set as
+    input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (sphericalCollapseSolverBaryonsDarkMatterDarkEnergy)                :: self
@@ -59,28 +69,34 @@ contains
     type   (varying_string                                    )                :: energyFixedAt
     logical                                                                    :: baryonsCluster
 
-    !# <inputParameter>
-    !#   <name>baryonsCluster</name>
-    !#   <source>parameters</source>
-    !#   <description>If true baryons are assumed to cluster in the same way as collisionless matter. If false, baryons are assumed not to cluster at all.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>energyFixedAt</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>var_str('turnaround')</defaultValue>
-    !#   <description>The radius at which the energy of a spherical top-hat perturbation in a dark energy cosmology can be considered to be fixed.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
-    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>baryonsCluster</name>
+      <source>parameters</source>
+      <description>If true baryons are assumed to cluster in the same way as collisionless matter. If false, baryons are assumed not to cluster at all.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>energyFixedAt</name>
+      <source>parameters</source>
+      <defaultValue>var_str('turnaround')</defaultValue>
+      <description>The radius at which the energy of a spherical top-hat perturbation in a dark energy cosmology can be considered to be fixed.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    !!]
     self=sphericalCollapseSolverBaryonsDarkMatterDarkEnergy(baryonsCluster,enumerationCllsnlssMttrDarkEnergyFixedAtEncode(char(energyFixedAt),includesPrefix=.false.),cosmologyParameters_,cosmologyFunctions_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"/>
-    !# <objectDestructor name="cosmologyFunctions_" />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"/>
+    <objectDestructor name="cosmologyFunctions_" />
+    !!]
     return
   end function baryonsDarkMatterDarkEnergyConstructorParameters
 
   function baryonsDarkMatterDarkEnergyConstructorInternal(baryonsCluster,energyFixedAt,cosmologyParameters_,cosmologyFunctions_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily baryonsDarkMatterDarkEnergy} spherical collapse solver class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily baryonsDarkMatterDarkEnergy} spherical collapse solver class.
+    !!}
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: Galacticus_Paths  , only : galacticusPath                 , pathTypeDataDynamic
     use :: ISO_Varying_String, only : operator(//)
@@ -91,7 +107,9 @@ contains
     integer                                                    , intent(in   )         :: energyFixedAt
     class  (cosmologyFunctionsClass                           ), intent(in   ), target :: cosmologyFunctions_
     class  (cosmologyParametersClass                          ), intent(in   ), target :: cosmologyParameters_
-    !# <constructorAssign variables="baryonsCluster, energyFixedAt, *cosmologyFunctions_, *cosmologyParameters_"/>
+    !![
+    <constructorAssign variables="baryonsCluster, energyFixedAt, *cosmologyFunctions_, *cosmologyParameters_"/>
+    !!]
 
     self%fileNameCriticalOverdensity  =galacticusPath(pathTypeDataDynamic)              // &
          &                             'largeScaleStructure/'                           // &
@@ -119,24 +137,34 @@ contains
     end if
     select type (linearGrowth_ => self%linearGrowth_)
     type is (linearGrowthCollisionlessMatter           )
-       !# <referenceConstruct object="linearGrowth_" constructor="linearGrowthCollisionlessMatter           (self%cosmologyParameters_,self%cosmologyFunctions_)"/>
+       !![
+       <referenceConstruct object="linearGrowth_" constructor="linearGrowthCollisionlessMatter           (self%cosmologyParameters_,self%cosmologyFunctions_)"/>
+       !!]
     type is (linearGrowthNonClusteringBaryonsDarkMatter)
-       !# <referenceConstruct object="linearGrowth_" constructor="linearGrowthNonClusteringBaryonsDarkMatter(self%cosmologyParameters_,self%cosmologyFunctions_)"/>
+       !![
+       <referenceConstruct object="linearGrowth_" constructor="linearGrowthNonClusteringBaryonsDarkMatter(self%cosmologyParameters_,self%cosmologyFunctions_)"/>
+       !!]
     end select
     return
   end function baryonsDarkMatterDarkEnergyConstructorInternal
 
   subroutine baryonsDarkMatterDarkEnergyDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily baryonsDarkMatterDarkEnergy} spherical collapse solver class.
+    !!{
+    Destructor for the {\normalfont \ttfamily baryonsDarkMatterDarkEnergy} spherical collapse solver class.
+    !!}
     implicit none
     type(sphericalCollapseSolverBaryonsDarkMatterDarkEnergy), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_"/>
+    !![
+    <objectDestructor name="self%cosmologyParameters_"/>
+    !!]
     return
   end subroutine baryonsDarkMatterDarkEnergyDestructor
 
   subroutine baryonsDarkMatterDarkEnergyTabulate(self,time,sphericalCollapse_,calculationType)
-    !% Tabulate spherical collapse solutions for $\delta_\mathrm{crit}$, $\Delta_\mathrm{vir}$, or $R_\mathrm{ta}/R_\mathrm{vir}$ vs. time.
+    !!{
+    Tabulate spherical collapse solutions for $\delta_\mathrm{crit}$, $\Delta_\mathrm{vir}$, or $R_\mathrm{ta}/R_\mathrm{vir}$ vs. time.
+    !!}
     use :: Display         , only : displayCounter           , displayCounterClear          , displayIndent                , displayUnindent, &
           &                         verbosityLevelWorking
     use :: Galacticus_Error, only : Galacticus_Error_Report
@@ -212,14 +240,18 @@ contains
        !$omp parallel private(expansionFactor,epsilonPerturbationMaximum,epsilonPerturbationMinimum,epsilonPerturbation,timeInitial,timeRange,timeExpansionMaximum,expansionFactorExpansionMaximum,q,y,r,z,timeEnergyFixed,a,b,x,linearGrowth_)
        allocate(cllsnlssMttrDarkEnergyCosmologyFunctions_,mold=self%cosmologyFunctions_)
        !$omp critical(sphericalCollapseSolverBrynsDrkMttrDrkEnrgyDeepCopy)
-       !# <deepCopyReset variables="self%cosmologyFunctions_"/>
-       !# <deepCopy source="self%cosmologyFunctions_" destination="cllsnlssMttrDarkEnergyCosmologyFunctions_"/>
-       !# <deepCopyFinalize variables="cllsnlssMttrDarkEnergyCosmologyFunctions_"/>
+       !![
+       <deepCopyReset variables="self%cosmologyFunctions_"/>
+       <deepCopy source="self%cosmologyFunctions_" destination="cllsnlssMttrDarkEnergyCosmologyFunctions_"/>
+       <deepCopyFinalize variables="cllsnlssMttrDarkEnergyCosmologyFunctions_"/>
+       !!]
        if (calculationType == cllsnlssMttCsmlgclCnstntClcltnCriticalOverdensity) then
           allocate(linearGrowth_,mold=self%linearGrowth_)
-          !# <deepCopyReset variables="self%linearGrowth_"/>
-          !# <deepCopy source="self%linearGrowth_" destination="linearGrowth_"/>
-          !# <deepCopyFinalize variables="linearGrowth_"/>
+          !![
+          <deepCopyReset variables="self%linearGrowth_"/>
+          <deepCopy source="self%linearGrowth_" destination="linearGrowth_"/>
+          <deepCopyFinalize variables="linearGrowth_"/>
+          !!]
        end if
        !$omp end critical(sphericalCollapseSolverBrynsDrkMttrDrkEnrgyDeepCopy)
        !$omp do schedule(dynamic)
@@ -383,9 +415,13 @@ contains
           iCount=iCount+1
        end do
        !$omp end do
-       !#    <objectDestructor name="cllsnlssMttrDarkEnergyCosmologyFunctions_"/>
+       !![
+          <objectDestructor name="cllsnlssMttrDarkEnergyCosmologyFunctions_"/>
+       !!]
        if (calculationType == cllsnlssMttCsmlgclCnstntClcltnCriticalOverdensity) then
-          !# <objectDestructor name="linearGrowth_"                      />
+          !![
+          <objectDestructor name="linearGrowth_"                      />
+          !!]
        end if
        !$omp end parallel
        call displayCounterClear(       verbosity=verbosityLevelWorking)
@@ -395,8 +431,10 @@ contains
   end subroutine baryonsDarkMatterDarkEnergyTabulate
 
   double precision function baryonsDarkMatterDarkEnergyRadiusPerturbation(epsilonPerturbation)
-    !% Return the radius of a spherical top-hat perturbation in a dark energy universe given an initial perturbation
-    !% amplitude {\normalfont \ttfamily epsilonPerturbation}.
+    !!{
+    Return the radius of a spherical top-hat perturbation in a dark energy universe given an initial perturbation
+    amplitude {\normalfont \ttfamily epsilonPerturbation}.
+    !!}
     implicit none
     double precision, intent(in   ) :: epsilonPerturbation
 
@@ -405,8 +443,10 @@ contains
   end function baryonsDarkMatterDarkEnergyRadiusPerturbation
 
   double precision function baryonsDarkMatterDarkEnergyExpansionRatePerturbation(time)
-    !% Return the expansion rate of a spherical top-hat perturbation in a dark energy universe given an initial perturbation
-    !% amplitude {\normalfont \ttfamily epsilonPerturbation}.
+    !!{
+    Return the expansion rate of a spherical top-hat perturbation in a dark energy universe given an initial perturbation
+    amplitude {\normalfont \ttfamily epsilonPerturbation}.
+    !!}
     implicit none
     double precision, intent(in   ) :: time
 
@@ -415,8 +455,10 @@ contains
   end function baryonsDarkMatterDarkEnergyExpansionRatePerturbation
 
   subroutine baryonsDarkMatterDarkEnergyPerturbationDynamicsSolver(perturbationOverdensityInitial,time,radiusPerturbation,expansionRatePerturbation)
-    !% Integrate the dynamics of a spherical top-hat perturbation in a dark energy universe given an initial perturbation
-    !% amplitude {\normalfont \ttfamily epsilonPerturbation}.
+    !!{
+    Integrate the dynamics of a spherical top-hat perturbation in a dark energy universe given an initial perturbation
+    amplitude {\normalfont \ttfamily epsilonPerturbation}.
+    !!}
     use :: Galacticus_Error     , only : Galacticus_Error_Report
     use :: Interface_GSL        , only : GSL_Success
     use :: Numerical_ODE_Solvers, only : odeSolver
@@ -503,7 +545,9 @@ contains
   end subroutine baryonsDarkMatterDarkEnergyPerturbationDynamicsSolver
 
   integer function baryonsDarkMatterDarkEnergyPerturbationODEs(time,y,dydt)
-    !% Differential equations describing the evolution of spherical perturbations in a universe containing baryons, collisionless dark matter and dark energy.
+    !!{
+    Differential equations describing the evolution of spherical perturbations in a universe containing baryons, collisionless dark matter and dark energy.
+    !!}
     use :: Interface_GSL, only : GSL_Success
     implicit none
     double precision, intent(in   )               :: time

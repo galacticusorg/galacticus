@@ -17,23 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a 1D distibution function which is uniform in the logarithm of the variable.
+  !!{
+  Implementation of a 1D distibution function which is uniform in the logarithm of the variable.
+  !!}
 
-  !# <distributionFunction1D name="distributionFunction1DLogUniform">
-  !#  <description>
-  !#   A distribution uniform in the logarithm of $x$ over a finite range
-  !#   \begin{equation}
-  !#    P(x) \propto \left\{ \begin{array}{ll} x^{-1} &amp; \hbox{ if } x_\mathrm{l} \leq x \leq x_\mathrm{u} \\ 0 &amp; \hbox{ otherwise.}  \end{array} \right.
-  !#   \end{equation}
-  !#   Specified using:
-  !#   \begin{description}
-  !#   \item[{\normalfont \ttfamily [minimum]}] The lower limit of the range, $x_\mathrm{l}$;
-  !#   \item[{\normalfont \ttfamily [maximum]}] The upper limit of the range, $x_\mathrm{u}$.
-  !#   \end{description}
-  !#  </description>
-  !# </distributionFunction1D>
+  !![
+  <distributionFunction1D name="distributionFunction1DLogUniform">
+   <description>
+    A distribution uniform in the logarithm of $x$ over a finite range
+    \begin{equation}
+     P(x) \propto \left\{ \begin{array}{ll} x^{-1} &amp; \hbox{ if } x_\mathrm{l} \leq x \leq x_\mathrm{u} \\ 0 &amp; \hbox{ otherwise.}  \end{array} \right.
+    \end{equation}
+    Specified using:
+    \begin{description}
+    \item[{\normalfont \ttfamily [minimum]}] The lower limit of the range, $x_\mathrm{l}$;
+    \item[{\normalfont \ttfamily [maximum]}] The upper limit of the range, $x_\mathrm{u}$.
+    \end{description}
+   </description>
+  </distributionFunction1D>
+  !!]
   type, extends(distributionFunction1DClass) :: distributionFunction1DLogUniform
-     !% Implementation of a 1D distibution function which is uniform in the logarithm of the variable.
+     !!{
+     Implementation of a 1D distibution function which is uniform in the logarithm of the variable.
+     !!}
      private
      double precision :: limitLower, limitUpper
    contains
@@ -45,7 +51,9 @@
   end type distributionFunction1DLogUniform
 
   interface distributionFunction1DLogUniform
-     !% Constructors for the {\normalfont \ttfamily logUniform} 1D distribution function class.
+     !!{
+     Constructors for the {\normalfont \ttfamily logUniform} 1D distribution function class.
+     !!}
      module procedure logUniformConstructorParameters
      module procedure logUniformConstructorInternal
   end interface distributionFunction1DLogUniform
@@ -53,8 +61,10 @@
 contains
 
   function logUniformConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily logUniform} 1D distribution function class which builds
-    !% the object from a parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily logUniform} 1D distribution function class which builds
+    the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (distributionFunction1DLogUniform)                :: self
@@ -62,35 +72,45 @@ contains
     class           (randomNumberGeneratorClass      ), pointer       :: randomNumberGenerator_
     double precision                                                  :: limitLower            , limitUpper
 
-    !# <inputParameter>
-    !#   <name>limitLower</name>
-    !#   <description>The lower limit of the log-uniform distribution function.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>limitUpper</name>
-    !#   <description>The upper limit of the log-uniform distribution function.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>limitLower</name>
+      <description>The lower limit of the log-uniform distribution function.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>limitUpper</name>
+      <description>The upper limit of the log-uniform distribution function.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !!]
     self=distributionFunction1DLogUniform(limitLower,limitUpper,randomNumberGenerator_)
-    !# <objectDestructor name="randomNumberGenerator_"/>
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <objectDestructor name="randomNumberGenerator_"/>
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function logUniformConstructorParameters
 
   function logUniformConstructorInternal(limitLower,limitUpper,randomNumberGenerator_) result(self)
-    !% Constructor for ``logUniform'' 1D distribution function class.
+    !!{
+    Constructor for ``logUniform'' 1D distribution function class.
+    !!}
     type            (distributionFunction1DLogUniform)                                  :: self
     double precision                                  , intent(in   )                   :: limitLower            , limitUpper
     class           (randomNumberGeneratorClass      ), intent(in   ), target, optional :: randomNumberGenerator_
-    !# <constructorAssign variables="limitLower, limitUpper, *randomNumberGenerator_"/>
+    !![
+    <constructorAssign variables="limitLower, limitUpper, *randomNumberGenerator_"/>
+    !!]
 
     return
   end function logUniformConstructorInternal
 
   double precision function logUniformDensity(self,x)
-    !% Return the density of a uniform distribution.
+    !!{
+    Return the density of a uniform distribution.
+    !!}
     implicit none
     class           (distributionFunction1DLogUniform), intent(inout) :: self
     double precision                                  , intent(in   ) :: x
@@ -104,7 +124,9 @@ contains
   end function logUniformDensity
 
   double precision function logUniformCumulative(self,x)
-    !% Return the cumulative probability of a uniform distribution.
+    !!{
+    Return the cumulative probability of a uniform distribution.
+    !!}
     implicit none
     class           (distributionFunction1DLogUniform), intent(inout) :: self
     double precision                                  , intent(in   ) :: x
@@ -120,7 +142,9 @@ contains
   end function logUniformCumulative
 
   double precision function logUniformInverse(self,p)
-    !% Return the inverse of a uniform distribution.
+    !!{
+    Return the inverse of a uniform distribution.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (distributionFunction1DLogUniform), intent(inout), target :: self
@@ -136,7 +160,9 @@ contains
   end function logUniformInverse
 
   double precision function logUniformMinimum(self)
-    !% Return the minimum possible value of a logUniform distribution.
+    !!{
+    Return the minimum possible value of a logUniform distribution.
+    !!}
     implicit none
     class(distributionFunction1DLogUniform), intent(inout) :: self
 
@@ -145,7 +171,9 @@ contains
   end function logUniformMinimum
 
   double precision function logUniformMaximum(self)
-    !% Return the maximum possible value of a logUniform distribution.
+    !!{
+    Return the maximum possible value of a logUniform distribution.
+    !!}
     implicit none
     class(distributionFunction1DLogUniform), intent(inout) :: self
 

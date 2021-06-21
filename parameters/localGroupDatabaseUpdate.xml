@@ -6,24 +6,4 @@
 
   <task value="localGroupDatabase"/>
 
-  <nodeOperator value="multi"><!--Stellar feedback outflows-->
-    <nodeOperator value="stellarFeedbackDisks">
-      <stellarFeedbackOutflows value="rateLimit">
-        <timescaleOutflowFractionalMinimum value="0.001"/>
-        <stellarFeedbackOutflows value="powerLaw">
-          <velocityCharacteristic value="250.0"/>
-          <exponent value="3.5"/>
-        </stellarFeedbackOutflows>
-      </stellarFeedbackOutflows>
-    </nodeOperator>
-    <nodeOperator value="stellarFeedbackSpheroids">
-      <stellarFeedbackOutflows value="rateLimit">
-        <timescaleOutflowFractionalMinimum value="0.001"/>
-        <stellarFeedbackOutflows value="powerLaw">
-          <velocityCharacteristic value="250.0"/>
-          <exponent value="3.5"/>
-        </stellarFeedbackOutflows>
-      </stellarFeedbackOutflows>
-    </nodeOperator>
-  </nodeOperator>
 </parameters>

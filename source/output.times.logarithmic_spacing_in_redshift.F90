@@ -17,20 +17,28 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains an output times class which uses a set of times spaced uniformly in $\log(1+z)$.
+  !!{
+  Contains an output times class which uses a set of times spaced uniformly in $\log(1+z)$.
+  !!}
   
-  !# <outputTimes name="outputTimesLogarithmicSpacingInRedshift">
-  !#  <description>An output times class which uses a set of times spaced uniformly in $\log(1+z)$.</description>
-  !# </outputTimes>
+  !![
+  <outputTimes name="outputTimesLogarithmicSpacingInRedshift">
+   <description>An output times class which uses a set of times spaced uniformly in $\log(1+z)$.</description>
+  </outputTimes>
+  !!]
   type, extends(outputTimesList) :: outputTimesLogarithmicSpacingInRedshift
-     !% Implementation of an output times class which uses a set of times spaced uniformly in $\log(1+z)$
+     !!{
+     Implementation of an output times class which uses a set of times spaced uniformly in $\log(1+z)$
+     !!}
      private
      double precision           :: redshiftMinimum, redshiftMaximum
      integer         (c_size_t) :: countRedshifts
   end type outputTimesLogarithmicSpacingInRedshift
 
   interface outputTimesLogarithmicSpacingInRedshift
-     !% Constructors for the {\normalfont \ttfamily logarithmicSpacingInRedshift} output times class.
+     !!{
+     Constructors for the {\normalfont \ttfamily logarithmicSpacingInRedshift} output times class.
+     !!}
      module procedure logarithmicSpacingInRedshiftConstructorParameters
      module procedure logarithmicSpacingInRedshiftConstructorInternal
   end interface outputTimesLogarithmicSpacingInRedshift
@@ -38,7 +46,9 @@
 contains
 
   function logarithmicSpacingInRedshiftConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily logarithmicSpacingInRedshift} output times class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily logarithmicSpacingInRedshift} output times class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (outputTimesLogarithmicSpacingInRedshift)                :: self
@@ -47,30 +57,36 @@ contains
     double precision                                                         :: redshiftMinimum    , redshiftMaximum
     integer         (c_size_t                               )                :: countRedshifts
 
-    !# <inputParameter>
-    !#   <name>redshiftMinimum</name>
-    !#   <description>The minimum redshift at which to output.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>redshiftMaximum</name>
-    !#   <description>The maximum redshift at which to output.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>countRedshifts</name>
-    !#   <description>The number of redshifts at which to output.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>redshiftMinimum</name>
+      <description>The minimum redshift at which to output.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>redshiftMaximum</name>
+      <description>The maximum redshift at which to output.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>countRedshifts</name>
+      <description>The number of redshifts at which to output.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !!]
     self=outputTimesLogarithmicSpacingInRedshift(redshiftMinimum,redshiftMaximum,countRedshifts,cosmologyFunctions_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"/>
+    !!]
     return
   end function logarithmicSpacingInRedshiftConstructorParameters
 
   function logarithmicSpacingInRedshiftConstructorInternal(redshiftMinimum,redshiftMaximum,countRedshifts,cosmologyFunctions_) result(self)
-    !% Constructor for the {\normalfont \ttfamily logarithmicSpacingInRedshift} output times class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily logarithmicSpacingInRedshift} output times class which takes a parameter set as input.
+    !!}
     use :: Numerical_Ranges, only : Make_Range, rangeTypeLogarithmic
     implicit none
     type            (outputTimesLogarithmicSpacingInRedshift)                        :: self
@@ -78,7 +94,9 @@ contains
     integer         (c_size_t                               ), intent(in   )         :: countRedshifts
     class           (cosmologyFunctionsClass                ), intent(in   ), target :: cosmologyFunctions_
     integer         (c_size_t                               )                        :: i
-    !# <constructorAssign variables="redshiftMinimum,redshiftMaximum,countRedshifts, *cosmologyFunctions_"/>
+    !![
+    <constructorAssign variables="redshiftMinimum,redshiftMaximum,countRedshifts, *cosmologyFunctions_"/>
+    !!]
 
     allocate(self%times    (countRedshifts))
     allocate(self%redshifts(countRedshifts))

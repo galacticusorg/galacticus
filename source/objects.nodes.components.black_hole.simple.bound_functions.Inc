@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains custom functions for the simple black hole component.
+!!{
+Contains custom functions for the simple black hole component.
+!!}
 
 double precision function Node_Component_Black_Hole_Simple_Enclosed_Mass(self,radius,componentType,massType,weightBy,weightIndex)
-  !% Computes the mass within a given radius for a central black hole. Black hole is treated as a point mass.
+  !!{
+  Computes the mass within a given radius for a central black hole. Black hole is treated as a point mass.
+  !!}
   use :: Galactic_Structure_Options, only : componentTypeAll, componentTypeBlackHole, massTypeAll, massTypeBlackHole, &
           &                                 weightByMass
   implicit none
@@ -42,7 +46,9 @@ double precision function Node_Component_Black_Hole_Simple_Enclosed_Mass(self,ra
 end function Node_Component_Black_Hole_Simple_Enclosed_Mass
 
  function Node_Component_Black_Hole_Simple_Acceleration(self,positionCartesian,componentType,massType)
-  !% Computes the acceleration due to a central black hole. Black hole is treated as a point mass.
+  !!{
+  Computes the acceleration due to a central black hole. Black hole is treated as a point mass.
+  !!}
   use :: Galactic_Structure_Options      , only : componentTypeAll               , componentTypeBlackHole, massTypeAll, massTypeBlackHole
   use :: Numerical_Constants_Astronomical, only : gigaYear                       , megaParsec
   use :: Numerical_Constants_Astronomical    , only : gravitationalConstantGalacticus
@@ -73,7 +79,9 @@ end function Node_Component_Black_Hole_Simple_Enclosed_Mass
 end function Node_Component_Black_Hole_Simple_Acceleration
 
 function Node_Component_Black_Hole_Simple_Tidal_Tensor(self,positionCartesian,componentType,massType)
-  !% Computes the acceleration due to a central black hole. Black hole is treated as a point mass.
+  !!{
+  Computes the acceleration due to a central black hole. Black hole is treated as a point mass.
+  !!}
   use :: Galactic_Structure_Options  , only : componentTypeAll               , componentTypeBlackHole, massTypeAll          , massTypeBlackHole
   use :: Numerical_Constants_Math    , only : Pi
   use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus

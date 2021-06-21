@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which reports on timestepping criteria.
+!!{
+Contains a module which reports on timestepping criteria.
+!!}
 
 module Evolve_To_Time_Reports
-  !% Contains functions which report on timestepping criteria.
+  !!{
+  Contains functions which report on timestepping criteria.
+  !!}
   implicit none
   private
   public :: Evolve_To_Time_Report
@@ -28,7 +32,9 @@ module Evolve_To_Time_Reports
 contains
 
   subroutine Evolve_To_Time_Report(message,time,index)
-    !% Display a report on evolution timestep criteria.
+    !!{
+    Display a report on evolution timestep criteria.
+    !!}
     use :: Display           , only : displayMessage
     use :: ISO_Varying_String, only : assignment(=) , operator(//), varying_string
     use :: Kind_Numbers      , only : kind_int8

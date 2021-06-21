@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a galactic low-pass filter for time since the last major node merger.
+!!{
+Contains a module which implements a galactic low-pass filter for time since the last major node merger.
+!!}
 
-  !# <galacticFilter name="galacticFilterNodeMajorMergerRecent">
-  !#  <description>
-  !#  A low-pass filter for time since the last major node merger. Halos with a time of the last major node merger greater than or equal to the current time minus
-  !#  $\Delta t=${\normalfont \ttfamily [timeRecent]} are passed.
-  !#  </description>
-  !# </galacticFilter>
+  !![
+  <galacticFilter name="galacticFilterNodeMajorMergerRecent">
+   <description>
+   A low-pass filter for time since the last major node merger. Halos with a time of the last major node merger greater than or equal to the current time minus
+   $\Delta t=${\normalfont \ttfamily [timeRecent]} are passed.
+   </description>
+  </galacticFilter>
+  !!]
   type, extends(galacticFilterClass) :: galacticFilterNodeMajorMergerRecent
-     !% A galactic low-pass filter for time since the last major node merger.
+     !!{
+     A galactic low-pass filter for time since the last major node merger.
+     !!}
      private
      double precision :: timeRecent
    contains
@@ -34,7 +40,9 @@
   end type galacticFilterNodeMajorMergerRecent
 
   interface galacticFilterNodeMajorMergerRecent
-     !% Constructors for the ``nodeMajorMergerRecent'' galactic filter class.
+     !!{
+     Constructors for the ``nodeMajorMergerRecent'' galactic filter class.
+     !!}
      module procedure nodeMajorMergerRecentConstructorParameters
      module procedure nodeMajorMergerRecentConstructorInternal
   end interface galacticFilterNodeMajorMergerRecent
@@ -42,7 +50,9 @@
 contains
 
   function nodeMajorMergerRecentConstructorParameters(parameters) result(self)
-    !% Constructor for the ``nodeMajorMergerRecent'' galactic filter class which takes a parameter set as input.
+    !!{
+    Constructor for the ``nodeMajorMergerRecent'' galactic filter class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (galacticFilterNodeMajorMergerRecent)                :: self
@@ -50,28 +60,38 @@ contains
     double precision                                                     :: timeRecent
 
     ! Check and read parameters.
-    !# <inputParameter>
-    !#   <name>timeRecent</name>
-    !#   <source>parameters</source>
-    !#   <variable>timeRecent</variable>
-    !#   <description>The parameter $\Delta t$ (in units of Gyr) appearing in the recent node major merger galactic filter class.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>timeRecent</name>
+      <source>parameters</source>
+      <variable>timeRecent</variable>
+      <description>The parameter $\Delta t$ (in units of Gyr) appearing in the recent node major merger galactic filter class.</description>
+    </inputParameter>
+    !!]
     self=galacticFilterNodeMajorMergerRecent(timeRecent)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function nodeMajorMergerRecentConstructorParameters
 
   function nodeMajorMergerRecentConstructorInternal(timeRecent) result(self)
-    !% Internal constructor for the ``nodeMajorMergerRecent'' galactic filter class.
+    !!{
+    Internal constructor for the ``nodeMajorMergerRecent'' galactic filter class.
+    !!}
     implicit none
     type            (galacticFilterNodeMajorMergerRecent)                :: self
     double precision                                     , intent(in   ) :: timeRecent
-    !# <constructorAssign variables="timeRecent"/>
+    !![
+    <constructorAssign variables="timeRecent"/>
+    !!]
     return
   end function nodeMajorMergerRecentConstructorInternal
 
   logical function nodeMajorMergerRecentPasses(self,node)
-    !% Implement a low-pass filter for time since the last major node merger.
+    !!{
+    Implement a low-pass filter for time since the last major node merger.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentMergingStatistics, treeNode
     implicit none
     class(galacticFilterNodeMajorMergerRecent), intent(inout)         :: self

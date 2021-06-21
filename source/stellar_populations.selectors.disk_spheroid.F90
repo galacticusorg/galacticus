@@ -17,17 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a stellar population selector class which returns a different population for disks and spheroids.
+  !!{
+  Implements a stellar population selector class which returns a different population for disks and spheroids.
+  !!}
 
-  !# <stellarPopulationSelector name="stellarPopulationSelectorDiskSpheroid">
-  !#  <description>
-  !#   A stellar population selector class which selects a different population for disks and spheroids, irrespective of other
-  !#   physical conditions. The populationss to use are specified by the {\normalfont \ttfamily [stellarPopulationDisk]} and
-  !#   {\normalfont \ttfamily [stellarPopulationSpheroid]} parameters.
-  !#  </description>
-  !# </stellarPopulationSelector>
+  !![
+  <stellarPopulationSelector name="stellarPopulationSelectorDiskSpheroid">
+   <description>
+    A stellar population selector class which selects a different population for disks and spheroids, irrespective of other
+    physical conditions. The populationss to use are specified by the {\normalfont \ttfamily [stellarPopulationDisk]} and
+    {\normalfont \ttfamily [stellarPopulationSpheroid]} parameters.
+   </description>
+  </stellarPopulationSelector>
+  !!]
   type, extends(stellarPopulationSelectorClass) :: stellarPopulationSelectorDiskSpheroid
-     !% A stellar population selector class which returns a different population for disks and spheroids.
+     !!{
+     A stellar population selector class which returns a different population for disks and spheroids.
+     !!}
      private
      class(stellarPopulationClass), pointer :: stellarPopulationDisk_ => null(), stellarPopulationSpheroid_ => null()
    contains
@@ -37,7 +43,9 @@
   end type stellarPopulationSelectorDiskSpheroid
 
   interface stellarPopulationSelectorDiskSpheroid
-     !% Constructors for the {\normalfont \ttfamily diskSpheroid} stellar population selector class.
+     !!{
+     Constructors for the {\normalfont \ttfamily diskSpheroid} stellar population selector class.
+     !!}
      module procedure diskSpheroidConstructorParameters
      module procedure diskSpheroidConstructorInternal
   end interface stellarPopulationSelectorDiskSpheroid
@@ -45,7 +53,9 @@
 contains
 
   function diskSpheroidConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily diskSpheroid} stellar population class which takes a parameter list as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily diskSpheroid} stellar population class which takes a parameter list as input.
+    !!}
     use :: Input_Parameters   , only : inputParameter   , inputParameters
     use :: Stellar_Populations, only : stellarPopulation, stellarPopulationClass
     implicit none
@@ -53,37 +63,51 @@ contains
     type (inputParameters                      ), intent(inout) :: parameters
     class(stellarPopulationClass               ), pointer       :: stellarPopulationDisk_, stellarPopulationSpheroid_
 
-    !# <objectBuilder class="stellarPopulation" parameterName="stellarPopulationDisk"     name="stellarPopulationDisk_"     source="parameters"/>
-    !# <objectBuilder class="stellarPopulation" parameterName="stellarPopulationSpheroid" name="stellarPopulationSpheroid_" source="parameters"/>
+    !![
+    <objectBuilder class="stellarPopulation" parameterName="stellarPopulationDisk"     name="stellarPopulationDisk_"     source="parameters"/>
+    <objectBuilder class="stellarPopulation" parameterName="stellarPopulationSpheroid" name="stellarPopulationSpheroid_" source="parameters"/>
+    !!]
     self=stellarPopulationSelectorDiskSpheroid(stellarPopulationDisk_,stellarPopulationSpheroid_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="stellarPopulationDisk_"    />
-    !# <objectDestructor name="stellarPopulationSpheroid_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="stellarPopulationDisk_"    />
+    <objectDestructor name="stellarPopulationSpheroid_"/>
+    !!]
     return
   end function diskSpheroidConstructorParameters
 
   function diskSpheroidConstructorInternal(stellarPopulationDisk_,stellarPopulationSpheroid_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily diskSpheroid} stellar population selector class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily diskSpheroid} stellar population selector class.
+    !!}
     implicit none
     type (stellarPopulationSelectorDiskSpheroid)                        :: self
     class(stellarPopulationClass               ), intent(in   ), target :: stellarPopulationDisk_, stellarPopulationSpheroid_
-    !# <constructorAssign variables="*stellarPopulationDisk_, *stellarPopulationSpheroid_"/>
+    !![
+    <constructorAssign variables="*stellarPopulationDisk_, *stellarPopulationSpheroid_"/>
+    !!]
 
     return
   end function diskSpheroidConstructorInternal
 
   subroutine diskSpheroidDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily diskSpheroid} stellar population selector class.
+    !!{
+    Destructor for the {\normalfont \ttfamily diskSpheroid} stellar population selector class.
+    !!}
     implicit none
     type(stellarPopulationSelectorDiskSpheroid), intent(inout) :: self
 
-    !# <objectDestructor name="self%stellarPopulationDisk_"    />
-    !# <objectDestructor name="self%stellarPopulationSpheroid_"/>
+    !![
+    <objectDestructor name="self%stellarPopulationDisk_"    />
+    <objectDestructor name="self%stellarPopulationSpheroid_"/>
+    !!]
     return
   end subroutine diskSpheroidDestructor
 
   function diskSpheroidSelect(self,rateStarFormation,abundances_,component)
-    !% Return a diskSpheroid stellar population.
+    !!{
+    Return a diskSpheroid stellar population.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : nodeComponent          , nodeComponentDisk, nodeComponentSpheroid
     implicit none
@@ -106,7 +130,9 @@ contains
   end function diskSpheroidSelect
 
   logical function diskSpheroidIsStarFormationRateDependent(self)
-    !% Return false indicating that stellar population selection is not dependent on star formation rate.
+    !!{
+    Return false indicating that stellar population selection is not dependent on star formation rate.
+    !!}
     implicit none
     class(stellarPopulationSelectorDiskSpheroid), intent(inout) :: self
     !$GLC attributes unused :: self

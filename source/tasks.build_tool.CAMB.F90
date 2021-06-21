@@ -17,11 +17,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !# <task name="taskBuildToolCAMB">
-  !#  <description>A task which builds the CAMB tool.</description>
-  !# </task>
+  !![
+  <task name="taskBuildToolCAMB">
+   <description>A task which builds the CAMB tool.</description>
+  </task>
+  !!]
   type, extends(taskClass) :: taskBuildToolCAMB
-     !% Implementation of a task which builds the CAMB tool.
+     !!{
+     Implementation of a task which builds the CAMB tool.
+     !!}
      private
    contains
      procedure :: perform            => buildToolCAMBPerform
@@ -29,14 +33,18 @@
   end type taskBuildToolCAMB
 
   interface taskBuildToolCAMB
-     !% Constructors for the {\normalfont \ttfamily buildToolCAMB} task.
+     !!{
+     Constructors for the {\normalfont \ttfamily buildToolCAMB} task.
+     !!}
      module procedure buildToolCAMBParameters
   end interface taskBuildToolCAMB
 
 contains
 
   function buildToolCAMBParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily buildToolCAMB} task class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily buildToolCAMB} task class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(taskBuildToolCAMB)                :: self
@@ -48,7 +56,9 @@ contains
   end function buildToolCAMBParameters
 
   subroutine buildToolCAMBPerform(self,status)
-    !% Builds the tabulation.
+    !!{
+    Builds the tabulation.
+    !!}
     use :: Display         , only : displayIndent            , displayMessage, displayUnindent
     use :: Galacticus_Error, only : errorStatusSuccess
     use :: Interfaces_CAMB , only : Interface_CAMB_Initialize
@@ -67,7 +77,9 @@ contains
   end subroutine buildToolCAMBPerform
 
   logical function buildToolCAMBRequiresOutputFile(self)
-    !% Specifies that this task does not requires the main output file.
+    !!{
+    Specifies that this task does not requires the main output file.
+    !!}
     implicit none
     class(taskBuildToolCAMB), intent(inout) :: self
     !$GLC attributes unused :: self

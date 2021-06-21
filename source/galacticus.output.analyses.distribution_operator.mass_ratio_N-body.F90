@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements an N-body halo mass ratio output analysis distribution operator class.
+  !!{
+  Contains a module which implements an N-body halo mass ratio output analysis distribution operator class.
+  !!}
   
   use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass
   use :: Galactic_Filters                 , only : galacticFilterClass
 
-  !# <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorMassRatioNBody">
-  !#  <description>A random error output analysis distribution operator class.</description>
-  !# </outputAnalysisDistributionOperator>
+  !![
+  <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorMassRatioNBody">
+   <description>A random error output analysis distribution operator class.</description>
+  </outputAnalysisDistributionOperator>
+  !!]
   type, extends(outputAnalysisDistributionOperatorClass) :: outputAnalysisDistributionOperatorMassRatioNBody
-     !% An N-body halo mass ratio output analysis distribution operator class.
+     !!{
+     An N-body halo mass ratio output analysis distribution operator class.
+     !!}
      private
      class           (nbodyHaloMassErrorClass), pointer :: nbodyHaloMassError_ => null()
      class           (galacticFilterClass    ), pointer :: galacticFilter_     => null()
@@ -46,8 +52,10 @@
 contains
 
   function massRatioNBodyConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily massRatioNBody} output analysis weight operator class which takes a parameter
-    !% set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily massRatioNBody} output analysis weight operator class which takes a parameter
+    set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type            (outputAnalysisDistributionOperatorMassRatioNBody)                :: self
@@ -57,31 +65,37 @@ contains
     double precision                                                                  :: massParentMinimum  , massParentMaximum, &
          &                                                                               timeParent
 
-    !# <inputParameter>
-    !#   <name>massParentMinimum</name>
-    !#   <source>parameters</source>
-    !#   <description>Minimum mass of the parent halo over which to integrate.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massParentMaximum</name>
-    !#   <source>parameters</source>
-    !#   <description>Maximum mass of the parent halo over which to integrate.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>timeParent</name>
-    !#   <source>parameters</source>
-    !#   <description>The time at which the parent halo is defined.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="nbodyHaloMassError" name="nbodyHaloMassError_" source="parameters"/>
-    !# <objectBuilder class="galacticFilter"     name="galacticFilter_"     source="parameters"/>
+    !![
+    <inputParameter>
+      <name>massParentMinimum</name>
+      <source>parameters</source>
+      <description>Minimum mass of the parent halo over which to integrate.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>massParentMaximum</name>
+      <source>parameters</source>
+      <description>Maximum mass of the parent halo over which to integrate.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>timeParent</name>
+      <source>parameters</source>
+      <description>The time at which the parent halo is defined.</description>
+    </inputParameter>
+    <objectBuilder class="nbodyHaloMassError" name="nbodyHaloMassError_" source="parameters"/>
+    <objectBuilder class="galacticFilter"     name="galacticFilter_"     source="parameters"/>
+    !!]
     self=outputAnalysisDistributionOperatorMassRatioNBody(massParentMinimum,massParentMaximum,timeParent,nbodyHaloMassError_,galacticFilter_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="nbodyHaloMassError_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="nbodyHaloMassError_"/>
+    !!]
     return
   end function massRatioNBodyConstructorParameters
 
   function massRatioNBodyConstructorInternal(massParentMinimum,massParentMaximum,timeParent,nbodyHaloMassError_,galacticFilter_) result (self)
-    !% Internal constructor for the {\normalfont \ttfamily massRatioNBody} output analysis distribution operator class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily massRatioNBody} output analysis distribution operator class.
+    !!}
     use :: Galacticus_Error        , only : Galacticus_Error_Report
     use :: Node_Property_Extractors, only : nodePropertyExtractorClass, nodePropertyExtractorScalar
     implicit none
@@ -90,22 +104,30 @@ contains
          &                                                                                       timeParent
     class(nbodyHaloMassErrorClass                                    ), intent(in   ), target :: nbodyHaloMassError_
     class           (galacticFilterClass                             ), intent(in   ), target :: galacticFilter_
-    !# <constructorAssign variables="massParentMinimum, massParentMaximum, timeParent, *nbodyHaloMassError_, *galacticFilter_"/>
+    !![
+    <constructorAssign variables="massParentMinimum, massParentMaximum, timeParent, *nbodyHaloMassError_, *galacticFilter_"/>
+    !!]
 
     return
   end function massRatioNBodyConstructorInternal
 
   subroutine massRatioNBodyDestructor(self)
-    !% Destructor for  the {\normalfont \ttfamily massRatioNBody} output analysis weight operator class.
+    !!{
+    Destructor for  the {\normalfont \ttfamily massRatioNBody} output analysis weight operator class.
+    !!}
     type(outputAnalysisDistributionOperatorMassRatioNBody), intent(inout) :: self
 
-    !# <objectDestructor name="self%nbodyHaloMassError_"/>
-    !# <objectDestructor name="self%galacticFilter_"    />
+    !![
+    <objectDestructor name="self%nbodyHaloMassError_"/>
+    <objectDestructor name="self%galacticFilter_"    />
+    !!]
     return
   end subroutine massRatioNBodyDestructor
 
   function massRatioNBodyOperateScalar(self,propertyValue,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
-    !% Implement an N-body mass ratio output analysis distribution operator.
+    !!{
+    Implement an N-body mass ratio output analysis distribution operator.
+    !!}
     use :: Arrays_Search          , only : searchArray
     use :: Galacticus_Error       , only : Galacticus_Error_Report
     use :: Galacticus_Nodes       , only : nodeComponentBasic
@@ -268,9 +290,11 @@ contains
   contains
 
     double precision function massRatioBivariateNormalIntegrand(massParentPrimed)
-      !% Integrand used in finding the weight given to a bin in the space of parent mass vs. progenitor mass ratio. This is just
-      !% the bivariate normal distribution of parent mass and mass ratio integrated over the required range of mass ratio. The
-      !% remaining integral over the parent mass must then be found numerically.
+      !!{
+      Integrand used in finding the weight given to a bin in the space of parent mass vs. progenitor mass ratio. This is just
+      the bivariate normal distribution of parent mass and mass ratio integrated over the required range of mass ratio. The
+      remaining integral over the parent mass must then be found numerically.
+      !!}
       use :: Numerical_Constants_Math, only : Pi
       implicit none
       double precision, intent(in   ) :: massParentPrimed
@@ -293,7 +317,9 @@ contains
   end function massRatioNBodyOperateScalar
 
   function massRatioNBodyOperateDistribution(self,distribution,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
-    !% Implement an N-body mass ratio output analysis distribution operator.
+    !!{
+    Implement an N-body mass ratio output analysis distribution operator.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (outputAnalysisDistributionOperatorMassRatioNBody), intent(inout)                                        :: self

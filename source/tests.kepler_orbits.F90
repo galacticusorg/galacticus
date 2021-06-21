@@ -18,7 +18,9 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 program Tests_Kepler_Orbits
-  !% Tests for orbital parameter conversions.
+  !!{
+  Tests for orbital parameter conversions.
+  !!}
   use :: Display                         , only : displayVerbositySet            , verbosityLevelStandard
   use :: ISO_Varying_String              , only : assignment(=)                  , varying_string
   use :: Input_Parameters                , only : inputParameters

@@ -17,28 +17,34 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of dark matter halo mass accretion histories using the \cite{zhao_accurate_2009} algorithm.
+  !!{
+  An implementation of dark matter halo mass accretion histories using the \cite{zhao_accurate_2009} algorithm.
+  !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
   use :: Cosmology_Functions       , only : cosmologyFunctions           , cosmologyFunctionsClass
   use :: Linear_Growth             , only : linearGrowth                 , linearGrowthClass
 
-  !# <darkMatterHaloMassAccretionHistory name="darkMatterHaloMassAccretionHistoryZhao2009">
-  !#  <description>
-  !#   A dark matter halo mass accretion history class which uses the algorithm given by \cite{zhao_accurate_2009} to compute mass
-  !#   accretion histories. In particular, \cite{zhao_accurate_2009} give a fitting function for the quantity $\mathrm{d} \ln
-  !#   \sigma(M)/\mathrm{d} \ln \delta_\mathrm{c}(t)$ for the dimensionless growth rate in a mass accretion history at time $t$
-  !#   and halo mass $M$. This is converted to a dimensionful growth rate using
-  !#   \begin{equation}
-  !#    {\mathrm{d} M \over \mathrm{d} t} = \left({\mathrm{d} \ln \sigma(M) \over \mathrm{d} \ln M}\right)^{-1} \left({\mathrm{d}
-  !#    \delta_c(t) \over \mathrm{d} t}\right) \left( {M \over \delta_\mathrm{c}(t)} \right) \left({\mathrm{d} \ln \sigma(M) \over
-  !#    \mathrm{d} \ln \delta_\mathrm{c}(t)}\right).
-  !#   \end{equation}
-  !#   This differential equation is then solved numerically to find the mass accretion history.
-  !#  </description>
-  !# </darkMatterHaloMassAccretionHistory>
+  !![
+  <darkMatterHaloMassAccretionHistory name="darkMatterHaloMassAccretionHistoryZhao2009">
+   <description>
+    A dark matter halo mass accretion history class which uses the algorithm given by \cite{zhao_accurate_2009} to compute mass
+    accretion histories. In particular, \cite{zhao_accurate_2009} give a fitting function for the quantity $\mathrm{d} \ln
+    \sigma(M)/\mathrm{d} \ln \delta_\mathrm{c}(t)$ for the dimensionless growth rate in a mass accretion history at time $t$
+    and halo mass $M$. This is converted to a dimensionful growth rate using
+    \begin{equation}
+     {\mathrm{d} M \over \mathrm{d} t} = \left({\mathrm{d} \ln \sigma(M) \over \mathrm{d} \ln M}\right)^{-1} \left({\mathrm{d}
+     \delta_c(t) \over \mathrm{d} t}\right) \left( {M \over \delta_\mathrm{c}(t)} \right) \left({\mathrm{d} \ln \sigma(M) \over
+     \mathrm{d} \ln \delta_\mathrm{c}(t)}\right).
+    \end{equation}
+    This differential equation is then solved numerically to find the mass accretion history.
+   </description>
+  </darkMatterHaloMassAccretionHistory>
+  !!]
   type, extends(darkMatterHaloMassAccretionHistoryClass) :: darkMatterHaloMassAccretionHistoryZhao2009
-     !% A dark matter halo mass accretion historiy class using the \cite{zhao_accurate_2009} algorithm.
+     !!{
+     A dark matter halo mass accretion historiy class using the \cite{zhao_accurate_2009} algorithm.
+     !!}
      private
      class(criticalOverdensityClass     ), pointer :: criticalOverdensity_      => null()
      class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
@@ -51,7 +57,9 @@
   end type darkMatterHaloMassAccretionHistoryZhao2009
 
   interface darkMatterHaloMassAccretionHistoryZhao2009
-     !% Constructors for the {\normalfont \ttfamily zhao2009} dark matter halo mass accretion history class.
+     !!{
+     Constructors for the {\normalfont \ttfamily zhao2009} dark matter halo mass accretion history class.
+     !!}
      module procedure zhao2009ConstructorParameters
      module procedure zhao2009ConstructorInternal
   end interface darkMatterHaloMassAccretionHistoryZhao2009
@@ -59,8 +67,10 @@
 contains
 
   function zhao2009ConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily zhao2009} dark matter halo mass accretion history class which takes a parameter
-    !% set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily zhao2009} dark matter halo mass accretion history class which takes a parameter
+    set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (darkMatterHaloMassAccretionHistoryZhao2009)                :: self
@@ -70,47 +80,61 @@ contains
     class(linearGrowthClass                         ), pointer       :: linearGrowth_
     class(cosmologyFunctionsClass                   ), pointer       :: cosmologyFunctions_
 
-    !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
-    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
-    !# <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    !![
+    <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
+    <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    !!]
     self=darkMatterHaloMassAccretionHistoryZhao2009(criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_,cosmologyFunctions_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="criticalOverdensity_"     />
-    !# <objectDestructor name="cosmologicalMassVariance_"/>
-    !# <objectDestructor name="linearGrowth_"            />
-    !# <objectDestructor name="cosmologyFunctions_"      />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="criticalOverdensity_"     />
+    <objectDestructor name="cosmologicalMassVariance_"/>
+    <objectDestructor name="linearGrowth_"            />
+    <objectDestructor name="cosmologyFunctions_"      />
+    !!]
     return
   end function zhao2009ConstructorParameters
 
   function zhao2009ConstructorInternal(criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_,cosmologyFunctions_) result(self)
-    !% Generic constructor for the {\normalfont \ttfamily zhao2009} dark matter halo mass accretion history class.
+    !!{
+    Generic constructor for the {\normalfont \ttfamily zhao2009} dark matter halo mass accretion history class.
+    !!}
     implicit none
     type (darkMatterHaloMassAccretionHistoryZhao2009)                        :: self
     class(criticalOverdensityClass                  ), intent(in   ), target :: criticalOverdensity_
     class(cosmologicalMassVarianceClass             ), intent(in   ), target :: cosmologicalMassVariance_
     class(linearGrowthClass                         ), intent(in   ), target :: linearGrowth_
     class(cosmologyFunctionsClass                   ), intent(in   ), target :: cosmologyFunctions_
-    !# <constructorAssign variables="*criticalOverdensity_, *cosmologicalMassVariance_, *linearGrowth_, *cosmologyFunctions_"/>
+    !![
+    <constructorAssign variables="*criticalOverdensity_, *cosmologicalMassVariance_, *linearGrowth_, *cosmologyFunctions_"/>
+    !!]
 
     return
   end function zhao2009ConstructorInternal
 
   subroutine zhao2009Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily zhao2009} dark matter halo mass accretion history class.
+    !!{
+    Destructor for the {\normalfont \ttfamily zhao2009} dark matter halo mass accretion history class.
+    !!}
     implicit none
     type(darkMatterHaloMassAccretionHistoryZhao2009), intent(inout) :: self
 
-    !# <objectDestructor name="self%criticalOverdensity_"     />
-    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
-    !# <objectDestructor name="self%linearGrowth_"            />
-    !# <objectDestructor name="self%cosmologyFunctions_"      />
+    !![
+    <objectDestructor name="self%criticalOverdensity_"     />
+    <objectDestructor name="self%cosmologicalMassVariance_"/>
+    <objectDestructor name="self%linearGrowth_"            />
+    <objectDestructor name="self%cosmologyFunctions_"      />
+    !!]
     return
   end subroutine zhao2009Destructor
 
   double precision function zhao2009Time(self,node,mass)
-    !% Compute the time corresponding to {\normalfont \ttfamily mass} in the mass accretion history of {\normalfont \ttfamily
-    !% node} using the algorithm of \cite{zhao_accurate_2009}.
+    !!{
+    Compute the time corresponding to {\normalfont \ttfamily mass} in the mass accretion history of {\normalfont \ttfamily
+    node} using the algorithm of \cite{zhao_accurate_2009}.
+    !!}
     use :: Galacticus_Error     , only : Galacticus_Error_Report
     use :: Galacticus_Nodes     , only : nodeComponentBasic     , treeNode
     use :: Interface_GSL        , only : GSL_Success
@@ -158,7 +182,9 @@ contains
   contains
 
     integer function growthRateODEs(mass,nowTime,dNowTimedMass)
-      !% System of differential equations to solve for the growth rate.
+      !!{
+      System of differential equations to solve for the growth rate.
+      !!}
       implicit none
       double precision              , intent(in   ) :: mass
       double precision, dimension(:), intent(in   ) :: nowTime
@@ -203,8 +229,10 @@ contains
   end function zhao2009Time
 
   double precision function zhao2009MassAccretionRate(self,node,time)
-    !% Compute the mass accretion rate at the given {\normalfont \ttfamily mass} in the mass accretion history of {\normalfont
-    !% \ttfamily node} using the algorithm of \cite{zhao_accurate_2009}.
+    !!{
+    Compute the mass accretion rate at the given {\normalfont \ttfamily mass} in the mass accretion history of {\normalfont
+    \ttfamily node} using the algorithm of \cite{zhao_accurate_2009}.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (darkMatterHaloMassAccretionHistoryZhao2009), intent(inout) :: self

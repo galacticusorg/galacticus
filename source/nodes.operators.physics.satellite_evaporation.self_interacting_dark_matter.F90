@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a node operator class that performs evaporation of satellites due to dark matter self-interactions.
+  !!{
+  Implements a node operator class that performs evaporation of satellites due to dark matter self-interactions.
+  !!}
 
   use :: Satellite_Evaporation_SIDM, only : satelliteEvaporationSIDMClass
 
-  !# <nodeOperator name="nodeOperatorSatelliteEvaporationSIDM">
-  !#  <description>A node operator class that performs evaporation of satellites due to dark matter self-interactions.</description>
-  !# </nodeOperator>
+  !![
+  <nodeOperator name="nodeOperatorSatelliteEvaporationSIDM">
+   <description>A node operator class that performs evaporation of satellites due to dark matter self-interactions.</description>
+  </nodeOperator>
+  !!]
   type, extends(nodeOperatorClass) :: nodeOperatorSatelliteEvaporationSIDM
-     !% A node operator class that performs evaporation of satellites due to dark matter self-interactions.
+     !!{
+     A node operator class that performs evaporation of satellites due to dark matter self-interactions.
+     !!}
      private
      class(satelliteEvaporationSIDMClass), pointer :: satelliteEvaporationSIDM_ => null()
    contains
@@ -34,7 +40,9 @@
   end type nodeOperatorSatelliteEvaporationSIDM
   
   interface nodeOperatorSatelliteEvaporationSIDM
-     !% Constructors for the {\normalfont \ttfamily satelliteEvaporationSIDM} node operator class.
+     !!{
+     Constructors for the {\normalfont \ttfamily satelliteEvaporationSIDM} node operator class.
+     !!}
      module procedure satelliteEvaporationSIDMConstructorParameters
      module procedure satelliteEvaporationSIDMConstructorInternal
   end interface nodeOperatorSatelliteEvaporationSIDM
@@ -42,41 +50,57 @@
 contains
 
   function satelliteEvaporationSIDMConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily satelliteEvaporationSIDM} node operator class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily satelliteEvaporationSIDM} node operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type (nodeOperatorSatelliteEvaporationSIDM)                :: self
     type (inputParameters                     ), intent(inout) :: parameters
     class(satelliteEvaporationSIDMClass       ), pointer       :: satelliteEvaporationSIDM_
     
-    !# <objectBuilder class="satelliteEvaporationSIDM" name="satelliteEvaporationSIDM_" source="parameters"/>
+    !![
+    <objectBuilder class="satelliteEvaporationSIDM" name="satelliteEvaporationSIDM_" source="parameters"/>
+    !!]
     self=nodeOperatorSatelliteEvaporationSIDM(satelliteEvaporationSIDM_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="satelliteEvaporationSIDM_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="satelliteEvaporationSIDM_"/>
+    !!]
     return
   end function satelliteEvaporationSIDMConstructorParameters
 
   function satelliteEvaporationSIDMConstructorInternal(satelliteEvaporationSIDM_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily satelliteEvaporationSIDM} node operator class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily satelliteEvaporationSIDM} node operator class.
+    !!}
     implicit none
     type (nodeOperatorSatelliteEvaporationSIDM)                        :: self
     class(satelliteEvaporationSIDMClass       ), intent(in   ), target :: satelliteEvaporationSIDM_
-    !# <constructorAssign variables="*satelliteEvaporationSIDM_"/>
+    !![
+    <constructorAssign variables="*satelliteEvaporationSIDM_"/>
+    !!]
 
     return
   end function satelliteEvaporationSIDMConstructorInternal
 
   subroutine satelliteEvaporationSIDMDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily satelliteEvaporationSIDM} node operator class.
+    !!{
+    Destructor for the {\normalfont \ttfamily satelliteEvaporationSIDM} node operator class.
+    !!}
     implicit none
     type(nodeOperatorSatelliteEvaporationSIDM), intent(inout) :: self
 
-    !# <objectDestructor name="self%satelliteEvaporationSIDM_"/>
+    !![
+    <objectDestructor name="self%satelliteEvaporationSIDM_"/>
+    !!]
     return
   end subroutine satelliteEvaporationSIDMDestructor
   
   subroutine satelliteEvaporationSIDMDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !% Perform evaporation of a satellite due to dark matter self-interactions.
+    !!{
+    Perform evaporation of a satellite due to dark matter self-interactions.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite
     implicit none
     class    (nodeOperatorSatelliteEvaporationSIDM), intent(inout), target  :: self

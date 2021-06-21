@@ -17,19 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a polynomial systematic shift output analysis property operator class.
+!!{
+Contains a module which implements a polynomial systematic shift output analysis property operator class.
+!!}
 
-  !# <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorSystmtcPolynomial">
-  !#  <description>
-  !#   A polynomial systematic shift output analysis property operator class. This operator allows for a systematic shift in
-  !#   properties (to account for systematic uncertainties in the observational analysis) using a simple model. Specifically,
-  !#   properties are mapped by this model as follows \begin{equation} \log_\mathrm{10} x \rightarrow \log_{10} x + \sum_{i=0}^N
-  !#   \alpha_i \log^i_{10}(x/x_0), \end{equation} where $x_0=${\normalfont \ttfamily [zeroPoint]} is a zero-point, and the
-  !#   coefficients $\alpha_{i=1\ldots N}=${\normalfont \ttfamily [coefficient]} are specified by input parameters.
-  !#  </description>
-  !# </outputAnalysisPropertyOperator>
+  !![
+  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorSystmtcPolynomial">
+   <description>
+    A polynomial systematic shift output analysis property operator class. This operator allows for a systematic shift in
+    properties (to account for systematic uncertainties in the observational analysis) using a simple model. Specifically,
+    properties are mapped by this model as follows \begin{equation} \log_\mathrm{10} x \rightarrow \log_{10} x + \sum_{i=0}^N
+    \alpha_i \log^i_{10}(x/x_0), \end{equation} where $x_0=${\normalfont \ttfamily [zeroPoint]} is a zero-point, and the
+    coefficients $\alpha_{i=1\ldots N}=${\normalfont \ttfamily [coefficient]} are specified by input parameters.
+   </description>
+  </outputAnalysisPropertyOperator>
+  !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorSystmtcPolynomial
-     !% A polynomial systematic shift output property operator class.
+     !!{
+     A polynomial systematic shift output property operator class.
+     !!}
      private
      double precision                            :: propertyValueZeroPoint
      double precision, allocatable, dimension(:) :: coefficient
@@ -38,7 +44,9 @@
   end type outputAnalysisPropertyOperatorSystmtcPolynomial
 
   interface outputAnalysisPropertyOperatorSystmtcPolynomial
-     !% Constructors for the ``systmtcPolynomial'' output analysis class.
+     !!{
+     Constructors for the ``systmtcPolynomial'' output analysis class.
+     !!}
      module procedure systmtcPolynomialConstructorParameters
      module procedure systmtcPolynomialConstructorInternal
   end interface outputAnalysisPropertyOperatorSystmtcPolynomial
@@ -46,7 +54,9 @@
 contains
 
   function systmtcPolynomialConstructorParameters(parameters) result(self)
-    !% Constructor for the ``systmtcPolynomial'' output analysis property operator class which takes a parameter set as input.
+    !!{
+    Constructor for the ``systmtcPolynomial'' output analysis property operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (outputAnalysisPropertyOperatorSystmtcPolynomial)                              :: self
@@ -56,37 +66,47 @@ contains
 
     ! Check and read parameters.
     allocate(coefficient(parameters%count('coefficient')))
-    !# <inputParameter>
-    !#   <name>zeroPoint</name>
-    !#   <source>parameters</source>
-    !#   <variable>zeroPoint</variable>
-    !#   <description>The zero-point of the property value used in the polynomial systematic offset property operator class.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>coefficient</name>
-    !#   <source>parameters</source>
-    !#   <variable>coefficient</variable>
-    !#   <description>The coefficients in the polynomial systematic offset property operator class.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>zeroPoint</name>
+      <source>parameters</source>
+      <variable>zeroPoint</variable>
+      <description>The zero-point of the property value used in the polynomial systematic offset property operator class.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>coefficient</name>
+      <source>parameters</source>
+      <variable>coefficient</variable>
+      <description>The coefficients in the polynomial systematic offset property operator class.</description>
+    </inputParameter>
+    !!]
     ! Construct the object.
     self=outputAnalysisPropertyOperatorSystmtcPolynomial(zeroPoint,coefficient)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function systmtcPolynomialConstructorParameters
 
   function systmtcPolynomialConstructorInternal(propertyValueZeroPoint,coefficient) result(self)
-    !% Internal constructor for the ``randomErrorPolynomial'' output analysis distribution operator class.
+    !!{
+    Internal constructor for the ``randomErrorPolynomial'' output analysis distribution operator class.
+    !!}
     implicit none
     type            (outputAnalysisPropertyOperatorSystmtcPolynomial)                              :: self
     double precision                                                 , intent(in   )               :: propertyValueZeroPoint
     double precision                                                 , intent(in   ), dimension(:) :: coefficient
-    !# <constructorAssign variables="propertyValueZeroPoint, coefficient"/>
+    !![
+    <constructorAssign variables="propertyValueZeroPoint, coefficient"/>
+    !!]
 
     return
   end function systmtcPolynomialConstructorInternal
 
   double precision function systmtcPolynomialOperate(self,propertyValue,node,propertyType,outputIndex)
-    !% Implement an systmtcPolynomial output analysis property operator.
+    !!{
+    Implement an systmtcPolynomial output analysis property operator.
+    !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     class           (outputAnalysisPropertyOperatorSystmtcPolynomial), intent(inout)           :: self

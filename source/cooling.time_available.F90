@@ -17,33 +17,39 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module that implements calculations of the time available for cooling.
+!!{
+Contains a module that implements calculations of the time available for cooling.
+!!}
 
 module Cooling_Times_Available
-  !% Provides a class that implements calculations of the time available for cooling.
+  !!{
+  Provides a class that implements calculations of the time available for cooling.
+  !!}
   use :: Galacticus_Nodes, only : treeNode
   private
 
-  !# <functionClass>
-  !#  <name>coolingTimeAvailable</name>
-  !#  <descriptiveName>Time available for cooling</descriptiveName>
-  !#  <description>
-  !#   Class providing models of the time available (i.e. the time for which gas in a halo has been able to cool) for cooling in
-  !#   the hot atmosphere surrounding a galaxy.
-  !#  </description>
-  !#  <default>whiteFrenk1991</default>
-  !#  <method name="timeAvailable" >
-  !#   <description>Return the time available for cooling in {\normalfont \ttfamily node} in units of Gyr.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout) :: node</argument>
-  !#  </method>
-  !#  <method name="timeAvailableIncreaseRate" >
-  !#   <description>Return the rate at which the time available for cooling increases in {\normalfont \ttfamily node} (dimensionless).</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout) :: node</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>coolingTimeAvailable</name>
+   <descriptiveName>Time available for cooling</descriptiveName>
+   <description>
+    Class providing models of the time available (i.e. the time for which gas in a halo has been able to cool) for cooling in
+    the hot atmosphere surrounding a galaxy.
+   </description>
+   <default>whiteFrenk1991</default>
+   <method name="timeAvailable" >
+    <description>Return the time available for cooling in {\normalfont \ttfamily node} in units of Gyr.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>type(treeNode), intent(inout) :: node</argument>
+   </method>
+   <method name="timeAvailableIncreaseRate" >
+    <description>Return the rate at which the time available for cooling increases in {\normalfont \ttfamily node} (dimensionless).</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>type(treeNode), intent(inout) :: node</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Cooling_Times_Available

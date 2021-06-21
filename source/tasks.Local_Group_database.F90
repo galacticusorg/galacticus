@@ -17,11 +17,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !# <task name="taskLocalGroupDatabase">
-  !#  <description>A task which updates the Local Group database.</description>
-  !# </task>
+  !![
+  <task name="taskLocalGroupDatabase">
+   <description>A task which updates the Local Group database.</description>
+  </task>
+  !!]
   type, extends(taskClass) :: taskLocalGroupDatabase
-     !% Implementation of a task which updates the Local Group database.
+     !!{
+     Implementation of a task which updates the Local Group database.
+     !!}
      private
    contains
      procedure :: perform            => localGroupDatabasePerform
@@ -29,14 +33,18 @@
   end type taskLocalGroupDatabase
 
   interface taskLocalGroupDatabase
-     !% Constructors for the {\normalfont \ttfamily localGroupDatabase} task.
+     !!{
+     Constructors for the {\normalfont \ttfamily localGroupDatabase} task.
+     !!}
      module procedure localGroupDatabaseParameters
   end interface taskLocalGroupDatabase
 
 contains
 
   function localGroupDatabaseParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily localGroupDatabase} task class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily localGroupDatabase} task class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(taskLocalGroupDatabase)                :: self
@@ -48,7 +56,9 @@ contains
   end function localGroupDatabaseParameters
 
   subroutine localGroupDatabasePerform(self,status)
-    !% Update the database.
+    !!{
+    Update the database.
+    !!}
     use :: Display                 , only : displayIndent     , displayUnindent
     use :: Galacticus_Error        , only : errorStatusSuccess
     use :: Interface_Local_Group_DB, only : localGroupDB
@@ -67,7 +77,9 @@ contains
   end subroutine localGroupDatabasePerform
 
   logical function localGroupDatabaseRequiresOutputFile(self)
-    !% Specifies that this task does not requires the main output file.
+    !!{
+    Specifies that this task does not requires the main output file.
+    !!}
     implicit none
     class(taskLocalGroupDatabase), intent(inout) :: self
     !$GLC attributes unused :: self

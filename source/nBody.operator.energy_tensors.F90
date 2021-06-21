@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an N-body data operator which determines the kinetic and Chadrasekhar potential energy tensors.
+!!{
+Contains a module which implements an N-body data operator which determines the kinetic and Chadrasekhar potential energy tensors.
+!!}
 
   use, intrinsic :: ISO_C_Binding           , only : c_size_t
   use            :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
   
-  !# <nbodyOperator name="nbodyOperatorEnergyTensors">
-  !#  <description>An N-body data operator which determines the kinetic and Chadrasekhar potential energy tensors.</description>
-  !# </nbodyOperator>
+  !![
+  <nbodyOperator name="nbodyOperatorEnergyTensors">
+   <description>An N-body data operator which determines the kinetic and Chadrasekhar potential energy tensors.</description>
+  </nbodyOperator>
+  !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorEnergyTensors
-     !% An N-body data operator which determines the kinetic and Chadrasekhar potential energy tensors.
+     !!{
+     An N-body data operator which determines the kinetic and Chadrasekhar potential energy tensors.
+     !!}
      private
      logical                                      :: selfBoundParticlesOnly
      integer(c_size_t                  )          :: bootstrapSampleCount
@@ -37,7 +43,9 @@
   end type nbodyOperatorEnergyTensors
 
   interface nbodyOperatorEnergyTensors
-     !% Constructors for the ``energyTensors'' N-body operator class.
+     !!{
+     Constructors for the ``energyTensors'' N-body operator class.
+     !!}
      module procedure energyTensorsConstructorParameters
      module procedure energyTensorsConstructorInternal
   end interface nbodyOperatorEnergyTensors
@@ -45,7 +53,9 @@
 contains
 
   function energyTensorsConstructorParameters(parameters) result (self)
-    !% Constructor for the ``energyTensors'' N-body operator class which takes a parameter set as input.
+    !!{
+    Constructor for the ``energyTensors'' N-body operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (nbodyOperatorEnergyTensors)                :: self
@@ -54,51 +64,66 @@ contains
     logical                                            :: selfBoundParticlesOnly
     integer(c_size_t                  )                :: bootstrapSampleCount
 
-    !# <inputParameter>
-    !#   <name>selfBoundParticlesOnly</name>
-    !#   <source>parameters</source>
-    !#   <description>If true, the mean position and velocity are computed only for self-bound particles</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>bootstrapSampleCount</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>30_c_size_t</defaultValue>
-    !#   <description>The number of bootstrap resamples of the particles that should be used.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>selfBoundParticlesOnly</name>
+      <source>parameters</source>
+      <description>If true, the mean position and velocity are computed only for self-bound particles</description>
+    </inputParameter>
+    <inputParameter>
+      <name>bootstrapSampleCount</name>
+      <source>parameters</source>
+      <defaultValue>30_c_size_t</defaultValue>
+      <description>The number of bootstrap resamples of the particles that should be used.</description>
+    </inputParameter>
+    <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !!]
     self=nbodyOperatorEnergyTensors(selfBoundParticlesOnly,bootstrapSampleCount,randomNumberGenerator_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="randomNumberGenerator_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="randomNumberGenerator_"/>
+    !!]
     return
   end function energyTensorsConstructorParameters
 
   function energyTensorsConstructorInternal(selfBoundParticlesOnly,bootstrapSampleCount,randomNumberGenerator_) result (self)
-    !% Internal constructor for the ``energyTensors'' N-body operator class.
+    !!{
+    Internal constructor for the ``energyTensors'' N-body operator class.
+    !!}
     implicit none
     type   (nbodyOperatorEnergyTensors)                        :: self
     logical                            , intent(in   )         :: selfBoundParticlesOnly
     integer(c_size_t                  ), intent(in   )         :: bootstrapSampleCount
     class  (randomNumberGeneratorClass), intent(in   ), target :: randomNumberGenerator_
-    !# <constructorAssign variables="selfBoundParticlesOnly, bootstrapSampleCount, *randomNumberGenerator_"/>
+    !![
+    <constructorAssign variables="selfBoundParticlesOnly, bootstrapSampleCount, *randomNumberGenerator_"/>
+    !!]
 
     return
   end function energyTensorsConstructorInternal
 
   subroutine energyTensorsDestructor(self)
-    !% Destructor for the ``energyTensors'' N-body operator class.
+    !!{
+    Destructor for the ``energyTensors'' N-body operator class.
+    !!}
     implicit none
     type(nbodyOperatorEnergyTensors), intent(inout) :: self
 
-    !# <objectDestructor name="self%randomNumberGenerator_"/>
+    !![
+    <objectDestructor name="self%randomNumberGenerator_"/>
+    !!]
     return
   end subroutine energyTensorsDestructor
   
   subroutine energyTensorsOperate(self,simulations)
-    !% Determine the kinetic and potential energy tensors of N-body particles.
+    !!{
+    Determine the kinetic and potential energy tensors of N-body particles.
+    !!}
     use    :: Display                         , only : displayCounter                 , displayCounterClear   , displayIndent, displayMessage, &
          &                                             displayUnindent                , verbosityLevelStandard
     use    :: Galacticus_Error                , only : Galacticus_Error_Report
     use    :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use    :: Linear_Algebra                  , only : matrix                         , vector                , operator(*)  , assignment(=)
 #ifdef USEMPI
     use    :: MPI_Utilities                   , only : mpiSelf
 #endif
@@ -106,16 +131,22 @@ contains
     implicit none
     class          (nbodyOperatorEnergyTensors), intent(inout)                   :: self
     type           (nBodyData                 ), intent(inout), dimension(:  )   :: simulations
-    integer                                    , allocatable  , dimension(:,:)   :: selfBoundStatus
-    double precision                           , parameter                       :: sampleRate         =1.0d0
-    double precision                           , allocatable  , dimension(:,:,:) :: energyTensorKinetic      , energyTensorPotential
-    double precision                           , pointer      , dimension(:,:  ) :: position                 , velocity                       , &
-         &                                                                          separations
-    double precision                           , allocatable  , dimension(:    ) :: separationsCubed         , separationsCubedInverseWeighted
-    integer         (c_size_t                 )                                  :: i                        , j                              , &
-         &                                                                          k                        , m                              , &
+    double precision                           , parameter                       :: sampleRate                  =1.0d0
+    double precision                           , allocatable  , dimension(:,:,:) :: energyTensorKinetic               , energyTensorPotential          , &
+         &                                                                          energyTensorKineticPrincipal      , energyTensorPotentialPrincipal
+    double precision                           , pointer      , dimension(:,:  ) :: position                          , velocity                       , &
+         &                                                                          separations                       , angularVelocityVector          , &
+         &                                                                          positionMean                      , velocityMean
+    integer         (c_size_t                 ), pointer      , dimension(:,:  ) :: selfBoundStatus
+    double precision                           , allocatable  , dimension(:    ) :: separationsCubed                  , separationsCubedInverseWeighted
+    double precision                           , allocatable  , dimension(:,:  ) :: positionOffset                    , velocityOffset
+    integer         (c_size_t                 )                                  :: i                                 , j                              , &
+         &                                                                          k                                 , m                              , &
          &                                                                          iSimulation
-    double precision                                                             :: massParticle             , lengthSoftening
+    double precision                                                             :: massParticle                      , lengthSoftening
+    type            (matrix                   )                                  :: energyTensor                      , eigenVectors                   , &
+         &                                                                          energyTensorKinetic_              , energyTensorPotential_
+    type            (vector                   )                                  :: eigenValues
     
 #ifdef USEMPI
     if (mpiSelf%isMaster()) then
@@ -134,8 +165,8 @@ contains
 #endif
        ! Determine the particle mask to use.
        if (self%selfBoundParticlesOnly) then
-          if (simulations(iSimulation)%analysis%hasDataset('selfBoundStatus')) then
-             call simulations(iSimulation)%analysis%readDataset('selfBoundStatus',selfBoundStatus)
+          if (simulations(iSimulation)%propertiesIntegerRank1%exists('isBound')) then
+             selfBoundStatus => simulations(iSimulation)%propertiesIntegerRank1%value('isBound')
              if (size(selfBoundStatus,dim=2) /= self%bootstrapSampleCount) call Galacticus_Error_Report('number of selfBoundStatus samples must equal number of requested bootstrap samples'//{introspection:location})
           else
              call Galacticus_Error_Report('self-bound status not available - apply a self-bound operator first'//{introspection:location})
@@ -152,12 +183,35 @@ contains
        ! Get simulation attributes.
        lengthSoftening=simulations(iSimulation)%attributesReal%value('lengthSoftening')
        massParticle   =simulations(iSimulation)%attributesReal%value('massParticle'   )
+       ! Get mean position and velocity, and the angular velocity vector of the rotating frame in which the angular momentum of the system is zero.
+       if (simulations(iSimulation)%propertiesRealRank1%exists('positionMean')) then
+          positionMean => simulations(iSimulation)%propertiesRealRank1%value('positionMean')          
+          if (size(positionMean,dim=2) /= self%bootstrapSampleCount) call Galacticus_Error_Report('number of positionMean samples must equal number of requested bootstrap samples'//{introspection:location})
+       else
+          call Galacticus_Error_Report('mean position not available - apply a "positionMean" operator first'//{introspection:location})
+       end if
+       if (simulations(iSimulation)%propertiesRealRank1%exists('velocityMean')) then
+          velocityMean => simulations(iSimulation)%propertiesRealRank1%value('velocityMean')          
+          if (size(velocityMean,dim=2) /= self%bootstrapSampleCount) call Galacticus_Error_Report('number of velocityMean samples must equal number of requested bootstrap samples'//{introspection:location})
+       else
+          call Galacticus_Error_Report('mean velocity not available - apply a "positionMean" operator first'//{introspection:location})
+       end if
+       if (simulations(iSimulation)%propertiesRealRank1%exists('angularVelocityVector')) then
+          angularVelocityVector => simulations(iSimulation)%propertiesRealRank1%value('angularVelocityVector')          
+          if (size(angularVelocityVector,dim=2) /= self%bootstrapSampleCount) call Galacticus_Error_Report('number of angularVelocityVector samples must equal number of requested bootstrap samples'//{introspection:location})
+       else
+          call Galacticus_Error_Report('mean angularVelocityVector not available - apply a "angularMomentum" operator first'//{introspection:location})
+       end if
        ! Get position and velocity.
        position => simulations(iSimulation)%propertiesRealRank1%value('position')
        velocity => simulations(iSimulation)%propertiesRealRank1%value('velocity')
        ! Compute the kinetic and potential energy tensors.
-       allocate(energyTensorKinetic  (3_c_size_t,3_c_size_t,self%bootstrapSampleCount))
-       allocate(energyTensorPotential(3_c_size_t,3_c_size_t,self%bootstrapSampleCount))
+       allocate(positionOffset                (3_c_size_t           ,size(position,dim=2)     ))
+       allocate(velocityOffset                (3_c_size_t           ,size(position,dim=2)     ))
+       allocate(energyTensorKinetic           (3_c_size_t,3_c_size_t,self%bootstrapSampleCount))
+       allocate(energyTensorPotential         (3_c_size_t,3_c_size_t,self%bootstrapSampleCount))
+       allocate(energyTensorKineticPrincipal  (3_c_size_t,3_c_size_t,self%bootstrapSampleCount))
+       allocate(energyTensorPotentialPrincipal(3_c_size_t,3_c_size_t,self%bootstrapSampleCount))
        energyTensorPotential=0.0d0
        energyTensorKinetic  =0.0d0
 #ifdef USEMPI
@@ -172,13 +226,22 @@ contains
           allocate(separations                    (3,size(position,dim=2)))
           allocate(separationsCubed               (  size(position,dim=2)))
           allocate(separationsCubedInverseWeighted(  size(position,dim=2)))
+          !$omp workshare
+          forall(j=1:3)
+             positionOffset(j,:)=position(j,:)-positionMean(j,i)
+             velocityOffset(j,:)=velocity(j,:)-velocityMean(j,i)
+          end forall
+          velocityOffset(1,:)=velocityOffset(1,:)+(+angularVelocityVector(2,i)*positionOffset(3,:)-angularVelocityVector(3,i)*positionOffset(2,:))
+          velocityOffset(2,:)=velocityOffset(2,:)+(-angularVelocityVector(1,i)*positionOffset(3,:)+angularVelocityVector(3,i)*positionOffset(1,:))
+          velocityOffset(3,:)=velocityOffset(3,:)+(+angularVelocityVector(1,i)*positionOffset(2,:)-angularVelocityVector(2,i)*positionOffset(1,:))
+          !$omp end workshare
           do j=1,3
              do k=j,3
                 !$omp workshare
                 energyTensorKinetic(j,k,i)=+sum(                            &
                      &                          +dble(selfBoundStatus(:,i)) &
-                     &                          *     velocity       (j,:)  &
-                     &                          *     velocity       (k,:)  &
+                     &                          *     velocityOffset (j,:)  &
+                     &                          *     velocityOffset (k,:)  &
                      &                         )
                 !$omp end workshare
              end do
@@ -267,13 +330,38 @@ contains
              energyTensorPotential(j,k,:)=energyTensorPotential(k,j,:)
           end do
        end do
+       ! Rotate tensors into the frame of the principal axes of the total energy tensor.
+       do i=1,self%bootstrapSampleCount
+          energyTensor=matrix          (                              &
+               &                        +energyTensorKinetic  (:,:,i) &
+               &                        +energyTensorPotential(:,:,i) &
+               &                       )
+          energyTensorKinetic_  =matrix(                              &
+               &                        +energyTensorKinetic  (:,:,i) &
+               &                       )
+          energyTensorPotential_=matrix(                              &
+               &                        +energyTensorPotential(:,:,i) &
+               &                       )
+          call energyTensor%eigenSystem(eigenVectors,eigenValues)
+          energyTensorKineticPrincipal  (:,:,i)=eigenVectors%transpose()*energyTensorKinetic_  *eigenVectors
+          energyTensorPotentialPrincipal(:,:,i)=eigenVectors%transpose()*energyTensorPotential_*eigenVectors
+       end do
        ! Store results to file.
-       call simulations(iSimulation)%analysis%writeDataset(energyTensorKinetic  ,'energyTensorKinetic'  )
-       call simulations(iSimulation)%analysis%writeDataset(energyTensorPotential,'energyTensorPotential')
+       call simulations(iSimulation)%analysis%writeDataset(energyTensorKinetic           ,'energyTensorKinetic'           )
+       call simulations(iSimulation)%analysis%writeDataset(energyTensorKineticPrincipal  ,'energyTensorKineticPrincipal'  )
+       call simulations(iSimulation)%analysis%writeDataset(energyTensorPotential         ,'energyTensorPotential'         )
+       call simulations(iSimulation)%analysis%writeDataset(energyTensorPotentialPrincipal,'energyTensorPotentialPrincipal')
        ! Deallocate workspace.
-       deallocate(selfBoundStatus      )
-       deallocate(energyTensorKinetic  )
-       deallocate(energyTensorPotential)
+       if (self%selfBoundParticlesOnly) then
+          nullify   (selfBoundStatus      )
+       else
+          deallocate(selfBoundStatus      )
+       end if
+       nullify      (positionMean         )
+       nullify      (velocityMean         )
+       nullify      (angularVelocityVector)
+       deallocate   (energyTensorKinetic  )
+       deallocate   (energyTensorPotential)
     end do
 #ifdef USEMPI
     if (mpiSelf%isMaster()) then

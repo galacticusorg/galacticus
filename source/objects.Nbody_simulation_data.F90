@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which provides a class to store N-body simulation data.
+  !!{
+  Contains a module which provides a class to store N-body simulation data.
+  !!}
 
 module NBody_Simulation_Data
-  !% Provides a class to store N-body simulation data.
+  !!{
+  Provides a class to store N-body simulation data.
+  !!}
   use :: IO_HDF5           , only : hdf5Object
   use :: ISO_Varying_String, only : varying_string
   use :: Hashes            , only : rank1IntegerSizeTPtrHash, rank2IntegerSizeTPtrHash, rank1DoublePtrHash, rank2DoublePtrHash, &
@@ -30,7 +34,9 @@ module NBody_Simulation_Data
   public :: nBodyData, nBodyDataPropertyType
 
   type :: nBodyData
-     !% A class to store N-body simulation data.
+     !!{
+     A class to store N-body simulation data.
+     !!}
      type(varying_string          ) :: label
      type(hdf5Object              ) :: analysis
      type(integerSizeTHash        ) :: attributesInteger
@@ -48,19 +54,23 @@ module NBody_Simulation_Data
      module procedure nBodyDataConstructor
   end interface nBodyData
 
-  !# <enumeration>
-  !#  <name>propertyType</name>
-  !#  <description>Enumeration of property types for N-body data properties.</description>
-  !#  <visibility>public</visibility>
-  !#  <entry label="unknown"/>
-  !#  <entry label="integer"/>
-  !#  <entry label="real"   />
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>propertyType</name>
+   <description>Enumeration of property types for N-body data properties.</description>
+   <visibility>public</visibility>
+   <entry label="unknown"/>
+   <entry label="integer"/>
+   <entry label="real"   />
+  </enumeration>
+  !!]
   
 contains
 
   function nBodyDataConstructor() result (self)
-    !% A default constructor for the {\normalfont \ttfamily nBodyData} class.
+    !!{
+    A default constructor for the {\normalfont \ttfamily nBodyData} class.
+    !!}
     implicit none
     type(nBodyData) :: self
 
@@ -68,7 +78,9 @@ contains
   end function nBodyDataConstructor
 
   subroutine nBodyDataDestructorScalar(self)
-    !% Destruct for scalar {\normalfont \ttfamily nBodyData} objects.
+    !!{
+    Destruct for scalar {\normalfont \ttfamily nBodyData} objects.
+    !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     use iso_varying_string
     implicit none
@@ -99,7 +111,9 @@ contains
   end subroutine nBodyDataDestructorScalar
   
   subroutine nBodyDataDestructorRank1(self)
-    !% Destruct for rank-1 {\normalfont \ttfamily nBodyData} objects.
+    !!{
+    Destruct for rank-1 {\normalfont \ttfamily nBodyData} objects.
+    !!}
     implicit none
     type   (nBodyData), intent(inout), dimension(:) :: self
     integer                                         :: i
@@ -111,7 +125,9 @@ contains
   end subroutine nBodyDataDestructorRank1
   
   integer function nBodyDataPropertyType(propertyName)
-    !% Returns the type of the named property.
+    !!{
+    Returns the type of the named property.
+    !!}
     implicit none
     character(len=*), intent(in   ) :: propertyName
 

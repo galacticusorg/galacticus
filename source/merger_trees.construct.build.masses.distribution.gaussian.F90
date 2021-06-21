@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a merger tree halo mass function sampling class in which the sampling rate is given by a Gaussian distribution in halo mass.
+  !!{
+  Implementation of a merger tree halo mass function sampling class in which the sampling rate is given by a Gaussian distribution in halo mass.
+  !!}
 
-  !# <mergerTreeBuildMassDistribution name="mergerTreeBuildMassDistributionGaussian">
-  !#  <description>A merger tree halo mass function sampling class in which the sampling rate is given by a Gaussian distribution in halo mass.</description>
-  !# </mergerTreeBuildMassDistribution>
+  !![
+  <mergerTreeBuildMassDistribution name="mergerTreeBuildMassDistributionGaussian">
+   <description>A merger tree halo mass function sampling class in which the sampling rate is given by a Gaussian distribution in halo mass.</description>
+  </mergerTreeBuildMassDistribution>
+  !!]
   type, extends(mergerTreeBuildMassDistributionClass) :: mergerTreeBuildMassDistributionGaussian
-     !% Implementation of merger tree halo mass function sampling class in which the sampling rate is given by a Gaussian distribution in halo mass.
+     !!{
+     Implementation of merger tree halo mass function sampling class in which the sampling rate is given by a Gaussian distribution in halo mass.
+     !!}
      private
      double precision :: mean, rootVariance
    contains
@@ -31,7 +37,9 @@
   end type mergerTreeBuildMassDistributionGaussian
 
   interface mergerTreeBuildMassDistributionGaussian
-     !% Constructors for the {\normalfont \ttfamily gaussian} merger tree halo mass function sampling class.
+     !!{
+     Constructors for the {\normalfont \ttfamily gaussian} merger tree halo mass function sampling class.
+     !!}
      module procedure gaussianConstructorParameters
      module procedure gaussianConstructorInternal
   end interface mergerTreeBuildMassDistributionGaussian
@@ -39,40 +47,52 @@
 contains
 
   function gaussianConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily gaussian} merger tree halo mass function sampling class which builds the object from a parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily gaussian} merger tree halo mass function sampling class which builds the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (mergerTreeBuildMassDistributionGaussian)                :: self
     type            (inputParameters                           ), intent(inout) :: parameters
     double precision                                                            :: mean      , rootVariance
 
-    !# <inputParameter>
-    !#   <name>mean</name>
-    !#   <description>The mean mass of halo to simulate when using a Gaussian sampling of the halo mass function.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>rootVariance</name>
-    !#   <description>The dispersion in mass of halo to simulate when using a Gaussian sampling of the halo mass function.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>mean</name>
+      <description>The mean mass of halo to simulate when using a Gaussian sampling of the halo mass function.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>rootVariance</name>
+      <description>The dispersion in mass of halo to simulate when using a Gaussian sampling of the halo mass function.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     self=mergerTreeBuildMassDistributionGaussian(mean,rootVariance)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function gaussianConstructorParameters
 
   function gaussianConstructorInternal(mean,rootVariance) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily gaussian} merger tree halo mass function sampling class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily gaussian} merger tree halo mass function sampling class.
+    !!}
     implicit none
     type            (mergerTreeBuildMassDistributionGaussian)                :: self
     double precision                                            , intent(in   ) :: mean, rootVariance
-    !# <constructorAssign variables="mean, rootVariance"/>
+    !![
+    <constructorAssign variables="mean, rootVariance"/>
+    !!]
 
     return
   end function gaussianConstructorInternal
 
   double precision function gaussianSample(self,mass,time,massMinimum,massMaximum)
-    !% Computes the halo mass function sampling rate using a volume-limited sampling.
+    !!{
+    Computes the halo mass function sampling rate using a volume-limited sampling.
+    !!}
     implicit none
     class           (mergerTreeBuildMassDistributionGaussian), intent(inout) :: self
     double precision                                            , intent(in   ) :: mass       , massMaximum, &

@@ -17,26 +17,40 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides utilities needed by global functions.
+!!{
+Contains a module which provides utilities needed by global functions.
+!!}
 
 module Functions_Global_Utilities
-  !% Provides utilities needed by global functions.
+  !!{
+  Provides utilities needed by global functions.
+  !!}
   private
   public :: Functions_Global_Set
 
 contains
 
   subroutine Functions_Global_Set()
-    !% Set pointers to all global functions.
+    !!{
+    Set pointers to all global functions.
+    !!}
     use :: Functions_Global
-    !# <include directive="functionGlobal" type="moduleUse">
+    !![
+    <include directive="functionGlobal" type="moduleUse">
+    !!]
     include 'functionGlobal.modules.inc'
-    !# </include>
+    !![
+    </include>
+    !!]
     implicit none
 
-    !# <include directive="functionGlobal" type="functionGlobalEstablish" >
+    !![
+    <include directive="functionGlobal" type="functionGlobalEstablish" >
+    !!]
     include 'functionGlobal.establish.inc'
-    !# </include>
+    !![
+    </include>
+    !!]
     return
   end subroutine Functions_Global_Set
 

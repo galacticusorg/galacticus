@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% A spherical collapse solver class for universes consisting of collisionless matter and dark energy.
+  !!{
+  A spherical collapse solver class for universes consisting of collisionless matter and dark energy.
+  !!}
 
-  !# <sphericalCollapseSolver name="sphericalCollapseSolverCllsnlssMttrDarkEnergy">
-  !#  <description>A spherical collapse solver for universes consisting of collisionless matter and dark energy.</description>
-  !# </sphericalCollapseSolver>
+  !![
+  <sphericalCollapseSolver name="sphericalCollapseSolverCllsnlssMttrDarkEnergy">
+   <description>A spherical collapse solver for universes consisting of collisionless matter and dark energy.</description>
+  </sphericalCollapseSolver>
+  !!]
   type, extends(sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt) :: sphericalCollapseSolverCllsnlssMttrDarkEnergy
-     !% A spherical collapse solver for universes consisting of collisionless matter and dark energy.
+     !!{
+     A spherical collapse solver for universes consisting of collisionless matter and dark energy.
+     !!}
      private
      integer :: energyFixedAt
    contains
@@ -32,22 +38,26 @@
   end type sphericalCollapseSolverCllsnlssMttrDarkEnergy
 
   interface sphericalCollapseSolverCllsnlssMttrDarkEnergy
-     !% Constructors for the {\normalfont \ttfamily cllsnlssMttrDarkEnergy} spherical collapse solver class.
+     !!{
+     Constructors for the {\normalfont \ttfamily cllsnlssMttrDarkEnergy} spherical collapse solver class.
+     !!}
      module procedure cllsnlssMttrDarkEnergyConstructorParameters
      module procedure cllsnlssMttrDarkEnergyConstructorInternal
   end interface sphericalCollapseSolverCllsnlssMttrDarkEnergy
 
   ! Enumeration of radii at which the energy of a spherical top-hat perturbation in a dark energy cosmology can be considered to be fixed.
-  !# <enumeration>
-  !#  <name>cllsnlssMttrDarkEnergyFixedAt</name>
-  !#  <description>Enumeration of radii at which the energy of a spherical top-hat perturbation in a dark energy cosmology can be considered to be fixed.</description>
-  !#  <encodeFunction>yes</encodeFunction>
-  !#  <validator>yes</validator>
-  !#  <visibility>public</visibility>
-  !#  <entry label="undefined"    />
-  !#  <entry label="turnaround"   />
-  !#  <entry label="virialization"/>
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>cllsnlssMttrDarkEnergyFixedAt</name>
+   <description>Enumeration of radii at which the energy of a spherical top-hat perturbation in a dark energy cosmology can be considered to be fixed.</description>
+   <encodeFunction>yes</encodeFunction>
+   <validator>yes</validator>
+   <visibility>public</visibility>
+   <entry label="undefined"    />
+   <entry label="turnaround"   />
+   <entry label="virialization"/>
+  </enumeration>
+  !!]
 
   ! Pointer to the default cosmology functions object.
   class           (cosmologyFunctionsClass), pointer   :: cllsnlssMttrDarkEnergyCosmologyFunctions_
@@ -63,8 +73,10 @@
 contains
 
   function cllsnlssMttrDarkEnergyConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily cllsnlssMttrDarkEnergy} spherical collapse solver class that takes a parameter set as
-    !% input.
+    !!{
+    Constructor for the {\normalfont \ttfamily cllsnlssMttrDarkEnergy} spherical collapse solver class that takes a parameter set as
+    input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (sphericalCollapseSolverCllsnlssMttrDarkEnergy)                :: self
@@ -73,23 +85,29 @@ contains
     class  (linearGrowthClass                            ), pointer       :: linearGrowth_
     type   (varying_string                               )                :: energyFixedAt
 
-    !# <inputParameter>
-    !#   <name>energyFixedAt</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>var_str('turnaround')</defaultValue>
-    !#   <description>The radius at which the energy of a spherical top-hat perturbation in a dark energy cosmology can be considered to be fixed.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
-    !# <objectBuilder class="linearGrowth"       name="linearGrowth_"       source="parameters"/>
+    !![
+    <inputParameter>
+      <name>energyFixedAt</name>
+      <source>parameters</source>
+      <defaultValue>var_str('turnaround')</defaultValue>
+      <description>The radius at which the energy of a spherical top-hat perturbation in a dark energy cosmology can be considered to be fixed.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    <objectBuilder class="linearGrowth"       name="linearGrowth_"       source="parameters"/>
+    !!]
     self=sphericalCollapseSolverCllsnlssMttrDarkEnergy(enumerationCllsnlssMttrDarkEnergyFixedAtEncode(char(energyFixedAt),includesPrefix=.false.),cosmologyFunctions_,linearGrowth_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"/>
-    !# <objectDestructor name="linearGrowth_"      />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"/>
+    <objectDestructor name="linearGrowth_"      />
+    !!]
     return
   end function cllsnlssMttrDarkEnergyConstructorParameters
 
   function cllsnlssMttrDarkEnergyConstructorInternal(energyFixedAt,cosmologyFunctions_,linearGrowth_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily cllsnlssMttrDarkEnergy} spherical collapse solver class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily cllsnlssMttrDarkEnergy} spherical collapse solver class.
+    !!}
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: Galacticus_Paths  , only : galacticusPath         , pathTypeDataDynamic
     use :: ISO_Varying_String, only : operator(//)
@@ -98,7 +116,9 @@ contains
     integer                                               , intent(in   )                   :: energyFixedAt
     class  (cosmologyFunctionsClass                      ), intent(in   ), target           :: cosmologyFunctions_
     class  (linearGrowthClass                            ), intent(in   ), target, optional :: linearGrowth_
-    !# <constructorAssign variables="energyFixedAt, *cosmologyFunctions_, *linearGrowth_"/>
+    !![
+    <constructorAssign variables="energyFixedAt, *cosmologyFunctions_, *linearGrowth_"/>
+    !!]
 
     self%fileNameCriticalOverdensity  =galacticusPath(pathTypeDataDynamic)              // &
          &                             'largeScaleStructure/'                           // &
@@ -123,7 +143,9 @@ contains
   end function cllsnlssMttrDarkEnergyConstructorInternal
 
   subroutine cllsnlssMttrDarkEnergyTabulate(self,time,sphericalCollapse_,calculationType)
-    !% Tabulate spherical collapse solutions for $\delta_\mathrm{crit}$, $\Delta_\mathrm{vir}$, or $R_\mathrm{ta}/R_\mathrm{vir}$ vs. time.
+    !!{
+    Tabulate spherical collapse solutions for $\delta_\mathrm{crit}$, $\Delta_\mathrm{vir}$, or $R_\mathrm{ta}/R_\mathrm{vir}$ vs. time.
+    !!}
     use :: Display         , only : displayCounter           , displayCounterClear          , displayIndent                , displayUnindent, &
           &                         verbosityLevelWorking
     use :: Galacticus_Error, only : Galacticus_Error_Report
@@ -199,14 +221,18 @@ contains
        !$omp parallel private(expansionFactor,epsilonPerturbationMaximum,epsilonPerturbationMinimum,epsilonPerturbation,timeInitial,timeRange,maximumExpansionTime,expansionFactorExpansionMaximum,q,y,timeEnergyFixed,a,b,x,linearGrowth_)
        allocate(cllsnlssMttrDarkEnergyCosmologyFunctions_,mold=self%cosmologyFunctions_)
        !$omp critical(sphericalCollapseSolveCllnlssMttrDrkEnrgyDeepCopy)
-       !# <deepCopyReset variables="self%cosmologyFunctions_"/>
-       !# <deepCopy source="self%cosmologyFunctions_" destination="cllsnlssMttrDarkEnergyCosmologyFunctions_"/>
-       !# <deepCopyFinalize variables="cllsnlssMttrDarkEnergyCosmologyFunctions_"/>
+       !![
+       <deepCopyReset variables="self%cosmologyFunctions_"/>
+       <deepCopy source="self%cosmologyFunctions_" destination="cllsnlssMttrDarkEnergyCosmologyFunctions_"/>
+       <deepCopyFinalize variables="cllsnlssMttrDarkEnergyCosmologyFunctions_"/>
+       !!]
        if (calculationType == cllsnlssMttCsmlgclCnstntClcltnCriticalOverdensity) then
           allocate(linearGrowth_,mold=self%linearGrowth_)
-          !# <deepCopyReset variables="self%linearGrowth_"/>
-          !# <deepCopy source="self%linearGrowth_" destination="linearGrowth_"/>
-          !# <deepCopyFinalize variables="linearGrowth_"/>
+          !![
+          <deepCopyReset variables="self%linearGrowth_"/>
+          <deepCopy source="self%linearGrowth_" destination="linearGrowth_"/>
+          <deepCopyFinalize variables="linearGrowth_"/>
+          !!]
        end if
        !$omp end critical(sphericalCollapseSolveCllnlssMttrDrkEnrgyDeepCopy)
        !$omp do schedule(dynamic)
@@ -336,7 +362,9 @@ contains
           iCount=iCount+1
        end do
        !$omp end do
-       !# <objectDestructor name="cllsnlssMttrDarkEnergyCosmologyFunctions_"/>
+       !![
+       <objectDestructor name="cllsnlssMttrDarkEnergyCosmologyFunctions_"/>
+       !!]
        !$omp end parallel
        call displayCounterClear(       verbosity=verbosityLevelWorking)
        call displayUnindent     ('done',verbosity=verbosityLevelWorking)
@@ -345,8 +373,10 @@ contains
   end subroutine cllsnlssMttrDarkEnergyTabulate
 
   double precision function cllsnlssMttrDarkEnergyRadiusPerturbation(epsilonPerturbation)
-    !% Return the radius of a spherical top-hat perturbation in a dark energy universe given an initial perturbation
-    !% amplitude {\normalfont \ttfamily epsilonPerturbation}.
+    !!{
+    Return the radius of a spherical top-hat perturbation in a dark energy universe given an initial perturbation
+    amplitude {\normalfont \ttfamily epsilonPerturbation}.
+    !!}
     implicit none
     double precision, intent(in   ) :: epsilonPerturbation
 
@@ -355,8 +385,10 @@ contains
   end function cllsnlssMttrDarkEnergyRadiusPerturbation
 
   double precision function cllsnlssMttrDarkEnergyExpansionRatePerturbation(time)
-    !% Return the expansion rate of a spherical top-hat perturbation in a dark energy universe given an initial perturbation
-    !% amplitude {\normalfont \ttfamily epsilonPerturbation}.
+    !!{
+    Return the expansion rate of a spherical top-hat perturbation in a dark energy universe given an initial perturbation
+    amplitude {\normalfont \ttfamily epsilonPerturbation}.
+    !!}
     implicit none
     double precision, intent(in   ) :: time
 
@@ -365,8 +397,10 @@ contains
   end function cllsnlssMttrDarkEnergyExpansionRatePerturbation
 
   subroutine cllsnlssMttrDarkEnergyPerturbationDynamicsSolver(epsilonPerturbation,time,radiusPerturbation,expansionRatePerturbation)
-    !% Integrate the dynamics of a spherical top-hat perturbation in a dark energy universe given an initial perturbation
-    !% amplitude {\normalfont \ttfamily epsilonPerturbation}.
+    !!{
+    Integrate the dynamics of a spherical top-hat perturbation in a dark energy universe given an initial perturbation
+    amplitude {\normalfont \ttfamily epsilonPerturbation}.
+    !!}
     use :: Interface_GSL        , only : GSL_Success
     use :: Numerical_ODE_Solvers, only : odeSolver
     implicit none
@@ -435,7 +469,9 @@ contains
   end subroutine cllsnlssMttrDarkEnergyPerturbationDynamicsSolver
 
   integer function cllsnlssMttrDarkEnergyPerturbationODEs(time,y,dydt)
-    !% Differential equations describing the evolution of spherical perturbations in a universe containing collisionless dark matter and dark energy.
+    !!{
+    Differential equations describing the evolution of spherical perturbations in a universe containing collisionless dark matter and dark energy.
+    !!}
     use :: Interface_GSL, only : GSL_Success
     implicit none
     double precision, intent(in   )               :: time
@@ -463,7 +499,9 @@ contains
   end function cllsnlssMttrDarkEnergyPerturbationODEs
 
   subroutine cllsnlssMttrDarkEnergyLinearNonlinearMap(self,time,linearNonlinearMap_)
-    !% Tabulate the mapping between linea rna dnonlinear overdensity for the spherical collapse model.
+    !!{
+    Tabulate the mapping between linea rna dnonlinear overdensity for the spherical collapse model.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (sphericalCollapseSolverCllsnlssMttrDarkEnergy), intent(inout) :: self

@@ -17,30 +17,36 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides a class of merger tree builders.
+!!{
+Contains a module which provides a class of merger tree builders.
+!!}
 
 module Merger_Trees_Builders
-  !% Provides a class of merger tree builders.
+  !!{
+  Provides a class of merger tree builders.
+  !!}
   use :: Galacticus_Nodes, only : mergerTree
   private
 
-  !# <functionClass>
-  !#  <name>mergerTreeBuilder</name>
-  !#  <descriptiveName>Merger Tree Builders</descriptiveName>
-  !#  <description>Class providing merger tree builders.</description>
-  !#  <default>cole2000</default>
-  !#  <method name="build" >
-  !#   <description>Builds and returns a merger tree given the root {\normalfont \ttfamily node}.</description>
-  !#   <type>void</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type(mergerTree), intent(inout), target :: tree</argument>
-  !#  </method>
-  !#  <method name="timeEarliestSet">
-  !#   <description>Set the earliest time for the builder to the given value.</description>
-  !#   <type>void</type>
-  !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ) :: timeEarliest</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>mergerTreeBuilder</name>
+   <descriptiveName>Merger Tree Builders</descriptiveName>
+   <description>Class providing merger tree builders.</description>
+   <default>cole2000</default>
+   <method name="build" >
+    <description>Builds and returns a merger tree given the root {\normalfont \ttfamily node}.</description>
+    <type>void</type>
+    <pass>yes</pass>
+    <argument>type(mergerTree), intent(inout), target :: tree</argument>
+   </method>
+   <method name="timeEarliestSet">
+    <description>Set the earliest time for the builder to the given value.</description>
+    <type>void</type>
+    <pass>yes</pass>
+    <argument>double precision, intent(in   ) :: timeEarliest</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Merger_Trees_Builders

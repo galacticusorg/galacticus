@@ -17,31 +17,39 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of \cite{zhao_analytical_1996} dark matter halo profiles.
+  !!{
+  An implementation of \cite{zhao_analytical_1996} dark matter halo profiles.
+  !!}
 
-  !# <darkMatterProfileDMO name="darkMatterProfileDMOZhao1996">
-  !#  <description>
-  !#   A dark matter profile DMO class which implements the \cite{zhao_analytical_1996} density profile
-  !#   \begin{equation}
-  !#     \rho_\mathrm{dark matter}(r) \propto \left({r\over r_\mathrm{s}}\right)^{-\gamma} \left(1+\left[{r\over r_\mathrm{s}}\right]^\alpha \right)^{-(\beta-\gamma)/\alpha},
-  !#   \end{equation}
-  !#   normalized such that the total mass of the \gls{node} is enclosed with the virial radius and with the scale length
-  !#   $r_\mathrm{s}$.
-  !#  </description>
-  !# </darkMatterProfileDMO>
+  !![
+  <darkMatterProfileDMO name="darkMatterProfileDMOZhao1996">
+   <description>
+    A dark matter profile DMO class which implements the \cite{zhao_analytical_1996} density profile
+    \begin{equation}
+      \rho_\mathrm{dark matter}(r) \propto \left({r\over r_\mathrm{s}}\right)^{-\gamma} \left(1+\left[{r\over r_\mathrm{s}}\right]^\alpha \right)^{-(\beta-\gamma)/\alpha},
+    \end{equation}
+    normalized such that the total mass of the \gls{node} is enclosed with the virial radius and with the scale length
+    $r_\mathrm{s}$.
+   </description>
+  </darkMatterProfileDMO>
+  !!]
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOZhao1996
-     !% A dark matter halo profile class implementing \cite{zhao_analytical_1996} dark matter halos.
+     !!{
+     A dark matter halo profile class implementing \cite{zhao_analytical_1996} dark matter halos.
+     !!}
      private
      double precision :: alpha, beta, &
           &              gamma
    contains
-     !# <methods>
-     !#   <method description="Reset memoized calculations."                                                                                              method="calculationReset"/>
-     !#   <method description="Provides the values of the $(\alpha,\beta,\gamma)$ exponents in \cite{zhao_analytical_1996} dark matter density profiles." method="exponents"       />
-     !#   <method description="Compute the scale radius of the profile."                                                                                  method="scaleRadius"     />
-     !#   <method description="Compute the normalization of the profile."                                                                                 method="normalization"   />
-     !#   <method description="Compute the unnormalized mass within the given scale-free radius"                                                          method="massUnnormalized"/>
-     !# </methods>
+     !![
+     <methods>
+       <method description="Reset memoized calculations."                                                                                              method="calculationReset"/>
+       <method description="Provides the values of the $(\alpha,\beta,\gamma)$ exponents in \cite{zhao_analytical_1996} dark matter density profiles." method="exponents"       />
+       <method description="Compute the scale radius of the profile."                                                                                  method="scaleRadius"     />
+       <method description="Compute the normalization of the profile."                                                                                 method="normalization"   />
+       <method description="Compute the unnormalized mass within the given scale-free radius"                                                          method="massUnnormalized"/>
+     </methods>
+     !!]
      final     ::                                      zhao1996Destructor
      procedure :: autoHook                          => zhao1996AutoHook
      procedure :: calculationReset                  => zhao1996CalculationReset
@@ -70,7 +78,9 @@
   end type darkMatterProfileDMOZhao1996
 
   interface darkMatterProfileDMOZhao1996
-     !% Constructors for the {\normalfont \ttfamily zhao1996} dark matter halo profile class.
+     !!{
+     Constructors for the {\normalfont \ttfamily zhao1996} dark matter halo profile class.
+     !!}
      module procedure zhao1996ConstructorParameters
      module procedure zhao1996ConstructorInternal
   end interface darkMatterProfileDMOZhao1996
@@ -84,7 +94,9 @@
 contains
 
   function zhao1996ConstructorParameters(parameters) result(self)
-    !% Default constructor for the {\normalfont \ttfamily zhao1996} dark matter halo profile class.
+    !!{
+    Default constructor for the {\normalfont \ttfamily zhao1996} dark matter halo profile class.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (darkMatterProfileDMOZhao1996)                :: self
@@ -93,42 +105,52 @@ contains
     double precision                                              :: alpha               , beta, &
          &                                                           gamma
     
-    !# <inputParameter>
-    !#   <name>alpha</name>
-    !#   <source>parameters</source>
-    !#   <description>The parameter $\alpha$ of the \cite{zhao_analytical_1996} dark matter density profile.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>beta</name>
-    !#   <source>parameters</source>
-    !#   <description>The parameter $\beta$ of the \cite{zhao_analytical_1996} dark matter density profile.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>gamma</name>
-    !#   <source>parameters</source>
-    !#   <description>The parameter $\gamma$ of the \cite{zhao_analytical_1996} dark matter density profile.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>alpha</name>
+      <source>parameters</source>
+      <description>The parameter $\alpha$ of the \cite{zhao_analytical_1996} dark matter density profile.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>beta</name>
+      <source>parameters</source>
+      <description>The parameter $\beta$ of the \cite{zhao_analytical_1996} dark matter density profile.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>gamma</name>
+      <source>parameters</source>
+      <description>The parameter $\gamma$ of the \cite{zhao_analytical_1996} dark matter density profile.</description>
+    </inputParameter>
+    <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    !!]
     self=darkMatterProfileDMOZhao1996(alpha,beta,gamma,darkMatterHaloScale_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterHaloScale_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterHaloScale_"/>
+    !!]
     return
   end function zhao1996ConstructorParameters
 
   function zhao1996ConstructorInternal(alpha,beta,gamma,darkMatterHaloScale_) result(self)
-    !% Generic constructor for the {\normalfont \ttfamily zhao1996} dark matter halo profile class.
+    !!{
+    Generic constructor for the {\normalfont \ttfamily zhao1996} dark matter halo profile class.
+    !!}
     implicit none
     type            (darkMatterProfileDMOZhao1996)                        :: self
     class           (darkMatterHaloScaleClass    ), intent(in   ), target :: darkMatterHaloScale_
     double precision                              , intent(in   )         :: alpha               , beta, &
          &                                                                   gamma
-    !# <constructorAssign variables="alpha, beta, gamma, *darkMatterHaloScale_"/>
+    !![
+    <constructorAssign variables="alpha, beta, gamma, *darkMatterHaloScale_"/>
+    !!]
 
     return
   end function zhao1996ConstructorInternal
 
   subroutine zhao1996AutoHook(self)
-    !% Attach to the calculation reset event.
+    !!{
+    Attach to the calculation reset event.
+    !!}
     use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(darkMatterProfileDMOZhao1996), intent(inout) :: self
@@ -138,16 +160,22 @@ contains
   end subroutine zhao1996AutoHook
 
   subroutine zhao1996Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily zhao1996} dark matter halo profile class.
+    !!{
+    Destructor for the {\normalfont \ttfamily zhao1996} dark matter halo profile class.
+    !!}
     implicit none
     type(darkMatterProfileDMOZhao1996), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterHaloScale_" />
+    !![
+    <objectDestructor name="self%darkMatterHaloScale_" />
+    !!]
     return
   end subroutine zhao1996Destructor
 
   subroutine zhao1996CalculationReset(self,node)
-    !% Reset the dark matter profile calculation.
+    !!{
+    Reset the dark matter profile calculation.
+    !!}
     implicit none
     class(darkMatterProfileDMOZhao1996), intent(inout) :: self
     type (treeNode                    ), intent(inout) :: node
@@ -161,7 +189,9 @@ contains
   end subroutine zhao1996CalculationReset
 
   subroutine zhao1996Exponents(self,node,alpha,beta,gamma)
-    !% Compute the exponents of the {\normalfont \ttfamily zhao1996} dark matter halo profile.
+    !!{
+    Compute the exponents of the {\normalfont \ttfamily zhao1996} dark matter halo profile.
+    !!}
     implicit none
     class           (darkMatterProfileDMOZhao1996  ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
@@ -175,7 +205,9 @@ contains
   end subroutine zhao1996Exponents
   
   double precision function zhao1996ScaleRadius(self,node)
-    !% Compute the scale radius of the {\normalfont \ttfamily zhao1996} dark matter halo profile.
+    !!{
+    Compute the scale radius of the {\normalfont \ttfamily zhao1996} dark matter halo profile.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile
     implicit none
     class(darkMatterProfileDMOZhao1996  ), intent(inout) :: self
@@ -188,7 +220,9 @@ contains
   end function zhao1996ScaleRadius
   
   double precision function zhao1996Normalization(self,node)
-    !% Returns the normalization of the dark matter profile of {\normalfont \ttfamily node}.
+    !!{
+    Returns the normalization of the dark matter profile of {\normalfont \ttfamily node}.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (darkMatterProfileDMOZhao1996), intent(inout) :: self
@@ -207,8 +241,10 @@ contains
   end function zhao1996Normalization
 
   double precision function zhao1996MassUnnormalized(self,node,radiusScaleFree)
-    !% Returns the unnormalzied mass in the dark matter profile of {\normalfont \ttfamily node} at the given
-    !% {\normalfont \ttfamily radiusScaleFree}.
+    !!{
+    Returns the unnormalzied mass in the dark matter profile of {\normalfont \ttfamily node} at the given
+    {\normalfont \ttfamily radiusScaleFree}.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     use :: Hypergeometric_Functions, only : Hypergeometric_2F1
     implicit none
@@ -228,8 +264,10 @@ contains
   end function zhao1996MassUnnormalized
 
   double precision function zhao1996Density(self,node,radius)
-    !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given
-    !% {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!{
+    Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given
+    {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!}
     implicit none
     class           (darkMatterProfileDMOZhao1996), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node
@@ -252,8 +290,10 @@ contains
   end function zhao1996Density
 
   double precision function zhao1996DensityLogSlope(self,node,radius)
-    !% Returns the logarithmic slope of the density profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily
-    !% radius} (given in units of Mpc).
+    !!{
+    Returns the logarithmic slope of the density profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily
+    radius} (given in units of Mpc).
+    !!}
     implicit none
     class           (darkMatterProfileDMOZhao1996), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node
@@ -279,8 +319,10 @@ contains
   end function zhao1996DensityLogSlope
 
   double precision function zhao1996EnclosedMass(self,node,radius)
-    !% Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
-    !% units of Mpc).
+    !!{
+    Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
+    units of Mpc).
+    !!}
     implicit none
     class           (darkMatterProfileDMOZhao1996), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node
@@ -300,8 +342,10 @@ contains
   end function zhao1996EnclosedMass
 
   double precision function zhao1996Potential(self,node,radius,status)
-    !% Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
-    !% units of Mpc).
+    !!{
+    Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
+    units of Mpc).
+    !!}
     use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess
     use :: Galacticus_Nodes                , only : nodeComponentBasic
     use :: Gamma_Functions                 , only : Gamma_Function
@@ -341,8 +385,10 @@ contains
   end function zhao1996Potential
 
   double precision function zhao1996CircularVelocity(self,node,radius)
-    !% Returns the circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
-    !% units of Mpc).
+    !!{
+    Returns the circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
+    units of Mpc).
+    !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (darkMatterProfileDMOZhao1996), intent(inout) :: self
@@ -358,7 +404,9 @@ contains
   end function zhao1996CircularVelocity
 
   double precision function zhao1996CircularVelocityMaximum(self,node)
-    !% Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}.
+    !!{
+    Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}.
+    !!}
     implicit none
     class(darkMatterProfileDMOZhao1996  ), intent(inout) :: self
     type (treeNode                      ), intent(inout) :: node
@@ -368,7 +416,9 @@ contains
   end function zhao1996CircularVelocityMaximum
 
   double precision function zhao1996RadiusCircularVelocityMaximum(self,node)
-    !% Returns the radius (in Mpc) at which the maximum circular velocity occurs in the dark matter profile of {\normalfont \ttfamily node}.
+    !!{
+    Returns the radius (in Mpc) at which the maximum circular velocity occurs in the dark matter profile of {\normalfont \ttfamily node}.
+    !!}
     implicit none
     class(darkMatterProfileDMOZhao1996  ), intent(inout) :: self
     type (treeNode                      ), intent(inout) :: node
@@ -378,8 +428,10 @@ contains
   end function zhao1996RadiusCircularVelocityMaximum
 
   double precision function zhao1996RadialVelocityDispersion(self,node,radius)
-    !% Returns the radial velocity dispersion (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
-    !% {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!{
+    Returns the radial velocity dispersion (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
+    {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!}
     implicit none
     class           (darkMatterProfileDMOZhao1996  ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
@@ -390,8 +442,10 @@ contains
   end function zhao1996RadialVelocityDispersion
 
   double precision function zhao1996RadiusFromSpecificAngularMomentum(self,node,specificAngularMomentum)
-    !% Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily
-    !% specificAngularMomentum} (given in units of km s$^{-1}$ Mpc)
+    !!{
+    Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily
+    specificAngularMomentum} (given in units of km s$^{-1}$ Mpc)
+    !!}
     implicit none
     class           (darkMatterProfileDMOZhao1996), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node
@@ -402,7 +456,9 @@ contains
   end function zhao1996RadiusFromSpecificAngularMomentum
 
   double precision function zhao1996RotationNormalization(self,node)
-    !% Return the normalization of the rotation velocity vs. specific angular momentum relation.
+    !!{
+    Return the normalization of the rotation velocity vs. specific angular momentum relation.
+    !!}
     implicit none
     class           (darkMatterProfileDMOZhao1996), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node
@@ -415,7 +471,9 @@ contains
   end function zhao1996RotationNormalization
 
   double precision function zhao1996Energy(self,node)
-    !% Return the energy of an Zhao1996 halo density profile.
+    !!{
+    Return the energy of an Zhao1996 halo density profile.
+    !!}
     implicit none
     class(darkMatterProfileDMOZhao1996), intent(inout) :: self
     type (treeNode                    ), intent(inout) :: node
@@ -425,7 +483,9 @@ contains
   end function zhao1996Energy
 
   double precision function zhao1996EnergyGrowthRate(self,node)
-    !% Return the rate of change of the energy of an Zhao1996 halo density profile.
+    !!{
+    Return the rate of change of the energy of an Zhao1996 halo density profile.
+    !!}
     implicit none
     class(darkMatterProfileDMOZhao1996), intent(inout)          :: self
     type (treeNode                    ), intent(inout), target  :: node
@@ -435,8 +495,10 @@ contains
   end function zhao1996EnergyGrowthRate
 
   double precision function zhao1996KSpace(self,node,waveNumber)
-    !% Returns the Fourier transform of the Zhao1996 density profile at the specified {\normalfont \ttfamily waveNumber} (given in Mpc$^{-1}$), using the
-    !% expression given in \citeauthor{cooray_halo_2002}~(\citeyear{cooray_halo_2002}; eqn.~81).
+    !!{
+    Returns the Fourier transform of the Zhao1996 density profile at the specified {\normalfont \ttfamily waveNumber} (given in Mpc$^{-1}$), using the
+    expression given in \citeauthor{cooray_halo_2002}~(\citeyear{cooray_halo_2002}; eqn.~81).
+    !!}
     implicit none
     class           (darkMatterProfileDMOZhao1996), intent(inout)          :: self
     type            (treeNode                    ), intent(inout), target  :: node
@@ -447,7 +509,9 @@ contains
   end function zhao1996KSpace
 
   double precision function zhao1996FreefallRadius(self,node,time)
-    !% Returns the freefall radius in the Zhao1996 density profile at the specified {\normalfont \ttfamily time} (given in Gyr).
+    !!{
+    Returns the freefall radius in the Zhao1996 density profile at the specified {\normalfont \ttfamily time} (given in Gyr).
+    !!}
     use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
     class           (darkMatterProfileDMOZhao1996), intent(inout), target :: self
@@ -474,7 +538,9 @@ contains
   end function zhao1996FreefallRadius
 
   double precision function rootRadiusFreefall(radiusFreefall)
-    !% Root function used in finding the radius corresponding to a given freefall time.
+    !!{
+    Root function used in finding the radius corresponding to a given freefall time.
+    !!}
     use :: Numerical_Integration, only : integrator
     implicit none
     double precision            , intent(in   ) :: radiusFreefall
@@ -488,7 +554,9 @@ contains
   end function rootRadiusFreefall
 
   double precision function integrandTimeFreefall(radius)
-    !% Integrand for freefall time in the halo.
+    !!{
+    Integrand for freefall time in the halo.
+    !!}
     use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
     implicit none
     double precision, intent(in   ) :: radius
@@ -510,8 +578,10 @@ contains
   end function integrandTimeFreefall
 
   double precision function zhao1996FreefallRadiusIncreaseRate(self,node,time)
-    !% Returns the rate of increase of the freefall radius in the Zhao1996 density profile at the specified {\normalfont \ttfamily time} (given in
-    !% Gyr).
+    !!{
+    Returns the rate of increase of the freefall radius in the Zhao1996 density profile at the specified {\normalfont \ttfamily time} (given in
+    Gyr).
+    !!}
     use :: Numerical_Differentiation, only : differentiator
     implicit none
     class           (darkMatterProfileDMOZhao1996), intent(inout), target :: self
@@ -529,7 +599,9 @@ contains
   end function zhao1996FreefallRadiusIncreaseRate
 
   double precision function freefallRadiusEvaluate(timeLogarithmic)
-    !% GSL-callable function to evaluate the freefall radius of the dark matter profile.
+    !!{
+    GSL-callable function to evaluate the freefall radius of the dark matter profile.
+    !!}
     implicit none
     double precision, intent(in   ), value :: timeLogarithmic
 
@@ -538,8 +610,10 @@ contains
   end function freefallRadiusEvaluate
 
   double precision function zhao1996RadialMoment(self,node,moment,radiusMinimum,radiusMaximum)
-    !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given
-    !% in units of Mpc).
+    !!{
+    Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given
+    in units of Mpc).
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (darkMatterProfileDMOZhao1996), intent(inout)           :: self
@@ -580,7 +654,9 @@ contains
   contains
 
     double precision function radialMomentIndefinite(radiusScaleFree)
-      !% Compute the indefinite radial moment.
+      !!{
+      Compute the indefinite radial moment.
+      !!}
       use :: Hypergeometric_Functions, only : Hypergeometric_2F1
       implicit none
       double precision, intent(in   ) :: radiusScaleFree
@@ -594,7 +670,9 @@ contains
   end function zhao1996RadialMoment
 
   double precision function zhao1996RadiusEnclosingDensity(self,node,density)
-    !% Compute the radius enclosing a given density for {\normalfont \ttfamily Zhao1996} dark matter halo profiles.
+    !!{
+    Compute the radius enclosing a given density for {\normalfont \ttfamily Zhao1996} dark matter halo profiles.
+    !!}
     implicit none
     class           (darkMatterProfileDMOZhao1996), intent(inout), target :: self
     type            (treeNode                    ), intent(inout), target :: node
@@ -605,7 +683,9 @@ contains
   end function zhao1996RadiusEnclosingDensity
 
   double precision function zhao1996RadiusEnclosingMass(self,node,mass)
-    !% Compute the radius enclosing a given mass for {\normalfont \ttfamily Zhao1996} dark matter halo profiles.
+    !!{
+    Compute the radius enclosing a given mass for {\normalfont \ttfamily Zhao1996} dark matter halo profiles.
+    !!}
     implicit none
     class           (darkMatterProfileDMOZhao1996), intent(inout), target :: self
     type            (treeNode                    ), intent(inout), target :: node

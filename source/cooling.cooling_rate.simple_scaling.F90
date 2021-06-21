@@ -17,28 +17,34 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a cooling rate class in which the cooling rate scales with the mass of the halo.
+  !!{
+  Implementation of a cooling rate class in which the cooling rate scales with the mass of the halo.
+  !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
 
-  !# <coolingRate name="coolingRateSimpleScaling">
-  !#  <description>
-  !#   A cooling rate class in which the cooling rate scales with the mass of the halo. Specifically, the cooling rate is given by
-  !#   \begin{equation}
-  !#   \dot{M}_\mathrm{cool} = M_\mathrm{hot}/\tau_\mathrm{cool}(M_\mathrm{halo},z) ,
-  !#   \end{equation}
-  !#   where 
-  !#   \begin{equation}
-  !#   \tau_\mathrm{cool}=\tau_\mathrm{cool,0} (1+z)^{\beta_\mathrm{cool}} \exp \left(\left[{M_\mathrm{halo} \over
-  !#   M_\mathrm{transition}}\right]^{\gamma_\mathrm{cool}}\right),
-  !#   \end{equation}
-  !#   $\tau_\mathrm{cool,0}=${\normalfont \ttfamily [timescale]}, $\beta_\mathrm{cool}=${\normalfont \ttfamily
-  !#   [exponentRedshift]}, $M_\mathrm{transition}=${\normalfont \ttfamily [massCutOff]}, and $\gamma_\mathrm{cool}=${\normalfont
-  !#   \ttfamily [exponentCutOff]}.
-  !#  </description>
-  !# </coolingRate>
+  !![
+  <coolingRate name="coolingRateSimpleScaling">
+   <description>
+    A cooling rate class in which the cooling rate scales with the mass of the halo. Specifically, the cooling rate is given by
+    \begin{equation}
+    \dot{M}_\mathrm{cool} = M_\mathrm{hot}/\tau_\mathrm{cool}(M_\mathrm{halo},z) ,
+    \end{equation}
+    where 
+    \begin{equation}
+    \tau_\mathrm{cool}=\tau_\mathrm{cool,0} (1+z)^{\beta_\mathrm{cool}} \exp \left(\left[{M_\mathrm{halo} \over
+    M_\mathrm{transition}}\right]^{\gamma_\mathrm{cool}}\right),
+    \end{equation}
+    $\tau_\mathrm{cool,0}=${\normalfont \ttfamily [timescale]}, $\beta_\mathrm{cool}=${\normalfont \ttfamily
+    [exponentRedshift]}, $M_\mathrm{transition}=${\normalfont \ttfamily [massCutOff]}, and $\gamma_\mathrm{cool}=${\normalfont
+    \ttfamily [exponentCutOff]}.
+   </description>
+  </coolingRate>
+  !!]
   type, extends(coolingRateClass) :: coolingRateSimpleScaling
-     !% Implementation of cooling rate class in which the cooling rate scales with the mass of the halo.
+     !!{
+     Implementation of cooling rate class in which the cooling rate scales with the mass of the halo.
+     !!}
      private
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
      ! Parameters controlling the cooling rate.
@@ -54,7 +60,9 @@
   end type coolingRateSimpleScaling
 
   interface coolingRateSimpleScaling
-     !% Constructors for the simple caling cooling rate class.
+     !!{
+     Constructors for the simple caling cooling rate class.
+     !!}
      module procedure simpleScalingConstructorParameters
      module procedure simpleScalingConstructorInternal
   end interface coolingRateSimpleScaling
@@ -62,7 +70,9 @@
 contains
 
   function simpleScalingConstructorParameters(parameters) result(self)
-    !% Constructor for the simple caling cooling rate class which builds the object from a parameter set.
+    !!{
+    Constructor for the simple caling cooling rate class which builds the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (coolingRateSimpleScaling)                :: self
@@ -72,45 +82,51 @@ contains
          &                                                       exponentRedshift   , widthCutOff   , &
          &                                                       massCutOff
 
-    !# <inputParameter>
-    !#   <name>timescale</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>1.0d0</defaultValue>
-    !#   <description>The timescale (in Gyr) for cooling in low mass halos at $z=0$ in the simple caling scaling cooling rate model.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>exponentRedshift</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>-1.5d0</defaultValue>
-    !#   <description>The exponent of $(1+z)$ in the cooling timescale for low mass halos in the simple caling scaling cooling rate model.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massCutOff</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>200.0d0</defaultValue>
-    !#   <description>The halo mass scale appearing in the exponential term for cooling timescale in the simple caling cooling rate model.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>widthCutOff</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>1.0d0</defaultValue>
-    !#   <description>The width appearing in the exponential term for cooling timescale in the simple caling scaling cooling rate model.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>exponentCutOff</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>1.0d0</defaultValue>
-    !#   <description>The exponent appearing in the exponential term for cooling timescale in the simple caling scaling cooling rate model.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>timescale</name>
+      <source>parameters</source>
+      <defaultValue>1.0d0</defaultValue>
+      <description>The timescale (in Gyr) for cooling in low mass halos at $z=0$ in the simple caling scaling cooling rate model.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>exponentRedshift</name>
+      <source>parameters</source>
+      <defaultValue>-1.5d0</defaultValue>
+      <description>The exponent of $(1+z)$ in the cooling timescale for low mass halos in the simple caling scaling cooling rate model.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>massCutOff</name>
+      <source>parameters</source>
+      <defaultValue>200.0d0</defaultValue>
+      <description>The halo mass scale appearing in the exponential term for cooling timescale in the simple caling cooling rate model.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>widthCutOff</name>
+      <source>parameters</source>
+      <defaultValue>1.0d0</defaultValue>
+      <description>The width appearing in the exponential term for cooling timescale in the simple caling scaling cooling rate model.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>exponentCutOff</name>
+      <source>parameters</source>
+      <defaultValue>1.0d0</defaultValue>
+      <description>The exponent appearing in the exponential term for cooling timescale in the simple caling scaling cooling rate model.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !!]
     self=coolingRateSimpleScaling(timeScale,exponentRedshift,massCutOff,widthCutOff,exponentCutOff,cosmologyFunctions_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"/>
+    !!]
     return
   end function simpleScalingConstructorParameters
 
   function simpleScalingConstructorInternal(timeScale,exponentRedshift,massCutOff,widthCutOff,exponentCutOff,cosmologyFunctions_) result(self)
-    !% Internal constructor for the simple caling cooling rate class.
+    !!{
+    Internal constructor for the simple caling cooling rate class.
+    !!}
     use :: Array_Utilities , only : operator(.intersection.)
     use :: Galacticus_Error, only : Galacticus_Component_List, Galacticus_Error_Report
     use :: Galacticus_Nodes, only : defaultBasicComponent    , defaultHotHaloComponent
@@ -121,7 +137,9 @@ contains
          &                                                               exponentCutOff
     class           (cosmologyFunctionsClass ), intent(in   ), target :: cosmologyFunctions_
 
-    !# <constructorAssign variables="timeScale, exponentRedshift, massCutOff, widthCutOff, exponentCutOff, *cosmologyFunctions_"/>
+    !![
+    <constructorAssign variables="timeScale, exponentRedshift, massCutOff, widthCutOff, exponentCutOff, *cosmologyFunctions_"/>
+    !!]
     ! Check that the properties we need are gettable.
     if (.not.defaultHotHaloComponent%massIsGettable())                                                                                  &
          & call Galacticus_Error_Report(                                                                                                &
@@ -156,16 +174,22 @@ contains
   end function simpleScalingConstructorInternal
 
   subroutine simpleScalingDestructor(self)
-    !% Destructor for the simple caling cooling rate class.
+    !!{
+    Destructor for the simple caling cooling rate class.
+    !!}
     implicit none
     type(coolingRateSimpleScaling), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"/>
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"/>
+    !!]
     return
   end subroutine simpleScalingDestructor
 
   double precision function simpleScalingRate(self,node)
-    !% Returns the cooling rate (in $M_\odot$ Gyr$^{-1}$) in the hot atmosphere for a model in which this rate scales with the mass of the halo.
+    !!{
+    Returns the cooling rate (in $M_\odot$ Gyr$^{-1}$) in the hot atmosphere for a model in which this rate scales with the mass of the halo.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentHotHalo, treeNode
     implicit none
     class           (coolingRateSimpleScaling), intent(inout) :: self

@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to test sorting functions.
+!!{
+Contains a program to test sorting functions.
+!!}
 
 program Test_Sort
-  !% Tests of sorting functions.
+  !!{
+  Tests of sorting functions.
+  !!}
   use            :: Display      , only : displayVerbositySet, verbosityLevelStandard
   use, intrinsic :: ISO_C_Binding, only : c_size_t
   use            :: Kind_Numbers , only : kind_int8

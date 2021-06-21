@@ -17,18 +17,24 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a posterior sampling stopping class which stops after a given number of correlation legnths.
+  !!{
+  Implementation of a posterior sampling stopping class which stops after a given number of correlation legnths.
+  !!}
 
   use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
 
-  !# <posteriorSampleStoppingCriterion name="posteriorSampleStoppingCriterionCorrelationLength">
-  !#  <description>
-  !#   This type will cause the simulation to stop when at least a number of correlation lengths (as specified in the {\normalfont
-  !#   \ttfamily [stopAfterCount]} parameter) have accrued post-convergence.
-  !#  </description>
-  !# </posteriorSampleStoppingCriterion>
+  !![
+  <posteriorSampleStoppingCriterion name="posteriorSampleStoppingCriterionCorrelationLength">
+   <description>
+    This type will cause the simulation to stop when at least a number of correlation lengths (as specified in the {\normalfont
+    \ttfamily [stopAfterCount]} parameter) have accrued post-convergence.
+   </description>
+  </posteriorSampleStoppingCriterion>
+  !!]
   type, extends(posteriorSampleStoppingCriterionClass) :: posteriorSampleStoppingCriterionCorrelationLength
-     !% Implementation of a posterior sampling convergence class which stops after a given number of correlation lengths.
+     !!{
+     Implementation of a posterior sampling convergence class which stops after a given number of correlation lengths.
+     !!}
      private
      class  (posteriorSampleConvergenceClass), pointer :: posteriorSampleConvergence_ => null()
      integer                                           :: stopAfterCount
@@ -38,7 +44,9 @@
   end type posteriorSampleStoppingCriterionCorrelationLength
 
   interface posteriorSampleStoppingCriterionCorrelationLength
-     !% Constructors for the {\normalfont \ttfamily correlationLength} posterior sampling stopping criterion class.
+     !!{
+     Constructors for the {\normalfont \ttfamily correlationLength} posterior sampling stopping criterion class.
+     !!}
      module procedure correlationLengthConstructorParameters
      module procedure correlationLengthConstructorInternal
   end interface posteriorSampleStoppingCriterionCorrelationLength
@@ -46,7 +54,9 @@
 contains
 
   function correlationLengthConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily correlationLength} posterior sampling stopping class which builds the object from a parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily correlationLength} posterior sampling stopping class which builds the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (posteriorSampleStoppingCriterionCorrelationLength)                :: self
@@ -54,40 +64,54 @@ contains
     class  (posteriorSampleConvergenceClass                  ), pointer       :: posteriorSampleConvergence_
     integer                                                                   :: stopAfterCount
 
-    !# <inputParameter>
-    !#   <name>stopAfterCount</name>
-    !#   <description>The number of correlation lengths to continue after convergence before stopping.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="posteriorSampleConvergence" name="posteriorSampleConvergence_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>stopAfterCount</name>
+      <description>The number of correlation lengths to continue after convergence before stopping.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="posteriorSampleConvergence" name="posteriorSampleConvergence_" source="parameters"/>
+    !!]
     self=posteriorSampleStoppingCriterionCorrelationLength(stopAfterCount,posteriorSampleConvergence_)
-    !# <inputParametersValidate source="parameters"/>
-   !# <objectDestructor name="posteriorSampleConvergence_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+   <objectDestructor name="posteriorSampleConvergence_"/>
+   !!]
    return
   end function correlationLengthConstructorParameters
 
   function correlationLengthConstructorInternal(stopAfterCount,posteriorSampleConvergence_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily correlationLength} posterior sampling stopping class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily correlationLength} posterior sampling stopping class.
+    !!}
     implicit none
     type   (posteriorSampleStoppingCriterionCorrelationLength)                        :: self
     integer                                                   , intent(in   )         :: stopAfterCount
     class  (posteriorSampleConvergenceClass                  ), intent(in   ), target :: posteriorSampleConvergence_
-    !# <constructorAssign variables="stopAfterCount, *posteriorSampleConvergence_"/>
+    !![
+    <constructorAssign variables="stopAfterCount, *posteriorSampleConvergence_"/>
+    !!]
 
     return
   end function correlationLengthConstructorInternal
 
   subroutine correlationLengthDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily correlationLength} posterior sampling stopping class.
+    !!{
+    Destructor for the {\normalfont \ttfamily correlationLength} posterior sampling stopping class.
+    !!}
     implicit none
     type(posteriorSampleStoppingCriterionCorrelationLength), intent(inout) :: self
 
-    !# <objectDestructor name="self%posteriorSampleConvergence_"/>
+    !![
+    <objectDestructor name="self%posteriorSampleConvergence_"/>
+    !!]
     return
   end subroutine correlationLengthDestructor
 
   logical function correlationLengthStop(self,simulationState)
-    !% Returns true if the posterior sampling should stop.
+    !!{
+    Returns true if the posterior sampling should stop.
+    !!}
     use :: Galacticus_Error        , only : Galacticus_Error_Report
     use :: Posterior_Sampling_State, only : posteriorSampleStateCorrelation
     implicit none

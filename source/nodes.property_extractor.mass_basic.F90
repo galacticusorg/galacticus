@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an output analysis property extractor class that extracts the basic mass.
+!!{
+Contains a module which implements an output analysis property extractor class that extracts the basic mass.
+!!}
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorMassBasic">
-  !#  <description>An output analysis property extractor class that extracts the basic mass.</description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorMassBasic">
+   <description>An output analysis property extractor class that extracts the basic mass.</description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMassBasic
-     !% A property extractor output analysis class that extracts the basic mass.
+     !!{
+     A property extractor output analysis class that extracts the basic mass.
+     !!}
      private
    contains
      procedure :: extract     => massBasicExtract
@@ -34,14 +40,18 @@
   end type nodePropertyExtractorMassBasic
 
   interface nodePropertyExtractorMassBasic
-     !% Constructors for the ``massBasic'' output analysis class.
+     !!{
+     Constructors for the ``massBasic'' output analysis class.
+     !!}
      module procedure massBasicConstructorParameters
   end interface nodePropertyExtractorMassBasic
 
 contains
 
   function massBasicConstructorParameters(parameters) result(self)
-    !% Constructor for the ``massBasic'' output analysis property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the ``massBasic'' output analysis property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type (nodePropertyExtractorMassBasic)                :: self
@@ -53,7 +63,9 @@ contains
   end function massBasicConstructorParameters
 
   double precision function massBasicExtract(self,node,instance)
-    !% Implement a massBasic output analysis.
+    !!{
+    Implement a massBasic output analysis.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class(nodePropertyExtractorMassBasic), intent(inout)           :: self
@@ -68,7 +80,9 @@ contains
   end function massBasicExtract
 
   integer function massBasicType(self)
-    !% Return the type of the halo mass property.
+    !!{
+    Return the type of the halo mass property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorMassBasic), intent(inout) :: self
@@ -79,7 +93,9 @@ contains
   end function massBasicType
 
   function massBasicName(self)
-    !% Return the name of the massBasic property.
+    !!{
+    Return the name of the massBasic property.
+    !!}
     implicit none
     type (varying_string                )                :: massBasicName
     class(nodePropertyExtractorMassBasic), intent(inout) :: self
@@ -90,7 +106,9 @@ contains
   end function massBasicName
 
   function massBasicDescription(self)
-    !% Return a description of the massBasic property.
+    !!{
+    Return a description of the massBasic property.
+    !!}
     implicit none
     type (varying_string                )                :: massBasicDescription
     class(nodePropertyExtractorMassBasic), intent(inout) :: self
@@ -101,7 +119,9 @@ contains
   end function massBasicDescription
 
   double precision function massBasicUnitsInSI(self)
-    !% Return the units of the massBasic property in the SI system.
+    !!{
+    Return the units of the massBasic property in the SI system.
+    !!}
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
     class(nodePropertyExtractorMassBasic), intent(inout) :: self

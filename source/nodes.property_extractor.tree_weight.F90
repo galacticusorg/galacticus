@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a merger tree weight property extractor class.
+!!{
+Contains a module which implements a merger tree weight property extractor class.
+!!}
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorTreeWeight">
-  !#  <description>A merger tree weight property extractor class.</description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorTreeWeight">
+   <description>A merger tree weight property extractor class.</description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorTreeWeight
-     !% A merger tree weight property extractor class.
+     !!{
+     A merger tree weight property extractor class.
+     !!}
      private
    contains
      procedure :: extract     => treeWeightExtract
@@ -34,14 +40,18 @@
   end type nodePropertyExtractorTreeWeight
 
   interface nodePropertyExtractorTreeWeight
-     !% Constructors for the ``treeWeight'' output analysis class.
+     !!{
+     Constructors for the ``treeWeight'' output analysis class.
+     !!}
      module procedure treeWeightConstructorParameters
   end interface nodePropertyExtractorTreeWeight
 
 contains
 
   function treeWeightConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily treeWeight} property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily treeWeight} property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(nodePropertyExtractorTreeWeight)                :: self
@@ -53,7 +63,9 @@ contains
   end function treeWeightConstructorParameters
 
   double precision function treeWeightExtract(self,node,instance)
-    !% Implement a last isolated redshift output analysis.
+    !!{
+    Implement a last isolated redshift output analysis.
+    !!}
     implicit none
     class(nodePropertyExtractorTreeWeight), intent(inout)           :: self
     type (treeNode                       ), intent(inout), target   :: node
@@ -65,7 +77,9 @@ contains
   end function treeWeightExtract
 
   function treeWeightName(self)
-    !% Return the name of the last isolated redshift property.
+    !!{
+    Return the name of the last isolated redshift property.
+    !!}
     implicit none
     type (varying_string                 )                :: treeWeightName
     class(nodePropertyExtractorTreeWeight), intent(inout) :: self
@@ -76,7 +90,9 @@ contains
   end function treeWeightName
 
   function treeWeightDescription(self)
-    !% Return a description of the treeWeight property.
+    !!{
+    Return a description of the treeWeight property.
+    !!}
     implicit none
     type (varying_string                 )                :: treeWeightDescription
     class(nodePropertyExtractorTreeWeight), intent(inout) :: self
@@ -87,7 +103,9 @@ contains
   end function treeWeightDescription
 
   double precision function treeWeightUnitsInSI(self)
-    !% Return the units of the last isolated redshift property in the SI system.
+    !!{
+    Return the units of the last isolated redshift property in the SI system.
+    !!}
     use :: Numerical_Constants_Astronomical, only : megaParsec
     implicit none
     class(nodePropertyExtractorTreeWeight), intent(inout) :: self
@@ -98,7 +116,9 @@ contains
   end function treeWeightUnitsInSI
 
   integer function treeWeightType(self)
-    !% Return the type of the last isolated redshift property.
+    !!{
+    Return the type of the last isolated redshift property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorTreeWeight), intent(inout) :: self

@@ -17,8 +17,10 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of the dark matter halo spin distribution which modifies another spin distribution to account for the
-  !% effects of particle noise errors in spins measured in N-body simulations.
+  !!{
+  An implementation of the dark matter halo spin distribution which modifies another spin distribution to account for the
+  effects of particle noise errors in spins measured in N-body simulations.
+  !!}
 
   use :: Dark_Matter_Halo_Scales          , only : darkMatterHaloScaleClass
   use :: Dark_Matter_Profile_Scales       , only : darkMatterProfileScaleRadius, darkMatterProfileScaleRadiusClass
@@ -27,15 +29,19 @@
   use :: Root_Finder                      , only : rootFinder
   use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass
 
-  !# <haloSpinDistribution name="haloSpinDistributionNbodyErrors">
-  !#  <description>
-  !#   A halo spin distribution which modifies another spin distribution to account for the effects of particle noise errors
-  !#   in spins measured in N-body simulations.
-  !#  </description>
-  !# </haloSpinDistribution>
+  !![
+  <haloSpinDistribution name="haloSpinDistributionNbodyErrors">
+   <description>
+    A halo spin distribution which modifies another spin distribution to account for the effects of particle noise errors
+    in spins measured in N-body simulations.
+   </description>
+  </haloSpinDistribution>
+  !!]
   type, extends(haloSpinDistributionClass) :: haloSpinDistributionNbodyErrors
-     !% A dark matter halo spin distribution class which modifies another spin distribution to account for the effects of particle
-     !% noise errors in spins measured in N-body simulations.
+     !!{
+     A dark matter halo spin distribution class which modifies another spin distribution to account for the effects of particle
+     noise errors in spins measured in N-body simulations.
+     !!}
      private
      class           (haloSpinDistributionClass        ), pointer                     :: distributionIntrinsic         => null()
      class           (nbodyHaloMassErrorClass          ), pointer                     :: nbodyHaloMassError_           => null()
@@ -56,11 +62,13 @@
      double precision                                   , allocatable, dimension(:  ) :: massWeight
      double precision                                   , allocatable, dimension(:,:) :: distributionTable
    contains
-     !# <methods>
-     !#   <method description="Return the spin distribution function averaged over all halos above the given {\normalfont \ttfamily massLimit}." method="distributionAveraged" />
-     !#   <method description="Return the spin distribution function at a fixed point in intrinsic mass and spin." method="distributionFixedPoint" />
-     !#   <method description="Tabulate the spin distribution as a fuction of spin and halo mass. Ensure that the table spans the {\normalfont \ttfamily massRequired} and {\normalfont \ttfamily spinRequireed} if provided." method="tabulate" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Return the spin distribution function averaged over all halos above the given {\normalfont \ttfamily massLimit}." method="distributionAveraged" />
+       <method description="Return the spin distribution function at a fixed point in intrinsic mass and spin." method="distributionFixedPoint" />
+       <method description="Tabulate the spin distribution as a fuction of spin and halo mass. Ensure that the table spans the {\normalfont \ttfamily massRequired} and {\normalfont \ttfamily spinRequireed} if provided." method="tabulate" />
+     </methods>
+     !!]
      final     ::                           nbodyErrorsDestructor
      procedure :: sample                 => nbodyErrorsSample
      procedure :: distribution           => nbodyErrorsDistribution
@@ -70,8 +78,10 @@
   end type haloSpinDistributionNbodyErrors
 
   interface haloSpinDistributionNbodyErrors
-     !% Constructors for the {\normalfont \ttfamily nbodyErrors} dark matter halo spin
-     !% distribution class.
+     !!{
+     Constructors for the {\normalfont \ttfamily nbodyErrors} dark matter halo spin
+     distribution class.
+     !!}
      module procedure nbodyErrorsConstructorParameters
      module procedure nbodyErrorsConstructorInternal
   end interface haloSpinDistributionNbodyErrors
@@ -88,8 +98,10 @@
 contains
 
   function nbodyErrorsConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily nbodyErrors} dark matter halo spin
-    !% distribution class which takes a parameter list as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily nbodyErrors} dark matter halo spin
+    distribution class which takes a parameter list as input.
+    !!}
     use :: Cosmology_Functions, only : cosmologyFunctionsClass
     use :: Input_Parameters   , only : inputParameter         , inputParameters
     implicit none
@@ -108,47 +120,51 @@ contains
     integer                                                            :: particleCountMinimum
 
     ! Check and read parameters.
-    !# <inputParameter>
-    !#   <name>massParticle</name>
-    !#   <source>parameters</source>
-    !#   <description>Mass of particle in the simulation.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>particleCountMinimum</name>
-    !#   <source>parameters</source>
-    !#   <description>Minimum number of particles per halo in the N-body simulation.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>energyEstimateParticleCountMaximum</name>
-    !#   <source>parameters</source>
-    !#   <description>Maximum number of particles used in estimating the potential energy of halos. Set to a very large number if no such maximum was used.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>redshift</name>
-    !#   <source>parameters</source>
-    !#   <description>Redshift at which the spin distribution should be evaluated.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>logNormalRange</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>100.0d0</defaultValue>
-    !#   <defaultSource>A large range which will include (almost) the entirety of the distribution.</defaultSource>
-    !#   <description>The multiplicative range of the log-normal distribution used to model the distribution of the mass and energy terms in the spin parameter. Specifically, the lognormal distribution is truncated outside the range $(\lambda_\mathrm{m}/R,\lambda_\mathrm{m} R$, where $\lambda_\mathrm{m}$ is the measured spin, and $R=${\normalfont \ttfamily [logNormalRange]}</description>
-    !# </inputParameter>
-    !# <objectBuilder class="haloSpinDistribution"         name="distributionIntrinsic"         source="parameters"/>
-    !# <objectBuilder class="nbodyHaloMassError"           name="nbodyHaloMassError_"           source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
-    !# <objectBuilder class="haloMassFunction"             name="haloMassFunction_"             source="parameters"/>
-    !# <objectBuilder class="darkMatterHaloScale"          name="darkMatterHaloScale_"          source="parameters"/>
-    !# <objectBuilder class="darkMatterProfileDMO"         name="darkMatterProfileDMO_"         source="parameters"/>
-    !# <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>massParticle</name>
+      <source>parameters</source>
+      <description>Mass of particle in the simulation.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>particleCountMinimum</name>
+      <source>parameters</source>
+      <description>Minimum number of particles per halo in the N-body simulation.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>energyEstimateParticleCountMaximum</name>
+      <source>parameters</source>
+      <description>Maximum number of particles used in estimating the potential energy of halos. Set to a very large number if no such maximum was used.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>redshift</name>
+      <source>parameters</source>
+      <description>Redshift at which the spin distribution should be evaluated.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>logNormalRange</name>
+      <source>parameters</source>
+      <defaultValue>100.0d0</defaultValue>
+      <defaultSource>A large range which will include (almost) the entirety of the distribution.</defaultSource>
+      <description>The multiplicative range of the log-normal distribution used to model the distribution of the mass and energy terms in the spin parameter. Specifically, the lognormal distribution is truncated outside the range $(\lambda_\mathrm{m}/R,\lambda_\mathrm{m} R$, where $\lambda_\mathrm{m}$ is the measured spin, and $R=${\normalfont \ttfamily [logNormalRange]}</description>
+    </inputParameter>
+    <objectBuilder class="haloSpinDistribution"         name="distributionIntrinsic"         source="parameters"/>
+    <objectBuilder class="nbodyHaloMassError"           name="nbodyHaloMassError_"           source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
+    <objectBuilder class="haloMassFunction"             name="haloMassFunction_"             source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale"          name="darkMatterHaloScale_"          source="parameters"/>
+    <objectBuilder class="darkMatterProfileDMO"         name="darkMatterProfileDMO_"         source="parameters"/>
+    <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
+    !!]
     ! Find the time corresponding to the given redshift.
     time=  cosmologyFunctions_ %cosmicTime                 (          &
          &  cosmologyFunctions_%expansionFactorFromRedshift (         &
          &                                                   redshift &
          &                                                  )         &
          &                                                 )
-    !# <objectDestructor name="cosmologyFunctions_"/>
+    !![
+    <objectDestructor name="cosmologyFunctions_"/>
+    !!]
     ! Construct the object.
     self=nbodyErrorsConstructorInternal(                                    &
          &                              distributionIntrinsic             , &
@@ -163,18 +179,22 @@ contains
          &                              darkMatterProfileDMO_             , &
          &                              darkMatterProfileScaleRadius_       &
          &                             )
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="distributionIntrinsic"        />
-    !# <objectDestructor name="nbodyHaloMassError_"          />
-    !# <objectDestructor name="haloMassFunction_"            />
-    !# <objectDestructor name="darkMatterHaloScale_"         />
-    !# <objectDestructor name="darkMatterProfileDMO_"        />
-    !# <objectDestructor name="darkMatterProfileScaleRadius_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="distributionIntrinsic"        />
+    <objectDestructor name="nbodyHaloMassError_"          />
+    <objectDestructor name="haloMassFunction_"            />
+    <objectDestructor name="darkMatterHaloScale_"         />
+    <objectDestructor name="darkMatterProfileDMO_"        />
+    <objectDestructor name="darkMatterProfileScaleRadius_"/>
+    !!]
     return
   end function nbodyErrorsConstructorParameters
 
   function nbodyErrorsConstructorInternal(distributionIntrinsic,massParticle,particleCountMinimum,energyEstimateParticleCountMaximum,logNormalRange,time,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileDMO_,darkMatterProfileScaleRadius_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily nbodyErrors} dark matter halo spin distribution class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily nbodyErrors} dark matter halo spin distribution class.
+    !!}
     use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
     implicit none
     type            (haloSpinDistributionNbodyErrors  )                        :: self
@@ -187,7 +207,9 @@ contains
     double precision                                   , intent(in   )         :: massParticle                      , time          , &
          &                                                                        energyEstimateParticleCountMaximum, logNormalRange
     integer                                            , intent(in   )         :: particleCountMinimum
-    !# <constructorAssign variables="*distributionIntrinsic, massParticle, particleCountMinimum, energyEstimateParticleCountMaximum, logNormalRange, time, *nbodyHaloMassError_, *haloMassFunction_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *darkMatterProfileScaleRadius_"/>
+    !![
+    <constructorAssign variables="*distributionIntrinsic, massParticle, particleCountMinimum, energyEstimateParticleCountMaximum, logNormalRange, time, *nbodyHaloMassError_, *haloMassFunction_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *darkMatterProfileScaleRadius_"/>
+    !!]
 
     ! Set default ranges of spin and mass for tabulation.
     self%fixedPoint =.false.
@@ -210,7 +232,9 @@ contains
   end function nbodyErrorsConstructorInternal
 
   subroutine nbodyErrorsTabulate(self,massRequired,spinRequired,massFixed,spinFixed,spinFixedMeasuredMinimum,spinFixedMeasuredMaximum)
-    !% Tabulate the halo spin distribution.
+    !!{
+    Tabulate the halo spin distribution.
+    !!}
     use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
     use :: Galacticus_Error              , only : Galacticus_Error_Report
     use :: Galacticus_Nodes              , only : nodeComponentBasic           , nodeComponentDarkMatterProfile, nodeComponentSpin, treeNode
@@ -394,7 +418,9 @@ contains
   contains
 
     double precision function massIntegral(massIntrinsic)
-      !% Integral over the halo mass function and halo mass error distribution.
+      !!{
+      Integral over the halo mass function and halo mass error distribution.
+      !!}
       implicit none
       double precision, intent(in   ) :: massIntrinsic
 
@@ -421,7 +447,9 @@ contains
     end function massIntegral
 
     double precision function massSpinIntegral(massIntrinsic)
-      !% Integral over the halo mass function, spin distribution, halo mass error distribution, and spin error distribution.
+      !!{
+      Integral over the halo mass function, spin distribution, halo mass error distribution, and spin error distribution.
+      !!}
       use :: Display                 , only : displayMagenta         , displayReset
       use :: Galacticus_Error        , only : Galacticus_Error_Report, Galacticus_Warn, errorStatusFail, errorStatusSuccess
       use :: Input_Parameters        , only : inputParameters
@@ -534,7 +562,9 @@ contains
     end function massSpinIntegral
 
     double precision function spinIntegral(logSpinIntrinsic)
-      !% Integral over the intrinsic spin distribution, and spin error distribution.
+      !!{
+      Integral over the intrinsic spin distribution, and spin error distribution.
+      !!}
       implicit none
       double precision, intent(in   ) :: logSpinIntrinsic
       double precision                :: spinIntrinsic
@@ -552,7 +582,9 @@ contains
     end function spinIntegral
 
     double precision function spinErrorIntegral(spinIntrinsic)
-      !% Integral over the spin error distribution.
+      !!{
+      Integral over the spin error distribution.
+      !!}
       implicit none
       double precision, intent(in   ) :: spinIntrinsic
       double precision, parameter     :: logNormalMean                              =1.0000d0  ! Mean of the log-normal distribution of mass/energy errors. We assume an unbiased
@@ -620,7 +652,9 @@ contains
     end function spinErrorIntegral
 
     double precision function nbodyErrorsNonCentralChiSquareMode(chi)
-      !% Computes the mode of the degree-3 non-central chi-squared distribution function for given $\chi$.
+      !!{
+      Computes the mode of the degree-3 non-central chi-squared distribution function for given $\chi$.
+      !!}
       implicit none
       double precision, intent(in   ) :: chi
       
@@ -630,7 +664,9 @@ contains
     end function nbodyErrorsNonCentralChiSquareMode
 
     double precision function productDistributionIntegral(logSpinUnscaled)
-      !% Product distribution integrand.
+      !!{
+      Product distribution integrand.
+      !!}
       implicit none
       double precision, intent(in   ) :: logSpinUnscaled
       double precision                :: x                     , y                    , &
@@ -710,7 +746,9 @@ contains
     end function productDistributionIntegral
 
     double precision function errorsSpinDependent(spinIntrinsic)
-      !% Compute the spin-dependent error term.
+      !!{
+      Compute the spin-dependent error term.
+      !!}
       implicit none
       double precision, intent(in   ) :: spinIntrinsic
       double precision, parameter     :: spinDependentErrorCoefficient=0.4025d0 ! Coefficient of the spin-dependent error term, β.
@@ -739,21 +777,27 @@ contains
   end subroutine nbodyErrorsTabulate
 
   subroutine nbodyErrorsDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily nbodyErrors} dark matter halo spin distribution class.
+    !!{
+    Destructor for the {\normalfont \ttfamily nbodyErrors} dark matter halo spin distribution class.
+    !!}
     implicit none
     type(haloSpinDistributionNbodyErrors), intent(inout) :: self
 
-    !# <objectDestructor name="self%distributionIntrinsic"        />
-    !# <objectDestructor name="self%nbodyHaloMassError_"          />
-    !# <objectDestructor name="self%haloMassFunction_"            />
-    !# <objectDestructor name="self%darkMatterHaloScale_"         />
-    !# <objectDestructor name="self%darkMatterProfileDMO_"        />
-    !# <objectDestructor name="self%darkMatterProfileScaleRadius_"/>
+    !![
+    <objectDestructor name="self%distributionIntrinsic"        />
+    <objectDestructor name="self%nbodyHaloMassError_"          />
+    <objectDestructor name="self%haloMassFunction_"            />
+    <objectDestructor name="self%darkMatterHaloScale_"         />
+    <objectDestructor name="self%darkMatterProfileDMO_"        />
+    <objectDestructor name="self%darkMatterProfileScaleRadius_"/>
+    !!]
     return
   end subroutine nbodyErrorsDestructor
 
   double precision function nbodyErrorsSample(self,node)
-    !% Sample from the halo spin distribution.
+    !!{
+    Sample from the halo spin distribution.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(haloSpinDistributionNbodyErrors), intent(inout) :: self
@@ -766,7 +810,9 @@ contains
   end function nbodyErrorsSample
 
   double precision function nbodyErrorsDistribution(self,node)
-    !% Compute the spin distribution.
+    !!{
+    Compute the spin distribution.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSpin, treeNode
     implicit none
     class           (haloSpinDistributionNbodyErrors), intent(inout) :: self
@@ -803,7 +849,9 @@ contains
   end function nbodyErrorsDistribution
 
   double precision function nbodyErrorsDistributionFixedPoint(self,node,spinMeasured,spinMeasuredMinimum,spinMeasuredMaximum)
-    !% Compute the spin distribution for a fixed point in intrinsic mass and spin.
+    !!{
+    Compute the spin distribution for a fixed point in intrinsic mass and spin.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSpin, treeNode
     implicit none
     class           (haloSpinDistributionNbodyErrors), intent(inout) :: self
@@ -835,7 +883,9 @@ contains
   end function nbodyErrorsDistributionFixedPoint
 
   double precision function nbodyErrorsDistributionAveraged(self,node,massLimit)
-    !% Compute the spin distribution averaged over all halos more massive than the given {\normalfont \ttfamily massLimit}.
+    !!{
+    Compute the spin distribution averaged over all halos more massive than the given {\normalfont \ttfamily massLimit}.
+    !!}
     use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
     use :: Galacticus_Nodes              , only : nodeComponentBasic           , treeNode
     implicit none
@@ -873,7 +923,9 @@ contains
   end function nbodyErrorsDistributionAveraged
   
   double precision function nbodyErrorsNonCentralChiSquareModeRoot(x)
-    !% Root function used in finding the mode of the degree-3 non-central chi-squared distribution function.
+    !!{
+    Root function used in finding the mode of the degree-3 non-central chi-squared distribution function.
+    !!}
     implicit none
     double precision, intent(in   ) :: x
     

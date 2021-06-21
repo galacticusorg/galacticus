@@ -17,18 +17,24 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorSatelliteVirialOrbit">
-  !#  <description>A property extractor class for {\normalfont \ttfamily keplerOrbit} objects.</description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorSatelliteVirialOrbit">
+   <description>A property extractor class for {\normalfont \ttfamily keplerOrbit} objects.</description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorKeplerOrbit) :: nodePropertyExtractorSatelliteVirialOrbit
-     !% A property extractor for satellite node virial orbits.
+     !!{
+     A property extractor for satellite node virial orbits.
+     !!}
      private
    contains
      procedure :: extract => satelliteVirialOrbitExtract
   end type nodePropertyExtractorSatelliteVirialOrbit
 
   interface nodePropertyExtractorSatelliteVirialOrbit
-     !% Constructors for the {\normalfont \ttfamily satelliteVirialOrbit} extractor class.
+     !!{
+     Constructors for the {\normalfont \ttfamily satelliteVirialOrbit} extractor class.
+     !!}
      module procedure satelliteVirialOrbitConstructorParameters
      module procedure satelliteVirialOrbitConstructorInternal
   end interface nodePropertyExtractorSatelliteVirialOrbit
@@ -36,7 +42,9 @@
 contains
 
   function satelliteVirialOrbitConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily satelliteVirialOrbit} property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily satelliteVirialOrbit} property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(nodePropertyExtractorSatelliteVirialOrbit)                              :: self
@@ -44,18 +52,24 @@ contains
     type(varying_string                           ), allocatable  , dimension(:) :: properties
 
     allocate(properties(parameters%count('properties')))
-    !# <inputParameter>
-    !#   <name>properties</name>
-    !#   <source>parameters</source>
-    !#   <description>The set of properties of the orbit to output.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>properties</name>
+      <source>parameters</source>
+      <description>The set of properties of the orbit to output.</description>
+    </inputParameter>
+    !!]
     self=nodePropertyExtractorSatelliteVirialOrbit(properties)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function satelliteVirialOrbitConstructorParameters
 
   function satelliteVirialOrbitConstructorInternal(properties) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily satelliteVirialOrbit} output extractor property extractor class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily satelliteVirialOrbit} output extractor property extractor class.
+    !!}
     implicit none
     type(nodePropertyExtractorSatelliteVirialOrbit)                              :: self
     type(varying_string                           ), intent(in   ), dimension(:) :: properties
@@ -65,7 +79,9 @@ contains
   end function satelliteVirialOrbitConstructorInternal
 
   function satelliteVirialOrbitExtract(self,node,time,instance)
-    !% Implement a descendentNode output analysis.
+    !!{
+    Implement a descendentNode output analysis.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite
     implicit none
     double precision                                           , dimension(:) , allocatable :: satelliteVirialOrbitExtract

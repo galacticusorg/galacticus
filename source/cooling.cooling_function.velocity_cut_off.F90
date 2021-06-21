@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a cooling function class which cuts off another cooling function below a certain velocity and before/after a certain epoch.
+  !!{
+  Implements a cooling function class which cuts off another cooling function below a certain velocity and before/after a certain epoch.
+  !!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScale, darkMatterHaloScaleClass
 
-  !# <coolingFunction name="coolingFunctionVelocityCutOff">
-  !#  <description>A cooling function class which cuts off another cooling function below a certain velocity and before/after a certain epoch.</description>
-  !# </coolingFunction>
+  !![
+  <coolingFunction name="coolingFunctionVelocityCutOff">
+   <description>A cooling function class which cuts off another cooling function below a certain velocity and before/after a certain epoch.</description>
+  </coolingFunction>
+  !!]
   type, extends(coolingFunctionClass) :: coolingFunctionVelocityCutOff
-     !% A cooling function class which cuts off another cooling function below a certain velocity and before/after a certain epoch.
+     !!{
+     A cooling function class which cuts off another cooling function below a certain velocity and before/after a certain epoch.
+     !!}
      private
      class           (coolingFunctionClass    ), pointer :: coolingFunction_     => null()
      class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
@@ -33,9 +39,11 @@
      integer                                             :: whenCutOff
      logical                                             :: useFormationNode
    contains
-     !# <methods>
-     !#  <method description="Returns true if the cooling function is cut off." method="isCutOff"/>
-     !# </methods>
+     !![
+     <methods>
+      <method description="Returns true if the cooling function is cut off." method="isCutOff"/>
+     </methods>
+     !!]
      final     ::                                       velocityCutOffDestructor
      procedure :: coolingFunction                    => velocityCutOffCoolingFunction
      procedure :: coolingFunctionFractionInBand      => velocityCutOffCoolingFunctionFractionInBand
@@ -45,25 +53,31 @@
   end type coolingFunctionVelocityCutOff
 
   interface coolingFunctionVelocityCutOff
-     !% Constructors for the {\normalfont \ttfamily velocityCutOff} cooling function class.
+     !!{
+     Constructors for the {\normalfont \ttfamily velocityCutOff} cooling function class.
+     !!}
      module procedure velocityCutOffConstructorParameters
      module procedure velocityCutOffConstructorInternal
   end interface coolingFunctionVelocityCutOff
 
   ! Enumeration for whether cut off is before or after the given epoch.
-  !# <enumeration>
-  !#  <name>cutOffWhen</name>
-  !#  <description>Specifies whether cooling is cut off before or after the given epoch.</description>
-  !#  <encodeFunction>yes</encodeFunction>
-  !#  <validator>yes</validator>
-  !#  <entry label="before"/>
-  !#  <entry label="after" />
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>cutOffWhen</name>
+   <description>Specifies whether cooling is cut off before or after the given epoch.</description>
+   <encodeFunction>yes</encodeFunction>
+   <validator>yes</validator>
+   <entry label="before"/>
+   <entry label="after" />
+  </enumeration>
+  !!]
 
 contains
 
   function velocityCutOffConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily velocityCutOff} cooling function class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily velocityCutOff} cooling function class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (coolingFunctionVelocityCutOff)                :: self
@@ -75,33 +89,35 @@ contains
     type            (varying_string               )                :: whenCutOff
     logical                                                        :: useFormationNode
 
-    !# <inputParameter>
-    !#   <name>useFormationNode</name>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <source>parameters</source>
-    !#   <description>Specifies whether to use the virial velocity of the formation node or current node in the cooling rate ``cut-off'' modifier.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>velocityCutOff</name>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <source>parameters</source>
-    !#   <description>The velocity below which cooling is suppressed in the ``cut-off'' cooling rate modifier method.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>redshiftCutOff</name>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <source>parameters</source>
-    !#   <description>The redshift below which cooling is suppressed in the ``cut-off'' cooling rate modifier method.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>whenCutOff</name>
-    !#   <defaultValue>var_str('after')</defaultValue>
-    !#   <source>parameters</source>
-    !#   <description>Specifies whether cooling is cut off before or after {\normalfont \ttfamily [redshiftCutOff]}.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="coolingFunction"     name="coolingFunction_"     source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
-    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>useFormationNode</name>
+      <defaultValue>.false.</defaultValue>
+      <source>parameters</source>
+      <description>Specifies whether to use the virial velocity of the formation node or current node in the cooling rate ``cut-off'' modifier.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>velocityCutOff</name>
+      <defaultValue>0.0d0</defaultValue>
+      <source>parameters</source>
+      <description>The velocity below which cooling is suppressed in the ``cut-off'' cooling rate modifier method.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>redshiftCutOff</name>
+      <defaultValue>0.0d0</defaultValue>
+      <source>parameters</source>
+      <description>The redshift below which cooling is suppressed in the ``cut-off'' cooling rate modifier method.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>whenCutOff</name>
+      <defaultValue>var_str('after')</defaultValue>
+      <source>parameters</source>
+      <description>Specifies whether cooling is cut off before or after {\normalfont \ttfamily [redshiftCutOff]}.</description>
+    </inputParameter>
+    <objectBuilder class="coolingFunction"     name="coolingFunction_"     source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    !!]
     self=coolingFunctionVelocityCutOff(                                                                          &
          &                                                                               velocityCutOff        , &
          &                             cosmologyFunctions_ %cosmicTime                 (                         &
@@ -117,15 +133,19 @@ contains
          &                                                                               darkMatterHaloScale_  , &
          &                                                                               coolingFunction_        &
          &                            )
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_" />
-    !# <objectDestructor name="coolingFunction_"    />
-    !# <objectDestructor name="darkMatterHaloScale_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_" />
+    <objectDestructor name="coolingFunction_"    />
+    <objectDestructor name="darkMatterHaloScale_"/>
+    !!]
     return
   end function velocityCutOffConstructorParameters
 
   function velocityCutOffConstructorInternal(velocityCutOff,timeCutOff,whenCutOff,useFormationNode,darkMatterHaloScale_,coolingFunction_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily velocityCutOff} cooling function class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily velocityCutOff} cooling function class.
+    !!}
     implicit none
     type            (coolingFunctionVelocityCutOff)                        :: self
     double precision                               , intent(in   )         :: velocityCutOff      , timeCutOff
@@ -133,23 +153,31 @@ contains
     logical                                        , intent(in   )         :: useFormationNode
     class           (darkMatterHaloScaleClass     ), intent(in   ), target :: darkMatterHaloScale_
     class           (coolingFunctionClass         ), intent(in   ), target :: coolingFunction_
-    !# <constructorAssign variables="velocityCutOff, timeCutOff, whenCutOff, useFormationNode, *coolingFunction_, *darkMatterHaloScale_"/>
+    !![
+    <constructorAssign variables="velocityCutOff, timeCutOff, whenCutOff, useFormationNode, *coolingFunction_, *darkMatterHaloScale_"/>
+    !!]
 
     return
   end function velocityCutOffConstructorInternal
 
   subroutine velocityCutOffDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily velocityCutOff} cooling function class.
+    !!{
+    Destructor for the {\normalfont \ttfamily velocityCutOff} cooling function class.
+    !!}
     implicit none
     type(coolingFunctionVelocityCutOff), intent(inout) :: self
 
-    !# <objectDestructor name="self%coolingFunction_"    />
-    !# <objectDestructor name="self%darkMatterHaloScale_"/>
+    !![
+    <objectDestructor name="self%coolingFunction_"    />
+    <objectDestructor name="self%darkMatterHaloScale_"/>
+    !!]
     return
   end subroutine velocityCutOffDestructor
   
   logical function velocityCutOffIsCutOff(self,node)
-    !% Return true if this cooling function is to be cut off.
+    !!{
+    Return true if this cooling function is to be cut off.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (coolingFunctionVelocityCutOff), intent(inout) :: self
@@ -175,7 +203,9 @@ contains
   end function velocityCutOffIsCutOff
 
   double precision function velocityCutOffCoolingFunction(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
-    !% Return the cooling function cut off above/below a given velocity.
+    !!{
+    Return the cooling function cut off above/below a given velocity.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (coolingFunctionVelocityCutOff), intent(inout) :: self
@@ -194,7 +224,9 @@ contains
   end function velocityCutOffCoolingFunction
 
   double precision function velocityCutOffCoolingFunctionFractionInBand(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation,energyLow,energyHigh)
-    !% Return the fraction of the cooling function due to emission in the given band.
+    !!{
+    Return the fraction of the cooling function due to emission in the given band.
+    !!}
     implicit none
     class           (coolingFunctionVelocityCutOff), intent(inout) :: self
     type            (treeNode                     ), intent(inout) :: node
@@ -213,7 +245,9 @@ contains
   end function velocityCutOffCoolingFunctionFractionInBand
 
   double precision function velocityCutOffCoolingFunctionDensityLogSlope(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
-    !% Return the logarithmic gradient with respect to density of the cooling function.
+    !!{
+    Return the logarithmic gradient with respect to density of the cooling function.
+    !!}
    implicit none
     class           (coolingFunctionVelocityCutOff), intent(inout) :: self
     type            (treeNode                     ), intent(inout) :: node
@@ -231,7 +265,9 @@ contains
   end function velocityCutOffCoolingFunctionDensityLogSlope
 
   double precision function velocityCutOffCoolingFunctionTemperatureLogSlope(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
-    !% Return the logarithmic gradient with respect to temperature of the cooling function.
+    !!{
+    Return the logarithmic gradient with respect to temperature of the cooling function.
+    !!}
     implicit none
     class           (coolingFunctionVelocityCutOff), intent(inout) :: self
     type            (treeNode                     ), intent(inout) :: node

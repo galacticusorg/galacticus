@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a merger trees outputter class which does no output.
+  !!{
+  Implements a merger trees outputter class which does no output.
+  !!}
 
-  !# <mergerTreeOutputter name="mergerTreeOutputterNull">
-  !#  <description>A merger tree outputter which does no output.</description>
-  !# </mergerTreeOutputter>
+  !![
+  <mergerTreeOutputter name="mergerTreeOutputterNull">
+   <description>A merger tree outputter which does no output.</description>
+  </mergerTreeOutputter>
+  !!]
   type, extends(mergerTreeOutputterClass) :: mergerTreeOutputterNull
-     !% Implementation of a merger tree outputter which does no output.
+     !!{
+     Implementation of a merger tree outputter which does no output.
+     !!}
      private
    contains
      procedure :: outputTree => nullOutputTree
@@ -32,14 +38,18 @@
   end type mergerTreeOutputterNull
 
   interface mergerTreeOutputterNull
-     !% Constructors for the {\normalfont \ttfamily null} merger tree outputter.
+     !!{
+     Constructors for the {\normalfont \ttfamily null} merger tree outputter.
+     !!}
      module procedure nullConstructorParameters
   end interface mergerTreeOutputterNull
 
 contains
 
   function nullConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily null} merger tree outputter class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily null} merger tree outputter class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(mergerTreeOutputterNull)                :: self
@@ -51,7 +61,9 @@ contains
   end function nullConstructorParameters
 
   subroutine nullOutputTree(self,tree,indexOutput,time)
-    !% Perform no output.
+    !!{
+    Perform no output.
+    !!}
     implicit none
     class           (mergerTreeOutputterNull), intent(inout)         :: self
     type            (mergerTree             ), intent(inout), target :: tree
@@ -63,7 +75,9 @@ contains
   end subroutine nullOutputTree
 
   subroutine nullOutputNode(self,node,indexOutput)
-    !% Perform no output.
+    !!{
+    Perform no output.
+    !!}
     implicit none
     class           (mergerTreeOutputterNull), intent(inout) :: self
     type            (treeNode               ), intent(inout) :: node
@@ -74,7 +88,9 @@ contains
   end subroutine nullOutputNode
 
   subroutine nullFinalize(self)
-    !% Finalize merger tree output.
+    !!{
+    Finalize merger tree output.
+    !!}
     implicit none
     class(mergerTreeOutputterNull), intent(inout) :: self
     !$GLC attributes unused :: self

@@ -33,16 +33,22 @@
   use :: Virial_Density_Contrast                  , only : virialDensityContrastClass
 
   type :: virialDensityContrastList
-     !% Type used to store a list of virial density contrasts.
+     !!{
+     Type used to store a list of virial density contrasts.
+     !!}
      type (varying_string            )          :: label
      class(virialDensityContrastClass), pointer :: virialDensityContrast_
   end type virialDensityContrastList
   
-  !# <task name="taskHaloMassFunction">
-  !#  <description>A task which computes and outputs the halo mass function and related quantities.</description>
-  !# </task>
+  !![
+  <task name="taskHaloMassFunction">
+   <description>A task which computes and outputs the halo mass function and related quantities.</description>
+  </task>
+  !!]
   type, extends(taskClass) :: taskHaloMassFunction
-     !% Implementation of a task which computes and outputs the halo mass function and related quantities.
+     !!{
+     Implementation of a task which computes and outputs the halo mass function and related quantities.
+     !!}
      private
      class           (cosmologyParametersClass               ), pointer                   :: cosmologyParameters_                => null()
      class           (cosmologyFunctionsClass                ), pointer                   :: cosmologyFunctions_                 => null()
@@ -73,7 +79,9 @@
   end type taskHaloMassFunction
 
   interface taskHaloMassFunction
-     !% Constructors for the {\normalfont \ttfamily haloMassFunction} task.
+     !!{
+     Constructors for the {\normalfont \ttfamily haloMassFunction} task.
+     !!}
      module procedure haloMassFunctionConstructorParameters
      module procedure haloMassFunctionConstructorInternal
   end interface taskHaloMassFunction
@@ -81,7 +89,9 @@
 contains
 
   function haloMassFunctionConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily haloMassFunction} task class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily haloMassFunction} task class which takes a parameter set as input.
+    !!}
     use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize, treeNode
     use :: Input_Parameters, only : inputParameter              , inputParameters
     use :: Node_Components , only : Node_Components_Initialize
@@ -127,71 +137,77 @@ contains
        call nodeClassHierarchyInitialize(parameters    )
        call Node_Components_Initialize  (parameters    )
     end if
-    !# <inputParameter>
-    !#   <name>haloMassMinimum</name>
-    !#   <defaultValue>1.0d10</defaultValue>
-    !#   <description>The minimum mass at which to tabulate halo mass functions.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>haloMassMaximum</name>
-    !#   <defaultValue>1.0d15</defaultValue>
-    !#   <description>The maximum mass at which to tabulate halo mass functions.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>pointsPerDecade</name>
-    !#   <defaultValue>10.0d0</defaultValue>
-    !#   <description>The number of points per decade of halo mass at which to tabulate halo mass functions.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>outputGroup</name>
-    !#   <defaultValue>var_str('.')</defaultValue>
-    !#   <description>The HDF5 output group within which to write mass function data.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>includeUnevolvedSubhaloMassFunction</name>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>If true then also compute and output the unevolved subhalo mass function.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>includeMassAccretionRate</name>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>If true then also compute and output the mass accretion rate of the halos.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters"                name="cosmologyParameters_"                source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"                 name="cosmologyFunctions_"                 source="parameters"/>
-    !# <objectBuilder class="virialDensityContrast"              name="virialDensityContrast_"              source="parameters"/>
-    !# <objectBuilder class="darkMatterProfileDMO"               name="darkMatterProfileDMO_"               source="parameters"/>
-    !# <objectBuilder class="criticalOverdensity"                name="criticalOverdensity_"                source="parameters"/>
-    !# <objectBuilder class="linearGrowth"                       name="linearGrowth_"                       source="parameters"/>
-    !# <objectBuilder class="haloMassFunction"                   name="haloMassFunction_"                   source="parameters"/>
-    !# <objectBuilder class="haloEnvironment"                    name="haloEnvironment_"                    source="parameters"/>
-    !# <objectBuilder class="unevolvedSubhaloMassFunction"       name="unevolvedSubhaloMassFunction_"       source="parameters"/>
-    !# <objectBuilder class="darkMatterHaloScale"                name="darkMatterHaloScale_"                source="parameters"/>
-    !# <objectBuilder class="cosmologicalMassVariance"           name="cosmologicalMassVariance_"           source="parameters"/>
-    !# <objectBuilder class="darkMatterHaloBias"                 name="darkMatterHaloBias_"                 source="parameters"/>
-    !# <objectBuilder class="transferFunction"                   name="transferFunction_"                   source="parameters"/>
-    !# <objectBuilder class="outputTimes"                        name="outputTimes_"                        source="parameters"/>
-    !# <objectBuilder class="darkMatterProfileScaleRadius"       name="darkMatterProfileScaleRadius_"       source="parameters"/>
-    !# <objectBuilder class="darkMatterHaloMassAccretionHistory" name="darkMatterHaloMassAccretionHistory_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>haloMassMinimum</name>
+      <defaultValue>1.0d10</defaultValue>
+      <description>The minimum mass at which to tabulate halo mass functions.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>haloMassMaximum</name>
+      <defaultValue>1.0d15</defaultValue>
+      <description>The maximum mass at which to tabulate halo mass functions.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>pointsPerDecade</name>
+      <defaultValue>10.0d0</defaultValue>
+      <description>The number of points per decade of halo mass at which to tabulate halo mass functions.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>outputGroup</name>
+      <defaultValue>var_str('.')</defaultValue>
+      <description>The HDF5 output group within which to write mass function data.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>includeUnevolvedSubhaloMassFunction</name>
+      <defaultValue>.false.</defaultValue>
+      <description>If true then also compute and output the unevolved subhalo mass function.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>includeMassAccretionRate</name>
+      <defaultValue>.true.</defaultValue>
+      <description>If true then also compute and output the mass accretion rate of the halos.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="cosmologyParameters"                name="cosmologyParameters_"                source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"                 name="cosmologyFunctions_"                 source="parameters"/>
+    <objectBuilder class="virialDensityContrast"              name="virialDensityContrast_"              source="parameters"/>
+    <objectBuilder class="darkMatterProfileDMO"               name="darkMatterProfileDMO_"               source="parameters"/>
+    <objectBuilder class="criticalOverdensity"                name="criticalOverdensity_"                source="parameters"/>
+    <objectBuilder class="linearGrowth"                       name="linearGrowth_"                       source="parameters"/>
+    <objectBuilder class="haloMassFunction"                   name="haloMassFunction_"                   source="parameters"/>
+    <objectBuilder class="haloEnvironment"                    name="haloEnvironment_"                    source="parameters"/>
+    <objectBuilder class="unevolvedSubhaloMassFunction"       name="unevolvedSubhaloMassFunction_"       source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale"                name="darkMatterHaloScale_"                source="parameters"/>
+    <objectBuilder class="cosmologicalMassVariance"           name="cosmologicalMassVariance_"           source="parameters"/>
+    <objectBuilder class="darkMatterHaloBias"                 name="darkMatterHaloBias_"                 source="parameters"/>
+    <objectBuilder class="transferFunction"                   name="transferFunction_"                   source="parameters"/>
+    <objectBuilder class="outputTimes"                        name="outputTimes_"                        source="parameters"/>
+    <objectBuilder class="darkMatterProfileScaleRadius"       name="darkMatterProfileScaleRadius_"       source="parameters"/>
+    <objectBuilder class="darkMatterHaloMassAccretionHistory" name="darkMatterHaloMassAccretionHistory_" source="parameters"/>
+    !!]
     if (parameters%isPresent('massDefinitions',requireValue=.false.)) then
        parametersMassDefinitions=parameters%subParameters('massDefinitions',requireValue=.false.)
        if (parametersMassDefinitions%copiesCount('virialDensityContrast') /= parametersMassDefinitions%count('labels')) &
             & call Galacticus_Error_Report('number of labels must match number of virial density contrasts'//{introspection:location})
        allocate(virialDensityContrasts(parametersMassDefinitions%copiesCount('virialDensityContrast')))
        allocate(labels                (parametersMassDefinitions%copiesCount('virialDensityContrast')))
-       !# <inputParameter>
-       !#   <name>labels</name>
-       !#   <description>Labels for virial density contrast mass definitions.</description>
-       !#   <source>parametersMassDefinitions</source>
-       !# </inputParameter>
+       !![
+       <inputParameter>
+         <name>labels</name>
+         <description>Labels for virial density contrast mass definitions.</description>
+         <source>parametersMassDefinitions</source>
+       </inputParameter>
+       !!]
        do i=1,parametersMassDefinitions%copiesCount('virialDensityContrast')
-          !# <objectBuilder class="virialDensityContrast" name="virialDensityContrasts(i)%virialDensityContrast_" source="parametersMassDefinitions" copy="i" />
+          !![
+          <objectBuilder class="virialDensityContrast" name="virialDensityContrasts(i)%virialDensityContrast_" source="parametersMassDefinitions" copy="i" />
+          !!]
           virialDensityContrasts(i)%label=labels(i)
        end do
     else
@@ -223,26 +239,30 @@ contains
          &                    virialDensityContrasts             , &
          &                    parametersRoot                       &
          &                   )
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"               />
-    !# <objectDestructor name="cosmologyFunctions_"                />
-    !# <objectDestructor name="virialDensityContrast_"             />
-    !# <objectDestructor name="darkMatterProfileDMO_"              />
-    !# <objectDestructor name="criticalOverdensity_"               />
-    !# <objectDestructor name="linearGrowth_"                      />
-    !# <objectDestructor name="haloMassFunction_"                  />
-    !# <objectDestructor name="haloEnvironment_"                   />
-    !# <objectDestructor name="unevolvedSubhaloMassFunction_"      />
-    !# <objectDestructor name="darkMatterHaloScale_"               />
-    !# <objectDestructor name="cosmologicalMassVariance_"          />
-    !# <objectDestructor name="darkMatterHaloBias_"                />
-    !# <objectDestructor name="transferFunction_"                  />
-    !# <objectDestructor name="outputTimes_"                       />
-    !# <objectDestructor name="darkMatterProfileScaleRadius_"      />
-    !# <objectDestructor name="darkMatterHaloMassAccretionHistory_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"               />
+    <objectDestructor name="cosmologyFunctions_"                />
+    <objectDestructor name="virialDensityContrast_"             />
+    <objectDestructor name="darkMatterProfileDMO_"              />
+    <objectDestructor name="criticalOverdensity_"               />
+    <objectDestructor name="linearGrowth_"                      />
+    <objectDestructor name="haloMassFunction_"                  />
+    <objectDestructor name="haloEnvironment_"                   />
+    <objectDestructor name="unevolvedSubhaloMassFunction_"      />
+    <objectDestructor name="darkMatterHaloScale_"               />
+    <objectDestructor name="cosmologicalMassVariance_"          />
+    <objectDestructor name="darkMatterHaloBias_"                />
+    <objectDestructor name="transferFunction_"                  />
+    <objectDestructor name="outputTimes_"                       />
+    <objectDestructor name="darkMatterProfileScaleRadius_"      />
+    <objectDestructor name="darkMatterHaloMassAccretionHistory_"/>
+    !!]
     if (size(virialDensityContrasts) > 0) then
        do i=1,parametersMassDefinitions%copiesCount('virialDensityContrast')
-          !# <objectDestructor name="virialDensityContrasts(i)%virialDensityContrast_"/>
+          !![
+          <objectDestructor name="virialDensityContrasts(i)%virialDensityContrast_"/>
+          !!]
        end do
     end if
     return
@@ -274,7 +294,9 @@ contains
        &                                       virialDensityContrasts             , &
        &                                       parameters                           &
        &                                      ) result(self)
-    !% Constructor for the {\normalfont \ttfamily haloMassFunction} task class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily haloMassFunction} task class which takes a parameter set as input.
+    !!}
     implicit none
     type            (taskHaloMassFunction                   )                              :: self
     class           (cosmologyParametersClass               ), intent(in   ), target       :: cosmologyParameters_
@@ -300,50 +322,62 @@ contains
     logical                                                  , intent(in   )               :: includeUnevolvedSubhaloMassFunction, includeMassAccretionRate
     type            (inputParameters                        ), intent(in   ), target       :: parameters
     integer                                                                                :: i
-    !# <constructorAssign variables="haloMassMinimum, haloMassMaximum, pointsPerDecade, outputGroup, includeUnevolvedSubhaloMassFunction, includeMassAccretionRate, *cosmologyParameters_, *cosmologyFunctions_, *virialDensityContrast_, *darkMatterProfileDMO_, *criticalOverdensity_, *linearGrowth_, *haloMassFunction_, *haloEnvironment_, *unevolvedSubhaloMassFunction_, *darkMatterHaloScale_, *darkMatterProfileScaleRadius_, *darkMatterHaloMassAccretionHistory_, *cosmologicalMassVariance_, *darkMatterHaloBias_,*transferFunction_, *outputTimes_"/>
+    !![
+    <constructorAssign variables="haloMassMinimum, haloMassMaximum, pointsPerDecade, outputGroup, includeUnevolvedSubhaloMassFunction, includeMassAccretionRate, *cosmologyParameters_, *cosmologyFunctions_, *virialDensityContrast_, *darkMatterProfileDMO_, *criticalOverdensity_, *linearGrowth_, *haloMassFunction_, *haloEnvironment_, *unevolvedSubhaloMassFunction_, *darkMatterHaloScale_, *darkMatterProfileScaleRadius_, *darkMatterHaloMassAccretionHistory_, *cosmologicalMassVariance_, *darkMatterHaloBias_,*transferFunction_, *outputTimes_"/>
+    !!]
 
     self%parameters=inputParameters(parameters)
     call self%parameters%parametersGroupCopy(parameters)
     allocate(self%virialDensityContrasts(size(virialDensityContrasts)))
     do i=1,size(virialDensityContrasts)
        self%virialDensityContrasts(i)%label=virialDensityContrasts(i)%label
-       !# <referenceAcquire isResult="yes" owner="self" target="virialDensityContrasts(i)%virialDensityContrast_" source="virialDensityContrasts(i)%virialDensityContrast_"/>
+       !![
+       <referenceAcquire isResult="yes" owner="self" target="virialDensityContrasts(i)%virialDensityContrast_" source="virialDensityContrasts(i)%virialDensityContrast_"/>
+       !!]
     end do
     return
   end function haloMassFunctionConstructorInternal
 
   subroutine haloMassFunctionDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily haloMassFunction} task class.
+    !!{
+    Destructor for the {\normalfont \ttfamily haloMassFunction} task class.
+    !!}
     use :: Node_Components, only : Node_Components_Uninitialize
     implicit none
     type   (taskHaloMassFunction), intent(inout) :: self
     integer                                      :: i
 
-    !# <objectDestructor name="self%cosmologyParameters_"               />
-    !# <objectDestructor name="self%cosmologyFunctions_"                />
-    !# <objectDestructor name="self%virialDensityContrast_"             />
-    !# <objectDestructor name="self%darkMatterProfileDMO_"              />
-    !# <objectDestructor name="self%criticalOverdensity_"               />
-    !# <objectDestructor name="self%linearGrowth_"                      />
-    !# <objectDestructor name="self%haloMassFunction_"                  />
-    !# <objectDestructor name="self%haloEnvironment_"                   />
-    !# <objectDestructor name="self%unevolvedSubhaloMassFunction_"      />
-    !# <objectDestructor name="self%darkMatterHaloScale_"               />
-    !# <objectDestructor name="self%darkMatterProfileScaleRadius_"      />
-    !# <objectDestructor name="self%darkMatterHaloMassAccretionHistory_"/>
-    !# <objectDestructor name="self%cosmologicalMassVariance_"          />
-    !# <objectDestructor name="self%darkMatterHaloBias_"                />
-    !# <objectDestructor name="self%transferFunction_"                  />
-    !# <objectDestructor name="self%outputTimes_"                       />
+    !![
+    <objectDestructor name="self%cosmologyParameters_"               />
+    <objectDestructor name="self%cosmologyFunctions_"                />
+    <objectDestructor name="self%virialDensityContrast_"             />
+    <objectDestructor name="self%darkMatterProfileDMO_"              />
+    <objectDestructor name="self%criticalOverdensity_"               />
+    <objectDestructor name="self%linearGrowth_"                      />
+    <objectDestructor name="self%haloMassFunction_"                  />
+    <objectDestructor name="self%haloEnvironment_"                   />
+    <objectDestructor name="self%unevolvedSubhaloMassFunction_"      />
+    <objectDestructor name="self%darkMatterHaloScale_"               />
+    <objectDestructor name="self%darkMatterProfileScaleRadius_"      />
+    <objectDestructor name="self%darkMatterHaloMassAccretionHistory_"/>
+    <objectDestructor name="self%cosmologicalMassVariance_"          />
+    <objectDestructor name="self%darkMatterHaloBias_"                />
+    <objectDestructor name="self%transferFunction_"                  />
+    <objectDestructor name="self%outputTimes_"                       />
+    !!]
     do i=1,size(self%virialDensityContrasts)
-       !# <objectDestructor name="self%virialDensityContrasts(i)%virialDensityContrast_"/>
+       !![
+       <objectDestructor name="self%virialDensityContrasts(i)%virialDensityContrast_"/>
+       !!]
     end do
     call Node_Components_Uninitialize()
     return
   end subroutine haloMassFunctionDestructor
 
   subroutine haloMassFunctionPerform(self,status)
-    !% Compute and output the halo mass function.
+    !!{
+    Compute and output the halo mass function.
+    !!}
     use            :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use            :: Display                             , only : displayIndent                      , displayUnindent
     use            :: Galacticus_Calculations_Resets      , only : Galacticus_Calculations_Reset
@@ -648,7 +682,9 @@ contains
   contains
 
     double precision function subhaloMassFunctionIntegrand(logMass)
-      !% Integrand function used to find the cumulative subhalo mass function.
+      !!{
+      Integrand function used to find the cumulative subhalo mass function.
+      !!}
       implicit none
       double precision, intent(in   ) :: logMass
       double precision                :: mass

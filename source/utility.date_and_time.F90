@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements computation of formatted dates and times.
+!!{
+Contains a module which implements computation of formatted dates and times.
+!!}
 
 module Dates_and_Times
-  !% Implements computation of formatted dates and times.
+  !!{
+  Implements computation of formatted dates and times.
+  !!}
   implicit none
   private
   public :: Formatted_Date_and_Time
@@ -36,7 +40,9 @@ module Dates_and_Times
 contains
 
   function Formatted_Date_and_Time()
-    !% Return a formatted date and time.
+    !!{
+    Return a formatted date and time.
+    !!}
     use :: ISO_Varying_String, only : assignment(=), varying_string, operator(//), extract, &
          &                            len
     use :: String_Handling   , only : operator(//)

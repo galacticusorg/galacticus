@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a black hole mass output analysis property extractor class.
+!!{
+Contains a module which implements a black hole mass output analysis property extractor class.
+!!}
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorMassBlackHole">
-  !#  <description>An ISM mass output analysis property extractor class.</description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorMassBlackHole">
+   <description>An ISM mass output analysis property extractor class.</description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMassBlackHole
-     !% A black hole mass output analysis class.
+     !!{
+     A black hole mass output analysis class.
+     !!}
      private
    contains
      procedure :: extract     => massBlackHoleExtract
@@ -35,14 +41,18 @@
   end type nodePropertyExtractorMassBlackHole
 
   interface nodePropertyExtractorMassBlackHole
-     !% Constructors for the ``massBlackHole'' output analysis class.
+     !!{
+     Constructors for the ``massBlackHole'' output analysis class.
+     !!}
      module procedure massBlackHoleConstructorParameters
   end interface nodePropertyExtractorMassBlackHole
 
 contains
 
   function massBlackHoleConstructorParameters(parameters)
-    !% Constructor for the ``massBlackHole'' output analysis property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the ``massBlackHole'' output analysis property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(nodePropertyExtractorMassBlackHole)                :: massBlackHoleConstructorParameters
@@ -54,7 +64,9 @@ contains
   end function massBlackHoleConstructorParameters
 
   double precision function massBlackHoleExtract(self,node,instance)
-    !% Implement a massBlackHole output analysis.
+    !!{
+    Implement a massBlackHole output analysis.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBlackHole, treeNode
     implicit none
     class(nodePropertyExtractorMassBlackHole), intent(inout)           :: self
@@ -69,7 +81,9 @@ contains
   end function massBlackHoleExtract
 
   integer function massBlackHoleType(self)
-    !% Return the type of the stellar mass property.
+    !!{
+    Return the type of the stellar mass property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorMassBlackHole), intent(inout) :: self
@@ -80,7 +94,9 @@ contains
   end function massBlackHoleType
 
   integer function massBlackHoleQuantity(self)
-    !% Return the class of the stellar luminosity property.
+    !!{
+    Return the class of the stellar luminosity property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityMass
     implicit none
     class(nodePropertyExtractorMassBlackHole), intent(inout) :: self
@@ -91,7 +107,9 @@ contains
   end function massBlackHoleQuantity
 
   function massBlackHoleName(self)
-    !% Return the name of the massBlackHole property.
+    !!{
+    Return the name of the massBlackHole property.
+    !!}
     implicit none
     type (varying_string                    )                :: massBlackHoleName
     class(nodePropertyExtractorMassBlackHole), intent(inout) :: self
@@ -102,7 +120,9 @@ contains
   end function massBlackHoleName
 
   function massBlackHoleDescription(self)
-    !% Return a description of the massBlackHole property.
+    !!{
+    Return a description of the massBlackHole property.
+    !!}
     implicit none
     type (varying_string                    )                :: massBlackHoleDescription
     class(nodePropertyExtractorMassBlackHole), intent(inout) :: self
@@ -113,7 +133,9 @@ contains
   end function massBlackHoleDescription
 
   double precision function massBlackHoleUnitsInSI(self)
-    !% Return the units of the massBlackHole property in the SI system.
+    !!{
+    Return the units of the massBlackHole property in the SI system.
+    !!}
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
     class(nodePropertyExtractorMassBlackHole), intent(inout) :: self

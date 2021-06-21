@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements the effects of incompleteness as a function of mass on the distribution.
+  !!{
+  Contains a module which implements the effects of incompleteness as a function of mass on the distribution.
+  !!}
 
   use :: Mass_Function_Incompletenesses, only : massFunctionIncompletenessClass
 
-  !# <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorMassIncompleteness">
-  !#  <description>An output analysis distribution operator class which implements the effects of incompleteness as a function of mass on the distribution.</description>
-  !# </outputAnalysisDistributionOperator>
+  !![
+  <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorMassIncompleteness">
+   <description>An output analysis distribution operator class which implements the effects of incompleteness as a function of mass on the distribution.</description>
+  </outputAnalysisDistributionOperator>
+  !!]
   type, extends(outputAnalysisDistributionOperatorClass) :: outputAnalysisDistributionOperatorMassIncompleteness
-     !% An output distribution operator class which implements the effects of incompleteness as a function of mass on the distribution.
+     !!{
+     An output distribution operator class which implements the effects of incompleteness as a function of mass on the distribution.
+     !!}
      private
      class (massFunctionIncompletenessClass), pointer :: massFunctionIncompleteness_ => null()
    contains
@@ -35,7 +41,9 @@
   end type outputAnalysisDistributionOperatorMassIncompleteness
 
   interface outputAnalysisDistributionOperatorMassIncompleteness
-     !% Constructors for the ``massIncompleteness'' output distribution operator class.
+     !!{
+     Constructors for the ``massIncompleteness'' output distribution operator class.
+     !!}
      module procedure massIncompletenessConstructorParameters
      module procedure massIncompletenessConstructorInternal
   end interface outputAnalysisDistributionOperatorMassIncompleteness
@@ -43,41 +51,57 @@
 contains
 
   function massIncompletenessConstructorParameters(parameters) result(self)
-    !% Constructor for the ``massIncompleteness'' output analysis distribution operator operator class which takes a parameter set as input.
+    !!{
+    Constructor for the ``massIncompleteness'' output analysis distribution operator operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type (outputAnalysisDistributionOperatorMassIncompleteness)                :: self
     type (inputParameters                                     ), intent(inout) :: parameters
     class(massFunctionIncompletenessClass                     ), pointer       :: massFunctionIncompleteness_
 
-    !# <objectBuilder class="massFunctionIncompleteness" name="massFunctionIncompleteness_" source="parameters"/>
+    !![
+    <objectBuilder class="massFunctionIncompleteness" name="massFunctionIncompleteness_" source="parameters"/>
+    !!]
     self=outputAnalysisDistributionOperatorMassIncompleteness(massFunctionIncompleteness_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="massFunctionIncompleteness_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="massFunctionIncompleteness_"/>
+    !!]
     return
   end function massIncompletenessConstructorParameters
 
   function massIncompletenessConstructorInternal(massFunctionIncompleteness_) result(self)
-    !% Internal constructor for the ``massIncompleteness'' output analysis distribution operator class.
+    !!{
+    Internal constructor for the ``massIncompleteness'' output analysis distribution operator class.
+    !!}
     implicit none
     type (outputAnalysisDistributionOperatorMassIncompleteness)                        :: self
     class(massFunctionIncompletenessClass                     ), intent(in   ), target :: massFunctionIncompleteness_
-    !# <constructorAssign variables="*massFunctionIncompleteness_"/>
+    !![
+    <constructorAssign variables="*massFunctionIncompleteness_"/>
+    !!]
 
     return
   end function massIncompletenessConstructorInternal
 
   subroutine massIncompletenessDestructor(self)
-    !% Destructor for the ``massIncompleteness'' output analysis distribution operator operator class.
+    !!{
+    Destructor for the ``massIncompleteness'' output analysis distribution operator operator class.
+    !!}
     implicit none
     type(outputAnalysisDistributionOperatorMassIncompleteness), intent(inout) :: self
 
-    !# <objectDestructor name="self%massFunctionIncompleteness_"/>
+    !![
+    <objectDestructor name="self%massFunctionIncompleteness_"/>
+    !!]
     return
   end subroutine massIncompletenessDestructor
 
   function massIncompletenessOperateScalar(self,propertyValue,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
-    !% Implement a mass incompleteness output analysis distribution operator.
+    !!{
+    Implement a mass incompleteness output analysis distribution operator.
+    !!}
     use :: Galacticus_Error       , only : Galacticus_Error_Report
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear, outputAnalysisPropertyTypeLog10
     implicit none
@@ -110,7 +134,9 @@ contains
   end function massIncompletenessOperateScalar
 
   function massIncompletenessOperateDistribution(self,distribution,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
-    !% Implement a mass incompleteness output analysis distribution operator.
+    !!{
+    Implement a mass incompleteness output analysis distribution operator.
+    !!}
     use :: Galacticus_Error       , only : Galacticus_Error_Report
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear, outputAnalysisPropertyTypeLog10
     implicit none

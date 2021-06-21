@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides parsing of radii definitions used in output specifiers.
+!!{
+Contains a module which provides parsing of radii definitions used in output specifiers.
+!!}
 
 module Galactic_Structure_Radii_Definitions
-  !% Provides parsing of radii definitions used in output specifiers.
+  !!{
+  Provides parsing of radii definitions used in output specifiers.
+  !!}
   use :: ISO_Varying_String, only : varying_string
   private
   public :: radiusSpecifier, Galactic_Structure_Radii_Definition_Decode
 
   type radiusSpecifier
-     !% Type used for specifying radii definitions used in output specifiers.
+     !!{
+     Type used for specifying radii definitions used in output specifiers.
+     !!}
      type            (varying_string) :: name
      integer                          :: component            , direction    , integralWeightBy, &
           &                              integralWeightByIndex, mass         , type            , &
@@ -34,39 +40,45 @@ module Galactic_Structure_Radii_Definitions
      double precision                 :: fraction             , value
   end type radiusSpecifier
 
-  !# <enumeration>
-  !#  <name>radiusType</name>
-  !#  <description>Used to specify radii types used in output specifiers.</description>
-  !#  <encodeFunction>yes</encodeFunction>
-  !#  <visibility>public</visibility>
-  !#  <validator>yes</validator>
-  !#  <entry label="radius"                />
-  !#  <entry label="virialRadius"          />
-  !#  <entry label="darkMatterScaleRadius" />
-  !#  <entry label="diskRadius"            />
-  !#  <entry label="spheroidRadius"        />
-  !#  <entry label="diskHalfMassRadius"    />
-  !#  <entry label="spheroidHalfMassRadius"/>
-  !#  <entry label="galacticMassFraction"  />
-  !#  <entry label="galacticLightFraction" />
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>radiusType</name>
+   <description>Used to specify radii types used in output specifiers.</description>
+   <encodeFunction>yes</encodeFunction>
+   <visibility>public</visibility>
+   <validator>yes</validator>
+   <entry label="radius"                />
+   <entry label="virialRadius"          />
+   <entry label="darkMatterScaleRadius" />
+   <entry label="diskRadius"            />
+   <entry label="spheroidRadius"        />
+   <entry label="diskHalfMassRadius"    />
+   <entry label="spheroidHalfMassRadius"/>
+   <entry label="galacticMassFraction"  />
+   <entry label="galacticLightFraction" />
+  </enumeration>
+  !!]
 
-  !# <enumeration>
-  !#  <name>direction</name>
-  !#  <description>Used to specify integration directions output specifiers.</description>
-  !#  <encodeFunction>yes</encodeFunction>
-  !#  <visibility>public</visibility>
-  !#  <validator>yes</validator>
-  !#  <entry label="radial"                    />
-  !#  <entry label="lineOfSight"               />
-  !#  <entry label="lineOfSightInteriorAverage"/>
-  !#  <entry label="lambdaR"                   />
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>direction</name>
+   <description>Used to specify integration directions output specifiers.</description>
+   <encodeFunction>yes</encodeFunction>
+   <visibility>public</visibility>
+   <validator>yes</validator>
+   <entry label="radial"                    />
+   <entry label="lineOfSight"               />
+   <entry label="lineOfSightInteriorAverage"/>
+   <entry label="lambdaR"                   />
+  </enumeration>
+  !!]
 
 contains
 
   subroutine Galactic_Structure_Radii_Definition_Decode(descriptors,specifiers,diskRequired,spheroidRequired,radiusVirialRequired,radiusScaleRequired)
-    !% Decode a set of radii descriptors and return the corresponding specifiers.
+    !!{
+    Decode a set of radii descriptors and return the corresponding specifiers.
+    !!}
     use :: Galactic_Structure_Options    , only : enumerationComponentTypeEncode   , enumerationMassTypeEncode, weightByLuminosity      , weightByMass , &
           &                                       weightIndexNull
     use :: Galacticus_Error              , only : Galacticus_Component_List        , Galacticus_Error_Report

@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an N-body data operator which determines the subset of particles that are self-bound. The potential is computed using a tree method following \cite{barnes_hierarchical_1986}.
+!!{
+Contains a module which implements an N-body data operator which determines the subset of particles that are self-bound. The potential is computed using a tree method following \cite{barnes_hierarchical_1986}.
+!!}
 
   use, intrinsic :: ISO_C_Binding           , only : c_size_t
   use            :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
-  !# <nbodyOperator name="nbodyOperatorSelfBoundBarnesHut">
-  !#  <description>An N-body data operator which determines the subset of particles that are self-bound. The potential is computed using a tree method following \cite{barnes_hierarchical_1986}.</description>
-  !# </nbodyOperator>
+  !![
+  <nbodyOperator name="nbodyOperatorSelfBoundBarnesHut">
+   <description>An N-body data operator which determines the subset of particles that are self-bound. The potential is computed using a tree method following \cite{barnes_hierarchical_1986}.</description>
+  </nbodyOperator>
+  !!]
   type, extends(nbodyOperatorSelfBound) :: nbodyOperatorSelfBoundBarnesHut
-     !% An N-body data operator which determines the subset of particles that are self-bound. The potential is computed using a tree method following \cite{barnes_hierarchical_1986}.
+     !!{
+     An N-body data operator which determines the subset of particles that are self-bound. The potential is computed using a tree method following \cite{barnes_hierarchical_1986}.
+     !!}
      private
      double precision :: thetaTolerance
    contains
@@ -34,7 +40,9 @@
   end type nbodyOperatorSelfBoundBarnesHut
 
   interface nbodyOperatorSelfBoundBarnesHut
-     !% Constructors for the ``selfBoundBarnesHut'' N-body operator class.
+     !!{
+     Constructors for the ``selfBoundBarnesHut'' N-body operator class.
+     !!}
      module procedure selfBoundBarnesHutConstructorParameters
      module procedure selfBoundBarnesHutConstructorInternal
   end interface nbodyOperatorSelfBoundBarnesHut
@@ -42,27 +50,35 @@
 contains
 
   function selfBoundBarnesHutConstructorParameters(parameters) result (self)
-    !% Constructor for the ``selfBoundBarnesHut'' N-body operator class which takes a parameter set as input.
+    !!{
+    Constructor for the ``selfBoundBarnesHut'' N-body operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (nbodyOperatorSelfBoundBarnesHut)                :: self
     type            (inputParameters                ), intent(inout) :: parameters
     double precision                                                 :: thetaTolerance
 
-    !# <inputParameter>
-    !#   <name>thetaTolerance</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>0.5d0</defaultValue>
-    !#   <description>The criterion for the opening angle.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>thetaTolerance</name>
+      <source>parameters</source>
+      <defaultValue>0.5d0</defaultValue>
+      <description>The criterion for the opening angle.</description>
+    </inputParameter>
+    !!]
     self%nbodyOperatorSelfBound=nbodyOperatorSelfBound(parameters)
     self%thetaTolerance        =thetaTolerance
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function selfBoundBarnesHutConstructorParameters
 
   function selfBoundBarnesHutConstructorInternal(thetaTolerance,tolerance,bootstrapSampleCount,bootstrapSampleRate,analyzeAllParticles,useVelocityMostBound,randomNumberGenerator_) result (self)
-    !% Internal constructor for the ``selfBoundBarnesHut'' N-body operator class
+    !!{
+    Internal constructor for the ``selfBoundBarnesHut'' N-body operator class
+    !!}
     implicit none
     type            (nbodyOperatorSelfBoundBarnesHut)                        :: self
     double precision                                 , intent(in   )         :: thetaTolerance        , tolerance           , &
@@ -70,19 +86,22 @@ contains
     integer         (c_size_t                       ), intent(in   )         :: bootstrapSampleCount
     logical                                          , intent(in   )         :: analyzeAllParticles   , useVelocityMostBound
     class           (randomNumberGeneratorClass     ), intent(in   ), target :: randomNumberGenerator_
-    !# <constructorAssign variables="thetaTolerance"/>
+    !![
+    <constructorAssign variables="thetaTolerance"/>
+    !!]
 
     self%nbodyOperatorSelfBound=nbodyOperatorSelfBound(tolerance,bootstrapSampleCount,bootstrapSampleRate,analyzeAllParticles,useVelocityMostBound,randomNumberGenerator_)
     return
   end function selfBoundBarnesHutConstructorInternal
   
   subroutine selfBoundBarnesHutOperate(self,simulations)
-    !% Determine the subset of N-body particles which are self-bound.
-    use :: Display                         , only : displayMessage
+    !!{
+    Determine the subset of N-body particles which are self-bound.
+    !!}
+    use :: Display                         , only : displayIndent                  , displayUnindent, displayMessage
     use :: Galacticus_Error                , only : Galacticus_Error_Report
-    use :: ISO_Varying_String              , only : varying_string
+    use :: ISO_Varying_String              , only : var_str
     use :: String_Handling                 , only : operator(//)
-    use :: Memory_Management               , only : allocateArray                  , deallocateArray
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use :: Octree_Data_Structure           , only : octreeData
     use :: Sorting                         , only : sortIndex
@@ -93,8 +112,7 @@ contains
     integer                                          , parameter                     :: countIterationMaximum =30
     logical                                          , allocatable  , dimension(:,:) :: isBound                  , isBoundNew             , &
          &                                                                              isRemoved
-    integer         (c_size_t                       ), allocatable  , dimension(:,:) :: boundStatus
-    integer         (c_size_t                       ), pointer      , dimension(:,:) :: boundStatusPrevious
+    integer         (c_size_t                       ), pointer      , dimension(:,:) :: boundStatus              , boundStatusPrevious
     double precision                                 , pointer      , dimension(:,:) :: position                 , velocity               , &
          &                                                                              sampleWeightPrevious
     integer         (c_size_t                       ), pointer      , dimension(:  ) :: particleIDs              , particleIDsPrevious
@@ -113,8 +131,10 @@ contains
     double precision                                 , allocatable  , dimension(:  ) :: weightBound              , weightBoundPrevious
     logical                                          , allocatable  , dimension(:  ) :: isConverged
     integer                                                                          :: countIteration
-    double precision                                                                 :: lengthSoftening          , massParticle
+    double precision                                                                 :: lengthSoftening          , massParticle           , &
+         &                                                                              convergenceFactor
     type            (varying_string                 )                                :: message
+    character       (len=12                         )                                :: label
 
     ! Determine current and previous simulations.
     if      (size(simulations) == 1) then
@@ -126,12 +146,12 @@ contains
        current =-1
        previous=-1
        do i=1,2
-          if (simulations(i)%label == "active") current =i
+          if (simulations(i)%label == "active"  ) current =i
           if (simulations(i)%label == "previous") previous=i
        end do
        if (current  == -1) call Galacticus_Error_Report('no "active" simulation found'  //{introspection:location})
        if (previous == -1) call Galacticus_Error_Report('no "previous" simulation found'//{introspection:location})
-       if (.not.simulations(previous)%propertiesInteger%exists('isBound')) &
+       if (.not.simulations(previous)%propertiesIntegerRank1%exists('isBound')) &
             & call Galacticus_Error_Report('"previous" simulation must provide the "isBound" property'//{introspection:location})
     else
        current =-1
@@ -147,27 +167,27 @@ contains
     particleIDs => simulations(current)%propertiesInteger  %value('particleID')
     ! Allocate workspaces.
     particleCount=size(position,dim=2)
-    call allocateArray(isBound                ,[           particleCount,self%bootstrapSampleCount])
-    call allocateArray(isBoundNew             ,[           particleCount,self%bootstrapSampleCount])
-    call allocateArray(isRemoved              ,[           particleCount,self%bootstrapSampleCount])
-    call allocateArray(energyKinetic          ,[           particleCount,self%bootstrapSampleCount])
-    call allocateArray(energyPotential        ,[           particleCount,self%bootstrapSampleCount])
-    call allocateArray(velocityPotential      ,[           particleCount,self%bootstrapSampleCount])
-    call allocateArray(sampleWeight           ,[           particleCount,self%bootstrapSampleCount])
-    call allocateArray(sampleWeightActual     ,[           particleCount,self%bootstrapSampleCount])
-    call allocateArray(velocityCenterOfMass   ,[3_c_size_t              ,self%bootstrapSampleCount])
-    call allocateArray(positionOffset         ,[3_c_size_t,particleCount                          ])
-    call allocateArray(positionRescaled       ,[3_c_size_t,particleCount                          ])
-    call allocateArray(boundStatus            ,[           particleCount,self%bootstrapSampleCount])
-    call allocateArray(indexMostBound         ,[                         self%bootstrapSampleCount])
-    call allocateArray(indexVelocityMostBound ,[                         self%bootstrapSampleCount])
-    call allocateArray(indexSorted            ,[           particleCount                          ])
-    call allocateArray(indexSortedPrevious    ,[           particleCount                          ])
-    call allocateArray(countBound             ,[                         self%bootstrapSampleCount])
-    call allocateArray(countBoundPrevious     ,[                         self%bootstrapSampleCount])
-    call allocateArray(weightBound            ,[                         self%bootstrapSampleCount])
-    call allocateArray(weightBoundPrevious    ,[                         self%bootstrapSampleCount])
-    call allocateArray(isConverged            ,[                         self%bootstrapSampleCount])
+    allocate(isBound               (           particleCount,self%bootstrapSampleCount))
+    allocate(isBoundNew            (           particleCount,self%bootstrapSampleCount))
+    allocate(isRemoved             (           particleCount,self%bootstrapSampleCount))
+    allocate(energyKinetic         (           particleCount,self%bootstrapSampleCount))
+    allocate(energyPotential       (           particleCount,self%bootstrapSampleCount))
+    allocate(velocityPotential     (           particleCount,self%bootstrapSampleCount))
+    allocate(sampleWeight          (           particleCount,self%bootstrapSampleCount))
+    allocate(sampleWeightActual    (           particleCount,self%bootstrapSampleCount))
+    allocate(velocityCenterOfMass  (3_c_size_t              ,self%bootstrapSampleCount))
+    allocate(positionOffset        (3_c_size_t,particleCount                          ))
+    allocate(positionRescaled      (3_c_size_t,particleCount                          ))
+    allocate(boundStatus           (           particleCount,self%bootstrapSampleCount))
+    allocate(indexMostBound        (                         self%bootstrapSampleCount))
+    allocate(indexVelocityMostBound(                         self%bootstrapSampleCount))
+    allocate(indexSorted           (           particleCount                          ))
+    allocate(indexSortedPrevious   (           particleCount                          ))
+    allocate(countBound            (                         self%bootstrapSampleCount))
+    allocate(countBoundPrevious    (                         self%bootstrapSampleCount))
+    allocate(weightBound           (                         self%bootstrapSampleCount))
+    allocate(weightBoundPrevious   (                         self%bootstrapSampleCount))
+    allocate(isConverged           (                         self%bootstrapSampleCount))
     ! If previous bound status is available, read in the self-bound status and sampling weights. If not, generate new values.
     if (previous > 0) then
        ! Get the self-bound status from the previous snapshot.
@@ -200,11 +220,10 @@ contains
     isConverged = .false.
     ! Rescale the particle coordinates by the softening length.
     positionRescaled=position/lengthSoftening
+    call displayIndent('Performing self-bound analysis on bootstrap samples')
     ! Iterate over bootstrap samplings.
     do iSample=1,self%bootstrapSampleCount
-       message='Performing self-bound analysis on bootstrap sample '
-       message=message//iSample//' of '//self%bootstrapSampleCount
-       call displayMessage(message)
+       call displayIndent(var_str('sample ')//iSample//' of '//self%bootstrapSampleCount)
        ! Initialize count of bound particles.
        countBoundPrevious (iSample)=count(                             isBound(:,iSample))
        weightBoundPrevious(iSample)=sum  (sampleWeight(:,iSample),mask=isBound(:,iSample))
@@ -227,10 +246,10 @@ contains
           sampleWeightActual(:,iSample)  =0.0d0
        end where
        ! Build octrees.
-       message='Build octrees.'
-       call displayMessage(message)
+       call displayIndent('build octrees')
        call octreePosition%build(positionRescaled,sampleWeightActual(:,iSample))
        call octreeVelocity%build(velocity        ,sampleWeightActual(:,iSample))
+       call displayUnindent('done')
        ! Begin iterations.
        countIteration=0
        do while (.true.)
@@ -293,11 +312,16 @@ contains
           end forall
           !$omp end workshare
           !$omp end parallel
-          if (abs(weightBound(iSample)-weightBoundPrevious(iSample)) < 0.5d0*self%tolerance                 &
-               &                                                            *(                              &
-               &                                                              +weightBound        (iSample) &
-               &                                                              +weightBoundPrevious(iSample) &
-               &                                                             )) then
+          convergenceFactor=+2.0d0                             &
+               &            *abs(                              &
+               &                 +weightBound        (iSample) &
+               &                 -weightBoundPrevious(iSample) &
+               &                )                              &
+               &            /   (                              &
+               &                 +weightBound        (iSample) &
+               &                 +weightBoundPrevious(iSample) &
+               &                )
+          if (convergenceFactor < self%tolerance) then
              ! Converged.
              isBound       (:,iSample)=isBoundNew(:,iSample)
              isConverged   (  iSample)=.true.
@@ -324,10 +348,14 @@ contains
                 sampleWeightActual(:,iSample)=0.0d0
              end where
           end if
+          write (label,'(e12.6)') convergenceFactor
+          message=var_str('iteration ')//countIteration//' convergence factor = '//trim(adjustl(label))
+          call displayMessage(message)
           ! Check for excess iterations.
           if (countIteration > countIterationMaximum) call Galacticus_Error_Report('maximum iterations exceeded'//{introspection:location})
           if (isConverged(iSample)) exit
        end do
+       call displayUnindent('done')
        ! Destroy the octrees.
        call octreePosition%destroy()
        call octreeVelocity%destroy()
@@ -340,41 +368,46 @@ contains
        boundStatus=0
     end where
     !$omp end parallel workshare
+    call displayUnindent('done')
+    ! Store the self bound status.
+    call simulations(current)%propertiesIntegerRank1%set         ('isBound'                 ,boundStatus             )
     ! Write indices of most bound particles to file.
-    call simulations(current)%analysis%writeDataset( indexMostBound           ,'indexMostBound'        )
-    call simulations(current)%analysis%writeDataset( indexVelocityMostBound   ,'indexVelocityMostBound')
+    call simulations(current)%analysis              %writeDataset( indexMostBound           ,'indexMostBound'        )
+    call simulations(current)%analysis              %writeDataset( indexVelocityMostBound   ,'indexVelocityMostBound')
     ! Write bound status to file.
-    call simulations(current)%analysis%writeDataset( boundStatus              ,'selfBoundStatus'       )
-    call simulations(current)%analysis%writeDataset( nint(sampleWeight)       ,'weight'                )
-    call simulations(current)%analysis%writeDataset([self%bootstrapSampleRate],'bootstrapSampleRate'   )
+    call simulations(current)%analysis              %writeDataset( boundStatus              ,'selfBoundStatus'       )
+    call simulations(current)%analysis              %writeDataset( nint(sampleWeight)       ,'weight'                )
+    call simulations(current)%analysis              %writeDataset([self%bootstrapSampleRate],'bootstrapSampleRate'   )
     ! Free workspaces.
-    call deallocateArray(isBound                )
-    call deallocateArray(isBoundNew             )
-    call deallocateArray(isRemoved              )
-    call deallocateArray(energyKinetic          )
-    call deallocateArray(energyPotential        )
-    call deallocateArray(velocityPotential      )
-    call deallocateArray(boundStatus            )
-    call deallocateArray(sampleWeight           )
-    call deallocateArray(sampleWeightActual     )
-    call deallocateArray(velocityCenterOfMass   )
-    call deallocateArray(indexMostBound         )
-    call deallocateArray(indexVelocityMostBound )
-    call deallocateArray(indexSorted            )
-    call deallocateArray(indexSortedPrevious    )
-    call deallocateArray(positionOffset         )
-    call deallocateArray(positionRescaled       )
-    call deallocateArray(countBound             )
-    call deallocateArray(countBoundPrevious     )
-    call deallocateArray(weightBound            )
-    call deallocateArray(weightBoundPrevious    )
-    call deallocateArray(isConverged            )
+    nullify   (boundStatus            )
+    deallocate(isBound                )
+    deallocate(isBoundNew             )
+    deallocate(isRemoved              )
+    deallocate(energyKinetic          )
+    deallocate(energyPotential        )
+    deallocate(velocityPotential      )
+    deallocate(sampleWeight           )
+    deallocate(sampleWeightActual     )
+    deallocate(velocityCenterOfMass   )
+    deallocate(indexMostBound         )
+    deallocate(indexVelocityMostBound )
+    deallocate(indexSorted            )
+    deallocate(indexSortedPrevious    )
+    deallocate(positionOffset         )
+    deallocate(positionRescaled       )
+    deallocate(countBound             )
+    deallocate(countBoundPrevious     )
+    deallocate(weightBound            )
+    deallocate(weightBoundPrevious    )
+    deallocate(isConverged            )
     return
   end subroutine selfBoundBarnesHutOperate
 
   subroutine selfBoundBarnesHutPotential(value,centerOfMass,nodeWeight,relativePosition,separation,separationSquared)
-    !% Compute the potential given the separation between a particle and a node in the octree. Currently assumes the functional form of the softening used by
-    !% Gadget.
+    !!{
+    Compute the potential given the separation between a particle and a node in the octree. Currently assumes the functional form of the softening used by
+    Gadget.
+    !!}
     implicit none
     double precision              , intent(inout) :: value
     double precision, dimension(3), intent(in   ) :: centerOfMass     , relativePosition

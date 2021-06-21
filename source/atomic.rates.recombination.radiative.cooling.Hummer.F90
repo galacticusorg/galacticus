@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of atomic recombination cooling rates based on the tabulated results of \cite{hummer_total_1994} and \cite{hummer_recombination_1998}.
+  !!{
+  An implementation of atomic recombination cooling rates based on the tabulated results of \cite{hummer_total_1994} and \cite{hummer_recombination_1998}.
+  !!}
 
   use :: Atomic_Rates_Recombination_Radiative, only : atomicRecombinationRateRadiativeClass
   use :: Tables                              , only : table1DLogarithmicLinear
   
-  !# <atomicRecombinationRateRadiativeCooling name="atomicRecombinationRateRadiativeCoolingHummer">
-  !#  <description>Atomic radiative cooling rates based on the tabulated results of \cite{hummer_total_1994} and \cite{hummer_recombination_1998}. For non-hydrogenic or helium-like ions an optional default of $\beta = \gamma \alpha$ can be returned where $\alpha$ is the corresponding radiative recombination coefficient and $\gamma$ is a parameter.</description>
-  !# </atomicRecombinationRateRadiativeCooling>
+  !![
+  <atomicRecombinationRateRadiativeCooling name="atomicRecombinationRateRadiativeCoolingHummer">
+   <description>Atomic radiative cooling rates based on the tabulated results of \cite{hummer_total_1994} and \cite{hummer_recombination_1998}. For non-hydrogenic or helium-like ions an optional default of $\beta = \gamma \alpha$ can be returned where $\alpha$ is the corresponding radiative recombination coefficient and $\gamma$ is a parameter.</description>
+  </atomicRecombinationRateRadiativeCooling>
+  !!]
   type, extends(atomicRecombinationRateRadiativeCoolingClass) :: atomicRecombinationRateRadiativeCoolingHummer
-     !% A recombination cooling rate class assuming a thermal electron distribution.
+     !!{
+     A recombination cooling rate class assuming a thermal electron distribution.
+     !!}
      private
      class           (atomicRecombinationRateRadiativeClass), pointer      :: atomicRecombinationRateRadiative_ => null()
      double precision                                                      :: gamma
@@ -37,31 +43,39 @@
   end type atomicRecombinationRateRadiativeCoolingHummer
 
   interface atomicRecombinationRateRadiativeCoolingHummer
-     !% Constructors for the {\normalfont \ttfamily hummer} atomic radiative recombination class.
+     !!{
+     Constructors for the {\normalfont \ttfamily hummer} atomic radiative recombination class.
+     !!}
      module procedure hummerConstructorParameters
      module procedure hummerConstructorInternal
   end interface atomicRecombinationRateRadiativeCoolingHummer
 
-  !# <enumeration>
-  !#  <name>sequence</name>
-  !#  <description>Enumeration of isoelectronic sequences.</description>
-  !#  <indexing>1</indexing>
-  !#  <entry label="hydrogen"/>
-  !#  <entry label="helium"  />
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>sequence</name>
+   <description>Enumeration of isoelectronic sequences.</description>
+   <indexing>1</indexing>
+   <entry label="hydrogen"/>
+   <entry label="helium"  />
+  </enumeration>
+  !!]
 
-  !# <enumeration>
-  !#  <name>level</name>
-  !#  <description>Enumeration of levels.</description>
-  !#  <indexing>1</indexing>
-  !#  <entry label="1"/>
-  !#  <entry label="B"/>
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>level</name>
+   <description>Enumeration of levels.</description>
+   <indexing>1</indexing>
+   <entry label="1"/>
+   <entry label="B"/>
+  </enumeration>
+  !!]
 
 contains
 
   function hummerConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily hummer} atomic radiative recombination class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily hummer} atomic radiative recombination class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type            (atomicRecombinationRateRadiativeCoolingHummer)                :: self
@@ -69,28 +83,36 @@ contains
     class           (atomicRecombinationRateRadiativeClass        ), pointer       :: atomicRecombinationRateRadiative_
     double precision                                                               :: gamma
 
-    !# <inputParameter>
-    !#   <name>gamma</name>
-    !#   <description>The multiplicative factor, $\gamma$, used to compute the cooling coefficient in cases of non-hydrogenic or helium-like ions.</description>
-    !#   <source>parameters</source>
-    !#   <defaultValue>0.67d0</defaultValue>
-    !# </inputParameter>
-    !# <objectBuilder class="atomicRecombinationRateRadiative" name="atomicRecombinationRateRadiative_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>gamma</name>
+      <description>The multiplicative factor, $\gamma$, used to compute the cooling coefficient in cases of non-hydrogenic or helium-like ions.</description>
+      <source>parameters</source>
+      <defaultValue>0.67d0</defaultValue>
+    </inputParameter>
+    <objectBuilder class="atomicRecombinationRateRadiative" name="atomicRecombinationRateRadiative_" source="parameters"/>
+    !!]
     self=atomicRecombinationRateRadiativeCoolingHummer(gamma,atomicRecombinationRateRadiative_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="atomicRecombinationRateRadiative_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="atomicRecombinationRateRadiative_"/>
+    !!]
     return
   end function hummerConstructorParameters
   
   function hummerConstructorInternal(gamma,atomicRecombinationRateRadiative_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily hummer} atomic radiative recombination class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily hummer} atomic radiative recombination class.
+    !!}
     use :: Input_Parameters, only : inputParameters
     use :: Table_Labels    , only : extrapolationTypeExtrapolate
     implicit none
     type            (atomicRecombinationRateRadiativeCoolingHummer)                        :: self
     class           (atomicRecombinationRateRadiativeClass        ), intent(in   ), target :: atomicRecombinationRateRadiative_
     double precision                                               , intent(in   )         :: gamma
-    !# <constructorAssign variables="gamma, *atomicRecombinationRateRadiative_"/>
+    !![
+    <constructorAssign variables="gamma, *atomicRecombinationRateRadiative_"/>
+    !!]
 
     ! Build the tables of cooling coefficients.
     call self%coefficientTable(sequenceHydrogen)%create(1.0d1,1.00000d7,31,2,extrapolationType=[extrapolationTypeExtrapolate,extrapolationTypeExtrapolate])
@@ -103,16 +125,22 @@ contains
   end function hummerConstructorInternal
 
   subroutine hummerDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily hummer} recombination cooling class.
+    !!{
+    Destructor for the {\normalfont \ttfamily hummer} recombination cooling class.
+    !!}
     implicit none
     type(atomicRecombinationRateRadiativeCoolingHummer), intent(inout) :: self
 
-    !# <objectDestructor name="self%atomicRecombinationRateRadiative_"/>
+    !![
+    <objectDestructor name="self%atomicRecombinationRateRadiative_"/>
+    !!]
     return
   end subroutine hummerDestructor
 
   double precision function hummerRate(self,atomicNumber,ionizationState,temperature,level)
-    !% Returns the cooling rate coefficient.
+    !!{
+    Returns the cooling rate coefficient.
+    !!}
     use :: Atomic_Rates_Recombination_Radiative, only : recombinationCaseA     , recombinationCaseB
     use :: Galacticus_Error                    , only : Galacticus_Error_Report
     implicit none
@@ -122,7 +150,9 @@ contains
     integer                                                        , intent(in   ), optional :: level
     integer                                                                                  :: sequence_
     double precision                                                                         :: temperatureEffective, scaleFactor
-    !# <optionalArgument name="level" defaultsTo="recombinationCaseA" />
+    !![
+    <optionalArgument name="level" defaultsTo="recombinationCaseA" />
+    !!]
 
     ! Handle non-hydrogenic, non-helium-like ions separately.
     if (atomicNumber-ionizationState > 1) then

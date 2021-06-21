@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements Struve functions.
+!!{
+Contains a module which implements Struve functions.
+!!}
 
 module Struve_Functions
-  !% Implements Struve functions.
+  !!{
+  Implements Struve functions.
+  !!}
   implicit none
   private
   public :: Struve_Function_L1
@@ -28,7 +32,9 @@ module Struve_Functions
 contains
 
   double precision function Struve_Function_L1(x)
-    !% Evaluate and return the Struve $L_1$ function.
+    !!{
+    Evaluate and return the Struve $L_1$ function.
+    !!}
     implicit none
     double precision, intent(in   ) :: x
 

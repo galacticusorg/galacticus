@@ -17,50 +17,56 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides a class that implements surface density rates of star formation in disks.
+!!{
+Contains a module which provides a class that implements surface density rates of star formation in disks.
+!!}
 
 module Star_Formation_Rate_Surface_Density_Disks
-  !% Provides a class that implements surface density rates of star formation in disks.
+  !!{
+  Provides a class that implements surface density rates of star formation in disks.
+  !!}
   use :: Galacticus_Nodes, only : treeNode
   private
 
-  !# <functionClass>
-  !#  <name>starFormationRateSurfaceDensityDisks</name>
-  !#  <descriptiveName>Surface density rates of star formation in disks.</descriptiveName>
-  !#  <description>
-  !#   Class providing models of the surface density rate of star formation in disks.
-  !#  </description>
-  !#  <default>krumholz2009</default>
-  !#  <method name="intervals" >
-  !#   <description>Return a set of integration intervals to use when integrating over the surface density of star formation rate.</description>
-  !#   <type>double precision, allocatable, dimension(:,:)</type>
-  !#   <pass>yes</pass>
-  !#   <selfTarget>yes</selfTarget>
-  !#   <argument>type            (treeNode), intent(inout), target :: node</argument>
-  !#   <argument>double precision          , intent(in   )         :: radiusInner, radiusOuter</argument>
-  !#   <code>
-  !#    !$GLC attributes unused :: self, node
-  !#    allocate(starFormationRateSurfaceDensityDisksIntervals(2,1))
-  !#    starFormationRateSurfaceDensityDisksIntervals=reshape([radiusInner,radiusOuter],[2,1])
-  !#   </code>
-  !#  </method>
-  !#  <method name="unchanged" >
-  !#   <description>Return true if the surface density rate of star formation is unchanged since the previous evaluation.</description>
-  !#   <type>logical</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout) :: node</argument>
-  !#   <code>
-  !#    !$GLC attributes unused :: self, node
-  !#    starFormationRateSurfaceDensityDisksUnchanged=.false.
-  !#   </code>
-  !#  </method>
-  !#  <method name="rate" >
-  !#   <description>Returns the star formation rate surface density (in $M_\odot$ Gyr$^{-1}$ Mpc$^{-2}$) in the disk component of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius}.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type            (treeNode), intent(inout) :: node</argument>
-  !#   <argument>double precision          , intent(in   ) :: radius</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>starFormationRateSurfaceDensityDisks</name>
+   <descriptiveName>Surface density rates of star formation in disks.</descriptiveName>
+   <description>
+    Class providing models of the surface density rate of star formation in disks.
+   </description>
+   <default>krumholz2009</default>
+   <method name="intervals" >
+    <description>Return a set of integration intervals to use when integrating over the surface density of star formation rate.</description>
+    <type>double precision, allocatable, dimension(:,:)</type>
+    <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
+    <argument>type            (treeNode), intent(inout), target :: node</argument>
+    <argument>double precision          , intent(in   )         :: radiusInner, radiusOuter</argument>
+    <code>
+     !$GLC attributes unused :: self, node
+     allocate(starFormationRateSurfaceDensityDisksIntervals(2,1))
+     starFormationRateSurfaceDensityDisksIntervals=reshape([radiusInner,radiusOuter],[2,1])
+    </code>
+   </method>
+   <method name="unchanged" >
+    <description>Return true if the surface density rate of star formation is unchanged since the previous evaluation.</description>
+    <type>logical</type>
+    <pass>yes</pass>
+    <argument>type(treeNode), intent(inout) :: node</argument>
+    <code>
+     !$GLC attributes unused :: self, node
+     starFormationRateSurfaceDensityDisksUnchanged=.false.
+    </code>
+   </method>
+   <method name="rate" >
+    <description>Returns the star formation rate surface density (in $M_\odot$ Gyr$^{-1}$ Mpc$^{-2}$) in the disk component of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius}.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>type            (treeNode), intent(inout) :: node</argument>
+    <argument>double precision          , intent(in   ) :: radius</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Star_Formation_Rate_Surface_Density_Disks

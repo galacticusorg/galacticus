@@ -17,17 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program which tests the \glspl{node} implementation.
+!!{
+Contains a program which tests the \glspl{node} implementation.
+!!}
 
 program Test_Dark_Matter_Profiles_Heated
-  !% Tests the heated dark matter profile implementation. An isothermal dark matter halo is used, since analytic solutions are
-  !% available for this case. Specifically, the initial radius in the unheated profile is given by $r_\mathrm{i}(r) =
-  !% (r_\mathrm{h}^4/4 r^2 + r_\mathrm{h}^2)^{1/2}-r_\mathrm{h}^2/2 r$ where $r$ is the radius in the heated profile, and
-  !% $r_\mathrm{h}=(\mathrm{G} M_\mathrm{v} / 2 Q r_\mathrm{v})^{1/2}$ is a characteristic heating radius. Here, $M_\mathrm{v}$,
-  !% and $r_\mathrm{v}$ are the virial mass and radius of the halo respectively, and $Q r_\mathrm{i}^2$ is the specific heat input
-  !% to the density profile, with $Q$ assumed to be a constant (as expected for tidal heating). Assuming no shell crossing, the
-  !% enclosed mass in the final profile is simply $M(r) = M_\mathrm{v} r_\mathrm{i}(r)/r_\mathrm{v}$, from which the density of
-  !% the final profile is found as $\rho(r) = (4 \pi r^2)^{-1} \mathrm{d} M(r) / \mathrm{d} r$.
+  !!{
+  Tests the heated dark matter profile implementation. An isothermal dark matter halo is used, since analytic solutions are
+  available for this case. Specifically, the initial radius in the unheated profile is given by $r_\mathrm{i}(r) =
+  (r_\mathrm{h}^4/4 r^2 + r_\mathrm{h}^2)^{1/2}-r_\mathrm{h}^2/2 r$ where $r$ is the radius in the heated profile, and
+  $r_\mathrm{h}=(\mathrm{G} M_\mathrm{v} / 2 Q r_\mathrm{v})^{1/2}$ is a characteristic heating radius. Here, $M_\mathrm{v}$,
+  and $r_\mathrm{v}$ are the virial mass and radius of the halo respectively, and $Q r_\mathrm{i}^2$ is the specific heat input
+  to the density profile, with $Q$ assumed to be a constant (as expected for tidal heating). Assuming no shell crossing, the
+  enclosed mass in the final profile is simply $M(r) = M_\mathrm{v} r_\mathrm{i}(r)/r_\mathrm{v}$, from which the density of
+  the final profile is found as $\rho(r) = (4 \pi r^2)^{-1} \mathrm{d} M(r) / \mathrm{d} r$.
+  !!}
   use :: Cosmology_Parameters            , only : cosmologyParametersSimple
   use :: Cosmology_Functions             , only : cosmologyFunctionsMatterLambda
   use :: Dark_Matter_Halo_Scales         , only : darkMatterHaloScaleVirialDensityContrastDefinition
@@ -81,41 +85,43 @@ program Test_Dark_Matter_Profiles_Heated
   call Unit_Tests_Begin_Group("Heated dark matter profiles")
   call nodeClassHierarchyInitialize(parameters)
   ! Create the dark matter profiles.
-  !# <referenceConstruct object="cosmologyParameters_"  >
-  !#  <constructor>
-  !#   cosmologyParametersSimple                                     (                                               &amp;
-  !#    &amp;                                                         OmegaMatter           = 0.2815d0             , &amp;
-  !#    &amp;                                                         OmegaBaryon           = 0.0465d0             , &amp;
-  !#    &amp;                                                         OmegaDarkEnergy       = 0.7185d0             , &amp;
-  !#    &amp;                                                         temperatureCMB        = 2.7800d0             , &amp;
-  !#    &amp;                                                         HubbleConstant        =69.3000d0               &amp;
-  !#    &amp;                                                        )
-  !#  </constructor>
-  !# </referenceConstruct>
-  !# <referenceConstruct object="cosmologyFunctions_"   >
-  !#  <constructor>
-  !#   cosmologyFunctionsMatterLambda                                (                                               &amp;
-  !#    &amp;                                                         cosmologyParameters_  =cosmologyParameters_    &amp;
-  !#    &amp;                                                        )
-  !#  </constructor>
-  !# </referenceConstruct>
-  !# <referenceConstruct object="virialDensityContrast_">
-  !#  <constructor>
-  !#   virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(                                               &amp;
-  !#    &amp;                                                         tableStore            =.true.                , &amp;
-  !#    &amp;                                                         cosmologyFunctions_   =cosmologyFunctions_     &amp;
-  !#    &amp;                                                        )
-  !#  </constructor>
-  !# </referenceConstruct>
-  !# <referenceConstruct object="darkMatterHaloScale_"  >
-  !#  <constructor>
-  !#   darkMatterHaloScaleVirialDensityContrastDefinition            (                                               &amp;
-  !#    &amp;                                                         cosmologyParameters_  =cosmologyParameters_  , &amp;
-  !#    &amp;                                                         cosmologyFunctions_   =cosmologyFunctions_   , &amp;
-  !#    &amp;                                                         virialDensityContrast_=virialDensityContrast_  &amp;
-  !#    &amp;                                                        )
-  !#  </constructor>
-  !# </referenceConstruct>  
+  !![
+  <referenceConstruct object="cosmologyParameters_"  >
+   <constructor>
+    cosmologyParametersSimple                                     (                                               &amp;
+     &amp;                                                         OmegaMatter           = 0.2815d0             , &amp;
+     &amp;                                                         OmegaBaryon           = 0.0465d0             , &amp;
+     &amp;                                                         OmegaDarkEnergy       = 0.7185d0             , &amp;
+     &amp;                                                         temperatureCMB        = 2.7800d0             , &amp;
+     &amp;                                                         HubbleConstant        =69.3000d0               &amp;
+     &amp;                                                        )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="cosmologyFunctions_"   >
+   <constructor>
+    cosmologyFunctionsMatterLambda                                (                                               &amp;
+     &amp;                                                         cosmologyParameters_  =cosmologyParameters_    &amp;
+     &amp;                                                        )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="virialDensityContrast_">
+   <constructor>
+    virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(                                               &amp;
+     &amp;                                                         tableStore            =.true.                , &amp;
+     &amp;                                                         cosmologyFunctions_   =cosmologyFunctions_     &amp;
+     &amp;                                                        )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="darkMatterHaloScale_"  >
+   <constructor>
+    darkMatterHaloScaleVirialDensityContrastDefinition            (                                               &amp;
+     &amp;                                                         cosmologyParameters_  =cosmologyParameters_  , &amp;
+     &amp;                                                         cosmologyFunctions_   =cosmologyFunctions_   , &amp;
+     &amp;                                                         virialDensityContrast_=virialDensityContrast_  &amp;
+     &amp;                                                        )
+   </constructor>
+  </referenceConstruct>  
+  !!]
   darkMatterProfileHeatingTidal_  =  darkMatterProfileHeatingTidal (coefficientSecondOrder       ,correlationVelocityRadius                                                                                                                            )
   darkMatterProfileDMOIsothermal_ =  darkMatterProfileDMOIsothermal(                                                                                                                                darkMatterHaloScale_                               )
   darkMatterProfileDMOHeated_     =  darkMatterProfileDMOHeated    (nonAnalyticSolversFallThrough,velocityDispersionApproximate,toleranceRelativeVelocityDispersion,darkMatterProfileDMOIsothermal_,darkMatterHaloScale_,darkMatterProfileHeatingTidal_)

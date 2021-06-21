@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which stores data for the recent merging statistics component.
+!!{
+Contains a module which stores data for the recent merging statistics component.
+!!}
 
 module Node_Component_Merging_Statistics_Recent_Data
-  !% Stores data for the recent merging statistics component.
+  !!{
+  Stores data for the recent merging statistics component.
+  !!}
   use, intrinsic :: ISO_C_Binding, only : c_size_t
   implicit none
   private
@@ -31,7 +35,9 @@ module Node_Component_Merging_Statistics_Recent_Data
 contains
 
   function Node_Component_Merging_Statistics_Recent_Count()
-    !% Return the size of the merging statistics property
+    !!{
+    Return the size of the merging statistics property
+    !!}
     implicit none
     integer(c_size_t) :: Node_Component_Merging_Statistics_Recent_Count
 

@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to test numerical comparison functions.
+!!{
+Contains a program to test numerical comparison functions.
+!!}
 
 program Test_Comparison
-  !% Tests that numerical comparison functions work.
+  !!{
+  Tests that numerical comparison functions work.
+  !!}
   use :: Display             , only : displayVerbositySet, verbosityLevelStandard
   use :: Numerical_Comparison, only : Values_Agree       , Values_Differ
   use :: Unit_Tests          , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish

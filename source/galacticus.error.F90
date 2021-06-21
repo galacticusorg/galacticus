@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements error reporting for the {\normalfont \scshape Galacticus} package.
+!!{
+Contains a module which implements error reporting for the {\normalfont \scshape Galacticus} package.
+!!}
 
 module Galacticus_Error
-  !% Implements error reporting for the {\normalfont \scshape Galacticus} package.
+  !!{
+  Implements error reporting for the {\normalfont \scshape Galacticus} package.
+  !!}
   use, intrinsic :: ISO_C_Binding     , only : c_int
   use            :: ISO_Varying_String, only : varying_string
   use            :: Interface_GSL     , only : GSL_Failure   , GSL_Success , GSL_eDom, GSL_eRange, &
@@ -80,7 +84,9 @@ module Galacticus_Error
 contains
 
   subroutine Galacticus_Error_Report_VarStr(message)
-    !% Display an error message.
+    !!{
+    Display an error message.
+    !!}
     use :: ISO_Varying_String, only : char
     implicit none
     type(varying_string), intent(in   ) :: message
@@ -90,7 +96,9 @@ contains
   end subroutine Galacticus_Error_Report_VarStr
 
   subroutine Galacticus_Error_Report_Char(message)
-    !% Display an error message.
+    !!{
+    Display an error message.
+    !!}
 #ifndef UNCLEANEXIT
     use    :: HDF5         , only : H5Close_F
 #endif
@@ -126,7 +134,9 @@ contains
   end subroutine Galacticus_Error_Report_Char
 
   subroutine Galacticus_Warn_VarStr(message)
-    !% Display a warning message
+    !!{
+    Display a warning message
+    !!}
     use :: ISO_Varying_String, only : char
     implicit none
     type(varying_string), intent(in   ) :: message
@@ -136,7 +146,9 @@ contains
   end subroutine Galacticus_Warn_VarStr
 
   subroutine Galacticus_Warn_Char(message)
-    !% Display a warning message.
+    !!{
+    Display a warning message.
+    !!}
     use :: Display           , only : displayMessage, displayVerbosity, verbosityLevelWarn
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
@@ -169,7 +181,9 @@ contains
   end subroutine Galacticus_Warn_Char
 
   subroutine Galacticus_Warn_Review()
-    !% Review any warning messages emitted during the run.
+    !!{
+    Review any warning messages emitted during the run.
+    !!}
     use :: ISO_Varying_String, only : char
     implicit none
     type(warning), pointer :: warning_
@@ -188,7 +202,9 @@ contains
   end subroutine Galacticus_Warn_Review
 
   subroutine Galacticus_Error_Handler_Register()
-    !% Register signal handlers.
+    !!{
+    Register signal handlers.
+    !!}
     use, intrinsic :: ISO_C_Binding, only : c_funptr
     use            :: Interface_GSL, only : gslSetErrorHandler
     implicit none
@@ -208,7 +224,9 @@ contains
   end subroutine Galacticus_Error_Handler_Register
 
   subroutine Galacticus_Signal_Handler_SIGINT()
-    !% Handle {\normalfont \ttfamily SIGINT} signals, by flushing all data and then aborting.
+    !!{
+    Handle {\normalfont \ttfamily SIGINT} signals, by flushing all data and then aborting.
+    !!}
 #ifndef UNCLEANEXIT
     use    :: HDF5         , only : H5Close_F
 #endif
@@ -261,7 +279,9 @@ contains
   end subroutine Galacticus_Signal_Handler_SIGINT
 
   subroutine Galacticus_Signal_Handler_SIGSEGV()
-    !% Handle {\normalfont \ttfamily SIGSEGV} signals, by flushing all data and then aborting.
+    !!{
+    Handle {\normalfont \ttfamily SIGSEGV} signals, by flushing all data and then aborting.
+    !!}
 #ifndef UNCLEANEXIT
     use    :: HDF5         , only : H5Close_F
 #endif
@@ -314,7 +334,9 @@ contains
   end subroutine Galacticus_Signal_Handler_SIGSEGV
 
   subroutine Galacticus_Signal_Handler_SIGFPE()
-    !% Handle {\normalfont \ttfamily SIGFPE} signals, by flushing all data and then aborting.
+    !!{
+    Handle {\normalfont \ttfamily SIGFPE} signals, by flushing all data and then aborting.
+    !!}
 #ifndef UNCLEANEXIT
     use    :: HDF5         , only : H5Close_F
 #endif
@@ -367,7 +389,9 @@ contains
   end subroutine Galacticus_Signal_Handler_SIGFPE
 
   subroutine Galacticus_Signal_Handler_SIGBUS()
-    !% Handle {\normalfont \ttfamily SIGBUS} signals, by flushing all data and then aborting.
+    !!{
+    Handle {\normalfont \ttfamily SIGBUS} signals, by flushing all data and then aborting.
+    !!}
 #ifndef UNCLEANEXIT
     use    :: HDF5         , only : H5Close_F
 #endif
@@ -420,7 +444,9 @@ contains
   end subroutine Galacticus_Signal_Handler_SIGBUS
 
   subroutine Galacticus_Signal_Handler_SIGILL()
-    !% Handle {\normalfont \ttfamily SIGILL} signals, by flushing all data and then aborting.
+    !!{
+    Handle {\normalfont \ttfamily SIGILL} signals, by flushing all data and then aborting.
+    !!}
 #ifndef UNCLEANEXIT
     use    :: HDF5         , only : H5Close_F
 #endif
@@ -473,7 +499,9 @@ contains
   end subroutine Galacticus_Signal_Handler_SIGILL
 
   subroutine Galacticus_Signal_Handler_SIGXCPU()
-    !% Handle {\normalfont \ttfamily SIGXCPU} signals, by flushing all data and then aborting.
+    !!{
+    Handle {\normalfont \ttfamily SIGXCPU} signals, by flushing all data and then aborting.
+    !!}
 #ifndef UNCLEANEXIT
     use :: HDF5         , only : H5Close_F
 #endif
@@ -497,7 +525,9 @@ contains
   end subroutine Galacticus_Signal_Handler_SIGXCPU
 
   subroutine Galacticus_GSL_Error_Handler(reason,file,line,errorNumber) bind(c)
-    !% Handle errors from the GSL library, by flushing all data and then aborting.
+    !!{
+    Handle errors from the GSL library, by flushing all data and then aborting.
+    !!}
 #ifndef UNCLEANEXIT
     use               :: HDF5              , only : H5Close_F
 #endif
@@ -560,7 +590,9 @@ contains
   end subroutine Galacticus_GSL_Error_Handler
 
   subroutine Galacticus_GSL_Error_Handler_Abort_On()
-    !% Record that we should abort on GSL errors.
+    !!{
+    Record that we should abort on GSL errors.
+    !!}
     implicit none
 
     abortOnErrorGSL=.true.
@@ -568,7 +600,9 @@ contains
   end subroutine Galacticus_GSL_Error_Handler_Abort_On
 
   subroutine Galacticus_GSL_Error_Handler_Abort_Off()
-    !% Record that we should not abort on GSL errors.
+    !!{
+    Record that we should not abort on GSL errors.
+    !!}
     implicit none
 
     abortOnErrorGSL=.false.
@@ -576,7 +610,9 @@ contains
   end subroutine Galacticus_GSL_Error_Handler_Abort_Off
 
   integer function Galacticus_GSL_Error_Status()
-    !% Return current GSL error status.
+    !!{
+    Return current GSL error status.
+    !!}
     implicit none
 
     Galacticus_GSL_Error_Status=errorStatusGSL
@@ -584,7 +620,9 @@ contains
   end function Galacticus_GSL_Error_Status
 
   function Galacticus_Component_List(className,componentList)
-    !% Construct a message describing which implementations of a component class provide required functionality.
+    !!{
+    Construct a message describing which implementations of a component class provide required functionality.
+    !!}
     use :: ISO_Varying_String, only : assignment(=), operator(//)
     use :: String_Handling   , only : String_Join
     implicit none
@@ -602,7 +640,9 @@ contains
   end function Galacticus_Component_List
 
   subroutine Galacticus_Error_Wait_Set(errorWaitTimeNew)
-    !% Set the time to wait after an error occurs.
+    !!{
+    Set the time to wait after an error occurs.
+    !!}
     implicit none
     integer, intent(in   ) :: errorWaitTimeNew
 

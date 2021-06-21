@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements calculations of projected correlation functions using the halo model.
+!!{
+Contains a module which implements calculations of projected correlation functions using the halo model.
+!!}
 
 module Halo_Model_Projected_Correlations
-  !% Implements calculations of projected correlation functions using the halo model.
+  !!{
+  Implements calculations of projected correlation functions using the halo model.
+  !!}
   private
   public :: Halo_Model_Projected_Correlation
 
@@ -51,7 +55,9 @@ contains
        &                                      projectedCorrelationFunctionHalfIntegral    , &
        &                                      projectedCorrelationBinned                    &
        &                                     )
-    !% Compute the projected correlation function of galaxies above a specified mass using the halo model.
+    !!{
+    Compute the projected correlation function of galaxies above a specified mass using the halo model.
+    !!}
     use :: Conditional_Mass_Functions, only : conditionalMassFunctionClass
     use :: Cosmology_Functions       , only : cosmologyFunctionsClass
     use :: Dark_Matter_Halo_Biases   , only : darkMatterHaloBiasClass
@@ -239,7 +245,9 @@ contains
   contains
 
     double precision function projectionIntegrandWeight(separation)
-      !% The weight function applied to the correlation function when integrating to get the projected correlation function.
+      !!{
+      The weight function applied to the correlation function when integrating to get the projected correlation function.
+      !!}
       implicit none
       double precision, intent(in   ) :: separation
 
@@ -252,7 +260,9 @@ contains
     end function projectionIntegrandWeight
 
     double precision function binningIntegrandWeight(separation)
-      !% The weight function applied to the projected correlation function when integrating into bins.
+      !!{
+      The weight function applied to the projected correlation function when integrating into bins.
+      !!}
       implicit none
       double precision, intent(in   ) :: separation
 
@@ -261,7 +271,9 @@ contains
     end function binningIntegrandWeight
 
     double precision function powerSpectrumOneHaloTimeIntegrand(timePrime)
-      !% Time integrand for the one-halo term in the power spectrum.
+      !!{
+      Time integrand for the one-halo term in the power spectrum.
+      !!}
       use :: Display         , only : displayMessage    , verbosityLevelWarn, displayMagenta, displayReset
 
       use :: Galacticus_Error, only : errorStatusSuccess
@@ -289,7 +301,9 @@ contains
     end function powerSpectrumOneHaloTimeIntegrand
 
     double precision function powerSpectrumOneHaloIntegrand(massHalo)
-      !% Integrand for the one-halo term in the power spectrum.
+      !!{
+      Integrand for the one-halo term in the power spectrum.
+      !!}
       use :: Conditional_Mass_Functions    , only : haloModelGalaxyTypeCentral   , haloModelGalaxyTypeSatellite
       use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
       implicit none
@@ -336,7 +350,9 @@ contains
     end function powerSpectrumOneHaloIntegrand
 
     double precision function powerSpectrumTwoHaloTimeIntegrand(timePrime)
-      !% Time integrand for the two-halo term in the power spectrum.
+      !!{
+      Time integrand for the two-halo term in the power spectrum.
+      !!}
       use :: Display         , only : displayMessage    , verbosityLevelWarn, displayMagenta, displayReset
       use :: Galacticus_Error, only : errorStatusSuccess
       implicit none
@@ -368,7 +384,9 @@ contains
     end function powerSpectrumTwoHaloTimeIntegrand
 
     double precision function powerSpectrumTwoHaloIntegrand(massHalo)
-      !% Integrand for the two-halo term in the power spectrum.
+      !!{
+      Integrand for the two-halo term in the power spectrum.
+      !!}
       use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
       implicit none
       double precision, intent(in   ) :: massHalo
@@ -398,7 +416,9 @@ contains
     end function powerSpectrumTwoHaloIntegrand
 
     double precision function normalizationTimeIntegrand(timePrime)
-      !% Time integrand for the normalization term in the power spectrum.
+      !!{
+      Time integrand for the normalization term in the power spectrum.
+      !!}
       implicit none
       double precision            , intent(in   ) :: timePrime
       type            (integrator)                :: integratorTime
@@ -414,7 +434,9 @@ contains
     end function normalizationTimeIntegrand
 
     double precision function normalizationIntegrand(massHalo)
-      !% Integrand for the normalization term in the power spectrum.
+      !!{
+      Integrand for the normalization term in the power spectrum.
+      !!}
       implicit none
       double precision, intent(in   ) :: massHalo
 
@@ -429,7 +451,9 @@ contains
     end function normalizationIntegrand
 
     double precision function volumeTimeIntegrand(timePrime)
-      !% Volume integrand for the normalization term in the power spectrum.
+      !!{
+      Volume integrand for the normalization term in the power spectrum.
+      !!}
       implicit none
       double precision, intent(in   ) :: timePrime
 

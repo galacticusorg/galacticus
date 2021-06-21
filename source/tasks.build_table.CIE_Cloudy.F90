@@ -17,11 +17,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !# <task name="taskBuildTableCIECloudy">
-  !#  <description>A task which builds collisional ionization equilibrium tables using Cloudy.</description>
-  !# </task>
+  !![
+  <task name="taskBuildTableCIECloudy">
+   <description>A task which builds collisional ionization equilibrium tables using Cloudy.</description>
+  </task>
+  !!]
   type, extends(taskClass) :: taskBuildTableCIECloudy
-     !% Implementation of a task which builds collisional ionization equilibrium tables using Cloudy.
+     !!{
+     Implementation of a task which builds collisional ionization equilibrium tables using Cloudy.
+     !!}
      private
      type            (varying_string) :: fileNameCoolingFunction      , fileNameChemicalState
      double precision                 :: metallicityLogarithmicMaximum
@@ -32,7 +36,9 @@
   end type taskBuildTableCIECloudy
 
   interface taskBuildTableCIECloudy
-     !% Constructors for the {\normalfont \ttfamily buildTableCIECloudy} task.
+     !!{
+     Constructors for the {\normalfont \ttfamily buildTableCIECloudy} task.
+     !!}
      module procedure buildTableCIECloudyParameters
      module procedure buildTableCIECloudyInternal
   end interface taskBuildTableCIECloudy
@@ -40,7 +46,9 @@
 contains
 
   function buildTableCIECloudyParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily buildTableCIECloudy} task class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily buildTableCIECloudy} task class which takes a parameter set as input.
+    !!}
     use :: Galacticus_Paths, only : galacticusPath , pathTypeDataDynamic
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -50,49 +58,59 @@ contains
     double precision                                         :: metallicityLogarithmicMaximum
     logical                                                  :: includeContinuum
 
-    !# <inputParameter>
-    !#   <name>fileNameCoolingFunction</name>
-    !#   <description>The file name to which the cooling function table should be stored.</description>
-    !#   <defaultValue>galacticusPath(pathTypeDataDynamic)//'cooling/cooling_function_Atomic_CIE_Cloudy.hdf5'</defaultValue>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>fileNameChemicalState</name>
-    !#   <description>The file name to which the chemical state table should be stored.</description>
-    !#   <defaultValue>galacticusPath(pathTypeDataDynamic)//'chemicalState/chemical_state_Atomic_CIE_Cloudy.hdf5'</defaultValue>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>metallicityLogarithmicMaximum</name>
-    !#   <description>The maximum metallicity to tabulated, expressed as log-10 relative to Solar.</description>
-    !#   <defaultValue>1.5d0</defaultValue>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>includeContinuum</name>
-    !#   <description>If true include the cumulative fraction of total power emitted in the continuum.</description>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>fileNameCoolingFunction</name>
+      <description>The file name to which the cooling function table should be stored.</description>
+      <defaultValue>galacticusPath(pathTypeDataDynamic)//'cooling/cooling_function_Atomic_CIE_Cloudy.hdf5'</defaultValue>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>fileNameChemicalState</name>
+      <description>The file name to which the chemical state table should be stored.</description>
+      <defaultValue>galacticusPath(pathTypeDataDynamic)//'chemicalState/chemical_state_Atomic_CIE_Cloudy.hdf5'</defaultValue>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>metallicityLogarithmicMaximum</name>
+      <description>The maximum metallicity to tabulated, expressed as log-10 relative to Solar.</description>
+      <defaultValue>1.5d0</defaultValue>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>includeContinuum</name>
+      <description>If true include the cumulative fraction of total power emitted in the continuum.</description>
+      <defaultValue>.true.</defaultValue>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     self=taskBuildTableCIECloudy(fileNameCoolingFunction,fileNameChemicalState,metallicityLogarithmicMaximum,includeContinuum)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function buildTableCIECloudyParameters
 
   function buildTableCIECloudyInternal(fileNameCoolingFunction,fileNameChemicalState,metallicityLogarithmicMaximum,includeContinuum) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily buildTableCIECloudy} task class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily buildTableCIECloudy} task class.
+    !!}
     implicit none
     type            (taskBuildTableCIECloudy)                :: self
     type            (varying_string         ), intent(in   ) :: fileNameCoolingFunction      , fileNameChemicalState
     double precision                         , intent(in   ) :: metallicityLogarithmicMaximum
     logical                                  , intent(in   ) :: includeContinuum
-    !# <constructorAssign variables="fileNameCoolingFunction, fileNameChemicalState, metallicityLogarithmicMaximum, includeContinuum"/>
+    !![
+    <constructorAssign variables="fileNameCoolingFunction, fileNameChemicalState, metallicityLogarithmicMaximum, includeContinuum"/>
+    !!]
 
     return
   end function buildTableCIECloudyInternal
 
   subroutine buildTableCIECloudyPerform(self,status)
-    !% Builds the tabulation.
+    !!{
+    Builds the tabulation.
+    !!}
     use :: Display              , only : displayIndent                , displayMessage, displayUnindent
     use :: Galacticus_Error     , only : errorStatusSuccess
     use :: Interfaces_Cloudy_CIE, only : Interface_Cloudy_CIE_Tabulate
@@ -114,7 +132,9 @@ contains
   end subroutine buildTableCIECloudyPerform
 
   logical function buildTableCIECloudyRequiresOutputFile(self)
-    !% Specifies that this task does not requires the main output file.
+    !!{
+    Specifies that this task does not requires the main output file.
+    !!}
     implicit none
     class(taskBuildTableCIECloudy), intent(inout) :: self
     !$GLC attributes unused :: self

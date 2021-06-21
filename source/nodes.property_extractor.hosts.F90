@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a host index output analysis property extractor class.
+!!{
+Contains a module which implements a host index output analysis property extractor class.
+!!}
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorIndicesHost">
-  !#  <description>
-  !#   A node property extractor which extracts the index of the node which hosts a given node. For unhosted nodes (i.e. nodes
-  !#   which are not subhalos), a value of $-1$ is extracted instead.
-  !#  </description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorIndicesHost">
+   <description>
+    A node property extractor which extracts the index of the node which hosts a given node. For unhosted nodes (i.e. nodes
+    which are not subhalos), a value of $-1$ is extracted instead.
+   </description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorIndicesHost
-     !% A host index output analysis class.
+     !!{
+     A host index output analysis class.
+     !!}
      private
      logical :: topLevel
    contains
@@ -37,7 +43,9 @@
   end type nodePropertyExtractorIndicesHost
 
   interface nodePropertyExtractorIndicesHost
-     !% Constructors for the ``indicesHost'' output analysis class.
+     !!{
+     Constructors for the ``indicesHost'' output analysis class.
+     !!}
      module procedure indicesHostConstructorParameters
      module procedure indicesHostConstructorInternal
   end interface nodePropertyExtractorIndicesHost
@@ -45,36 +53,48 @@
 contains
 
   function indicesHostConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily indicesHost} node property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily indicesHost} node property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (nodePropertyExtractorIndicesHost)                :: self
     type   (inputParameters                 ), intent(inout) :: parameters
     logical                                                  :: topLevel
 
-    !# <inputParameter>
-    !#   <name>topLevel</name>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>If true, output the index of the host at the top level of the hierarchy, otherwise output the index of the direct host.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>topLevel</name>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, output the index of the host at the top level of the hierarchy, otherwise output the index of the direct host.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
      self=nodePropertyExtractorIndicesHost(topLevel)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function indicesHostConstructorParameters
 
   function indicesHostConstructorInternal(topLevel) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily indicesHost} node property extractor class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily indicesHost} node property extractor class.
+    !!}
     implicit none
     type   (nodePropertyExtractorIndicesHost)                :: self
     logical                                  , intent(in   ) :: topLevel
-    !# <constructorAssign variables="topLevel"/>
+    !![
+    <constructorAssign variables="topLevel"/>
+    !!]
 
     return
   end function indicesHostConstructorInternal
 
   function indicesHostExtract(self,node,time,instance)
-    !% Implement a {\normalfont \ttfamily indicesHost} node property extractor.
+    !!{
+    Implement a {\normalfont \ttfamily indicesHost} node property extractor.
+    !!}
     implicit none
     integer         (kind_int8                       )                          :: indicesHostExtract
     class           (nodePropertyExtractorIndicesHost), intent(inout)           :: self
@@ -99,7 +119,9 @@ contains
   end function indicesHostExtract
 
   integer function indicesHostType(self)
-    !% Return the type of the stellar mass property.
+    !!{
+    Return the type of the stellar mass property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorIndicesHost), intent(inout) :: self
@@ -110,7 +132,9 @@ contains
   end function indicesHostType
 
   function indicesHostName(self)
-    !% Return the name of the indicesHost property.
+    !!{
+    Return the name of the indicesHost property.
+    !!}
     implicit none
     type (varying_string                  )                :: indicesHostName
     class(nodePropertyExtractorIndicesHost), intent(inout) :: self
@@ -121,7 +145,9 @@ contains
   end function indicesHostName
 
   function indicesHostDescription(self)
-    !% Return a description of the indicesHost property.
+    !!{
+    Return a description of the indicesHost property.
+    !!}
     implicit none
     type (varying_string                  )                :: indicesHostDescription
     class(nodePropertyExtractorIndicesHost), intent(inout) :: self

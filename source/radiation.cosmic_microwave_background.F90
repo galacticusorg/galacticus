@@ -17,28 +17,38 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a class for the cosmic microwave background radiation field.
+  !!{
+  Implements a class for the cosmic microwave background radiation field.
+  !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
-  !# <radiationField name="radiationFieldCosmicMicrowaveBackground">
-  !#  <description>A radiation field class for the cosmic microwave background.</description>
-  !# </radiationField>
+  !![
+  <radiationField name="radiationFieldCosmicMicrowaveBackground">
+   <description>A radiation field class for the cosmic microwave background.</description>
+  </radiationField>
+  !!]
   type, extends(radiationFieldBlackBody) :: radiationFieldCosmicMicrowaveBackground
-     !% A radiation field class for the cosmic microwave background.
+     !!{
+     A radiation field class for the cosmic microwave background.
+     !!}
      private
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
      double precision                                   :: time
    contains
-     !# <methods>
-     !#   <method description="Set the time for the radiation field." method="timeSet" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Set the time for the radiation field." method="timeSet" />
+     </methods>
+     !!]
      final     ::            cosmicMicrowaveBackgroundDestructor
      procedure :: timeSet => cosmicMicrowaveBackgroundTimeSet
   end type radiationFieldCosmicMicrowaveBackground
 
   interface radiationFieldCosmicMicrowaveBackground
-     !% Constructors for the {\normalfont \ttfamily cosmicMicrowaveBackground} radiation field class.
+     !!{
+     Constructors for the {\normalfont \ttfamily cosmicMicrowaveBackground} radiation field class.
+     !!}
      module procedure cosmicMicrowaveBackgroundConstructorParameters
      module procedure cosmicMicrowaveBackgroundConstructorInternal
   end interface radiationFieldCosmicMicrowaveBackground
@@ -46,42 +56,58 @@
 contains
 
   function cosmicMicrowaveBackgroundConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily cosmicMicrowaveBackground} radiation field class which takes a parameter list as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily cosmicMicrowaveBackground} radiation field class which takes a parameter list as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (radiationFieldCosmicMicrowaveBackground)                :: self
     type (inputParameters                        ), intent(inout) :: parameters
     class(cosmologyFunctionsClass                ), pointer       :: cosmologyFunctions_
 
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !![
+    <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !!]
     self=radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"/>
+    !!]
     return
   end function cosmicMicrowaveBackgroundConstructorParameters
 
   function cosmicMicrowaveBackgroundConstructorInternal(cosmologyFunctions_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily cosmicMicrowaveBackground} radiation field class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily cosmicMicrowaveBackground} radiation field class.
+    !!}
     implicit none
     type (radiationFieldCosmicMicrowaveBackground)                        :: self
     class(cosmologyFunctionsClass                ), intent(in   ), target :: cosmologyFunctions_
-    !# <constructorAssign variables="*cosmologyFunctions_"/>
+    !![
+    <constructorAssign variables="*cosmologyFunctions_"/>
+    !!]
 
     self%temperature_=-1.0d0 ! Initialize to an unphysical value.
     return
   end function cosmicMicrowaveBackgroundConstructorInternal
 
   subroutine cosmicMicrowaveBackgroundDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily cosmicMicrowaveBackground} radiation field class.
+    !!{
+    Destructor for the {\normalfont \ttfamily cosmicMicrowaveBackground} radiation field class.
+    !!}
     implicit none
     type(radiationFieldCosmicMicrowaveBackground), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"/>
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"/>
+    !!]
     return
   end subroutine cosmicMicrowaveBackgroundDestructor
 
   subroutine cosmicMicrowaveBackgroundTimeSet(self,time)
-    !% Set the time (and temperature) of the cosmic microwave background radiation field.
+    !!{
+    Set the time (and temperature) of the cosmic microwave background radiation field.
+    !!}
     implicit none
     class           (radiationFieldCosmicMicrowaveBackground), intent(inout) :: self
     double precision                                         , intent(in   ) :: time

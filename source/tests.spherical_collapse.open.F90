@@ -17,11 +17,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program which tests spherical collapse calculations for an open Universe.
+!!{
+Contains a program which tests spherical collapse calculations for an open Universe.
+!!}
 
 program Tests_Spherical_Collapse_Open
-  !% Tests spherical collapse calculations for an open Universe. Compares results to the fitting formula of
-  !% \cite{bryan_statistical_1998}.
+  !!{
+  Tests spherical collapse calculations for an open Universe. Compares results to the fitting formula of
+  \cite{bryan_statistical_1998}.
+  !!}
   use :: Cosmology_Functions     , only : cosmologyFunctionsMatterLambda
   use :: Cosmology_Parameters    , only : cosmologyParametersSimple
   use :: Display                 , only : displayVerbositySet                                           , verbosityLevelStandard
@@ -45,32 +49,34 @@ program Tests_Spherical_Collapse_Open
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Spherical collapse: open cosmology")
   ! Test spherical collapse in an open universe.
-  !# <referenceConstruct object="cosmologyParameters_"  >
-  !#  <constructor>
-  !#   cosmologyParametersSimple                                     (                                           &amp;
-  !#    &amp;                                                         OmegaMatter         = 0.1d0              , &amp;
-  !#    &amp;                                                         OmegaBaryon         = 0.0d0              , &amp;
-  !#    &amp;                                                         OmegaDarkEnergy     = 0.0d0              , &amp;
-  !#    &amp;                                                         temperatureCMB      = 2.7d0              , &amp;
-  !#    &amp;                                                         HubbleConstant      =70.0d0                &amp;
-  !#    &amp;                                                        )
-  !#  </constructor>
-  !# </referenceConstruct>
-  !# <referenceConstruct object="cosmologyFunctions_"   >
-  !#  <constructor>
-  !#   cosmologyFunctionsMatterLambda                                (                                           &amp;
-  !#    &amp;                                                         cosmologyParameters_=cosmologyParameters_  &amp;
-  !#    &amp;                                                        )
-  !#  </constructor>
-  !# </referenceConstruct>
-  !# <referenceConstruct object="virialDensityContrast_">
-  !#  <constructor>
-  !#   virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(                                           &amp;
-  !#    &amp;                                                         cosmologyFunctions_ =cosmologyFunctions_ , &amp;
-  !#    &amp;                                                         tableStore          =.true.                &amp;
-  !#    &amp;                                                        )
-  !#  </constructor>
-  !# </referenceConstruct>
+  !![
+  <referenceConstruct object="cosmologyParameters_"  >
+   <constructor>
+    cosmologyParametersSimple                                     (                                           &amp;
+     &amp;                                                         OmegaMatter         = 0.1d0              , &amp;
+     &amp;                                                         OmegaBaryon         = 0.0d0              , &amp;
+     &amp;                                                         OmegaDarkEnergy     = 0.0d0              , &amp;
+     &amp;                                                         temperatureCMB      = 2.7d0              , &amp;
+     &amp;                                                         HubbleConstant      =70.0d0                &amp;
+     &amp;                                                        )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="cosmologyFunctions_"   >
+   <constructor>
+    cosmologyFunctionsMatterLambda                                (                                           &amp;
+     &amp;                                                         cosmologyParameters_=cosmologyParameters_  &amp;
+     &amp;                                                        )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="virialDensityContrast_">
+   <constructor>
+    virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(                                           &amp;
+     &amp;                                                         cosmologyFunctions_ =cosmologyFunctions_ , &amp;
+     &amp;                                                         tableStore          =.true.                &amp;
+     &amp;                                                        )
+   </constructor>
+  </referenceConstruct>
+  !!]
   do iExpansion=1,size(redshift)
      expansionFactor=cosmologyFunctions_%expansionFactorFromRedshift(redshift(iExpansion))
      age            =cosmologyFunctions_%cosmicTime(expansionFactor)

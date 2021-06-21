@@ -23,10 +23,14 @@
 ! Add dependency on GSL library.
 !; gsl
 
-!% Contains a module which implements hypergeometric functions.
+!!{
+Contains a module which implements hypergeometric functions.
+!!}
 
 module Hypergeometric_Functions
-  !% Implements hypergeometric functions.
+  !!{
+  Implements hypergeometric functions.
+  !!}
   use, intrinsic :: ISO_C_Binding, only : c_double     , c_int
   use            :: Interface_GSL, only : gsl_sf_result, gsl_success
   implicit none
@@ -40,7 +44,9 @@ module Hypergeometric_Functions
 
   interface
      function gsl_sf_hyperg_2F1_approx_e(a,b,c,x,tol,result) bind(c,name='gsl_sf_hyperg_2F1_approx_e')
-       !% Template for the GSL approximate hypergeometric 2F1 C function.
+       !!{
+       Template for the GSL approximate hypergeometric 2F1 C function.
+       !!}
        import
        integer(c_int        )        :: gsl_sf_hyperg_2F1_approx_e
        real   (c_double     ), value :: a,b,c,x,tol
@@ -48,7 +54,9 @@ module Hypergeometric_Functions
      end function gsl_sf_hyperg_2F1_approx_e
 
      function gsl_sf_hyperg_2F1_e(a,b,c,x,result) bind(c,name='gsl_sf_hyperg_2F1_e')
-       !% Template for the GSL hypergeometric 2F1 C function.
+       !!{
+       Template for the GSL hypergeometric 2F1 C function.
+       !!}
        import
        integer(c_int        )        :: gsl_sf_hyperg_2F1_e
        real   (c_double     ), value :: a                  , b, &
@@ -57,7 +65,9 @@ module Hypergeometric_Functions
      end function gsl_sf_hyperg_2F1_e
 
      function gsl_sf_hyperg_1F1(a,b,x) bind(c,name='gsl_sf_hyperg_1F1')
-       !% Template for the GSL hypergeometric 1F1 C function.
+       !!{
+       Template for the GSL hypergeometric 1F1 C function.
+       !!}
        import
        real(c_double)        :: gsl_sf_hyperg_1F1
        real(c_double), value :: a                , b, &
@@ -65,7 +75,9 @@ module Hypergeometric_Functions
      end function gsl_sf_hyperg_1F1
 
      function gsl_sf_hyperg_2F1_approx_series(a,b,c,x,tol,result) bind(c,name='gsl_sf_hyperg_2F1_approx_series')
-       !% Template for the GSL series approximation of the hypergeometric 2F1 C function.
+       !!{
+       Template for the GSL series approximation of the hypergeometric 2F1 C function.
+       !!}
        import
        integer(c_int        )        :: gsl_sf_hyperg_2F1_approx_series
        real   (c_double     ), value :: a,b,c,x,tol
@@ -80,7 +92,9 @@ module Hypergeometric_Functions
 contains
 
   double precision function Hypergeometric_1F1(a,b,x)
-    !% Evaluate the $_1F_1(a_1;b_1;x)$ hypergeometric function.
+    !!{
+    Evaluate the $_1F_1(a_1;b_1;x)$ hypergeometric function.
+    !!}
     implicit none
     double precision, intent(in   ) :: a(1), b(1), x
 
@@ -89,7 +103,9 @@ contains
   end function Hypergeometric_1F1
 
   double precision function Hypergeometric_2F1(a,b,x,status,error,toleranceRelative)
-    !% Evaluate the $_2F_1(a_1,a_2;b_1;x)$ hypergeometric function.
+    !!{
+    Evaluate the $_2F_1(a_1,a_2;b_1;x)$ hypergeometric function.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report, Galacticus_GSL_Error_Handler_Abort_Off, Galacticus_GSL_Error_Handler_Abort_On
     use :: Gamma_Functions , only : Gamma_Function
     implicit none
@@ -207,8 +223,10 @@ contains
   end function Hypergeometric_2F1
 
   double complex function Hypergeometric_pFq_Complex(a,b,x,toleranceRelative)
-    !% Evaluate the generalized hypergeometric function $_pF_q(a_1,\ldots,a_p;b_1,\ldots,b_q;x)$, using the algorithm of
-    !% \cite{perger_numerical_1993}.
+    !!{
+    Evaluate the generalized hypergeometric function $_pF_q(a_1,\ldots,a_p;b_1,\ldots,b_q;x)$, using the algorithm of
+    \cite{perger_numerical_1993}.
+    !!}
     use :: Numerical_Comparison, only : Values_Agree
     implicit none
     double complex  , intent(in   ), dimension(:) :: a                , b
@@ -255,7 +273,9 @@ contains
   end function Hypergeometric_pFq_Complex
 
   double precision function Hypergeometric_pFq_Real(a,b,x,toleranceRelative,useAcceleration)
-    !% Evaluate the generalized hypergeometric function $_pF_q(a_1,\ldots,a_p;b_1,\ldots,b_q;x)$ for real arguments.
+    !!{
+    Evaluate the generalized hypergeometric function $_pF_q(a_1,\ldots,a_p;b_1,\ldots,b_q;x)$ for real arguments.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Gamma_Functions , only : Gamma_Function
     implicit none
@@ -359,8 +379,10 @@ contains
   end function Hypergeometric_pFq_Real
 
   double precision function Hypergeometric_pFq_approx_series(a,b,x,toleranceRelative)
-    !% Evaluate the generalized hypergeometric function $_pF_q(a_1,\ldots,a_p;b_1,\ldots,b_q;x)$ by direct summation.
-    !% Shanks transformation (\cite{shanks_non_linear_1955}) is used to accelerate the calculations.
+    !!{
+    Evaluate the generalized hypergeometric function $_pF_q(a_1,\ldots,a_p;b_1,\ldots,b_q;x)$ by direct summation.
+    Shanks transformation (\cite{shanks_non_linear_1955}) is used to accelerate the calculations.
+    !!}
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: Display           , only : displayMessage         , verbosityLevelWarn
     use :: ISO_Varying_String, only : varying_string         , assignment(=)     , operator(//)
@@ -453,8 +475,10 @@ contains
   end function Hypergeometric_pFq_approx_series
 
   double precision function Hypergeometric_pFq_Regularized(a,b,x)
-    !% Evaluate the regularized generalized hypergeometric function
-    !% $_pF_q(a_1,\ldots,a_p;b_1,\ldots,b_q;x)/[\Gamma(b_1)\ldots\Gamma(b_q)]$ for real arguments.
+    !!{
+    Evaluate the regularized generalized hypergeometric function
+    $_pF_q(a_1,\ldots,a_p;b_1,\ldots,b_q;x)/[\Gamma(b_1)\ldots\Gamma(b_q)]$ for real arguments.
+    !!}
     implicit none
     double precision, intent(in   ), dimension(:) :: a, b
     double precision, intent(in   )               :: x

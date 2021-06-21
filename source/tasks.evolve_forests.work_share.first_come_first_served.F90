@@ -19,11 +19,15 @@
 
   use :: MPI_Utilities, only : mpiCounter
 
-  !# <evolveForestsWorkShare name="evolveForestsWorkShareFCFS">
-  !#  <description>A forest evolution work sharing class in which forests are assigned on a first-come-first-served basis.</description>
-  !# </evolveForestsWorkShare>
+  !![
+  <evolveForestsWorkShare name="evolveForestsWorkShareFCFS">
+   <description>A forest evolution work sharing class in which forests are assigned on a first-come-first-served basis.</description>
+  </evolveForestsWorkShare>
+  !!]
   type, extends(evolveForestsWorkShareClass) :: evolveForestsWorkShareFCFS
-     !% Implementation of a forest evolution work sharing class in which forests are assigned on a first-come-first-served basis.
+     !!{
+     Implementation of a forest evolution work sharing class in which forests are assigned on a first-come-first-served basis.
+     !!}
      private
      integer(c_size_t), allocatable, dimension(:) :: activeProcessRanks
    contains
@@ -32,7 +36,9 @@
   end type evolveForestsWorkShareFCFS
 
   interface evolveForestsWorkShareFCFS
-     !% Constructors for the {\normalfont \ttfamily fcfs} forest evolution work sharing class.
+     !!{
+     Constructors for the {\normalfont \ttfamily fcfs} forest evolution work sharing class.
+     !!}
      module procedure fcfsConstructorParameters
      module procedure fcfsConstructorInternal
   end interface evolveForestsWorkShareFCFS
@@ -43,8 +49,10 @@
 contains
 
   function fcfsConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily fcfs} forest evolution work sharing class which takes a parameter set as
-    !% input.
+    !!{
+    Constructor for the {\normalfont \ttfamily fcfs} forest evolution work sharing class which takes a parameter set as
+    input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type   (evolveForestsWorkShareFCFS)                              :: self
@@ -53,11 +61,13 @@ contains
 
     if (parameters%isPresent('activeProcessRanks')) then
        allocate(activeProcessRanks(parameters%count('activeProcessRanks')))
-       !# <inputParameter>
-       !#   <name>activeProcessRanks</name>
-       !#   <description>A list of MPI process ranks which will be allowed to process trees---all other ranks are given no work.</description>
-       !#   <source>parameters</source>
-       !# </inputParameter>
+       !![
+       <inputParameter>
+         <name>activeProcessRanks</name>
+         <description>A list of MPI process ranks which will be allowed to process trees---all other ranks are given no work.</description>
+         <source>parameters</source>
+       </inputParameter>
+       !!]
        self=evolveForestsWorkShareFCFS(activeProcessRanks)
     else
        self=evolveForestsWorkShareFCFS(                  )
@@ -66,7 +76,9 @@ contains
   end function fcfsConstructorParameters
 
   function fcfsConstructorInternal(activeProcessRanks) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily fcfs} forest evolution work sharing class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily fcfs} forest evolution work sharing class.
+    !!}
 #ifdef USEMPI
     use :: MPI_Utilities, only : mpiSelf
 #endif
@@ -93,7 +105,9 @@ contains
   end function fcfsConstructorInternal
 
   function fcfsForestNumber(self,utilizeOpenMPThreads)
-    !% Return the number of the next forest to process.
+    !!{
+    Return the number of the next forest to process.
+    !!}
 #ifdef USEMPI
     use :: MPI_Utilities, only : mpiSelf
 #endif
@@ -116,7 +130,9 @@ contains
   end function fcfsForestNumber
 
   subroutine fcfsPing(self)
-    !% Return the number of the next forest to process.
+    !!{
+    Return the number of the next forest to process.
+    !!}
 #ifdef USEMPI
     use :: MPI_Utilities, only : mpiSelf
 #endif

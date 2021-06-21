@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of an active model parameter class.
+  !!{
+  Implementation of an active model parameter class.
+  !!}
 
   use :: Math_Operators_Unary    , only : operatorUnaryClass
   use :: Statistics_Distributions, only : distributionFunction1DClass
 
-  !# <modelParameter name="modelParameterActive">
-  !#  <description>An active model parameter class.</description>
-  !# </modelParameter>
+  !![
+  <modelParameter name="modelParameterActive">
+   <description>An active model parameter class.</description>
+  </modelParameter>
+  !!]
   type, extends(modelParameterClass) :: modelParameterActive
-     !% Implementation of an active model parameter class.
+     !!{
+     Implementation of an active model parameter class.
+     !!}
      private
      class(distributionFunction1DClass), pointer :: prior  => null(), perturber => null()
      class(operatorUnaryClass         ), pointer :: mapper => null()
@@ -45,7 +51,9 @@
   end type modelParameterActive
 
   interface modelParameterActive
-     !% Constructors for the {\normalfont \ttfamily active} 1D distribution function class.
+     !!{
+     Constructors for the {\normalfont \ttfamily active} 1D distribution function class.
+     !!}
      module procedure activeConstructorParameters
      module procedure activeConstructorInternal
   end interface modelParameterActive
@@ -53,7 +61,9 @@
 contains
 
   function activeConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily active} model parameter class which builds the object from a parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily active} model parameter class which builds the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (modelParameterActive       )                :: self
@@ -62,48 +72,62 @@ contains
     class(operatorUnaryClass         ), pointer       :: mapper
     type (varying_string             )                :: name
 
-    !# <inputParameter>
-    !#   <name>name</name>
-    !#   <description>The name of the parameter.</description>
-    !#   <defaultValue>var_str('')</defaultValue>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="distributionFunction1D" parameterName="distributionFunction1DPrior"     name="prior"     source="parameters"/>
-    !# <objectBuilder class="distributionFunction1D" parameterName="distributionFunction1DPerturber" name="perturber" source="parameters"/>
-    !# <objectBuilder class="operatorUnary"          parameterName="operatorUnaryMapper"             name="mapper"    source="parameters"/>
+    !![
+    <inputParameter>
+      <name>name</name>
+      <description>The name of the parameter.</description>
+      <defaultValue>var_str('')</defaultValue>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="distributionFunction1D" parameterName="distributionFunction1DPrior"     name="prior"     source="parameters"/>
+    <objectBuilder class="distributionFunction1D" parameterName="distributionFunction1DPerturber" name="perturber" source="parameters"/>
+    <objectBuilder class="operatorUnary"          parameterName="operatorUnaryMapper"             name="mapper"    source="parameters"/>
+    !!]
     self=modelParameterActive(name,prior,perturber,mapper)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="prior"    />
-    !# <objectDestructor name="perturber"/>
-    !# <objectDestructor name="mapper"   />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="prior"    />
+    <objectDestructor name="perturber"/>
+    <objectDestructor name="mapper"   />
+    !!]
     return
   end function activeConstructorParameters
 
   function activeConstructorInternal(name_,prior,perturber,mapper) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily active} model parameter class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily active} model parameter class.
+    !!}
     implicit none
     type (modelParameterActive       )                        :: self
     class(distributionFunction1DClass), intent(in   ), target :: prior , perturber
     class(operatorUnaryClass         ), intent(in   ), target :: mapper
     type (varying_string             ), intent(in   )         :: name_
-    !# <constructorAssign variables="name_, *prior, *perturber, *mapper"/>
+    !![
+    <constructorAssign variables="name_, *prior, *perturber, *mapper"/>
+    !!]
 
     return
   end function activeConstructorInternal
 
   subroutine activeDestructor(self)
-    !% Destructor for ``active'' model parameter class.
+    !!{
+    Destructor for ``active'' model parameter class.
+    !!}
     implicit none
     type(modelParameterActive), intent(inout) :: self
 
-    !# <objectDestructor name="self%prior"    />
-    !# <objectDestructor name="self%perturber"/>
-    !# <objectDestructor name="self%mapper"   />
+    !![
+    <objectDestructor name="self%prior"    />
+    <objectDestructor name="self%perturber"/>
+    <objectDestructor name="self%mapper"   />
+    !!]
     return
   end subroutine activeDestructor
 
   function activeName(self)
-    !% Return the name of this parameter.
+    !!{
+    Return the name of this parameter.
+    !!}
     implicit none
     type (varying_string      )                :: activeName
     class(modelParameterActive), intent(inout) :: self
@@ -113,7 +137,9 @@ contains
   end function activeName
 
   double precision function activeLogPrior(self,x)
-    !% Return the log-prior on this parameter.
+    !!{
+    Return the log-prior on this parameter.
+    !!}
     use :: Models_Likelihoods_Constants, only : logImpossible
     implicit none
     class           (modelParameterActive), intent(inout) :: self
@@ -129,7 +155,9 @@ contains
   end function activeLogPrior
 
   double precision function activePriorSample(self)
-    !% Sample from the of this parameter.
+    !!{
+    Sample from the of this parameter.
+    !!}
     implicit none
     class(modelParameterActive), intent(inout) :: self
 
@@ -138,7 +166,9 @@ contains
   end function activePriorSample
 
   double precision function activePriorInvert(self,f)
-    !% Invert the prior, returning the parameter value given the cumulative probability.
+    !!{
+    Invert the prior, returning the parameter value given the cumulative probability.
+    !!}
     implicit none
     class           (modelParameterActive), intent(inout) :: self
     double precision                      , intent(in   ) :: f
@@ -148,7 +178,9 @@ contains
   end function activePriorInvert
 
   double precision function activePriorMinimum(self)
-    !% Return the minimum value for which the prior is non-zero.
+    !!{
+    Return the minimum value for which the prior is non-zero.
+    !!}
     implicit none
     class(modelParameterActive), intent(inout) :: self
 
@@ -157,7 +189,9 @@ contains
   end function activePriorMinimum
 
   double precision function activePriorMaximum(self)
-    !% Return the maximum value for which the prior is non-zero.
+    !!{
+    Return the maximum value for which the prior is non-zero.
+    !!}
     implicit none
     class(modelParameterActive), intent(inout) :: self
 
@@ -166,7 +200,9 @@ contains
   end function activePriorMaximum
 
   double precision function activeRandomPerturbation(self)
-    !% Return a random perturbation to this parameter.
+    !!{
+    Return a random perturbation to this parameter.
+    !!}
     implicit none
     class(modelParameterActive), intent(inout) :: self
 
@@ -175,7 +211,9 @@ contains
   end function activeRandomPerturbation
 
   double precision function activeMap(self,x)
-    !% Map this parameter.
+    !!{
+    Map this parameter.
+    !!}
     implicit none
     class           (modelParameterActive), intent(inout) :: self
     double precision                      , intent(in   ) :: x
@@ -185,7 +223,9 @@ contains
   end function activeMap
 
   double precision function activeUnmap(self,x)
-    !% Unmap this parameter.
+    !!{
+    Unmap this parameter.
+    !!}
     implicit none
     class           (modelParameterActive), intent(inout) :: self
     double precision                      , intent(in   ) :: x

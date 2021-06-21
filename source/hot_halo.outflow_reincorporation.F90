@@ -17,26 +17,32 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides a class that implements reincorporation of outflowed mass into the hot halo.
+!!{
+Contains a module which provides a class that implements reincorporation of outflowed mass into the hot halo.
+!!}
 
 module Hot_Halo_Outflows_Reincorporations
-  !% Provides a class that implements reincorporation of outflowed mass into the hot halo.
+  !!{
+  Provides a class that implements reincorporation of outflowed mass into the hot halo.
+  !!}
   use :: Galacticus_Nodes, only : treeNode
   private
 
-  !# <functionClass>
-  !#  <name>hotHaloOutflowReincorporation</name>
-  !#  <descriptiveName>Hot Halo Outflow Reincorporation</descriptiveName>
-  !#  <description>
-  !#   Class providing models of reincorportation of outflowed mass into the hot halo.
-  !#  </description>
-  !#  <default>haloDynamicalTime</default>
-  !#  <method name="rate" >
-  !#   <description>Return the rate at which outflowed mass is being reincorporated into the hot halo.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout) :: node</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>hotHaloOutflowReincorporation</name>
+   <descriptiveName>Hot Halo Outflow Reincorporation</descriptiveName>
+   <description>
+    Class providing models of reincorportation of outflowed mass into the hot halo.
+   </description>
+   <default>haloDynamicalTime</default>
+   <method name="rate" >
+    <description>Return the rate at which outflowed mass is being reincorporated into the hot halo.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>type(treeNode), intent(inout) :: node</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Hot_Halo_Outflows_Reincorporations

@@ -17,7 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an intracluster medium cooling power in band property extractor class.
+!!{
+Contains a module which implements an intracluster medium cooling power in band property extractor class.
+!!}
 
   use :: Cooling_Functions            , only : coolingFunction          , coolingFunctionClass
   use :: Cosmology_Functions          , only : cosmologyFunctions       , cosmologyFunctionsClass
@@ -25,11 +27,15 @@
   use :: Hot_Halo_Mass_Distributions  , only : hotHaloMassDistribution  , hotHaloMassDistributionClass
   use :: Hot_Halo_Temperature_Profiles, only : hotHaloTemperatureProfile, hotHaloTemperatureProfileClass
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorICMCoolingPowerInBand">
-  !#  <description>An intracluster medium cooling power in band property extractor class.</description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorICMCoolingPowerInBand">
+   <description>An intracluster medium cooling power in band property extractor class.</description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorICMCoolingPowerInBand
-     !% A property extractor class which extracts the fraction of the ICM cooling power due to emission in a given energy band.
+     !!{
+     A property extractor class which extracts the fraction of the ICM cooling power due to emission in a given energy band.
+     !!}
      private
      class           (darkMatterHaloScaleClass      ), pointer :: darkMatterHaloScale_       => null()
      class           (hotHaloMassDistributionClass  ), pointer :: hotHaloMassDistribution_   => null()
@@ -48,7 +54,9 @@
   end type nodePropertyExtractorICMCoolingPowerInBand
 
   interface nodePropertyExtractorICMCoolingPowerInBand
-     !% Constructors for the ``icmCoolingPowerInBand'' output analysis class.
+     !!{
+     Constructors for the ``icmCoolingPowerInBand'' output analysis class.
+     !!}
      module procedure icmCoolingPowerInBandConstructorParameters
      module procedure icmCoolingPowerInBandConstructorInternal
   end interface nodePropertyExtractorICMCoolingPowerInBand
@@ -56,7 +64,9 @@
 contains
 
   function icmCoolingPowerInBandConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily icmCoolingPowerInBand} property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily icmCoolingPowerInBand} property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (nodePropertyExtractorICMCoolingPowerInBand)                :: self
@@ -70,38 +80,44 @@ contains
     type            (varying_string                            )                :: label
 
 
-    !# <inputParameter>
-    !#   <name>energyLow</name>
-    !#   <source>parameters</source>
-    !#   <description>The minimum energy (in units of keV) for the band.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>energyHigh</name>
-    !#   <source>parameters</source>
-    !#   <description>The maximum energy (in units of keV) for the band.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>label</name>
-    !#   <source>parameters</source>
-    !#   <description>A label to use as a suffix for this property.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions"        name="cosmologyFunctions_"        source="parameters"/>
-    !# <objectBuilder class="darkMatterHaloScale"       name="darkMatterHaloScale_"       source="parameters"/>
-    !# <objectBuilder class="hotHaloMassDistribution"   name="hotHaloMassDistribution_"   source="parameters"/>
-    !# <objectBuilder class="hotHaloTemperatureProfile" name="hotHaloTemperatureProfile_" source="parameters"/>
-    !# <objectBuilder class="coolingFunction"           name="coolingFunction_"           source="parameters"/>
+    !![
+    <inputParameter>
+      <name>energyLow</name>
+      <source>parameters</source>
+      <description>The minimum energy (in units of keV) for the band.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>energyHigh</name>
+      <source>parameters</source>
+      <description>The maximum energy (in units of keV) for the band.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>label</name>
+      <source>parameters</source>
+      <description>A label to use as a suffix for this property.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyFunctions"        name="cosmologyFunctions_"        source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale"       name="darkMatterHaloScale_"       source="parameters"/>
+    <objectBuilder class="hotHaloMassDistribution"   name="hotHaloMassDistribution_"   source="parameters"/>
+    <objectBuilder class="hotHaloTemperatureProfile" name="hotHaloTemperatureProfile_" source="parameters"/>
+    <objectBuilder class="coolingFunction"           name="coolingFunction_"           source="parameters"/>
+    !!]
     self=nodePropertyExtractorICMCoolingPowerInBand(energyLow,energyHigh,label,cosmologyFunctions_,darkMatterHaloScale_,hotHaloMassDistribution_,hotHaloTemperatureProfile_,coolingFunction_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"       />
-    !# <objectDestructor name="darkMatterHaloScale_"      />
-    !# <objectDestructor name="hotHaloMassDistribution_"  />
-    !# <objectDestructor name="hotHaloTemperatureProfile_"/>
-    !# <objectDestructor name="coolingFunction_"          />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"       />
+    <objectDestructor name="darkMatterHaloScale_"      />
+    <objectDestructor name="hotHaloMassDistribution_"  />
+    <objectDestructor name="hotHaloTemperatureProfile_"/>
+    <objectDestructor name="coolingFunction_"          />
+    !!]
     return
   end function icmCoolingPowerInBandConstructorParameters
 
   function icmCoolingPowerInBandConstructorInternal(energyLow,energyHigh,label,cosmologyFunctions_,darkMatterHaloScale_,hotHaloMassDistribution_,hotHaloTemperatureProfile_,coolingFunction_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily icmCoolingPowerInBand} property extractor class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily icmCoolingPowerInBand} property extractor class.
+    !!}
     implicit none
     type            (nodePropertyExtractorICMCoolingPowerInBand)                        :: self
     double precision                                            , intent(in   )         :: energyLow                 , energyHigh
@@ -111,26 +127,34 @@ contains
     class           (hotHaloMassDistributionClass              ), intent(in   ), target :: hotHaloMassDistribution_
     class           (hotHaloTemperatureProfileClass            ), intent(in   ), target :: hotHaloTemperatureProfile_
     class           (coolingFunctionClass                      ), intent(in   ), target :: coolingFunction_
-    !# <constructorAssign variables="energyLow, energyHigh, label, *cosmologyFunctions_, *darkMatterHaloScale_, *hotHaloMassDistribution_, *hotHaloTemperatureProfile_, *coolingFunction_"/>
+    !![
+    <constructorAssign variables="energyLow, energyHigh, label, *cosmologyFunctions_, *darkMatterHaloScale_, *hotHaloMassDistribution_, *hotHaloTemperatureProfile_, *coolingFunction_"/>
+    !!]
 
     return
   end function icmCoolingPowerInBandConstructorInternal
 
   subroutine icmCoolingPowerInBandDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily icmCoolingPowerInBand} property extractor class.
+    !!{
+    Destructor for the {\normalfont \ttfamily icmCoolingPowerInBand} property extractor class.
+    !!}
     implicit none
     type(nodePropertyExtractorICMCoolingPowerInBand), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"       />
-    !# <objectDestructor name="self%darkMatterHaloScale_"      />
-    !# <objectDestructor name="self%hotHaloMassDistribution_"  />
-    !# <objectDestructor name="self%hotHaloTemperatureProfile_"/>
-    !# <objectDestructor name="self%coolingFunction_"          />
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"       />
+    <objectDestructor name="self%darkMatterHaloScale_"      />
+    <objectDestructor name="self%hotHaloMassDistribution_"  />
+    <objectDestructor name="self%hotHaloTemperatureProfile_"/>
+    <objectDestructor name="self%coolingFunction_"          />
+    !!]
     return
   end subroutine icmCoolingPowerInBandDestructor
 
   double precision function icmCoolingPowerInBandExtract(self,node,instance)
-    !% Implement an ICM X-ray properties extractor.
+    !!{
+    Implement an ICM X-ray properties extractor.
+    !!}
     use :: Numerical_Constants_Physical, only : boltzmannsConstant
     use :: Numerical_Constants_Prefixes, only : kilo
     use :: Numerical_Constants_Units   , only : electronVolt
@@ -147,7 +171,9 @@ contains
 
     ! Initialize radiation field.
     allocate(radiation_)
-    !# <referenceConstruct object="radiation_" constructor="radiationFieldCosmicMicrowaveBackground(self%cosmologyFunctions_)"/>
+    !![
+    <referenceConstruct object="radiation_" constructor="radiationFieldCosmicMicrowaveBackground(self%cosmologyFunctions_)"/>
+    !!]
     ! Compute luminosity and temperature.
     integratorTotal =integrator                (integrandLuminosityTotal ,toleranceRelative                           =1.0d-3)
     integratorInBand=integrator                (integrandLuminosityInBand,toleranceRelative                           =1.0d-3)
@@ -159,13 +185,17 @@ contains
     else
        icmCoolingPowerInBandExtract=+0.0d0
     end if
-    !# <objectDestructor name="radiation_"/>
+    !![
+    <objectDestructor name="radiation_"/>
+    !!]
     return
 
   contains
     
     double precision function integrandLuminosityTotal(radius)
-      !% Integrand function used for computing ICM X-ray luminosities.
+      !!{
+      Integrand function used for computing ICM X-ray luminosities.
+      !!}
       use :: Abundances_Structure         , only : abundances
       use :: Chemical_Abundances_Structure, only : chemicalAbundances
       implicit none
@@ -182,7 +212,9 @@ contains
     end function integrandLuminosityTotal
     
     double precision function integrandLuminosityInBand(radius)
-      !% Integrand function used for computing ICM X-ray luminosities.
+      !!{
+      Integrand function used for computing ICM X-ray luminosities.
+      !!}
       use :: Abundances_Structure         , only : abundances
       use :: Chemical_Abundances_Structure, only : chemicalAbundances
       implicit none
@@ -249,7 +281,9 @@ contains
   end function icmCoolingPowerInBandExtract
 
   function icmCoolingPowerInBandName(self)
-    !% Return the name of the cooling power in band property.
+    !!{
+    Return the name of the cooling power in band property.
+    !!}
     use :: ISO_Varying_String, only : operator(//)
     implicit none
     type (varying_string                            )                :: icmCoolingPowerInBandName
@@ -260,7 +294,9 @@ contains
   end function icmCoolingPowerInBandName
 
   function icmCoolingPowerInBandDescription(self)
-    !% Return a description of the cooling power in band property.
+    !!{
+    Return a description of the cooling power in band property.
+    !!}
     use :: ISO_Varying_String, only : operator(//)
     implicit none
     type     (varying_string                            )                :: icmCoolingPowerInBandDescription
@@ -274,7 +310,9 @@ contains
   end function icmCoolingPowerInBandDescription
 
   double precision function icmCoolingPowerInBandUnitsInSI(self)
-    !% Return the units of the {\normalfont \ttfamily icmCoolingPowerInBand} properties in the SI system.
+    !!{
+    Return the units of the {\normalfont \ttfamily icmCoolingPowerInBand} properties in the SI system.
+    !!}
     implicit none
     class(nodePropertyExtractorICMCoolingPowerInBand), intent(inout) :: self
     !$GLC attributes unused :: self
@@ -284,7 +322,9 @@ contains
   end function icmCoolingPowerInBandUnitsInSI
 
   integer function icmCoolingPowerInBandType(self)
-    !% Return the type of the {\normalfont \ttfamily icmCoolingPowerInBand} properties.
+    !!{
+    Return the type of the {\normalfont \ttfamily icmCoolingPowerInBand} properties.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorICMCoolingPowerInBand), intent(inout) :: self

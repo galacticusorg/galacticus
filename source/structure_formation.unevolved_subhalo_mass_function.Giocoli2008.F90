@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a \cite{giocoli_population_2008} unevolved dark matter subhalo mass function class.
+!!{
+Contains a module which implements a \cite{giocoli_population_2008} unevolved dark matter subhalo mass function class.
+!!}
 
-  !# <unevolvedSubhaloMassFunction name="unevolvedSubhaloMassFunctionGiocoli2008">
-  !#  <description>The halo mass function is computed from the function given by \cite{giocoli_population_2008}.</description>
-  !# </unevolvedSubhaloMassFunction>
+  !![
+  <unevolvedSubhaloMassFunction name="unevolvedSubhaloMassFunctionGiocoli2008">
+   <description>The halo mass function is computed from the function given by \cite{giocoli_population_2008}.</description>
+  </unevolvedSubhaloMassFunction>
+  !!]
   type, extends(unevolvedSubhaloMassFunctionClass) :: unevolvedSubhaloMassFunctionGiocoli2008
-     !% An unevolved subhalo mass function class using the model of \cite{giocoli_population_2008}.
+     !!{
+     An unevolved subhalo mass function class using the model of \cite{giocoli_population_2008}.
+     !!}
      private
      double precision :: normalization, exponent
     contains
@@ -32,7 +38,9 @@
   end type unevolvedSubhaloMassFunctionGiocoli2008
 
   interface unevolvedSubhaloMassFunctionGiocoli2008
-     !% Constructors for the {\normalfont \ttfamily giocoli2008} halo mass function class.
+     !!{
+     Constructors for the {\normalfont \ttfamily giocoli2008} halo mass function class.
+     !!}
      module procedure giocoli2008ConstructorParameters
      module procedure giocoli2008ConstructorInternal
   end interface unevolvedSubhaloMassFunctionGiocoli2008
@@ -43,35 +51,41 @@
 contains
 
   function giocoli2008ConstructorParameters(parameters)
-    !% Constructor for the {\normalfont \ttfamily giocoli2008} halo mass function class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily giocoli2008} halo mass function class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(unevolvedSubhaloMassFunctionGiocoli2008)                :: giocoli2008ConstructorParameters
     type(inputParameters                        ), intent(inout) :: parameters
 
     ! Check and read parameters.
-    !# <inputParameter>
-    !#   <name>normalization</name>
-    !#   <source>parameters</source>
-    !#   <variable>giocoli2008ConstructorParameters%normalization</variable>
-    !#   <defaultValue>0.21d0</defaultValue>
-    !#   <defaultSource>\cite{giocoli_population_2008}</defaultSource>
-    !#   <description>The parameter $N_0$ in the \cite{giocoli_population_2008} unevolved subhalo mass function fit.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>exponent</name>
-    !#   <source>parameters</source>
-    !#   <variable>giocoli2008ConstructorParameters%exponent</variable>
-    !#   <defaultValue>0.8d0</defaultValue>
-    !#   <defaultSource>\cite{giocoli_population_2008}</defaultSource>
-    !#   <description>The parameter $\alpha$ in the \cite{giocoli_population_2008} unevolved subhalo mass function fit.</description>
-    !# </inputParameter>
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParameter>
+      <name>normalization</name>
+      <source>parameters</source>
+      <variable>giocoli2008ConstructorParameters%normalization</variable>
+      <defaultValue>0.21d0</defaultValue>
+      <defaultSource>\cite{giocoli_population_2008}</defaultSource>
+      <description>The parameter $N_0$ in the \cite{giocoli_population_2008} unevolved subhalo mass function fit.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>exponent</name>
+      <source>parameters</source>
+      <variable>giocoli2008ConstructorParameters%exponent</variable>
+      <defaultValue>0.8d0</defaultValue>
+      <defaultSource>\cite{giocoli_population_2008}</defaultSource>
+      <description>The parameter $\alpha$ in the \cite{giocoli_population_2008} unevolved subhalo mass function fit.</description>
+    </inputParameter>
+    <inputParametersValidate source="parameters"/>
+    !!]
    return
   end function giocoli2008ConstructorParameters
 
   function giocoli2008ConstructorInternal(normalization,exponent)
-    !% Internal constructor for the {\normalfont \ttfamily giocoli2008} halo mass function class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily giocoli2008} halo mass function class.
+    !!}
     implicit none
     type            (unevolvedSubhaloMassFunctionGiocoli2008)                :: giocoli2008ConstructorInternal
     double precision                                         , intent(in   ) :: normalization                 , exponent
@@ -82,7 +96,9 @@ contains
   end function giocoli2008ConstructorInternal
 
   double precision function giocoli2008Differential(self,time,mass,massHost)
-    !% Return the differential unevolved subhalo mass function at the given time and mass.
+    !!{
+    Return the differential unevolved subhalo mass function at the given time and mass.
+    !!}
     implicit none
     class           (unevolvedSubhaloMassFunctionGiocoli2008), intent(inout) :: self
     double precision                                         , intent(in   ) :: time    , mass, &
@@ -105,7 +121,9 @@ contains
   end function giocoli2008Differential
 
   double precision function giocoli2008Integrated(self,time,massLow,massHigh,massHost)
-    !% Return the integrated unevolved subhalo mass function at the given time and mass.
+    !!{
+    Return the integrated unevolved subhalo mass function at the given time and mass.
+    !!}
     implicit none
     class           (unevolvedSubhaloMassFunctionGiocoli2008), intent(inout) :: self
     double precision                                         , intent(in   ) :: time    , massLow , &
@@ -134,7 +152,9 @@ contains
   contains
 
     double precision function gammaIncomplete(x)
-      !% Evaluate the incomplete gamma function, possibly for a negative exponent.
+      !!{
+      Evaluate the incomplete gamma function, possibly for a negative exponent.
+      !!}
       use :: Galacticus_Error, only : Galacticus_Error_Report
       use :: Gamma_Functions , only : Gamma_Function         , Gamma_Function_Incomplete
       implicit none

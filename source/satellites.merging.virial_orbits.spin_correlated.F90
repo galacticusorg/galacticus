@@ -17,14 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of virial orbits which assumes that the orbital angular momentum is correlated with the spin vector of the
-  !% host halo.
+  !!{
+  An implementation of virial orbits which assumes that the orbital angular momentum is correlated with the spin vector of the
+  host halo.
+  !!}
 
-  !# <virialOrbit name="virialOrbitSpinCorrelated">
-  !#  <description>A virial orbit class which assigns infall directions and tangential velocities directions to an orbit return by another virial orbit class such that the orbital angular momentum of the satellite is correlated with the spin vector of the host. Specifically, the angle, $\theta$, between the orbital angular momentum of the satellite and the spin of the host is assumed to be distributed such that $P(\cos \theta) = (1 + \alpha | \lambda | \cos \theta)/2$, where $|\lambda|$ is the magnitude of the host halo spin, and $\alpha$ is a parameter.</description>
-  !# </virialOrbit>
+  !![
+  <virialOrbit name="virialOrbitSpinCorrelated">
+   <description>A virial orbit class which assigns infall directions and tangential velocities directions to an orbit return by another virial orbit class such that the orbital angular momentum of the satellite is correlated with the spin vector of the host. Specifically, the angle, $\theta$, between the orbital angular momentum of the satellite and the spin of the host is assumed to be distributed such that $P(\cos \theta) = (1 + \alpha | \lambda | \cos \theta)/2$, where $|\lambda|$ is the magnitude of the host halo spin, and $\alpha$ is a parameter.</description>
+  </virialOrbit>
+  !!]
   type, extends(virialOrbitClass) :: virialOrbitSpinCorrelated
-     !% A virial orbit class which assumes that the orbital angular momentum is correlated with the spin vector of the host halo.
+     !!{
+     A virial orbit class which assumes that the orbital angular momentum is correlated with the spin vector of the host halo.
+     !!}
      private
      double precision                            :: alpha
      class           (virialOrbitClass), pointer :: virialOrbit_
@@ -42,7 +48,9 @@
   end type virialOrbitSpinCorrelated
 
   interface virialOrbitSpinCorrelated
-     !% Constructors for the {\normalfont \ttfamily spinCorrelated} virial orbit class.
+     !!{
+     Constructors for the {\normalfont \ttfamily spinCorrelated} virial orbit class.
+     !!}
      module procedure spinCorrelatedConstructorParameters
      module procedure spinCorrelatedConstructorInternal
   end interface virialOrbitSpinCorrelated
@@ -50,7 +58,9 @@
 contains
 
   function spinCorrelatedConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily spinCorrelated} satellite virial orbit class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily spinCorrelated} satellite virial orbit class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (virialOrbitSpinCorrelated)                :: self
@@ -58,41 +68,55 @@ contains
     class           (virialOrbitClass         ), pointer       :: virialOrbit_
     double precision                                           :: alpha
 
-    !# <inputParameter>
-    !#   <name>alpha</name>
-    !#   <defaultValue>1.0d0</defaultValue>
-    !#   <source>parameters</source>
-    !#   <description>The parameter $\alpha$ which expresses the strength of the correlation between satellite orbital angular momentum and the spin of the host halo.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="virialOrbit"  name="virialOrbit_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>alpha</name>
+      <defaultValue>1.0d0</defaultValue>
+      <source>parameters</source>
+      <description>The parameter $\alpha$ which expresses the strength of the correlation between satellite orbital angular momentum and the spin of the host halo.</description>
+    </inputParameter>
+    <objectBuilder class="virialOrbit"  name="virialOrbit_" source="parameters"/>
+    !!]
     self=virialOrbitSpinCorrelated(alpha,virialOrbit_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="virialOrbit_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="virialOrbit_"/>
+    !!]
     return
   end function spinCorrelatedConstructorParameters
 
   function spinCorrelatedConstructorInternal(alpha,virialOrbit_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily spinCorrelated} virial orbits class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily spinCorrelated} virial orbits class.
+    !!}
     implicit none
     type            (virialOrbitSpinCorrelated)                        :: self
     double precision                           , intent(in   )         :: alpha
     class           (virialOrbitClass         ), intent(in   ), target :: virialOrbit_
-    !# <constructorAssign variables="alpha, *virialOrbit_"/>
+    !![
+    <constructorAssign variables="alpha, *virialOrbit_"/>
+    !!]
 
     return
   end function spinCorrelatedConstructorInternal
 
   subroutine spinCorrelatedDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily spinCorrelated} virial orbits class.
+    !!{
+    Destructor for the {\normalfont \ttfamily spinCorrelated} virial orbits class.
+    !!}
     implicit none
     type(virialOrbitSpinCorrelated), intent(inout) :: self
 
-    !# <objectDestructor name="self%virialOrbit_"/>
+    !![
+    <objectDestructor name="self%virialOrbit_"/>
+    !!]
     return
   end subroutine spinCorrelatedDestructor
 
   function spinCorrelatedOrbit(self,node,host,acceptUnboundOrbits)
-    !% Return spinCorrelated orbital parameters for a satellite.
+    !!{
+    Return spinCorrelated orbital parameters for a satellite.
+    !!}
     use :: Coordinates             , only : assignment(=)          , coordinateCartesian
     use :: Galacticus_Error        , only : Galacticus_Error_Report
     use :: Galacticus_Nodes        , only : nodeComponentSpin      , treeNode
@@ -152,7 +176,9 @@ contains
   end function spinCorrelatedOrbit
 
   function spinCorrelatedDensityContrastDefinition(self)
-    !% Return a virial density contrast object defining that used in the definition of virial orbits.
+    !!{
+    Return a virial density contrast object defining that used in the definition of virial orbits.
+    !!}
     implicit none
     class(virialDensityContrastClass), pointer       :: spinCorrelatedDensityContrastDefinition
     class(virialOrbitSpinCorrelated ), intent(inout) :: self
@@ -162,7 +188,9 @@ contains
   end function spinCorrelatedDensityContrastDefinition
 
   double precision function spinCorrelatedVelocityTangentialMagnitudeMean(self,node,host)
-    !% Return the mean magnitude of the tangential velocity.
+    !!{
+    Return the mean magnitude of the tangential velocity.
+    !!}
     implicit none
     class(virialOrbitSpinCorrelated), intent(inout) :: self
     type (treeNode                 ), intent(inout) :: node, host
@@ -172,7 +200,9 @@ contains
   end function spinCorrelatedVelocityTangentialMagnitudeMean
 
   function spinCorrelatedVelocityTangentialVectorMean(self,node,host)
-    !% Return the mean of the vector tangential velocity.
+    !!{
+    Return the mean of the vector tangential velocity.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentSpin, treeNode
     implicit none
     double precision                           , dimension(3)  :: spinCorrelatedVelocityTangentialVectorMean
@@ -189,7 +219,9 @@ contains
   end function spinCorrelatedVelocityTangentialVectorMean
 
   double precision function spinCorrelatedAngularMomentumMagnitudeMean(self,node,host)
-    !% Return the mean magnitude of the angular momentum.
+    !!{
+    Return the mean magnitude of the angular momentum.
+    !!}
     implicit none
     class(virialOrbitSpinCorrelated), intent(inout) :: self
     type (treeNode                 ), intent(inout) :: node, host
@@ -199,7 +231,9 @@ contains
   end function spinCorrelatedAngularMomentumMagnitudeMean
 
   function spinCorrelatedAngularMomentumVectorMean(self,node,host)
-    !% Return the mean of the vector angular momentum.
+    !!{
+    Return the mean of the vector angular momentum.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentSpin, treeNode
     implicit none
     double precision                           , dimension(3)  :: spinCorrelatedAngularMomentumVectorMean
@@ -216,7 +250,9 @@ contains
   end function spinCorrelatedAngularMomentumVectorMean
 
   double precision function spinCorrelatedVelocityTotalRootMeanSquared(self,node,host)
-    !% Return the root mean squared of the total velocity.
+    !!{
+    Return the root mean squared of the total velocity.
+    !!}
     implicit none
     class(virialOrbitSpinCorrelated), intent(inout) :: self
     type (treeNode                 ), intent(inout) :: node, host
@@ -226,7 +262,9 @@ contains
   end function spinCorrelatedVelocityTotalRootMeanSquared
 
   double precision function spinCorrelatedEnergyMean(self,node,host)
-    !% Return the mean of the total energy.
+    !!{
+    Return the mean of the total energy.
+    !!}
     implicit none
     class(virialOrbitSpinCorrelated), intent(inout) :: self
     type (treeNode                 ), intent(inout) :: node, host
@@ -236,7 +274,9 @@ contains
   end function spinCorrelatedEnergyMean
 
   logical function spinCorrelatedIsAngularlyResolved(self)
-    !% Return true indicating that orbits are angularly-resolved.
+    !!{
+    Return true indicating that orbits are angularly-resolved.
+    !!}
     implicit none
     class(virialOrbitSpinCorrelated), intent(inout) :: self
     !$GLC attributes unused :: self

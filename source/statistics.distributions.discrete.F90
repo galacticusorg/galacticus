@@ -17,87 +17,95 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module that implements a class of discrete distributions.
+!!{
+Contains a module that implements a class of discrete distributions.
+!!}
 
 module Statistics_Distributions_Discrete
   use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
   private
 
-  !# <functionClass>
-  !#  <name>distributionFunctionDiscrete1D</name>
-  !#  <descriptiveName>One-dimensional Discrete Distribution Functions</descriptiveName>
-  !#  <description>Class providing discrete distribution functions of a single variable.</description>
-  !#  <default>binomial</default>
-  !#  <data>class(randomNumberGeneratorClass), pointer :: randomNumberGenerator_ => null()</data>
-  !#  <destructor>
-  !#   <code>
-  !#    call distributionFunctionDiscrete1DFinalize(self)
-  !#    return
-  !#   </code>
-  !#  </destructor>
-  !#  <method name="mass" >
-  !#    <type>double precision</type>
-  !#    <pass>yes</pass>
-  !#    <argument>integer, intent(in   ) :: x</argument>
-  !#    <description>Return the probability mass at {\normalfont \ttfamily x}.</description>
-  !#  </method>
-  !#  <method name="massLogarithmic" >
-  !#    <type>double precision</type>
-  !#    <pass>yes</pass>
-  !#    <argument>integer, intent(in   ) :: x</argument>
-  !#    <description>Return the logarithm of the probability mass at {\normalfont \ttfamily x}.</description>
-  !#  </method>
-  !#  <method name="cumulative" >
-  !#    <type>double precision</type>
-  !#    <pass>yes</pass>
-  !#    <argument>integer, intent(in   ) :: x</argument>
-  !#    <description>Return the cumulative probability at {\normalfont \ttfamily x}.</description>
-  !#  </method>
-  !#  <method name="inverse" >
-  !#    <type>integer</type>
-  !#    <pass>yes</pass>
-  !#    <argument>double precision, intent(in   ) :: p</argument>
-  !#    <description>Return the value of the independent variable corresponding to cumulative probability {\normalfont \ttfamily p}.</description>
-  !#  </method>
-  !#  <method name="sample" >
-  !#    <type>integer</type>
-  !#    <pass>yes</pass>
-  !#    <argument>class(randomNumberGeneratorClass), intent(inout), optional :: randomNumberGenerator_</argument>
-  !#    <description>Return a random deviate from the distribution.</description>
-  !#    <modules>Galacticus_Error</modules>
-  !#    <code>
-  !#     double precision :: uniformRandom
-  !#     ! Draw a random number uniformly from 0 to 1 and use the inverse of our self to get the
-  !#     ! corresponding random variate.
-  !#     if (present(randomNumberGenerator_)) then
-  !#        uniformRandom=     randomNumberGenerator_%uniformSample()
-  !#     else
-  !#        if (.not.associated(self%randomNumberGenerator_)) call Galacticus_Error_Report('no random number generator supplied'//{introspection:location})
-  !#        uniformRandom=self%randomNumberGenerator_%uniformSample()
-  !#     end if
-  !#     distributionFunctionDiscrete1DSample=self%inverse(uniformRandom)
-  !#     return
-  !#    </code>
-  !#  </method>
-  !#  <method name="minimum" >
-  !#    <type>integer</type>
-  !#    <pass>yes</pass>
-  !#    <description>Returns the minimum possible value in the distribution.</description>
-  !#  </method>
-  !#  <method name="maximum" >
-  !#    <type>integer</type>
-  !#    <pass>yes</pass>
-  !#    <description>Returns the maximum possible value in the distribution.</description>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>distributionFunctionDiscrete1D</name>
+   <descriptiveName>One-dimensional Discrete Distribution Functions</descriptiveName>
+   <description>Class providing discrete distribution functions of a single variable.</description>
+   <default>binomial</default>
+   <data>class(randomNumberGeneratorClass), pointer :: randomNumberGenerator_ => null()</data>
+   <destructor>
+    <code>
+     call distributionFunctionDiscrete1DFinalize(self)
+     return
+    </code>
+   </destructor>
+   <method name="mass" >
+     <type>double precision</type>
+     <pass>yes</pass>
+     <argument>integer, intent(in   ) :: x</argument>
+     <description>Return the probability mass at {\normalfont \ttfamily x}.</description>
+   </method>
+   <method name="massLogarithmic" >
+     <type>double precision</type>
+     <pass>yes</pass>
+     <argument>integer, intent(in   ) :: x</argument>
+     <description>Return the logarithm of the probability mass at {\normalfont \ttfamily x}.</description>
+   </method>
+   <method name="cumulative" >
+     <type>double precision</type>
+     <pass>yes</pass>
+     <argument>integer, intent(in   ) :: x</argument>
+     <description>Return the cumulative probability at {\normalfont \ttfamily x}.</description>
+   </method>
+   <method name="inverse" >
+     <type>integer</type>
+     <pass>yes</pass>
+     <argument>double precision, intent(in   ) :: p</argument>
+     <description>Return the value of the independent variable corresponding to cumulative probability {\normalfont \ttfamily p}.</description>
+   </method>
+   <method name="sample" >
+     <type>integer</type>
+     <pass>yes</pass>
+     <argument>class(randomNumberGeneratorClass), intent(inout), optional :: randomNumberGenerator_</argument>
+     <description>Return a random deviate from the distribution.</description>
+     <modules>Galacticus_Error</modules>
+     <code>
+      double precision :: uniformRandom
+      ! Draw a random number uniformly from 0 to 1 and use the inverse of our self to get the
+      ! corresponding random variate.
+      if (present(randomNumberGenerator_)) then
+         uniformRandom=     randomNumberGenerator_%uniformSample()
+      else
+         if (.not.associated(self%randomNumberGenerator_)) call Galacticus_Error_Report('no random number generator supplied'//{introspection:location})
+         uniformRandom=self%randomNumberGenerator_%uniformSample()
+      end if
+      distributionFunctionDiscrete1DSample=self%inverse(uniformRandom)
+      return
+     </code>
+   </method>
+   <method name="minimum" >
+     <type>integer</type>
+     <pass>yes</pass>
+     <description>Returns the minimum possible value in the distribution.</description>
+   </method>
+   <method name="maximum" >
+     <type>integer</type>
+     <pass>yes</pass>
+     <description>Returns the maximum possible value in the distribution.</description>
+   </method>
+  </functionClass>
+  !!]
 
 contains
   
   subroutine distributionFunctionDiscrete1DFinalize(self)
-    !% Finalizer for {\normalfont \ttfamily distributionFunctionDiscrete1D} objects.
+    !!{
+    Finalizer for {\normalfont \ttfamily distributionFunctionDiscrete1D} objects.
+    !!}
     type(distributionFunctionDiscrete1DClass), intent(inout) :: self
 
-    !# <objectDestructor name="self%randomNumberGenerator_"/>
+    !![
+    <objectDestructor name="self%randomNumberGenerator_"/>
+    !!]
     return
   end subroutine distributionFunctionDiscrete1DFinalize
 

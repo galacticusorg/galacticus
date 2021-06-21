@@ -17,23 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides the path for \glc\ inputs and scripts.
+!!{
+Contains a module which provides the path for \glc\ inputs and scripts.
+!!}
 
 module Galacticus_Paths
-  !% Provides the path for \glc\ inputs and scripts.
+  !!{
+  Provides the path for \glc\ inputs and scripts.
+  !!}
   use :: ISO_Varying_String, only : varying_string
   implicit none
   private
   public :: galacticusPath
 
-  !# <enumeration>
-  !#  <name>pathType</name>
-  !#  <description>Enumeration of various paths used by Galacticus.</description>
-  !#  <validator>yes</validator>
-  !#  <entry label="exec"       />
-  !#  <entry label="dataStatic" />
-  !#  <entry label="dataDynamic"/>
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>pathType</name>
+   <description>Enumeration of various paths used by Galacticus.</description>
+   <validator>yes</validator>
+   <entry label="exec"       />
+   <entry label="dataStatic" />
+   <entry label="dataDynamic"/>
+  </enumeration>
+  !!]
 
   type   (varying_string), dimension(:), allocatable :: paths
   logical                                            :: pathsRetrieved=.false.
@@ -41,7 +47,9 @@ module Galacticus_Paths
 contains
 
   function galacticusPath(pathType)
-    !% Returns the path to various \glc\ resources.
+    !!{
+    Returns the path to various \glc\ resources.
+    !!}
     use :: ISO_Varying_String, only : assignment(=), operator(//), trim, char
     implicit none
     type   (varying_string)                :: galacticusPath
@@ -79,7 +87,9 @@ contains
   end function galacticusPath
 
   subroutine pathsRetrieve(pathType,pathName,pathLength)
-    !% Retrieve the \glc\ input data path from the environment.
+    !!{
+    Retrieve the \glc\ input data path from the environment.
+    !!}
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
     integer                    , intent(in   ) :: pathType, pathLength

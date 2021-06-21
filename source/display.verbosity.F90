@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which handles setting of verbosity.
+!!{
+Contains a module which handles setting of verbosity.
+!!}
 
 module Display_Verbosity
-  !% Handle setting of verbosity.
+  !!{
+  Handle setting of verbosity.
+  !!}
   implicit none
   private
   public :: displayVerbositySetFromParameters
@@ -28,7 +32,9 @@ module Display_Verbosity
 contains
 
   subroutine displayVerbositySetFromParameters(parameters)
-    !% Read the parameter that controls the verbosity level, and set that level.
+    !!{
+    Read the parameter that controls the verbosity level, and set that level.
+    !!}
     use :: Display           , only : displayVerbositySet, enumerationVerbosityLevelEncode
     use :: ISO_Varying_String, only : char               , var_str                        , varying_string
     use :: Input_Parameters  , only : inputParameter     , inputParameters
@@ -37,12 +43,14 @@ contains
     type(varying_string )               :: verbosityLevel
 
     ! Get the verbosity level parameter.
-    !# <inputParameter>
-    !#   <name>verbosityLevel</name>
-    !#   <defaultValue>var_str('standard')</defaultValue>
-    !#   <description>The level of verbosity for \glc\ (higher values give more verbosity).</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>verbosityLevel</name>
+      <defaultValue>var_str('standard')</defaultValue>
+      <description>The level of verbosity for \glc\ (higher values give more verbosity).</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     call displayVerbositySet(enumerationVerbosityLevelEncode(char(verbosityLevel),includesPrefix=.false.))
     return
   end subroutine displayVerbositySetFromParameters

@@ -17,27 +17,37 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an identity output analysis property operator class.
+!!{
+Contains a module which implements an identity output analysis property operator class.
+!!}
 
-  !# <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorIdentity">
-  !#  <description>An identity output analysis property operator class.</description>
-  !# </outputAnalysisPropertyOperator>
+  !![
+  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorIdentity">
+   <description>An identity output analysis property operator class.</description>
+  </outputAnalysisPropertyOperator>
+  !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorIdentity
-     !% An identity output property operator class.
+     !!{
+     An identity output property operator class.
+     !!}
      private
    contains
      procedure :: operate  => identityOperate
   end type outputAnalysisPropertyOperatorIdentity
 
   interface outputAnalysisPropertyOperatorIdentity
-     !% Constructors for the ``identity'' output analysis class.
+     !!{
+     Constructors for the ``identity'' output analysis class.
+     !!}
      module procedure identityConstructorParameters
   end interface outputAnalysisPropertyOperatorIdentity
 
 contains
 
   function identityConstructorParameters(parameters)
-    !% Constructor for the ``identity'' output analysis property operateor class which takes a parameter set as input.
+    !!{
+    Constructor for the ``identity'' output analysis property operateor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(outputAnalysisPropertyOperatorIdentity)                :: identityConstructorParameters
@@ -49,7 +59,9 @@ contains
   end function identityConstructorParameters
 
   double precision function identityOperate(self,propertyValue,node,propertyType,outputIndex)
-    !% Implement an identity output analysis property operator.
+    !!{
+    Implement an identity output analysis property operator.
+    !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     class           (outputAnalysisPropertyOperatorIdentity), intent(inout)           :: self

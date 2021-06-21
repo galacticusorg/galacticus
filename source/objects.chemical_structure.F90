@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements structures that describe chemicals.
+!!{
+Contains a module which implements structures that describe chemicals.
+!!}
 
 module Chemical_Structures
-  !% Implements structures that describe chemicals.
+  !!{
+  Implements structures that describe chemicals.
+  !!}
   use :: ISO_Varying_String          , only : varying_string
   use :: Numerical_Constants_Atomic  , only : atomicMassHydrogen, atomicMassUnit
   use :: Numerical_Constants_Physical, only : electronMass
@@ -29,19 +33,25 @@ module Chemical_Structures
   public :: chemicalStructure, atomicStructure,atomicBond, Chemical_Database_Get_Index
 
   type atomicStructure
-     !% A type that defines an atom within a chemical.
+     !!{
+     A type that defines an atom within a chemical.
+     !!}
      character       (len=10) :: name
      character       (len=2 ) :: shortLabel
      double precision         :: mass
   end type atomicStructure
 
   type atomicBond
-     !% A type that defines an atomic bond within a chemical.
+     !!{
+     A type that defines an atomic bond within a chemical.
+     !!}
      integer :: atom(2)
   end type atomicBond
 
   type chemicalStructure
-     !% A type that defines a chemical.
+     !!{
+     A type that defines a chemical.
+     !!}
      integer                                                      :: index
      type            (varying_string )                            :: name
      integer                                                      :: chargeValue
@@ -50,12 +60,14 @@ module Chemical_Structures
      type            (atomicBond     ), allocatable, dimension(:) :: bond
    contains
      ! Data methods.
-     !# <methods>
-     !#   <method description="Get a chemical from the database." method="retrieve" />
-     !#   <method description="Write a chemical structure to a CML file." method="export" />
-     !#   <method description="Return the charge of a chemical." method="charge" />
-     !#   <method description="Return the mass of a chemical in atomic mass units." method="mass" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Get a chemical from the database." method="retrieve" />
+       <method description="Write a chemical structure to a CML file." method="export" />
+       <method description="Return the charge of a chemical." method="charge" />
+       <method description="Return the mass of a chemical in atomic mass units." method="mass" />
+     </methods>
+     !!]
      procedure :: retrieve=>Chemical_Database_Get
      procedure :: export  =>Chemical_Structure_Export
      procedure :: charge  =>Chemical_Structure_Charge
@@ -77,8 +89,10 @@ module Chemical_Structures
 contains
 
   subroutine Chemical_Structure_Initialize
-    !% Initialize the chemical structure database by reading the atomic structure database. Note: this implementation is not
-    !% fully compatible with chemical markup language (CML), but only a limited subset of it.
+    !!{
+    Initialize the chemical structure database by reading the atomic structure database. Note: this implementation is not
+    fully compatible with chemical markup language (CML), but only a limited subset of it.
+    !!}
     use :: FoX_dom           , only : Node                        , destroy
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: Galacticus_Paths  , only : galacticusPath              , pathTypeDataStatic
@@ -159,7 +173,9 @@ contains
   end subroutine Chemical_Structure_Initialize
 
   subroutine Chemical_Structure_Export(chemical,outputFile)
-    !% Export a chemical structure to a chemical markup language (CML) file.
+    !!{
+    Export a chemical structure to a chemical markup language (CML) file.
+    !!}
     use :: FoX_wxml          , only : xml_AddCharacters, xml_Close, xml_EndElement, xml_NewElement, &
           &                           xml_OpenFile     , xmlf_t
     use :: ISO_Varying_String, only : char
@@ -233,7 +249,9 @@ contains
   end subroutine Chemical_Structure_Export
 
   integer function Chemical_Database_Get_Index(chemicalName)
-    !% Find a chemical in the database and return it.
+    !!{
+    Find a chemical in the database and return it.
+    !!}
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: ISO_Varying_String, only : operator(==)
     implicit none
@@ -256,7 +274,9 @@ contains
   end function Chemical_Database_Get_Index
 
   subroutine Chemical_Database_Get(chemical,chemicalName)
-    !% Find a chemical in the database and return it.
+    !!{
+    Find a chemical in the database and return it.
+    !!}
     implicit none
     class    (chemicalStructure), intent(inout) :: chemical
     character(len=*            ), intent(in   ) :: chemicalName
@@ -269,7 +289,9 @@ contains
   end subroutine Chemical_Database_Get
 
   integer function Chemical_Structure_Charge(chemical)
-    !% Return the charge on a chemical.
+    !!{
+    Return the charge on a chemical.
+    !!}
     implicit none
     class(chemicalStructure), intent(in   ) :: chemical
 
@@ -278,7 +300,9 @@ contains
   end function Chemical_Structure_Charge
 
   double precision function Chemical_Structure_Mass(chemical)
-    !% Return the mass of a chemical.
+    !!{
+    Return the mass of a chemical.
+    !!}
     implicit none
     class(chemicalStructure), intent(in   ) :: chemical
 

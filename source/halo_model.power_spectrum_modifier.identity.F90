@@ -17,13 +17,17 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Implements a identity modifier for power spectra in the halo model of clustering.
+!!{
+Implements a identity modifier for power spectra in the halo model of clustering.
+!!}
 
-  !# <haloModelPowerSpectrumModifier name="haloModelPowerSpectrumModifierIdentity">
-  !#  <description>
-  !#   A halo model power spectrum modifier class which applies an identity modifier.
-  !#  </description>
-  !# </haloModelPowerSpectrumModifier>
+  !![
+  <haloModelPowerSpectrumModifier name="haloModelPowerSpectrumModifierIdentity">
+   <description>
+    A halo model power spectrum modifier class which applies an identity modifier.
+   </description>
+  </haloModelPowerSpectrumModifier>
+  !!]
   type, extends(haloModelPowerSpectrumModifierClass) :: haloModelPowerSpectrumModifierIdentity
      private
    contains
@@ -31,15 +35,19 @@
   end type haloModelPowerSpectrumModifierIdentity
 
   interface haloModelPowerSpectrumModifierIdentity
-     !% Constructors for the {\normalfont \ttfamily identity} halo model power spectrum modifier class.
+     !!{
+     Constructors for the {\normalfont \ttfamily identity} halo model power spectrum modifier class.
+     !!}
      module procedure identityConstructorParameters
   end interface haloModelPowerSpectrumModifierIdentity
 
 contains
 
   function identityConstructorParameters(parameters) result(self)
-    !% Default constructor for the {\normalfont \ttfamily identity} hot halo outflow reincorporation class which takes a parameter
-    !% set as input.
+    !!{
+    Default constructor for the {\normalfont \ttfamily identity} hot halo outflow reincorporation class which takes a parameter
+    set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(haloModelPowerSpectrumModifierIdentity)                :: self
@@ -51,7 +59,9 @@ contains
   end function identityConstructorParameters
 
   subroutine identityModify(self,wavenumber,term,powerSpectrum,powerSpectrumCovariance,mass)
-    !% Applies a identity modification to a halo model power spectrum.
+    !!{
+    Applies a identity modification to a halo model power spectrum.
+    !!}
     implicit none
     class           (haloModelPowerSpectrumModifierIdentity), intent(inout)                           :: self
     double precision                                        , intent(in   ), dimension(:  )           :: wavenumber

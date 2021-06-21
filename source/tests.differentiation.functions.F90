@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module of functions for differentation unit tests.
+!!{
+Contains a module of functions for differentation unit tests.
+!!}
 
 module Test_Differentiation_Functions
-  !% Contains functions for differentation unit tests.
+  !!{
+  Contains functions for differentation unit tests.
+  !!}
   implicit none
   private
   public :: function1
@@ -28,7 +32,9 @@ module Test_Differentiation_Functions
 contains
 
   double precision function function1(x)
-    !% Function for unit testing.
+    !!{
+    Function for unit testing.
+    !!}
     implicit none
     double precision, intent(in   ), value :: x
 

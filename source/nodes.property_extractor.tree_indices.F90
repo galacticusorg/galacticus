@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an ISM mass output analysis property extractor class.
+!!{
+Contains a module which implements an ISM mass output analysis property extractor class.
+!!}
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorIndicesTree">
-  !#  <description>An ISM mass output analysis property extractor class.</description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorIndicesTree">
+   <description>An ISM mass output analysis property extractor class.</description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorIndicesTree
-     !% A stelalr mass output analysis class.
+     !!{
+     A stelalr mass output analysis class.
+     !!}
      private
    contains
      procedure :: extract     => indicesTreeExtract
@@ -33,14 +39,18 @@
   end type nodePropertyExtractorIndicesTree
 
   interface nodePropertyExtractorIndicesTree
-     !% Constructors for the ``indicesTree'' output analysis class.
+     !!{
+     Constructors for the ``indicesTree'' output analysis class.
+     !!}
      module procedure indicesTreeConstructorParameters
   end interface nodePropertyExtractorIndicesTree
 
 contains
 
   function indicesTreeConstructorParameters(parameters)
-    !% Constructor for the {\normalfont \ttfamily indicesTree} node property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily indicesTree} node property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(nodePropertyExtractorIndicesTree)                :: indicesTreeConstructorParameters
@@ -52,7 +62,9 @@ contains
   end function indicesTreeConstructorParameters
 
   function indicesTreeExtract(self,node,time,instance)
-    !% Implement a {\normalfont \ttfamily indicesTree} node property extractor.
+    !!{
+    Implement a {\normalfont \ttfamily indicesTree} node property extractor.
+    !!}
     implicit none
     integer         (kind_int8                       )                          :: indicesTreeExtract
     class           (nodePropertyExtractorIndicesTree), intent(inout)           :: self
@@ -66,7 +78,9 @@ contains
   end function indicesTreeExtract
 
   integer function indicesTreeType(self)
-    !% Return the type of the stellar mass property.
+    !!{
+    Return the type of the stellar mass property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorIndicesTree), intent(inout) :: self
@@ -77,7 +91,9 @@ contains
   end function indicesTreeType
 
   function indicesTreeName(self)
-    !% Return the name of the indicesTree property.
+    !!{
+    Return the name of the indicesTree property.
+    !!}
     implicit none
     type (varying_string                  )                :: indicesTreeName
     class(nodePropertyExtractorIndicesTree), intent(inout) :: self
@@ -88,7 +104,9 @@ contains
   end function indicesTreeName
 
   function indicesTreeDescription(self)
-    !% Return a description of the indicesTree property.
+    !!{
+    Return a description of the indicesTree property.
+    !!}
     implicit none
     type (varying_string                  )                :: indicesTreeDescription
     class(nodePropertyExtractorIndicesTree), intent(inout) :: self

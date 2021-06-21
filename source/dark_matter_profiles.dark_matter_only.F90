@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of non-dark-matter-only dark matter halo profiles which are unchanged from their dark-matter-only counterpart.
+  !!{
+  An implementation of non-dark-matter-only dark matter halo profiles which are unchanged from their dark-matter-only counterpart.
+  !!}
 
   use :: Cosmology_Parameters    , only : cosmologyParameters , cosmologyParametersClass
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO, darkMatterProfileDMOClass
 
-  !# <darkMatterProfile name="darkMatterProfileDarkMatterOnly">
-  !#  <description>An implementation of non-dark-matter-only dark matter halo profiles which are unchanged from their dark-matter-only counterpart.</description>
-  !# </darkMatterProfile>
+  !![
+  <darkMatterProfile name="darkMatterProfileDarkMatterOnly">
+   <description>An implementation of non-dark-matter-only dark matter halo profiles which are unchanged from their dark-matter-only counterpart.</description>
+  </darkMatterProfile>
+  !!]
   type, extends(darkMatterProfileClass) :: darkMatterProfileDarkMatterOnly
-     !% A dark matter halo profile class implementing non-dark-matter-only dark matter halo profiles which are unchanged from their dark-matter-only counterpart.
+     !!{
+     A dark matter halo profile class implementing non-dark-matter-only dark matter halo profiles which are unchanged from their dark-matter-only counterpart.
+     !!}
      private
      class           (cosmologyParametersClass ), pointer :: cosmologyParameters_  => null()
      class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
@@ -53,7 +59,9 @@
   end type darkMatterProfileDarkMatterOnly
 
   interface darkMatterProfileDarkMatterOnly
-     !% Constructors for the {\normalfont \ttfamily darkMatterOnly} non-dark-matter-only dark matter halo profile class.
+     !!{
+     Constructors for the {\normalfont \ttfamily darkMatterOnly} non-dark-matter-only dark matter halo profile class.
+     !!}
      module procedure darkMatterOnlyConstructorParameters
      module procedure darkMatterOnlyConstructorInternal
   end interface darkMatterProfileDarkMatterOnly
@@ -61,8 +69,10 @@
 contains
 
   function darkMatterOnlyConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily darkMatterOnly} non-dark-matter-only dark matter halo profile class which takes
-    !% a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily darkMatterOnly} non-dark-matter-only dark matter halo profile class which takes
+    a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (darkMatterProfileDarkMatterOnly)                :: self
@@ -71,25 +81,33 @@ contains
     class(darkMatterProfileDMOClass      ), pointer       :: darkMatterProfileDMO_
     class(darkMatterHaloScaleClass       ), pointer       :: darkMatterHaloScale_
 
-    !# <objectBuilder class="cosmologyParameters"  name="cosmologyParameters_"  source="parameters"/>
-    !# <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
-    !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    !![
+    <objectBuilder class="cosmologyParameters"  name="cosmologyParameters_"  source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
+    <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    !!]
     self=darkMatterProfileDarkMatterOnly(cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileDMO_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_" />
-    !# <objectDestructor name="darkMatterHaloScale_" />
-    !# <objectDestructor name="darkMatterProfileDMO_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_" />
+    <objectDestructor name="darkMatterHaloScale_" />
+    <objectDestructor name="darkMatterProfileDMO_"/>
+    !!]
     return
   end function darkMatterOnlyConstructorParameters
 
   function darkMatterOnlyConstructorInternal(cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
-    !% Generic constructor for the {\normalfont \ttfamily darkMatterOnly} dark matter profile class.
+    !!{
+    Generic constructor for the {\normalfont \ttfamily darkMatterOnly} dark matter profile class.
+    !!}
     implicit none
     type (darkMatterProfileDarkMatterOnly)                        :: self
     class(cosmologyParametersClass       ), intent(in   ), target :: cosmologyParameters_
     class(darkMatterProfileDMOClass      ), intent(in   ), target :: darkMatterProfileDMO_
     class(darkMatterHaloScaleClass       ), intent(in   ), target :: darkMatterHaloScale_
-    !# <constructorAssign variables="*cosmologyParameters_, *darkMatterHaloScale_, *darkMatterProfileDMO_"/>
+    !![
+    <constructorAssign variables="*cosmologyParameters_, *darkMatterHaloScale_, *darkMatterProfileDMO_"/>
+    !!]
 
     ! Evaluate the dark matter fraction.
     self%darkMatterFraction=+1.0d0                                   &
@@ -99,19 +117,25 @@ contains
   end function darkMatterOnlyConstructorInternal
 
   subroutine darkMatterOnlyDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily darkMatterOnly} dark matter halo profile class.
+    !!{
+    Destructor for the {\normalfont \ttfamily darkMatterOnly} dark matter halo profile class.
+    !!}
     implicit none
     type(darkMatterProfileDarkMatterOnly), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_" />
-    !# <objectDestructor name="self%darkMatterHaloScale_" />
-    !# <objectDestructor name="self%darkMatterProfileDMO_"/>
+    !![
+    <objectDestructor name="self%cosmologyParameters_" />
+    <objectDestructor name="self%darkMatterHaloScale_" />
+    <objectDestructor name="self%darkMatterProfileDMO_"/>
+    !!]
     return
   end subroutine darkMatterOnlyDestructor
 
   double precision function darkMatterOnlyDensity(self,node,radius)
-    !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given
-    !% {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!{
+    Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given
+    {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!}
     implicit none
     class           (darkMatterProfileDarkMatterOnly), intent(inout) :: self
     type            (treeNode                       ), intent(inout) :: node
@@ -123,8 +147,10 @@ contains
   end function darkMatterOnlyDensity
 
   double precision function darkMatterOnlyDensityLogSlope(self,node,radius)
-    !% Returns the logarithmic slope of the density in the dark matter profile of {\normalfont \ttfamily node} at the given
-    !% {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!{
+    Returns the logarithmic slope of the density in the dark matter profile of {\normalfont \ttfamily node} at the given
+    {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!}
     implicit none
     class           (darkMatterProfileDarkMatterOnly), intent(inout) :: self
     type            (treeNode                       ), intent(inout) :: node
@@ -135,8 +161,10 @@ contains
   end function darkMatterOnlyDensityLogSlope
 
   double precision function darkMatterOnlyRadiusEnclosingDensity(self,node,density)
-    !% Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given
-    !% {\normalfont \ttfamily density} (given in units of $M_\odot/$Mpc$^{-3}$).
+    !!{
+    Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given
+    {\normalfont \ttfamily density} (given in units of $M_\odot/$Mpc$^{-3}$).
+    !!}
     implicit none
     class           (darkMatterProfileDarkMatterOnly), intent(inout), target :: self
     type            (treeNode                       ), intent(inout), target :: node
@@ -147,8 +175,10 @@ contains
   end function darkMatterOnlyRadiusEnclosingDensity
 
   double precision function darkMatterOnlyRadiusEnclosingMass(self,node,mass)
-    !% Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given
-    !% {\normalfont \ttfamily mass} (given in units of $M_\odot$).
+    !!{
+    Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given
+    {\normalfont \ttfamily mass} (given in units of $M_\odot$).
+    !!}
     implicit none
     class           (darkMatterProfileDarkMatterOnly), intent(inout), target :: self
     type            (treeNode                       ), intent(inout), target :: node
@@ -159,8 +189,10 @@ contains
   end function darkMatterOnlyRadiusEnclosingMass
 
   double precision function darkMatterOnlyRadialMoment(self,node,moment,radiusMinimum,radiusMaximum)
-    !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given
-    !% {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!{
+    Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given
+    {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!}
     implicit none
     class           (darkMatterProfileDarkMatterOnly), intent(inout)           :: self
     type            (treeNode                       ), intent(inout)           :: node
@@ -173,8 +205,10 @@ contains
   end function darkMatterOnlyRadialMoment
 
   double precision function darkMatterOnlyEnclosedMass(self,node,radius)
-    !% Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
-    !% units of Mpc).
+    !!{
+    Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
+    units of Mpc).
+    !!}
     implicit none
     class           (darkMatterProfileDarkMatterOnly), intent(inout) :: self
     type            (treeNode                       ), intent(inout) :: node
@@ -186,8 +220,10 @@ contains
   end function darkMatterOnlyEnclosedMass
 
   double precision function darkMatterOnlyPotential(self,node,radius,status)
-    !% Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont
-    !% \ttfamily radius} (given in units of Mpc).
+    !!{
+    Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont
+    \ttfamily radius} (given in units of Mpc).
+    !!}
     implicit none
     class           (darkMatterProfileDarkMatterOnly), intent(inout), target   :: self
     type            (treeNode                       ), intent(inout), target   :: node
@@ -200,8 +236,10 @@ contains
   end function darkMatterOnlyPotential
 
   double precision function darkMatterOnlyCircularVelocity(self,node,radius)
-    !% Returns the circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
-    !% {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!{
+    Returns the circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
+    {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!}
     implicit none
     class           (darkMatterProfileDarkMatterOnly), intent(inout) :: self
     type            (treeNode                       ), intent(inout) :: node
@@ -213,7 +251,9 @@ contains
   end function darkMatterOnlyCircularVelocity
 
   double precision function darkMatterOnlyCircularVelocityMaximum(self,node)
-    !% Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}.
+    !!{
+    Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}.
+    !!}
     implicit none
     class(darkMatterProfileDarkMatterOnly), intent(inout) :: self
     type (treeNode                       ), intent(inout) :: node
@@ -224,8 +264,10 @@ contains
   end function darkMatterOnlyCircularVelocityMaximum
 
   double precision function darkMatterOnlyRadialVelocityDispersion(self,node,radius)
-    !% Returns the radial velocity dispersion (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
-    !% {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!{
+    Returns the radial velocity dispersion (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
+    {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!}
     implicit none
     class           (darkMatterProfileDarkMatterOnly), intent(inout) :: self
     type            (treeNode                       ), intent(inout) :: node
@@ -237,8 +279,10 @@ contains
   end function darkMatterOnlyRadialVelocityDispersion
 
   double precision function darkMatterOnlyRadiusFromSpecificAngularMomentum(self,node,specificAngularMomentum)
-    !% Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentum} (given
-    !% in units of km s$^{-1}$ Mpc).
+    !!{
+    Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentum} (given
+    in units of km s$^{-1}$ Mpc).
+    !!}
     implicit none
     class           (darkMatterProfileDarkMatterOnly), intent(inout), target :: self
     type            (treeNode                       ), intent(inout)         :: node
@@ -249,7 +293,9 @@ contains
   end function darkMatterOnlyRadiusFromSpecificAngularMomentum
 
   double precision function darkMatterOnlyRotationNormalization(self,node)
-    !% Return the normalization of the rotation velocity vs. specific angular momentum relation.
+    !!{
+    Return the normalization of the rotation velocity vs. specific angular momentum relation.
+    !!}
     implicit none
     class(darkMatterProfileDarkMatterOnly), intent(inout) :: self
     type (treeNode                       ), intent(inout) :: node
@@ -259,7 +305,9 @@ contains
   end function darkMatterOnlyRotationNormalization
 
   double precision function darkMatterOnlyEnergy(self,node)
-    !% Return the energy of the dark matter halo density profile.
+    !!{
+    Return the energy of the dark matter halo density profile.
+    !!}
     implicit none
     class(darkMatterProfileDarkMatterOnly), intent(inout) :: self
     type (treeNode                       ), intent(inout) :: node
@@ -270,7 +318,9 @@ contains
   end function darkMatterOnlyEnergy
 
   double precision function darkMatterOnlyEnergyGrowthRate(self,node)
-    !% Return the rate of change of the energy of the dark matter halo density profile.
+    !!{
+    Return the rate of change of the energy of the dark matter halo density profile.
+    !!}
     implicit none
     class(darkMatterProfileDarkMatterOnly), intent(inout) :: self
     type (treeNode                       ), intent(inout) :: node
@@ -281,8 +331,10 @@ contains
   end function darkMatterOnlyEnergyGrowthRate
 
   double precision function darkMatterOnlyKSpace(self,node,waveNumber)
-    !% Returns the Fourier transform of the dark matter halo density profile at the specified {\normalfont \ttfamily waveNumber}
-    !% (given in Mpc$^{-1}$).
+    !!{
+    Returns the Fourier transform of the dark matter halo density profile at the specified {\normalfont \ttfamily waveNumber}
+    (given in Mpc$^{-1}$).
+    !!}
     implicit none
     class           (darkMatterProfileDarkMatterOnly), intent(inout)         :: self
     type            (treeNode                       ), intent(inout), target :: node
@@ -294,8 +346,10 @@ contains
   end function darkMatterOnlyKSpace
 
   double precision function darkMatterOnlyFreefallRadius(self,node,time)
-    !% Returns the freefall radius in the dark matter halo density profile at the specified {\normalfont \ttfamily time} (given in
-    !% Gyr).
+    !!{
+    Returns the freefall radius in the dark matter halo density profile at the specified {\normalfont \ttfamily time} (given in
+    Gyr).
+    !!}
     implicit none
     class           (darkMatterProfileDarkMatterOnly), intent(inout) :: self
     type            (treeNode                       ), intent(inout) :: node
@@ -306,8 +360,10 @@ contains
   end function darkMatterOnlyFreefallRadius
 
   double precision function darkMatterOnlyFreefallRadiusIncreaseRate(self,node,time)
-    !% Returns the freefall radius in the dark matter halo density profile at the specified {\normalfont \ttfamily time} (given in
-    !% Gyr).
+    !!{
+    Returns the freefall radius in the dark matter halo density profile at the specified {\normalfont \ttfamily time} (given in
+    Gyr).
+    !!}
     implicit none
     class           (darkMatterProfileDarkMatterOnly), intent(inout) :: self
     type            (treeNode                       ), intent(inout) :: node

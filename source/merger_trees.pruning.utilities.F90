@@ -17,7 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides utility functions for pruning branches from merger trees.
+!!{
+Contains a module which provides utility functions for pruning branches from merger trees.
+!!}
 
 module Merger_Trees_Pruning_Utilities
   implicit none
@@ -28,7 +30,9 @@ module Merger_Trees_Pruning_Utilities
 contains
 
   subroutine Merger_Tree_Prune_Clean_Branch(node)
-    !% Cleans pointers in a branch about to be pruned to avoid dangling pointer problems during tree evolution.
+    !!{
+    Cleans pointers in a branch about to be pruned to avoid dangling pointer problems during tree evolution.
+    !!}
     use :: Galacticus_Nodes   , only : treeNode
     use :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodesBranch
     implicit none
@@ -58,7 +62,9 @@ contains
   end subroutine Merger_Tree_Prune_Clean_Branch
 
   subroutine Merger_Tree_Prune_Unlink_Parent(node,parentNode,parentWillBePruned,preservePrimaryProgenitor)
-    !% Unlink a parent node from a tree branch which is about to be pruned.
+    !!{
+    Unlink a parent node from a tree branch which is about to be pruned.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     type   (treeNode          ), intent(inout), pointer :: node              , parentNode
@@ -102,7 +108,9 @@ contains
   end subroutine Merger_Tree_Prune_Unlink_Parent
 
   subroutine Merger_Tree_Prune_Uniqueify_IDs(tree)
-    !% Ensure that nodes cloned during tree pruning have unique IDs.
+    !!{
+    Ensure that nodes cloned during tree pruning have unique IDs.
+    !!}
     use :: Galacticus_Nodes   , only : mergerTree                   , treeNode
     use :: Merger_Tree_Walkers, only : mergerTreeWalkerIsolatedNodes
     implicit none

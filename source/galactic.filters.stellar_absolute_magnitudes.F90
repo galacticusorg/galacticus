@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a galactic low-pass (i.e. bright-pass) filter for stellar absolute magnitudes.
+!!{
+Contains a module which implements a galactic low-pass (i.e. bright-pass) filter for stellar absolute magnitudes.
+!!}
 
-  !# <galacticFilter name="galacticFilterStellarAbsoluteMagnitudes">
-  !#  <description>
-  !#  A galactic low-pass (i.e. bright-pass) filter for stellar absolute magnitudes. Galaxies with absolute magnitude in each
-  !#  band, $i$, less than or equal to a fixed threshold, $M_{0,i}=${\normalfont \ttfamily [absoluteMagnitudeThreshold]}.
-  !#  </description>
-  !# </galacticFilter>
+  !![
+  <galacticFilter name="galacticFilterStellarAbsoluteMagnitudes">
+   <description>
+   A galactic low-pass (i.e. bright-pass) filter for stellar absolute magnitudes. Galaxies with absolute magnitude in each
+   band, $i$, less than or equal to a fixed threshold, $M_{0,i}=${\normalfont \ttfamily [absoluteMagnitudeThreshold]}.
+   </description>
+  </galacticFilter>
+  !!]
   type, extends(galacticFilterClass) :: galacticFilterStellarAbsoluteMagnitudes
-     !% A galactic low-pass (i.e. bright pass) filter class for stellar absolute magnitudes.
+     !!{
+     A galactic low-pass (i.e. bright pass) filter class for stellar absolute magnitudes.
+     !!}
      private
      double precision, allocatable, dimension(:) :: absoluteMagnitudeThreshold
    contains
@@ -34,7 +40,9 @@
   end type galacticFilterStellarAbsoluteMagnitudes
 
   interface galacticFilterStellarAbsoluteMagnitudes
-     !% Constructors for the ``stellarAbsoluteMagnitudes'' galactic filter class.
+     !!{
+     Constructors for the ``stellarAbsoluteMagnitudes'' galactic filter class.
+     !!}
      module procedure stellarAbsoluteMagnitudesConstructorParameters
      module procedure stellarAbsoluteMagnitudesConstructorInternal
   end interface galacticFilterStellarAbsoluteMagnitudes
@@ -42,7 +50,9 @@
 contains
 
   function stellarAbsoluteMagnitudesConstructorParameters(parameters)
-    !% Constructor for the ``stellarAbsoluteMagnitudes'' galactic filter class which takes a parameter set as input.
+    !!{
+    Constructor for the ``stellarAbsoluteMagnitudes'' galactic filter class which takes a parameter set as input.
+    !!}
     use :: Galacticus_Error              , only : Galacticus_Error_Report
     use :: Input_Parameters              , only : inputParameter         , inputParameters
     use :: Memory_Management             , only : allocateArray
@@ -59,24 +69,32 @@ contains
          &                               {introspection:location}                                                                         &
          &                              )
     call allocateArray(absoluteMagnitudeThreshold,[unitStellarLuminosities%luminosityCount(unmapped=.true.)])
-    !# <inputParameter>
-    !#   <name>absoluteMagnitudeThreshold</name>
-    !#   <source>parameters</source>
-    !#   <description>The parameter $M_0$ appearing in the stellar absolute magnitude threshold for the stellar absolute magnitude galactic filter class.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>absoluteMagnitudeThreshold</name>
+      <source>parameters</source>
+      <description>The parameter $M_0$ appearing in the stellar absolute magnitude threshold for the stellar absolute magnitude galactic filter class.</description>
+    </inputParameter>
+    !!]
     stellarAbsoluteMagnitudesConstructorParameters=galacticFilterStellarAbsoluteMagnitudes(absoluteMagnitudeThreshold)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function stellarAbsoluteMagnitudesConstructorParameters
 
   function stellarAbsoluteMagnitudesConstructorInternal(absoluteMagnitudeThreshold)
-    !% Internal constructor for the ``stellarAbsoluteMagnitudes'' galactic filter class.
+    !!{
+    Internal constructor for the ``stellarAbsoluteMagnitudes'' galactic filter class.
+    !!}
     use :: Galacticus_Error              , only : Galacticus_Error_Report
     use :: Stellar_Luminosities_Structure, only : Stellar_Luminosities_Parameter_Map, unitStellarLuminosities
     implicit none
     type            (galacticFilterStellarAbsoluteMagnitudes)                              :: stellarAbsoluteMagnitudesConstructorInternal
     double precision                                         , intent(in   ), dimension(:) :: absoluteMagnitudeThreshold
-    !# <constructorAssign variables="absoluteMagnitudeThreshold"/>
+    !![
+    <constructorAssign variables="absoluteMagnitudeThreshold"/>
+    !!]
 
     if (size(absoluteMagnitudeThreshold) /= unitStellarLuminosities%luminosityCount(unmapped=.true.))                                     &
          & call  Galacticus_Error_Report(                                                                                                 &
@@ -89,7 +107,9 @@ contains
   end function stellarAbsoluteMagnitudesConstructorInternal
 
   logical function stellarAbsoluteMagnitudesPasses(self,node)
-    !% Implement a stellar absolute magnitude low-pass galactic filter.
+    !!{
+    Implement a stellar absolute magnitude low-pass galactic filter.
+    !!}
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
     use :: Galactic_Structure_Options        , only : massTypeStellar                 , weightByLuminosity
     use :: Galacticus_Nodes                  , only : nodeComponentBasic              , treeNode

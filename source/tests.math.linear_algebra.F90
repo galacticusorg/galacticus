@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to test linear algebra functions.
+!!{
+Contains a program to test linear algebra functions.
+!!}
 
 program Test_Math_Linear_Algebra
-  !% Tests of linear algebra functions.
+  !!{
+  Tests of linear algebra functions.
+  !!}
   use            :: Display                 , only : displayVerbositySet, verbosityLevelStandard
   use, intrinsic :: ISO_C_Binding           , only : c_size_t
   use            :: Linear_Algebra          , only : assignment(=)      , matrix                , matrixLU            , matrixRotation   , &

@@ -17,26 +17,32 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides a class that implements tidal stripping.
+!!{
+Contains a module which provides a class that implements tidal stripping.
+!!}
 
 module Tidal_Stripping_Mass_Loss_Rate
-  !% Provides a class that implements calculations of tidal stripping.
+  !!{
+  Provides a class that implements calculations of tidal stripping.
+  !!}
   use :: Galacticus_Nodes, only : nodeComponent
   private
 
-  !# <functionClass>
-  !#  <name>tidalStripping</name>
-  !#  <descriptiveName>Tidal stripping</descriptiveName>
-  !#  <description>
-  !#   Class providing models of tidal stripping.
-  !#  </description>
-  !#  <default>simple</default>
-  !#  <method name="rateMassLoss" >
-  !#   <description>Returns the rate of mass loss (in $M_\odot$~Gyr$^{-1}$) due to tidal stripping of {\normalfont \ttfamily component}.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>class(nodeCOmponent), intent(inout) :: component</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>tidalStripping</name>
+   <descriptiveName>Tidal stripping</descriptiveName>
+   <description>
+    Class providing models of tidal stripping.
+   </description>
+   <default>simple</default>
+   <method name="rateMassLoss" >
+    <description>Returns the rate of mass loss (in $M_\odot$~Gyr$^{-1}$) due to tidal stripping of {\normalfont \ttfamily component}.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>class(nodeCOmponent), intent(inout) :: component</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Tidal_Stripping_Mass_Loss_Rate

@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which handles node subhalo promotion events.
+!!{
+Contains a module which handles node subhalo promotion events.
+!!}
 
 module Node_Subhalo_Promotions
-  !% Handles subhalo promotion events.
+  !!{
+  Handles subhalo promotion events.
+  !!}
   implicit none
   private
   public :: nodeSubhaloPromotionPerform
@@ -28,7 +32,9 @@ module Node_Subhalo_Promotions
 contains
 
   logical function nodeSubhaloPromotionPerform(event,node,deadlockStatus)
-    !% Promotes a subhalo to be an isolated node.
+    !!{
+    Promotes a subhalo to be an isolated node.
+    !!}
     use :: Display                            , only : displayMessage               , displayVerbosity, verbosityLevelInfo
     use :: Galacticus_Nodes                   , only : nodeComponentBasic           , nodeEvent       , treeNode
     use :: ISO_Varying_String                 , only : assignment(=)                , operator(//)    , varying_string
@@ -65,15 +71,17 @@ contains
     node         %sibling    => null()
     nodePromotion%firstChild => node
     ! Trigger the event.
-    !# <eventHook name="subhaloPromotion">
-    !#  <import>
-    !#   <module name="Galacticus_Nodes" symbols="treeNode"/>
-    !#  </import>
-    !#  <interface>
-    !#   type(treeNode), intent(inout), pointer :: node, nodePromotion
-    !#  </interface>
-    !#  <callWith>node,nodePromotion</callWith>
-    !# </eventHook>
+    !![
+    <eventHook name="subhaloPromotion">
+     <import>
+      <module name="Galacticus_Nodes" symbols="treeNode"/>
+     </import>
+     <interface>
+      type(treeNode), intent(inout), pointer :: node, nodePromotion
+     </interface>
+     <callWith>node,nodePromotion</callWith>
+    </eventHook>
+    !!]
     ! Since we changed the tree, record that the tree is not deadlocked.
     deadlockStatus=deadlockStatusIsNotDeadlocked
     ! Record that the task was performed.

@@ -19,11 +19,15 @@
 
   use :: Accretion_Disk_Spectra, only : accretionDiskSpectraClass
 
-  !# <radiativeTransferSpectrum name="radiativeTransferSpectrumAccretionDisk">
-  !#  <description>A photon spectrum class for accretionDisk spectrums.</description>
-  !# </radiativeTransferSpectrum>
+  !![
+  <radiativeTransferSpectrum name="radiativeTransferSpectrumAccretionDisk">
+   <description>A photon spectrum class for accretionDisk spectrums.</description>
+  </radiativeTransferSpectrum>
+  !!]
   type, extends(radiativeTransferSpectrumClass) :: radiativeTransferSpectrumAccretionDisk
-     !% Implementation of a black body spectrum for radiative transfer calculations.
+     !!{
+     Implementation of a black body spectrum for radiative transfer calculations.
+     !!}
      private
      class           (accretionDiskSpectraClass), pointer :: accretionDiskSpectra_
      double precision                                     :: massBlackHole        , accretionRateEddington, &
@@ -35,7 +39,9 @@
   end type radiativeTransferSpectrumAccretionDisk
   
   interface radiativeTransferSpectrumAccretionDisk
-     !% Constructors for the {\normalfont \ttfamily accretionDisk} radiative transfer spectrum class.
+     !!{
+     Constructors for the {\normalfont \ttfamily accretionDisk} radiative transfer spectrum class.
+     !!}
      module procedure accretionDiskConstructorParameters
      module procedure accretionDiskConstructorInternal
   end interface radiativeTransferSpectrumAccretionDisk
@@ -43,8 +49,10 @@
 contains
       
   function accretionDiskConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily accretionDisk} radiative transfer spectrum class which takes a parameter set as
-    !% input.
+    !!{
+    Constructor for the {\normalfont \ttfamily accretionDisk} radiative transfer spectrum class which takes a parameter set as
+    input.
+    !!}
     use :: Input_Parameters, only : inputParameters, inputParameter
     implicit none
     type            (radiativeTransferSpectrumAccretionDisk)                :: self
@@ -52,27 +60,33 @@ contains
     class           (accretionDiskSpectraClass             ), pointer       :: accretionDiskSpectra_
     double precision                                                        :: massBlackHole        , accretionRateEddington
     
-    !# <inputParameter>
-    !#   <name>massBlackHole</name>
-    !#   <defaultValue>1.0d6</defaultValue>
-    !#   <description>The mass of the black hole at the center of the accretion disk.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>accretionRateEddington</name>
-    !#   <defaultValue>1.0d-1</defaultValue>
-    !#   <description>Accretion rate onto the black hole in units of the Eddington rate.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="accretionDiskSpectra" name="accretionDiskSpectra_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>massBlackHole</name>
+      <defaultValue>1.0d6</defaultValue>
+      <description>The mass of the black hole at the center of the accretion disk.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>accretionRateEddington</name>
+      <defaultValue>1.0d-1</defaultValue>
+      <description>Accretion rate onto the black hole in units of the Eddington rate.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="accretionDiskSpectra" name="accretionDiskSpectra_" source="parameters"/>
+    !!]
     self=radiativeTransferSpectrumAccretionDisk(massBlackHole,accretionRateEddington,accretionDiskSpectra_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="accretionDiskSpectra_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="accretionDiskSpectra_"/>
+    !!]
     return
   end function accretionDiskConstructorParameters
 
   function accretionDiskConstructorInternal(massBlackHole,accretionRateEddington,accretionDiskSpectra_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily accretionDisk} radiative transfer spectrum class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily accretionDisk} radiative transfer spectrum class.
+    !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear
     use :: Numerical_Constants_Atomic      , only : massHydrogenAtom
     use :: Numerical_Constants_Math        , only : Pi
@@ -81,7 +95,9 @@ contains
     type            (radiativeTransferSpectrumAccretionDisk)                        :: self
     class           (accretionDiskSpectraClass             ), intent(in   ), target :: accretionDiskSpectra_
     double precision                                        , intent(in   )         :: massBlackHole        , accretionRateEddington
-    !# <constructorAssign variables="massBlackHole, accretionRateEddington, *accretionDiskSpectra_"/>
+    !![
+    <constructorAssign variables="massBlackHole, accretionRateEddington, *accretionDiskSpectra_"/>
+    !!]
 
     self%accretionRate=+4.0d0                  &
          &             *Pi                     &
@@ -96,16 +112,22 @@ contains
   end function accretionDiskConstructorInternal
 
   subroutine accretionDiskDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily accretionDisk} radiative transfer spectrum class.
+    !!{
+    Destructor for the {\normalfont \ttfamily accretionDisk} radiative transfer spectrum class.
+    !!}
     implicit none
     type(radiativeTransferSpectrumAccretionDisk), intent(inout) :: self
 
-    !# <objectDestructor name="self%accretionDiskSpectra_"/>
+    !![
+    <objectDestructor name="self%accretionDiskSpectra_"/>
+    !!]
     return
   end subroutine accretionDiskDestructor
 
   double precision function accretionDiskLuminosity(self,wavelengthMinimum,wavelengthMaximum)
-    !% Compute the luminosity in the given wavelength range for an accretion disk.
+    !!{
+    Compute the luminosity in the given wavelength range for an accretion disk.
+    !!}
     use :: Numerical_Integration, only : integrator
     implicit none
     class           (radiativeTransferSpectrumAccretionDisk), intent(inout) :: self
@@ -119,7 +141,9 @@ contains
   contains
 
     double precision function integrand(wavelength)
-      !% Integrand over black body spectrum.
+      !!{
+      Integrand over black body spectrum.
+      !!}
       implicit none
       double precision, intent(in   ) :: wavelength
 
@@ -130,7 +154,9 @@ contains
   end function accretionDiskLuminosity
 
   double precision function accretionDiskSpectrum(self,wavelength)
-    !% Return the spectrum of the accretion disk.
+    !!{
+    Return the spectrum of the accretion disk.
+    !!}
     use :: Numerical_Constants_Physical, only : speedLight
     use :: Numerical_Constants_Units   , only : angstromsPerMeter
     implicit none

@@ -19,13 +19,19 @@
 
 !+    Contributions to this file made by: Andrew Benson, Christoph Behrens, Xiaolong Du.
 
-!% Contains a module which implements a excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}, but using a midpoint method to perform the integrations \citep{du_substructure_2017}.
+!!{
+Contains a module which implements a excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}, but using a midpoint method to perform the integrations \citep{du_substructure_2017}.
+!!}
 
-  !# <excursionSetFirstCrossing name="excursionSetFirstCrossingFarahiMidpoint">
-  !#  <description>An excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}, but using a midpoint method to perform the integrations \citep{du_substructure_2017}.</description>
-  !# </excursionSetFirstCrossing>
+  !![
+  <excursionSetFirstCrossing name="excursionSetFirstCrossingFarahiMidpoint">
+   <description>An excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}, but using a midpoint method to perform the integrations \citep{du_substructure_2017}.</description>
+  </excursionSetFirstCrossing>
+  !!]
   type, extends(excursionSetFirstCrossingFarahi) :: excursionSetFirstCrossingFarahiMidpoint
-     !% An excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}, but using a midpoint method to perform the integrations \citep{du_substructure_2017}.
+     !!{
+     An excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}, but using a midpoint method to perform the integrations \citep{du_substructure_2017}.
+     !!}
      private
    contains
      procedure :: probability  => farahiMidpointProbability
@@ -33,7 +39,9 @@
   end type excursionSetFirstCrossingFarahiMidpoint
 
   interface excursionSetFirstCrossingFarahiMidpoint
-     !% Constructors for the Farahi-midpoint excursion set barrier class.
+     !!{
+     Constructors for the Farahi-midpoint excursion set barrier class.
+     !!}
      module procedure farahiMidpointConstructorParameters
      module procedure farahiMidpointConstructorInternal
   end interface excursionSetFirstCrossingFarahiMidpoint
@@ -41,7 +49,9 @@
 contains
 
   function farahiMidpointConstructorParameters(parameters) result(self)
-    !% Constructor for the Farahi-midpoint excursion set class first crossing class which takes a parameter set as input.
+    !!{
+    Constructor for the Farahi-midpoint excursion set class first crossing class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(excursionSetFirstCrossingFarahiMidpoint)                :: self
@@ -52,7 +62,9 @@ contains
   end function farahiMidpointConstructorParameters
 
   function farahiMidpointConstructorInternal(timeStepFractional,fileName,varianceNumberPerUnitProbability,varianceNumberPerUnit,varianceNumberPerDecade,timeNumberPerDecade,cosmologyFunctions_,excursionSetBarrier_,cosmologicalMassVariance_) result(self)
-    !% Internal constructor for the Farahi-midpoint excursion set class first crossing class.
+    !!{
+    Internal constructor for the Farahi-midpoint excursion set class first crossing class.
+    !!}
     implicit none
     type            (excursionSetFirstCrossingFarahiMidpoint)                        :: self
     double precision                                         , intent(in   )         :: timeStepFractional
@@ -68,7 +80,9 @@ contains
   end function farahiMidpointConstructorInternal
 
   double precision function farahiMidpointProbability(self,variance,time,node)
-    !% Return the excursion set barrier at the given variance and time.
+    !!{
+    Return the excursion set barrier at the given variance and time.
+    !!}
     use :: Display          , only : displayCounter , displayCounterClear  , displayIndent       , displayMessage, &
           &                          displayUnindent, verbosityLevelWorking
     use :: Error_Functions  , only : erfApproximate
@@ -187,9 +201,11 @@ contains
        !$omp parallel private(iTime,i,j,sigma1f,integralKernel,excursionSetBarrier_,barrierTable,barrierMidTable) if (.not.mpiSelf%isActive() .or. .not.self%coordinatedMPI_)
        allocate(excursionSetBarrier_,mold=self%excursionSetBarrier_)
        !$omp critical(excursionSetsSolverFarahiMidpointDeepCopy)
-       !# <deepCopyReset variables="self%excursionSetBarrier_"/>
-       !# <deepCopy source="self%excursionSetBarrier_" destination="excursionSetBarrier_"/>
-       !# <deepCopyFinalize variables="excursionSetBarrier_"/>
+       !![
+       <deepCopyReset variables="self%excursionSetBarrier_"/>
+       <deepCopy source="self%excursionSetBarrier_" destination="excursionSetBarrier_"/>
+       <deepCopyFinalize variables="excursionSetBarrier_"/>
+       !!]
        !$omp end critical(excursionSetsSolverFarahiMidpointDeepCopy)
        call allocateArray(barrierTable   ,[1+self%varianceTableCount],lowerBounds=[0])
        call allocateArray(barrierMidTable,[1+self%varianceTableCount],lowerBounds=[0])
@@ -286,7 +302,9 @@ contains
           self%firstCrossingProbabilityTable(self%varianceTableCount,iTime)=0.0d0
        end do
        !$omp end do
-       !# <objectDestructor name="excursionSetBarrier_"/>
+       !![
+       <objectDestructor name="excursionSetBarrier_"/>
+       !!]
        call deallocateArray(barrierTable   )
        call deallocateArray(barrierMidTable)
        !$omp end parallel
@@ -348,7 +366,9 @@ contains
   end function farahiMidpointProbability
 
   subroutine farahiMidpointRateTabulate(self,varianceProgenitor,time,node)
-    !% Tabulate the excursion set crossing rate.
+    !!{
+    Tabulate the excursion set crossing rate.
+    !!}
     use :: Display          , only : displayCounter , displayCounterClear  , displayIndent       , displayMessage, &
           &                          displayUnindent, verbosityLevelWorking
     use :: Error_Functions  , only : erfApproximate
@@ -454,10 +474,12 @@ contains
           allocate(excursionSetBarrier_     ,mold=self%excursionSetBarrier_     )
           allocate(cosmologicalMassVariance_,mold=self%cosmologicalMassVariance_)
           !$omp critical(excursionSetsSolverFarahiMidpointDeepCopy)
-          !# <deepCopyReset variables="self%excursionSetBarrier_ self%cosmologicalMassVariance_"/>
-          !# <deepCopy source="self%excursionSetBarrier_"      destination="excursionSetBarrier_"     />
-          !# <deepCopy source="self%cosmologicalMassVariance_" destination="cosmologicalMassVariance_"/>
-          !# <deepCopyFinalize variables="excursionSetBarrier_ cosmologicalMassVariance_"/>
+          !![
+          <deepCopyReset variables="self%excursionSetBarrier_ self%cosmologicalMassVariance_"/>
+          <deepCopy source="self%excursionSetBarrier_"      destination="excursionSetBarrier_"     />
+          <deepCopy source="self%cosmologicalMassVariance_" destination="cosmologicalMassVariance_"/>
+          <deepCopyFinalize variables="excursionSetBarrier_ cosmologicalMassVariance_"/>
+          !!]
           !$omp end critical(excursionSetsSolverFarahiMidpointDeepCopy)
           growthFactorEffective          =+cosmologicalMassVariance_%rootVariance(massLarge,self%timeMaximumRate                                ) &
                &                          /cosmologicalMassVariance_%rootVariance(massLarge,self%timeMaximumRate*(1.0d0-self%timeStepFractional))
@@ -470,8 +492,10 @@ contains
                &                                -excursionSetBarrier_%barrier(+0.0d0,self%timeMaximumRate                                ,node,rateCompute=.true.)  &
                &                               )**2                                                                                                                 &
                &                             )
-          !# <objectDestructor name="excursionSetBarrier_"     />
-          !# <objectDestructor name="cosmologicalMassVariance_"/>
+          !![
+          <objectDestructor name="excursionSetBarrier_"     />
+          <objectDestructor name="cosmologicalMassVariance_"/>
+          !!]
           self%varianceMaximumRate       =max(self%varianceMaximumRate,varianceProgenitor)
           self%varianceTableCountRate    =int(log10(self%varianceMaximumRate/varianceMinimumRate)*dble(self%varianceNumberPerDecade))+1
           self%varianceTableCountRateBase=int(self%varianceMaximumRate*dble(self%varianceNumberPerUnit))
@@ -559,10 +583,12 @@ contains
           allocate(excursionSetBarrier_     ,mold=self%excursionSetBarrier_     )
           allocate(cosmologicalMassVariance_,mold=self%cosmologicalMassVariance_)
           !$omp critical(excursionSetsSolverFarahiMidpointDeepCopy)
-          !# <deepCopyReset variables="self%excursionSetBarrier_ self%cosmologicalMassVariance_"/>
-          !# <deepCopy source="self%excursionSetBarrier_"      destination="excursionSetBarrier_"     />
-          !# <deepCopy source="self%cosmologicalMassVariance_" destination="cosmologicalMassVariance_"/>
-          !# <deepCopyFinalize variables="excursionSetBarrier_ cosmologicalMassVariance_"/>
+          !![
+          <deepCopyReset variables="self%excursionSetBarrier_ self%cosmologicalMassVariance_"/>
+          <deepCopy source="self%excursionSetBarrier_"      destination="excursionSetBarrier_"     />
+          <deepCopy source="self%cosmologicalMassVariance_" destination="cosmologicalMassVariance_"/>
+          <deepCopyFinalize variables="excursionSetBarrier_ cosmologicalMassVariance_"/>
+          !!]
           !$omp end critical(excursionSetsSolverFarahiMidpointDeepCopy)
           call allocateArray(barrierTableRateQuad   ,[self%varianceTableCountRate])
           call allocateArray(barrierMidTableRateQuad,[self%varianceTableCountRate])
@@ -721,8 +747,10 @@ contains
                   &                                 /self%timeStepFractional
              !$omp end single
           end do
-          !# <objectDestructor name="excursionSetBarrier_"     />
-          !# <objectDestructor name="cosmologicalMassVariance_"/>
+          !![
+          <objectDestructor name="excursionSetBarrier_"     />
+          <objectDestructor name="cosmologicalMassVariance_"/>
+          !!]
           call deallocateArray(barrierTableRateQuad   )
           call deallocateArray(barrierMidTableRateQuad)
           !$omp end parallel

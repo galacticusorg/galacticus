@@ -17,12 +17,16 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Implements the geometry of the DES survey for Local Group dwarfs.
+!!{
+Implements the geometry of the DES survey for Local Group dwarfs.
+!!}
 
 
-  !# <surveyGeometry name="surveyGeometryLocalGroupDES">
-  !#  <description>Implements the geometry of the DES survey for Local Group dwarfs.</description>
-  !# </surveyGeometry>
+  !![
+  <surveyGeometry name="surveyGeometryLocalGroupDES">
+   <description>Implements the geometry of the DES survey for Local Group dwarfs.</description>
+  </surveyGeometry>
+  !!]
   type, extends(surveyGeometryMangle) :: surveyGeometryLocalGroupDES
      private
      double precision :: distanceMaximumSurvey
@@ -35,7 +39,9 @@
   end type surveyGeometryLocalGroupDES
 
   interface surveyGeometryLocalGroupDES
-     !% Constructors for the {\normalfont \ttfamily localGroupDES} survey geometry class.
+     !!{
+     Constructors for the {\normalfont \ttfamily localGroupDES} survey geometry class.
+     !!}
      module procedure localGroupDESConstructorParameters
      module procedure localGroupDESConstructorInternal
   end interface surveyGeometryLocalGroupDES
@@ -46,37 +52,49 @@
 contains
 
   function localGroupDESConstructorParameters(parameters) result (self)
-    !% Constructor for the {\normalfont \ttfamily localGroupDES} conditional mass function class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily localGroupDES} conditional mass function class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (surveyGeometryLocalGroupDES)                :: self
     type            (inputParameters            ), intent(inout) :: parameters
     double precision                                             :: distanceMaximumSurvey
 
-    !# <inputParameter>
-    !#   <name>distanceMaximumSurvey</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>300.0d-3</defaultValue>
-    !#   <description>The maximum distance at which galaxies are to be included in the survey.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>distanceMaximumSurvey</name>
+      <source>parameters</source>
+      <defaultValue>300.0d-3</defaultValue>
+      <description>The maximum distance at which galaxies are to be included in the survey.</description>
+    </inputParameter>
+    !!]
     self=surveyGeometryLocalGroupDES(distanceMaximumSurvey)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function localGroupDESConstructorParameters
 
   function localGroupDESConstructorInternal(distanceMaximumSurvey) result (self)
-    !% Internal constructor for the {\normalfont \ttfamily localGroupDES} survey geometry class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily localGroupDES} survey geometry class.
+    !!}
     implicit none
     type            (surveyGeometryLocalGroupDES)                :: self
     double precision                             , intent(in   ) :: distanceMaximumSurvey
-    !# <constructorAssign variables="distanceMaximumSurvey"/>
+    !![
+    <constructorAssign variables="distanceMaximumSurvey"/>
+    !!]
 
     call self%initialize()
     return
   end function localGroupDESConstructorInternal
 
   integer function localGroupDESFieldCount(self)
-    !% Return the number of fields in this sample.
+    !!{
+    Return the number of fields in this sample.
+    !!}
     implicit none
     class(surveyGeometryLocalGroupDES), intent(inout) :: self
     !$GLC attributes unused :: self
@@ -86,7 +104,9 @@ contains
   end function localGroupDESFieldCount
 
   double precision function localGroupDESDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
-    !% Compute the maximum distance at which a galaxy is visible.
+    !!{
+    Compute the maximum distance at which a galaxy is visible.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryLocalGroupDES), intent(inout)           :: self
@@ -105,7 +125,9 @@ contains
   end function localGroupDESDistanceMaximum
 
   integer function localGroupDESAngularPowerMaximumDegree(self)
-    !% Return the maximum degree for which angular power is computed for the {\normalfont \ttfamily localGroupDES} survey.
+    !!{
+    Return the maximum degree for which angular power is computed for the {\normalfont \ttfamily localGroupDES} survey.
+    !!}
     implicit none
     class(surveyGeometryLocalGroupDES), intent(inout) :: self
     !$GLC attributes unused :: self
@@ -115,7 +137,9 @@ contains
   end function localGroupDESAngularPowerMaximumDegree
 
   function localGroupDESMangleDirectory(self)
-    !% Return the path to the directory containing \gls{mangle} files.
+    !!{
+    Return the path to the directory containing \gls{mangle} files.
+    !!}
     use :: Galacticus_Paths, only : galacticusPath, pathTypeDataStatic
     implicit none
     class(surveyGeometryLocalGroupDES), intent(inout) :: self
@@ -127,7 +151,9 @@ contains
   end function localGroupDESMangleDirectory
 
   subroutine localGroupDESMangleFiles(self,mangleFiles)
-    !% Return a list of \gls{mangle} files.
+    !!{
+    Return a list of \gls{mangle} files.
+    !!}
     implicit none
     class(surveyGeometryLocalGroupDES)                           , intent(inout) :: self
     type (varying_string             ), allocatable, dimension(:), intent(inout) :: mangleFiles

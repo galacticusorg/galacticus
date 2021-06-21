@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements calculations of the mass enclosed within a specified radius.
+!!{
+Contains a module which implements calculations of the mass enclosed within a specified radius.
+!!}
 
 module Galactic_Structure_Enclosed_Masses
-  !% Implements calculations of the mass enclosed within a specified radius.
+  !!{
+  Implements calculations of the mass enclosed within a specified radius.
+  !!}
   use :: Galacticus_Nodes, only : treeNode
   implicit none
   private
@@ -36,13 +40,19 @@ module Galactic_Structure_Enclosed_Masses
 contains
 
   double precision function Galactic_Structure_Enclosed_Mass(node,radius,componentType,massType,weightBy,weightIndex)
-    !% Solve for the mass within a given radius, or the total mass if no radius is specified. Assumes that galactic structure has
-    !% already been computed.
+    !!{
+    Solve for the mass within a given radius, or the total mass if no radius is specified. Assumes that galactic structure has
+    already been computed.
+    !!}
     use :: Galactic_Structure_Options, only : radiusLarge
     use :: Galacticus_Nodes          , only : optimizeForEnclosedMassSummation, reductionSummation, treeNode
-    !# <include directive="enclosedMassTask" type="moduleUse">
+    !![
+    <include directive="enclosedMassTask" type="moduleUse">
+    !!]
     include 'galactic_structure.enclosed_mass.tasks.modules.inc'
-    !# </include>
+    !![
+    </include>
+    !!]
     implicit none
     type            (treeNode               ), intent(inout)           :: node
     integer                                  , intent(in   ), optional :: componentType        , massType, weightBy, &
@@ -63,16 +73,22 @@ contains
     componentEnclosedMass => Component_Enclosed_Mass
     Galactic_Structure_Enclosed_Mass=node%mapDouble0(componentEnclosedMass,reductionSummation,optimizeFor=optimizeForEnclosedMassSummation)
     ! Call routines to supply the masses for all components.
-    !# <include directive="enclosedMassTask" type="functionCall" functionType="function" returnParameter="componentMass">
-    !#  <functionArgs>node,radiusShared,componentTypeShared,massTypeShared,weightByShared,weightIndexShared</functionArgs>
-    !#  <onReturn>Galactic_Structure_Enclosed_Mass=Galactic_Structure_Enclosed_Mass+componentMass</onReturn>
+    !![
+    <include directive="enclosedMassTask" type="functionCall" functionType="function" returnParameter="componentMass">
+     <functionArgs>node,radiusShared,componentTypeShared,massTypeShared,weightByShared,weightIndexShared</functionArgs>
+     <onReturn>Galactic_Structure_Enclosed_Mass=Galactic_Structure_Enclosed_Mass+componentMass</onReturn>
+    !!]
     include 'galactic_structure.enclosed_mass.tasks.inc'
-    !# </include>
+    !![
+    </include>
+    !!]
     return
   end function Galactic_Structure_Enclosed_Mass
 
   double precision function Galactic_Structure_Radius_Enclosing_Mass(node,mass,fractionalMass,componentType,massType,weightBy,weightIndex)
-    !% Return the radius enclosing a given mass (or fractional mass) in {\normalfont \ttfamily node}.
+    !!{
+    Return the radius enclosing a given mass (or fractional mass) in {\normalfont \ttfamily node}.
+    !!}
     use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScale      , darkMatterHaloScaleClass
     use :: Dark_Matter_Profiles      , only : darkMatterProfile        , darkMatterProfileClass
     use :: Display                   , only : displayMessage           , verbosityLevelWarn
@@ -165,7 +181,9 @@ contains
   end function Galactic_Structure_Radius_Enclosing_Mass
 
   double precision function Galactic_Structure_Radius_Enclosing_Density(node,density,densityContrast,componentType,massType,weightBy,weightIndex)
-    !% Return the radius enclosing a given density (or density contrast) in {\normalfont \ttfamily node}.
+    !!{
+    Return the radius enclosing a given density (or density contrast) in {\normalfont \ttfamily node}.
+    !!}
     use :: Cosmology_Functions    , only : cosmologyFunctions       , cosmologyFunctionsClass
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScale      , darkMatterHaloScaleClass
     use :: Galacticus_Error       , only : Galacticus_Error_Report
@@ -222,7 +240,9 @@ contains
   end function Galactic_Structure_Radius_Enclosing_Density
 
   subroutine Galactic_Structure_Enclosed_Mass_Defaults(componentType,massType,weightBy,weightIndex)
-    !% Set the default values for options in the enclosed mass functions.
+    !!{
+    Set the default values for options in the enclosed mass functions.
+    !!}
     use :: Galactic_Structure_Options, only : componentTypeAll       , massTypeAll, weightByLuminosity, weightByMass
     use :: Galacticus_Error          , only : Galacticus_Error_Report
     implicit none
@@ -255,7 +275,9 @@ contains
   end subroutine Galactic_Structure_Enclosed_Mass_Defaults
 
   double precision function Enclosed_Mass_Root(radius)
-    !% Root function used in solving for the radius that encloses a given mass.
+    !!{
+    Root function used in solving for the radius that encloses a given mass.
+    !!}
     double precision, intent(in   ) :: radius
 
     ! Evaluate the root function.
@@ -265,7 +287,9 @@ contains
   end function Enclosed_Mass_Root
 
   double precision function Enclosed_Density_Root(radius)
-    !% Root function used in solving for the radius that encloses a given density.
+    !!{
+    Root function used in solving for the radius that encloses a given density.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     double precision, intent(in   ) :: radius
 
@@ -274,7 +298,9 @@ contains
   end function Enclosed_Density_Root
 
   double precision function Component_Enclosed_Mass(component)
-    !% Unary function returning the enclosed mass in a component. Suitable for mapping over components.
+    !!{
+    Unary function returning the enclosed mass in a component. Suitable for mapping over components.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponent
     implicit none
     class(nodeComponent), intent(inout) :: component

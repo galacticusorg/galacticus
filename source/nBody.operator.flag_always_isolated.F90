@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an N-body data operator which flags particles that have been always isolated.
+!!{
+Contains a module which implements an N-body data operator which flags particles that have been always isolated.
+!!}
 
-  !# <nbodyOperator name="nbodyOperatorFlagAlwaysIsolated">
-  !#  <description>An N-body data operator which flags particles that have been always isolated.</description>
-  !# </nbodyOperator>
+  !![
+  <nbodyOperator name="nbodyOperatorFlagAlwaysIsolated">
+   <description>An N-body data operator which flags particles that have been always isolated.</description>
+  </nbodyOperator>
+  !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorFlagAlwaysIsolated
-     !% An N-body data operator which flags particles that have been always isolated.
+     !!{
+     An N-body data operator which flags particles that have been always isolated.
+     !!}
      private
      double precision :: massFactor
    contains
@@ -31,7 +37,9 @@
   end type nbodyOperatorFlagAlwaysIsolated
 
   interface nbodyOperatorFlagAlwaysIsolated
-     !% Constructors for the {\normalfont \ttfamily flagAlwaysIsolated} N-body operator class.
+     !!{
+     Constructors for the {\normalfont \ttfamily flagAlwaysIsolated} N-body operator class.
+     !!}
      module procedure flagAlwaysIsolatedConstructorParameters
      module procedure flagAlwaysIsolatedConstructorInternal
   end interface nbodyOperatorFlagAlwaysIsolated
@@ -39,37 +47,49 @@
 contains
 
   function flagAlwaysIsolatedConstructorParameters(parameters) result (self)
-    !% Constructor for the {\normalfont \ttfamily flagAlwaysIsolated} N-body operator class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily flagAlwaysIsolated} N-body operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type            (nbodyOperatorFlagAlwaysIsolated)                :: self
     type            (inputParameters                ), intent(inout) :: parameters
     double precision                                                 :: massFactor
 
-    !# <inputParameter>
-    !#   <name>massFactor</name>
-    !#   <source>parameters</source>
-    !#   <description>The factor by which virial mass must increase for previous non-isolation to be ignored.</description>
-    !#   <defaultValue>2.0d0</defaultValue>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>massFactor</name>
+      <source>parameters</source>
+      <description>The factor by which virial mass must increase for previous non-isolation to be ignored.</description>
+      <defaultValue>2.0d0</defaultValue>
+    </inputParameter>
+    !!]
     self=nbodyOperatorFlagAlwaysIsolated(massFactor)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function flagAlwaysIsolatedConstructorParameters
 
   function flagAlwaysIsolatedConstructorInternal(massFactor) result (self)
-    !% Internal constructor for the {\normalfont \ttfamily flagAlwaysIsolated} N-body operator class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily flagAlwaysIsolated} N-body operator class.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type            (nbodyOperatorFlagAlwaysIsolated)                :: self
     double precision                                 , intent(in   ) :: massFactor
-    !# <constructorAssign variables="massFactor"/>
+    !![
+    <constructorAssign variables="massFactor"/>
+    !!]
 
     return
   end function flagAlwaysIsolatedConstructorInternal
 
   subroutine flagAlwaysIsolatedOperate(self,simulations)
-    !% Identify and flag particles which have been always isolated.
+    !!{
+    Identify and flag particles which have been always isolated.
+    !!}
     use    :: Arrays_Search     , only : searchIndexed
     use    :: Display           , only : displayCounter         , displayCounterClear, displayIndent, displayUnindent, &
           &                              verbosityLevelStandard

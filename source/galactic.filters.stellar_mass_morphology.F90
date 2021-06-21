@@ -17,17 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a galactic high-pass filter for stellar mass-weighted morphology (i.e. spheroid-to-total ratio).
+!!{
+Contains a module which implements a galactic high-pass filter for stellar mass-weighted morphology (i.e. spheroid-to-total ratio).
+!!}
 
-  !# <galacticFilter name="galacticFilterStellarMassMorphology">
-  !#  <description>
-  !#  A galactic high-pass filter for stellar mass-weighted morphology (i.e. spheroid-to-total ratio). Galaxies with a
-  !#  spheroid-to-total ratio (by stellar mass) greater than or equal to a fixed threshold, $R_{\star,0}=${\normalfont \ttfamily
-  !#  [spheroidToTotalThreshold]}.
-  !#  </description>
-  !# </galacticFilter>
+  !![
+  <galacticFilter name="galacticFilterStellarMassMorphology">
+   <description>
+   A galactic high-pass filter for stellar mass-weighted morphology (i.e. spheroid-to-total ratio). Galaxies with a
+   spheroid-to-total ratio (by stellar mass) greater than or equal to a fixed threshold, $R_{\star,0}=${\normalfont \ttfamily
+   [spheroidToTotalThreshold]}.
+   </description>
+  </galacticFilter>
+  !!]
   type, extends(galacticFilterClass) :: galacticFilterStellarMassMorphology
-     !% A galactic high-pass filter class for stellar mass-weighted morphology (i.e. spheroid-to-total ratio).
+     !!{
+     A galactic high-pass filter class for stellar mass-weighted morphology (i.e. spheroid-to-total ratio).
+     !!}
      private
      double precision :: spheroidToTotalRatioThreshold
    contains
@@ -35,7 +41,9 @@
   end type galacticFilterStellarMassMorphology
 
   interface galacticFilterStellarMassMorphology
-     !% Constructors for the ``stellarMassMorphology'' galactic filter class.
+     !!{
+     Constructors for the ``stellarMassMorphology'' galactic filter class.
+     !!}
      module procedure stellarMassMorphologyConstructorParameters
      module procedure stellarMassMorphologyConstructorInternal
   end interface galacticFilterStellarMassMorphology
@@ -43,34 +51,44 @@
 contains
 
   function stellarMassMorphologyConstructorParameters(parameters)
-    !% Constructor for the ``stellarMassMorphology'' galactic filter class which takes a parameter set as input.
+    !!{
+    Constructor for the ``stellarMassMorphology'' galactic filter class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(galacticFilterStellarMassMorphology)                :: stellarMassMorphologyConstructorParameters
     type(inputParameters          ), intent(inout) :: parameters
 
     ! Check and read parameters.
-    !# <inputParameter>
-    !#   <name>spheroidToTotalRatioThreshold</name>
-    !#   <source>parameters</source>
-    !#   <variable>stellarMassMorphologyConstructorParameters%spheroidToTotalRatioThreshold</variable>
-    !#   <description>The parameter $R_0$ appearing in the stellar mass-weight morphology threshold for the stellar mass-weighted morphology galactic filter class.</description>
-    !# </inputParameter>
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParameter>
+      <name>spheroidToTotalRatioThreshold</name>
+      <source>parameters</source>
+      <variable>stellarMassMorphologyConstructorParameters%spheroidToTotalRatioThreshold</variable>
+      <description>The parameter $R_0$ appearing in the stellar mass-weight morphology threshold for the stellar mass-weighted morphology galactic filter class.</description>
+    </inputParameter>
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function stellarMassMorphologyConstructorParameters
 
   function stellarMassMorphologyConstructorInternal(spheroidToTotalRatioThreshold)
-    !% Internal constructor for the ``stellarMassMorphology'' galactic filter class.
+    !!{
+    Internal constructor for the ``stellarMassMorphology'' galactic filter class.
+    !!}
     implicit none
     type            (galacticFilterStellarMassMorphology)                :: stellarMassMorphologyConstructorInternal
     double precision                                     , intent(in   ) :: spheroidToTotalRatioThreshold
-    !# <constructorAssign variables="spheroidToTotalRatioThreshold"/>
+    !![
+    <constructorAssign variables="spheroidToTotalRatioThreshold"/>
+    !!]
     return
   end function stellarMassMorphologyConstructorInternal
 
   logical function stellarMassMorphologyPasses(self,node)
-    !% Implement a stellar mass-weighted morphology high-pass galactic filter.
+    !!{
+    Implement a stellar mass-weighted morphology high-pass galactic filter.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid, treeNode
     implicit none
     class           (galacticFilterStellarMassMorphology), intent(inout)         :: self

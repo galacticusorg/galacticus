@@ -17,7 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of dark matter halo profile scale radii in which radii are computed from the concentration.
+  !!{
+  An implementation of dark matter halo profile scale radii in which radii are computed from the concentration.
+  !!}
 
   use :: Cosmology_Functions               , only : cosmologyFunctions            , cosmologyFunctionsClass
   use :: Cosmology_Parameters              , only : cosmologyParameters           , cosmologyParametersClass
@@ -27,14 +29,18 @@
   use :: Galacticus_Nodes                  , only : nodeComponentBasic            , nodeComponentDarkMatterProfile     , treeNode
   use :: Virial_Density_Contrast           , only : virialDensityContrast         , virialDensityContrastClass
 
-  !# <darkMatterProfileScaleRadius name="darkMatterProfileScaleRadiusConcentration">
-  !#  <description>Dark matter halo scale radii are computed from the concentration.</description>
-  !#  <deepCopy>
-  !#   <functionClass variables="darkMatterHaloScaleDefinition"/>
-  !#  </deepCopy>
-  !# </darkMatterProfileScaleRadius>
+  !![
+  <darkMatterProfileScaleRadius name="darkMatterProfileScaleRadiusConcentration">
+   <description>Dark matter halo scale radii are computed from the concentration.</description>
+   <deepCopy>
+    <functionClass variables="darkMatterHaloScaleDefinition"/>
+   </deepCopy>
+  </darkMatterProfileScaleRadius>
+  !!]
   type, extends(darkMatterProfileScaleRadiusClass) :: darkMatterProfileScaleRadiusConcentration
-     !% A dark matter halo profile scale radius class which computes radii from the concentration.
+     !!{
+     A dark matter halo profile scale radius class which computes radii from the concentration.
+     !!}
      private
      class           (cosmologyParametersClass                          ), pointer :: cosmologyParameters_              => null()
      class           (cosmologyFunctionsClass                           ), pointer :: cosmologyFunctions_               => null()
@@ -51,7 +57,9 @@
   end type darkMatterProfileScaleRadiusConcentration
 
   interface darkMatterProfileScaleRadiusConcentration
-     !% Constructors for the {\normalfont \ttfamily concentration} dark matter halo profile scale radius class.
+     !!{
+     Constructors for the {\normalfont \ttfamily concentration} dark matter halo profile scale radius class.
+     !!}
      module procedure concentrationConstructorParameters
      module procedure concentrationConstructorInternal
   end interface darkMatterProfileScaleRadiusConcentration
@@ -73,8 +81,10 @@
 contains
 
   function concentrationConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily concentration} dark matter halo profile scale radius class which takes a
-    !% parameter list as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily concentration} dark matter halo profile scale radius class which takes a
+    parameter list as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (darkMatterProfileScaleRadiusConcentration)                :: self
@@ -87,39 +97,45 @@ contains
     class  (darkMatterProfileConcentrationClass      ), pointer       :: darkMatterProfileConcentration_
     logical                                                           :: correctForConcentrationDefinition, useMeanConcentration
 
-    !# <inputParameter>
-    !#   <name>correctForConcentrationDefinition</name>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>If true, then when computing dark matter profile scale radii using concentrations, any difference between the current definition of halo scales
-    !#     (i.e. typically virial density contrast definitions) and density profiles and those assumed in measuring the concentrations will be taken into account.
-    !#     If false, the concentration is applied blindly.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>useMeanConcentration</name>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>If true, then when computing dark matter profile scale radii using concentrations do not account for any possible scatter in the concentration-mass relation.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters"            name="cosmologyParameters_"            source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"             name="cosmologyFunctions_"             source="parameters"/>
-    !# <objectBuilder class="darkMatterHaloScale"            name="darkMatterHaloScale_"            source="parameters"/>
-    !# <objectBuilder class="darkMatterProfileDMO"           name="darkMatterProfileDMO_"           source="parameters"/>
-    !# <objectBuilder class="virialDensityContrast"          name="virialDensityContrast_"          source="parameters"/>
-    !# <objectBuilder class="darkMatterProfileConcentration" name="darkMatterProfileConcentration_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>correctForConcentrationDefinition</name>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, then when computing dark matter profile scale radii using concentrations, any difference between the current definition of halo scales
+        (i.e. typically virial density contrast definitions) and density profiles and those assumed in measuring the concentrations will be taken into account.
+        If false, the concentration is applied blindly.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>useMeanConcentration</name>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, then when computing dark matter profile scale radii using concentrations do not account for any possible scatter in the concentration-mass relation.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="cosmologyParameters"            name="cosmologyParameters_"            source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"             name="cosmologyFunctions_"             source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale"            name="darkMatterHaloScale_"            source="parameters"/>
+    <objectBuilder class="darkMatterProfileDMO"           name="darkMatterProfileDMO_"           source="parameters"/>
+    <objectBuilder class="virialDensityContrast"          name="virialDensityContrast_"          source="parameters"/>
+    <objectBuilder class="darkMatterProfileConcentration" name="darkMatterProfileConcentration_" source="parameters"/>
+    !!]
     self=darkMatterProfileScaleRadiusConcentration(correctForConcentrationDefinition,useMeanConcentration,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,virialDensityContrast_,darkMatterProfileConcentration_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"           />
-    !# <objectDestructor name="cosmologyFunctions_"            />
-    !# <objectDestructor name="darkMatterHaloScale_"           />
-    !# <objectDestructor name="darkMatterProfileDMO_"          />
-    !# <objectDestructor name="virialDensityContrast_"         />
-    !# <objectDestructor name="darkMatterProfileConcentration_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"           />
+    <objectDestructor name="cosmologyFunctions_"            />
+    <objectDestructor name="darkMatterHaloScale_"           />
+    <objectDestructor name="darkMatterProfileDMO_"          />
+    <objectDestructor name="virialDensityContrast_"         />
+    <objectDestructor name="darkMatterProfileConcentration_"/>
+    !!]
     return
   end function concentrationConstructorParameters
 
   function concentrationConstructorInternal(correctForConcentrationDefinition,useMeanConcentration,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,virialDensityContrast_,darkMatterProfileConcentration_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily concentration} dark matter halo profile scale radius class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily concentration} dark matter halo profile scale radius class.
+    !!}
     implicit none
     type   (darkMatterProfileScaleRadiusConcentration)                        :: self
     class  (cosmologyParametersClass                 ), intent(in   ), target :: cosmologyParameters_
@@ -129,36 +145,46 @@ contains
     class  (virialDensityContrastClass               ), intent(in   ), target :: virialDensityContrast_
     class  (darkMatterProfileConcentrationClass      ), intent(in   ), target :: darkMatterProfileConcentration_
     logical                                           , intent(in   )         :: correctForConcentrationDefinition, useMeanConcentration
-    !# <constructorAssign variables="correctForConcentrationDefinition, useMeanConcentration, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *virialDensityContrast_, *darkMatterProfileConcentration_"/>
+    !![
+    <constructorAssign variables="correctForConcentrationDefinition, useMeanConcentration, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *virialDensityContrast_, *darkMatterProfileConcentration_"/>
+    !!]
 
     ! Get definitions of virial density contrast and dark matter profile as used by the concentration definition.
     allocate(self%darkMatterHaloScaleDefinition)
-    !# <referenceAcquire   isResult="yes" owner="self" target="virialDensityContrastDefinition" source="self%darkMatterProfileConcentration_%     densityContrastDefinition()"/>
-    !# <referenceAcquire   isResult="yes" owner="self" target="darkMatterProfileDMODefinition"  source="self%darkMatterProfileConcentration_%darkMatterProfileDMODefinition()"/>
-    !# <referenceConstruct isResult="yes" owner="self" object="darkMatterHaloScaleDefinition"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,self%virialDensityContrastDefinition)"/>
+    !![
+    <referenceAcquire   isResult="yes" owner="self" target="virialDensityContrastDefinition" source="self%darkMatterProfileConcentration_%     densityContrastDefinition()"/>
+    <referenceAcquire   isResult="yes" owner="self" target="darkMatterProfileDMODefinition"  source="self%darkMatterProfileConcentration_%darkMatterProfileDMODefinition()"/>
+    <referenceConstruct isResult="yes" owner="self" object="darkMatterHaloScaleDefinition"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,self%virialDensityContrastDefinition)"/>
+    !!]
     self%massRatioPrevious=2.0d0
     return
   end function concentrationConstructorInternal
 
   subroutine concentrationDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily concentration} dark matter halo profile scale radius class.
+    !!{
+    Destructor for the {\normalfont \ttfamily concentration} dark matter halo profile scale radius class.
+    !!}
     implicit none
     type(darkMatterProfileScaleRadiusConcentration), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterHaloScaleDefinition"  />
-    !# <objectDestructor name="self%cosmologyParameters_"           />
-    !# <objectDestructor name="self%cosmologyFunctions_"            />
-    !# <objectDestructor name="self%darkMatterHaloScale_"           />
-    !# <objectDestructor name="self%darkMatterProfileDMO_"          />
-    !# <objectDestructor name="self%virialDensityContrast_"         />
-    !# <objectDestructor name="self%darkMatterProfileConcentration_"/>
-    !# <objectDestructor name="self%darkMatterProfileDMODefinition" />
-    !# <objectDestructor name="self%virialDensityContrastDefinition"/>
+    !![
+    <objectDestructor name="self%darkMatterHaloScaleDefinition"  />
+    <objectDestructor name="self%cosmologyParameters_"           />
+    <objectDestructor name="self%cosmologyFunctions_"            />
+    <objectDestructor name="self%darkMatterHaloScale_"           />
+    <objectDestructor name="self%darkMatterProfileDMO_"          />
+    <objectDestructor name="self%virialDensityContrast_"         />
+    <objectDestructor name="self%darkMatterProfileConcentration_"/>
+    <objectDestructor name="self%darkMatterProfileDMODefinition" />
+    <objectDestructor name="self%virialDensityContrastDefinition"/>
+    !!]
     return
   end subroutine concentrationDestructor
 
   double precision function concentrationRadius(self,node)
-    !% Compute the scale radius of the dark matter profile of {\normalfont \ttfamily node}.
+    !!{
+    Compute the scale radius of the dark matter profile of {\normalfont \ttfamily node}.
+    !!}
     use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
     use :: Numerical_Comparison          , only : Values_Differ
     use :: Root_Finder                   , only : rangeExpandMultiplicative    , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
@@ -214,9 +240,8 @@ contains
           concentrationState_(concentrationStateCount)%nodeWork          => treeNode                                                               (                 )
           concentrationState_(concentrationStateCount)%basic             => concentrationState_(concentrationStateCount)%nodeWork%basic            (autoCreate=.true.)
           concentrationState_(concentrationStateCount)%darkMatterProfile => concentrationState_(concentrationStateCount)%nodeWork%darkMatterProfile(autoCreate=.true.)
-          call concentrationState_(concentrationStateCount)%basic            %timeSet            (basic%time())
-          call concentrationState_(concentrationStateCount)%basic            %timeLastIsolatedSet(basic%time())
-          call concentrationState_(concentrationStateCount)%darkMatterProfile%scaleIsLimitedSet  (.false.     )
+          call concentrationState_(concentrationStateCount)%basic%timeSet            (basic%time())
+          call concentrationState_(concentrationStateCount)%basic%timeLastIsolatedSet(basic%time())
           ! The finder is initialized each time as it is allocated on the stack - this allows this function to be called recursively.
           finder=rootFinder(                                                             &
                &            rootFunction                 =concentrationMassRoot        , &
@@ -282,7 +307,9 @@ contains
   end function concentrationRadius
 
   double precision function concentrationMassRoot(massDefinitionTrial)
-    !% Root function used to find the mass of a halo corresponding to the definition used for a particular concentration class.
+    !!{
+    Root function used to find the mass of a halo corresponding to the definition used for a particular concentration class.
+    !!}
     use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
     implicit none
     double precision, intent(in   ) :: massDefinitionTrial

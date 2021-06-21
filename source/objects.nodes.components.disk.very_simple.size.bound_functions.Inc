@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains custom functions for the very simple size disk component.
+!!{
+Contains custom functions for the very simple size disk component.
+!!}
 
 double precision function Node_Component_Disk_Very_Simple_Size_Half_Mass_Radius(self)
-  !% Return the half-mass radius of the very simple size disk.
+  !!{
+  Return the half-mass radius of the very simple size disk.
+  !!}
   implicit none
   class           (nodeComponentDiskVerySimpleSize), intent(inout) :: self
 
@@ -29,7 +33,9 @@ double precision function Node_Component_Disk_Very_Simple_Size_Half_Mass_Radius(
 end function Node_Component_Disk_Very_Simple_Size_Half_Mass_Radius
 
 double precision function Node_Component_Disk_Very_Simple_Size_Enclosed_Mass(self,radius,componentType,massType,weightBy,weightIndex)
-  !% Computes the mass within a given radius for an standard disk.
+  !!{
+  Computes the mass within a given radius for an standard disk.
+  !!}
   use :: Galactic_Structure_Options               , only : componentTypeAll    , componentTypeDisk, massTypeAll    , massTypeBaryonic, &
           &                                                massTypeGalactic    , massTypeGaseous  , massTypeStellar, radiusLarge     , &
           &                                                weightByLuminosity  , weightByMass
@@ -79,7 +85,9 @@ double precision function Node_Component_Disk_Very_Simple_Size_Enclosed_Mass(sel
 end function Node_Component_Disk_Very_Simple_Size_Enclosed_Mass
 
 double precision function Node_Component_Disk_Very_Simple_Size_Surface_Density(self,positionCylindrical,componentType,massType,weightBy,weightIndex)
-  !% Computes the surface density at a given position for an standard disk.
+  !!{
+  Computes the surface density at a given position for an standard disk.
+  !!}
   use :: Coordinates                              , only : coordinateCylindrical
   use :: Galactic_Structure_Options               , only : componentTypeAll                          , componentTypeDisk         , massTypeAll                       , massTypeBaryonic            , &
           &                                                massTypeGalactic                          , massTypeGaseous           , massTypeStellar                   , weightByLuminosity          , &

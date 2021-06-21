@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which performs tasks associated with ``halo formation'' events.
+!!{
+Contains a module which performs tasks associated with ``halo formation'' events.
+!!}
 
 module Events_Halo_Formation
-  !% Performs tasks associated with ``halo formation'' events.
+  !!{
+  Performs tasks associated with ``halo formation'' events.
+  !!}
   implicit none
   private
   public :: Event_Halo_Formation
@@ -28,19 +32,29 @@ module Events_Halo_Formation
 contains
 
   subroutine Event_Halo_Formation(node)
-    !% Perform tasks associated with a ``halo formation'' event in {\normalfont \ttfamily node}.
+    !!{
+    Perform tasks associated with a ``halo formation'' event in {\normalfont \ttfamily node}.
+    !!}
     use :: Galacticus_Nodes, only : treeNode
-    !# <include directive="haloFormationTask" type="moduleUse">
+    !![
+    <include directive="haloFormationTask" type="moduleUse">
+    !!]
     include 'events.halo_formation.moduleUse.inc'
-    !# </include>
+    !![
+    </include>
+    !!]
     implicit none
     type(treeNode), intent(inout) :: node
 
     ! Allow arbitrary routines to perform tasks.
-    !# <include directive="haloFormationTask" type="functionCall" functionType="void">
-    !#  <functionArgs>node</functionArgs>
+    !![
+    <include directive="haloFormationTask" type="functionCall" functionType="void">
+     <functionArgs>node</functionArgs>
+    !!]
     include 'events.halo_formation.inc'
-    !# </include>
+    !![
+    </include>
+    !!]
 
     return
   end subroutine Event_Halo_Formation

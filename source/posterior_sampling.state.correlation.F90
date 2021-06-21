@@ -17,27 +17,35 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a posterior sampling state class which computes correlation lengths.
+  !!{
+  Implementation of a posterior sampling state class which computes correlation lengths.
+  !!}
 
-  !# <posteriorSampleState name="posteriorSampleStateCorrelation">
-  !#  <description>
-  !#   An extension of the {\normalfont \ttfamily history} state, this class also computes and stores the correlation length in each
-  !#   parameter (which is taken to be the median correlation length over all non-outlier chains).
-  !#  </description>
-  !# </posteriorSampleState>
+  !![
+  <posteriorSampleState name="posteriorSampleStateCorrelation">
+   <description>
+    An extension of the {\normalfont \ttfamily history} state, this class also computes and stores the correlation length in each
+    parameter (which is taken to be the median correlation length over all non-outlier chains).
+   </description>
+  </posteriorSampleState>
+  !!]
   type, extends(posteriorSampleStateHistory) :: posteriorSampleStateCorrelation
-     !% Implementation of a correlation posterior sampling state class.
+     !!{
+     Implementation of a correlation posterior sampling state class.
+     !!}
      private
      integer                                       :: storedStateCount               , stepComputePrevious, &
           &                                           convergedCorrelationLengthCount
      double precision, allocatable, dimension(:,:) :: states
      integer         , allocatable, dimension(:  ) :: correlationLengths
    contains
-     !# <methods>
-     !#   <method description="Return the current correlation length in the chains." method="correlationLength" />
-     !#   <method description="Compute correlation lengths in the chains." method="correlationLengthCompute" />
-     !#   <method description="Return the number of post-convergence correlation lengths that have accrued." method="postConvergenceCorrelationCount" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Return the current correlation length in the chains." method="correlationLength" />
+       <method description="Compute correlation lengths in the chains." method="correlationLengthCompute" />
+       <method description="Return the number of post-convergence correlation lengths that have accrued." method="postConvergenceCorrelationCount" />
+     </methods>
+     !!]
      procedure :: parameterCountSet               => correlationParameterCountSet
      procedure :: update                          => correlationUpdate
      procedure :: reset                           => correlationReset
@@ -48,7 +56,9 @@
   end type posteriorSampleStateCorrelation
 
   interface posteriorSampleStateCorrelation
-     !% Constructors for the {\normalfont \ttfamily correlation} posterior sampling state class.
+     !!{
+     Constructors for the {\normalfont \ttfamily correlation} posterior sampling state class.
+     !!}
      module procedure correlationConstructorParameters
      module procedure correlationConstructorInternal
   end interface posteriorSampleStateCorrelation
@@ -56,33 +66,43 @@
 contains
 
   function correlationConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily correlation} posterior sampling state class which builds the object from a
-    !% parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily correlation} posterior sampling state class which builds the object from a
+    parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (posteriorSampleStateCorrelation)                :: self
     type   (inputParameters                ), intent(inout) :: parameters
     integer                                                 :: acceptedStateCount
 
-    !# <inputParameter>
-    !#   <name>acceptedStateCount</name>
-    !#   <description>The number of states to use in acceptance rate statistics.</description>
-    !#   <defaultValue>100</defaultValue>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>acceptedStateCount</name>
+      <description>The number of states to use in acceptance rate statistics.</description>
+      <defaultValue>100</defaultValue>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     self=posteriorSampleStateCorrelation(acceptedStateCount)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
    return
   end function correlationConstructorParameters
 
   function correlationConstructorInternal(acceptedStateCount) result(self)
-    !% Constructor for the {\normalfont \ttfamily correlation} posterior sampling state class which builds the object from a
-    !% parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily correlation} posterior sampling state class which builds the object from a
+    parameter set.
+    !!}
     use :: MPI_Utilities, only : mpiSelf
     implicit none
     type   (posteriorSampleStateCorrelation)                :: self
     integer                                 , intent(in   ) :: acceptedStateCount
-    !# <constructorAssign variables="acceptedStateCount"/>
+    !![
+    <constructorAssign variables="acceptedStateCount"/>
+    !!]
 
     allocate(self%accepted(acceptedStateCount))
     self%stepCount                      = 0
@@ -95,7 +115,9 @@ contains
   end function correlationConstructorInternal
 
   subroutine correlationParameterCountSet(self,parameterCount)
-    !% Set the number of parameters in this state.
+    !!{
+    Set the number of parameters in this state.
+    !!}
     implicit none
     class  (posteriorSampleStateCorrelation), intent(inout) :: self
     integer                                 , intent(in   ) :: parameterCount
@@ -113,7 +135,9 @@ contains
   end subroutine correlationParameterCountSet
 
   subroutine correlationUpdate(self,stateNew,logState,isConverged,outlierMask)
-    !% Update the current state.
+    !!{
+    Update the current state.
+    !!}
     implicit none
     class           (posteriorSampleStateCorrelation), intent(inout)                           :: self
     double precision                                 , intent(in   ), dimension(:  )           :: stateNew
@@ -159,7 +183,9 @@ contains
   end subroutine correlationUpdate
 
   subroutine correlationReset(self)
-    !% Reset the state object.
+    !!{
+    Reset the state object.
+    !!}
     implicit none
     class(posteriorSampleStateCorrelation), intent(inout) :: self
 
@@ -171,7 +197,9 @@ contains
   end subroutine correlationReset
 
   integer function correlationPostConvergenceCorrelationCount(self)
-    !% Return the number of post-convergence correlation lengths that have accrued.
+    !!{
+    Return the number of post-convergence correlation lengths that have accrued.
+    !!}
     implicit none
     class(posteriorSampleStateCorrelation), intent(inout) :: self
 
@@ -180,7 +208,9 @@ contains
   end function correlationPostConvergenceCorrelationCount
 
   integer function correlationCorrelationLength(self)
-    !% Return the correlation length.
+    !!{
+    Return the correlation length.
+    !!}
     implicit none
     class(posteriorSampleStateCorrelation), intent(inout) :: self
 
@@ -190,7 +220,9 @@ contains
   end function correlationCorrelationLength
 
   subroutine correlationCorrelationLengthCompute(self,outlierMask)
-    !% Compute correlation lengths.
+    !!{
+    Compute correlation lengths.
+    !!}
     use :: Display           , only : displayIndent, displayMessage, displayUnindent
     use :: ISO_Varying_String, only : assignment(=), operator(//)  , varying_string
     use :: MPI_Utilities     , only : mpiSelf
@@ -231,7 +263,9 @@ contains
   end subroutine correlationCorrelationLengthCompute
 
   subroutine correlationRestore(self,stateVector,first)
-    !% Restore the state object from file.
+    !!{
+    Restore the state object from file.
+    !!}
     implicit none
     class           (posteriorSampleStateCorrelation), intent(inout)               :: self
     double precision                                 , intent(in   ), dimension(:) :: stateVector

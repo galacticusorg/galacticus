@@ -23,47 +23,59 @@
 ! Add dependency on GSL library.
 !; gsl
 
-!% Contains a module which does root finding.
+!!{
+Contains a module which does root finding.
+!!}
 module Root_Finder
-  !% Implements root finding.
+  !!{
+  Implements root finding.
+  !!}
   use, intrinsic :: ISO_C_Binding, only : c_double, c_int, c_null_ptr, c_ptr
   implicit none
   private
   public :: rootFinder
 
   ! Enumeration of range expansion types.
-  !# <enumeration>
-  !#  <name>rangeExpand</name>
-  !#  <description>Used to specify the way in which the bracketing range should be expanded when searching for roots using a {\normalfont \ttfamily rootFinder} object.</description>
-  !#  <visibility>public</visibility>
-  !#  <entry label="null"           />
-  !#  <entry label="additive"       />
-  !#  <entry label="multiplicative" />
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>rangeExpand</name>
+   <description>Used to specify the way in which the bracketing range should be expanded when searching for roots using a {\normalfont \ttfamily rootFinder} object.</description>
+   <visibility>public</visibility>
+   <entry label="null"           />
+   <entry label="additive"       />
+   <entry label="multiplicative" />
+  </enumeration>
+  !!]
 
   ! Enumeration of sign expectations.
-  !# <enumeration>
-  !#  <name>rangeExpandSignExpect</name>
-  !#  <description>Used to specify the expected sign of the root function when searching for roots using a {\normalfont \ttfamily rootFinder} object.</description>
-  !#  <entry label="negative" />
-  !#  <entry label="none"     />
-  !#  <entry label="positive" />
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>rangeExpandSignExpect</name>
+   <description>Used to specify the expected sign of the root function when searching for roots using a {\normalfont \ttfamily rootFinder} object.</description>
+   <entry label="negative" />
+   <entry label="none"     />
+   <entry label="positive" />
+  </enumeration>
+  !!]
   
   ! Enumeration of stopping criteria.
-  !# <enumeration>
-  !#  <name>stoppingCriterion</name>
-  !#  <description>Used to specify the stoppngi criterion to use when searching for roots using a {\normalfont \ttfamily rootFinder} object.</description>
-  !#  <visibility>public</visibility>
-  !#  <entry label="delta"    />
-  !#  <entry label="interval" />
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>stoppingCriterion</name>
+   <description>Used to specify the stoppngi criterion to use when searching for roots using a {\normalfont \ttfamily rootFinder} object.</description>
+   <visibility>public</visibility>
+   <entry label="delta"    />
+   <entry label="interval" />
+  </enumeration>
+  !!]
   
-  !# <deepCopyActions class="rootFinder">
-  !#  <rootFinder>
-  !#   <setTo variables="functionInitialized" state=".false."/>
-  !#  </rootFinder>
-  !# </deepCopyActions>
+  !![
+  <deepCopyActions class="rootFinder">
+   <rootFinder>
+    <setTo variables="functionInitialized" state=".false."/>
+   </rootFinder>
+  </deepCopyActions>
+  !!]
   
   ! Solver types.
   integer, public, parameter :: gsl_root_fsolver_bisection   =1
@@ -74,7 +86,9 @@ module Root_Finder
   integer, public, parameter :: gsl_root_fdfsolver_steffenson=6
 
   type :: rootFinder
-     !% Type containing all objects required when calling the GSL root solver function.
+     !!{
+     Type containing all objects required when calling the GSL root solver function.
+     !!}
      private
      type            (c_ptr                         )                  :: gslFunction                  =c_null_ptr
      type            (c_ptr                         )                  :: solver                       =c_null_ptr
@@ -100,17 +114,19 @@ module Root_Finder
      procedure       (rootFunctionDerivativeTemplate), nopass, pointer :: finderFunctionDerivative
      procedure       (rootFunctionBothTemplate      ), nopass, pointer :: finderFunctionBoth
    contains
-     !# <methods>
-     !#   <method description="Set the function that evaluates $f(x)$ to use in a {\normalfont \ttfamily rootFinder} object."                      method="rootFunction"          />
-     !#   <method description="Set the functions that evaluate $f(x)$ and derivatives to use in a {\normalfont \ttfamily rootFinder} object."      method="rootFunctionDerivative"/>
-     !#   <method description="Set the type of algorithm to use in a {\normalfont \ttfamily rootFinder} object."                                   method="type"                  />
-     !#   <method description="Set the tolerance to use in a {\normalfont \ttfamily rootFinder} object."                                           method="tolerance"             />
-     !#   <method description="Specify how the initial range will be expanded in a {\normalfont \ttfamily rootFinder} object to bracket the root." method="rangeExpand"           />
-     !#   <method description="Find the root of the function given an initial guess or range."                                                     method="find"                  />
-     !#   <method description="Return the initialization state of a {\normalfont \ttfamily rootFinder} object."                                    method="isInitialized"         />
-     !#   <method description="Destroy the {\normalfont \ttfamily rootFinder} object."                                                             method="destroy"               />
-     !#   <method description="Return true if the solver type is valid."                                                                           method="solverTypeIsValid"     />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Set the function that evaluates $f(x)$ to use in a {\normalfont \ttfamily rootFinder} object."                      method="rootFunction"          />
+       <method description="Set the functions that evaluate $f(x)$ and derivatives to use in a {\normalfont \ttfamily rootFinder} object."      method="rootFunctionDerivative"/>
+       <method description="Set the type of algorithm to use in a {\normalfont \ttfamily rootFinder} object."                                   method="type"                  />
+       <method description="Set the tolerance to use in a {\normalfont \ttfamily rootFinder} object."                                           method="tolerance"             />
+       <method description="Specify how the initial range will be expanded in a {\normalfont \ttfamily rootFinder} object to bracket the root." method="rangeExpand"           />
+       <method description="Find the root of the function given an initial guess or range."                                                     method="find"                  />
+       <method description="Return the initialization state of a {\normalfont \ttfamily rootFinder} object."                                    method="isInitialized"         />
+       <method description="Destroy the {\normalfont \ttfamily rootFinder} object."                                                             method="destroy"               />
+       <method description="Return true if the solver type is valid."                                                                           method="solverTypeIsValid"     />
+     </methods>
+     !!]
      final     ::                            rootFinderDestructor
      procedure :: destroy                 => rootFinderDestroy
      procedure :: rootFunction            => rootFinderRootFunction
@@ -124,7 +140,9 @@ module Root_Finder
   end type rootFinder
 
   interface rootFinder
-     !% Interface to constructors for root finders.
+     !!{
+     Interface to constructors for root finders.
+     !!}
      module procedure rootFinderConstructorInternal
   end interface rootFinder
   
@@ -148,7 +166,9 @@ module Root_Finder
   end interface
 
   type :: rootFinderList
-     !% Type used to maintain a list of root finder objects when root finding is performed recursively.
+     !!{
+     Type used to maintain a list of root finder objects when root finding is performed recursively.
+     !!}
      class           (rootFinder), pointer :: finder
      logical                               :: lowInitialUsed, highInitialUsed
      double precision                      :: xLowInitial   , xHighInitial   , &
@@ -162,104 +182,136 @@ module Root_Finder
   
   interface
      function gsl_root_fsolver_alloc(T) bind(c,name='gsl_root_fsolver_alloc')
-       !% Template for the GSL root solver alloc function.
+       !!{
+       Template for the GSL root solver alloc function.
+       !!}
        import
        type(c_ptr)        :: gsl_root_fsolver_alloc
        type(c_ptr), value :: T
      end function gsl_root_fsolver_alloc
 
      function gsl_root_fdfsolver_alloc(T) bind(c,name='gsl_root_fdfsolver_alloc')
-       !% Template for the GSL root solver alloc function.
+       !!{
+       Template for the GSL root solver alloc function.
+       !!}
        import
        type(c_ptr)        :: gsl_root_fdfsolver_alloc
        type(c_ptr), value :: T
      end function gsl_root_fdfsolver_alloc
 
      subroutine gsl_root_fsolver_free(s) bind(c,name='gsl_root_fsolver_free')
-       !% Template for the GSL root solver free function.
+       !!{
+       Template for the GSL root solver free function.
+       !!}
        import
        type(c_ptr), value :: s
      end subroutine gsl_root_fsolver_free
 
      subroutine gsl_root_fdfsolver_free(s) bind(c,name='gsl_root_fdfsolver_free')
-       !% Template for the GSL root solver free function.
+       !!{
+       Template for the GSL root solver free function.
+       !!}
        import
        type(c_ptr), value :: s
      end subroutine gsl_root_fdfsolver_free
      
      integer(c_int) function gsl_root_fsolver_set(s,f,x_lower,x_upper) bind(c,name='gsl_root_fsolver_set')
-       !% Template for the GSL root solver set function.
+       !!{
+       Template for the GSL root solver set function.
+       !!}
        import
        type(c_ptr   ), value :: s      , f
        real(c_double), value :: x_lower, x_upper
      end function gsl_root_fsolver_set
 
      integer(c_int) function gsl_root_fdfsolver_set(s,fdf,root) bind(c,name='gsl_root_fdfsolver_set')
-       !% Template for the GSL root solver set function.
+       !!{
+       Template for the GSL root solver set function.
+       !!}
        import
        type(c_ptr   ), value :: s    , fdf
        real(c_double), value :: root
      end function gsl_root_fdfsolver_set
 
      integer(c_int) function gsl_root_fsolver_iterate(s) bind(c,name='gsl_root_fsolver_iterate')
-       !% Template for the GSL root solver iterate function.
+       !!{
+       Template for the GSL root solver iterate function.
+       !!}
        import
        type(c_ptr), value :: s
      end function gsl_root_fsolver_iterate
 
      integer(c_int) function gsl_root_fdfsolver_iterate(s) bind(c,name='gsl_root_fdfsolver_iterate')
-       !% Template for the GSL root solver iterate function.
+       !!{
+       Template for the GSL root solver iterate function.
+       !!}
        import
        type(c_ptr), value :: s
      end function gsl_root_fdfsolver_iterate
 
      real(c_double) function gsl_root_fsolver_root(s) bind(c,name='gsl_root_fsolver_root')
-       !% Template for the GSL root solver root function.
+       !!{
+       Template for the GSL root solver root function.
+       !!}
        import
        type(c_ptr), value :: s
      end function gsl_root_fsolver_root
 
      real(c_double) function gsl_root_fdfsolver_root(s) bind(c,name='gsl_root_fdfsolver_root')
-       !% Template for the GSL root solver root function.
+       !!{
+       Template for the GSL root solver root function.
+       !!}
        import
        type(c_ptr), value :: s
      end function gsl_root_fdfsolver_root
 
      integer(c_int) function gsl_root_test_delta(x1,x0,epsabs,epsrel) bind(c,name='gsl_root_test_delta')
-       !% Template for the GSL root solver test delta function.
+       !!{
+       Template for the GSL root solver test delta function.
+       !!}
        import
        real(c_double), value :: x1    , x0    , &
             &                   epsabs, epsrel
      end function gsl_root_test_delta
 
      integer(c_int) function gsl_root_test_interval(x_lower,x_upper,epsabs,epsrel) bind(c,name='gsl_root_test_interval')
-       !% Template for the GSL root solver test delta function.
+       !!{
+       Template for the GSL root solver test delta function.
+       !!}
        import
        real(c_double), value :: x_lower, x_upper, &
             &                   epsabs , epsrel
      end function gsl_root_test_interval
 
      real(c_double) function gsl_root_fsolver_x_lower(s) bind(c,name='gsl_root_fsolver_x_lower')
-       !% Template for the GSL root solver x-lower function.
+       !!{
+       Template for the GSL root solver x-lower function.
+       !!}
        import
        type(c_ptr), value :: s
      end function gsl_root_fsolver_x_lower
 
      real(c_double) function gsl_root_fsolver_x_upper(s) bind(c,name='gsl_root_fsolver_x_upper')
-       !% Template for the GSL root solver x-upper function.
+       !!{
+       Template for the GSL root solver x-upper function.
+       !!}
        import
        type(c_ptr), value :: s
      end function gsl_root_fsolver_x_upper
 
      function gsl_fsolver_type_get(i) bind(c,name='gsl_fsolver_type_get')
-       !% Template for GSL interface fsolver type function.
+       !!{
+       Template for GSL interface fsolver type function.
+       !!}
        import c_ptr, c_int
        type   (c_ptr)                       :: gsl_fsolver_type_get
        integer(c_int), intent(in   ), value :: i
      end function gsl_fsolver_type_get
 
      function gsl_fdfsolver_type_get(i) bind(c,name='gsl_fdfsolver_type_get')
-       !% Template for GSL interface fdfsolver type function.
+       !!{
+       Template for GSL interface fdfsolver type function.
+       !!}
        import c_ptr, c_int
        type   (c_ptr)                       :: gsl_fdfsolver_type_get
        integer(c_int), intent(in   ), value :: i
@@ -269,7 +321,9 @@ module Root_Finder
 contains
   
   function rootFinderConstructorInternal(rootFunction,rootFunctionDerivative,rootFunctionBoth,solverType,toleranceAbsolute,toleranceRelative,rangeExpandType,rangeExpandUpward,rangeExpandDownward,rangeUpwardLimit,rangeDownwardLimit,rangeExpandUpwardSignExpect,rangeExpandDownwardSignExpect,stoppingCriterion) result(self)
-    !% Internal constructor for root finders.
+    !!{
+    Internal constructor for root finders.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (rootFinder                    )                          :: self
@@ -338,7 +392,9 @@ contains
   end function rootFinderConstructorInternal
   
   subroutine rootFinderDestroy(self)
-    !% Destroy a root finder object.
+    !!{
+    Destroy a root finder object.
+    !!}
     use :: Interface_GSL, only : gslFunctionDestroy
     implicit none
     class(rootFinder), intent(inout) :: self
@@ -356,7 +412,9 @@ contains
   end subroutine rootFinderDestroy
 
   subroutine rootFinderDestructor(self)
-    !% Finalize a root finder object.
+    !!{
+    Finalize a root finder object.
+    !!}
     implicit none
     type(rootFinder), intent(inout) :: self
 
@@ -365,7 +423,9 @@ contains
   end subroutine rootFinderDestructor
 
   logical function rootFinderIsInitialized(self)
-    !% Return whether a {\normalfont \ttfamily rootFinder} object is initalized.
+    !!{
+    Return whether a {\normalfont \ttfamily rootFinder} object is initalized.
+    !!}
     implicit none
     class(rootFinder), intent(in   ) :: self
 
@@ -374,7 +434,9 @@ contains
   end function rootFinderIsInitialized
 
   recursive double precision function rootFinderFind(self,rootGuess,rootRange,status)
-    !% Finds the root of the supplied {\normalfont \ttfamily root} function.
+    !!{
+    Finds the root of the supplied {\normalfont \ttfamily root} function.
+    !!}
     use            :: Display           , only : displayMessage         , verbosityLevelWarn
     use            :: Galacticus_Error  , only : Galacticus_Error_Report, errorStatusOutOfRange, errorStatusSuccess
     use, intrinsic :: ISO_C_Binding     , only : c_funptr
@@ -677,7 +739,9 @@ contains
   contains
 
     subroutine rootFinderGSLErrorHandler(reason,file,line,errorNumber) bind(c)
-      !% Handle errors from the GSL library during root finding.
+      !!{
+      Handle errors from the GSL library during root finding.
+      !!}
       use, intrinsic :: ISO_C_Binding, only : c_char, c_int
       character(c_char), dimension(*) :: file       , reason
       integer  (c_int ), value        :: errorNumber, line
@@ -690,7 +754,9 @@ contains
   end function rootFinderFind
 
   subroutine rootFinderRootFunction(self,rootFunction)
-    !% Sets the function to use in a {\normalfont \ttfamily rootFinder} object.
+    !!{
+    Sets the function to use in a {\normalfont \ttfamily rootFinder} object.
+    !!}
     implicit none
     class    (rootFinder          ), intent(inout) :: self
     procedure(rootFunctionTemplate)                :: rootFunction
@@ -704,7 +770,9 @@ contains
   end subroutine rootFinderRootFunction
 
   subroutine rootFinderRootFunctionDerivative(self,rootFunction,rootFunctionDerivative,rootFunctionBoth)
-    !% Sets the function to use in a {\normalfont \ttfamily rootFinder} object.
+    !!{
+    Sets the function to use in a {\normalfont \ttfamily rootFinder} object.
+    !!}
     implicit none
     class    (rootFinder                    ), intent(inout) :: self
     procedure(rootFunctionTemplate          )                :: rootFunction
@@ -722,7 +790,9 @@ contains
   end subroutine rootFinderRootFunctionDerivative
 
   subroutine rootFinderType(self,solverType)
-    !% Sets the type to use in a {\normalfont \ttfamily rootFinder} object.
+    !!{
+    Sets the type to use in a {\normalfont \ttfamily rootFinder} object.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (rootFinder), intent(inout) :: self
@@ -744,7 +814,9 @@ contains
   end subroutine rootFinderType
 
   subroutine rootFinderTolerance(self,toleranceAbsolute,toleranceRelative)
-    !% Sets the tolerances to use in a {\normalfont \ttfamily rootFinder} object.
+    !!{
+    Sets the tolerances to use in a {\normalfont \ttfamily rootFinder} object.
+    !!}
     implicit none
     class           (rootFinder), intent(inout)           :: self
     double precision            , intent(in   ), optional :: toleranceAbsolute, toleranceRelative
@@ -755,7 +827,9 @@ contains
   end subroutine rootFinderTolerance
 
   subroutine rootFinderRangeExpand(self,rangeExpandUpward,rangeExpandDownward,rangeExpandType,rangeUpwardLimit,rangeDownwardLimit,rangeExpandDownwardSignExpect,rangeExpandUpwardSignExpect)
-    !% Sets the rules for range expansion to use in a {\normalfont \ttfamily rootFinder} object.
+    !!{
+    Sets the rules for range expansion to use in a {\normalfont \ttfamily rootFinder} object.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (rootFinder), intent(inout)           :: self
@@ -807,7 +881,9 @@ contains
   end subroutine rootFinderRangeExpand
   
   logical function rootFinderSolverTypeIsValid(self)
-    !% Sets the tolerances to use in a {\normalfont \ttfamily rootFinder} object.
+    !!{
+    Sets the tolerances to use in a {\normalfont \ttfamily rootFinder} object.
+    !!}
     implicit none
     class(rootFinder), intent(inout) :: self
 
@@ -830,7 +906,9 @@ contains
   end function rootFinderSolverTypeIsValid
 
   recursive function rootFunctionWrapper(x) bind(c)
-    !% Wrapper function callable by {\normalfont \ttfamily GSL} used in root finding.
+    !!{
+    Wrapper function callable by {\normalfont \ttfamily GSL} used in root finding.
+    !!}
     implicit none
     real(c_double), intent(in   ), value :: x
     real(c_double)                       :: rootFunctionWrapper
@@ -850,7 +928,9 @@ contains
   end function rootFunctionWrapper
 
   recursive function rootFunctionDerivativeWrapper(x) bind(c)
-    !% Wrapper function callable by {\normalfont \ttfamily GSL} used in root finding.
+    !!{
+    Wrapper function callable by {\normalfont \ttfamily GSL} used in root finding.
+    !!}
     implicit none
     real(c_double)                       :: rootFunctionDerivativeWrapper
     real(c_double), intent(in   ), value :: x
@@ -860,7 +940,9 @@ contains
   end function rootFunctionDerivativeWrapper
 
   recursive subroutine rootFunctionBothWrapper(x,parameters,f,df) bind(c)
-    !% Wrapper function callable by {\normalfont \ttfamily GSL} used in root finding.
+    !!{
+    Wrapper function callable by {\normalfont \ttfamily GSL} used in root finding.
+    !!}
     implicit none
     real(c_double), intent(in   ), value :: x
     real(c_double), intent(  out)        :: f         , df

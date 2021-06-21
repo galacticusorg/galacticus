@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a node operator class that applies tidal mass loss to orbiting satellite halos.
+  !!{
+  Implements a node operator class that applies tidal mass loss to orbiting satellite halos.
+  !!}
 
   use :: Satellite_Tidal_Heating, only : satelliteTidalHeatingRateClass
 
-  !# <nodeOperator name="nodeOperatorSatelliteTidalHeating">
-  !#  <description>A node operator class that applies tidal mass loss to orbiting satellite halos.</description>
-  !# </nodeOperator>
+  !![
+  <nodeOperator name="nodeOperatorSatelliteTidalHeating">
+   <description>A node operator class that applies tidal mass loss to orbiting satellite halos.</description>
+  </nodeOperator>
+  !!]
   type, extends(nodeOperatorClass) :: nodeOperatorSatelliteTidalHeating
-     !% A node operator class that applies tidal mass loss to orbiting satellite halos.
+     !!{
+     A node operator class that applies tidal mass loss to orbiting satellite halos.
+     !!}
      private
      class(satelliteTidalHeatingRateClass), pointer :: satelliteTidalHeatingRate_ => null()
    contains
@@ -34,7 +40,9 @@
   end type nodeOperatorSatelliteTidalHeating
   
   interface nodeOperatorSatelliteTidalHeating
-     !% Constructors for the {\normalfont \ttfamily satelliteTidalHeatingRate} node operator class.
+     !!{
+     Constructors for the {\normalfont \ttfamily satelliteTidalHeatingRate} node operator class.
+     !!}
      module procedure satelliteTidalHeatingRateConstructorParameters
      module procedure satelliteTidalHeatingRateConstructorInternal
   end interface nodeOperatorSatelliteTidalHeating
@@ -42,41 +50,57 @@
 contains
 
   function satelliteTidalHeatingRateConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily satelliteTidalHeatingRate} node operator class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily satelliteTidalHeatingRate} node operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type (nodeOperatorSatelliteTidalHeating)                :: self
     type (inputParameters                  ), intent(inout) :: parameters
     class(satelliteTidalHeatingRateClass   ), pointer       :: satelliteTidalHeatingRate_
     
-    !# <objectBuilder class="satelliteTidalHeatingRate" name="satelliteTidalHeatingRate_" source="parameters"/>
+    !![
+    <objectBuilder class="satelliteTidalHeatingRate" name="satelliteTidalHeatingRate_" source="parameters"/>
+    !!]
     self=nodeOperatorSatelliteTidalHeating(satelliteTidalHeatingRate_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="satelliteTidalHeatingRate_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="satelliteTidalHeatingRate_"/>
+    !!]
     return
   end function satelliteTidalHeatingRateConstructorParameters
 
   function satelliteTidalHeatingRateConstructorInternal(satelliteTidalHeatingRate_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily satelliteTidalHeatingRate} node operator class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily satelliteTidalHeatingRate} node operator class.
+    !!}
     implicit none
     type (nodeOperatorSatelliteTidalHeating)                        :: self
     class(satelliteTidalHeatingRateClass   ), intent(in   ), target :: satelliteTidalHeatingRate_
-    !# <constructorAssign variables="*satelliteTidalHeatingRate_"/>
+    !![
+    <constructorAssign variables="*satelliteTidalHeatingRate_"/>
+    !!]
 
     return
   end function satelliteTidalHeatingRateConstructorInternal
 
   subroutine satelliteTidalHeatingRateDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily satelliteTidalHeatingRate} node operator class.
+    !!{
+    Destructor for the {\normalfont \ttfamily satelliteTidalHeatingRate} node operator class.
+    !!}
     implicit none
     type(nodeOperatorSatelliteTidalHeating), intent(inout) :: self
 
-    !# <objectDestructor name="self%satelliteTidalHeatingRate_"/>
+    !![
+    <objectDestructor name="self%satelliteTidalHeatingRate_"/>
+    !!]
     return
   end subroutine satelliteTidalHeatingRateDestructor
   
   subroutine satelliteTidalHeatingRateDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !% Perform mass loss from a satellite due to tidal stripping.
+    !!{
+    Perform mass loss from a satellite due to tidal stripping.
+    !!}
     use :: Galacticus_Nodes                , only : nodeComponentSatellite
     use :: Galactic_Structure_Tidal_Tensors, only : Galactic_Structure_Tidal_Tensor
     use :: Numerical_Constants_Astronomical, only : gigaYear                       , megaParsec

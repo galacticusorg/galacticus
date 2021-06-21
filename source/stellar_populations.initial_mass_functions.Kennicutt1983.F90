@@ -17,29 +17,37 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a stellar initial mass function class for the \cite{kennicutt_rate_1983} \gls{imf}.
+  !!{
+  Implements a stellar initial mass function class for the \cite{kennicutt_rate_1983} \gls{imf}.
+  !!}
 
-  !# <initialMassFunction name="initialMassFunctionKennicutt1983">
-  !#  <description>
-  !#   A stellar initial mass function class for the \cite{kennicutt_rate_1983} \gls{imf}:
-  !#   \begin{equation}
-  !#    \phi(M) \propto \left\{ \begin{array}{ll}
-  !#    M^{-1.25} &amp; \hbox{ for } 0.10M_\odot &lt; M &lt; 1.00M_\odot \\
-  !#    M^{-2.00} &amp; \hbox{ for } 1.00M_\odot &lt; M &lt; 2.00M_\odot \\
-  !#    M^{-2.30} &amp; \hbox{ for } 2.00M_\odot &lt; M &lt; 125M_\odot \\
-  !#    0 &amp; \hbox {otherwise.} \end{array} \right.
-  !#   \end{equation}
-  !#  </description>
-  !# </initialMassFunction>
+  !![
+  <initialMassFunction name="initialMassFunctionKennicutt1983">
+   <description>
+    A stellar initial mass function class for the \cite{kennicutt_rate_1983} \gls{imf}:
+    \begin{equation}
+     \phi(M) \propto \left\{ \begin{array}{ll}
+     M^{-1.25} &amp; \hbox{ for } 0.10M_\odot &lt; M &lt; 1.00M_\odot \\
+     M^{-2.00} &amp; \hbox{ for } 1.00M_\odot &lt; M &lt; 2.00M_\odot \\
+     M^{-2.30} &amp; \hbox{ for } 2.00M_\odot &lt; M &lt; 125M_\odot \\
+     0 &amp; \hbox {otherwise.} \end{array} \right.
+    \end{equation}
+   </description>
+  </initialMassFunction>
+  !!]
   type, extends(initialMassFunctionPiecewisePowerLaw) :: initialMassFunctionKennicutt1983
-     !% A stellar initial mass function class for the \cite{kennicutt_rate_1983} \gls{imf}.
+     !!{
+     A stellar initial mass function class for the \cite{kennicutt_rate_1983} \gls{imf}.
+     !!}
      private
    contains
      procedure :: label => kennicutt1983Label
   end type initialMassFunctionKennicutt1983
 
   interface initialMassFunctionKennicutt1983
-     !% Constructors for the {\normalfont \ttfamily kennicutt1983} initial mass function class.
+     !!{
+     Constructors for the {\normalfont \ttfamily kennicutt1983} initial mass function class.
+     !!}
      module procedure kennicutt1983ConstructorParameters
      module procedure kennicutt1983ConstructorInternal
   end interface initialMassFunctionKennicutt1983
@@ -47,7 +55,9 @@
 contains
 
   function kennicutt1983ConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily kennicutt1983} initial mass function class which takes a parameter list as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily kennicutt1983} initial mass function class which takes a parameter list as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(initialMassFunctionKennicutt1983)                :: self
@@ -59,7 +69,9 @@ contains
   end function kennicutt1983ConstructorParameters
 
   function kennicutt1983ConstructorInternal() result(self)
-    !% Internal constructor for the {\normalfont \ttfamily kennicutt1983} initial mass function.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily kennicutt1983} initial mass function.
+    !!}
     implicit none
     type(initialMassFunctionKennicutt1983):: self
 
@@ -71,7 +83,9 @@ contains
   end function kennicutt1983ConstructorInternal
 
   function kennicutt1983Label(self)
-    !% Return a label for this \gls{imf}.
+    !!{
+    Return a label for this \gls{imf}.
+    !!}
     implicit none
     class(initialMassFunctionKennicutt1983), intent(inout) :: self
     type (varying_string                  )                :: kennicutt1983Label

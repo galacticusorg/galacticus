@@ -17,13 +17,17 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a base class for dark matter profiles from which both dark-matter-only and
-!% non-dark-matter-only profiles inherit.
+!!{
+Contains a module which implements a base class for dark matter profiles from which both dark-matter-only and
+non-dark-matter-only profiles inherit.
+!!}
 
 module Dark_Matter_Profiles_Generic
-  !% A base class for dark matter profiles from which both dark-matter-only and non-dark-matter-only profiles inherit. Implements
-  !% numerical calculations of certain halo properties which are to be used as a fall-back option when no analytical solution
-  !% exists.
+  !!{
+  A base class for dark matter profiles from which both dark-matter-only and non-dark-matter-only profiles inherit. Implements
+  numerical calculations of certain halo properties which are to be used as a fall-back option when no analytical solution
+  exists.
+  !!}
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
   use :: Function_Classes       , only : functionClass
   use :: Galacticus_Nodes       , only : nodeComponentBasic      , nodeComponentDarkMatterProfile, treeNode
@@ -32,9 +36,13 @@ module Dark_Matter_Profiles_Generic
   private
   public :: darkMatterProfileGeneric
 
-  !# <functionClassType name="darkMatterProfileGeneric"/>
+  !![
+  <functionClassType name="darkMatterProfileGeneric"/>
+  !!]
   type, extends(functionClass), abstract :: darkMatterProfileGeneric
-     !% A dark matter halo profile class implementing numerical calculations for generic dark matter halos.
+     !!{
+     A dark matter halo profile class implementing numerical calculations for generic dark matter halos.
+     !!}
      ! Note that the following components can not be "private", as private components of parent types which are accessed through a
      ! "USE" association are inaccessible to the child type
      ! (e.g. https://www.ibm.com/support/knowledgecenter/SSGH4D_15.1.3/com.ibm.xlf1513.aix.doc/language_ref/extensible.html).
@@ -54,32 +62,34 @@ module Dark_Matter_Profiles_Generic
      double precision                                                      :: genericEnclosedMassRadiusMinimum                      , genericEnclosedMassRadiusMaximum
      type            (interpolator            ), allocatable               :: genericEnclosedMass
    contains 
-     !# <methods>
-     !#   <method description="Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc)." method="enclosedMass" />
-     !#   <method description="Returns the density (in $M_\odot/$Mpc$^3$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc)." method="density" />
-     !#   <method description="Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc) using a numerical calculation." method="enclosedMassNumerical" />
-     !#   <method description="Returns the enclosed mass difference (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} between the given {\normalfont \ttfamily radiusLower} and {\normalfont \ttfamily radiusUpper} (given in units of Mpc) using a numerical calculation." method="enclosedMassDifferenceNumerical" />
-     !#   <method description="Returns the gravitational potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc) using a numerical calculation." method="potentialNumerical" />
-     !#   <method description="Returns the gravitational potential difference (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} between the given {\normalfont \ttfamily radiusLower} and {\normalfont \ttfamily radiusUpper} (given in units of Mpc) using a numerical calculation." method="potentialDifferenceNumerical" />
-     !#   <method description="Returns the circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc)." method="circularVelocityNumerical" />
-     !#   <method description="Returns the radial velocity dispersion (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc)." method="radialVelocityDispersionNumerical" />
-     !#   <method description="Returns the radial moment of the density in the dark matter profile of {\normalfont \ttfamily node} between the given {\normalfont \ttfamily radiusMinimum} and {\normalfont \ttfamily radiusMaximum} (given in units of Mpc)." method="radialMomentNumerical" />
-     !#   <method description="Return the normalization of the rotation velocity vs. specific angular momentum relation." method="rotationNormalizationNumerical" />
-     !#   <method description="Returns the Fourier transform of the density profile at the specified {\normalfont \ttfamily waveNumber} (given in Mpc$^{-1}$)." method="kSpaceNumerical" />
-     !#   <method description="Return the energy of the dark matter density profile." method="energyNumerical" />
-     !#   <method description="Return the rate of growth of the energy of the dark matter density profile." method="energyGrowthRateNumerical" />
-     !#   <method description="Returns the freefall radius in the dark matter density profile at the specified {\normalfont \ttfamily time} (given in Gyr)." method="freefallRadiusNumerical" />
-     !#   <method description="Returns the rate of increase of the freefall radius in the dark matter density profile at the specified {\normalfont \ttfamily time} (given in Gyr)." method="freefallRadiusIncreaseRateNumerical" />
-     !#   <method description="Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given {\normalfont \ttfamily density} (given in units of $M_\odot/$Mpc$^{-3}$)." method="radiusEnclosingDensityNumerical" />
-     !#   <method description="Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given {\normalfont \ttfamily mass} (given in units of $M_\odot$)." method="radiusEnclosingMassNumerical" />
-     !#   <method description="Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}." method="circularVelocityMaximumNumerical" />
-     !#   <method description="Returns the radius (in Mpc) at which the maximum circular velocity is reached in the dark matter profile of {\normalfont \ttfamily node}." method="radiusCircularVelocityMaximumNumerical" />
-     !#   <method description="Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentum} (given in units of km s$^{-1}$ Mpc)." method="radiusFromSpecificAngularMomentumNumerical" />
-     !#   <method description="Returns the logarithmic slope of the density in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc)." method="densityLogSlopeNumerical" />
-     !#   <method description="Set a sub-module scope pointers on a stack to allow recursive calls to functions." method="solverSet"/>
-     !#   <method description="Unset the sub-module scope pointer." method="solverUnset"/>
-     !#   <method description="Reset generic profile memoized calculations." method="calculationResetGeneric"/>
-     !# </methods>
+     !![
+     <methods>
+       <method description="Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc)." method="enclosedMass" />
+       <method description="Returns the density (in $M_\odot/$Mpc$^3$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc)." method="density" />
+       <method description="Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc) using a numerical calculation." method="enclosedMassNumerical" />
+       <method description="Returns the enclosed mass difference (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} between the given {\normalfont \ttfamily radiusLower} and {\normalfont \ttfamily radiusUpper} (given in units of Mpc) using a numerical calculation." method="enclosedMassDifferenceNumerical" />
+       <method description="Returns the gravitational potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc) using a numerical calculation." method="potentialNumerical" />
+       <method description="Returns the gravitational potential difference (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} between the given {\normalfont \ttfamily radiusLower} and {\normalfont \ttfamily radiusUpper} (given in units of Mpc) using a numerical calculation." method="potentialDifferenceNumerical" />
+       <method description="Returns the circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc)." method="circularVelocityNumerical" />
+       <method description="Returns the radial velocity dispersion (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc)." method="radialVelocityDispersionNumerical" />
+       <method description="Returns the radial moment of the density in the dark matter profile of {\normalfont \ttfamily node} between the given {\normalfont \ttfamily radiusMinimum} and {\normalfont \ttfamily radiusMaximum} (given in units of Mpc)." method="radialMomentNumerical" />
+       <method description="Return the normalization of the rotation velocity vs. specific angular momentum relation." method="rotationNormalizationNumerical" />
+       <method description="Returns the Fourier transform of the density profile at the specified {\normalfont \ttfamily waveNumber} (given in Mpc$^{-1}$)." method="kSpaceNumerical" />
+       <method description="Return the energy of the dark matter density profile." method="energyNumerical" />
+       <method description="Return the rate of growth of the energy of the dark matter density profile." method="energyGrowthRateNumerical" />
+       <method description="Returns the freefall radius in the dark matter density profile at the specified {\normalfont \ttfamily time} (given in Gyr)." method="freefallRadiusNumerical" />
+       <method description="Returns the rate of increase of the freefall radius in the dark matter density profile at the specified {\normalfont \ttfamily time} (given in Gyr)." method="freefallRadiusIncreaseRateNumerical" />
+       <method description="Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given {\normalfont \ttfamily density} (given in units of $M_\odot/$Mpc$^{-3}$)." method="radiusEnclosingDensityNumerical" />
+       <method description="Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given {\normalfont \ttfamily mass} (given in units of $M_\odot$)." method="radiusEnclosingMassNumerical" />
+       <method description="Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}." method="circularVelocityMaximumNumerical" />
+       <method description="Returns the radius (in Mpc) at which the maximum circular velocity is reached in the dark matter profile of {\normalfont \ttfamily node}." method="radiusCircularVelocityMaximumNumerical" />
+       <method description="Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentum} (given in units of km s$^{-1}$ Mpc)." method="radiusFromSpecificAngularMomentumNumerical" />
+       <method description="Returns the logarithmic slope of the density in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc)." method="densityLogSlopeNumerical" />
+       <method description="Set a sub-module scope pointers on a stack to allow recursive calls to functions." method="solverSet"/>
+       <method description="Unset the sub-module scope pointer." method="solverUnset"/>
+       <method description="Reset generic profile memoized calculations." method="calculationResetGeneric"/>
+     </methods>
+     !!]
      procedure(genericDensityInterface     ), deferred :: density
      procedure(genericEnclosedMassNumerical), deferred :: enclosedMass
      procedure                                         :: enclosedMassNumerical                      => genericEnclosedMassNumerical
@@ -108,8 +118,10 @@ module Dark_Matter_Profiles_Generic
 
   abstract interface
      double precision function genericDensityInterface(self,node,radius)
-       !% Returns the density (in $M_\odot/$Mpc$^3$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
-       !% units of Mpc).
+       !!{
+       Returns the density (in $M_\odot/$Mpc$^3$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
+       units of Mpc).
+       !!}
        import darkMatterProfileGeneric, treeNode
        class           (darkMatterProfileGeneric), intent(inout) :: self
        type            (treeNode                ), intent(inout) :: node
@@ -132,21 +144,25 @@ module Dark_Matter_Profiles_Generic
        &                                                                         genericShape                     , genericShapeGrowthRate
   !$omp threadprivate(solvers,solversCount,genericBasic,genericTime,genericRadiusFreefall,genericDensity,genericMass,genericSpecificAngularMomentum,genericMassGrowthRate,genericDarkMatterProfile,genericScaleGrowthRate,genericScale,genericShape,genericShapeGrowthRate)
 
-  !# <enumeration>
-  !#  <name>nonAnalyticSolvers</name>
-  !#  <description>Used to specify the type of solution to use when no analytic solution is available.</description>
-  !#  <encodeFunction>yes</encodeFunction>
-  !#  <visibility>public</visibility>
-  !#  <validator>yes</validator>
-  !#  <entry label="fallThrough"/>
-  !#  <entry label="numerical"  />
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>nonAnalyticSolvers</name>
+   <description>Used to specify the type of solution to use when no analytic solution is available.</description>
+   <encodeFunction>yes</encodeFunction>
+   <visibility>public</visibility>
+   <validator>yes</validator>
+   <entry label="fallThrough"/>
+   <entry label="numerical"  />
+  </enumeration>
+  !!]
 
 contains
 
   double precision function genericEnclosedMassNumerical(self,node,radius)
-    !% Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
-    !% units of Mpc).
+    !!{
+    Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
+    units of Mpc).
+    !!}
     implicit none
     class           (darkMatterProfileGeneric  ), intent(inout) :: self
     type            (treeNode                  ), intent(inout) :: node
@@ -157,9 +173,11 @@ contains
   end function genericEnclosedMassNumerical
 
   double precision function genericEnclosedMassDifferenceNumerical(self,node,radiusLower,radiusUpper)
-    !% Returns the enclosed mass difference (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} between the
-    !% given {\normalfont \ttfamily radiusLower} and {\normalfont \ttfamily radiusUpper} (given in units of Mpc) using a numerical
-    !% calculation.
+    !!{
+    Returns the enclosed mass difference (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} between the
+    given {\normalfont \ttfamily radiusLower} and {\normalfont \ttfamily radiusUpper} (given in units of Mpc) using a numerical
+    calculation.
+    !!}
     use, intrinsic :: ISO_C_Binding          , only : c_size_t
     use            :: Numerical_Integration  , only : integrator
     use            :: Numerical_Ranges       , only : Make_Range                  , rangeTypeLogarithmic
@@ -279,7 +297,9 @@ contains
   end function genericEnclosedMassDifferenceNumerical
   
   double precision function genericMassIntegrand(radius)
-    !% Integrand for mass in generic dark matter profiles.
+    !!{
+    Integrand for mass in generic dark matter profiles.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     double precision, intent(in   ) :: radius
@@ -293,8 +313,10 @@ contains
   end function genericMassIntegrand
 
   double precision function genericPotentialNumerical(self,node,radius,status)
-    !% Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont
-    !% \ttfamily radius} (given in units of Mpc) using a numerical calculation.
+    !!{
+    Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont
+    \ttfamily radius} (given in units of Mpc) using a numerical calculation.
+    !!}
     use :: Galactic_Structure_Options, only : structureErrorCodeSuccess
     use :: Numerical_Integration     , only : integrator
     implicit none
@@ -325,9 +347,11 @@ contains
   end function genericPotentialNumerical
 
   double precision function genericPotentialDifferenceNumerical(self,node,radiusLower,radiusUpper)
-    !% Returns the potential difference (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} between the
-    !% given {\normalfont \ttfamily radiusLower} and {\normalfont \ttfamily radiusUpper} (given in units of Mpc) using a numerical
-    !% calculation.
+    !!{
+    Returns the potential difference (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} between the
+    given {\normalfont \ttfamily radiusLower} and {\normalfont \ttfamily radiusUpper} (given in units of Mpc) using a numerical
+    calculation.
+    !!}
     use :: Galactic_Structure_Options, only : structureErrorCodeSuccess
     use :: Numerical_Integration     , only : integrator
     implicit none
@@ -352,7 +376,9 @@ contains
   end function genericPotentialDifferenceNumerical
 
   double precision function integrandPotential(radius)
-    !% Integrand for gravitational potential in a generic dark matter profile.
+    !!{
+    Integrand for gravitational potential in a generic dark matter profile.
+    !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     double precision, intent(in   ) :: radius
@@ -368,8 +394,10 @@ contains
   end function integrandPotential
 
   double precision function genericCircularVelocityNumerical(self,node,radius)
-    !% Returns the circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
-    !% {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!{
+    Returns the circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
+    {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (darkMatterProfileGeneric), intent(inout) :: self
@@ -389,8 +417,10 @@ contains
   end function genericCircularVelocityNumerical
  
   double precision function genericRadialVelocityDispersionNumerical(self,node,radius)
-    !% Returns the radial velocity dispersion (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
-    !% {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!{
+    Returns the radial velocity dispersion (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
+    {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!}
     use, intrinsic :: ISO_C_Binding          , only : c_size_t
     use            :: Galacticus_Error       , only : Galacticus_Error_Report, errorStatusSuccess
     use            :: Numerical_Integration  , only : integrator
@@ -544,7 +574,9 @@ contains
   end function genericRadialVelocityDispersionNumerical
   
   double precision function genericJeansEquationIntegrand(radius)
-    !% Integrand for generic drak matter profile Jeans equation.
+    !!{
+    Integrand for generic drak matter profile Jeans equation.
+    !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     double precision, intent(in   ) :: radius
@@ -561,8 +593,10 @@ contains
   end function genericJeansEquationIntegrand
   
   double precision function genericRadialMomentNumerical(self,node,moment,radiusMinimum,radiusMaximum)
-    !% Returns the radial moment of the density in the dark matter profile of {\normalfont \ttfamily node} between the given
-    !% {\normalfont \ttfamily radiusMinimum} and {\normalfont \ttfamily radiusMaximum} (given in units of Mpc).
+    !!{
+    Returns the radial moment of the density in the dark matter profile of {\normalfont \ttfamily node} between the given
+    {\normalfont \ttfamily radiusMinimum} and {\normalfont \ttfamily radiusMaximum} (given in units of Mpc).
+    !!}
     use :: Numerical_Integration, only : integrator
     implicit none
     class           (darkMatterProfileGeneric), intent(inout)           :: self
@@ -583,7 +617,9 @@ contains
   contains
 
     double precision function integrandRadialMoment(radius)
-      !% Integrand for radial moment in a generic dark matter profile.
+      !!{
+      Integrand for radial moment in a generic dark matter profile.
+      !!}
       implicit none
       double precision, intent(in   ) :: radius
 
@@ -599,7 +635,9 @@ contains
   end function genericRadialMomentNumerical
 
   double precision function genericRotationNormalizationNumerical(self,node)
-    !% Return the normalization of the rotation velocity vs. specific angular momentum relation.
+    !!{
+    Return the normalization of the rotation velocity vs. specific angular momentum relation.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (darkMatterProfileGeneric), intent(inout) :: self
@@ -625,8 +663,10 @@ contains
   end function genericRotationNormalizationNumerical
 
   double precision function genericKSpaceNumerical(self,node,waveNumber)
-    !% Returns the Fourier transform of the dark matter density profile at the specified {\normalfont \ttfamily waveNumber}
-    !% (given in Mpc$^{-1}$).
+    !!{
+    Returns the Fourier transform of the dark matter density profile at the specified {\normalfont \ttfamily waveNumber}
+    (given in Mpc$^{-1}$).
+    !!}
     use :: Numerical_Integration, only : integrator
     implicit none
     class           (darkMatterProfileGeneric), intent(inout)         :: self
@@ -644,7 +684,9 @@ contains
   contains
 
     double precision function integrandFourierTransform(radius)
-      !% Integrand for Fourier transform of the generic dark matter profile.
+      !!{
+      Integrand for Fourier transform of the generic dark matter profile.
+      !!}
       use :: Numerical_Constants_Math, only : Pi
       implicit none
       double precision, intent(in   ) :: radius
@@ -665,7 +707,9 @@ contains
   end function genericKSpaceNumerical
 
   double precision function genericEnergyNumerical(self,node)
-    !% Return the energy of a generic dark matter density profile.
+    !!{
+    Return the energy of a generic dark matter density profile.
+    !!}
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use :: Numerical_Integration           , only : integrator
@@ -708,7 +752,9 @@ contains
   contains
 
     double precision function integrandEnergyPotential(radius)
-      !% Integrand for potential energy of the halo.
+      !!{
+      Integrand for potential energy of the halo.
+      !!}
       implicit none
       double precision, intent(in   ) :: radius
 
@@ -724,7 +770,9 @@ contains
     end function integrandEnergyPotential
 
     double precision function integrandEnergyKinetic(radius)
-      !% Integrand for kinetic energy of the halo.
+      !!{
+      Integrand for kinetic energy of the halo.
+      !!}
       implicit none
       double precision, intent(in   ) :: radius
 
@@ -739,7 +787,9 @@ contains
     end function integrandEnergyKinetic
 
     double precision function integrandPseudoPressure(radius)
-      !% Integrand for pseudo-pressure ($\rho(r) \sigma^2(r)$) of the halo.
+      !!{
+      Integrand for pseudo-pressure ($\rho(r) \sigma^2(r)$) of the halo.
+      !!}
       implicit none
       double precision, intent(in   ) :: radius
 
@@ -756,7 +806,9 @@ contains
   end function genericEnergyNumerical
 
   double precision function genericEnergyGrowthRateNumerical(self,node)
-    !% Returns the rate of growth of the energy if the dark matter density profile.
+    !!{
+    Returns the rate of growth of the energy if the dark matter density profile.
+    !!}
     use :: Numerical_Differentiation, only : differentiator
     implicit none
     class           (darkMatterProfileGeneric), intent(inout), target :: self
@@ -791,7 +843,9 @@ contains
   end function genericEnergyGrowthRateNumerical
 
   double precision function genericEnergyEvaluate(timeLogarithmic)
-    !% GSL-callable function to evaluate the energy of the dark matter profile.
+    !!{
+    GSL-callable function to evaluate the energy of the dark matter profile.
+    !!}
     use :: Functions_Global, only : Galacticus_Calculations_Reset_
     implicit none
     double precision, intent(in   ), value :: timeLogarithmic
@@ -809,8 +863,10 @@ contains
   end function genericEnergyEvaluate
 
   double precision function genericFreefallRadiusNumerical(self,node,time)
-    !% Returns the freefall radius in the adiabaticGnedin2004 density profile at the specified {\normalfont \ttfamily time} (given in
-    !% Gyr).
+    !!{
+    Returns the freefall radius in the adiabaticGnedin2004 density profile at the specified {\normalfont \ttfamily time} (given in
+    Gyr).
+    !!}
     use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
     class           (darkMatterProfileGeneric), intent(inout), target :: self
@@ -837,7 +893,9 @@ contains
   end function genericFreefallRadiusNumerical
 
   double precision function rootRadiusFreefall(radiusFreefall)
-    !% Root function used in finding the radius corresponding to a given freefall time.
+    !!{
+    Root function used in finding the radius corresponding to a given freefall time.
+    !!}
     use :: Numerical_Integration, only : integrator
     implicit none
     double precision            , intent(in   ) :: radiusFreefall
@@ -851,7 +909,9 @@ contains
   end function rootRadiusFreefall
 
   double precision function integrandTimeFreefall(radius)
-    !% Integrand for freefall time in the halo.
+    !!{
+    Integrand for freefall time in the halo.
+    !!}
     use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr
     implicit none
     double precision, intent(in   ) :: radius
@@ -872,8 +932,10 @@ contains
   end function integrandTimeFreefall
 
   double precision function genericFreefallRadiusIncreaseRateNumerical(self,node,time)
-    !% Returns the rate of increase of the freefall radius in the dark matter density profile at the specified {\normalfont
-    !% \ttfamily time} (given in Gyr).
+    !!{
+    Returns the rate of increase of the freefall radius in the dark matter density profile at the specified {\normalfont
+    \ttfamily time} (given in Gyr).
+    !!}
     use :: Numerical_Differentiation, only : differentiator
     implicit none
     class           (darkMatterProfileGeneric), intent(inout), target :: self
@@ -891,7 +953,9 @@ contains
   end function genericFreefallRadiusIncreaseRateNumerical
 
   double precision function genericFreefallRadiusEvaluate(timeLogarithmic)
-    !% GSL-callable function to evaluate the freefall radius of the dark matter profile.
+    !!{
+    GSL-callable function to evaluate the freefall radius of the dark matter profile.
+    !!}
     implicit none
     double precision, intent(in   ), value :: timeLogarithmic
 
@@ -900,8 +964,10 @@ contains
   end function genericFreefallRadiusEvaluate
 
   double precision function genericRadiusEnclosingDensityNumerical(self,node,density)
-    !% Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given
-    !% {\normalfont \ttfamily density} (given in units of $M_\odot/$Mpc$^{-3}$).
+    !!{
+    Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given
+    {\normalfont \ttfamily density} (given in units of $M_\odot/$Mpc$^{-3}$).
+    !!}
     use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
     class           (darkMatterProfileGeneric), intent(inout), target :: self
@@ -928,7 +994,9 @@ contains
   end function genericRadiusEnclosingDensityNumerical
 
   double precision function rootDensity(radius)
-    !% Root function used in finding the radius enclosing a given mean density.
+    !!{
+    Root function used in finding the radius enclosing a given mean density.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     double precision, intent(in   ) :: radius
@@ -943,8 +1011,10 @@ contains
   end function rootDensity
 
   double precision function genericRadiusEnclosingMassNumerical(self,node,mass)
-    !% Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given
-    !% {\normalfont \ttfamily mass} (given in units of $M_\odot$).
+    !!{
+    Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given
+    {\normalfont \ttfamily mass} (given in units of $M_\odot$).
+    !!}
     use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
     class           (darkMatterProfileGeneric), intent(inout), target :: self
@@ -970,7 +1040,9 @@ contains
   end function genericRadiusEnclosingMassNumerical
 
   double precision function rootMass(radius)
-    !% Root function used in finding the radius enclosing a given mass.
+    !!{
+    Root function used in finding the radius enclosing a given mass.
+    !!}
     implicit none
     double precision, intent(in   ) :: radius
 
@@ -980,7 +1052,9 @@ contains
   end function rootMass
 
   double precision function genericRadiusCircularVelocityMaximumNumerical(self,node)
-    !% Returns the radius (in Mpc) at which the maximum circular velocity is achieved in the dark matter profile of {\normalfont \ttfamily node}.
+    !!{
+    Returns the radius (in Mpc) at which the maximum circular velocity is achieved in the dark matter profile of {\normalfont \ttfamily node}.
+    !!}
     use :: Galacticus_Nodes    , only : nodeComponentBasic
     use :: Numerical_Comparison, only : Values_Agree
     use :: Root_Finder         , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
@@ -1044,7 +1118,9 @@ contains
   end function genericRadiusCircularVelocityMaximumNumerical
 
   double precision function genericCircularVelocityMaximumNumerical(self,node)
-    !% Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}.
+    !!{
+    Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}.
+    !!}
     implicit none
     class(darkMatterProfileGeneric), intent(inout) :: self
     type (treeNode                ), intent(inout) :: node
@@ -1054,11 +1130,13 @@ contains
   end function genericCircularVelocityMaximumNumerical
 
   double precision function rootCircularVelocityMaximum(radius)
-    !% Root function used in finding the radius at which the maximum circular velocity occurs. Since for a spherical profile $V_\mathrm{c}^2(r)=\mathrm{G}M(r)/r$, then
-    !% \begin{equation}
-    !% {\mathrm{d} V_\mathrm{c}^2 \over \mathrm{d} r} = - {\mathrm{G} M(r) \over r^2} + 4 \pi \mathrm{G} \rho(r) r.
-    !% \end{equation}
-    !% Therefore, the peak of the rotation curve satisfies $4 \pi r^3 \rho(r) - M(r)=0$.
+    !!{
+    Root function used in finding the radius at which the maximum circular velocity occurs. Since for a spherical profile $V_\mathrm{c}^2(r)=\mathrm{G}M(r)/r$, then
+    \begin{equation}
+    {\mathrm{d} V_\mathrm{c}^2 \over \mathrm{d} r} = - {\mathrm{G} M(r) \over r^2} + 4 \pi \mathrm{G} \rho(r) r.
+    \end{equation}
+    Therefore, the peak of the rotation curve satisfies $4 \pi r^3 \rho(r) - M(r)=0$.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     double precision, intent(in   ) :: radius
@@ -1072,8 +1150,10 @@ contains
   end function rootCircularVelocityMaximum
 
   double precision function genericRadiusFromSpecificAngularMomentumNumerical(self,node,specificAngularMomentum)
-    !% Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentum} (given
-    !% in units of km s$^{-1}$ Mpc).
+    !!{
+    Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentum} (given
+    in units of km s$^{-1}$ Mpc).
+    !!}
     use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
     class           (darkMatterProfileGeneric), intent(inout), target :: self
@@ -1099,7 +1179,9 @@ contains
   end function genericRadiusFromSpecificAngularMomentumNumerical
 
   double precision function rootSpecificAngularMomentum(radius)
-    !% Root function used in finding the radius enclosing a given specific angular momentum.
+    !!{
+    Root function used in finding the radius enclosing a given specific angular momentum.
+    !!}
     implicit none
     double precision, intent(in   ) :: radius
 
@@ -1110,8 +1192,10 @@ contains
   end function rootSpecificAngularMomentum
 
   double precision function genericDensityLogSlopeNumerical(self,node,radius)
-    !% Returns the logarithmic slope of the density in the dark matter profile of {\normalfont \ttfamily node} at the given
-    !% {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!{
+    Returns the logarithmic slope of the density in the dark matter profile of {\normalfont \ttfamily node} at the given
+    {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!}
     use :: Numerical_Differentiation, only : differentiator
     implicit none
     class           (darkMatterProfileGeneric), intent(inout), target :: self
@@ -1129,7 +1213,9 @@ contains
   end function genericDensityLogSlopeNumerical
 
   double precision function genericDensityEvaluate(radiusLogarithmic)
-    !% GSL-callable function to evaluate the density of the dark matter profile.
+    !!{
+    GSL-callable function to evaluate the density of the dark matter profile.
+    !!}
     implicit none
     double precision, intent(in   ), value :: radiusLogarithmic
 
@@ -1138,7 +1224,9 @@ contains
   end function genericDensityEvaluate
 
   subroutine genericSolverSet(self,node)
-    !% Set a sub-module scope pointers on a stack to allow recursive calls to functions.
+    !!{
+    Set a sub-module scope pointers on a stack to allow recursive calls to functions.
+    !!}
     implicit none
     class  (darkMatterProfileGeneric), intent(inout), target       :: self
     type   (treeNode                ), intent(inout), target       :: node
@@ -1167,7 +1255,9 @@ contains
   end subroutine genericSolverSet
   
   subroutine genericSolverUnset()
-    !% Unset a sub-module scope pointers on the stack.
+    !!{
+    Unset a sub-module scope pointers on the stack.
+    !!}
     implicit none
 
     solvers(solversCount)%self => null()
@@ -1177,7 +1267,9 @@ contains
   end subroutine genericSolverUnset
 
   subroutine genericCalculationResetGeneric(self,node)
-    !% Reset generic profile memoized data.
+    !!{
+    Reset generic profile memoized data.
+    !!}
     implicit none
     class(darkMatterProfileGeneric), intent(inout) :: self
     type (treeNode                ), intent(inout) :: node

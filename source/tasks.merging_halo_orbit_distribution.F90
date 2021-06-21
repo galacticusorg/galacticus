@@ -26,11 +26,15 @@
   use :: Halo_Mass_Functions               , only : haloMassFunctionClass
   use :: Cosmology_Functions               , only : cosmologyFunctionsClass
 
-  !# <task name="taskMergingHaloOrbitDistribution">
-  !#  <description>A task which tabulates the orbital parameter distribution for merging halos.</description>
-  !# </task>
+  !![
+  <task name="taskMergingHaloOrbitDistribution">
+   <description>A task which tabulates the orbital parameter distribution for merging halos.</description>
+  </task>
+  !!]
   type, extends(taskClass) :: taskMergingHaloOrbitDistribution
-     !% A task which tabulates the orbital parameter distribution for merging halos.
+     !!{
+     A task which tabulates the orbital parameter distribution for merging halos.
+     !!}
      private
      class           (darkMatterHaloScaleClass           ), pointer :: darkMatterHaloScale_            => null()
      class           (virialOrbitClass                   ), pointer :: virialOrbit_                    => null()
@@ -51,7 +55,9 @@
   end type taskMergingHaloOrbitDistribution
 
   interface taskMergingHaloOrbitDistribution
-     !% Constructors for the {\normalfont \ttfamily mergingHaloOrbitDistribution} task.
+     !!{
+     Constructors for the {\normalfont \ttfamily mergingHaloOrbitDistribution} task.
+     !!}
      module procedure mergingHaloOrbitDistributionConstructorParameters
      module procedure mergingHaloOrbitDistributionConstructorInternal
   end interface taskMergingHaloOrbitDistribution
@@ -59,7 +65,9 @@
 contains
   
   function mergingHaloOrbitDistributionConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily mergingHaloOrbitDistribution} task class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily mergingHaloOrbitDistribution} task class which takes a parameter set as input.
+    !!}
     use :: Galacticus_Nodes   , only : nodeClassHierarchyInitialize
     use :: Input_Parameters   , only : inputParameter              , inputParameters
     use :: Node_Components    , only : Node_Components_Initialize  , Node_Components_Thread_Initialize
@@ -96,81 +104,87 @@ contains
        call Node_Components_Initialize       (parameters    )
        call Node_Components_Thread_Initialize(parameters    )
     end if
-    !# <inputParameter>
-    !#   <name>velocityMinimum</name>
-    !#   <source>parameters</source>
-    !#   <description>The minimum velocity (in units of the host virial velocity) for which to compute velocity distributions.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>velocityMaximum</name>
-    !#   <source>parameters</source>
-    !#   <description>The maximum velocity (in units of the host virial velocity) for which to compute velocity distributions.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>countVelocitiesPerUnit</name>
-    !#   <source>parameters</source>
-    !#   <description>The number of points per unit of velocity (in units of the host virial velocity) for which to compute velocity distributions.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massMinimum</name>
-    !#   <source>parameters</source>
-    !#   <description>The minimum mass halo for which to compute mergingHaloOrbitDistribution properties.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massMaximum</name>
-    !#   <source>parameters</source>
-    !#   <description>The maximum mass halo for which to compute mergingHaloOrbitDistribution properties.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>countMassesPerDecade</name>
-    !#   <source>parameters</source>
-    !#   <description>The number of points per decade of mass for which to compute mergingHaloOrbitDistribution properties.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>redshift</name>
-    !#   <source>parameters</source>
-    !#   <description>The redshift.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
-    !# </inputParameter>
-    !# <objectBuilder class="darkMatterHaloScale"            name="darkMatterHaloScale_"            source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"             name="cosmologyFunctions_"             source="parameters"/>
-    !# <objectBuilder class="virialOrbit"                    name="virialOrbit_"                    source="parameters"/>
-    !# <objectBuilder class="randomNumberGenerator"          name="randomNumberGenerator_"          source="parameters"/>
-    !# <objectBuilder class="accretionFlows"                 name="accretionFlows_"                 source="parameters"/>
-    !# <objectBuilder class="mergerTreeBranchingProbability" name="mergerTreeBranchingProbability_" source="parameters"/>
-    !# <objectBuilder class="criticalOverdensity"            name="criticalOverdensity_"            source="parameters"/>
-    !# <objectBuilder class="cosmologicalMassVariance"       name="cosmologicalMassVariance_"       source="parameters"/>
-    !# <objectBuilder class="haloMassFunction"               name="haloMassFunction_"               source="parameters"/>
+    !![
+    <inputParameter>
+      <name>velocityMinimum</name>
+      <source>parameters</source>
+      <description>The minimum velocity (in units of the host virial velocity) for which to compute velocity distributions.</description>
+      <type>real</type>
+      <cardinality>0..1</cardinality>
+    </inputParameter>
+    <inputParameter>
+      <name>velocityMaximum</name>
+      <source>parameters</source>
+      <description>The maximum velocity (in units of the host virial velocity) for which to compute velocity distributions.</description>
+      <type>real</type>
+      <cardinality>0..1</cardinality>
+    </inputParameter>
+    <inputParameter>
+      <name>countVelocitiesPerUnit</name>
+      <source>parameters</source>
+      <description>The number of points per unit of velocity (in units of the host virial velocity) for which to compute velocity distributions.</description>
+      <type>real</type>
+      <cardinality>0..1</cardinality>
+    </inputParameter>
+    <inputParameter>
+      <name>massMinimum</name>
+      <source>parameters</source>
+      <description>The minimum mass halo for which to compute mergingHaloOrbitDistribution properties.</description>
+      <type>real</type>
+      <cardinality>0..1</cardinality>
+    </inputParameter>
+    <inputParameter>
+      <name>massMaximum</name>
+      <source>parameters</source>
+      <description>The maximum mass halo for which to compute mergingHaloOrbitDistribution properties.</description>
+      <type>real</type>
+      <cardinality>0..1</cardinality>
+    </inputParameter>
+    <inputParameter>
+      <name>countMassesPerDecade</name>
+      <source>parameters</source>
+      <description>The number of points per decade of mass for which to compute mergingHaloOrbitDistribution properties.</description>
+      <type>real</type>
+      <cardinality>0..1</cardinality>
+    </inputParameter>
+    <inputParameter>
+      <name>redshift</name>
+      <source>parameters</source>
+      <description>The redshift.</description>
+      <type>real</type>
+      <cardinality>0..1</cardinality>
+    </inputParameter>
+    <objectBuilder class="darkMatterHaloScale"            name="darkMatterHaloScale_"            source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"             name="cosmologyFunctions_"             source="parameters"/>
+    <objectBuilder class="virialOrbit"                    name="virialOrbit_"                    source="parameters"/>
+    <objectBuilder class="randomNumberGenerator"          name="randomNumberGenerator_"          source="parameters"/>
+    <objectBuilder class="accretionFlows"                 name="accretionFlows_"                 source="parameters"/>
+    <objectBuilder class="mergerTreeBranchingProbability" name="mergerTreeBranchingProbability_" source="parameters"/>
+    <objectBuilder class="criticalOverdensity"            name="criticalOverdensity_"            source="parameters"/>
+    <objectBuilder class="cosmologicalMassVariance"       name="cosmologicalMassVariance_"       source="parameters"/>
+    <objectBuilder class="haloMassFunction"               name="haloMassFunction_"               source="parameters"/>
+    !!]
     time=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift))
     self=taskMergingHaloOrbitDistribution(time,velocityMinimum,velocityMaximum,countVelocitiesPerUnit,massMinimum,massMaximum,countMassesPerDecade,virialOrbit_,cosmologyFunctions_,darkMatterHaloScale_,accretionFlows_,mergerTreeBranchingProbability_,criticalOverdensity_,cosmologicalMassVariance_,haloMassFunction_,randomNumberGenerator_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"            />
-    !# <objectDestructor name="virialOrbit_"                   />
-    !# <objectDestructor name="randomNumberGenerator_"         />
-    !# <objectDestructor name="accretionFlows_"                />
-    !# <objectDestructor name="darkMatterHaloScale_"           />
-    !# <objectDestructor name="mergerTreeBranchingProbability_"/>
-    !# <objectDestructor name="criticalOverdensity_"           />
-    !# <objectDestructor name="cosmologicalMassVariance_"      />
-    !# <objectDestructor name="haloMassFunction_"              />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"            />
+    <objectDestructor name="virialOrbit_"                   />
+    <objectDestructor name="randomNumberGenerator_"         />
+    <objectDestructor name="accretionFlows_"                />
+    <objectDestructor name="darkMatterHaloScale_"           />
+    <objectDestructor name="mergerTreeBranchingProbability_"/>
+    <objectDestructor name="criticalOverdensity_"           />
+    <objectDestructor name="cosmologicalMassVariance_"      />
+    <objectDestructor name="haloMassFunction_"              />
+    !!]
     return
   end function mergingHaloOrbitDistributionConstructorParameters
 
   function mergingHaloOrbitDistributionConstructorInternal(time,velocityMinimum,velocityMaximum,countVelocitiesPerUnit,massMinimum,massMaximum,countMassesPerDecade,virialOrbit_,cosmologyFunctions_,darkMatterHaloScale_,accretionFlows_,mergerTreeBranchingProbability_,criticalOverdensity_,cosmologicalMassVariance_,haloMassFunction_,randomNumberGenerator_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily mergingHaloOrbitDistribution} task class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily mergingHaloOrbitDistribution} task class.
+    !!}
     implicit none
     type            (taskMergingHaloOrbitDistribution   )                        :: self
     class           (virialOrbitClass                   ), intent(in   ), target :: virialOrbit_
@@ -186,33 +200,41 @@ contains
          &                                                                          velocityMinimum                , velocityMaximum       , &
          &                                                                          time
     integer                                              , intent(in   )         :: countMassesPerDecade           , countVelocitiesPerUnit
-    !# <constructorAssign variables="time, velocityMinimum, velocityMaximum, countVelocitiesPerUnit, massMinimum, massMaximum, countMassesPerDecade, *virialOrbit_, *cosmologyFunctions_, *darkMatterHaloScale_, *accretionFlows_, *mergerTreeBranchingProbability_, *criticalOverdensity_, *cosmologicalMassVariance_, *haloMassFunction_, *randomNumberGenerator_"/>
+    !![
+    <constructorAssign variables="time, velocityMinimum, velocityMaximum, countVelocitiesPerUnit, massMinimum, massMaximum, countMassesPerDecade, *virialOrbit_, *cosmologyFunctions_, *darkMatterHaloScale_, *accretionFlows_, *mergerTreeBranchingProbability_, *criticalOverdensity_, *cosmologicalMassVariance_, *haloMassFunction_, *randomNumberGenerator_"/>
+    !!]
 
     return
   end function mergingHaloOrbitDistributionConstructorInternal
 
   subroutine mergingHaloOrbitDistributionDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily mergingHaloOrbitDistribution} task class.
+    !!{
+    Destructor for the {\normalfont \ttfamily mergingHaloOrbitDistribution} task class.
+    !!}
     use :: Node_Components, only : Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
     implicit none
     type(taskMergingHaloOrbitDistribution), intent(inout) :: self
     
-    !# <objectDestructor name="self%virialOrbit_"                   />
-    !# <objectDestructor name="self%cosmologyFunctions_"            />
-    !# <objectDestructor name="self%darkMatterHaloScale_"           />
-    !# <objectDestructor name="self%randomNumberGenerator_"         />
-    !# <objectDestructor name="self%accretionFlows_"                />
-    !# <objectDestructor name="self%mergerTreeBranchingProbability_"/>
-    !# <objectDestructor name="self%criticalOverdensity_"           />
-    !# <objectDestructor name="self%cosmologicalMassVariance_"      />
-    !# <objectDestructor name="self%haloMassFunction_"              />
+    !![
+    <objectDestructor name="self%virialOrbit_"                   />
+    <objectDestructor name="self%cosmologyFunctions_"            />
+    <objectDestructor name="self%darkMatterHaloScale_"           />
+    <objectDestructor name="self%randomNumberGenerator_"         />
+    <objectDestructor name="self%accretionFlows_"                />
+    <objectDestructor name="self%mergerTreeBranchingProbability_"/>
+    <objectDestructor name="self%criticalOverdensity_"           />
+    <objectDestructor name="self%cosmologicalMassVariance_"      />
+    <objectDestructor name="self%haloMassFunction_"              />
+    !!]
     call Node_Components_Uninitialize       ()
     call Node_Components_Thread_Uninitialize()
     return
   end subroutine mergingHaloOrbitDistributionDestructor
 
   subroutine mergingHaloOrbitDistributionPerform(self,status)
-    !% Compute properties of mergingHaloOrbitDistributioning halos.
+    !!{
+    Compute properties of mergingHaloOrbitDistributioning halos.
+    !!}
     use :: Display                       , only : displayIndent                , displayUnindent     , displayCounter, displayCounterClear, &
          &                                        verbosityLevelWorking
     use :: Galacticus_Nodes              , only : treeNode                     , nodeComponentBasic  , mergerTree
@@ -279,9 +301,11 @@ contains
     allocate(tree%randomNumberGenerator_,mold=self%randomNumberGenerator_) 
     call tree%properties%initialize()
     !$omp critical(taskMergingHaloOrbitDistributionDeepCopy)
-    !# <deepCopyReset variables="self%randomNumberGenerator_"/>
-    !# <deepCopy source="self%randomNumberGenerator_" destination="tree%randomNumberGenerator_"/>
-    !# <deepCopyFinalize variables="tree%randomNumberGenerator_"/>
+    !![
+    <deepCopyReset variables="self%randomNumberGenerator_"/>
+    <deepCopy source="self%randomNumberGenerator_" destination="tree%randomNumberGenerator_"/>
+    <deepCopyFinalize variables="tree%randomNumberGenerator_"/>
+    !!]
     !$omp end critical(taskMergingHaloOrbitDistributionDeepCopy)
     do iHost=1,countMasses
        ! Build host node.

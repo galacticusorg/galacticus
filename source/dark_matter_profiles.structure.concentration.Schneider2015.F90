@@ -17,30 +17,36 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of halo profile concentrations using the algorithm of \cite{schneider_structure_2015}.
+  !!{
+  An implementation of halo profile concentrations using the algorithm of \cite{schneider_structure_2015}.
+  !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
   use :: Root_Finder               , only : rootFinder
 
-  !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationSchneider2015">
-  !#  <description>
-  !#   A dark matter profile concentration class in which the concentration using the algorithm of
-  !#   \cite{schneider_structure_2015}. Specifically, a reference model for concentrations in defined in a specific cosmological
-  !#   model. The concentration for a halo of given mass, $M$, and redshift, $z_0$, is then found by finding the redshift of
-  !#   collapse, $z_\mathrm{c}$ for the halo by solving:
-  !#   \begin{equation}
-  !#     \delta_\mathrm{c}(z_\mathrm{c}) = \left( {\pi \over 2} \left[ \sigma^2(f M) - \sigma^2(M) \right]
-  !#     \right)^{1/2}+\delta_\mathrm{c})(z_0),
-  !#   \end{equation}
-  !#   where $\delta_\mathrm{c}(z)$ is the critical overdensity for collapse at redshift $z$, and $f$ is the fraction of a halo's
-  !#   mass assembled at formation time (given by the {\normalfont \ttfamily [massFractionFormation]} parameter. From this, the
-  !#   mass of a halo in the reference model with the same redshift of collapse is found, and the reference model is used to
-  !#   compute the concentration of a halo of that mass.
-  !#  </description>
-  !# </darkMatterProfileConcentration>
+  !![
+  <darkMatterProfileConcentration name="darkMatterProfileConcentrationSchneider2015">
+   <description>
+    A dark matter profile concentration class in which the concentration using the algorithm of
+    \cite{schneider_structure_2015}. Specifically, a reference model for concentrations in defined in a specific cosmological
+    model. The concentration for a halo of given mass, $M$, and redshift, $z_0$, is then found by finding the redshift of
+    collapse, $z_\mathrm{c}$ for the halo by solving:
+    \begin{equation}
+      \delta_\mathrm{c}(z_\mathrm{c}) = \left( {\pi \over 2} \left[ \sigma^2(f M) - \sigma^2(M) \right]
+      \right)^{1/2}+\delta_\mathrm{c})(z_0),
+    \end{equation}
+    where $\delta_\mathrm{c}(z)$ is the critical overdensity for collapse at redshift $z$, and $f$ is the fraction of a halo's
+    mass assembled at formation time (given by the {\normalfont \ttfamily [massFractionFormation]} parameter. From this, the
+    mass of a halo in the reference model with the same redshift of collapse is found, and the reference model is used to
+    compute the concentration of a halo of that mass.
+   </description>
+  </darkMatterProfileConcentration>
+  !!]
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationSchneider2015
-     !% A dark matter halo profile concentration class implementing the algorithm of \cite{schneider_structure_2015}.
+     !!{
+     A dark matter halo profile concentration class implementing the algorithm of \cite{schneider_structure_2015}.
+     !!}
      private
      class           (darkMatterProfileConcentrationClass), pointer :: referenceConcentration            => null()
      class           (cosmologyFunctionsClass            ), pointer :: referenceCosmologyFunctions       => null(), cosmologyFunctions_       => null()
@@ -56,7 +62,9 @@
  end type darkMatterProfileConcentrationSchneider2015
 
   interface darkMatterProfileConcentrationSchneider2015
-     !% Constructors for the {\normalfont \ttfamily Schneider2015} dark matter halo profile concentration class.
+     !!{
+     Constructors for the {\normalfont \ttfamily Schneider2015} dark matter halo profile concentration class.
+     !!}
      module procedure schneider2015ConstructorParameters
      module procedure schneider2015ConstructorInternal
   end interface darkMatterProfileConcentrationSchneider2015
@@ -74,7 +82,9 @@
 contains
 
  function schneider2015ConstructorParameters(parameters) result(self)
-    !% Default constructor for the {\normalfont \ttfamily schneider2015} dark matter halo profile concentration class.
+    !!{
+    Default constructor for the {\normalfont \ttfamily schneider2015} dark matter halo profile concentration class.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Input_Parameters, only : inputParameter         , inputParameters
     implicit none
@@ -90,34 +100,40 @@ contains
     if (.not.parameters%isPresent('reference',requireValue=.false.)) call Galacticus_Error_Report('parameters must contain a "reference" section'//{introspection:location})
     referenceParameters=parameters%subParameters('reference',requireValue=.false.)
     ! Check and read parameters.
-    !# <inputParameter>
-    !#   <name>massFractionFormation</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>0.05d0</defaultValue>
-    !#   <description>The fraction of a halo's mass assembled at ``formation'' in the halo concentration algorithm of \cite{schneider_structure_2015}.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="darkMatterProfileConcentration" name="referenceConcentration"             source="referenceParameters"/>
-    !# <objectBuilder class="criticalOverdensity"            name="referenceCriticalOverdensity"       source="referenceParameters"/>
-    !# <objectBuilder class="criticalOverdensity"            name="         criticalOverdensity_"      source=         "parameters"/>
-    !# <objectBuilder class="cosmologicalMassVariance"       name="referenceCosmologicalMassVariance"  source="referenceParameters"/>
-    !# <objectBuilder class="cosmologicalMassVariance"       name="         cosmologicalMassVariance_" source=         "parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"             name="referenceCosmologyFunctions"        source="referenceParameters"/>
-    !# <objectBuilder class="cosmologyFunctions"             name="         cosmologyFunctions_"       source=         "parameters"/>
+    !![
+    <inputParameter>
+      <name>massFractionFormation</name>
+      <source>parameters</source>
+      <defaultValue>0.05d0</defaultValue>
+      <description>The fraction of a halo's mass assembled at ``formation'' in the halo concentration algorithm of \cite{schneider_structure_2015}.</description>
+    </inputParameter>
+    <objectBuilder class="darkMatterProfileConcentration" name="referenceConcentration"             source="referenceParameters"/>
+    <objectBuilder class="criticalOverdensity"            name="referenceCriticalOverdensity"       source="referenceParameters"/>
+    <objectBuilder class="criticalOverdensity"            name="         criticalOverdensity_"      source=         "parameters"/>
+    <objectBuilder class="cosmologicalMassVariance"       name="referenceCosmologicalMassVariance"  source="referenceParameters"/>
+    <objectBuilder class="cosmologicalMassVariance"       name="         cosmologicalMassVariance_" source=         "parameters"/>
+    <objectBuilder class="cosmologyFunctions"             name="referenceCosmologyFunctions"        source="referenceParameters"/>
+    <objectBuilder class="cosmologyFunctions"             name="         cosmologyFunctions_"       source=         "parameters"/>
+    !!]
     self=darkMatterProfileConcentrationSchneider2015(massFractionFormation,referenceConcentration,referenceCriticalOverdensity,referenceCosmologicalMassVariance,referenceCosmologyFunctions,criticalOverdensity_,cosmologicalMassvariance_,cosmologyFunctions_)
-    !# <inputParametersValidate source="parameters"         />
-    !# <inputParametersValidate source="referenceParameters"/>
-    !# <objectDestructor name="referenceConcentration"           />
-    !# <objectDestructor name="referenceCriticalOverdensity"     />
-    !# <objectDestructor name="criticalOverdensity_"             />
-    !# <objectDestructor name="referenceCosmologicalMassVariance"/>
-    !# <objectDestructor name="cosmologicalMassVariance_"        />
-    !# <objectDestructor name="referenceCosmologyFunctions"      />
-    !# <objectDestructor name="cosmologyFunctions_"              />
+    !![
+    <inputParametersValidate source="parameters"         />
+    <inputParametersValidate source="referenceParameters"/>
+    <objectDestructor name="referenceConcentration"           />
+    <objectDestructor name="referenceCriticalOverdensity"     />
+    <objectDestructor name="criticalOverdensity_"             />
+    <objectDestructor name="referenceCosmologicalMassVariance"/>
+    <objectDestructor name="cosmologicalMassVariance_"        />
+    <objectDestructor name="referenceCosmologyFunctions"      />
+    <objectDestructor name="cosmologyFunctions_"              />
+    !!]
     return
   end function schneider2015ConstructorParameters
 
   function schneider2015ConstructorInternal(massFractionFormation,referenceConcentration,referenceCriticalOverdensity,referenceCosmologicalMassVariance,referenceCosmologyFunctions,criticalOverdensity_,cosmologicalMassvariance_,cosmologyFunctions_) result(self)
-    !% Generic constructor for the {\normalfont \ttfamily schneider2015} dark matter halo concentration class.
+    !!{
+    Generic constructor for the {\normalfont \ttfamily schneider2015} dark matter halo concentration class.
+    !!}
     use :: Root_Finder, only : rangeExpandMultiplicative
     implicit none
     type            (darkMatterProfileConcentrationSchneider2015)                        :: self
@@ -127,7 +143,9 @@ contains
     class           (cosmologyFunctionsClass                    ), intent(in   ), target :: referenceCosmologyFunctions             , cosmologyFunctions_
     double precision                                             , intent(in   )         :: massFractionFormation
     double precision                                             , parameter             :: toleranceAbsolute                =0.0d00, toleranceRelative        =1.0d-6
-    !# <constructorAssign variables="massFractionFormation, *referenceConcentration, *referenceCriticalOverdensity, *referenceCosmologicalMassVariance, *referenceCosmologyFunctions, *criticalOverdensity_, *cosmologicalMassvariance_, *cosmologyFunctions_"/>
+    !![
+    <constructorAssign variables="massFractionFormation, *referenceConcentration, *referenceCriticalOverdensity, *referenceCosmologicalMassVariance, *referenceCosmologyFunctions, *criticalOverdensity_, *cosmologicalMassvariance_, *cosmologyFunctions_"/>
+    !!]
 
     self%finder=rootFinder(                                                            &
          &                 rootFunction       =schneider2015ReferenceCollapseMassRoot, &
@@ -142,23 +160,29 @@ contains
   end function schneider2015ConstructorInternal
 
   subroutine schneider2015Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily schneider2015} dark matter halo profile concentration class.
+    !!{
+    Destructor for the {\normalfont \ttfamily schneider2015} dark matter halo profile concentration class.
+    !!}
     implicit none
     type(darkMatterProfileConcentrationSchneider2015), intent(inout) :: self
 
-    !# <objectDestructor name="self%referenceConcentration"           />
-    !# <objectDestructor name="self%referenceCriticalOverdensity"     />
-    !# <objectDestructor name="self%criticalOverdensity_"             />
-    !# <objectDestructor name="self%referenceCosmologicalMassVariance"/>
-    !# <objectDestructor name="self%cosmologicalMassVariance_"        />
-    !# <objectDestructor name="self%referenceCosmologyFunctions"      />
-    !# <objectDestructor name="self%cosmologyFunctions_"              />
+    !![
+    <objectDestructor name="self%referenceConcentration"           />
+    <objectDestructor name="self%referenceCriticalOverdensity"     />
+    <objectDestructor name="self%criticalOverdensity_"             />
+    <objectDestructor name="self%referenceCosmologicalMassVariance"/>
+    <objectDestructor name="self%cosmologicalMassVariance_"        />
+    <objectDestructor name="self%referenceCosmologyFunctions"      />
+    <objectDestructor name="self%cosmologyFunctions_"              />
+    !!]
     return
   end subroutine schneider2015Destructor
 
   double precision function schneider2015Concentration(self,node)
-    !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the algorithm of
-    !% \cite{schneider_structure_2015}.
+    !!{
+    Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the algorithm of
+    \cite{schneider_structure_2015}.
+    !!}
     use :: Galacticus_Nodes        , only : nodeComponentBasic, treeNode
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -218,8 +242,10 @@ contains
   end function schneider2015Concentration
 
   double precision function schneider2015ReferenceCollapseMassRoot(massReference)
-    !% Root function used to find the mass collapsing at given time in dark matter halo concentration algorithm of
-    !% \cite{schneider_structure_2015}.
+    !!{
+    Root function used to find the mass collapsing at given time in dark matter halo concentration algorithm of
+    \cite{schneider_structure_2015}.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     double precision, intent(in   ) :: massReference
@@ -255,8 +281,10 @@ contains
   end function schneider2015ReferenceCollapseMassRoot
 
   function schneider2015DensityContrastDefinition(self)
-    !% Return a virial density contrast object defining that used in the definition of concentration in the
-    !% \cite{schneider_structure_2015} algorithm.
+    !!{
+    Return a virial density contrast object defining that used in the definition of concentration in the
+    \cite{schneider_structure_2015} algorithm.
+    !!}
     implicit none
     class(virialDensityContrastClass                 ), pointer       :: schneider2015DensityContrastDefinition
     class(darkMatterProfileConcentrationSchneider2015), intent(inout) :: self
@@ -266,8 +294,10 @@ contains
   end function schneider2015DensityContrastDefinition
 
   function schneider2015DarkMatterProfileDefinition(self)
-    !% Return a dark matter density profile object defining that used in the definition of concentration in the
-    !% \cite{schneider_structure_2015} algorithm.
+    !!{
+    Return a dark matter density profile object defining that used in the definition of concentration in the
+    \cite{schneider_structure_2015} algorithm.
+    !!}
     implicit none
     class(darkMatterProfileDMOClass                  ), pointer       :: schneider2015DarkMatterProfileDefinition
     class(darkMatterProfileConcentrationSchneider2015), intent(inout) :: self

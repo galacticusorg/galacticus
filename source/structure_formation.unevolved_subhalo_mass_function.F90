@@ -17,29 +17,33 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides a class that implements subhalo mass functions.
+!!{
+Contains a module which provides a class that implements subhalo mass functions.
+!!}
 
 module Unevolved_Subhalo_Mass_Functions
   implicit none
   private
 
-  !# <functionClass>
-  !#  <name>unevolvedSubhaloMassFunction</name>
-  !#  <descriptiveName>Unevolved Subhalo Mass Function</descriptiveName>
-  !#  <description>Class providing unevolved subhalo mass functions.</description>
-  !#  <default>giocoli2008</default>
-  !#  <method name="differential" >
-  !#   <description>Return the differential unevolved subhalo mass function per halo for {\normalfont \ttfamily mass} [$M_\odot$] subhalos in {\normalfont \ttfamily massHost} [$M_\odot$] hosts at {\normalfont \ttfamily time} [Gyr].</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ) :: time, mass, massHost</argument>
-  !#  </method>
-  !#  <method name="integrated" >
-  !#   <description>Return the unevolved subhalo mass function per host at {\normalfont \ttfamily time} [Gyr] in hosts of mass {\normalfont \ttfamily massHost} [$M_\odot$] integrated between {\normalfont \ttfamily massLow} and {\normalfont \ttfamily massHigh} [$M_\odot$].</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ) :: time, massLow, massHigh, massHost</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>unevolvedSubhaloMassFunction</name>
+   <descriptiveName>Unevolved Subhalo Mass Function</descriptiveName>
+   <description>Class providing unevolved subhalo mass functions.</description>
+   <default>giocoli2008</default>
+   <method name="differential" >
+    <description>Return the differential unevolved subhalo mass function per halo for {\normalfont \ttfamily mass} [$M_\odot$] subhalos in {\normalfont \ttfamily massHost} [$M_\odot$] hosts at {\normalfont \ttfamily time} [Gyr].</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision, intent(in   ) :: time, mass, massHost</argument>
+   </method>
+   <method name="integrated" >
+    <description>Return the unevolved subhalo mass function per host at {\normalfont \ttfamily time} [Gyr] in hosts of mass {\normalfont \ttfamily massHost} [$M_\odot$] integrated between {\normalfont \ttfamily massLow} and {\normalfont \ttfamily massHigh} [$M_\odot$].</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision, intent(in   ) :: time, massLow, massHigh, massHost</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Unevolved_Subhalo_Mass_Functions

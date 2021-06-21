@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of dark matter halo mass accretion histories computed from merger tree branching rates.
+  !!{
+  An implementation of dark matter halo mass accretion histories computed from merger tree branching rates.
+  !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass      , criticalOverdensityClass
   use :: Merger_Tree_Branching     , only : mergerTreeBranchingProbabilityClass
 
-  !# <darkMatterHaloMassAccretionHistory name="darkMatterHaloMassAccretionHistoryMergerTreeBranching">
-  !#  <description>Dark matter halo mass accretion histories computed from merger tree branching rates.</description>
-  !# </darkMatterHaloMassAccretionHistory>
+  !![
+  <darkMatterHaloMassAccretionHistory name="darkMatterHaloMassAccretionHistoryMergerTreeBranching">
+   <description>Dark matter halo mass accretion histories computed from merger tree branching rates.</description>
+  </darkMatterHaloMassAccretionHistory>
+  !!]
   type, extends(darkMatterHaloMassAccretionHistoryClass) :: darkMatterHaloMassAccretionHistoryMergerTreeBranching
-     !% A dark matter halo mass accretion history class computed from merger tree branching rates.
+     !!{
+     A dark matter halo mass accretion history class computed from merger tree branching rates.
+     !!}
      private
      class(cosmologicalMassVarianceClass      ), pointer :: cosmologicalMassVariance_       => null()
      class(criticalOverdensityClass           ), pointer :: criticalOverdensity_            => null()
@@ -38,7 +44,9 @@
   end type darkMatterHaloMassAccretionHistoryMergerTreeBranching
 
   interface darkMatterHaloMassAccretionHistoryMergerTreeBranching
-     !% Constructors for the {\normalfont \ttfamily mergerTreeBranching} dark matter halo mass accretion history class.
+     !!{
+     Constructors for the {\normalfont \ttfamily mergerTreeBranching} dark matter halo mass accretion history class.
+     !!}
      module procedure mergerTreeBranchingConstructorParameters
      module procedure mergerTreeBranchingConstructorInternal
   end interface darkMatterHaloMassAccretionHistoryMergerTreeBranching
@@ -46,8 +54,10 @@
 contains
 
   function mergerTreeBranchingConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily mergerTreeBranching} dark matter halo mass accretion history class which takes a
-    !% parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily mergerTreeBranching} dark matter halo mass accretion history class which takes a
+    parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (darkMatterHaloMassAccretionHistoryMergerTreeBranching)                :: self
@@ -56,42 +66,56 @@ contains
     class(criticalOverdensityClass                             ), pointer       :: criticalOverdensity_
     class(mergerTreeBranchingProbabilityClass                  ), pointer       :: mergerTreeBranchingProbability_
 
-    !# <objectBuilder class="criticalOverdensity"            name="criticalOverdensity_"            source="parameters"/>
-    !# <objectBuilder class="cosmologicalMassVariance"       name="cosmologicalMassVariance_"       source="parameters"/>
-    !# <objectBuilder class="mergerTreeBranchingProbability" name="mergerTreeBranchingProbability_" source="parameters"/>
+    !![
+    <objectBuilder class="criticalOverdensity"            name="criticalOverdensity_"            source="parameters"/>
+    <objectBuilder class="cosmologicalMassVariance"       name="cosmologicalMassVariance_"       source="parameters"/>
+    <objectBuilder class="mergerTreeBranchingProbability" name="mergerTreeBranchingProbability_" source="parameters"/>
+    !!]
     self=darkMatterHaloMassAccretionHistoryMergerTreeBranching(criticalOverdensity_,cosmologicalMassVariance_,mergerTreeBranchingProbability_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="criticalOverdensity_"           />
-    !# <objectDestructor name="cosmologicalMassVariance_"      />
-    !# <objectDestructor name="mergerTreeBranchingProbability_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="criticalOverdensity_"           />
+    <objectDestructor name="cosmologicalMassVariance_"      />
+    <objectDestructor name="mergerTreeBranchingProbability_"/>
+    !!]
     return
   end function mergerTreeBranchingConstructorParameters
 
   function mergerTreeBranchingConstructorInternal(criticalOverdensity_,cosmologicalMassVariance_,mergerTreeBranchingProbability_) result(self)
-    !% Generic constructor for the {\normalfont \ttfamily mergerTreeBranching} dark matter halo mass accretion history class.
+    !!{
+    Generic constructor for the {\normalfont \ttfamily mergerTreeBranching} dark matter halo mass accretion history class.
+    !!}
     implicit none
     type (darkMatterHaloMassAccretionHistoryMergerTreeBranching)                        :: self
     class(mergerTreeBranchingProbabilityClass                  ), intent(in   ), target :: mergerTreeBranchingProbability_
     class(cosmologicalMassVarianceClass                        ), intent(in   ), target :: cosmologicalMassVariance_
     class(criticalOverdensityClass                             ), intent(in   ), target :: criticalOverdensity_
-    !# <constructorAssign variables="*criticalOverdensity_, *cosmologicalMassVariance_, *mergerTreeBranchingProbability_"/>
+    !![
+    <constructorAssign variables="*criticalOverdensity_, *cosmologicalMassVariance_, *mergerTreeBranchingProbability_"/>
+    !!]
 
     return
   end function mergerTreeBranchingConstructorInternal
 
   subroutine mergerTreeBranchingDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily mergerTreeBranching} dark matter halo mass accretion history class.
+    !!{
+    Destructor for the {\normalfont \ttfamily mergerTreeBranching} dark matter halo mass accretion history class.
+    !!}
     implicit none
     type(darkMatterHaloMassAccretionHistoryMergerTreeBranching), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologicalMassVariance_"      />
-    !# <objectDestructor name="self%criticalOverdensity_"           />
-    !# <objectDestructor name="self%mergerTreeBranchingProbability_"/>
+    !![
+    <objectDestructor name="self%cosmologicalMassVariance_"      />
+    <objectDestructor name="self%criticalOverdensity_"           />
+    <objectDestructor name="self%mergerTreeBranchingProbability_"/>
+    !!]
     return
   end subroutine mergerTreeBranchingDestructor
 
   double precision function mergerTreeBranchingTime(self,node,mass)
-    !% Compute the time corresponding to {\normalfont \ttfamily mass} in the mass accretion history.
+    !!{
+    Compute the time corresponding to {\normalfont \ttfamily mass} in the mass accretion history.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (darkMatterHaloMassAccretionHistoryMergerTreeBranching), intent(inout), target :: self
@@ -105,7 +129,9 @@ contains
   end function mergerTreeBranchingTime
 
   double precision function mergerTreeBranchingMass(self,node,time)
-    !% Compute the mass corresponding to {\normalfont \ttfamily time} in the mass accretion history.
+    !!{
+    Compute the mass corresponding to {\normalfont \ttfamily time} in the mass accretion history.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (darkMatterHaloMassAccretionHistoryMergerTreeBranching), intent(inout), target :: self
@@ -119,8 +145,10 @@ contains
   end function mergerTreeBranchingMass
 
   double precision function mergerTreeBranchingMassAccretionRate(self,node,time)
-    !% Compute the mass accretion rate at the given {\normalfont \ttfamily time} in the mass accretion history of
-    !% {\normalfont \ttfamily node}.
+    !!{
+    Compute the mass accretion rate at the given {\normalfont \ttfamily time} in the mass accretion history of
+    {\normalfont \ttfamily node}.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (darkMatterHaloMassAccretionHistoryMergerTreeBranching), intent(inout) :: self

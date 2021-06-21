@@ -17,31 +17,37 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a stellar population properties class based on the noninstantaneous recycling approximation.
+  !!{
+  Implements a stellar population properties class based on the noninstantaneous recycling approximation.
+  !!}
 
   use :: Output_Times                              , only : outputTimesClass
   use :: Stellar_Population_Selectors              , only : stellarPopulationSelectorClass
   use :: Stellar_Population_Broad_Band_Luminosities, only : stellarPopulationBroadBandLuminositiesClass
 
-  !# <stellarPopulationProperties name="stellarPopulationPropertiesNoninstantaneous">
-  !#  <description>
-  !#   A stellar population properties class based on the noninstantaneous recycling approximation---fully non-instantaneous
-  !#   recycling and metal enrichment are used. Recycling and metal production rates from simple stellar populations are computed,
-  !#   for any given \gls{imf}, from stellar evolution models. The rates of change are then:
-  !#   \begin{eqnarray}
-  !#    \dot{M}_\star &amp;=&amp; \phi - \int_0^t \phi(t^\prime) \dot{R}(t-t^\prime;Z_\mathrm{fuel}[t^\prime]) \d t^\prime, \\
-  !#    \dot{M}_\mathrm{fuel} &amp;=&amp; -\phi + \int_0^t \phi(t^\prime) \dot{R}(t-t^\prime;Z_\mathrm{fuel}[t]) \d t^\prime, \\
-  !#    \dot{M}_{\star,Z} &amp;=&amp; Z_\mathrm{fuel} \phi - \int_0^t \phi(t^\prime) Z_\mathrm{fuel}(t^\prime)
-  !#    \dot{R}(t-t^\prime;Z_\mathrm{fuel}[t^\prime]) \d t^\prime, \\
-  !#    \dot{M}_{\mathrm{fuel},Z} &amp;=&amp; -Z_\mathrm{fuel} \phi + \int_0^t \phi(t^\prime) \{ Z_\mathrm{fuel}(t^\prime)
-  !#    \dot{R}(t-t^\prime;Z_\mathrm{fuel}[t^\prime]) + \dot{p}(t-t^\prime;Z_\mathrm{fuel}[t^\prime]) \} \d t^\prime, \\
-  !#   \end{eqnarray}
-  !#   where $\dot{R}(t;Z)$ and $\dot{p}(t;Z)$ are the recycling and metal yield rates respectively from a stellar population of
-  !#   age $t$ and metallicity $Z$. The energy input rate is computed self-consistently from the star formation history.
-  !#  </description>
-  !# </stellarPopulationProperties>
+  !![
+  <stellarPopulationProperties name="stellarPopulationPropertiesNoninstantaneous">
+   <description>
+    A stellar population properties class based on the noninstantaneous recycling approximation---fully non-instantaneous
+    recycling and metal enrichment are used. Recycling and metal production rates from simple stellar populations are computed,
+    for any given \gls{imf}, from stellar evolution models. The rates of change are then:
+    \begin{eqnarray}
+     \dot{M}_\star &amp;=&amp; \phi - \int_0^t \phi(t^\prime) \dot{R}(t-t^\prime;Z_\mathrm{fuel}[t^\prime]) \d t^\prime, \\
+     \dot{M}_\mathrm{fuel} &amp;=&amp; -\phi + \int_0^t \phi(t^\prime) \dot{R}(t-t^\prime;Z_\mathrm{fuel}[t]) \d t^\prime, \\
+     \dot{M}_{\star,Z} &amp;=&amp; Z_\mathrm{fuel} \phi - \int_0^t \phi(t^\prime) Z_\mathrm{fuel}(t^\prime)
+     \dot{R}(t-t^\prime;Z_\mathrm{fuel}[t^\prime]) \d t^\prime, \\
+     \dot{M}_{\mathrm{fuel},Z} &amp;=&amp; -Z_\mathrm{fuel} \phi + \int_0^t \phi(t^\prime) \{ Z_\mathrm{fuel}(t^\prime)
+     \dot{R}(t-t^\prime;Z_\mathrm{fuel}[t^\prime]) + \dot{p}(t-t^\prime;Z_\mathrm{fuel}[t^\prime]) \} \d t^\prime, \\
+    \end{eqnarray}
+    where $\dot{R}(t;Z)$ and $\dot{p}(t;Z)$ are the recycling and metal yield rates respectively from a stellar population of
+    age $t$ and metallicity $Z$. The energy input rate is computed self-consistently from the star formation history.
+   </description>
+  </stellarPopulationProperties>
+  !!]
   type, extends(stellarPopulationPropertiesClass) :: stellarPopulationPropertiesNoninstantaneous
-     !% A stellar population properties class based on the noninstantaneous recycling approximation.
+     !!{
+     A stellar population properties class based on the noninstantaneous recycling approximation.
+     !!}
      private
      class (stellarPopulationSelectorClass             ), pointer :: stellarPopulationSelector_              => null()
      class (stellarPopulationBroadBandLuminositiesClass), pointer :: stellarPopulationBroadBandLuminosities_ => null()
@@ -65,7 +71,9 @@
   end type stellarPopulationPropertiesNoninstantaneous
 
   interface stellarPopulationPropertiesNoninstantaneous
-     !% Constructors for the {\normalfont \ttfamily noninstantaneous} stellar population class.
+     !!{
+     Constructors for the {\normalfont \ttfamily noninstantaneous} stellar population class.
+     !!}
      module procedure noninstantaneousConstructorParameters
      module procedure noninstantaneousConstructorInternal
   end interface stellarPopulationPropertiesNoninstantaneous
@@ -73,8 +81,10 @@
 contains
 
   function noninstantaneousConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily noninstantaneous} stellar population properties class which takes a parameter list
-    !% as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily noninstantaneous} stellar population properties class which takes a parameter list
+    as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (stellarPopulationPropertiesNoninstantaneous)                :: self
@@ -84,25 +94,31 @@ contains
     class  (outputTimesClass                           ), pointer       :: outputTimes_
     integer                                                             :: countHistoryTimes
 
-    !# <inputParameter>
-    !#   <name>countHistoryTimes</name>
-    !#   <defaultValue>10</defaultValue>
-    !#   <description>The number of times at which a galaxy's stellar properties history is stored.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="outputTimes"                            name="outputTimes_"                            source="parameters"/>
-    !# <objectBuilder class="stellarPopulationSelector"              name="stellarPopulationSelector_"              source="parameters"/>
-    !# <objectBuilder class="stellarPopulationBroadBandLuminosities" name="stellarPopulationBroadBandLuminosities_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>countHistoryTimes</name>
+      <defaultValue>10</defaultValue>
+      <description>The number of times at which a galaxy's stellar properties history is stored.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="outputTimes"                            name="outputTimes_"                            source="parameters"/>
+    <objectBuilder class="stellarPopulationSelector"              name="stellarPopulationSelector_"              source="parameters"/>
+    <objectBuilder class="stellarPopulationBroadBandLuminosities" name="stellarPopulationBroadBandLuminosities_" source="parameters"/>
+    !!]
     self=stellarPopulationPropertiesNoninstantaneous(countHistoryTimes,stellarPopulationSelector_,stellarPopulationBroadBandLuminosities_,outputTimes_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="outputTimes_"                           />
-    !# <objectDestructor name="stellarPopulationSelector_"             />
-    !# <objectDestructor name="stellarPopulationBroadBandLuminosities_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="outputTimes_"                           />
+    <objectDestructor name="stellarPopulationSelector_"             />
+    <objectDestructor name="stellarPopulationBroadBandLuminosities_"/>
+    !!]
    return
   end function noninstantaneousConstructorParameters
 
   function noninstantaneousConstructorInternal(countHistoryTimes,stellarPopulationSelector_,stellarPopulationBroadBandLuminosities_,outputTimes_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily noninstantaneous} stellar population properties class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily noninstantaneous} stellar population properties class.
+    !!}
     use :: Abundances_Structure, only : Abundances_Property_Count
     implicit none
     type   (stellarPopulationPropertiesNoninstantaneous)                        :: self
@@ -110,7 +126,9 @@ contains
     class  (stellarPopulationSelectorClass             ), intent(in   ), target :: stellarPopulationSelector_
     class  (stellarPopulationBroadBandLuminositiesClass), intent(in   ), target :: stellarPopulationBroadBandLuminosities_
     class  (outputTimesClass                           ), intent(in   ), target :: outputTimes_
-    !# <constructorAssign variables="countHistoryTimes, *stellarPopulationSelector_, *stellarPopulationBroadBandLuminosities_, *outputTimes_"/>
+    !![
+    <constructorAssign variables="countHistoryTimes, *stellarPopulationSelector_, *stellarPopulationBroadBandLuminosities_, *outputTimes_"/>
+    !!]
 
     ! Get a count of the number of elements (plus total metals) that will be tracked.
     self%elementsCount=Abundances_Property_Count()
@@ -128,18 +146,24 @@ contains
   end function noninstantaneousConstructorInternal
 
   subroutine noninstantaneousDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily noninstantaneous} stellar population properties class.
+    !!{
+    Destructor for the {\normalfont \ttfamily noninstantaneous} stellar population properties class.
+    !!}
     implicit none
     type(stellarPopulationPropertiesNoninstantaneous), intent(inout) :: self
 
-    !# <objectDestructor name="self%stellarPopulationSelector_"             />
-    !# <objectDestructor name="self%stellarPopulationBroadBandLuminosities_"/>
-    !# <objectDestructor name="self%outputTimes_"                           />
+    !![
+    <objectDestructor name="self%stellarPopulationSelector_"             />
+    <objectDestructor name="self%stellarPopulationBroadBandLuminosities_"/>
+    <objectDestructor name="self%outputTimes_"                           />
+    !!]
     return
   end subroutine noninstantaneousDestructor
 
   integer function noninstantaneousHistoryCount(self)
-    !% Returns the number of histories required by the noninstantaneous stellar populations properties class.
+    !!{
+    Returns the number of histories required by the noninstantaneous stellar populations properties class.
+    !!}
     implicit none
     class(stellarPopulationPropertiesNoninstantaneous), intent(inout) :: self
 
@@ -149,7 +173,9 @@ contains
 
   subroutine noninstantaneousRates(self,rateStarFormation,abundancesFuel,component,node,history_,rateMassStellar,rateMassFuel,rateEnergyInput&
        &,rateAbundancesFuel,rateAbundancesStellar,rateLuminosityStellar,computeRateLuminosityStellar)
-    !% Return an array of stellar population property rates of change given a star formation rate and fuel abundances.
+    !!{
+    Return an array of stellar population property rates of change given a star formation rate and fuel abundances.
+    !!}
     use            :: Abundances_Structure          , only : zeroAbundances
     use            :: Galacticus_Nodes              , only : nodeComponent         , nodeComponentBasic , treeNode
     use, intrinsic :: ISO_C_Binding                 , only : c_size_t
@@ -246,7 +272,9 @@ contains
   end subroutine noninstantaneousRates
 
   subroutine noninstantaneousScales(self,massStellar,abundancesStellar,history_)
-    !% Set the scalings for error control on the absolute values of stellar population properties.
+    !!{
+    Set the scalings for error control on the absolute values of stellar population properties.
+    !!}
     use :: Memory_Management, only : deallocateArray
     use :: Stellar_Feedback , only : feedbackEnergyInputAtInfinityCanonical
     implicit none
@@ -282,7 +310,9 @@ contains
   end subroutine noninstantaneousScales
 
   subroutine noninstantaneousHistoryCreate(self,node,history_)
-    !% Create any history required for storing stellar population properties.
+    !!{
+    Create any history required for storing stellar population properties.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic  , treeNode
     use :: Numerical_Ranges, only : rangeTypeLogarithmic
     implicit none

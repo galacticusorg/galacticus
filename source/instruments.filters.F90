@@ -19,10 +19,14 @@
 
 !+    Contributions to this file made by:  Alex Merson.
 
-!% Contains a module which implements calculations of filter response curves.
+!!{
+Contains a module which implements calculations of filter response curves.
+!!}
 
 module Instruments_Filters
-  !% Implements calculations of filter response curves.
+  !!{
+  Implements calculations of filter response curves.
+  !!}
   use :: ISO_Varying_String , only : varying_string
   use :: Locks              , only : ompReadWriteLock
   implicit none
@@ -31,7 +35,9 @@ module Instruments_Filters
        &    Filter_Name     , Filter_Wavelength_Effective, Filters_Output, Filter_Response_Function
 
   type filterType
-     !% A structure which holds filter response curves.
+     !!{
+     A structure which holds filter response curves.
+     !!}
      integer                                                     :: nPoints
      double precision                , allocatable, dimension(:) :: response           , wavelength
      type            (varying_string)                            :: name
@@ -50,7 +56,9 @@ module Instruments_Filters
 contains
 
   integer function Filter_Get_Index(filterName)
-    !% Return the index for the specified filter, loading that filter if necessary.
+    !!{
+    Return the index for the specified filter, loading that filter if necessary.
+    !!}
     use :: ISO_Varying_String, only : operator(==)
     implicit none
     type   (varying_string), intent(in   ) :: filterName
@@ -88,7 +96,9 @@ contains
   end function Filter_Get_Index
 
   function Filter_Name(filterIndex)
-    !% Return the name of the specified filter.
+    !!{
+    Return the name of the specified filter.
+    !!}
     implicit none
     type   (varying_string)                :: Filter_Name
     integer                , intent(in   ) :: filterIndex
@@ -100,7 +110,9 @@ contains
   end function Filter_Name
 
   function Filter_Extent(filterIndex)
-    !% Return an array containing the minimum and maximum wavelengths tabulated for this specified filter.
+    !!{
+    Return an array containing the minimum and maximum wavelengths tabulated for this specified filter.
+    !!}
     implicit none
     double precision, dimension(2)  :: Filter_Extent
     integer         , intent(in   ) :: filterIndex
@@ -113,7 +125,9 @@ contains
   end function Filter_Extent
 
   subroutine Filter_Response_Load(filterName)
-    !% Load a filter response curve.
+    !!{
+    Load a filter response curve.
+    !!}
     use :: File_Utilities           , only : File_Exists
     use :: FoX_dom                  , only : DOMException           , Node                             , destroy           , getExceptionCode                          , &
          &                                   inException
@@ -306,11 +320,15 @@ contains
     return
   end subroutine Filter_Response_Load
 
-  !# <hdfPreCloseTask>
-  !#  <unitName>Filters_Output</unitName>
-  !# </hdfPreCloseTask>
+  !![
+  <hdfPreCloseTask>
+   <unitName>Filters_Output</unitName>
+  </hdfPreCloseTask>
+  !!]
   subroutine Filters_Output()
-    !% Output accumulated filter data to file.
+    !!{
+    Output accumulated filter data to file.
+    !!}
     use :: Galacticus_HDF5          , only : galacticusOutputFile
     use :: IO_HDF5                  , only : hdf5Access          , hdf5Object
     use :: Numerical_Constants_Units, only : angstromsPerMeter
@@ -331,10 +349,12 @@ contains
   end subroutine Filters_Output
   
   function Filter_Response_Function(filterIndex) result(interpolator_)
-    !% Return the filter response function (as an interpolator) as a function of wavelength (specified in Angstroms). Note that we follow the
-    !% convention of \cite{hogg_k_2002} and assume that the filter response gives the fraction of incident photons received by the
-    !% detector at a given wavelength, multiplied by the relative photon response (which will be 1 for a photon-counting detector
-    !% such as a CCD, or proportional to the photon energy for a bolometer/calorimeter type detector.
+    !!{
+    Return the filter response function (as an interpolator) as a function of wavelength (specified in Angstroms). Note that we follow the
+    convention of \cite{hogg_k_2002} and assume that the filter response gives the fraction of incident photons received by the
+    detector at a given wavelength, multiplied by the relative photon response (which will be 1 for a photon-counting detector
+    such as a CCD, or proportional to the photon energy for a bolometer/calorimeter type detector.
+    !!}
     use :: Numerical_Interpolation, only : interpolator
     implicit none
     type   (interpolator), pointer       :: interpolator_
@@ -348,7 +368,9 @@ contains
   end function Filter_Response_Function
 
   double precision function Filter_Response(filterIndex,wavelength)
-    !% Return the filter response function at the given {\normalfont \ttfamily wavelength} (specified in Angstroms).
+    !!{
+    Return the filter response function at the given {\normalfont \ttfamily wavelength} (specified in Angstroms).
+    !!}
     use :: Numerical_Interpolation, only : interpolator
     implicit none
     integer                       , intent(in   ) :: filterIndex
@@ -362,7 +384,9 @@ contains
   end function Filter_Response
 
   double precision function Filter_Vega_Offset(filterIndex)
-    !% Return the Vega to AB magnitude offset for the specified filter.
+    !!{
+    Return the Vega to AB magnitude offset for the specified filter.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     integer, intent(in   ) :: filterIndex
@@ -375,7 +399,9 @@ contains
   end function Filter_Vega_Offset
 
   double precision function Filter_Wavelength_Effective(filterIndex)
-    !% Return the effective wavelength for the specified filter.
+    !!{
+    Return the effective wavelength for the specified filter.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     integer, intent(in   ) :: filterIndex

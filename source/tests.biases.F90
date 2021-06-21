@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program which tests halo bias models.
+!!{
+Contains a program which tests halo bias models.
+!!}
 
 program Test_Biases
-  !% Tests concentration models.
+  !!{
+  Tests concentration models.
+  !!}
   use :: Cosmological_Density_Field          , only : cosmologicalMassVarianceFilteredPower   , criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt
   use :: Cosmology_Functions                 , only : cosmologyFunctionsMatterLambda
   use :: Cosmology_Parameters                , only : cosmologyParametersSimple
@@ -147,114 +151,116 @@ program Test_Biases
      ! Convert masses from h⁻¹M☉ to M☉.
      mass=mass/(HubbleConstant/100.0d0)
      ! Construct all required objects.
-     !# <referenceConstruct object="darkMatterParticleCDM_"                                        >
-     !#  <constructor>
-     !#   darkMatterParticleCDM                                        (                                                                               &amp;
-     !#    &amp;                                                       )
-     !#  </constructor>
-     !# </referenceConstruct>
-     !# <referenceConstruct object="cosmologyParametersSimple_"                                    >
-     !#  <constructor>
-     !#   cosmologyParametersSimple                                    (                                                                               &amp;
-     !#    &amp;                                                        OmegaMatter                        =OmegaMatter                              , &amp;
-     !#    &amp;                                                        OmegaBaryon                        =OmegaBaryon                              , &amp;
-     !#    &amp;                                                        OmegaDarkEnergy                    =OmegaDarkEnergy                          , &amp;
-     !#    &amp;                                                        temperatureCMB                     =temperatureCMB                           , &amp;
-     !#    &amp;                                                        HubbleConstant                     =HubbleConstant                             &amp;
-     !#    &amp;                                                       )
-     !#  </constructor>
-     !# </referenceConstruct>
-     !# <referenceConstruct object="cosmologyFunctionsMatterLambda_"                               >
-     !#  <constructor>
-     !#   cosmologyFunctionsMatterLambda                               (                                                                               &amp;
-     !#    &amp;                                                        cosmologyParameters_               =cosmologyParametersSimple_                 &amp;
-     !#    &amp;                                                       )
-     !#  </constructor>
-     !# </referenceConstruct>
-     !# <referenceConstruct object="linearGrowthCollisionlessMatter_"                              >
-     !#  <constructor>
-     !#   linearGrowthCollisionlessMatter                              (                                                                               &amp;
-     !#    &amp;                                                        cosmologyParameters_               =cosmologyParametersSimple_               , &amp;
-     !#    &amp;                                                        cosmologyFunctions_                =cosmologyFunctionsMatterLambda_            &amp;
-     !#    &amp;                                                       )
-     !#  </constructor>
-     !# </referenceConstruct>
-     !# <referenceConstruct object="powerSpectrumPrimordialPowerLaw_"                              >
-     !#  <constructor>
-     !#   powerSpectrumPrimordialPowerLaw                              (                                                                               &amp;
-     !#    &amp;                                                        index_                             =powerSpectrumIndex                       , &amp;
-     !#    &amp;                                                        running                            =+0.0d0                                   , &amp;
-     !#    &amp;                                                        runningRunning                     =+0.0d0                                   , &amp;
-     !#    &amp;                                                        wavenumberReference                =+1.0d0                                     &amp;
-     !#    &amp;                                                       )
-     !#  </constructor>
-     !# </referenceConstruct>
-     !# <referenceConstruct object="transferFunctionEisensteinHu1999_"                             >
-     !#  <constructor>
-     !#   transferFunctionEisensteinHu1999                             (                                                                               &amp;
-     !#    &amp;                                                        neutrinoNumberEffective            =neutrinoNumberEffective                  , &amp;
-     !#    &amp;                                                        neutrinoMassSummed                 =0.0d0                                    , &amp;
-     !#    &amp;                                                        darkMatterParticle_                =darkMatterParticleCDM_                   , &amp;
-     !#    &amp;                                                        cosmologyParameters_               =cosmologyParametersSimple_               , &amp;
-     !#    &amp;                                                        cosmologyFunctions_                =cosmologyFunctionsMatterLambda_            &amp;
-     !#    &amp;                                                       )
-     !#  </constructor>
-     !# </referenceConstruct>
-     !# <referenceConstruct object="powerSpectrumPrimordialTransferredSimple_"                     >
-     !#  <constructor>
-     !#   powerSpectrumPrimordialTransferredSimple                     (                                                                               &amp;
-     !#    &amp;                                                        powerSpectrumPrimordial_           =powerSpectrumPrimordialPowerLaw_         , &amp;
-     !#    &amp;                                                        transferFunction_                  =transferFunctionEisensteinHu1999_        , &amp;
-     !#    &amp;                                                        linearGrowth_                      =linearGrowthCollisionlessMatter_           &amp;
-     !#    &amp;                                                       )
-     !#  </constructor>
-     !# </referenceConstruct>
-     !# <referenceConstruct object="powerSpectrumWindowFunctionTopHat_"                            >
-     !#  <constructor>
-     !#   powerSpectrumWindowFunctionTopHat                            (                                                                               &amp;
-     !#    &amp;                                                        cosmologyParameters_               =cosmologyParametersSimple_                 &amp;
-     !#    &amp;                                                       )
-     !#  </constructor>
-     !# </referenceConstruct>
-     !# <referenceConstruct object="cosmologicalMassVarianceFilteredPower_"                        >
-     !#  <constructor>
-     !#   cosmologicalMassVarianceFilteredPower                        (                                                                               &amp;
-     !#    &amp;                                                        sigma8                             =sigma8                                   , &amp;
-     !#    &amp;                                                        tolerance                          =1.0d-4                                   , &amp;
-     !#    &amp;                                                        toleranceTopHat                    =1.0d-4                                   , &amp;
-     !#    &amp;                                                        nonMonotonicIsFatal                =.true.                                   , &amp;
-     !#    &amp;                                                        monotonicInterpolation             =.false.                                  , &amp;
-     !#    &amp;                                                        truncateAtParticleHorizon          =.false.                                  , &amp;
-     !#    &amp;                                                        cosmologyParameters_               =cosmologyParametersSimple_               , &amp;
-     !#    &amp;                                                        cosmologyFunctions_                =cosmologyFunctionsMatterLambda_          , &amp;
-     !#    &amp;                                                        linearGrowth_                      =linearGrowthCollisionlessMatter_         , &amp;
-     !#    &amp;                                                        powerSpectrumPrimordialTransferred_=powerSpectrumPrimordialTransferredSimple_, &amp;
-     !#    &amp;                                                        powerSpectrumWindowFunction_       =powerSpectrumWindowFunctionTopHat_         &amp;
-     !#    &amp;                                                       )
-     !#  </constructor>
-     !# </referenceConstruct>
-     !# <referenceConstruct object="criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_">
-     !#  <constructor>
-     !#   criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt(                                                                               &amp;
-     !#    &amp;                                                        linearGrowth_                      =linearGrowthCollisionlessMatter_         , &amp;
-     !#    &amp;                                                        cosmologyFunctions_                =cosmologyFunctionsMatterLambda_          , &amp;
-     !#    &amp;                                                        cosmologicalMassVariance_          =cosmologicalMassVarianceFilteredPower_   , &amp;
-     !#    &amp;                                                        darkMatterParticle_                =darkMatterParticleCDM_                   , &amp;
-     !#    &amp;                                                        tableStore                         =.true.                                     &amp;
-     !#    &amp;                                                       )
-     !#  </constructor>
-     !# </referenceConstruct>
-     !# <referenceConstruct object="virialDensityContrast_">
-     !#  <constructor>
-     !#   virialDensityContrastFixed                                   (                                                                               &amp;
-     !#    &amp;                                                        densityContrastValue               =200.0d0                                  , &amp;
-     !#    &amp;                                                        densityType                        =fixedDensityTypeCritical                 , &amp;
-     !#    &amp;                                                        turnAroundOverVirialRadius         =  2.0d0                                  , &amp;
-     !#    &amp;                                                        cosmologyParameters_               =cosmologyParametersSimple_               , &amp;
-     !#    &amp;                                                        cosmologyFunctions_                =cosmologyFunctionsMatterLambda_            &amp;
-     !#    &amp;                                                       )
-     !#  </constructor>
-     !# </referenceConstruct>
+     !![
+     <referenceConstruct object="darkMatterParticleCDM_"                                        >
+      <constructor>
+       darkMatterParticleCDM                                        (                                                                               &amp;
+        &amp;                                                       )
+      </constructor>
+     </referenceConstruct>
+     <referenceConstruct object="cosmologyParametersSimple_"                                    >
+      <constructor>
+       cosmologyParametersSimple                                    (                                                                               &amp;
+        &amp;                                                        OmegaMatter                        =OmegaMatter                              , &amp;
+        &amp;                                                        OmegaBaryon                        =OmegaBaryon                              , &amp;
+        &amp;                                                        OmegaDarkEnergy                    =OmegaDarkEnergy                          , &amp;
+        &amp;                                                        temperatureCMB                     =temperatureCMB                           , &amp;
+        &amp;                                                        HubbleConstant                     =HubbleConstant                             &amp;
+        &amp;                                                       )
+      </constructor>
+     </referenceConstruct>
+     <referenceConstruct object="cosmologyFunctionsMatterLambda_"                               >
+      <constructor>
+       cosmologyFunctionsMatterLambda                               (                                                                               &amp;
+        &amp;                                                        cosmologyParameters_               =cosmologyParametersSimple_                 &amp;
+        &amp;                                                       )
+      </constructor>
+     </referenceConstruct>
+     <referenceConstruct object="linearGrowthCollisionlessMatter_"                              >
+      <constructor>
+       linearGrowthCollisionlessMatter                              (                                                                               &amp;
+        &amp;                                                        cosmologyParameters_               =cosmologyParametersSimple_               , &amp;
+        &amp;                                                        cosmologyFunctions_                =cosmologyFunctionsMatterLambda_            &amp;
+        &amp;                                                       )
+      </constructor>
+     </referenceConstruct>
+     <referenceConstruct object="powerSpectrumPrimordialPowerLaw_"                              >
+      <constructor>
+       powerSpectrumPrimordialPowerLaw                              (                                                                               &amp;
+        &amp;                                                        index_                             =powerSpectrumIndex                       , &amp;
+        &amp;                                                        running                            =+0.0d0                                   , &amp;
+        &amp;                                                        runningRunning                     =+0.0d0                                   , &amp;
+        &amp;                                                        wavenumberReference                =+1.0d0                                     &amp;
+        &amp;                                                       )
+      </constructor>
+     </referenceConstruct>
+     <referenceConstruct object="transferFunctionEisensteinHu1999_"                             >
+      <constructor>
+       transferFunctionEisensteinHu1999                             (                                                                               &amp;
+        &amp;                                                        neutrinoNumberEffective            =neutrinoNumberEffective                  , &amp;
+        &amp;                                                        neutrinoMassSummed                 =0.0d0                                    , &amp;
+        &amp;                                                        darkMatterParticle_                =darkMatterParticleCDM_                   , &amp;
+        &amp;                                                        cosmologyParameters_               =cosmologyParametersSimple_               , &amp;
+        &amp;                                                        cosmologyFunctions_                =cosmologyFunctionsMatterLambda_            &amp;
+        &amp;                                                       )
+      </constructor>
+     </referenceConstruct>
+     <referenceConstruct object="powerSpectrumPrimordialTransferredSimple_"                     >
+      <constructor>
+       powerSpectrumPrimordialTransferredSimple                     (                                                                               &amp;
+        &amp;                                                        powerSpectrumPrimordial_           =powerSpectrumPrimordialPowerLaw_         , &amp;
+        &amp;                                                        transferFunction_                  =transferFunctionEisensteinHu1999_        , &amp;
+        &amp;                                                        linearGrowth_                      =linearGrowthCollisionlessMatter_           &amp;
+        &amp;                                                       )
+      </constructor>
+     </referenceConstruct>
+     <referenceConstruct object="powerSpectrumWindowFunctionTopHat_"                            >
+      <constructor>
+       powerSpectrumWindowFunctionTopHat                            (                                                                               &amp;
+        &amp;                                                        cosmologyParameters_               =cosmologyParametersSimple_                 &amp;
+        &amp;                                                       )
+      </constructor>
+     </referenceConstruct>
+     <referenceConstruct object="cosmologicalMassVarianceFilteredPower_"                        >
+      <constructor>
+       cosmologicalMassVarianceFilteredPower                        (                                                                               &amp;
+        &amp;                                                        sigma8                             =sigma8                                   , &amp;
+        &amp;                                                        tolerance                          =1.0d-4                                   , &amp;
+        &amp;                                                        toleranceTopHat                    =1.0d-4                                   , &amp;
+        &amp;                                                        nonMonotonicIsFatal                =.true.                                   , &amp;
+        &amp;                                                        monotonicInterpolation             =.false.                                  , &amp;
+        &amp;                                                        truncateAtParticleHorizon          =.false.                                  , &amp;
+        &amp;                                                        cosmologyParameters_               =cosmologyParametersSimple_               , &amp;
+        &amp;                                                        cosmologyFunctions_                =cosmologyFunctionsMatterLambda_          , &amp;
+        &amp;                                                        linearGrowth_                      =linearGrowthCollisionlessMatter_         , &amp;
+        &amp;                                                        powerSpectrumPrimordialTransferred_=powerSpectrumPrimordialTransferredSimple_, &amp;
+        &amp;                                                        powerSpectrumWindowFunction_       =powerSpectrumWindowFunctionTopHat_         &amp;
+        &amp;                                                       )
+      </constructor>
+     </referenceConstruct>
+     <referenceConstruct object="criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_">
+      <constructor>
+       criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt(                                                                               &amp;
+        &amp;                                                        linearGrowth_                      =linearGrowthCollisionlessMatter_         , &amp;
+        &amp;                                                        cosmologyFunctions_                =cosmologyFunctionsMatterLambda_          , &amp;
+        &amp;                                                        cosmologicalMassVariance_          =cosmologicalMassVarianceFilteredPower_   , &amp;
+        &amp;                                                        darkMatterParticle_                =darkMatterParticleCDM_                   , &amp;
+        &amp;                                                        tableStore                         =.true.                                     &amp;
+        &amp;                                                       )
+      </constructor>
+     </referenceConstruct>
+     <referenceConstruct object="virialDensityContrast_">
+      <constructor>
+       virialDensityContrastFixed                                   (                                                                               &amp;
+        &amp;                                                        densityContrastValue               =200.0d0                                  , &amp;
+        &amp;                                                        densityType                        =fixedDensityTypeCritical                 , &amp;
+        &amp;                                                        turnAroundOverVirialRadius         =  2.0d0                                  , &amp;
+        &amp;                                                        cosmologyParameters_               =cosmologyParametersSimple_               , &amp;
+        &amp;                                                        cosmologyFunctions_                =cosmologyFunctionsMatterLambda_            &amp;
+        &amp;                                                       )
+      </constructor>
+     </referenceConstruct>
+     !!]
      ! Construct the concentration object for this test.
      select case (char(modelName(iModel)))
      case ('Press-Schechter')
@@ -266,33 +272,39 @@ program Test_Biases
      end select
      select type (darkMatterHaloBias_)
      type is (darkMatterHaloBiasPressSchechter)
-        !# <referenceConstruct object="darkMatterHaloBias_">
-        !#  <constructor>
-        !#   darkMatterHaloBiasPressSchechter(                                                                                         &amp;
-        !#    &amp;                           criticalOverdensity_     =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_, &amp;
-        !#    &amp;                           cosmologicalMassVariance_=cosmologicalMassVarianceFilteredPower_                         &amp;
-        !#    &amp;                          )
-        !#  </constructor>
-        !# </referenceConstruct>
+        !![
+        <referenceConstruct object="darkMatterHaloBias_">
+         <constructor>
+          darkMatterHaloBiasPressSchechter(                                                                                         &amp;
+           &amp;                           criticalOverdensity_     =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_, &amp;
+           &amp;                           cosmologicalMassVariance_=cosmologicalMassVarianceFilteredPower_                         &amp;
+           &amp;                          )
+         </constructor>
+        </referenceConstruct>
+        !!]
      type is (darkMatterHaloBiasSheth2001)
-        !# <referenceConstruct object="darkMatterHaloBias_">
-        !#  <constructor>
-        !#   darkMatterHaloBiasSheth2001     (                                                                                         &amp;
-        !#       &amp;                        criticalOverdensity_     =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_, &amp;
-        !#       &amp;                        cosmologicalMassVariance_=cosmologicalMassVarianceFilteredPower_                         &amp;
-        !#    &amp;                          )
-        !#  </constructor>
-        !# </referenceConstruct>
+        !![
+        <referenceConstruct object="darkMatterHaloBias_">
+         <constructor>
+          darkMatterHaloBiasSheth2001     (                                                                                         &amp;
+              &amp;                        criticalOverdensity_     =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_, &amp;
+              &amp;                        cosmologicalMassVariance_=cosmologicalMassVarianceFilteredPower_                         &amp;
+           &amp;                          )
+         </constructor>
+        </referenceConstruct>
+        !!]
      type is (darkMatterHaloBiasTinker2010)
-        !# <referenceConstruct object="darkMatterHaloBias_">
-        !#  <constructor>
-        !#   darkMatterHaloBiasTinker2010    (                                                                                         &amp;
-        !#    &amp;                           criticalOverdensity_     =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_, &amp;
-        !#    &amp;                           cosmologicalMassVariance_=cosmologicalMassVarianceFilteredPower_                       , &amp;
-        !#    &amp;                           virialDensityContrast_   =virialDensityContrast_                                         &amp;
-        !#    &amp;                          )
-        !#  </constructor>
-        !# </referenceConstruct>
+        !![
+        <referenceConstruct object="darkMatterHaloBias_">
+         <constructor>
+          darkMatterHaloBiasTinker2010    (                                                                                         &amp;
+           &amp;                           criticalOverdensity_     =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_, &amp;
+           &amp;                           cosmologicalMassVariance_=cosmologicalMassVarianceFilteredPower_                       , &amp;
+           &amp;                           virialDensityContrast_   =virialDensityContrast_                                         &amp;
+           &amp;                          )
+         </constructor>
+        </referenceConstruct>
+        !!]
      end select
      ! Create a node.
      node  => treeNode      (                 )
@@ -326,7 +338,9 @@ program Test_Biases
      deallocate(redshift  )
      deallocate(bias      )
      deallocate(biasTarget)
-     !# <objectDestructor name="darkMatterHaloBias_"/>
+     !![
+     <objectDestructor name="darkMatterHaloBias_"/>
+     !!]
      call Node_Components_Thread_Uninitialize()
      call Node_Components_Uninitialize       ()
      call Galacticus_Function_Classes_Destroy()

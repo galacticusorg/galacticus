@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a normal 1D distibution function.
+  !!{
+  Implementation of a normal 1D distibution function.
+  !!}
 
-  !# <distributionFunction1D name="distributionFunction1DLogNormal">
-  !#  <description>A normal 1D distribution function class.</description>
-  !# </distributionFunction1D>
+  !![
+  <distributionFunction1D name="distributionFunction1DLogNormal">
+   <description>A normal 1D distribution function class.</description>
+  </distributionFunction1D>
+  !!]
   type, extends(distributionFunction1DNormal) :: distributionFunction1DLogNormal
-     !% Implementation of a normal 1D distibution function.
+     !!{
+     Implementation of a normal 1D distibution function.
+     !!}
      private
    contains
      procedure :: density    => logNormalDensity
@@ -34,7 +40,9 @@
   end type distributionFunction1DLogNormal
 
   interface distributionFunction1DLogNormal
-     !% Constructors for the {\normalfont \ttfamily normal} 1D distribution function class.
+     !!{
+     Constructors for the {\normalfont \ttfamily normal} 1D distribution function class.
+     !!}
      module procedure logNormalConstructorParameters
      module procedure logNormalConstructorInternal
   end interface distributionFunction1DLogNormal
@@ -42,8 +50,10 @@
 contains
 
   function logNormalConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily normal} 1D distribution function class which builds the object from a parameter
-    !% set.
+    !!{
+    Constructor for the {\normalfont \ttfamily normal} 1D distribution function class which builds the object from a parameter
+    set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (distributionFunction1DLogNormal)                :: self
@@ -52,35 +62,41 @@ contains
     double precision                                                 :: mean                  , variance  , &
          &                                                              limitLower            , limitUpper
 
-    !# <inputParameter>
-    !#   <name>mean</name>
-    !#   <description>The mean of the log-normal distribution.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>variance</name>
-    !#   <description>The variance of the log-normal distribution.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>limitLower</name>
-    !#   <description>The lower limit of the normal distribution.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>limitUpper</name>
-    !#   <description>The upper limit of the normal distribution.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>mean</name>
+      <description>The mean of the log-normal distribution.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>variance</name>
+      <description>The variance of the log-normal distribution.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>limitLower</name>
+      <description>The lower limit of the normal distribution.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>limitUpper</name>
+      <description>The upper limit of the normal distribution.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !!]
     self=distributionFunction1DLogNormal(mean,variance,limitLower,limitUpper,randomNumberGenerator_)
-    !# <objectDestructor name="randomNumberGenerator_"/>
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <objectDestructor name="randomNumberGenerator_"/>
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function logNormalConstructorParameters
 
   function logNormalConstructorInternal(mean,variance,limitLower,limitUpper,randomNumberGenerator_) result(self)
-    !% Constructor for ``normal'' 1D distribution function class.
+    !!{
+    Constructor for ``normal'' 1D distribution function class.
+    !!}
     type            (distributionFunction1DLogNormal)                                  :: self
     double precision                                 , intent(in   )                   :: mean                  , variance
     class           (randomNumberGeneratorClass     ), intent(in   ), optional, target :: randomNumberGenerator_
@@ -116,7 +132,9 @@ contains
   end function logNormalConstructorInternal
 
   double precision function logNormalMinimum(self)
-    !% Return the minimum possible value of a uniform distribution.
+    !!{
+    Return the minimum possible value of a uniform distribution.
+    !!}
     implicit none
     class(distributionFunction1DLogNormal), intent(inout) :: self
 
@@ -125,7 +143,9 @@ contains
   end function logNormalMinimum
 
   double precision function logNormalMaximum(self)
-    !% Return the maximum possible value of a uniform distribution.
+    !!{
+    Return the maximum possible value of a uniform distribution.
+    !!}
     implicit none
     class(distributionFunction1DLogNormal), intent(inout) :: self
 
@@ -134,7 +154,9 @@ contains
   end function logNormalMaximum
 
   double precision function logNormalDensity(self,x)
-    !% Return the density of a normal distribution.
+    !!{
+    Return the density of a normal distribution.
+    !!}
     implicit none
     class           (distributionFunction1DLogNormal), intent(inout) :: self
     double precision                                 , intent(in   ) :: x
@@ -145,7 +167,9 @@ contains
   end function logNormalDensity
 
   double precision function logNormalCumulative(self,x)
-    !% Return the cumulative probability of a normal distribution.
+    !!{
+    Return the cumulative probability of a normal distribution.
+    !!}
     implicit none
     class           (distributionFunction1DLogNormal), intent(inout) :: self
     double precision                                 , intent(in   ) :: x
@@ -155,7 +179,9 @@ contains
   end function logNormalCumulative
 
   double precision function logNormalInverse(self,p)
-    !% Return the inverse of a normal distribution.
+    !!{
+    Return the inverse of a normal distribution.
+    !!}
     implicit none
     class           (distributionFunction1DLogNormal), intent(inout), target :: self
     double precision                                 , intent(in   )         :: p

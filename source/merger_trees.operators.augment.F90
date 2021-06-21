@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements an augmenting operator on merger trees.
+  !!{
+  Contains a module which implements an augmenting operator on merger trees.
+  !!}
   use            :: Cosmology_Functions  , only : cosmologyFunctionsClass
   use, intrinsic :: ISO_C_Binding        , only : c_size_t
   use            :: Merger_Trees_Builders, only : mergerTreeBuilderClass
 
-  !# <mergerTreeOperator name="mergerTreeOperatorAugment">
-  !#  <description>Provides a merger tree operator which augments tree resolution by inserting high-resolution branches.</description>
-  !# </mergerTreeOperator>
+  !![
+  <mergerTreeOperator name="mergerTreeOperatorAugment">
+   <description>Provides a merger tree operator which augments tree resolution by inserting high-resolution branches.</description>
+  </mergerTreeOperator>
+  !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorAugment
-     !% An augmenting merger tree operator class.
+     !!{
+     An augmenting merger tree operator class.
+     !!}
      private
      double precision                         , allocatable, dimension(   :) :: timeSnapshots
      integer         (c_size_t               )             , dimension(0:10) :: retryHistogram                        , trialCount
@@ -40,13 +46,15 @@
      class           (mergerTreeBuilderClass ), pointer                      :: mergerTreeBuilder_           => null()
      class           (cosmologyFunctionsClass), pointer                      :: cosmologyFunctions_          => null()
    contains
-     !# <methods>
-     !#   <method description="Build a merger tree starting from the given node." method="buildTreeFromNode" />
-     !#   <method description="Determine if a newly built tree is an acceptable match." method="acceptTree" />
-     !#   <method description="Graft new branches onto all end-nodes of a newly built tree." method="extendNonOverlapNodes" />
-     !#   <method description="Sort child nodes into descending mass order." method="sortChildren" />
-     !#   <method description="Reinsert a linked list of non-overlap nodes into their parent tree." method="nonOverlapReinsert" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Build a merger tree starting from the given node." method="buildTreeFromNode" />
+       <method description="Determine if a newly built tree is an acceptable match." method="acceptTree" />
+       <method description="Graft new branches onto all end-nodes of a newly built tree." method="extendNonOverlapNodes" />
+       <method description="Sort child nodes into descending mass order." method="sortChildren" />
+       <method description="Reinsert a linked list of non-overlap nodes into their parent tree." method="nonOverlapReinsert" />
+     </methods>
+     !!]
      final     ::                          augmentDestructor
      procedure :: operatePreEvolution   => augmentOperatePreEvolution
      procedure :: finalize              => augmentFinalize
@@ -58,7 +66,9 @@
   end type mergerTreeOperatorAugment
 
   interface mergerTreeOperatorAugment
-     !% Constructors for the {\normalfont \ttfamily augment} merger tree operator class.
+     !!{
+     Constructors for the {\normalfont \ttfamily augment} merger tree operator class.
+     !!}
      module procedure augmentConstructorParameters
      module procedure augmentConstructorInternal
   end interface mergerTreeOperatorAugment
@@ -67,26 +77,32 @@
   ! sequence for each tree.
   integer :: augmentNewTreeIndex=-1
 
-  !# <enumeration>
-  !#  <name>treeStatistic</name>
-  !#  <description>Enumeration of tasks to be performed during a tree walk.</description>
-  !#  <entry label="nodeCount"   />
-  !#  <entry label="endNodeCount"/>
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>treeStatistic</name>
+   <description>Enumeration of tasks to be performed during a tree walk.</description>
+   <entry label="nodeCount"   />
+   <entry label="endNodeCount"/>
+  </enumeration>
+  !!]
 
-  !# <enumeration>
-  !#  <name>treeBuild</name>
-  !#  <description>Enumeration of tree building status.</description>
-  !#  <entry label="success"         />
-  !#  <entry label="failureTolerance"/>
-  !#  <entry label="failureStructure"/>
-  !#  <entry label="failureGeneric"  />
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>treeBuild</name>
+   <description>Enumeration of tree building status.</description>
+   <entry label="success"         />
+   <entry label="failureTolerance"/>
+   <entry label="failureStructure"/>
+   <entry label="failureGeneric"  />
+  </enumeration>
+  !!]
 
 contains
 
   function augmentConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily augment} merger tree operator class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily augment} merger tree operator class which takes a parameter set as input.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Input_Parameters, only : inputParameter         , inputParameters
     implicit none
@@ -103,82 +119,86 @@ contains
          &                                                                      massOvershootAttemptsMaximum
     logical                                                                  :: performChecks               , useOneNodeTrees
 
-    !# <objectBuilder class="mergerTreeBuilder"  name="mergerTreeBuilder_"  source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
-    !# <inputParameter>
-    !#   <name>massCutOff</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>1.0d10</defaultValue>
-    !#   <description>For the {\normalfont \ttfamily augment} operator a description of resolution limit for new trees.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>performChecks</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>If true, perform checks of the augmentation process.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>toleranceScale</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>0.15d0</defaultValue>
-    !#   <description>The tolerance scale used in deciding if a trial tree is an acceptable match.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>retryMaximum</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>50</defaultValue>
-    !#   <description>The number of tree build attempts to complete before rescaling the tolerance.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>rescaleMaximum</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>20</defaultValue>
-    !#   <description>The maximum allowed number of tolerance rescalings.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>attemptsMaximum</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>10000</defaultValue>
-    !#   <description>The maximum allowed number of tree build attempts.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massCutOffAttemptsMaximum</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>50</defaultValue>
-    !#   <description>The number of trees with nodes above the mass resolution to allow before adjusting the mass cut-off tolerance.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massCutOffScaleFactor</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>0.05d0</defaultValue>
-    !#   <description>The amount by which to increase the mass cut-off scale tolerance after exhausting tree build attempts.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massOvershootAttemptsMaximum</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>50</defaultValue>
-    !#   <description>The number of failed trees to allow before increasing the mass of the parent node.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massOvershootScaleFactor</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>0.05d0</defaultValue>
-    !#   <description>The amount by which to increase the mass overshoot factor after exhausting tree build attempts.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>useOneNodeTrees</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>If true, trees only consisting of their base node will be augmented.</description>
-    !# </inputParameter>
+    !![
+    <objectBuilder class="mergerTreeBuilder"  name="mergerTreeBuilder_"  source="parameters"/>
+    <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    <inputParameter>
+      <name>massCutOff</name>
+      <source>parameters</source>
+      <defaultValue>1.0d10</defaultValue>
+      <description>For the {\normalfont \ttfamily augment} operator a description of resolution limit for new trees.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>performChecks</name>
+      <source>parameters</source>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, perform checks of the augmentation process.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>toleranceScale</name>
+      <source>parameters</source>
+      <defaultValue>0.15d0</defaultValue>
+      <description>The tolerance scale used in deciding if a trial tree is an acceptable match.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>retryMaximum</name>
+      <source>parameters</source>
+      <defaultValue>50</defaultValue>
+      <description>The number of tree build attempts to complete before rescaling the tolerance.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>rescaleMaximum</name>
+      <source>parameters</source>
+      <defaultValue>20</defaultValue>
+      <description>The maximum allowed number of tolerance rescalings.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>attemptsMaximum</name>
+      <source>parameters</source>
+      <defaultValue>10000</defaultValue>
+      <description>The maximum allowed number of tree build attempts.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>massCutOffAttemptsMaximum</name>
+      <source>parameters</source>
+      <defaultValue>50</defaultValue>
+      <description>The number of trees with nodes above the mass resolution to allow before adjusting the mass cut-off tolerance.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>massCutOffScaleFactor</name>
+      <source>parameters</source>
+      <defaultValue>0.05d0</defaultValue>
+      <description>The amount by which to increase the mass cut-off scale tolerance after exhausting tree build attempts.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>massOvershootAttemptsMaximum</name>
+      <source>parameters</source>
+      <defaultValue>50</defaultValue>
+      <description>The number of failed trees to allow before increasing the mass of the parent node.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>massOvershootScaleFactor</name>
+      <source>parameters</source>
+      <defaultValue>0.05d0</defaultValue>
+      <description>The amount by which to increase the mass overshoot factor after exhausting tree build attempts.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>useOneNodeTrees</name>
+      <source>parameters</source>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, trees only consisting of their base node will be augmented.</description>
+    </inputParameter>
+    !!]
     if (parameters%isPresent('snapshotRedshifts')) then
        allocate(timeSnapshots(parameters%count('snapshotRedshifts')))
-       !# <inputParameter>
-       !#   <name>snapshotRedshifts</name>
-       !#   <variable>timeSnapshots</variable>
-       !#   <source>parameters</source>
-       !#   <description>For {\normalfont \ttfamily augment} description of redshift snapshots.</description>
-       !# </inputParameter>
+       !![
+       <inputParameter>
+         <name>snapshotRedshifts</name>
+         <variable>timeSnapshots</variable>
+         <source>parameters</source>
+         <description>For {\normalfont \ttfamily augment} description of redshift snapshots.</description>
+       </inputParameter>
+       !!]
        do i=1,size(timeSnapshots)
           timeSnapshots(i)=cosmologyFunctions_ %cosmicTime                 (                  &
                &            cosmologyFunctions_%expansionFactorFromRedshift (                 &
@@ -187,18 +207,22 @@ contains
                &                                                           )
        end do
     end if
-    !# <conditionalCall>
-    !#  <call>self=mergerTreeOperatorAugment(massCutOff,performChecks,toleranceScale,retryMaximum,rescaleMaximum,attemptsMaximum,massCutOffAttemptsMaximum,massCutOffScaleFactor,massOvershootAttemptsMaximum,massOvershootScaleFactor,useOneNodeTrees,mergerTreeBuilder_,cosmologyFunctions_{conditions})</call>
-    !#  <argument name="timeSnapshots" value="timeSnapshots" condition="parameters%isPresent('snapshotRedshifts')"/>
-    !# </conditionalCall>
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="mergerTreeBuilder_" />
-    !# <objectDestructor name="cosmologyFunctions_"/>
+    !![
+    <conditionalCall>
+     <call>self=mergerTreeOperatorAugment(massCutOff,performChecks,toleranceScale,retryMaximum,rescaleMaximum,attemptsMaximum,massCutOffAttemptsMaximum,massCutOffScaleFactor,massOvershootAttemptsMaximum,massOvershootScaleFactor,useOneNodeTrees,mergerTreeBuilder_,cosmologyFunctions_{conditions})</call>
+     <argument name="timeSnapshots" value="timeSnapshots" condition="parameters%isPresent('snapshotRedshifts')"/>
+    </conditionalCall>
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="mergerTreeBuilder_" />
+    <objectDestructor name="cosmologyFunctions_"/>
+    !!]
     return
   end function augmentConstructorParameters
 
   function augmentConstructorInternal(massCutOff,performChecks,toleranceScale,retryMaximum,rescaleMaximum,attemptsMaximum,massCutOffAttemptsMaximum,massCutOffScaleFactor,massOvershootAttemptsMaximum,massOvershootScaleFactor,useOneNodeTrees,mergerTreeBuilder_,cosmologyFunctions_,timeSnapshots) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily augment} merger tree operator class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily augment} merger tree operator class.
+    !!}
     use :: Cosmology_Functions, only : cosmologyFunctionsClass
     use :: Memory_Management  , only : allocateArray
     use :: Sorting            , only : sort
@@ -214,7 +238,9 @@ contains
     class           (cosmologyFunctionsClass  ), intent(in   ), pointer                :: cosmologyFunctions_
     logical                                    , intent(in   )                         :: performChecks                    , useOneNodeTrees
     double precision                           , parameter                             :: expansionFactorDefault    =0.01d0
-    !# <constructorAssign variables="massCutOff,performChecks,toleranceScale,retryMaximum,rescaleMaximum,attemptsMaximum,massCutOffAttemptsMaximum,massCutOffScaleFactor,massOvershootAttemptsMaximum,massOvershootScaleFactor,useOneNodeTrees,*mergerTreeBuilder_,*cosmologyFunctions_"/>
+    !![
+    <constructorAssign variables="massCutOff,performChecks,toleranceScale,retryMaximum,rescaleMaximum,attemptsMaximum,massCutOffAttemptsMaximum,massCutOffScaleFactor,massOvershootAttemptsMaximum,massOvershootScaleFactor,useOneNodeTrees,*mergerTreeBuilder_,*cosmologyFunctions_"/>
+    !!]
 
     if (present(timeSnapshots)) then
        allocate(self%timeSnapshots(0)) ! Allocate to zero size to avoid compiler warning.
@@ -235,17 +261,23 @@ contains
   end function augmentConstructorInternal
 
   subroutine augmentDestructor(self)
-    !% Destructor for the augment merger tree operator function class.
+    !!{
+    Destructor for the augment merger tree operator function class.
+    !!}
     implicit none
     type(mergerTreeOperatorAugment), intent(inout) :: self
 
-    !# <objectDestructor name="self%mergerTreeBuilder_" />
-    !# <objectDestructor name="self%cosmologyFunctions_"/>
+    !![
+    <objectDestructor name="self%mergerTreeBuilder_" />
+    <objectDestructor name="self%cosmologyFunctions_"/>
+    !!]
     return
   end subroutine augmentDestructor
 
   subroutine augmentOperatePreEvolution(self,tree)
-    !% Augment the resolution of a merger tree by inserting high resolution branches.
+    !!{
+    Augment the resolution of a merger tree by inserting high resolution branches.
+    !!}
     use            :: Display            , only : displayIndent                , displayMessage    , displayUnindent, displayVerbosity, &
           &                                       verbosityLevelWorking
     use            :: Galacticus_Nodes   , only : mergerTree                   , nodeComponentBasic, treeNode       , treeNodeList
@@ -688,7 +720,9 @@ contains
   end function augmentBuildTreeFromNode
 
   recursive integer function augmentAcceptTree(self,node,tree,nodeChildCount,extendingEndNode,tolerance,treeBest,treeBestWorstFit,treeBestOverride,massCutoffScale,massOvershootScale,treeNewHasNodeAboveResolution,treeBestHasNodeAboveResolution,newTreeBest,primaryProgenitorNode,primaryProgenitorIsClone)
-    !% Determine whether a trial tree is an acceptable match to the original tree structure.
+    !!{
+    Determine whether a trial tree is an acceptable match to the original tree structure.
+    !!}
     use :: Display            , only : displayMessage               , displayVerbosity  , verbosityLevelWorking
     use :: Galacticus_Nodes   , only : mergerTree                   , nodeComponentBasic, treeNode             , treeNodeList
     use :: Merger_Tree_Walkers, only : mergerTreeWalkerIsolatedNodes
@@ -983,7 +1017,9 @@ contains
   end function augmentAcceptTree
 
   subroutine augmentSimpleInsert(self,node,tree,endNodes,nodeChildCount,nodeNonOverlapFirst)
-    !% Insert a newly constructed tree into the original tree.
+    !!{
+    Insert a newly constructed tree into the original tree.
+    !!}
     use :: Galacticus_Nodes, only : mergerTree, treeNode, treeNodeList
     implicit none
     class  (mergerTreeOperatorAugment), intent(inout)                            :: self
@@ -1029,11 +1065,13 @@ contains
   end subroutine augmentSimpleInsert
 
   subroutine augmentExtendByOverlap(nodeBottom,nodeTop,keepTop,exchangeProperties)
-    !% Conjoin two trees by overlapping the {\normalfont \ttfamily nodeTop} of one tree with the chosen {\normalfont \ttfamily
-    !% nodeBottom} of the other. If {\normalfont \ttfamily keepTop} is {\normalfont \ttfamily true}, {\normalfont \ttfamily
-    !% nodeTop} replaces {\normalfont \ttfamily nodeBottom}, otherwise, {\normalfont \ttfamily nodeBottom} replaces {\normalfont
-    !% \ttfamily nodeTop}. If {\normalfont \ttfamily exchangeProperties} is {\normalfont \ttfamily true}, the mass and time
-    !% information of the deleted node overwrites the mass and time of the retained node.
+    !!{
+    Conjoin two trees by overlapping the {\normalfont \ttfamily nodeTop} of one tree with the chosen {\normalfont \ttfamily
+    nodeBottom} of the other. If {\normalfont \ttfamily keepTop} is {\normalfont \ttfamily true}, {\normalfont \ttfamily
+    nodeTop} replaces {\normalfont \ttfamily nodeBottom}, otherwise, {\normalfont \ttfamily nodeBottom} replaces {\normalfont
+    \ttfamily nodeTop}. If {\normalfont \ttfamily exchangeProperties} is {\normalfont \ttfamily true}, the mass and time
+    information of the deleted node overwrites the mass and time of the retained node.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     type   (treeNode          ), intent(inout), pointer :: nodeBottom  , nodeTop
@@ -1082,7 +1120,9 @@ contains
   end subroutine augmentExtendByOverlap
 
   integer function augmentChildCount(node)
-    !% Return a count of the number of child nodes.
+    !!{
+    Return a count of the number of child nodes.
+    !!}
     use :: Galacticus_Nodes, only : treeNode
     type(treeNode), intent(in   ) :: node
     type(treeNode), pointer       :: childNode
@@ -1097,7 +1137,9 @@ contains
   end function augmentChildCount
 
   subroutine augmentSortChildren(self,node)
-    !% Sort the children of the given {\normalfont \ttfamily node} such that they are in descending mass order.
+    !!{
+    Sort the children of the given {\normalfont \ttfamily node} such that they are in descending mass order.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic     , treeNode
     implicit none
@@ -1150,7 +1192,9 @@ contains
   end subroutine augmentSortChildren
 
   subroutine augmentNonOverlapListAdd(node,listFirstElement)
-    !% Add the given node to a linked list of non-overlap nodes in the current trial tree.
+    !!{
+    Add the given node to a linked list of non-overlap nodes in the current trial tree.
+    !!}
     use :: Galacticus_Nodes, only : treeNode
     implicit none
     type(treeNode), intent(in   ), pointer :: node
@@ -1184,7 +1228,9 @@ contains
   end subroutine augmentNonOverlapListAdd
 
   subroutine augmentNonOverlapReinsert(self,listFirstElement)
-    !% Reinsert non-overlap nodes into their tree.
+    !!{
+    Reinsert non-overlap nodes into their tree.
+    !!}
     use :: Galacticus_Nodes, only : treeNode
     implicit none
     class(mergerTreeOperatorAugment), intent(in   )          :: self
@@ -1209,7 +1255,9 @@ contains
   end subroutine augmentNonOverlapReinsert
 
   subroutine augmentExtendNonOverlapNodes(self,nodeNonOverlapFirst,tolerance,treeBest,massCutoffScale,massOvershootScale)
-    !% Extend any non-overlap nodes in an accepted tree by growing a new tree from each such node.
+    !!{
+    Extend any non-overlap nodes in an accepted tree by growing a new tree from each such node.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : mergerTree             , treeNode
     implicit none
@@ -1251,8 +1299,10 @@ contains
   end subroutine augmentExtendNonOverlapNodes
 
   logical function augmentNodeComparison(nodeNew,nodeOriginal,tolerance,treeCurrentWorstFit)
-    !% Compare the masses of an overlap node and the corresponding node in the original tree, testing if they agree to withing
-    !% tolerance.
+    !!{
+    Compare the masses of an overlap node and the corresponding node in the original tree, testing if they agree to withing
+    tolerance.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     type            (treeNode          ), intent(inout), pointer :: nodeNew            , nodeOriginal
@@ -1272,8 +1322,10 @@ contains
   end function augmentNodeComparison
 
   integer function augmentTreeStatistics(tree,desiredOutput)
-    !% Walks through tree and quietly collects information specified by {\normalfont \ttfamily desiredOutput} input enumeration and
-    !% returns that information.
+    !!{
+    Walks through tree and quietly collects information specified by {\normalfont \ttfamily desiredOutput} input enumeration and
+    returns that information.
+    !!}
     use :: Galacticus_Error   , only : Galacticus_Error_Report
     use :: Galacticus_Nodes   , only : mergerTree                   , treeNode
     use :: Merger_Tree_Walkers, only : mergerTreeWalkerIsolatedNodes
@@ -1305,7 +1357,9 @@ contains
   end function augmentTreeStatistics
 
   subroutine augmentFinalize(self)
-    !% Output augmentation histogram.
+    !!{
+    Output augmentation histogram.
+    !!}
     use :: Galacticus_HDF5  , only : galacticusOutputFile
     use :: IO_HDF5          , only : hdf5Access          , hdf5Object
     use :: Memory_Management, only : allocateArray       , deallocateArray

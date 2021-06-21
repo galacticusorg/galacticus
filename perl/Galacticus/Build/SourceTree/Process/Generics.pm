@@ -82,7 +82,7 @@ sub Process_Generics {
 				$copyNode = &Galacticus::Build::SourceTree::Walk_Tree($copyNode,\$copyDepth);
 			    }
 			    # Reparse the new content.
-			    my $copyReparsed = &Galacticus::Build::SourceTree::ParseCode(&Galacticus::Build::SourceTree::Serialize($copy),$tree->{'name'}, instrument => 0);
+			    my $copyReparsed = &Galacticus::Build::SourceTree::ParseCode(&Galacticus::Build::SourceTree::Serialize($copy),$tree->{'name'}, instrument => 0 ,reinstateBlocks => 1);
 			    # Push copy to list of copies.
 			    push(@copies,$copyReparsed);
 			}

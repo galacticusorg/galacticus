@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program which tests functionality of the XML I/O module.
+!!{
+Contains a program which tests functionality of the XML I/O module.
+!!}
 
 program Tests_IO_XML
-  !% Tests the XML I/O module.
+  !!{
+  Tests the XML I/O module.
+  !!}
   use            :: Display         , only : displayVerbositySet    , verbosityLevelStandard
   use            :: FoX_DOM         , only : destroy                , node                  , serialize
   use            :: Galacticus_Error, only : Galacticus_Error_Report

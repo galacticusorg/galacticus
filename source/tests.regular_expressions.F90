@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program which tests regular expression functionality.
+!!{
+Contains a program which tests regular expression functionality.
+!!}
 
 program Tests_Regular_Expressions
-  !% Tests regular expression functionality.
+  !!{
+  Tests regular expression functionality.
+  !!}
   use :: Display            , only : displayVerbositySet, verbosityLevelStandard
   use :: Regular_Expressions, only : regEx
   use :: Unit_Tests         , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish

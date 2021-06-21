@@ -17,7 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which interfaces with low-level aspects of the GSL library.
+!!{
+Contains a module which interfaces with low-level aspects of the GSL library.
+!!}
 
 ! Specify an explicit dependence on the interface.GSL.C.o object file.
 !: $(BUILDPATH)/interface.GSL.C.o
@@ -26,7 +28,9 @@
 !; gsl
 
 module Interface_GSL
-  !% Interfaces with low-level aspects of the GSL library.
+  !!{
+  Interfaces with low-level aspects of the GSL library.
+  !!}
   use, intrinsic :: ISO_C_Binding, only : c_funptr, c_ptr, c_double, c_int, &
        &                                  c_char
   private
@@ -35,8 +39,10 @@ module Interface_GSL
        &    gslFileOpen        , gslFileClose
 
   abstract interface
-     !% Interface for {\normalfont \ttfamily gslFunction} type. We ignore the {\normalfont \ttfamily parameters} argument here as
-     !% it is not used by \glc.
+     !!{
+     Interface for {\normalfont \ttfamily gslFunction} type. We ignore the {\normalfont \ttfamily parameters} argument here as
+     it is not used by \glc.
+     !!}
      double precision function gslFunctionTemplate(x)
        import c_ptr
        double precision, intent(in   ), value :: x
@@ -44,7 +50,9 @@ module Interface_GSL
   end interface
 
   abstract interface
-     !% Interface for {\normalfont \ttfamily gslFunctionFdF} type.
+     !!{
+     Interface for {\normalfont \ttfamily gslFunctionFdF} type.
+     !!}
      subroutine gslFunctionFdFTemplate(x,parameters,f,df)
        import c_ptr
        double precision       , intent(in   ), value :: x
@@ -54,7 +62,9 @@ module Interface_GSL
   end interface
 
   abstract interface
-     !% Interface for {\normalfont \ttfamily  gsl\_error\_handler\_t} type.
+     !!{
+     Interface for {\normalfont \ttfamily  gsl\_error\_handler\_t} type.
+     !!}
      subroutine gslErrorHandlerTemplate(reason,file,line,errorNumber)
        import c_char, c_int
        character(c_char), dimension(*) :: file       , reason
@@ -63,16 +73,22 @@ module Interface_GSL
   end interface
 
   interface
-     !% Interfaces to C functions.
+     !!{
+     Interfaces to C functions.
+     !!}
      function gslFunctionConstructor(f) bind(c,name="gslFunctionConstructor")
-       !% Interface to a C function which establishes a {\normalfont \ttfamily gslFunction} type.
+       !!{
+       Interface to a C function which establishes a {\normalfont \ttfamily gslFunction} type.
+       !!}
        import c_ptr, c_funptr
        type(c_ptr   )        :: gslFunctionConstructor
        type(c_funptr), value :: f
      end function gslFunctionConstructor
 
      function gslFunctionFdFConstructor(f,df,fdf) bind(c,name="gslFunctionFdFConstructor")
-       !% Interface to a C function which establishes a {\normalfont \ttfamily gslFunctionFdF} type.
+       !!{
+       Interface to a C function which establishes a {\normalfont \ttfamily gslFunctionFdF} type.
+       !!}
        import c_ptr, c_funptr
        type(c_ptr   )        :: gslFunctionFdFConstructor
        type(c_funptr), value :: f                        , df, &
@@ -80,7 +96,9 @@ module Interface_GSL
      end function gslFunctionFdFConstructor
 
      subroutine gslFunctionDestructor(f) bind(c,name="gslFunctionDestructor")
-       !% Interface to a C function which destroys a {\normalfont \ttfamily gslFunction} type.
+       !!{
+       Interface to a C function which destroys a {\normalfont \ttfamily gslFunction} type.
+       !!}
        import c_funptr
        type(c_funptr), value :: f
      end subroutine gslFunctionDestructor
@@ -92,14 +110,18 @@ module Interface_GSL
      end function gsl_set_error_handler
      
      function gslFileOpenC(fileName,access) bind(c,name='gslFileOpenC')
-       !% Template for a C function that opens a file for GSL state output.
+       !!{
+       Template for a C function that opens a file for GSL state output.
+       !!}
        import c_ptr, c_char
        type     (c_ptr )               :: gslFileOpenC
        character(c_char), dimension(*) :: fileName    , access
      end function gslFileOpenC
      
      function gslFileCloseC(stream) bind(c,name='gslFileCloseC')
-       !% Template for a C function that opens a file for GSL state output.
+       !!{
+       Template for a C function that opens a file for GSL state output.
+       !!}
        import c_ptr, c_int
        integer(c_int)        :: gslFileCloseC
        type   (c_ptr), value :: stream
@@ -107,37 +129,47 @@ module Interface_GSL
   end interface
 
   interface gslSetErrorHandler
-     !% Generic interface to GSL error handler set functions.
+     !!{
+     Generic interface to GSL error handler set functions.
+     !!}
      module procedure gslSetErrorHandlerFunction
      module procedure gslSetErrorHandlerPointer
   end interface gslSetErrorHandler
   
   type, public, bind(c) :: gsl_sf_result
-     !% Type for GSL special function results.
+     !!{
+     Type for GSL special function results.
+     !!}
      real(c_double) :: val, err
   end type gsl_sf_result
 
   ! Error codes.
-  !# <gslConstant variable="GSL_Success"  gslSymbol="GSL_SUCCESS"  gslHeader="gsl_errno" type="integer"/>
-  !# <gslConstant variable="GSL_Failure"  gslSymbol="GSL_FAILURE"  gslHeader="gsl_errno" type="integer"/>
-  !# <gslConstant variable="GSL_ESing"    gslSymbol="GSL_ESING"    gslHeader="gsl_errno" type="integer"/>
-  !# <gslConstant variable="GSL_EDom"     gslSymbol="GSL_EDOM"     gslHeader="gsl_errno" type="integer"/>
-  !# <gslConstant variable="GSL_ERange"   gslSymbol="GSL_ERANGE"   gslHeader="gsl_errno" type="integer"/>
-  !# <gslConstant variable="GSL_EZeroDiv" gslSymbol="GSL_EZERODIV" gslHeader="gsl_errno" type="integer"/>
-  !# <gslConstant variable="GSL_EUndrFlw" gslSymbol="GSL_EUNDRFLW" gslHeader="gsl_errno" type="integer"/>
-  !# <gslConstant variable="GSL_ENoProg"  gslSymbol="GSL_ENOPROG"  gslHeader="gsl_errno" type="integer"/>
-  !# <gslConstant variable="GSL_Continue" gslSymbol="GSL_CONTINUE" gslHeader="gsl_errno" type="integer"/>
-  !# <gslConstant variable="GSL_EBadFunc" gslSymbol="GSL_EBADFUNC" gslHeader="gsl_errno" type="integer"/>
+  !![
+  <gslConstant variable="GSL_Success"  gslSymbol="GSL_SUCCESS"  gslHeader="gsl_errno" type="integer"/>
+  <gslConstant variable="GSL_Failure"  gslSymbol="GSL_FAILURE"  gslHeader="gsl_errno" type="integer"/>
+  <gslConstant variable="GSL_ESing"    gslSymbol="GSL_ESING"    gslHeader="gsl_errno" type="integer"/>
+  <gslConstant variable="GSL_EDom"     gslSymbol="GSL_EDOM"     gslHeader="gsl_errno" type="integer"/>
+  <gslConstant variable="GSL_ERange"   gslSymbol="GSL_ERANGE"   gslHeader="gsl_errno" type="integer"/>
+  <gslConstant variable="GSL_EZeroDiv" gslSymbol="GSL_EZERODIV" gslHeader="gsl_errno" type="integer"/>
+  <gslConstant variable="GSL_EUndrFlw" gslSymbol="GSL_EUNDRFLW" gslHeader="gsl_errno" type="integer"/>
+  <gslConstant variable="GSL_ENoProg"  gslSymbol="GSL_ENOPROG"  gslHeader="gsl_errno" type="integer"/>
+  <gslConstant variable="GSL_Continue" gslSymbol="GSL_CONTINUE" gslHeader="gsl_errno" type="integer"/>
+  <gslConstant variable="GSL_EBadFunc" gslSymbol="GSL_EBADFUNC" gslHeader="gsl_errno" type="integer"/>
+  !!]
 
   ! Precision modes.
-  !# <gslConstant variable="GSL_Prec_Double"  gslSymbol="GSL_PREC_DOUBLE"  gslHeader="gsl_mode" type="integer"/>
-  !# <gslConstant variable="GSL_Prec_Single"  gslSymbol="GSL_PREC_SINGLE"  gslHeader="gsl_mode" type="integer"/>
-  !# <gslConstant variable="GSL_Prec_Approx"  gslSymbol="GSL_PREC_APPROX"  gslHeader="gsl_mode" type="integer"/>
+  !![
+  <gslConstant variable="GSL_Prec_Double"  gslSymbol="GSL_PREC_DOUBLE"  gslHeader="gsl_mode" type="integer"/>
+  <gslConstant variable="GSL_Prec_Single"  gslSymbol="GSL_PREC_SINGLE"  gslHeader="gsl_mode" type="integer"/>
+  <gslConstant variable="GSL_Prec_Approx"  gslSymbol="GSL_PREC_APPROX"  gslHeader="gsl_mode" type="integer"/>
+  !!]
   
 contains
 
   function gslFileOpen(fileName,access) result(stream)
-    !% Open a file for output of GSL state.
+    !!{
+    Open a file for output of GSL state.
+    !!}
     use, intrinsic :: ISO_C_Binding, only : c_null_char
     implicit none
     type     (c_ptr)                :: stream
@@ -148,7 +180,9 @@ contains
   end function gslFileOpen
 
   subroutine gslFileClose(stream)
-    !% Close a file used for output of GSL state.
+    !!{
+    Close a file used for output of GSL state.
+    !!}
     implicit none
     type   (c_ptr), intent(in   ) :: stream
     integer(c_int)                :: status
@@ -158,7 +192,9 @@ contains
   end subroutine gslFileClose
   
   function gslSetErrorHandlerFunction(newHandler)
-    !% Set the GSL error handler to the provided function.
+    !!{
+    Set the GSL error handler to the provided function.
+    !!}
     use, intrinsic :: ISO_C_Binding, only : c_funloc
     implicit none
     type     (c_funptr               ) :: gslSetErrorHandlerFunction
@@ -169,7 +205,9 @@ contains
   end function gslSetErrorHandlerFunction
 
   function gslSetErrorHandlerPointer(handler)
-    !% Set the GSL error handler to the provided pointer.
+    !!{
+    Set the GSL error handler to the provided pointer.
+    !!}
     implicit none
     type(c_funptr) :: gslSetErrorHandlerPointer
     type(c_funptr) :: handler
@@ -179,7 +217,9 @@ contains
   end function gslSetErrorHandlerPointer
 
   function gslFunction(f)
-    !% Return a {\normalfont \ttfamily c\_ptr} object for the given function {\normalfont \ttfamily f}.
+    !!{
+    Return a {\normalfont \ttfamily c\_ptr} object for the given function {\normalfont \ttfamily f}.
+    !!}
     use, intrinsic :: ISO_C_Binding, only : c_funloc
     implicit none
     type     (c_ptr              ) :: gslFunction
@@ -190,7 +230,9 @@ contains
   end function gslFunction
 
   function gslFunctionFdF(f,df,fdf)
-    !% Return a {\normalfont \ttfamily c\_ptr} object for the given function {\normalfont \ttfamily f}.
+    !!{
+    Return a {\normalfont \ttfamily c\_ptr} object for the given function {\normalfont \ttfamily f}.
+    !!}
     use, intrinsic :: ISO_C_Binding, only : c_funloc
     implicit none
     type     (c_ptr                 ) :: gslFunctionFdF
@@ -202,7 +244,9 @@ contains
   end function gslFunctionFdF
 
   subroutine gslFunctionDestroy(f)
-    !% Destroy a {\normalfont \ttfamily c\_ptr} to a {\normalfont \ttfamily gslFunction} object.
+    !!{
+    Destroy a {\normalfont \ttfamily c\_ptr} to a {\normalfont \ttfamily gslFunction} object.
+    !!}
     implicit none
     type(c_ptr), intent(in   ) :: f
 

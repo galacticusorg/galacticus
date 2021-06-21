@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains custom functions for the very simple disk component.
+!!{
+Contains custom functions for the very simple disk component.
+!!}
 
 subroutine Node_Component_Disk_Very_Simple_Attach_Pipe(self)
-  !% Attach cooling pipes to the very simple disk component.
+  !!{
+  Attach cooling pipes to the very simple disk component.
+  !!}
   use :: Galacticus_Error, only : Galacticus_Error_Report
   implicit none
   class(nodeComponentDiskVerySimple), intent(in   ) :: self
@@ -42,7 +46,9 @@ subroutine Node_Component_Disk_Very_Simple_Attach_Pipe(self)
 end subroutine Node_Component_Disk_Very_Simple_Attach_Pipe
 
 double precision function Node_Component_Disk_Very_Simple_Enclosed_Mass(self,radius,componentType,massType,weightBy,weightIndex)
-  !% Computes the mass within a given radius for an very simple disk.
+  !!{
+  Computes the mass within a given radius for an very simple disk.
+  !!}
   use :: Galactic_Structure_Options, only : componentTypeAll       , componentTypeDisk, massTypeAll    , massTypeBaryonic, &
           &                                 massTypeGalactic       , massTypeGaseous  , massTypeStellar, radiusLarge     , &
           &                                 weightByMass

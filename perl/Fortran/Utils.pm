@@ -422,20 +422,17 @@ sub Format_Variable_Definitions {
 	    foreach ( sort(@{$datum->{'attributes'}}) ) {
 		(my $attributeName = $_) =~ s/^([^\(]+).*/$1/;
 		++$columnCount;
-		if ( $attributes{$attributeName}->{'count'} > 1 ) {
-		    if ( $columnCount > $attributes{$attributeName}->{'column'} ) {
-			foreach my $otherAttribute ( sort(keys(%attributes)) ) {
-			    ++$attributes{$otherAttribute}->{'column'}
-			    if (
-				$attributes{$otherAttribute}->{'column'} >= $columnCount &&
-				$attributes{$otherAttribute}->{'count' } > 1             &&
-				$otherAttribute ne $attributeName
-				);
-			}
-			$attributes{$attributeName}->{'column'} = $columnCount;
+		if ( $columnCount > $attributes{$attributeName}->{'column'} ) {
+		    foreach my $otherAttribute ( sort(keys(%attributes)) ) {
+			++$attributes{$otherAttribute}->{'column'}
+			if (
+			    $attributes{$otherAttribute}->{'column'} >= $columnCount &&
+			    $otherAttribute ne $attributeName
+			    );
 		    }
-		    $columnCount = $attributes{$attributeName}->{'column'};
+		    $attributes{$attributeName}->{'column'} = $columnCount;
 		}
+		$columnCount = $attributes{$attributeName}->{'column'};
 	    }
 	    $columnCountMaximum = $columnCount+1
 		if ( $columnCount+1 > $columnCountMaximum );

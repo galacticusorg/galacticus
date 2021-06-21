@@ -17,38 +17,44 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a class to describe radiation fields.
+!!{
+Contains a module which implements a class to describe radiation fields.
+!!}
 
 module Radiation_Fields
-  !% Implements a class to describe radiation fields.
+  !!{
+  Implements a class to describe radiation fields.
+  !!}
   use :: Galacticus_Nodes, only : treeNode
   implicit none
   private
 
-  !# <functionClass>
-  !#  <name>radiationField</name>
-  !#  <descriptiveName>Radiation Fields</descriptiveName>
-  !#  <description>Class providing radiation fields.</description>
-  !#  <default>null</default>
-  !#  <method name="flux">
-  !#   <description>Return the flux (in units of ergs cm$^2$ s$^{-1}$ Hz$^{-1}$ ster$^{-1}$) of the given radiation field.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>double precision          , intent(in   ) :: wavelength</argument>
-  !#   <argument>type            (treeNode), intent(inout) :: node</argument>
-  !#  </method>
-  !#  <method name="integrateOverCrossSection">
-  !#   <description>Integrates the flux (in units of ergs cm$^2$ s$^{-1}$ Hz$^{-1}$ ster$^{-1}$) of the given radiation structure between the wavelengths given in {\normalfont \ttfamily wavelengthRange} over a cross section specified by the function {\normalfont \ttfamily crossSectionFunction}.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>double precision          , dimension(2), intent(in   ) :: wavelengthRange</argument>
-  !#   <argument>double precision          , external                    :: crossSectionFunction</argument>
-  !#   <argument>type            (treeNode)              , intent(inout) :: node</argument>
-  !#   <code>
-  !#    radiationFieldIntegrateOverCrossSection=radiationFieldIntegrateOverCrossSection_(self,wavelengthRange,crossSectionFunction,node)
-  !#   </code>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>radiationField</name>
+   <descriptiveName>Radiation Fields</descriptiveName>
+   <description>Class providing radiation fields.</description>
+   <default>null</default>
+   <method name="flux">
+    <description>Return the flux (in units of ergs cm$^2$ s$^{-1}$ Hz$^{-1}$ ster$^{-1}$) of the given radiation field.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision          , intent(in   ) :: wavelength</argument>
+    <argument>type            (treeNode), intent(inout) :: node</argument>
+   </method>
+   <method name="integrateOverCrossSection">
+    <description>Integrates the flux (in units of ergs cm$^2$ s$^{-1}$ Hz$^{-1}$ ster$^{-1}$) of the given radiation structure between the wavelengths given in {\normalfont \ttfamily wavelengthRange} over a cross section specified by the function {\normalfont \ttfamily crossSectionFunction}.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision          , dimension(2), intent(in   ) :: wavelengthRange</argument>
+    <argument>double precision          , external                    :: crossSectionFunction</argument>
+    <argument>type            (treeNode)              , intent(inout) :: node</argument>
+    <code>
+     radiationFieldIntegrateOverCrossSection=radiationFieldIntegrateOverCrossSection_(self,wavelengthRange,crossSectionFunction,node)
+    </code>
+   </method>
+  </functionClass>
+  !!]
 
   ! Module global variables for use in integrand routines.
   class    (radiationFieldClass), pointer :: selfGlobal
@@ -59,12 +65,14 @@ module Radiation_Fields
 contains
 
   double precision function radiationFieldIntegrateOverCrossSection_(self,wavelengthRange,crossSectionFunction,node)
-    !% Integrate the photon number of the radiation field over a given cross-section function (which should return the cross
-    !% section in units of cm$^2$), i.e.:
-    !% \begin{equation}
-    !% {4 \pi \over \mathrm{h}} \int_{\lambda_1}^{\lambda_2} \sigma(\lambda) j_{\nu}(\lambda) {\mathrm{d}\lambda \over \lambda},
-    !% \end{equation}
-    !% where $j_{\nu}$ is the flux of energy per unit area per unit solid angle and per unit frequency.
+    !!{
+    Integrate the photon number of the radiation field over a given cross-section function (which should return the cross
+    section in units of cm$^2$), i.e.:
+    \begin{equation}
+    {4 \pi \over \mathrm{h}} \int_{\lambda_1}^{\lambda_2} \sigma(\lambda) j_{\nu}(\lambda) {\mathrm{d}\lambda \over \lambda},
+    \end{equation}
+    where $j_{\nu}$ is the flux of energy per unit area per unit solid angle and per unit frequency.
+    !!}
     use :: Numerical_Constants_Math    , only : Pi
     use :: Numerical_Constants_Physical, only : plancksConstant
     use :: Numerical_Constants_Units   , only : ergs
@@ -97,7 +105,9 @@ contains
   end function radiationFieldIntegrateOverCrossSection_
 
   double precision function crossSectionIntegrand(wavelength)
-    !% Integrand function use in integrating a radiation field over a cross section function.
+    !!{
+    Integrand function use in integrating a radiation field over a cross section function.
+    !!}
     double precision, intent(in   ) :: wavelength
 
     if (wavelength > 0.0d0) then

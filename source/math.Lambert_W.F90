@@ -17,13 +17,17 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements Lambert W functions.
+!!{
+Contains a module which implements Lambert W functions.
+!!}
 
 ! Add dependency on GSL library.
 !; gsl
 
 module Lambert_Ws
-  !% Implements Lambert W functions.
+  !!{
+  Implements Lambert W functions.
+  !!}
   use, intrinsic :: ISO_C_Binding, only : c_double
   implicit none
   private
@@ -31,7 +35,9 @@ module Lambert_Ws
 
   interface
      function gsl_sf_lambert_W0(x) bind(c,name='gsl_sf_lambert_W0')
-       !% Template for the GSL Lambert W (primary branch) C function.
+       !!{
+       Template for the GSL Lambert W (primary branch) C function.
+       !!}
        import
        real(c_double)        :: gsl_sf_lambert_W0
        real(c_double), value :: x
@@ -40,7 +46,9 @@ module Lambert_Ws
 
   interface
      function gsl_sf_lambert_Wm1(x) bind(c,name='gsl_sf_lambert_Wm1')
-       !% Template for the GSL Lambert W (secondary branch) C function.
+       !!{
+       Template for the GSL Lambert W (secondary branch) C function.
+       !!}
        import
        real(c_double)        :: gsl_sf_lambert_Wm1
        real(c_double), value :: x
@@ -50,7 +58,9 @@ module Lambert_Ws
 contains
 
   double precision function Lambert_W0(x)
-    !% Evaluate the (primary branch of the) Lambert W function, $W(x)$.
+    !!{
+    Evaluate the (primary branch of the) Lambert W function, $W(x)$.
+    !!}
     implicit none
     double precision, intent(in   ) :: x
 
@@ -59,7 +69,9 @@ contains
   end function Lambert_W0
 
   double precision function Lambert_Wm1(x)
-    !% Evaluate the (secondary branch of the) Lambert W function, $W(x)$.
+    !!{
+    Evaluate the (secondary branch of the) Lambert W function, $W(x)$.
+    !!}
     implicit none
     double precision, intent(in   ) :: x
 

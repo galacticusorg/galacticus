@@ -17,87 +17,95 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements a star formation histories class which records star formation in adaptively sized time
-  !% bins and split by metallicity.
+  !!{
+  Contains a module which implements a star formation histories class which records star formation in adaptively sized time
+  bins and split by metallicity.
+  !!}
 
   use :: Output_Times, only : outputTimes, outputTimesClass
 
   type :: timeIntervals
-     !% A type used to store the end times of intervals used for star formation history storage, along with a map of indices which
-     !% describes how to merge intervals from the previous output time.
+     !!{
+     A type used to store the end times of intervals used for star formation history storage, along with a map of indices which
+     describes how to merge intervals from the previous output time.
+     !!}
      double precision          , allocatable, dimension(:) :: time
      integer         (c_size_t), allocatable, dimension(:) :: indexMap
   end type timeIntervals  
   
-  !# <starFormationHistory name="starFormationHistoryAdaptive">
-  !#  <description>
-  !#   A star formation histories class which records star formation split by metallicity. The star formation history is tabulated
-  !#   on a grid of time and metallicity. A minimum size for the time bins is specified via $\Delta t=${\normalfont \ttfamily
-  !#   [timeStepMinimum]}, and a maximum number of time bins allowed is specified via {\normalfont \ttfamily
-  !#   [countTimeStepsMaximum]}. For the first output time, a set of timesteps starting from $t=0$ to the output time is generated
-  !#   with size $\Delta t$. If the number of steps exceeds {\normalfont \ttfamily [countTimeStepsMaximum]} then one pair of
-  !#   consecutive steps are merged. The pair merged is chosen to minimize the global increase in the metric
-  !#   $(t_{i+1}-t_i)/(t\mathrm{out}-t_i)$ where $t_i$ are the current timesteps and $t_\mathrm{out}$ is the output time. This
-  !#   process is repeated until the number of timesteps is reduced to {\normalfont \ttfamily [countTimeStepsMaximum]}. This
-  !#   results in timesteps distributed approximately uniformly in the logarithm of the age of the timestep.
-  !#
-  !#   For subsequent output times, the prior set of times is first extended, in steps of $\Delta t$, to reach the new output
-  !#   time, and then, if necessary, the same timestep consolidation algorithm is applied to reduce the number of steps to
-  !#   {\normalfont \ttfamily [countTimeStepsMaximum]}. Any accumulated star formation in the time bins used for the previous
-  !#   output time are accumulated over each consolidated pair of bins.
-  !#
-  !#   This approach ensures that the number of timesteps never exceeds {\normalfont \ttfamily [countTimeStepsMaximum]}, results
-  !#   in timesteps that are small close to the output time, but increase (approximately logarithmically) for times earlier than
-  !#   the output time, and allows simple (interpolation-free) consolidation of accumulate star formation from the previous output
-  !#   time's timesteps to those of the current output time.
-  !#
-  !#   Typically, the metallicity binning is arranged logarithmically in metallicity with {\normalfont \ttfamily
-  !#   [countMetallicities]} bins between {\normalfont \ttfamily [metallicityMinimum]} and {\normalfont \ttfamily
-  !#   [metallicityMaximum]} (specified in Solar units). Note that the metallicity associated with each bin is the minimum
-  !#   metallicity for that bin (the maximum being the metallicity value associated with the next bin, except for the final bin
-  !#   which extends to infinite metallicity). If {\normalfont \ttfamily [countMetallicities]}$=0$ is set, then the star formation
-  !#   history is not split by metallicity (i.e. a single metallicity bin encompassing all metallicities from zero to infinity is
-  !#   used). Alternatively, specific metallicity bin boundaries can be set via the {\normalfont \ttfamily
-  !#   [metallicityBoundaries]} parameter---a final boundary corresponding to infinity is always added automatically.
-  !#
-  !#   Star formation histories are output as follows:
-  !#   \begin{verbatim}
-  !#   GROUP "starFormationHistories" {
-  !#      COMMENT "Star formation history data."
-  !#      GROUP "Output1" {
-  !#         COMMENT "Star formation histories for all trees at each output."
-  !#         DATASET "diskStarFormationHistory" {
-  !#         COMMENT "Star formation history of the disk component."
-  !#            DATATYPE  H5T_IEEE_F64LE
-  !#            DATASPACE  SIMPLE { ( [countMetallicities], [countTimes], [countGalaxies] ) }
-  !#         }
-  !#         DATASET "metallicity" {
-  !#         COMMENT "Metallicities at which the star formation history is tabulated [Zsun]."
-  !#            DATATYPE  H5T_IEEE_F64LE
-  !#            DATASPACE  SIMPLE { ( [countMetallicities] ) }
-  !#         }
-  !#         DATASET "spheroidStarFormationHistory" {
-  !#         COMMENT "Star formation history of the spheroid component."
-  !#            DATATYPE  H5T_IEEE_F64LE
-  !#            DATASPACE  SIMPLE { ( [countMetallicities], [countTimes], [countGalaxies] ) }
-  !#         }
-  !#         DATASET "time" {
-  !#         COMMENT "Times at which the star formation history is tabulated [Gyr]."
-  !#            DATATYPE  H5T_IEEE_F64LE
-  !#            DATASPACE  SIMPLE { ( [countTimes] ) ) }
-  !#         }
-  !#      }
-  !#      GROUP "Output2" {
-  !#       .
-  !#       .
-  !#       .
-  !#      }
-  !#   }
-  !#   \end{verbatim}
-  !#  </description>
-  !# </starFormationHistory>
+  !![
+  <starFormationHistory name="starFormationHistoryAdaptive">
+   <description>
+    A star formation histories class which records star formation split by metallicity. The star formation history is tabulated
+    on a grid of time and metallicity. A minimum size for the time bins is specified via $\Delta t=${\normalfont \ttfamily
+    [timeStepMinimum]}, and a maximum number of time bins allowed is specified via {\normalfont \ttfamily
+    [countTimeStepsMaximum]}. For the first output time, a set of timesteps starting from $t=0$ to the output time is generated
+    with size $\Delta t$. If the number of steps exceeds {\normalfont \ttfamily [countTimeStepsMaximum]} then one pair of
+    consecutive steps are merged. The pair merged is chosen to minimize the global increase in the metric
+    $(t_{i+1}-t_i)/(t\mathrm{out}-t_i)$ where $t_i$ are the current timesteps and $t_\mathrm{out}$ is the output time. This
+    process is repeated until the number of timesteps is reduced to {\normalfont \ttfamily [countTimeStepsMaximum]}. This
+    results in timesteps distributed approximately uniformly in the logarithm of the age of the timestep.
+  
+    For subsequent output times, the prior set of times is first extended, in steps of $\Delta t$, to reach the new output
+    time, and then, if necessary, the same timestep consolidation algorithm is applied to reduce the number of steps to
+    {\normalfont \ttfamily [countTimeStepsMaximum]}. Any accumulated star formation in the time bins used for the previous
+    output time are accumulated over each consolidated pair of bins.
+  
+    This approach ensures that the number of timesteps never exceeds {\normalfont \ttfamily [countTimeStepsMaximum]}, results
+    in timesteps that are small close to the output time, but increase (approximately logarithmically) for times earlier than
+    the output time, and allows simple (interpolation-free) consolidation of accumulate star formation from the previous output
+    time's timesteps to those of the current output time.
+  
+    Typically, the metallicity binning is arranged logarithmically in metallicity with {\normalfont \ttfamily
+    [countMetallicities]} bins between {\normalfont \ttfamily [metallicityMinimum]} and {\normalfont \ttfamily
+    [metallicityMaximum]} (specified in Solar units). Note that the metallicity associated with each bin is the minimum
+    metallicity for that bin (the maximum being the metallicity value associated with the next bin, except for the final bin
+    which extends to infinite metallicity). If {\normalfont \ttfamily [countMetallicities]}$=0$ is set, then the star formation
+    history is not split by metallicity (i.e. a single metallicity bin encompassing all metallicities from zero to infinity is
+    used). Alternatively, specific metallicity bin boundaries can be set via the {\normalfont \ttfamily
+    [metallicityBoundaries]} parameter---a final boundary corresponding to infinity is always added automatically.
+  
+    Star formation histories are output as follows:
+    \begin{verbatim}
+    GROUP "starFormationHistories" {
+       COMMENT "Star formation history data."
+       GROUP "Output1" {
+          COMMENT "Star formation histories for all trees at each output."
+          DATASET "diskStarFormationHistory" {
+          COMMENT "Star formation history of the disk component."
+             DATATYPE  H5T_IEEE_F64LE
+             DATASPACE  SIMPLE { ( [countMetallicities], [countTimes], [countGalaxies] ) }
+          }
+          DATASET "metallicity" {
+          COMMENT "Metallicities at which the star formation history is tabulated [Zsun]."
+             DATATYPE  H5T_IEEE_F64LE
+             DATASPACE  SIMPLE { ( [countMetallicities] ) }
+          }
+          DATASET "spheroidStarFormationHistory" {
+          COMMENT "Star formation history of the spheroid component."
+             DATATYPE  H5T_IEEE_F64LE
+             DATASPACE  SIMPLE { ( [countMetallicities], [countTimes], [countGalaxies] ) }
+          }
+          DATASET "time" {
+          COMMENT "Times at which the star formation history is tabulated [Gyr]."
+             DATATYPE  H5T_IEEE_F64LE
+             DATASPACE  SIMPLE { ( [countTimes] ) ) }
+          }
+       }
+       GROUP "Output2" {
+        .
+        .
+        .
+       }
+    }
+    \end{verbatim}
+   </description>
+  </starFormationHistory>
+  !!]
   type, extends(starFormationHistoryClass) :: starFormationHistoryAdaptive
-     !% A star formation histories class which records star formation split by metallicity.
+     !!{
+     A star formation histories class which records star formation split by metallicity.
+     !!}
      private
      class           (outputTimesClass), pointer                         :: outputTimes_               => null()
      double precision                                                    :: timeStepMinimum                     , metallicityMaximum, &
@@ -110,9 +118,11 @@
      integer         (c_size_t        ), allocatable, dimension(:      ) :: indexOutputBuffer                   , indexOutput
      logical                                                             :: finalized
    contains
-     !# <methods>
-     !#  <method description="Output all star formation history data accumulated in the output buffers." method="outputBuffers"/>
-     !# </methods>
+     !![
+     <methods>
+      <method description="Output all star formation history data accumulated in the output buffers." method="outputBuffers"/>
+     </methods>
+     !!]
      final     ::                                adaptiveDestructor
      procedure :: autoHook                    => adaptiveAutoHook
      procedure :: create                      => adaptiveCreate
@@ -127,7 +137,9 @@
   end type starFormationHistoryAdaptive
 
   interface starFormationHistoryAdaptive
-     !% Constructors for the ``adaptive'' star formation history class.
+     !!{
+     Constructors for the ``adaptive'' star formation history class.
+     !!}
      module procedure adaptiveConstructorParameters
      module procedure adaptiveConstructorInternal
   end interface starFormationHistoryAdaptive
@@ -138,7 +150,9 @@
 contains
 
   function adaptiveConstructorParameters(parameters) result(self)
-    !% Constructor for the ``adaptive'' star formation history class which takes a parameter set as input.
+    !!{
+    Constructor for the ``adaptive'' star formation history class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (starFormationHistoryAdaptive)                              :: self
@@ -150,71 +164,81 @@ contains
     integer         (c_size_t)                                                  :: countMetallicities   , countTimeStepsMaximum, &
           &                                                                        countOutputBuffer
 
-    !# <inputParameter>
-    !#   <name>timeStepMinimum</name>
-    !#   <defaultValue>0.01d0</defaultValue>
-    !#   <description>The minimum time step to use in tabulations of star formation histories [Gyr].</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>countTimeStepsMaximum</name>
-    !#   <defaultValue>10_c_size_t</defaultValue>
-    !#   <description>The maximum number of timesteps to track in any star formation history.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>timeStepMinimum</name>
+      <defaultValue>0.01d0</defaultValue>
+      <description>The minimum time step to use in tabulations of star formation histories [Gyr].</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>countTimeStepsMaximum</name>
+      <defaultValue>10_c_size_t</defaultValue>
+      <description>The maximum number of timesteps to track in any star formation history.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     if (parameters%isPresent('metallicityBoundaries')) then
        countMetallicities=parameters%count('metallicityBoundaries')
        allocate(metallicityBoundaries(countMetallicities+1))
-       !# <inputParameter>
-       !#   <name>metallicityBoundaries</name>
-       !#   <description>The metallicities corresponding to boundaries between metallicity bins to use when tabulating star formation histories.</description>
-       !#   <source>parameters</source>
-       !#   <variable>metallicityBoundaries(1:size(metallicityBoundaries)-1)</variable>
-       !#   <type>real</type>
-       !#   <cardinality>0..*</cardinality>
-       !# </inputParameter>
+       !![
+       <inputParameter>
+         <name>metallicityBoundaries</name>
+         <description>The metallicities corresponding to boundaries between metallicity bins to use when tabulating star formation histories.</description>
+         <source>parameters</source>
+         <variable>metallicityBoundaries(1:size(metallicityBoundaries)-1)</variable>
+         <type>real</type>
+         <cardinality>0..*</cardinality>
+       </inputParameter>
+       !!]
        metallicityBoundaries(size(metallicityBoundaries))=adaptiveMetallicityInfinite
     else
-       !# <inputParameter>
-       !#   <name>countMetallicities</name>
-       !#   <defaultValue>10_c_size_t</defaultValue>
-       !#   <description>The number of bins in metallicity to use when tabulating star formation histories.</description>
-       !#   <source>parameters</source>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>metallicityMinimum</name>
-       !#   <defaultValue>1.0d-4</defaultValue>
-       !#   <description>The upper limit to the metallicity in the lowest metallicity bin when tabulating star formation histories [Solar units].</description>
-       !#   <source>parameters</source>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>metallicityMaximum</name>
-       !#   <defaultValue>1.0d+1</defaultValue>
-       !#   <description>The upper limit to the metallicity in the highest metallicity bin when tabulating star formation histories [Solar units].</description>
-       !#   <source>parameters</source>
-       !# </inputParameter>
+       !![
+       <inputParameter>
+         <name>countMetallicities</name>
+         <defaultValue>10_c_size_t</defaultValue>
+         <description>The number of bins in metallicity to use when tabulating star formation histories.</description>
+         <source>parameters</source>
+       </inputParameter>
+       <inputParameter>
+         <name>metallicityMinimum</name>
+         <defaultValue>1.0d-4</defaultValue>
+         <description>The upper limit to the metallicity in the lowest metallicity bin when tabulating star formation histories [Solar units].</description>
+         <source>parameters</source>
+       </inputParameter>
+       <inputParameter>
+         <name>metallicityMaximum</name>
+         <defaultValue>1.0d+1</defaultValue>
+         <description>The upper limit to the metallicity in the highest metallicity bin when tabulating star formation histories [Solar units].</description>
+         <source>parameters</source>
+       </inputParameter>
+       !!]
     end if
-    !# <inputParameter>
-    !#   <name>countOutputBuffer</name>
-    !#   <defaultValue>100_c_size_t</defaultValue>
-    !#   <description>The number of galaxies to hold in the output buffer.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
-    !# <conditionalCall>
-    !#  <call>self=starFormationHistoryAdaptive(outputTimes_,countOutputBuffer,timeStepMinimum,countTimeStepsMaximum{conditions})</call>
-    !#  <argument name="metallicityBoundaries" value="metallicityBoundaries" condition="     parameters%isPresent('metallicityBoundaries')"/>
-    !#  <argument name="countMetallicities"    value="countMetallicities"    condition=".not.parameters%isPresent('metallicityBoundaries')"/>
-    !#  <argument name="metallicityMinimum"    value="metallicityMinimum"    condition=".not.parameters%isPresent('metallicityBoundaries')"/>
-    !#  <argument name="metallicityMaximum"    value="metallicityMaximum"    condition=".not.parameters%isPresent('metallicityBoundaries')"/>
-    !# </conditionalCall>
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="outputTimes_"/>
+    !![
+    <inputParameter>
+      <name>countOutputBuffer</name>
+      <defaultValue>100_c_size_t</defaultValue>
+      <description>The number of galaxies to hold in the output buffer.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
+    <conditionalCall>
+     <call>self=starFormationHistoryAdaptive(outputTimes_,countOutputBuffer,timeStepMinimum,countTimeStepsMaximum{conditions})</call>
+     <argument name="metallicityBoundaries" value="metallicityBoundaries" condition="     parameters%isPresent('metallicityBoundaries')"/>
+     <argument name="countMetallicities"    value="countMetallicities"    condition=".not.parameters%isPresent('metallicityBoundaries')"/>
+     <argument name="metallicityMinimum"    value="metallicityMinimum"    condition=".not.parameters%isPresent('metallicityBoundaries')"/>
+     <argument name="metallicityMaximum"    value="metallicityMaximum"    condition=".not.parameters%isPresent('metallicityBoundaries')"/>
+    </conditionalCall>
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="outputTimes_"/>
+    !!]
     return
   end function adaptiveConstructorParameters
 
   function adaptiveConstructorInternal(outputTimes_,countOutputBuffer,timeStepMinimum,countTimeStepsMaximum,metallicityBoundaries,countMetallicities,metallicityMinimum,metallicityMaximum) result(self)
-    !% Internal constructor for the ``adaptive'' star formation history class.
+    !!{
+    Internal constructor for the ``adaptive'' star formation history class.
+    !!}
     use :: Galacticus_Error          , only : Galacticus_Error_Report
     use :: Galactic_Structure_Options, only : componentTypeMin       , componentTypeMax
     use :: Numerical_Ranges          , only : Make_Range             , rangeTypeLogarithmic
@@ -234,7 +258,9 @@ contains
     double precision                                                                      :: timeStart            , timeEnd            , &
          &                                                                                   metric               , metricChangeMinimum, &
          &                                                                                   metricChange         , metricMinimumGlobal
-    !# <constructorAssign variables="countOutputBuffer, timeStepMinimum, countTimeStepsMaximum, metallicityMinimum, metallicityMaximum, countMetallicities, *outputTimes_"/>
+    !![
+    <constructorAssign variables="countOutputBuffer, timeStepMinimum, countTimeStepsMaximum, metallicityMinimum, metallicityMaximum, countMetallicities, *outputTimes_"/>
+    !!]
 
     ! Validate metallicity argument and construct the table of metallicities.
     if (present(metallicityBoundaries)) then
@@ -377,7 +403,9 @@ contains
   end function adaptiveConstructorInternal
 
   subroutine adaptiveAutoHook(self)
-    !% Create a hook to the HDF5 pre-close event to allow us to finalize writing of our data.
+    !!{
+    Create a hook to the HDF5 pre-close event to allow us to finalize writing of our data.
+    !!}
     use :: Events_Hooks, only : hdf5PreCloseEvent
     implicit none
     class(starFormationHistoryAdaptive), intent(inout) :: self
@@ -387,19 +415,25 @@ contains
   end subroutine adaptiveAutoHook
 
   subroutine adaptiveDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily adaptive} star formation histories class.
+    !!{
+    Destructor for the {\normalfont \ttfamily adaptive} star formation histories class.
+    !!}
     use :: Events_Hooks, only : hdf5PreCloseEvent
     implicit none
     type(starFormationHistoryAdaptive), intent(inout) :: self
 
     call hdf5PreCloseEvent%detach(self,adaptiveFinalize)
     if (.not.self%finalized) call adaptiveFinalize(self)
-    !# <objectDestructor name="self%outputTimes_"/>
+    !![
+    <objectDestructor name="self%outputTimes_"/>
+    !!]
     return
   end subroutine adaptiveDestructor
 
   subroutine adaptiveCreate(self,node,historyStarFormation,timeBegin)
-    !% Create the history required for storing star formation history.
+    !!{
+    Create the history required for storing star formation history.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (starFormationHistoryAdaptive), intent(inout) :: self
@@ -421,7 +455,9 @@ contains
   end subroutine adaptiveCreate
 
   subroutine adaptiveRate(self,node,historyStarFormation,abundancesFuel,rateStarFormation)
-    !% Set the rate the star formation history for {\normalfont \ttfamily node}.
+    !!{
+    Set the rate the star formation history for {\normalfont \ttfamily node}.
+    !!}
     use :: Abundances_Structure, only : abundances             , metallicityTypeLinearByMassSolar
     use :: Arrays_Search       , only : searchArray
     use :: Galacticus_Nodes    , only : nodeComponentBasic     , treeNode
@@ -463,7 +499,9 @@ contains
   end subroutine adaptiveRate
 
   subroutine adaptiveOutput(self,node,nodePassesFilter,historyStarFormation,indexOutput,indexTree,componentType)
-    !% Output the star formation history for {\normalfont \ttfamily node}.
+    !!{
+    Output the star formation history for {\normalfont \ttfamily node}.
+    !!}
     implicit none
     class           (starFormationHistoryAdaptive), intent(inout)         :: self
     type            (treeNode                    ), intent(inout), target :: node
@@ -516,7 +554,9 @@ contains
   end subroutine adaptiveOutput
 
   subroutine adaptiveOutputFlush(self,componentType)
-    !% Flush any buffered star formation history data.
+    !!{
+    Flush any buffered star formation history data.
+    !!}
     implicit none
     class  (starFormationHistoryAdaptive), intent(inout) :: self
     integer                              , intent(in   ) :: componentType
@@ -526,7 +566,9 @@ contains
   end subroutine adaptiveOutputFlush
   
   subroutine adaptiveScales(self,historyStarFormation,massStellar,abundancesStellar)
-    !% Set the scalings for error control on the absolute values of star formation histories.
+    !!{
+    Set the scalings for error control on the absolute values of star formation histories.
+    !!}
     implicit none
     class           (starFormationHistoryAdaptive), intent(inout)               :: self
     double precision                              , intent(in   )               :: massStellar
@@ -547,7 +589,9 @@ contains
   end subroutine adaptiveScales
 
   subroutine adaptiveOutputBuffers(self,componentType)
-    !% Output all star formation history data in the output buffers.
+    !!{
+    Output all star formation history data in the output buffers.
+    !!}
     use :: Galacticus_HDF5           , only : galacticusOutputFile
     use :: Galactic_Structure_Options, only : enumerationComponentTypeDecode
     use :: IO_HDF5                   , only : hdf5Access                    , hdf5Object
@@ -584,7 +628,9 @@ contains
   end subroutine adaptiveOutputBuffers
   
   subroutine adaptiveFinalize(self)
-    !% Flush any buffered data prior to closing the HDF5 file.
+    !!{
+    Flush any buffered data prior to closing the HDF5 file.
+    !!}
     use :: Galacticus_Error          , only : Galacticus_Error_Report
     use :: Galactic_Structure_Options, only : componentTypeMin       , componentTypeMax
     implicit none
@@ -604,7 +650,9 @@ contains
   end subroutine adaptiveFinalize
 
   function adaptiveMetallicityBoundaries(self)
-    !% Return the boundaries of the metallicities used in this tabulation.
+    !!{
+    Return the boundaries of the metallicities used in this tabulation.
+    !!}
     implicit none
     double precision                              , allocatable  , dimension(:) :: adaptiveMetallicityBoundaries
     class           (starFormationHistoryAdaptive), intent(inout)               :: self
@@ -615,7 +663,9 @@ contains
   end function adaptiveMetallicityBoundaries
 
   logical function adapativePerOutputTabualtionIsStatic(self)
-    !% Return true since the tabulation (in time and metallicity) is static (independent of node) per output.
+    !!{
+    Return true since the tabulation (in time and metallicity) is static (independent of node) per output.
+    !!}
     implicit none
     class(starFormationHistoryAdaptive), intent(inout) :: self
 
@@ -624,7 +674,9 @@ contains
   end function adapativePerOutputTabualtionIsStatic
 
   subroutine adaptiveDescriptor(self,descriptor,includeClass)
-    !% Return an input parameter list descriptor which could be used to recreate this object.
+    !!{
+    Return an input parameter list descriptor which could be used to recreate this object.
+    !!}
     use :: Input_Parameters  , only : inputParameters
     use :: ISO_Varying_String, only : assignment(=)  , operator(//), char
     implicit none

@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains custom functions for the standard basic component.
+!!{
+Contains custom functions for the standard basic component.
+!!}
 
 double precision function BasicStandardTimeLastIsolated(self)
-  !% Return the {\normalfont \ttfamily timeLastIsolated} property of the {\normalfont \ttfamily Basic} component class.
+  !!{
+  Return the {\normalfont \ttfamily timeLastIsolated} property of the {\normalfont \ttfamily Basic} component class.
+  !!}
   implicit none
   class(nodeComponentBasicStandard), intent(inout) :: self
   type (treeNode                  ), pointer       :: selfNode

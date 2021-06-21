@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module of stateful types.
+!!{
+Contains a module of stateful types.
+!!}
 
 module Stateful_Types
-  !% Contains stateful types.
+  !!{
+  Contains stateful types.
+  !!}
   implicit none
   public
 

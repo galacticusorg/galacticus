@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a node operator class that performs tidal heating in spheroids.
+  !!{
+  Implements a node operator class that performs tidal heating in spheroids.
+  !!}
   
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
   use :: Satellites_Tidal_Fields, only : satelliteTidalFieldClass
 
-  !# <nodeOperator name="nodeOperatorTidalHeatingSpheroids">
-  !#  <description>A node operator class that performs tidal heating in spheroids.</description>
-  !# </nodeOperator>
+  !![
+  <nodeOperator name="nodeOperatorTidalHeatingSpheroids">
+   <description>A node operator class that performs tidal heating in spheroids.</description>
+  </nodeOperator>
+  !!]
   type, extends(nodeOperatorClass) :: nodeOperatorTidalHeatingSpheroids
-     !% A node operator class that performs tidal heating in spheroids.
+     !!{
+     A node operator class that performs tidal heating in spheroids.
+     !!}
      private
      class(satelliteTidalFieldClass), pointer :: satelliteTidalField_ => null()
      class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
@@ -36,7 +42,9 @@
   end type nodeOperatorTidalHeatingSpheroids
 
   interface nodeOperatorTidalHeatingSpheroids
-     !% Constructors for the {\normalfont \ttfamily tidalHeatingSpheroids} node operator class.
+     !!{
+     Constructors for the {\normalfont \ttfamily tidalHeatingSpheroids} node operator class.
+     !!}
      module procedure tidalHeatingSpheroidsConstructorParameters
      module procedure tidalHeatingSpheroidsConstructorInternal
   end interface nodeOperatorTidalHeatingSpheroids
@@ -44,7 +52,9 @@
 contains
   
   function tidalHeatingSpheroidsConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily tidalHeatingSpheroids} node operator class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily tidalHeatingSpheroids} node operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type (nodeOperatorTidalHeatingSpheroids)                :: self
@@ -52,38 +62,52 @@ contains
     class(darkMatterHaloScaleClass         ), pointer       :: darkMatterHaloScale_
     class(satelliteTidalFieldClass         ), pointer       :: satelliteTidalField_
 
-    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
-    !# <objectBuilder class="satelliteTidalField" name="satelliteTidalField_" source="parameters"/>
+    !![
+    <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    <objectBuilder class="satelliteTidalField" name="satelliteTidalField_" source="parameters"/>
+    !!]
     self=nodeOperatorTidalHeatingSpheroids(darkMatterHaloScale_,satelliteTidalField_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterHaloScale_"/>
-    !# <objectDestructor name="satelliteTidalField_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterHaloScale_"/>
+    <objectDestructor name="satelliteTidalField_"/>
+    !!]
     return
   end function tidalHeatingSpheroidsConstructorParameters
 
   function tidalHeatingSpheroidsConstructorInternal(darkMatterHaloScale_,satelliteTidalField_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily tidalHeatingSpheroids} node operator class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily tidalHeatingSpheroids} node operator class.
+    !!}
     implicit none
     type (nodeOperatorTidalHeatingSpheroids)                        :: self
     class(darkMatterHaloScaleClass         ), intent(in   ), target :: darkMatterHaloScale_
     class(satelliteTidalFieldClass         ), intent(in   ), target :: satelliteTidalField_
-    !# <constructorAssign variables="*darkMatterHaloScale_, *satelliteTidalField_"/>
+    !![
+    <constructorAssign variables="*darkMatterHaloScale_, *satelliteTidalField_"/>
+    !!]
 
     return
   end function tidalHeatingSpheroidsConstructorInternal
 
   subroutine tidalHeatingSpheroidsDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily tidalHeatingSpheroids} node operator class.
+    !!{
+    Destructor for the {\normalfont \ttfamily tidalHeatingSpheroids} node operator class.
+    !!}
     implicit none
     type(nodeOperatorTidalHeatingSpheroids), intent(inout) :: self
     
-    !# <objectDestructor name="self%darkMatterHaloScale_"/>
-    !# <objectDestructor name="self%satelliteTidalField_"/>
+    !![
+    <objectDestructor name="self%darkMatterHaloScale_"/>
+    <objectDestructor name="self%satelliteTidalField_"/>
+    !!]
     return
   end subroutine tidalHeatingSpheroidsDestructor
   
   subroutine tidalHeatingSpheroidsDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !% Perform star formation in a spheroid.
+    !!{
+    Perform star formation in a spheroid.
+    !!}
     use :: Galacticus_Nodes, only : propertyTypeInactive, nodeComponentSpheroid
     implicit none
     class           (nodeOperatorTidalHeatingSpheroids), intent(inout), target  :: self

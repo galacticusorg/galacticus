@@ -17,27 +17,37 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements calculations of zero dust attenuation of stellar spectra.
+  !!{
+  Implements calculations of zero dust attenuation of stellar spectra.
+  !!}
 
-  !# <stellarSpectraDustAttenuation name="stellarSpectraDustAttenuationZero">
-  !#  <description>Returns a zero dust attenuation.</description>
-  !# </stellarSpectraDustAttenuation>
+  !![
+  <stellarSpectraDustAttenuation name="stellarSpectraDustAttenuationZero">
+   <description>Returns a zero dust attenuation.</description>
+  </stellarSpectraDustAttenuation>
+  !!]
   type, extends(stellarSpectraDustAttenuationClass) :: stellarSpectraDustAttenuationZero
-     !% A class implementing zero dust attenuation of stellar spectra.
+     !!{
+     A class implementing zero dust attenuation of stellar spectra.
+     !!}
      private
    contains
      procedure :: attenuation => zeroAttenuation
   end type stellarSpectraDustAttenuationZero
 
   interface stellarSpectraDustAttenuationZero
-     !% Constructors for the ``zero'' stellar spectra dust attenuation class.
+     !!{
+     Constructors for the ``zero'' stellar spectra dust attenuation class.
+     !!}
      module procedure zeroConstructorParameters
   end interface stellarSpectraDustAttenuationZero
 
 contains
 
   function zeroConstructorParameters(parameters) result(self)
-    !% Default constructor for the ``zero'' stellar spectra dust attenuation class.
+    !!{
+    Default constructor for the ``zero'' stellar spectra dust attenuation class.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(stellarSpectraDustAttenuationZero)                :: self
@@ -49,7 +59,9 @@ contains
   end function zeroConstructorParameters
 
   double precision function zeroAttenuation(self,wavelength,age,vBandAttenuation)
-    !% Return a zero attenuation.
+    !!{
+    Return a zero attenuation.
+    !!}
     implicit none
     class           (stellarSpectraDustAttenuationZero), intent(inout) :: self
     double precision                                   , intent(in   ) :: wavelength      , age, &

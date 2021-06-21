@@ -17,18 +17,24 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a cooling rate property extractor class.
+!!{
+Contains a module which implements a cooling rate property extractor class.
+!!}
 
   use :: Cooling_Rates, only : coolingRate, coolingRateClass
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorRateCooling">
-  !#  <description>
-  !#  A cooling rate property extractor class. Extracts the rate at which gas is cooling from the halo (assuming no sources of
-  !#  heating) in $M_\odot$ Gyr$^{-1}$.
-  !# </description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorRateCooling">
+   <description>
+   A cooling rate property extractor class. Extracts the rate at which gas is cooling from the halo (assuming no sources of
+   heating) in $M_\odot$ Gyr$^{-1}$.
+  </description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRateCooling
-     !% A rateCooling property extractor class.
+     !!{
+     A rateCooling property extractor class.
+     !!}
      private
      class(coolingRateClass), pointer :: coolingRate_ => null()
    contains
@@ -41,7 +47,9 @@
   end type nodePropertyExtractorRateCooling
 
   interface nodePropertyExtractorRateCooling
-     !% Constructors for the ``rateCooling'' output analysis class.
+     !!{
+     Constructors for the ``rateCooling'' output analysis class.
+     !!}
      module procedure rateCoolingConstructorParameters
      module procedure rateCoolingConstructorInternal
   end interface nodePropertyExtractorRateCooling
@@ -49,41 +57,57 @@
 contains
 
   function rateCoolingConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily rateCooling} property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily rateCooling} property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (nodePropertyExtractorRateCooling)                :: self
     type (inputParameters                 ), intent(inout) :: parameters
     class(coolingRateClass                ), pointer       :: coolingRate_
 
-    !# <objectBuilder class="coolingRate" name="coolingRate_" source="parameters"/>
+    !![
+    <objectBuilder class="coolingRate" name="coolingRate_" source="parameters"/>
+    !!]
     self=nodePropertyExtractorRateCooling(coolingRate_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="coolingRate_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="coolingRate_"/>
+    !!]
     return
   end function rateCoolingConstructorParameters
 
   function rateCoolingConstructorInternal(coolingRate_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily rateCooling} property extractor class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily rateCooling} property extractor class.
+    !!}
     implicit none
     type (nodePropertyExtractorRateCooling)                        :: self
     class(coolingRateClass                ), intent(in   ), target :: coolingRate_
-    !# <constructorAssign variables="*coolingRate_"/>
+    !![
+    <constructorAssign variables="*coolingRate_"/>
+    !!]
 
     return
   end function rateCoolingConstructorInternal
 
   subroutine rateCoolingDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily rateCooling} property extractor class.
+    !!{
+    Destructor for the {\normalfont \ttfamily rateCooling} property extractor class.
+    !!}
     implicit none
     type(nodePropertyExtractorRateCooling), intent(inout) :: self
 
-    !# <objectDestructor name="self%coolingRate_"/>
+    !![
+    <objectDestructor name="self%coolingRate_"/>
+    !!]
     return
   end subroutine rateCoolingDestructor
 
   double precision function rateCoolingExtract(self,node,instance)
-    !% Implement a last isolated redshift output analysis.
+    !!{
+    Implement a last isolated redshift output analysis.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class(nodePropertyExtractorRateCooling), intent(inout)           :: self
@@ -96,7 +120,9 @@ contains
   end function rateCoolingExtract
 
   function rateCoolingName(self)
-    !% Return the name of the last isolated redshift property.
+    !!{
+    Return the name of the last isolated redshift property.
+    !!}
     implicit none
     type (varying_string                  )                :: rateCoolingName
     class(nodePropertyExtractorRateCooling), intent(inout) :: self
@@ -107,7 +133,9 @@ contains
   end function rateCoolingName
 
   function rateCoolingDescription(self)
-    !% Return a description of the rateCooling property.
+    !!{
+    Return a description of the rateCooling property.
+    !!}
     implicit none
     type (varying_string                  )                :: rateCoolingDescription
     class(nodePropertyExtractorRateCooling), intent(inout) :: self
@@ -118,7 +146,9 @@ contains
   end function rateCoolingDescription
 
   double precision function rateCoolingUnitsInSI(self)
-    !% Return the units of the last isolated redshift property in the SI system.
+    !!{
+    Return the units of the last isolated redshift property in the SI system.
+    !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear, massSolar
     implicit none
     class(nodePropertyExtractorRateCooling), intent(inout) :: self
@@ -129,7 +159,9 @@ contains
   end function rateCoolingUnitsInSI
 
   integer function rateCoolingType(self)
-    !% Return the type of the last isolated redshift property.
+    !!{
+    Return the type of the last isolated redshift property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorRateCooling), intent(inout) :: self

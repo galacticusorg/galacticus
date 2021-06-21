@@ -17,17 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a mass distribution class which overlays clouds on another mass distribution.
+  !!{
+  Implementation of a mass distribution class which overlays clouds on another mass distribution.
+  !!}
 
   use, intrinsic :: ISO_C_Binding           , only : c_size_t
   use            :: Nearest_Neighbors       , only : nearestNeighbors
   use            :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
-  !# <massDistribution name="massDistributionCloudOverdensities">
-  !#  <description>A mass distribution class which overlays clouds on another mass distribution.</description>
-  !# </massDistribution>
+  !![
+  <massDistribution name="massDistributionCloudOverdensities">
+   <description>A mass distribution class which overlays clouds on another mass distribution.</description>
+  </massDistribution>
+  !!]
   type, public, extends(massDistributionClass) :: massDistributionCloudOverdensities
-     !% A mass distribution class which overlays clouds on another mass distribution.
+     !!{
+     A mass distribution class which overlays clouds on another mass distribution.
+     !!}
      class           (randomNumberGeneratorClass), pointer                     :: randomNumberGenerator_
      class           (massDistributionClass     ), pointer                     :: massDistribution_
      double precision                            , allocatable, dimension(:,:) :: positions
@@ -42,7 +48,9 @@
   end type massDistributionCloudOverdensities
 
   interface massDistributionCloudOverdensities
-     !% Constructors for the {\normalfont \ttfamily cloudOverdensities} mass distribution class.
+     !!{
+     Constructors for the {\normalfont \ttfamily cloudOverdensities} mass distribution class.
+     !!}
      module procedure cloudOverdensitiesConstructorParameters
      module procedure cloudOverdensitiesConstructorInternal
   end interface massDistributionCloudOverdensities
@@ -50,8 +58,10 @@
 contains
 
   function cloudOverdensitiesConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily cloudOverdensities} mass distribution class which builds the object from a parameter
-    !% set.
+    !!{
+    Constructor for the {\normalfont \ttfamily cloudOverdensities} mass distribution class which builds the object from a parameter
+    set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (massDistributionCloudOverdensities)                :: self
@@ -62,43 +72,49 @@ contains
           &                                                                volumeFillingFactor   , radiusBoundary
     logical                                                             :: dimensionless
 
-    !# <inputParameter>
-    !#   <name>radius</name>
-    !#   <description>The cloud radius.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>densityContrast</name>
-    !#   <description>The cloud density contrast.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>volumeFillingFactor</name>
-    !#   <description>The cloud volume filling factor.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>radiusBoundary</name>
-    !#   <description>The boundary radius within which to populate clouds.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>dimensionless</name>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>If true the cloud overdensities profile is considered to be dimensionless.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="massDistribution"      name="massDistribution_"      source="parameters"/>
-    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>radius</name>
+      <description>The cloud radius.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>densityContrast</name>
+      <description>The cloud density contrast.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>volumeFillingFactor</name>
+      <description>The cloud volume filling factor.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>radiusBoundary</name>
+      <description>The boundary radius within which to populate clouds.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>dimensionless</name>
+      <defaultValue>.true.</defaultValue>
+      <description>If true the cloud overdensities profile is considered to be dimensionless.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="massDistribution"      name="massDistribution_"      source="parameters"/>
+    <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !!]
     self=massDistributionCloudOverdensities(radius,densityContrast,volumeFillingFactor,radiusBoundary,massDistribution_,randomNumberGenerator_,dimensionless)
-    !# <objectDestructor name="massDistribution_"     />
-    !# <objectDestructor name="randomNumberGenerator_"/>
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <objectDestructor name="massDistribution_"     />
+    <objectDestructor name="randomNumberGenerator_"/>
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function cloudOverdensitiesConstructorParameters
   
   function cloudOverdensitiesConstructorInternal(radius,densityContrast,volumeFillingFactor,radiusBoundary,massDistribution_,randomNumberGenerator_,dimensionless) result(self)
-    !% Constructor for ``cloudOverdensities'' mass distribution class.
+    !!{
+    Constructor for ``cloudOverdensities'' mass distribution class.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     use :: Sorting                 , only : sortIndex, sortByIndex
     implicit none
@@ -112,7 +128,9 @@ contains
     double precision                                                                  :: positionRadius        , positionTheta  , &
          &                                                                               positionPhi
     integer         (c_size_t                          )                              :: i
-    !# <constructorAssign variables="radius, densityContrast, volumeFillingFactor, radiusBoundary, *massDistribution_, *randomNumberGenerator_"/>
+    !![
+    <constructorAssign variables="radius, densityContrast, volumeFillingFactor, radiusBoundary, *massDistribution_, *randomNumberGenerator_"/>
+    !!]
 
     ! Determine if profile is dimensionless.
     if (present(dimensionless)) then
@@ -162,17 +180,23 @@ contains
   end function cloudOverdensitiesConstructorInternal
   
   subroutine cloudOverdensitiesDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily cloudOverdensities} mass distribution class.
+    !!{
+    Destructor for the {\normalfont \ttfamily cloudOverdensities} mass distribution class.
+    !!}
     implicit none
     type(massDistributionCloudOverdensities), intent(inout) :: self
 
-    !# <objectDestructor name="self%massDistribution_"     />
-    !# <objectDestructor name="self%randomNumberGenerator_"/>
+    !![
+    <objectDestructor name="self%massDistribution_"     />
+    <objectDestructor name="self%randomNumberGenerator_"/>
+    !!]
     return
   end subroutine cloudOverdensitiesDestructor
 
   double precision function cloudOverdensitiesDensity(self,coordinates)
-    !% Return the density at the specified {\normalfont \ttfamily coordinates} in a cloud overdensities mass distribution.
+    !!{
+    Return the density at the specified {\normalfont \ttfamily coordinates} in a cloud overdensities mass distribution.
+    !!}
     use :: Coordinates  , only : assignment(=), coordinateCartesian
     implicit none
     class           (massDistributionCloudOverdensities), intent(inout) :: self

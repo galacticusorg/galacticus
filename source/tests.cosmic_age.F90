@@ -18,8 +18,10 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 program Tests_Cosmic_Age
-  !% Tests cosmic age calculations for various Universers. Ages calculated using Python
-  !% \href{http://www.astro.ucla.edu/~wright/CC.python}{implementation} of Ned Wright's cosmology calculator.
+  !!{
+  Tests cosmic age calculations for various Universers. Ages calculated using Python
+  \href{http://www.astro.ucla.edu/~wright/CC.python}{implementation} of Ned Wright's cosmology calculator.
+  !!}
   use :: Cosmology_Functions     , only : cosmologyFunctions       , cosmologyFunctionsClass, cosmologyFunctionsMatterDarkEnergy, cosmologyFunctionsMatterLambda
   use :: Cosmology_Parameters    , only : cosmologyParametersSimple, hubbleUnitsTime
   use :: Display                 , only : displayVerbositySet      , verbosityLevelStandard
@@ -47,99 +49,103 @@ program Tests_Cosmic_Age
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Cosmic age")
   ! Define cosmological parameters.
-  !# <referenceConstruct object="cosmologyParametersEdS"                 >
-  !#  <constructor>
-  !#   cosmologyParametersSimple(                             &amp;
-  !#    &amp;                    OmegaMatter         =1.00d0, &amp;
-  !#    &amp;                    OmegaBaryon         =0.00d0, &amp;
-  !#    &amp;                    OmegaDarkEnergy     =0.00d0, &amp;
-  !#    &amp;                    temperatureCMB      =2.78d0, &amp;
-  !#    &amp;                    HubbleConstant      =1.00d4  &amp;
-  !#    &amp;                   )
-  !#  </constructor>
-  !# </referenceConstruct>
-  !# <referenceConstruct object="cosmologyParametersOpen"                >
-  !#  <constructor>
-  !#   cosmologyParametersSimple(                             &amp;
-  !#    &amp;                    OmegaMatter         =0.30d0, &amp;
-  !#    &amp;                    OmegaBaryon         =0.00d0, &amp;
-  !#    &amp;                    OmegaDarkEnergy     =0.00d0, &amp;
-  !#    &amp;                    temperatureCMB      =2.78d0, &amp;
-  !#    &amp;                    HubbleConstant      =1.00d4  &amp;
-  !#    &amp;                   )
-  !#  </constructor>
-  !# </referenceConstruct>
-  !# <referenceConstruct object="cosmologyParametersClosed">
-  !#  <constructor>
-  !#   cosmologyParametersSimple(                             &amp;
-  !#    &amp;                    OmegaMatter         =1.00d1, &amp;
-  !#    &amp;                    OmegaBaryon         =0.00d0, &amp;
-  !#    &amp;                    OmegaDarkEnergy     =0.00d0, &amp;
-  !#    &amp;                    temperatureCMB      =2.78d0, &amp;
-  !#    &amp;                    HubbleConstant      =1.00d4  &amp;
-  !#    &amp;                   )
-  !#  </constructor>
-  !# </referenceConstruct>
-  !# <referenceConstruct object="cosmologyParametersCosmologicalConstant">
-  !#  <constructor>
-  !#   cosmologyParametersSimple(                             &amp;
-  !#    &amp;                    OmegaMatter         =0.30d0, &amp;
-  !#    &amp;                    OmegaBaryon         =0.00d0, &amp;
-  !#    &amp;                    OmegaDarkEnergy     =0.70d0, &amp;
-  !#    &amp;                    temperatureCMB      =2.78d0, &amp;
-  !#    &amp;                    HubbleConstant      =1.00d4  &amp;
-  !#    &amp;                   )
-  !#  </constructor>
-  !# </referenceConstruct>
+  !![
+  <referenceConstruct object="cosmologyParametersEdS"                 >
+   <constructor>
+    cosmologyParametersSimple(                             &amp;
+     &amp;                    OmegaMatter         =1.00d0, &amp;
+     &amp;                    OmegaBaryon         =0.00d0, &amp;
+     &amp;                    OmegaDarkEnergy     =0.00d0, &amp;
+     &amp;                    temperatureCMB      =2.78d0, &amp;
+     &amp;                    HubbleConstant      =1.00d4  &amp;
+     &amp;                   )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="cosmologyParametersOpen"                >
+   <constructor>
+    cosmologyParametersSimple(                             &amp;
+     &amp;                    OmegaMatter         =0.30d0, &amp;
+     &amp;                    OmegaBaryon         =0.00d0, &amp;
+     &amp;                    OmegaDarkEnergy     =0.00d0, &amp;
+     &amp;                    temperatureCMB      =2.78d0, &amp;
+     &amp;                    HubbleConstant      =1.00d4  &amp;
+     &amp;                   )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="cosmologyParametersClosed">
+   <constructor>
+    cosmologyParametersSimple(                             &amp;
+     &amp;                    OmegaMatter         =1.00d1, &amp;
+     &amp;                    OmegaBaryon         =0.00d0, &amp;
+     &amp;                    OmegaDarkEnergy     =0.00d0, &amp;
+     &amp;                    temperatureCMB      =2.78d0, &amp;
+     &amp;                    HubbleConstant      =1.00d4  &amp;
+     &amp;                   )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="cosmologyParametersCosmologicalConstant">
+   <constructor>
+    cosmologyParametersSimple(                             &amp;
+     &amp;                    OmegaMatter         =0.30d0, &amp;
+     &amp;                    OmegaBaryon         =0.00d0, &amp;
+     &amp;                    OmegaDarkEnergy     =0.70d0, &amp;
+     &amp;                    temperatureCMB      =2.78d0, &amp;
+     &amp;                    HubbleConstant      =1.00d4  &amp;
+     &amp;                   )
+   </constructor>
+  </referenceConstruct>
+  !!]
   ! Build cosmological function objects.
-  !# <referenceConstruct object="cosmologyFunctionsEdS"                           >
-  !#  <constructor>
-  !#   cosmologyFunctionsMatterLambda    (                                                                     &amp;
-  !#    &amp;                             cosmologyParameters_       =cosmologyParametersEdS                   &amp;
-  !#    &amp;                            )
-  !#  </constructor>
-  !# </referenceConstruct>
-  !# <referenceConstruct object="cosmologyFunctionsOpen"                          >
-  !#  <constructor>
-  !#   cosmologyFunctionsMatterLambda    (                                                                     &amp;
-  !#    &amp;                             cosmologyParameters_       =cosmologyParametersOpen                  &amp;
-  !#    &amp;                            )
-  !#  </constructor>
-  !# </referenceConstruct>
-  !# <referenceConstruct object="cosmologyFunctionsCosmologicalConstant"          >
-  !#  <constructor>
-  !#   cosmologyFunctionsMatterLambda    (                                                                     &amp;
-  !#    &amp;                             cosmologyParameters_       =cosmologyParametersCosmologicalConstant  &amp;
-  !#    &amp;                            )
-  !#  </constructor>
-  !# </referenceConstruct>
-  !# <referenceConstruct object="cosmologyFunctionsDarkEnergyClosed"              >
-  !#  <constructor>
-  !#   cosmologyFunctionsMatterDarkEnergy(                                                                     &amp;
-  !#    &amp;                             cosmologyParameters_       =cosmologyParametersClosed              , &amp;
-  !#    &amp;                             darkEnergyEquationOfStateW0=+0.0d0                                 , &amp;
-  !#    &amp;                             darkEnergyEquationOfStateW1=+0.0d0                                   &amp;
-  !#    &amp;                            )
-  !#  </constructor>
-  !# </referenceConstruct>
-  !# <referenceConstruct object="cosmologyFunctionsDarkEnergyCosmologicalConstant">
-  !#  <constructor>
-  !#   cosmologyFunctionsMatterDarkEnergy(                                                                     &amp;
-  !#    &amp;                             cosmologyParameters_       =cosmologyParametersCosmologicalConstant, &amp;
-  !#    &amp;                             darkEnergyEquationOfStateW0=-1.0d0                                 , &amp;
-  !#    &amp;                             darkEnergyEquationOfStateW1=+0.0d0                                   &amp;
-  !#    &amp;                            )
-  !#  </constructor>
-  !# </referenceConstruct>
-  !# <referenceConstruct object="cosmologyFunctionsDarkEnergyOmegaMinusOneThird"  >
-  !#  <constructor>
-  !#   cosmologyFunctionsMatterDarkEnergy(                                                                     &amp;
-  !#    &amp;                             cosmologyParameters_       =cosmologyParametersCosmologicalConstant, &amp;
-  !#    &amp;                             darkEnergyEquationOfStateW0=-1.0d0/3.0d0                           , &amp;
-  !#    &amp;                             darkEnergyEquationOfStateW1=+0.0d0                                   &amp;
-  !#    &amp;                            )
-  !#  </constructor>
-  !# </referenceConstruct>
+  !![
+  <referenceConstruct object="cosmologyFunctionsEdS"                           >
+   <constructor>
+    cosmologyFunctionsMatterLambda    (                                                                     &amp;
+     &amp;                             cosmologyParameters_       =cosmologyParametersEdS                   &amp;
+     &amp;                            )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="cosmologyFunctionsOpen"                          >
+   <constructor>
+    cosmologyFunctionsMatterLambda    (                                                                     &amp;
+     &amp;                             cosmologyParameters_       =cosmologyParametersOpen                  &amp;
+     &amp;                            )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="cosmologyFunctionsCosmologicalConstant"          >
+   <constructor>
+    cosmologyFunctionsMatterLambda    (                                                                     &amp;
+     &amp;                             cosmologyParameters_       =cosmologyParametersCosmologicalConstant  &amp;
+     &amp;                            )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="cosmologyFunctionsDarkEnergyClosed"              >
+   <constructor>
+    cosmologyFunctionsMatterDarkEnergy(                                                                     &amp;
+     &amp;                             cosmologyParameters_       =cosmologyParametersClosed              , &amp;
+     &amp;                             darkEnergyEquationOfStateW0=+0.0d0                                 , &amp;
+     &amp;                             darkEnergyEquationOfStateW1=+0.0d0                                   &amp;
+     &amp;                            )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="cosmologyFunctionsDarkEnergyCosmologicalConstant">
+   <constructor>
+    cosmologyFunctionsMatterDarkEnergy(                                                                     &amp;
+     &amp;                             cosmologyParameters_       =cosmologyParametersCosmologicalConstant, &amp;
+     &amp;                             darkEnergyEquationOfStateW0=-1.0d0                                 , &amp;
+     &amp;                             darkEnergyEquationOfStateW1=+0.0d0                                   &amp;
+     &amp;                            )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="cosmologyFunctionsDarkEnergyOmegaMinusOneThird"  >
+   <constructor>
+    cosmologyFunctionsMatterDarkEnergy(                                                                     &amp;
+     &amp;                             cosmologyParameters_       =cosmologyParametersCosmologicalConstant, &amp;
+     &amp;                             darkEnergyEquationOfStateW0=-1.0d0/3.0d0                           , &amp;
+     &amp;                             darkEnergyEquationOfStateW1=+0.0d0                                   &amp;
+     &amp;                            )
+   </constructor>
+  </referenceConstruct>
+  !!]
   ! Compute the time of maximum expansion for the Universe. In this simple, OmegaM=10, OmegaDE=0 Universe this is analytically
   ! calculable and equals:
   timeTurnaround=(5.0d0/27.0d0)*Pi/cosmologyParametersClosed%HubbleConstant(hubbleUnitsTime)

@@ -17,27 +17,37 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a zero cooling rate class.
+  !!{
+  Implementation of a zero cooling rate class.
+  !!}
 
-  !# <coolingRate name="coolingRateZero">
-  !#  <description>A cooling rate class in which the cooling rate is always zero.</description>
-  !# </coolingRate>
+  !![
+  <coolingRate name="coolingRateZero">
+   <description>A cooling rate class in which the cooling rate is always zero.</description>
+  </coolingRate>
+  !!]
   type, extends(coolingRateClass) :: coolingRateZero
-     !% Implementation of cooling rate class in which the cooling rate is always zero.
+     !!{
+     Implementation of cooling rate class in which the cooling rate is always zero.
+     !!}
      private
    contains
      procedure :: rate => zeroRate
   end type coolingRateZero
 
   interface coolingRateZero
-     !% Constructors for the zero cooling rate class.
+     !!{
+     Constructors for the zero cooling rate class.
+     !!}
      module procedure zeroConstructorParameters
   end interface coolingRateZero
 
 contains
 
   function zeroConstructorParameters(parameters) result(self)
-    !% Constructor for the zero cooling rate class which builds the object from a parameter set.
+    !!{
+    Constructor for the zero cooling rate class which builds the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(coolingRateZero)                :: self
@@ -49,7 +59,9 @@ contains
   end function zeroConstructorParameters
 
   double precision function zeroRate(self,node)
-    !% Returns the cooling rate (in $M_\odot$ Gyr$^{-1}$) in the hot atmosphere for a model in which this rate is always zero.
+    !!{
+    Returns the cooling rate (in $M_\odot$ Gyr$^{-1}$) in the hot atmosphere for a model in which this rate is always zero.
+    !!}
     implicit none
     class           (coolingRateZero), intent(inout) :: self
     type            (treeNode       ), intent(inout) :: node

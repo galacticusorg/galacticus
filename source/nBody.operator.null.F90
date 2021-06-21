@@ -17,27 +17,37 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a null N-body data operator.
+!!{
+Contains a module which implements a null N-body data operator.
+!!}
 
-  !# <nbodyOperator name="nbodyOperatorNull">
-  !#  <description>A null N-body data operator.</description>
-  !# </nbodyOperator>
+  !![
+  <nbodyOperator name="nbodyOperatorNull">
+   <description>A null N-body data operator.</description>
+  </nbodyOperator>
+  !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorNull
-     !% A null N-body data operator.
+     !!{
+     A null N-body data operator.
+     !!}
      private
    contains
      procedure :: operate => nullOperate
   end type nbodyOperatorNull
 
   interface nbodyOperatorNull
-     !% Constructors for the ``null'' N-body operator class.
+     !!{
+     Constructors for the ``null'' N-body operator class.
+     !!}
      module procedure nullConstructorParameters
   end interface nbodyOperatorNull
 
 contains
 
   function nullConstructorParameters(parameters) result (self)
-    !% Constructor for the ``null'' N-body operator class which takes a parameter set as input.
+    !!{
+    Constructor for the ``null'' N-body operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type   (nbodyOperatorNull)                :: self
@@ -49,7 +59,9 @@ contains
   end function nullConstructorParameters
 
   subroutine nullOperate(self,simulations)
-    !% Perform a null operation on N-body simulation data.
+    !!{
+    Perform a null operation on N-body simulation data.
+    !!}
     implicit none
     class(nbodyOperatorNull), intent(inout)               :: self
     type (nBodyData        ), intent(inout), dimension(:) :: simulations

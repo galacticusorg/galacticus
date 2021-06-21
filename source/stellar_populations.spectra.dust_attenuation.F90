@@ -17,41 +17,47 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module that provides a class implementing dust attenuation of stellar spectra.
+!!{
+Contains a module that provides a class implementing dust attenuation of stellar spectra.
+!!}
 
 module Stellar_Spectra_Dust_Attenuations
-  !% Provides a class implementing dust attenuation of stellar spectra.
+  !!{
+  Provides a class implementing dust attenuation of stellar spectra.
+  !!}
   private
 
-  !# <functionClass>
-  !#  <name>stellarSpectraDustAttenuation</name>
-  !#  <descriptiveName>Stellar Spectra Dust Attenuation</descriptiveName>
-  !#  <description>Class implementing dust attenuation of stellar spectra.</description>
-  !#  <default>zero</default>
-  !#  <method name="attenuation" >
-  !#   <description>Return the attenuation, in magnitudes, of stellar spectra due to dust at the given wavelength, age, and V-band extinction.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ) :: wavelength, age, vBandAttenuation</argument>
-  !#  </method>
-  !#  <method name="isAgeDependent" >
-  !#   <description>Return true if the attenuation may depend on the age of the stellar population.</description>
-  !#   <type>logical</type>
-  !#   <pass>yes</pass>
-  !#   <code>
-  !#    !$GLC attributes unused :: self
-  !#    stellarSpectraDustAttenuationIsAgeDependent=.false.
-  !#   </code>
-  !#  </method>
-  !#  <method name="isSeparable" >
-  !#   <description>Return true if the attenuation is separable into a product of functions of wavelength, age, and V-band attenuation.</description>
-  !#   <type>logical</type>
-  !#   <pass>yes</pass>
-  !#   <code>
-  !#    !$GLC attributes unused :: self
-  !#    stellarSpectraDustAttenuationIsSeparable=.true.
-  !#   </code>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>stellarSpectraDustAttenuation</name>
+   <descriptiveName>Stellar Spectra Dust Attenuation</descriptiveName>
+   <description>Class implementing dust attenuation of stellar spectra.</description>
+   <default>zero</default>
+   <method name="attenuation" >
+    <description>Return the attenuation, in magnitudes, of stellar spectra due to dust at the given wavelength, age, and V-band extinction.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision, intent(in   ) :: wavelength, age, vBandAttenuation</argument>
+   </method>
+   <method name="isAgeDependent" >
+    <description>Return true if the attenuation may depend on the age of the stellar population.</description>
+    <type>logical</type>
+    <pass>yes</pass>
+    <code>
+     !$GLC attributes unused :: self
+     stellarSpectraDustAttenuationIsAgeDependent=.false.
+    </code>
+   </method>
+   <method name="isSeparable" >
+    <description>Return true if the attenuation is separable into a product of functions of wavelength, age, and V-band attenuation.</description>
+    <type>logical</type>
+    <pass>yes</pass>
+    <code>
+     !$GLC attributes unused :: self
+     stellarSpectraDustAttenuationIsSeparable=.true.
+    </code>
+   </method>
+  </functionClass>
+  !!]
 
 end module Stellar_Spectra_Dust_Attenuations

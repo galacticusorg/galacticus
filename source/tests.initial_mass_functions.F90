@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to test stellar inital mass functions.
+!!{
+Contains a program to test stellar inital mass functions.
+!!}
 
 program Test_Initial_Mass_Functions
-  !% Tests of stellar initial mass functions.
+  !!{
+  Tests of stellar initial mass functions.
+  !!}
   use :: Display                                   , only : displayVerbositySet             , verbosityLevelStandard
   use :: Numerical_Integration2                    , only : integratorCompositeTrapezoidal1D
   use :: Stellar_Populations_Initial_Mass_Functions, only : initialMassFunctionBPASS        , initialMassFunctionBaugh2005TopHeavy, initialMassFunctionChabrier2001   , initialMassFunctionClass            , &
@@ -135,7 +139,9 @@ program Test_Initial_Mass_Functions
 contains
 
   double precision function initialMassFunctionIntegrand(mass)
-    !% Integrand used to find the total mass in the initial mass function.
+    !!{
+    Integrand used to find the total mass in the initial mass function.
+    !!}
     implicit none
     double precision, intent(in   ) :: mass
 

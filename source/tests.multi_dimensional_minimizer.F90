@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to test multidimensional minimizers.
+!!{
+Contains a program to test multidimensional minimizers.
+!!}
 
 program Test_Multidimensional_Minimizer
-  !% Tests of multidimensional minimizers.
+  !!{
+  Tests of multidimensional minimizers.
+  !!}
   use            :: Display                                  , only : displayVerbositySet  , verbosityLevelStandard
   use, intrinsic :: ISO_C_Binding                            , only : c_size_t
   use            :: Multidimensional_Minimizer               , only : multiDMinimizer

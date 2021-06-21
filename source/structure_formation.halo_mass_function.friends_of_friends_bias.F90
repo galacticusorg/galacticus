@@ -17,24 +17,30 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a  module which  implements a  dark matter  halo mass function  class which  modifies another  mass function  to mimic
-!% systematic errors arising in the friends-of-friends halo finding algorithm.
+!!{
+Contains a  module which  implements a  dark matter  halo mass function  class which  modifies another  mass function  to mimic
+systematic errors arising in the friends-of-friends halo finding algorithm.
+!!}
 
   use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
 
-  !# <haloMassFunction name="haloMassFunctionFofBias">
-  !#  <description>
-  !#   The halo mass function is computed by modifying another halo mass function to mimic systematic
-  !#   errors arising in the friends-of-friends halo finding algorithm. Specifically, a
-  !#   systematic shift in mass motivated by the results of percolation theory \cite[their eqn. B11]{more_overdensity_2011}
-  !#   is applied. In particular, $M_\mathrm{particle}=${\normalfont \ttfamily [massParticle]} is the mass of the particle in the simulation
-  !#   to which the friends-of-friends algorithm was applied.
-  !#  </description>
-  !# </haloMassFunction>
+  !![
+  <haloMassFunction name="haloMassFunctionFofBias">
+   <description>
+    The halo mass function is computed by modifying another halo mass function to mimic systematic
+    errors arising in the friends-of-friends halo finding algorithm. Specifically, a
+    systematic shift in mass motivated by the results of percolation theory \cite[their eqn. B11]{more_overdensity_2011}
+    is applied. In particular, $M_\mathrm{particle}=${\normalfont \ttfamily [massParticle]} is the mass of the particle in the simulation
+    to which the friends-of-friends algorithm was applied.
+   </description>
+  </haloMassFunction>
+  !!]
   type, extends(haloMassFunctionClass) :: haloMassFunctionFofBias
-     !% A halo mass function class which modifies another mass function to mimic systematic errors arising in the
-     !% friends-of-friends halo finding algorithm.
+     !!{
+     A halo mass function class which modifies another mass function to mimic systematic errors arising in the
+     friends-of-friends halo finding algorithm.
+     !!}
      private
      double precision                                     :: massParticle                     , massInfiniteToMassSharpEdge, &
           &                                                  linkingLength
@@ -49,7 +55,9 @@
   end type haloMassFunctionFofBias
 
   interface haloMassFunctionFofBias
-     !% Constructors for the {\normalfont \ttfamily fofBias} halo mass function class.
+     !!{
+     Constructors for the {\normalfont \ttfamily fofBias} halo mass function class.
+     !!}
      module procedure fofBiasConstructorParameters
      module procedure fofBiasConstructorInternal
   end interface haloMassFunctionFofBias
@@ -57,7 +65,9 @@
 contains
 
   function fofBiasConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily fofBias} halo mass function class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily fofBias} halo mass function class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (haloMassFunctionFofBias  )                :: self
@@ -71,45 +81,51 @@ contains
          &                                                        linkingLength
     logical                                                    :: linkingLengthIsComoving
 
-    !# <inputParameter>
-    !#   <name>massParticle</name>
-    !#   <source>parameters</source>
-    !#   <description>Parameter $M_\mathrm{particle}$ appearing in model for friends-of-friends errors in the halo mass function.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massInfiniteToMassSharpEdge</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>0.98d0</defaultValue>
-    !#   <defaultSource>\cite[estimate based on comments in text]{more_overdensity_2011}</defaultSource>
-    !#   <description>The ratio of the friends-of-friends mass in the limit of infinite number of particles to the mass of the halo enclosed within a sharp-edged sphere bounding an isodensity surface equal to the critical density for percolation.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>linkingLength</name>
-    !#   <source>parameters</source>
-    !#   <description>The linking length (in physical Mpc) used in the friends-of-friends algorithm.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>linkingLengthIsComoving</name>
-    !#   <source>parameters</source>
-    !#   <description>Specifies whether or not the given linking length is in comoving units.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters"  name="cosmologyParameters_"  source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
-    !# <objectBuilder class="haloMassFunction"     name="massFunctionIntrinsic" source="parameters"/>
-    !# <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
-    !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>massParticle</name>
+      <source>parameters</source>
+      <description>Parameter $M_\mathrm{particle}$ appearing in model for friends-of-friends errors in the halo mass function.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>massInfiniteToMassSharpEdge</name>
+      <source>parameters</source>
+      <defaultValue>0.98d0</defaultValue>
+      <defaultSource>\cite[estimate based on comments in text]{more_overdensity_2011}</defaultSource>
+      <description>The ratio of the friends-of-friends mass in the limit of infinite number of particles to the mass of the halo enclosed within a sharp-edged sphere bounding an isodensity surface equal to the critical density for percolation.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>linkingLength</name>
+      <source>parameters</source>
+      <description>The linking length (in physical Mpc) used in the friends-of-friends algorithm.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>linkingLengthIsComoving</name>
+      <source>parameters</source>
+      <description>Specifies whether or not the given linking length is in comoving units.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyParameters"  name="cosmologyParameters_"  source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
+    <objectBuilder class="haloMassFunction"     name="massFunctionIntrinsic" source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
+    <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    !!]
     self=haloMassFunctionFofBias(massFunctionIntrinsic,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,massParticle,linkingLength,linkingLengthIsComoving,massInfiniteToMassSharpEdge)
-    !# <inputParametersValidate source="parameters"/>
-   !# <objectDestructor name="cosmologyParameters_" />
-   !# <objectDestructor name="cosmologyFunctions_"  />
-   !# <objectDestructor name="massFunctionIntrinsic"/>
-   !# <objectDestructor name="darkMatterHaloScale_" />
-   !# <objectDestructor name="darkMatterProfileDMO_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+   <objectDestructor name="cosmologyParameters_" />
+   <objectDestructor name="cosmologyFunctions_"  />
+   <objectDestructor name="massFunctionIntrinsic"/>
+   <objectDestructor name="darkMatterHaloScale_" />
+   <objectDestructor name="darkMatterProfileDMO_"/>
+   !!]
    return
   end function fofBiasConstructorParameters
 
   function fofBiasConstructorInternal(massFunctionIntrinsic,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,massParticle,linkingLength,linkingLengthIsComoving,massInfiniteToMassSharpEdge) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily fofBias} halo mass function class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily fofBias} halo mass function class.
+    !!}
     implicit none
     type            (haloMassFunctionFofBias  )                        :: self
     class           (haloMassFunctionClass    ), target, intent(in   ) :: massFunctionIntrinsic
@@ -120,26 +136,34 @@ contains
     double precision                                   , intent(in   ) :: massParticle           , massInfiniteToMassSharpEdge, &
          &                                                                linkingLength
     logical                                            , intent(in   ) :: linkingLengthIsComoving
-    !# <constructorAssign variables="*massFunctionIntrinsic, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloScale_, *darkMatterProfileDMO_, massParticle, linkingLength, linkingLengthIsComoving, massInfiniteToMassSharpEdge"/>
+    !![
+    <constructorAssign variables="*massFunctionIntrinsic, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloScale_, *darkMatterProfileDMO_, massParticle, linkingLength, linkingLengthIsComoving, massInfiniteToMassSharpEdge"/>
+    !!]
 
     return
   end function fofBiasConstructorInternal
 
   subroutine fofBiasDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily fofBias} halo mass function class.
+    !!{
+    Destructor for the {\normalfont \ttfamily fofBias} halo mass function class.
+    !!}
     implicit none
     type(haloMassFunctionFofBias), intent(inout) :: self
 
-    !# <objectDestructor name="self%massFunctionIntrinsic"/>
-    !# <objectDestructor name="self%cosmologyParameters_" />
-    !# <objectDestructor name="self%cosmologyFunctions_"  />
-    !# <objectDestructor name="self%darkMatterHaloScale_" />
-    !# <objectDestructor name="self%darkMatterProfileDMO_"/>
+    !![
+    <objectDestructor name="self%massFunctionIntrinsic"/>
+    <objectDestructor name="self%cosmologyParameters_" />
+    <objectDestructor name="self%cosmologyFunctions_"  />
+    <objectDestructor name="self%darkMatterHaloScale_" />
+    <objectDestructor name="self%darkMatterProfileDMO_"/>
+    !!]
     return
   end subroutine fofBiasDestructor
 
   double precision function fofBiasDifferential(self,time,mass,node)
-    !% Return the differential halo mass function at the given time and mass.
+    !!{
+    Return the differential halo mass function at the given time and mass.
+    !!}
     use :: Galacticus_Error        , only : Galacticus_Error_Report
     use :: Galacticus_Nodes        , only : nodeComponentBasic     , treeNode
     use :: Numerical_Constants_Math, only : Pi

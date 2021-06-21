@@ -17,20 +17,28 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module that implements useful OpenMP utilities.
+!!{
+Contains a module that implements useful OpenMP utilities.
+!!}
 
 module OpenMP_Utilities
-  !% Implements useful OpenMP utilities.
+  !!{
+  Implements useful OpenMP utilities.
+  !!}
   private
   public :: OpenMP_Critical_Wait_Times
 
 contains
 
-  !# <hdfPreCloseTask>
-  !#  <unitName>OpenMP_Critical_Wait_Times</unitName>
-  !# </hdfPreCloseTask>
+  !![
+  <hdfPreCloseTask>
+   <unitName>OpenMP_Critical_Wait_Times</unitName>
+  </hdfPreCloseTask>
+  !!]
   subroutine OpenMP_Critical_Wait_Times()
-    !% Outputs collected data on OpenMP critical section wait times.
+    !!{
+    Outputs collected data on OpenMP critical section wait times.
+    !!}
 #ifdef OMPPROFILE
     use :: Galacticus_HDF5      , only : galacticusOutputFile
     use :: IO_HDF5              , only : hdf5Access             , hdf5Object

@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which handles node branch jump events.
+!!{
+Contains a module which handles node branch jump events.
+!!}
 
 module Node_Branch_Jumps
-  !% Handles satellite node branch jump events.
+  !!{
+  Handles satellite node branch jump events.
+  !!}
   implicit none
   private
   public :: Node_Branch_Jump
@@ -28,15 +32,21 @@ module Node_Branch_Jumps
 contains
 
   logical function Node_Branch_Jump(event,node,deadlockStatus)
-    !% Moves a satellite node to a different branch of the merger tree.
+    !!{
+    Moves a satellite node to a different branch of the merger tree.
+    !!}
     use :: Display                            , only : displayMessage               , verbosityLevelInfo
     use :: Galacticus_Nodes                   , only : nodeEvent                    , treeNode
     use :: ISO_Varying_String                 , only : assignment(=)                , operator(//)      , varying_string
     use :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsNotDeadlocked
     use :: String_Handling                    , only : operator(//)
-    !# <include directive="branchJumpPostProcess" type="moduleUse">
+    !![
+    <include directive="branchJumpPostProcess" type="moduleUse">
+    !!]
     include 'events.branch_jump.post_process.modules.inc'
-    !# </include>
+    !![
+    </include>
+    !!]
     implicit none
     class    (nodeEvent     ), intent(in   )          :: event
     type     (treeNode      ), intent(inout), pointer :: node
@@ -74,10 +84,14 @@ contains
     ! Locate the paired event in the host and remove it.
     call newHost%removePairedEvent(event)
     ! Allow any postprocessing of the branch jump event that may be necessary.
-    !# <include directive="branchJumpPostProcess" type="functionCall" functionType="void">
-    !#  <functionArgs>node</functionArgs>
+    !![
+    <include directive="branchJumpPostProcess" type="functionCall" functionType="void">
+     <functionArgs>node</functionArgs>
+    !!]
     include 'events.branch_jump.postprocess.inc'
-    !# </include>
+    !![
+    </include>
+    !!]
     ! Since we changed the tree, record that the tree is not deadlocked.
     deadlockStatus=deadlockStatusIsNotDeadlocked
     return

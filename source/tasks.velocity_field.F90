@@ -22,11 +22,15 @@
   use :: Dark_Matter_Halo_Scales    , only : darkMatterHaloScaleClass
   use :: Output_Times               , only : outputTimesClass
 
-  !# <task name="taskVelocityField">
-  !#  <description>A task which computes and outputs the cosmological velocity field.</description>
-  !# </task>
+  !![
+  <task name="taskVelocityField">
+   <description>A task which computes and outputs the cosmological velocity field.</description>
+  </task>
+  !!]
   type, extends(taskClass) :: taskVelocityField
-     !% Implementation of a task which computes and outputs the cosmological velocity field.
+     !!{
+     Implementation of a task which computes and outputs the cosmological velocity field.
+     !!}
      private
      class           (cosmologyFunctionsClass       ), pointer :: cosmologyFunctions_        => null()
      class           (cosmologicalVelocityFieldClass), pointer :: cosmologicalVelocityField_ => null()
@@ -41,7 +45,9 @@
   end type taskVelocityField
 
   interface taskVelocityField
-     !% Constructors for the {\normalfont \ttfamily velocityField} task.
+     !!{
+     Constructors for the {\normalfont \ttfamily velocityField} task.
+     !!}
      module procedure velocityFieldConstructorParameters
      module procedure velocityFieldConstructorInternal
   end interface taskVelocityField
@@ -49,7 +55,9 @@
 contains
 
   function velocityFieldConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily velocityField} task class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily velocityField} task class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (taskVelocityField               )                :: self
@@ -62,45 +70,51 @@ contains
     integer                                                           :: pointsPerDecade
     type            (varying_string                  )                :: outputGroup
 
-    !# <inputParameter>
-    !#   <name>massMinimum</name>
-    !#   <defaultValue>1.0d10</defaultValue>
-    !#   <description>The minimum mass scale at which to tabulate the velocity field.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massMaximum</name>
-    !#   <defaultValue>1.0d+3</defaultValue>
-    !#   <description>The maximum mass scale at which to tabulate the velocity field.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>pointsPerDecade</name>
-    !#   <defaultValue>10</defaultValue>
-    !#   <description>The number of points per decade of mass at which to tabulate the velocity field.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>outputGroup</name>
-    !#   <defaultValue>var_str('.')</defaultValue>
-    !#   <description>The HDF5 output group within which to write velocity field data.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="darkMatterHaloScale"       name="darkMatterHaloScale_"       source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"        name="cosmologyFunctions_"        source="parameters"/>
-    !# <objectBuilder class="cosmologicalVelocityField" name="cosmologicalVelocityField_" source="parameters"/>
-    !# <objectBuilder class="outputTimes"               name="outputTimes_"               source="parameters"/>
+    !![
+    <inputParameter>
+      <name>massMinimum</name>
+      <defaultValue>1.0d10</defaultValue>
+      <description>The minimum mass scale at which to tabulate the velocity field.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>massMaximum</name>
+      <defaultValue>1.0d+3</defaultValue>
+      <description>The maximum mass scale at which to tabulate the velocity field.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>pointsPerDecade</name>
+      <defaultValue>10</defaultValue>
+      <description>The number of points per decade of mass at which to tabulate the velocity field.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>outputGroup</name>
+      <defaultValue>var_str('.')</defaultValue>
+      <description>The HDF5 output group within which to write velocity field data.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="darkMatterHaloScale"       name="darkMatterHaloScale_"       source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"        name="cosmologyFunctions_"        source="parameters"/>
+    <objectBuilder class="cosmologicalVelocityField" name="cosmologicalVelocityField_" source="parameters"/>
+    <objectBuilder class="outputTimes"               name="outputTimes_"               source="parameters"/>
+    !!]
     self=taskVelocityField(massMinimum,massMaximum,pointsPerDecade,outputGroup,cosmologyFunctions_,cosmologicalVelocityField_,darkMatterHaloScale_,outputTimes_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterHaloScale_"      />
-    !# <objectDestructor name="cosmologyFunctions_"       />
-    !# <objectDestructor name="cosmologicalVelocityField_"/>
-    !# <objectDestructor name="outputTimes_"              />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterHaloScale_"      />
+    <objectDestructor name="cosmologyFunctions_"       />
+    <objectDestructor name="cosmologicalVelocityField_"/>
+    <objectDestructor name="outputTimes_"              />
+    !!]
     return
   end function velocityFieldConstructorParameters
 
   function velocityFieldConstructorInternal(massMinimum,massMaximum,pointsPerDecade,outputGroup,cosmologyFunctions_,cosmologicalVelocityField_,darkMatterHaloScale_,outputTimes_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily velocityField} task class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily velocityField} task class.
+    !!}
     implicit none
     type            (taskVelocityField             )                        :: self
     class           (darkMatterHaloScaleClass      ), intent(in   ), target :: darkMatterHaloScale_
@@ -110,25 +124,33 @@ contains
     double precision                                , intent(in   )         :: massMinimum               , massMaximum
     integer                                         , intent(in   )         :: pointsPerDecade
     type            (varying_string                ), intent(in   )         :: outputGroup
-    !# <constructorAssign variables="massMinimum, massMaximum, pointsPerDecade, outputGroup, *cosmologyFunctions_, *cosmologicalVelocityField_, *darkMatterHaloScale_, *outputTimes_"/>
+    !![
+    <constructorAssign variables="massMinimum, massMaximum, pointsPerDecade, outputGroup, *cosmologyFunctions_, *cosmologicalVelocityField_, *darkMatterHaloScale_, *outputTimes_"/>
+    !!]
 
     return
   end function velocityFieldConstructorInternal
 
   subroutine velocityFieldDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily velocityField} task class.
+    !!{
+    Destructor for the {\normalfont \ttfamily velocityField} task class.
+    !!}
     implicit none
     type(taskVelocityField), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterHaloScale_"      />
-    !# <objectDestructor name="self%cosmologyFunctions_"       />
-    !# <objectDestructor name="self%cosmologicalVelocityField_"/>
-    !# <objectDestructor name="self%outputTimes_"              />
+    !![
+    <objectDestructor name="self%darkMatterHaloScale_"      />
+    <objectDestructor name="self%cosmologyFunctions_"       />
+    <objectDestructor name="self%cosmologicalVelocityField_"/>
+    <objectDestructor name="self%outputTimes_"              />
+    !!]
     return
   end subroutine velocityFieldDestructor
 
   subroutine velocityFieldPerform(self,status)
-    !% Compute and output the halo mass function.
+    !!{
+    Compute and output the halo mass function.
+    !!}
     use            :: Display                         , only : displayIndent                , displayUnindent     , displayCounter, displayCounterClear, &
          &                                                     verbosityLevelWorking
     use            :: Galacticus_Calculations_Resets  , only : Galacticus_Calculations_Reset

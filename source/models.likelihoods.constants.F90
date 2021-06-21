@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides constants for use when constraining \glc.
+!!{
+Contains a module which provides constants for use when constraining \glc.
+!!}
 
 module Models_Likelihoods_Constants
-  !% Provides constants for use when constraining \glc.
+  !!{
+  Provides constants for use when constraining \glc.
+  !!}
   public
 
   ! A very small log likelihood which is used as an approximation to zero likelihood.

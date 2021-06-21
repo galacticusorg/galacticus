@@ -34,6 +34,8 @@
 
   <!-- Node evolution and physics -->
   <nodeOperator value="multi">
+    <!-- Halo concentrations -->
+    <nodeOperator value="darkMatterProfileScaleInterpolate"/>
     <!-- Halo spins -->
     <nodeOperator value="haloSpinRandom">
       <factorReset value="2.0"/>
@@ -101,7 +103,11 @@
     <dimensionless value="true"/>
   </spheroidMassDistribution>
   <componentBasic value="standard"/>
-  <darkMatterProfileMinimumConcentration value="4"/>
+  <darkMatterProfileScaleRadius value="concentrationLimiter">
+    <concentrationMinimum value="  4.0"/>
+    <concentrationMaximum value="100.0"/>
+    <darkMatterProfileScaleRadius value="concentration"/>
+  </darkMatterProfileScaleRadius>
   <coolingFunction value="atomicCIECloudy"/>
   <coolingTimeAvailable value="whiteFrenk1991">
     <ageFactor value="0"/>

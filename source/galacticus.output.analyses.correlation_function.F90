@@ -17,7 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a generic two-point correlation function output analysis class.
+!!{
+Contains a module which implements a generic two-point correlation function output analysis class.
+!!}
 
   use               :: Cosmology_Functions                   , only : cosmologyFunctions                , cosmologyFunctionsClass
   use               :: Dark_Matter_Halo_Biases               , only : darkMatterHaloBias                , darkMatterHaloBiasClass
@@ -33,34 +35,38 @@
   use               :: Output_Times                          , only : outputTimes                       , outputTimesClass
   use               :: Power_Spectra                         , only : powerSpectrum                     , powerSpectrumClass
 
-  !# <outputAnalysis name="outputAnalysisCorrelationFunction">
-  !#  <description>
-  !#   A generic two-point correlation function output analysis class.
-  !# 
-  !#   For constraints corresponding to (possibly, projected) correlation functions, the model expectation is computed using the
-  !#   halo model \cite{cooray_halo_2002}. For each model halo, each galaxy (satellite and central) is assessed to see if it meets
-  !#   the criteria for inclusion in the sample. Where the sample includes mass limits (either just a lower limit, or lower and
-  !#   upper limits) each galaxy is assigned a probability of inclusion in the sample based on its mass and the random error in
-  !#   mass. Thus, each halo is characterized by the probability of having a central galaxy in the sample, $p^\mathrm{(c)}$, and
-  !#   $N$ probabilities, $p_i^\mathrm{(s)}$, of each satellite galaxy being in the sample. We assume binomial statistics for each
-  !#   galaxy's probability of inclusion, and further assume that these probabilities are uncorrelated. Therefore, the
-  !#   contribution of the halo to the one- and two-halo terms of the power spectrum in the halo model are:
-  !#   \begin{equation}
-  !#    \Delta P^\mathrm{1h}(k) = {w \over n_\mathrm{gal}^2} \left[ p^\mathrm{(c)} \sum_{i=1}^N p^\mathrm{(s)} u(k|M) + \sum_{k=0}^N k(k-1) P\left(p_i^\mathrm{(s)},\ldots,p_N^{(s)}\right) u(k|M)^2 \right]
-  !#   \end{equation}
-  !#   and
-  !#   \begin{equation}
-  !#    \Delta \sqrt{P^\mathrm{2h}}(k) = {w \over n_\mathrm{gal}} \sqrt{P^\mathrm{lin}}(k) b(M) u(k|M) \left[ p^\mathrm{(c)} + \sum_{i=1}^N p_i^\mathrm{(s)} \right],
-  !#   \end{equation}
-  !#   respectively, where $w$ is the weight of the halo (i.e. the number of such model halos expected per unit volume), $b(M)$ is
-  !#   the bias of halos of mass $M$, $u(k|M)$ is the Fourier-transform of the halo density profile, and $P_\mathrm{lin}(k)$ is
-  !#   the linear theory power spectrum, and $P(p_1,\ldots,p_N)$ is the Poisson binomial distribution for $N$ events with
-  !#   probabities $p_1,\ldots,p_N$. The contribution of the halo to the galaxy density, $n_\mathrm{gal}$, is simply $\Delta
-  !#   n_\mathrm{gal} = w \left[ p^\mathrm{(c)} + \sum_{i=1}^N p_i^\mathrm{(s)} \right]$.
-  !#  </description>
-  !# </outputAnalysis>
+  !![
+  <outputAnalysis name="outputAnalysisCorrelationFunction">
+   <description>
+    A generic two-point correlation function output analysis class.
+  
+    For constraints corresponding to (possibly, projected) correlation functions, the model expectation is computed using the
+    halo model \cite{cooray_halo_2002}. For each model halo, each galaxy (satellite and central) is assessed to see if it meets
+    the criteria for inclusion in the sample. Where the sample includes mass limits (either just a lower limit, or lower and
+    upper limits) each galaxy is assigned a probability of inclusion in the sample based on its mass and the random error in
+    mass. Thus, each halo is characterized by the probability of having a central galaxy in the sample, $p^\mathrm{(c)}$, and
+    $N$ probabilities, $p_i^\mathrm{(s)}$, of each satellite galaxy being in the sample. We assume binomial statistics for each
+    galaxy's probability of inclusion, and further assume that these probabilities are uncorrelated. Therefore, the
+    contribution of the halo to the one- and two-halo terms of the power spectrum in the halo model are:
+    \begin{equation}
+     \Delta P^\mathrm{1h}(k) = {w \over n_\mathrm{gal}^2} \left[ p^\mathrm{(c)} \sum_{i=1}^N p^\mathrm{(s)} u(k|M) + \sum_{k=0}^N k(k-1) P\left(p_i^\mathrm{(s)},\ldots,p_N^{(s)}\right) u(k|M)^2 \right]
+    \end{equation}
+    and
+    \begin{equation}
+     \Delta \sqrt{P^\mathrm{2h}}(k) = {w \over n_\mathrm{gal}} \sqrt{P^\mathrm{lin}}(k) b(M) u(k|M) \left[ p^\mathrm{(c)} + \sum_{i=1}^N p_i^\mathrm{(s)} \right],
+    \end{equation}
+    respectively, where $w$ is the weight of the halo (i.e. the number of such model halos expected per unit volume), $b(M)$ is
+    the bias of halos of mass $M$, $u(k|M)$ is the Fourier-transform of the halo density profile, and $P_\mathrm{lin}(k)$ is
+    the linear theory power spectrum, and $P(p_1,\ldots,p_N)$ is the Poisson binomial distribution for $N$ events with
+    probabities $p_1,\ldots,p_N$. The contribution of the halo to the galaxy density, $n_\mathrm{gal}$, is simply $\Delta
+    n_\mathrm{gal} = w \left[ p^\mathrm{(c)} + \sum_{i=1}^N p_i^\mathrm{(s)} \right]$.
+   </description>
+  </outputAnalysis>
+  !!]
   type, extends(outputAnalysisClass) :: outputAnalysisCorrelationFunction
-     !% A generic two-point correlation function output analysis class.
+     !!{
+     A generic two-point correlation function output analysis class.
+     !!}
      private
      type            (varying_string                         )                                :: label                                    , comment                                     , &
           &                                                                                      targetLabel
@@ -98,10 +104,12 @@
      double precision                                         , allocatable, dimension(:,:  ) :: probabilitySatellite
      integer                                                                                  :: countSatellites
    contains
-     !# <methods>
-     !#   <method description="Accumulate a node to the correlation function." method="accumulateNode" />
-     !#   <method description="Accumulate a halo to the correlation function." method="accumulateHalo" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Accumulate a node to the correlation function." method="accumulateNode" />
+       <method description="Accumulate a halo to the correlation function." method="accumulateHalo" />
+     </methods>
+     !!]
      final     ::                   correlationFunctionDestructor
      procedure :: analyze        => correlationFunctionAnalyze
      procedure :: finalize       => correlationFunctionFinalize
@@ -112,7 +120,9 @@
   end type outputAnalysisCorrelationFunction
 
   interface outputAnalysisCorrelationFunction
-     !% Constructors for the ``correlationFunction'' output analysis class.
+     !!{
+     Constructors for the ``correlationFunction'' output analysis class.
+     !!}
      module procedure correlationFunctionConstructorParameters
      module procedure correlationFunctionConstructorFile
      module procedure correlationFunctionConstructorInternal
@@ -121,7 +131,9 @@
 contains
 
   function correlationFunctionConstructorParameters(parameters) result(self)
-    !% Constructor for the ``correlationFunction'' output analysis class which takes a parameter set as input.
+    !!{
+    Constructor for the ``correlationFunction'' output analysis class which takes a parameter set as input.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Input_Parameters, only : inputParameter         , inputParameters
     implicit none
@@ -152,96 +164,100 @@ contains
          &                                                                                      targetLabel
 
     allocate(separations(parameters%count('separations')))
-    !# <inputParameter>
-    !#   <name>label</name>
-    !#   <source>parameters</source>
-    !#   <description>A label for the mass function.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>comment</name>
-    !#   <source>parameters</source>
-    !#   <description>A descriptive comment for the mass function.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>separations</name>
-    !#   <source>parameters</source>
-    !#   <description>The separations corresponding to bin centers.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massMinima</name>
-    !#   <source>parameters</source>
-    !#   <description>The minimum mass of each mass sample.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massMaxima</name>
-    !#   <source>parameters</source>
-    !#   <description>The maximum mass of each mass sample.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massHaloBinsPerDecade</name>
-    !#   <defaultValue>10</defaultValue>
-    !#   <description>The number of bins per decade of halo mass to use when constructing the mass function covariance matrix for main branch galaxies.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massHaloMinimum</name>
-    !#   <defaultValue>1.0d8</defaultValue>
-    !#   <description>The minimum halo mass to consider when constructing the mass function covariance matrix for main branch galaxies.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massHaloMaximum</name>
-    !#   <defaultValue>1.0d16</defaultValue>
-    !#   <description>The maximum halo mass to consider when constructing the mass function covariance matrix for main branch galaxies.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>wavenumberCount</name>
-    !#   <defaultValue>60_c_size_t</defaultValue>
-    !#   <description>The number of bins in wavenumber to use in computing the correlation function.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>wavenumberMinimum</name>
-    !#   <defaultValue>1.0d-3</defaultValue>
-    !#   <description>The minimum wavenumber to use when computing the correlation function.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>wavenumberMaximum</name>
-    !#   <defaultValue>1.0d4</defaultValue>
-    !#   <description>The maximum wavenumber to use when computing the correlation function.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>integralConstraint</name>
-    !#   <description>The integral constraint for these correlation functions.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>depthLineOfSight</name>
-    !#   <description>The line-of-sight depth over which the correlation function was projected.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>halfIntegral</name>
-    !#   <description>Set to true if the projection integrand should be over line-of-sight depths greater than zero.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>label</name>
+      <source>parameters</source>
+      <description>A label for the mass function.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>comment</name>
+      <source>parameters</source>
+      <description>A descriptive comment for the mass function.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>separations</name>
+      <source>parameters</source>
+      <description>The separations corresponding to bin centers.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>massMinima</name>
+      <source>parameters</source>
+      <description>The minimum mass of each mass sample.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>massMaxima</name>
+      <source>parameters</source>
+      <description>The maximum mass of each mass sample.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>massHaloBinsPerDecade</name>
+      <defaultValue>10</defaultValue>
+      <description>The number of bins per decade of halo mass to use when constructing the mass function covariance matrix for main branch galaxies.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>massHaloMinimum</name>
+      <defaultValue>1.0d8</defaultValue>
+      <description>The minimum halo mass to consider when constructing the mass function covariance matrix for main branch galaxies.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>massHaloMaximum</name>
+      <defaultValue>1.0d16</defaultValue>
+      <description>The maximum halo mass to consider when constructing the mass function covariance matrix for main branch galaxies.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>wavenumberCount</name>
+      <defaultValue>60_c_size_t</defaultValue>
+      <description>The number of bins in wavenumber to use in computing the correlation function.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>wavenumberMinimum</name>
+      <defaultValue>1.0d-3</defaultValue>
+      <description>The minimum wavenumber to use when computing the correlation function.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>wavenumberMaximum</name>
+      <defaultValue>1.0d4</defaultValue>
+      <description>The maximum wavenumber to use when computing the correlation function.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>integralConstraint</name>
+      <description>The integral constraint for these correlation functions.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>depthLineOfSight</name>
+      <description>The line-of-sight depth over which the correlation function was projected.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>halfIntegral</name>
+      <description>Set to true if the projection integrand should be over line-of-sight depths greater than zero.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     if (parameters%isPresent('binnedProjectedCorrelationTarget')) then
        if (parameters%isPresent('binnedProjectedCorrelationCovarianceTarget')) then
-          !# <inputParameter>
-          !#   <name>binnedProjectedCorrelationTarget</name>
-          !#   <source>parameters</source>
-          !#   <description>The target function for likelihood calculations.</description>
-          !#   <variable>binnedProjectedCorrelationTarget1D</variable>
-          !# </inputParameter>
-          !# <inputParameter>
-          !#   <name>binnedProjectedCorrelationCovarianceTarget</name>
-          !#   <source>parameters</source>
-          !#   <variable>binnedProjectedCorrelationCovarianceTarget1D</variable>
-          !#   <description>The target function covariance for likelihood calculations.</description>
-          !# </inputParameter>
+          !![
+          <inputParameter>
+            <name>binnedProjectedCorrelationTarget</name>
+            <source>parameters</source>
+            <description>The target function for likelihood calculations.</description>
+            <variable>binnedProjectedCorrelationTarget1D</variable>
+          </inputParameter>
+          <inputParameter>
+            <name>binnedProjectedCorrelationCovarianceTarget</name>
+            <source>parameters</source>
+            <variable>binnedProjectedCorrelationCovarianceTarget1D</variable>
+            <description>The target function covariance for likelihood calculations.</description>
+          </inputParameter>
+          !!]
           if (size(binnedProjectedCorrelationCovarianceTarget1D) == size(binnedProjectedCorrelationTarget1D)**2) then
              allocate(binnedProjectedCorrelationTarget          (size(separations                       ),size(massMinima                        )))
              allocate(binnedProjectedCorrelationCovarianceTarget(size(binnedProjectedCorrelationTarget1D),size(binnedProjectedCorrelationTarget1D)))
@@ -256,78 +272,82 @@ contains
     else
        if (parameters%isPresent('binnedProjectedCorrelationCovarianceTarget')) call Galacticus_Error_Report('binnedProjectedCorrelationTarget must be specified if binnedProjectedCorrelationCovarianceTarget is present'//{introspection:location})
     end if
-    !# <inputParameter>
-    !#   <name>targetLabel</name>
-    !#   <source>parameters</source>
-    !#   <description>A label for the target dataset in a plot of this analysis.</description>
-    !#   <defaultValue>var_str('')</defaultValue>
-    !# </inputParameter>
-    !# <objectBuilder class="galacticFilter"                     name="galacticFilter_"                                                            source="parameters"/>
-    !# <objectBuilder class="outputTimes"                        name="outputTimes_"                                                               source="parameters"/>
-    !# <objectBuilder class="surveyGeometry"                     name="surveyGeometry_"                                                            source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"                 name="cosmologyFunctions_"                                                        source="parameters"/>
-    !# <objectBuilder class="darkMatterProfileDMO"               name="darkMatterProfileDMO_"                                                      source="parameters"/>
-    !# <objectBuilder class="darkMatterHaloBias"                 name="darkMatterHaloBias_"                                                        source="parameters"/>
-    !# <objectBuilder class="haloModelPowerSpectrumModifier"     name="haloModelPowerSpectrumModifier_"                                            source="parameters"/>
-    !# <objectBuilder class="powerSpectrum"                      name="powerSpectrum_"                                                             source="parameters"/>
-    !# <objectBuilder class="outputAnalysisDistributionOperator" name="massDistributionOperator_"       parameterName="massDistributionOperator"   source="parameters"/>
-    !# <objectBuilder class="outputAnalysisPropertyOperator"     name="massPropertyOperator_"           parameterName="massPropertyOperator"       source="parameters"/>
-    !# <objectBuilder class="outputAnalysisPropertyOperator"     name="separationPropertyOperator_"     parameterName="separationPropertyOperator" source="parameters"/>
-    !# <objectBuilder class="nodePropertyExtractor"              name="massPropertyExtractor_"          parameterName="massPropertyExtractor"      source="parameters"/>
-    !# <conditionalCall>
-    !#  <call>
-    !#  self=outputAnalysisCorrelationFunction(                                                                  &amp;
-    !#        &amp;                            label                                                           , &amp;
-    !#        &amp;                            comment                                                         , &amp;
-    !#        &amp;                            separations                                                     , &amp;
-    !#        &amp;                            massMinima                                                      , &amp;
-    !#        &amp;                            massMaxima                                                      , &amp;
-    !#        &amp;                            massHaloBinsPerDecade                                           , &amp;
-    !#        &amp;                            massHaloMinimum                                                 , &amp;
-    !#        &amp;                            massHaloMaximum                                                 , &amp;
-    !#        &amp;                            reshape(integralConstraint,[size(separations),size(massMinima)]), &amp;
-    !#        &amp;                            wavenumberCount                                                 , &amp;
-    !#        &amp;                            wavenumberMinimum                                               , &amp;
-    !#        &amp;                            wavenumberMaximum                                               , &amp;
-    !#        &amp;                            depthLineOfSight                                                , &amp;
-    !#        &amp;                            halfIntegral                                                    , &amp;
-    !#        &amp;                            galacticFilter_                                                 , &amp;
-    !#        &amp;                            surveyGeometry_                                                 , &amp;
-    !#        &amp;                            cosmologyFunctions_                                             , &amp;
-    !#        &amp;                            outputTimes_                                                    , &amp;
-    !#        &amp;                            darkMatterProfileDMO_                                           , &amp;
-    !#        &amp;                            darkMatterHaloBias_                                             , &amp;
-    !#        &amp;                            haloModelPowerSpectrumModifier_                                 , &amp;
-    !#        &amp;                            powerSpectrum_                                                  , &amp;
-    !#        &amp;                            massDistributionOperator_                                       , &amp;
-    !#        &amp;                            massPropertyOperator_                                           , &amp;
-    !#        &amp;                            separationPropertyOperator_                                     , &amp;
-    !#        &amp;                            massPropertyExtractor_                                          , &amp;
-    !#        &amp;                            targetLabel                                                       &amp;
-    !#        &amp;                            {conditions}                                                      &amp;
-    !#        &amp;                           )
-    !#  </call>
-    !#  <argument name="binnedProjectedCorrelationTarget"           value="binnedProjectedCorrelationTarget"           parameterPresent="parameters"/>
-    !#  <argument name="binnedProjectedCorrelationCovarianceTarget" value="binnedProjectedCorrelationCovarianceTarget" parameterPresent="parameters"/>
-    !# </conditionalCall>
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterProfileDMO_"          />
-    !# <objectDestructor name="darkMatterHaloBias_"            />
-    !# <objectDestructor name="haloModelPowerSpectrumModifier_"/>
-    !# <objectDestructor name="powerSpectrum_"                 />
-    !# <objectDestructor name="galacticFilter_"                />
-    !# <objectDestructor name="outputTimes_"                   />
-    !# <objectDestructor name="surveyGeometry_"                />
-    !# <objectDestructor name="cosmologyFunctions_"            />
-    !# <objectDestructor name="massDistributionOperator_"      />
-    !# <objectDestructor name="massPropertyOperator_"          />
-    !# <objectDestructor name="separationPropertyOperator_"    />
-    !# <objectDestructor name="massPropertyExtractor_"         />
+    !![
+    <inputParameter>
+      <name>targetLabel</name>
+      <source>parameters</source>
+      <description>A label for the target dataset in a plot of this analysis.</description>
+      <defaultValue>var_str('')</defaultValue>
+    </inputParameter>
+    <objectBuilder class="galacticFilter"                     name="galacticFilter_"                                                            source="parameters"/>
+    <objectBuilder class="outputTimes"                        name="outputTimes_"                                                               source="parameters"/>
+    <objectBuilder class="surveyGeometry"                     name="surveyGeometry_"                                                            source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"                 name="cosmologyFunctions_"                                                        source="parameters"/>
+    <objectBuilder class="darkMatterProfileDMO"               name="darkMatterProfileDMO_"                                                      source="parameters"/>
+    <objectBuilder class="darkMatterHaloBias"                 name="darkMatterHaloBias_"                                                        source="parameters"/>
+    <objectBuilder class="haloModelPowerSpectrumModifier"     name="haloModelPowerSpectrumModifier_"                                            source="parameters"/>
+    <objectBuilder class="powerSpectrum"                      name="powerSpectrum_"                                                             source="parameters"/>
+    <objectBuilder class="outputAnalysisDistributionOperator" name="massDistributionOperator_"       parameterName="massDistributionOperator"   source="parameters"/>
+    <objectBuilder class="outputAnalysisPropertyOperator"     name="massPropertyOperator_"           parameterName="massPropertyOperator"       source="parameters"/>
+    <objectBuilder class="outputAnalysisPropertyOperator"     name="separationPropertyOperator_"     parameterName="separationPropertyOperator" source="parameters"/>
+    <objectBuilder class="nodePropertyExtractor"              name="massPropertyExtractor_"          parameterName="massPropertyExtractor"      source="parameters"/>
+    <conditionalCall>
+     <call>
+     self=outputAnalysisCorrelationFunction(                                                                  &amp;
+           &amp;                            label                                                           , &amp;
+           &amp;                            comment                                                         , &amp;
+           &amp;                            separations                                                     , &amp;
+           &amp;                            massMinima                                                      , &amp;
+           &amp;                            massMaxima                                                      , &amp;
+           &amp;                            massHaloBinsPerDecade                                           , &amp;
+           &amp;                            massHaloMinimum                                                 , &amp;
+           &amp;                            massHaloMaximum                                                 , &amp;
+           &amp;                            reshape(integralConstraint,[size(separations),size(massMinima)]), &amp;
+           &amp;                            wavenumberCount                                                 , &amp;
+           &amp;                            wavenumberMinimum                                               , &amp;
+           &amp;                            wavenumberMaximum                                               , &amp;
+           &amp;                            depthLineOfSight                                                , &amp;
+           &amp;                            halfIntegral                                                    , &amp;
+           &amp;                            galacticFilter_                                                 , &amp;
+           &amp;                            surveyGeometry_                                                 , &amp;
+           &amp;                            cosmologyFunctions_                                             , &amp;
+           &amp;                            outputTimes_                                                    , &amp;
+           &amp;                            darkMatterProfileDMO_                                           , &amp;
+           &amp;                            darkMatterHaloBias_                                             , &amp;
+           &amp;                            haloModelPowerSpectrumModifier_                                 , &amp;
+           &amp;                            powerSpectrum_                                                  , &amp;
+           &amp;                            massDistributionOperator_                                       , &amp;
+           &amp;                            massPropertyOperator_                                           , &amp;
+           &amp;                            separationPropertyOperator_                                     , &amp;
+           &amp;                            massPropertyExtractor_                                          , &amp;
+           &amp;                            targetLabel                                                       &amp;
+           &amp;                            {conditions}                                                      &amp;
+           &amp;                           )
+     </call>
+     <argument name="binnedProjectedCorrelationTarget"           value="binnedProjectedCorrelationTarget"           parameterPresent="parameters"/>
+     <argument name="binnedProjectedCorrelationCovarianceTarget" value="binnedProjectedCorrelationCovarianceTarget" parameterPresent="parameters"/>
+    </conditionalCall>
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterProfileDMO_"          />
+    <objectDestructor name="darkMatterHaloBias_"            />
+    <objectDestructor name="haloModelPowerSpectrumModifier_"/>
+    <objectDestructor name="powerSpectrum_"                 />
+    <objectDestructor name="galacticFilter_"                />
+    <objectDestructor name="outputTimes_"                   />
+    <objectDestructor name="surveyGeometry_"                />
+    <objectDestructor name="cosmologyFunctions_"            />
+    <objectDestructor name="massDistributionOperator_"      />
+    <objectDestructor name="massPropertyOperator_"          />
+    <objectDestructor name="separationPropertyOperator_"    />
+    <objectDestructor name="massPropertyExtractor_"         />
+    !!]
     return
   end function correlationFunctionConstructorParameters
 
   function correlationFunctionConstructorFile(label,comment,fileName,massHaloBinsPerDecade,massHaloMinimum,massHaloMaximum,wavenumberCount,wavenumberMinimum,wavenumberMaximum,halfIntegral,galacticFilter_,surveyGeometry_,cosmologyFunctions_,outputTimes_,darkMatterProfileDMO_,darkMatterHaloBias_,haloModelPowerSpectrumModifier_,powerSpectrum_,massDistributionOperator_,massPropertyOperator_,separationPropertyOperator_,massPropertyExtractor_) result (self)
-    !% Constructor for the ``correlation'' output analysis class which reads bin information from a standard format file.
+    !!{
+    Constructor for the ``correlation'' output analysis class which reads bin information from a standard format file.
+    !!}
     use :: Cosmology_Functions , only : cosmologyFunctionsClass  , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters, only : cosmologyParametersSimple
     use :: IO_HDF5             , only : hdf5Access               , hdf5Object
@@ -388,7 +408,9 @@ contains
   end function correlationFunctionConstructorFile
 
   function correlationFunctionConstructorInternal(label,comment,separations,massMinima,massMaxima,massHaloBinsPerDecade,massHaloMinimum,massHaloMaximum,integralConstraint,wavenumberCount,wavenumberMinimum,wavenumberMaximum,depthLineOfSight,halfIntegral,galacticFilter_,surveyGeometry_,cosmologyFunctions_,outputTimes_,darkMatterProfileDMO_,darkMatterHaloBias_,haloModelPowerSpectrumModifier_,powerSpectrum_,massDistributionOperator_,massPropertyOperator_,separationPropertyOperator_,massPropertyExtractor_,targetLabel,binnedProjectedCorrelationTarget,binnedProjectedCorrelationCovarianceTarget) result (self)
-    !% Constructor for the ``correlationFunction'' output analysis class for internal use.
+    !!{
+    Constructor for the ``correlationFunction'' output analysis class for internal use.
+    !!}
     use            :: Galacticus_Error         , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding            , only : c_size_t
     use            :: Memory_Management        , only : allocateArray
@@ -420,7 +442,9 @@ contains
     type            (varying_string                         ), intent(in   )                , optional :: targetLabel
     double precision                                         , intent(in   ), dimension(:,:), optional :: binnedProjectedCorrelationTarget  , binnedProjectedCorrelationCovarianceTarget
     integer         (c_size_t                               )                                          :: i
-    !# <constructorAssign variables="label, comment, separations, massMinima, massMaxima, integralConstraint, wavenumberCount, wavenumberMinimum, wavenumberMaximum, depthLineOfSight, halfIntegral, *galacticFilter_, *outputTimes_, *darkMatterProfileDMO_, *darkMatterHaloBias_, *haloModelPowerSpectrumModifier_, *surveyGeometry_, *cosmologyFunctions_, *powerSpectrum_, *massDistributionOperator_, *massPropertyOperator_, *separationPropertyOperator_, *massPropertyExtractor_, targetLabel, binnedProjectedCorrelationTarget, binnedProjectedCorrelationCovarianceTarget"/>
+    !![
+    <constructorAssign variables="label, comment, separations, massMinima, massMaxima, integralConstraint, wavenumberCount, wavenumberMinimum, wavenumberMaximum, depthLineOfSight, halfIntegral, *galacticFilter_, *outputTimes_, *darkMatterProfileDMO_, *darkMatterHaloBias_, *haloModelPowerSpectrumModifier_, *surveyGeometry_, *cosmologyFunctions_, *powerSpectrum_, *massDistributionOperator_, *massPropertyOperator_, *separationPropertyOperator_, *massPropertyExtractor_, targetLabel, binnedProjectedCorrelationTarget, binnedProjectedCorrelationCovarianceTarget"/>
+    !!]
 
     ! Compute weight that applies to each output redshift.
     self%massCount=size(self%massMinima               )
@@ -470,28 +494,34 @@ contains
   end function correlationFunctionConstructorInternal
 
   subroutine correlationFunctionDestructor(self)
-    !% Destructor for  the ``correlationFunction'' output analysis class.
+    !!{
+    Destructor for  the ``correlationFunction'' output analysis class.
+    !!}
     implicit none
     type(outputAnalysisCorrelationFunction), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterProfileDMO_"          />
-    !# <objectDestructor name="self%darkMatterHaloBias_"            />
-    !# <objectDestructor name="self%haloModelPowerSpectrumModifier_"/>
-    !# <objectDestructor name="self%galacticFilter_"                />
-    !# <objectDestructor name="self%outputTimes_"                   />
-    !# <objectDestructor name="self%surveyGeometry_"                />
-    !# <objectDestructor name="self%cosmologyFunctions_"            />
-    !# <objectDestructor name="self%massDistributionOperator_"      />
-    !# <objectDestructor name="self%massPropertyOperator_"          />
-    !# <objectDestructor name="self%separationPropertyOperator_"    />
-    !# <objectDestructor name="self%massPropertyExtractor_"         />
-    !# <objectDestructor name="self%powerSpectrum_"                 />
+    !![
+    <objectDestructor name="self%darkMatterProfileDMO_"          />
+    <objectDestructor name="self%darkMatterHaloBias_"            />
+    <objectDestructor name="self%haloModelPowerSpectrumModifier_"/>
+    <objectDestructor name="self%galacticFilter_"                />
+    <objectDestructor name="self%outputTimes_"                   />
+    <objectDestructor name="self%surveyGeometry_"                />
+    <objectDestructor name="self%cosmologyFunctions_"            />
+    <objectDestructor name="self%massDistributionOperator_"      />
+    <objectDestructor name="self%massPropertyOperator_"          />
+    <objectDestructor name="self%separationPropertyOperator_"    />
+    <objectDestructor name="self%massPropertyExtractor_"         />
+    <objectDestructor name="self%powerSpectrum_"                 />
+    !!]
     !$ call OMP_Destroy_Lock(self%accumulateLock)
     return
   end subroutine correlationFunctionDestructor
 
   subroutine correlationFunctionAnalyze(self,node,iOutput)
-    !% Implement a correlationFunction output analysis.
+    !!{
+    Implement a correlationFunction output analysis.
+    !!}
     use :: Node_Property_Extractors, only : nodePropertyExtractorScalar
     implicit none
     class           (outputAnalysisCorrelationFunction), intent(inout) :: self
@@ -522,10 +552,12 @@ contains
   end subroutine correlationFunctionAnalyze
 
   subroutine correlationFunctionAccumulateNode(self,mass,massType,indexOutput,node)
-    !% Accumulate a single galaxy to the population of the current halo. Since galaxy masses
-    !% have random errors, each galaxy added is assigned an inclusion probability, which will be
-    !% taken into account when evaluating the one- and two-halo terms from this halo in the halo
-    !% model.
+    !!{
+    Accumulate a single galaxy to the population of the current halo. Since galaxy masses
+    have random errors, each galaxy added is assigned an inclusion probability, which will be
+    taken into account when evaluating the one- and two-halo terms from this halo in the halo
+    model.
+    !!}
     implicit none
     class           (outputAnalysisCorrelationFunction), intent(inout)                 :: self
     double precision                                   , intent(in   )                 :: mass
@@ -566,12 +598,14 @@ contains
   end subroutine correlationFunctionAccumulateNode
 
   subroutine correlationFunctionAccumulateHalo(self,indexOutput,node)
-    !% Assumulate a single halo's contributions to the halo model one- and two-halo terms. For
-    !% the one-halo term we count contributions from central-satellite pairs, and from
-    !% satellite-satellite pairs. Contributions differ in the scalings applied to the
-    !% Fourier-transformed dark matter halo density profile---see
-    !% \cite[][\S6.1]{cooray_halo_2002} for a discussion of this. The number of satellites in
-    !% the halo is assumed to follow a Poisson binomial distribution.
+    !!{
+    Assumulate a single halo's contributions to the halo model one- and two-halo terms. For
+    the one-halo term we count contributions from central-satellite pairs, and from
+    satellite-satellite pairs. Contributions differ in the scalings applied to the
+    Fourier-transformed dark matter halo density profile---see
+    \cite[][\S6.1]{cooray_halo_2002} for a discussion of this. The number of satellites in
+    the halo is assumed to follow a Poisson binomial distribution.
+    !!}
     use :: Galacticus_Nodes                   , only : nodeComponentBasic                , treeNode
     use :: Halo_Model_Power_Spectrum_Modifiers, only : haloModelTermOneHalo              , haloModelTermTwoHalo
     use :: Math_Distributions_Poisson_Binomial, only : Poisson_Binomial_Distribution_Mean, Poisson_Binomial_Distribution_Mean_Pairs, Poisson_Binomial_Distribution_Mean_Pairs_Jacobian
@@ -792,8 +826,10 @@ contains
   end subroutine correlationFunctionAccumulateHalo
 
   subroutine correlationFunctionTermIndices(iMass,wavenumberCount,indexOneHalo,indexTwoHalo,indexDensity)
-    !% Return the indices in the term covariances array at which one-halo, two-halo, and density terms are stored for the given
-    !% mass.
+    !!{
+    Return the indices in the term covariances array at which one-halo, two-halo, and density terms are stored for the given
+    mass.
+    !!}
     implicit none
     integer(c_size_t), intent(in   ) :: iMass       , wavenumberCount
     integer(c_size_t), intent(  out) :: indexOneHalo, indexTwoHalo   , &
@@ -806,7 +842,9 @@ contains
   end subroutine correlationFunctionTermIndices
 
   subroutine correlationFunctionReduce(self,reduced)
-    !% Implement a {\normalfont \ttfamily correlationFunction} output analysis reduction.
+    !!{
+    Implement a {\normalfont \ttfamily correlationFunction} output analysis reduction.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(outputAnalysisCorrelationFunction), intent(inout) :: self
@@ -831,7 +869,9 @@ contains
   end subroutine correlationFunctionReduce
 
   subroutine correlationFunctionFinalize(self)
-    !% Implement a {\normalfont \ttfamily correlationFunction} output analysis finalization.
+    !!{
+    Implement a {\normalfont \ttfamily correlationFunction} output analysis finalization.
+    !!}
     use :: Galacticus_HDF5                 , only : galacticusOutputFile
     use :: IO_HDF5                         , only : hdf5Access          , hdf5Object
     use :: Numerical_Constants_Astronomical, only : megaParsec
@@ -891,7 +931,9 @@ contains
   end subroutine correlationFunctionFinalize
 
   subroutine correlationFunctionFinalizeAnalysis(self)
-    !% Compute final covariances and normalize.
+    !!{
+    Compute final covariances and normalize.
+    !!}
     use :: FFTLogs                 , only : FFTLogSineTransform                , fftLogForward
 #ifdef USEMPI
     use :: MPI_Utilities           , only : mpiSelf
@@ -1238,7 +1280,9 @@ contains
   contains
 
     double precision function projectionIntegrandWeight(separation)
-      !% The weight function applied to the correlation function when integrating to get the projected correlation function.
+      !!{
+      The weight function applied to the correlation function when integrating to get the projected correlation function.
+      !!}
       implicit none
       double precision, intent(in   ) :: separation
 
@@ -1251,7 +1295,9 @@ contains
     end function projectionIntegrandWeight
 
     double precision function binningIntegrandWeight(separation)
-      !% The weight function applied to the projected correlation function when integrating into bins.
+      !!{
+      The weight function applied to the projected correlation function when integrating into bins.
+      !!}
       implicit none
       double precision, intent(in   ) :: separation
 
@@ -1262,7 +1308,9 @@ contains
   end subroutine correlationFunctionFinalizeAnalysis
 
   double precision function correlationFunctionLogLikelihood(self)
-    !% Return the log-likelihood of a correlationFunction output analysis.
+    !!{
+    Return the log-likelihood of a correlationFunction output analysis.
+    !!}
     use :: Linear_Algebra              , only : vector                 , matrix, assignment(=), operator(*)
     use :: Galacticus_Error            , only : Galacticus_Error_Report
     use :: Numerical_Constants_Math    , only : Pi

@@ -17,8 +17,10 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a generic 1D volume function (i.e. number density of objects binned by some property, e.g. a
-!% mass function) output analysis class.
+!!{
+Contains a module which implements a generic 1D volume function (i.e. number density of objects binned by some property, e.g. a
+mass function) output analysis class.
+!!}
 
   use               :: Galactic_Filters                        , only : galacticFilterClass
   use   , intrinsic :: ISO_C_Binding                           , only : c_size_t
@@ -31,55 +33,59 @@
   use               :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorClass
   use               :: Output_Times                            , only : outputTimesClass
 
-  !# <outputAnalysis name="outputAnalysisVolumeFunction1D">
-  !#  <description>
-  !#    A generic 1D volume function (i.e. number density of objects binned by some property, e.g. a mass function) output analysis class.
-  !#
-  !#    In addition to the volume function itself, the covariance matrix, $\mathbf{C}_\mathrm{model}$, of the mass function is also
-  !#    computed. The assumptions used when constructing the covariance matrix are controlled by the parameter {\normalfont
-  !#    \ttfamily [covarianceModel]}. If set to {\normalfont \ttfamily binomial}, them to construct $\mathbf{C}_\mathrm{model}$ we
-  !#    make use of the fact that \glc\ works by sampling a set of tree ``root masses'' from the $z=0$ dark matter halo mass
-  !#    function. From each root, a tree is grown, within which the physics of galaxy formation is then solved. Root masses are
-  !#    sampled uniformly from the halo mass function. That is, the cumulative halo mass function, $N(M)$, is constructed between
-  !#    the maximum and minimum halo masses to be simulated. The number of root masses, $N_\mathrm{r}$, to be used in a model
-  !#    evaluation is then determined. Root masses are then chosen such that
-  !#    \begin{equation}
-  !#     N(M_i) = N(M_\mathrm{min}) {i-1 \over N_\mathrm{r}-1}
-  !#    \end{equation}
-  !#    for $i=1\ldots N_\mathrm{r}$ (noting that $N(M_\mathrm{max})=0$ by construction). 
-  !#
-  !#    Consider first those galaxies which form in the main branch of each tree (i.e. those galaxies which are destined to become
-  !#    the central galaxy of the $z=0$ halo). Suppose that we simulate $N_k$ halos of root mass $M_k$ at $z=0$. In such halos the
-  !#    main branch galaxies will, at any time, have stellar masses drawn from some distribution $p_k(M_\star|t)$. The number of
-  !#    such galaxies contributing to bin $i$ of the mass function is therefore binomially distributed with success probability
-  !#    $p_{ik} = \int_{M_{i,\mathrm min}}^{M_{i,\mathrm max}} p_k(M_\star|t) \d M_\star$ and a sample size of $N_k$. The
-  !#    contribution to the covariance matrix from these main branch galaxies is therefore:
-  !#    \begin{equation}
-  !#     \mathcal{C}_{ij} = \left\{ \begin{array}{ll} p_{ik}(1-p_{ik}) N_k w_k^2 &amp; \hbox{ if } i = j \\ -p_{ik} p_{jk} N_k w_k^2 &amp; \hbox{ otherwise,} \end{array} \right.
-  !#    \end{equation}
-  !#    where $w_k$ is the weight to be assigned to each tree. To compute this covariance requires knowledge of the probabilities,
-  !#    $p_{ik}$. We estimate these directly from the model. To do this, we bin trees into narrow bins of root mass and assume that
-  !#    $p_{ik}$ does not vary significantly across the mass range of each bin. Using all realizations of trees that fall within a
-  !#    given bin, $k$, we can directly estimate $p_{ik}$. In computing $p_{ik}$, the range of halo masses considered and the
-  !#    fineness of binning in halo mass are determined by the parameters {\normalfont \ttfamily
-  !#    [covarianceBinomialMassHaloMinimum]}, {\normalfont \ttfamily [covarianceBinomialMassHaloMaximum]}, and {\normalfont
-  !#    \ttfamily [covarianceBinomialBinsPerDecade]}.
-  !#
-  !#    If instead, {\normalfont \ttfamily [covarianceModel]}$=${\normalfont \ttfamily Poisson}, the main branch galaxies are
-  !#    modeled as being sampled from a Poisson distribution (and so off-diagonal terms in the covariance matrix will be zero).
-  !#
-  !#    In addition to the main branch galaxies, each tree will contain a number of other galaxies (these will be ``satellite''
-  !#    galaxies at $z=0$, but at higher redshifts may still be central galaxies in their own halos). Tests have established that
-  !#    the number of satellites in halos is well described by a Poisson process. Note that, as described above, each galaxy
-  !#    contributes a Gaussian distribution to the mass function due to modelling of random errors in stellar mass
-  !#    determinations. For main branch galaxies this is simply accounted for when accumulating the probabilities, $p_{ik}$. For
-  !#    satellite galaxies, off-diagonal contributions to the covariance matrix arise as a result, $C_{ij} = w_k f_i f_j$, where
-  !#    $f_i$ is the fraction of the galaxy contributing to bin $i$ of the mass function.
-  !#  </description>
-  !# </outputAnalysis>
+  !![
+  <outputAnalysis name="outputAnalysisVolumeFunction1D">
+   <description>
+     A generic 1D volume function (i.e. number density of objects binned by some property, e.g. a mass function) output analysis class.
+  
+     In addition to the volume function itself, the covariance matrix, $\mathbf{C}_\mathrm{model}$, of the mass function is also
+     computed. The assumptions used when constructing the covariance matrix are controlled by the parameter {\normalfont
+     \ttfamily [covarianceModel]}. If set to {\normalfont \ttfamily binomial}, them to construct $\mathbf{C}_\mathrm{model}$ we
+     make use of the fact that \glc\ works by sampling a set of tree ``root masses'' from the $z=0$ dark matter halo mass
+     function. From each root, a tree is grown, within which the physics of galaxy formation is then solved. Root masses are
+     sampled uniformly from the halo mass function. That is, the cumulative halo mass function, $N(M)$, is constructed between
+     the maximum and minimum halo masses to be simulated. The number of root masses, $N_\mathrm{r}$, to be used in a model
+     evaluation is then determined. Root masses are then chosen such that
+     \begin{equation}
+      N(M_i) = N(M_\mathrm{min}) {i-1 \over N_\mathrm{r}-1}
+     \end{equation}
+     for $i=1\ldots N_\mathrm{r}$ (noting that $N(M_\mathrm{max})=0$ by construction). 
+  
+     Consider first those galaxies which form in the main branch of each tree (i.e. those galaxies which are destined to become
+     the central galaxy of the $z=0$ halo). Suppose that we simulate $N_k$ halos of root mass $M_k$ at $z=0$. In such halos the
+     main branch galaxies will, at any time, have stellar masses drawn from some distribution $p_k(M_\star|t)$. The number of
+     such galaxies contributing to bin $i$ of the mass function is therefore binomially distributed with success probability
+     $p_{ik} = \int_{M_{i,\mathrm min}}^{M_{i,\mathrm max}} p_k(M_\star|t) \d M_\star$ and a sample size of $N_k$. The
+     contribution to the covariance matrix from these main branch galaxies is therefore:
+     \begin{equation}
+      \mathcal{C}_{ij} = \left\{ \begin{array}{ll} p_{ik}(1-p_{ik}) N_k w_k^2 &amp; \hbox{ if } i = j \\ -p_{ik} p_{jk} N_k w_k^2 &amp; \hbox{ otherwise,} \end{array} \right.
+     \end{equation}
+     where $w_k$ is the weight to be assigned to each tree. To compute this covariance requires knowledge of the probabilities,
+     $p_{ik}$. We estimate these directly from the model. To do this, we bin trees into narrow bins of root mass and assume that
+     $p_{ik}$ does not vary significantly across the mass range of each bin. Using all realizations of trees that fall within a
+     given bin, $k$, we can directly estimate $p_{ik}$. In computing $p_{ik}$, the range of halo masses considered and the
+     fineness of binning in halo mass are determined by the parameters {\normalfont \ttfamily
+     [covarianceBinomialMassHaloMinimum]}, {\normalfont \ttfamily [covarianceBinomialMassHaloMaximum]}, and {\normalfont
+     \ttfamily [covarianceBinomialBinsPerDecade]}.
+  
+     If instead, {\normalfont \ttfamily [covarianceModel]}$=${\normalfont \ttfamily Poisson}, the main branch galaxies are
+     modeled as being sampled from a Poisson distribution (and so off-diagonal terms in the covariance matrix will be zero).
+  
+     In addition to the main branch galaxies, each tree will contain a number of other galaxies (these will be ``satellite''
+     galaxies at $z=0$, but at higher redshifts may still be central galaxies in their own halos). Tests have established that
+     the number of satellites in halos is well described by a Poisson process. Note that, as described above, each galaxy
+     contributes a Gaussian distribution to the mass function due to modelling of random errors in stellar mass
+     determinations. For main branch galaxies this is simply accounted for when accumulating the probabilities, $p_{ik}$. For
+     satellite galaxies, off-diagonal contributions to the covariance matrix arise as a result, $C_{ij} = w_k f_i f_j$, where
+     $f_i$ is the fraction of the galaxy contributing to bin $i$ of the mass function.
+   </description>
+  </outputAnalysis>
+  !!]
   type, extends(outputAnalysisClass) :: outputAnalysisVolumeFunction1D
-     !% A generic 1D volume function (i.e. number density of objects binned by some property, e.g. a mass function) output
-     !% analysis class.
+     !!{
+     A generic 1D volume function (i.e. number density of objects binned by some property, e.g. a mass function) output
+     analysis class.
+     !!}
      private
      type            (varying_string                           )                              :: label                                          , comment                                          , &
           &                                                                                      propertyLabel                                  , propertyComment                                  , &
@@ -111,10 +117,12 @@
           &                                                                                      yAxisIsLog                                     , likelihoodNormalize
      !$ integer      (omp_lock_kind                            )                              :: accumulateLock
    contains
-     !# <methods>
-     !#   <method description="Return the results of the volume function operator." method="results" />
-     !#   <method description="Finalize the analysis of this function." method="finalizeAnalysis" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Return the results of the volume function operator." method="results" />
+       <method description="Finalize the analysis of this function." method="finalizeAnalysis" />
+     </methods>
+     !!]
      final     ::                     volumeFunction1DDestructor
      procedure :: analyze          => volumeFunction1DAnalyze
      procedure :: finalize         => volumeFunction1DFinalize
@@ -125,7 +133,9 @@
   end type outputAnalysisVolumeFunction1D
 
   interface outputAnalysisVolumeFunction1D
-     !% Constructors for the ``volumeFunction1D'' output analysis class.
+     !!{
+     Constructors for the ``volumeFunction1D'' output analysis class.
+     !!}
      module procedure volumeFunction1DConstructorParameters
      module procedure volumeFunction1DConstructorInternal
   end interface outputAnalysisVolumeFunction1D
@@ -133,7 +143,9 @@
 contains
 
   function volumeFunction1DConstructorParameters(parameters) result(self)
-    !% Constructor for the ``volumeFunction1D'' output analysis class which takes a parameter set as input.
+    !!{
+    Constructor for the ``volumeFunction1D'' output analysis class which takes a parameter set as input.
+    !!}
     use :: Galacticus_Error       , only : Galacticus_Error_Report
     use :: Input_Parameters       , only : inputParameter                                , inputParameters
     use :: Memory_Management      , only : allocateArray
@@ -167,159 +179,165 @@ contains
 
     ! Check and read parameters.
     unoperatorParameters=parameters%subParameters('unoperatorParameters',requireValue=.false.)
-    !# <objectBuilder class="nodePropertyExtractor"                name="nodePropertyExtractor_"                source="parameters"          />
-    !# <objectBuilder class="outputAnalysisPropertyOperator"       name="outputAnalysisPropertyOperator_"       source="parameters"          />
-    !# <objectBuilder class="outputAnalysisPropertyOperator"       name="outputAnalysisPropertyUnoperator_"     source="unoperatorParameters"/>
-    !# <objectBuilder class="outputAnalysisWeightOperator"         name="outputAnalysisWeightOperator_"         source="parameters"          />
-    !# <objectBuilder class="outputAnalysisDistributionOperator"   name="outputAnalysisDistributionOperator_"   source="parameters"          />
-    !# <objectBuilder class="outputAnalysisDistributionNormalizer" name="outputAnalysisDistributionNormalizer_" source="parameters"          />
-    !# <objectBuilder class="galacticFilter"                       name="galacticFilter_"                       source="parameters"          />
-    !# <objectBuilder class="outputTimes"                          name="outputTimes_"                          source="parameters"          />
+    !![
+    <objectBuilder class="nodePropertyExtractor"                name="nodePropertyExtractor_"                source="parameters"          />
+    <objectBuilder class="outputAnalysisPropertyOperator"       name="outputAnalysisPropertyOperator_"       source="parameters"          />
+    <objectBuilder class="outputAnalysisPropertyOperator"       name="outputAnalysisPropertyUnoperator_"     source="unoperatorParameters"/>
+    <objectBuilder class="outputAnalysisWeightOperator"         name="outputAnalysisWeightOperator_"         source="parameters"          />
+    <objectBuilder class="outputAnalysisDistributionOperator"   name="outputAnalysisDistributionOperator_"   source="parameters"          />
+    <objectBuilder class="outputAnalysisDistributionNormalizer" name="outputAnalysisDistributionNormalizer_" source="parameters"          />
+    <objectBuilder class="galacticFilter"                       name="galacticFilter_"                       source="parameters"          />
+    <objectBuilder class="outputTimes"                          name="outputTimes_"                          source="parameters"          />
+    !!]
     call allocateArray(binCenter   ,[int(parameters%count('binCenter'),kind=c_size_t)                          ])
     call allocateArray(outputWeight,[int(parameters%count('binCenter'),kind=c_size_t)*self%outputTimes_%count()])
     if (parameters%count('outputWeight') /= parameters%count('binCenter')*self%outputTimes_%count()) &
          & call Galacticus_Error_Report('incorrect number of output weights provided'//{introspection:location})
-    !# <inputParameter>
-    !#   <name>label</name>
-    !#   <source>parameters</source>
-    !#   <variable>label</variable>
-    !#   <description>A label for the analysis.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>xAxisLabel</name>
-    !#   <source>parameters</source>
-    !#   <description>A label for the $x$-axis in a plot of this analysis.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>yAxisLabel</name>
-    !#   <source>parameters</source>
-    !#   <description>A label for the $y$-axis in a plot of this analysis.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>xAxisIsLog</name>
-    !#   <source>parameters</source>
-    !#   <description>If true, indicates that the $x$-axis should be logarithmic in a plot of this analysis.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>yAxisIsLog</name>
-    !#   <source>parameters</source>
-    !#   <description>If true, indicates that the $y$-axis should be logarithmic in a plot of this analysis.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>comment</name>
-    !#   <source>parameters</source>
-    !#   <variable>comment</variable>
-    !#   <description>A descriptive comment for the analysis.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>propertyLabel</name>
-    !#   <source>parameters</source>
-    !#   <variable>propertyLabel</variable>
-    !#   <description>A label for the property variable.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>propertyComment</name>
-    !#   <source>parameters</source>
-    !#   <variable>propertyComment</variable>
-    !#   <description>A descriptive comment for the property variable.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>propertyUnits</name>
-    !#   <source>parameters</source>
-    !#   <variable>propertyUnits</variable>
-    !#   <description>A human-readable description of the units for the property.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>propertyUnitsInSI</name>
-    !#   <source>parameters</source>
-    !#   <variable>propertyUnitsInSI</variable>
-    !#   <description>A units for the property in the SI system.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>distributionLabel</name>
-    !#   <source>parameters</source>
-    !#   <variable>distributionLabel</variable>
-    !#   <description>A label for the distribution.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>distributionComment</name>
-    !#   <source>parameters</source>
-    !#   <variable>distributionComment</variable>
-    !#   <description>A descriptive comment for the distribution.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>distributionUnits</name>
-    !#   <source>parameters</source>
-    !#   <variable>distributionUnits</variable>
-    !#   <description>A human-readable description of the units for the distribution.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>distributionUnitsInSI</name>
-    !#   <source>parameters</source>
-    !#   <variable>distributionUnitsInSI</variable>
-    !#   <description>A units for the distribution in the SI system.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>binCenter</name>
-    !#   <source>parameters</source>
-    !#   <variable>binCenter</variable>
-    !#   <description>The value of the property at the center of each bin.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>bufferCount</name>
-    !#   <source>parameters</source>
-    !#   <variable>bufferCount</variable>
-    !#   <description>The number of buffer bins to include below and above the range of actual bins.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>outputWeight</name>
-    !#   <source>parameters</source>
-    !#   <variable>outputWeight</variable>
-    !#   <description>The weight to assign to each bin at each output.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>covarianceModel</name>
-    !#   <source>parameters</source>
-    !#   <variable>covarianceModel</variable>
-    !#   <description>The model to use for computing covariances.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>covarianceBinomialBinsPerDecade</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>10</defaultValue>
-    !#   <description>The number of bins per decade of halo mass to use when constructing volume function covariance matrices for main branch galaxies.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>covarianceBinomialMassHaloMinimum</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>1.0d8</defaultValue>
-    !#   <description>The minimum halo mass to consider when constructing volume function covariance matrices for main branch galaxies.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>covarianceBinomialMassHaloMaximum</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>1.0d16</defaultValue>
-    !#   <description>The maximum halo mass to consider when constructing volume function covariance matrices for main branch galaxies.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>likelihoodNormalize</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>If true then normalize the likelihood to make it a probability density.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>label</name>
+      <source>parameters</source>
+      <variable>label</variable>
+      <description>A label for the analysis.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>xAxisLabel</name>
+      <source>parameters</source>
+      <description>A label for the $x$-axis in a plot of this analysis.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>yAxisLabel</name>
+      <source>parameters</source>
+      <description>A label for the $y$-axis in a plot of this analysis.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>xAxisIsLog</name>
+      <source>parameters</source>
+      <description>If true, indicates that the $x$-axis should be logarithmic in a plot of this analysis.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>yAxisIsLog</name>
+      <source>parameters</source>
+      <description>If true, indicates that the $y$-axis should be logarithmic in a plot of this analysis.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>comment</name>
+      <source>parameters</source>
+      <variable>comment</variable>
+      <description>A descriptive comment for the analysis.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>propertyLabel</name>
+      <source>parameters</source>
+      <variable>propertyLabel</variable>
+      <description>A label for the property variable.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>propertyComment</name>
+      <source>parameters</source>
+      <variable>propertyComment</variable>
+      <description>A descriptive comment for the property variable.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>propertyUnits</name>
+      <source>parameters</source>
+      <variable>propertyUnits</variable>
+      <description>A human-readable description of the units for the property.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>propertyUnitsInSI</name>
+      <source>parameters</source>
+      <variable>propertyUnitsInSI</variable>
+      <description>A units for the property in the SI system.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>distributionLabel</name>
+      <source>parameters</source>
+      <variable>distributionLabel</variable>
+      <description>A label for the distribution.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>distributionComment</name>
+      <source>parameters</source>
+      <variable>distributionComment</variable>
+      <description>A descriptive comment for the distribution.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>distributionUnits</name>
+      <source>parameters</source>
+      <variable>distributionUnits</variable>
+      <description>A human-readable description of the units for the distribution.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>distributionUnitsInSI</name>
+      <source>parameters</source>
+      <variable>distributionUnitsInSI</variable>
+      <description>A units for the distribution in the SI system.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>binCenter</name>
+      <source>parameters</source>
+      <variable>binCenter</variable>
+      <description>The value of the property at the center of each bin.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>bufferCount</name>
+      <source>parameters</source>
+      <variable>bufferCount</variable>
+      <description>The number of buffer bins to include below and above the range of actual bins.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>outputWeight</name>
+      <source>parameters</source>
+      <variable>outputWeight</variable>
+      <description>The weight to assign to each bin at each output.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>covarianceModel</name>
+      <source>parameters</source>
+      <variable>covarianceModel</variable>
+      <description>The model to use for computing covariances.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>covarianceBinomialBinsPerDecade</name>
+      <source>parameters</source>
+      <defaultValue>10</defaultValue>
+      <description>The number of bins per decade of halo mass to use when constructing volume function covariance matrices for main branch galaxies.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>covarianceBinomialMassHaloMinimum</name>
+      <source>parameters</source>
+      <defaultValue>1.0d8</defaultValue>
+      <description>The minimum halo mass to consider when constructing volume function covariance matrices for main branch galaxies.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>covarianceBinomialMassHaloMaximum</name>
+      <source>parameters</source>
+      <defaultValue>1.0d16</defaultValue>
+      <description>The maximum halo mass to consider when constructing volume function covariance matrices for main branch galaxies.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>likelihoodNormalize</name>
+      <source>parameters</source>
+      <defaultValue>.true.</defaultValue>
+      <description>If true then normalize the likelihood to make it a probability density.</description>
+    </inputParameter>
+    !!]
     if (parameters%isPresent('functionValueTarget')) then
        if (parameters%isPresent('functionCovarianceTarget')) then
-          !# <inputParameter>
-          !#   <name>functionValueTarget</name>
-          !#   <source>parameters</source>
-          !#   <description>The target function for likelihood calculations.</description>
-          !# </inputParameter>
-          !# <inputParameter>
-          !#   <name>functionCovarianceTarget</name>
-          !#   <source>parameters</source>
-          !#   <variable>functionCovarianceTarget1D</variable>
-          !#   <description>The target function covariance for likelihood calculations.</description>
-          !# </inputParameter>
+          !![
+          <inputParameter>
+            <name>functionValueTarget</name>
+            <source>parameters</source>
+            <description>The target function for likelihood calculations.</description>
+          </inputParameter>
+          <inputParameter>
+            <name>functionCovarianceTarget</name>
+            <source>parameters</source>
+            <variable>functionCovarianceTarget1D</variable>
+            <description>The target function covariance for likelihood calculations.</description>
+          </inputParameter>
+          !!]
           if (size(functionCovarianceTarget1D) == size(functionValueTarget)**2) then
              allocate(functionCovarianceTarget(size(functionValueTarget),size(functionValueTarget)))
              functionCovarianceTarget=reshape(functionCovarianceTarget1D,shape(functionCovarianceTarget))
@@ -332,67 +350,73 @@ contains
     else
        if (parameters%isPresent('functionCovariance')) call Galacticus_Error_Report('functionTarget must be specified if functionCovariance is present'//{introspection:location})
     end if
-    !# <inputParameter>
-    !#   <name>targetLabel</name>
-    !#   <source>parameters</source>
-    !#   <description>A label for the target dataset in a plot of this analysis.</description>
-    !#   <defaultValue>var_str('')</defaultValue>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>targetLabel</name>
+      <source>parameters</source>
+      <description>A label for the target dataset in a plot of this analysis.</description>
+      <defaultValue>var_str('')</defaultValue>
+    </inputParameter>
+    !!]
     ! Build the object.
-    !# <conditionalCall>
-    !#  <call>
-    !#   self=outputAnalysisVolumeFunction1D(                                                                                                    &amp;
-    !#        &amp;                          label                                                                                             , &amp;
-    !#        &amp;                          comment                                                                                           , &amp;
-    !#        &amp;                          propertyLabel                                                                                     , &amp;
-    !#        &amp;                          propertyComment                                                                                   , &amp;
-    !#        &amp;                          propertyUnits                                                                                     , &amp;
-    !#        &amp;                          propertyUnitsInSI                                                                                 , &amp;
-    !#        &amp;                          distributionLabel                                                                                 , &amp;
-    !#        &amp;                          distributionComment                                                                               , &amp;
-    !#        &amp;                          distributionUnits                                                                                 , &amp;
-    !#        &amp;                          distributionUnitsInSI                                                                             , &amp;
-    !#        &amp;                          binCenter                                                                                         , &amp;
-    !#        &amp;                          bufferCount                                                                                       , &amp;
-    !#        &amp;                          reshape(outputWeight,[int(parameters%count('binCenter'),kind=c_size_t),self%outputTimes_%count()]), &amp;
-    !#        &amp;                          nodePropertyExtractor_                                                                  , &amp;
-    !#        &amp;                          outputAnalysisPropertyOperator_                                                                   , &amp;
-    !#        &amp;                          outputAnalysisPropertyUnoperator_                                                                 , &amp;
-    !#        &amp;                          outputAnalysisWeightOperator_                                                                     , &amp;
-    !#        &amp;                          outputAnalysisDistributionOperator_                                                               , &amp;
-    !#        &amp;                          outputAnalysisDistributionNormalizer_                                                             , &amp;
-    !#        &amp;                          galacticFilter_                                                                                   , &amp;
-    !#        &amp;                          outputTimes_                                                                                      , &amp;
-    !#        &amp;                          enumerationOutputAnalysisCovarianceModelEncode(char(covarianceModel),includesPrefix=.false.)      , &amp;
-    !#        &amp;                          covarianceBinomialBinsPerDecade                                                                   , &amp;
-    !#        &amp;                          covarianceBinomialMassHaloMinimum                                                                 , &amp;
-    !#        &amp;                          covarianceBinomialMassHaloMaximum                                                                 , &amp;
-    !#        &amp;                          likelihoodNormalize                                                                               , &amp;
-    !#        &amp;                          xAxisLabel                                                                                        , &amp;
-    !#        &amp;                          yAxisLabel                                                                                        , &amp;
-    !#        &amp;                          xAxisIsLog                                                                                        , &amp;
-    !#        &amp;                          yAxisIsLog                                                                                        , &amp;
-    !#        &amp;                          targetLabel                                                                                         &amp;
-    !#        &amp;                          {conditions}                                                                                        &amp;
-    !#        &amp;                         )
-    !#  </call>
-    !#  <argument name="functionValueTarget"      value="functionValueTarget"      parameterPresent="parameters"/>
-    !#  <argument name="functionCovarianceTarget" value="functionCovarianceTarget" parameterPresent="parameters"/>
-    !# </conditionalCall>
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="nodePropertyExtractor_"     />
-    !# <objectDestructor name="outputAnalysisPropertyOperator_"      />
-    !# <objectDestructor name="outputAnalysisPropertyUnoperator_"    />
-    !# <objectDestructor name="outputAnalysisWeightOperator_"        />
-    !# <objectDestructor name="outputAnalysisDistributionOperator_"  />
-    !# <objectDestructor name="outputAnalysisDistributionNormalizer_"/>
-    !# <objectDestructor name="galacticFilter_"                      />
-    !# <objectDestructor name="outputTimes_"                         />
+    !![
+    <conditionalCall>
+     <call>
+      self=outputAnalysisVolumeFunction1D(                                                                                                    &amp;
+           &amp;                          label                                                                                             , &amp;
+           &amp;                          comment                                                                                           , &amp;
+           &amp;                          propertyLabel                                                                                     , &amp;
+           &amp;                          propertyComment                                                                                   , &amp;
+           &amp;                          propertyUnits                                                                                     , &amp;
+           &amp;                          propertyUnitsInSI                                                                                 , &amp;
+           &amp;                          distributionLabel                                                                                 , &amp;
+           &amp;                          distributionComment                                                                               , &amp;
+           &amp;                          distributionUnits                                                                                 , &amp;
+           &amp;                          distributionUnitsInSI                                                                             , &amp;
+           &amp;                          binCenter                                                                                         , &amp;
+           &amp;                          bufferCount                                                                                       , &amp;
+           &amp;                          reshape(outputWeight,[int(parameters%count('binCenter'),kind=c_size_t),self%outputTimes_%count()]), &amp;
+           &amp;                          nodePropertyExtractor_                                                                  , &amp;
+           &amp;                          outputAnalysisPropertyOperator_                                                                   , &amp;
+           &amp;                          outputAnalysisPropertyUnoperator_                                                                 , &amp;
+           &amp;                          outputAnalysisWeightOperator_                                                                     , &amp;
+           &amp;                          outputAnalysisDistributionOperator_                                                               , &amp;
+           &amp;                          outputAnalysisDistributionNormalizer_                                                             , &amp;
+           &amp;                          galacticFilter_                                                                                   , &amp;
+           &amp;                          outputTimes_                                                                                      , &amp;
+           &amp;                          enumerationOutputAnalysisCovarianceModelEncode(char(covarianceModel),includesPrefix=.false.)      , &amp;
+           &amp;                          covarianceBinomialBinsPerDecade                                                                   , &amp;
+           &amp;                          covarianceBinomialMassHaloMinimum                                                                 , &amp;
+           &amp;                          covarianceBinomialMassHaloMaximum                                                                 , &amp;
+           &amp;                          likelihoodNormalize                                                                               , &amp;
+           &amp;                          xAxisLabel                                                                                        , &amp;
+           &amp;                          yAxisLabel                                                                                        , &amp;
+           &amp;                          xAxisIsLog                                                                                        , &amp;
+           &amp;                          yAxisIsLog                                                                                        , &amp;
+           &amp;                          targetLabel                                                                                         &amp;
+           &amp;                          {conditions}                                                                                        &amp;
+           &amp;                         )
+     </call>
+     <argument name="functionValueTarget"      value="functionValueTarget"      parameterPresent="parameters"/>
+     <argument name="functionCovarianceTarget" value="functionCovarianceTarget" parameterPresent="parameters"/>
+    </conditionalCall>
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="nodePropertyExtractor_"     />
+    <objectDestructor name="outputAnalysisPropertyOperator_"      />
+    <objectDestructor name="outputAnalysisPropertyUnoperator_"    />
+    <objectDestructor name="outputAnalysisWeightOperator_"        />
+    <objectDestructor name="outputAnalysisDistributionOperator_"  />
+    <objectDestructor name="outputAnalysisDistributionNormalizer_"/>
+    <objectDestructor name="galacticFilter_"                      />
+    <objectDestructor name="outputTimes_"                         />
+    !!]
     return
   end function volumeFunction1DConstructorParameters
 
   function volumeFunction1DConstructorInternal(label,comment,propertyLabel,propertyComment,propertyUnits,propertyUnitsInSI,distributionLabel,distributionComment,distributionUnits,distributionUnitsInSI,binCenter,bufferCount,outputWeight,nodePropertyExtractor_,outputAnalysisPropertyOperator_,outputAnalysisPropertyUnoperator_,outputAnalysisWeightOperator_,outputAnalysisDistributionOperator_,outputAnalysisDistributionNormalizer_,galacticFilter_,outputTimes_,covarianceModel,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,likelihoodNormalize,xAxisLabel,yAxisLabel,xAxisIsLog,yAxisIsLog,targetLabel,functionValueTarget,functionCovarianceTarget) result (self)
-    !% Constructor for the ``volumeFunction1D'' output analysis class for internal use.
+    !!{
+    Constructor for the ``volumeFunction1D'' output analysis class for internal use.
+    !!}
     use    :: Galacticus_Error        , only : Galacticus_Error_Report
     use    :: Memory_Management       , only : allocateArray
     use    :: Node_Property_Extractors, only : nodePropertyExtractorClass           , nodePropertyExtractorScalar
@@ -425,7 +449,9 @@ contains
     double precision                                           , intent(in   ), optional, dimension(:  ) :: functionValueTarget
     double precision                                           , intent(in   ), optional, dimension(:,:) :: functionCovarianceTarget
     integer         (c_size_t                                 )                                          :: i
-    !# <constructorAssign variables="label, comment, propertyLabel, propertyComment, propertyUnits, propertyUnitsInSI, distributionLabel, distributionComment, distributionUnits, distributionUnitsInSI, binCenter, bufferCount, outputWeight, *nodePropertyExtractor_, *outputAnalysisPropertyOperator_, *outputAnalysisPropertyUnoperator_, *outputAnalysisWeightOperator_, *outputAnalysisDistributionOperator_, *outputAnalysisDistributionNormalizer_, *galacticFilter_, *outputTimes_, covarianceModel, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum, xAxisLabel='x', yAxisLabel='y', xAxisIsLog=.false., yAxisIsLog=.false., targetLabel, functionValueTarget, functionCovarianceTarget"/>
+    !![
+    <constructorAssign variables="label, comment, propertyLabel, propertyComment, propertyUnits, propertyUnitsInSI, distributionLabel, distributionComment, distributionUnits, distributionUnitsInSI, binCenter, bufferCount, outputWeight, *nodePropertyExtractor_, *outputAnalysisPropertyOperator_, *outputAnalysisPropertyUnoperator_, *outputAnalysisWeightOperator_, *outputAnalysisDistributionOperator_, *outputAnalysisDistributionNormalizer_, *galacticFilter_, *outputTimes_, covarianceModel, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum, xAxisLabel='x', yAxisLabel='y', xAxisIsLog=.false., yAxisIsLog=.false., targetLabel, functionValueTarget, functionCovarianceTarget"/>
+    !!]
 
     ! Validate.
     select type (nodePropertyExtractor_)
@@ -484,26 +510,32 @@ contains
   end function volumeFunction1DConstructorInternal
 
   subroutine volumeFunction1DDestructor(self)
-    !% Destructor for  the ``volumeFunction1D'' output analysis class.
+    !!{
+    Destructor for  the ``volumeFunction1D'' output analysis class.
+    !!}
     !$ use :: OMP_Lib, only : OMP_Destroy_Lock
     implicit none
     type(outputAnalysisVolumeFunction1D), intent(inout) :: self
 
-    !# <objectDestructor name="self%nodePropertyExtractor_"               />
-    !# <objectDestructor name="self%outputAnalysisPropertyOperator_"      />
-    !# <objectDestructor name="self%outputAnalysisPropertyUnoperator_"    />
-    !# <objectDestructor name="self%outputAnalysisWeightOperator_"        />
-    !# <objectDestructor name="self%outputAnalysisDistributionOperator_"  />
-    !# <objectDestructor name="self%outputAnalysisDistributionNormalizer_"/>
-    !# <objectDestructor name="self%galacticFilter_"                      />
-    !# <objectDestructor name="self%outputTimes_"                         />
+    !![
+    <objectDestructor name="self%nodePropertyExtractor_"               />
+    <objectDestructor name="self%outputAnalysisPropertyOperator_"      />
+    <objectDestructor name="self%outputAnalysisPropertyUnoperator_"    />
+    <objectDestructor name="self%outputAnalysisWeightOperator_"        />
+    <objectDestructor name="self%outputAnalysisDistributionOperator_"  />
+    <objectDestructor name="self%outputAnalysisDistributionNormalizer_"/>
+    <objectDestructor name="self%galacticFilter_"                      />
+    <objectDestructor name="self%outputTimes_"                         />
+    !!]
     ! Destroy OpenMP lock.
     !$ call OMP_Destroy_Lock(self%accumulateLock)
     return
   end subroutine volumeFunction1DDestructor
 
   subroutine volumeFunction1DAnalyze(self,node,iOutput)
-    !% Implement a volumeFunction1D output analysis.
+    !!{
+    Implement a volumeFunction1D output analysis.
+    !!}
     use    :: Galacticus_Nodes        , only : nodeComponentBasic                   , treeNode
     use    :: Node_Property_Extractors, only : nodePropertyExtractorScalar
     use    :: Output_Analyses_Options , only : outputAnalysisCovarianceModelBinomial
@@ -592,7 +624,9 @@ contains
   end subroutine volumeFunction1DAnalyze
 
   subroutine volumeFunction1DReduce(self,reduced)
-    !% Implement a volumeFunction1D output analysis reduction.
+    !!{
+    Implement a volumeFunction1D output analysis reduction.
+    !!}
     use    :: Galacticus_Error       , only : Galacticus_Error_Report
     use    :: Output_Analyses_Options, only : outputAnalysisCovarianceModelBinomial
     !$ use :: OMP_Lib                , only : OMP_Set_Lock                         , OMP_Unset_Lock
@@ -617,7 +651,9 @@ contains
   end subroutine volumeFunction1DReduce
 
   subroutine volumeFunction1DFinalize(self)
-    !% Implement a volumeFunction1D output analysis finalization.
+    !!{
+    Implement a volumeFunction1D output analysis finalization.
+    !!}
     use :: Galacticus_HDF5, only : galacticusOutputFile
     use :: IO_HDF5        , only : hdf5Access          , hdf5Object
     implicit none
@@ -678,7 +714,9 @@ contains
   end subroutine volumeFunction1DFinalize
 
   subroutine volumeFunction1DFinalizeAnalysis(self)
-    !% Compute final covariances and normalize.
+    !!{
+    Compute final covariances and normalize.
+    !!}
 #ifdef USEMPI
     use :: MPI_Utilities          , only : mpiSelf
 #endif
@@ -743,7 +781,9 @@ contains
   end subroutine volumeFunction1DFinalizeAnalysis
 
   subroutine volumeFunction1DResults(self,binCenter,functionValue,functionCovariance)
-    !% Implement a volumeFunction1D output analysis finalization.
+    !!{
+    Implement a volumeFunction1D output analysis finalization.
+    !!}
     use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class           (outputAnalysisVolumeFunction1D)                             , intent(inout)           :: self
@@ -772,7 +812,9 @@ contains
   end subroutine volumeFunction1DResults
 
   double precision function volumeFunction1DLogLikelihood(self)
-    !% Return the log-likelihood of a volumeFunction1D output analysis.
+    !!{
+    Return the log-likelihood of a volumeFunction1D output analysis.
+    !!}
     use :: Linear_Algebra              , only : vector                 , matrix, assignment(=), operator(*)
     use :: Numerical_Constants_Math    , only : Pi
     use :: Models_Likelihoods_Constants, only : logImprobable

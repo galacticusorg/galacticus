@@ -104,9 +104,40 @@ sub Children {
     return @children;
 }
 
+sub Comment_Embedded {
+    # Add comment characters in front of any embedded LaTeX or XML blocks.
+    my $codeOriginal = shift(); 
+    my $codeCommented;
+    my $inLaTeX = 0;
+    my $inXML   = 0;
+    open(my $code,"<",\$codeOriginal);
+    while ( my $line = <$code> ) {
+	# Detect the end of a LaTeX section and change state.
+	$inLaTeX = 0
+	    if ( $line =~ m/^\s*!!\}/ );
+	# Detect the end of an XML section and change state.
+	$inXML = 0
+	    if ( $line =~ m/^\s*!!\]/ );
+	# Comment out LaTeX and XML, unless it is already commented out.
+	$line = "!< ".$line
+	    if ( ( $inLaTeX || $inXML ) && $line !~ m/^\s*\!</ );
+	$codeCommented .= $line;
+	# Detect the start of a LaTeX section and change state.
+	$inLaTeX = 1
+	    if ( $line =~ m/^\s*!!\{/ );
+	# Detect the start of an XML section and change state.
+	$inXML = 1
+	    if ( $line =~ m/^\s*!!\[/ );
+    }
+    close($code);
+    return $codeCommented;
+}
+
 sub BuildTree {
     # Get the root of the tree;
     my $tree = shift();
+    # Comment out LaTeX blocks.
+    $tree->{'content'}= &Comment_Embedded($tree->{'content'});
     # Build the tree.
     my @stack = ( $tree );
     my $i = 0;

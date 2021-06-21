@@ -17,18 +17,24 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a class for the timescale of ram pressure stripping of hot halos in which the timescale is equal to the halo
-  !% dynamical timescale.
+  !!{
+  Implements a class for the timescale of ram pressure stripping of hot halos in which the timescale is equal to the halo
+  dynamical timescale.
+  !!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
-  !# <hotHaloRamPressureTimescale name="hotHaloRamPressureTimescaleHaloDynamicalTime">
-  !#  <description>
-  !#   A hot halo ram pressure timescale class in which the timescale is equal to the halo dynamical time of the associated halo.
-  !#  </description>
-  !# </hotHaloRamPressureTimescale>
+  !![
+  <hotHaloRamPressureTimescale name="hotHaloRamPressureTimescaleHaloDynamicalTime">
+   <description>
+    A hot halo ram pressure timescale class in which the timescale is equal to the halo dynamical time of the associated halo.
+   </description>
+  </hotHaloRamPressureTimescale>
+  !!]
   type, extends(hotHaloRamPressureTimescaleClass) :: hotHaloRamPressureTimescaleHaloDynamicalTime
-     !% Implementation of a hot halo ram pressure timescale class in which the timescale is equal to the halo dynamical time.
+     !!{
+     Implementation of a hot halo ram pressure timescale class in which the timescale is equal to the halo dynamical time.
+     !!}
      private
      class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
    contains
@@ -37,7 +43,9 @@
   end type hotHaloRamPressureTimescaleHaloDynamicalTime
 
   interface hotHaloRamPressureTimescaleHaloDynamicalTime
-     !% Constructors for the {\normalfont \ttfamily haloDynamicalTime} hot halo ram pressure timescale class.
+     !!{
+     Constructors for the {\normalfont \ttfamily haloDynamicalTime} hot halo ram pressure timescale class.
+     !!}
      module procedure haloDynamicalTimeConstructorParameters
      module procedure haloDynamicalTimeConstructorInternal
   end interface hotHaloRamPressureTimescaleHaloDynamicalTime
@@ -45,7 +53,9 @@
 contains
 
   function haloDynamicalTimeConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily haloDynamicalTime} hot halo ram pressure timescale class which builds the object from a parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily haloDynamicalTime} hot halo ram pressure timescale class which builds the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (hotHaloRamPressureTimescaleHaloDynamicalTime)                :: self
@@ -53,34 +63,48 @@ contains
     class(darkMatterHaloScaleClass                    ), pointer       :: darkMatterHaloScale_
 
 
-    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    !![
+    <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    !!]
     self=hotHaloRamPressureTimescaleHaloDynamicalTime(darkMatterHaloScale_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterHaloScale_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterHaloScale_"/>
+    !!]
     return
   end function haloDynamicalTimeConstructorParameters
 
   function haloDynamicalTimeConstructorInternal(darkMatterHaloScale_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily haloDynamicalTime} hot halo ram pressure timescale class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily haloDynamicalTime} hot halo ram pressure timescale class.
+    !!}
     implicit none
     type (hotHaloRamPressureTimescaleHaloDynamicalTime)                        :: self
     class(darkMatterHaloScaleClass                    ), intent(in   ), target :: darkMatterHaloScale_
-    !# <constructorAssign variables="*darkMatterHaloScale_"/>
+    !![
+    <constructorAssign variables="*darkMatterHaloScale_"/>
+    !!]
 
     return
   end function haloDynamicalTimeConstructorInternal
 
   subroutine haloDynamicalTimeDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily haloDynamicalTime} hot halo ram pressure timescale class.
+    !!{
+    Destructor for the {\normalfont \ttfamily haloDynamicalTime} hot halo ram pressure timescale class.
+    !!}
     implicit none
     type(hotHaloRamPressureTimescaleHaloDynamicalTime), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterHaloScale_"/>
+    !![
+    <objectDestructor name="self%darkMatterHaloScale_"/>
+    !!]
     return
   end subroutine haloDynamicalTimeDestructor
 
   double precision function haloDynamicalTimeTimescale(self,node)
-    !% Return a ram pressure timescale due to the hot halo assuming that it equals the halo dynamical time.
+    !!{
+    Return a ram pressure timescale due to the hot halo assuming that it equals the halo dynamical time.
+    !!}
     implicit none
     class(hotHaloRamPressureTimescaleHaloDynamicalTime), intent(inout) :: self
     type (treeNode                                    ), intent(inout) :: node

@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements various utility functions for extracting data from XML files.
+!!{
+Contains a module which implements various utility functions for extracting data from XML files.
+!!}
 
 module IO_XML
-  !% Implements various utility functions for extracting data from XML files.
+  !!{
+  Implements various utility functions for extracting data from XML files.
+  !!}
   use :: FoX_dom           , only : node
   use :: ISO_Varying_String, only : varying_string
   implicit none
@@ -31,16 +35,18 @@ module IO_XML
        &    xmlNodeList                      , XML_Get_Child_Elements        , getTextContentTS            , &
        &    extractDataContentTS             , parseStringTS
 
-  !# <generic identifier="Type">
-  !#  <instance label="Logical"      intrinsic="logical"                         />
-  !#  <instance label="Integer"      intrinsic="integer"                         />
-  !#  <instance label="Double"       intrinsic="double precision"                />
-  !#  <instance label="Character"    intrinsic="character(len=*)"                />
-  !#  <instance label="LogicalRank1" intrinsic="logical         , dimension(:)"  />
-  !#  <instance label="IntegerRank1" intrinsic="integer         , dimension(:)"  />
-  !#  <instance label="DoubleRank1"  intrinsic="double precision, dimension(:)"  />
-  !#  <instance label="DoubleRank2"  intrinsic="double precision, dimension(:,:)"/>
-  !# </generic>
+  !![
+  <generic identifier="Type">
+   <instance label="Logical"      intrinsic="logical"                         />
+   <instance label="Integer"      intrinsic="integer"                         />
+   <instance label="Double"       intrinsic="double precision"                />
+   <instance label="Character"    intrinsic="character(len=*)"                />
+   <instance label="LogicalRank1" intrinsic="logical         , dimension(:)"  />
+   <instance label="IntegerRank1" intrinsic="integer         , dimension(:)"  />
+   <instance label="DoubleRank1"  intrinsic="double precision, dimension(:)"  />
+   <instance label="DoubleRank2"  intrinsic="double precision, dimension(:,:)"/>
+  </generic>
+  !!]
 
   ! Interface to thread-safe extractDataContent function
   interface extractDataContentTS
@@ -61,25 +67,33 @@ module IO_XML
   end interface XML_Array_Read_Static
 
   type :: xincludeNode
-     !% Type used while resolving XInclude references during XML parsing.
+     !!{
+     Type used while resolving XInclude references during XML parsing.
+     !!}
      type(node          ), pointer :: nodeParent, nodeXInclude
      type(varying_string)          :: fileName  , xPath
   end type xincludeNode
 
   type :: xincludeNodeList
-     !% Type used while resolving XInclude references during XML parsing.
+     !!{
+     Type used while resolving XInclude references during XML parsing.
+     !!}
      type(xmlNodeList), allocatable, dimension(:) :: nodes
   end type xincludeNodeList
 
   type :: xmlNodeList
-     !% Type used to provide lists of XML nodes.
+     !!{
+     Type used to provide lists of XML nodes.
+     !!}
      type(node), pointer :: element
   end type xmlNodeList
   
 contains
 
   function XML_Extract_Text(xmlElement)
-    !% Extract the text from an XML element and return as a variable length string.
+    !!{
+    Extract the text from an XML element and return as a variable length string.
+    !!}
     use :: FoX_dom           , only : getTextContent, node
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
@@ -91,7 +105,9 @@ contains
   end function XML_Extract_Text
 
   subroutine XML_Array_Read_Static_One_Column(xmlElement,arrayElementName,column1)
-    !% Read one column of data from an array of XML elements.
+    !!{
+    Read one column of data from an array of XML elements.
+    !!}
     use :: FoX_dom, only : extractDataContent, getElementsByTagName, node
     implicit none
     type            (node       )              , intent(in   ), pointer :: xmlElement
@@ -112,7 +128,9 @@ contains
   end subroutine XML_Array_Read_Static_One_Column
 
   subroutine XML_Array_Read_One_Column(xmlElement,arrayElementName,column1)
-    !% Read one column of data from an array of XML elements.
+    !!{
+    Read one column of data from an array of XML elements.
+    !!}
     use :: FoX_dom          , only : extractDataContent, getElementsByTagName, node
     use :: Memory_Management, only : allocateArray
     implicit none
@@ -135,7 +153,9 @@ contains
   end subroutine XML_Array_Read_One_Column
 
   subroutine XML_Array_Read_Two_Column(xmlElement,arrayElementName,column1,column2)
-    !% Read two columns of data from an array of XML elements.
+    !!{
+    Read two columns of data from an array of XML elements.
+    !!}
     use :: FoX_dom          , only : extractDataContent, getElementsByTagName, node
     use :: Memory_Management, only : allocateArray
     implicit none
@@ -160,7 +180,9 @@ contains
   end subroutine XML_Array_Read_Two_Column
 
   subroutine XML_List_Array_Read_One_Column(xmlElements,arrayElementName,column1)
-    !% Read one column of data from an array of XML elements.
+    !!{
+    Read one column of data from an array of XML elements.
+    !!}
     use :: FoX_dom          , only : extractDataContent, node
     use :: Memory_Management, only : allocateArray
     implicit none
@@ -181,7 +203,9 @@ contains
   end subroutine XML_List_Array_Read_One_Column
 
   subroutine XML_List_Double_Array_Read_Static_One_Column(xmlElements,arrayElementName,column1)
-    !% Read one column of integer data from an array of XML elements.
+    !!{
+    Read one column of integer data from an array of XML elements.
+    !!}
     use :: FoX_dom, only : extractDataContent, node
     implicit none
     type            (xmlNodeList), dimension(0:), intent(in   )          :: xmlElements
@@ -200,7 +224,9 @@ contains
   end subroutine XML_List_Double_Array_Read_Static_One_Column
 
   subroutine XML_List_Integer_Array_Read_Static_One_Column(xmlElements,arrayElementName,column1)
-    !% Read one column of integer data from an array of XML elements.
+    !!{
+    Read one column of integer data from an array of XML elements.
+    !!}
     use :: FoX_dom, only : extractDataContent, node
     implicit none
     type     (xmlNodeList), dimension(0:), intent(in   )          :: xmlElements
@@ -219,7 +245,9 @@ contains
   end subroutine XML_List_Integer_Array_Read_Static_One_Column
 
   subroutine XML_List_Character_Array_Read_Static_One_Column(xmlElements,arrayElementName,column1)
-    !% Read one column of character data from an array of XML elements.
+    !!{
+    Read one column of character data from an array of XML elements.
+    !!}
     use :: FoX_dom, only : extractDataContent, node
     implicit none
     type     (xmlNodeList     ), dimension(0:), intent(in   )          :: xmlElements
@@ -238,7 +266,9 @@ contains
   end subroutine XML_List_Character_Array_Read_Static_One_Column
   
   subroutine XML_Get_Child_Elements(xmlElement,elements)
-    !% Return a list of pointers to all child nodes.
+    !!{
+    Return a list of pointers to all child nodes.
+    !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     use            :: FoX_DOM      , only : getFirstChild, getNextSibling, hasChildNodes, node
     implicit none
@@ -270,7 +300,9 @@ contains
   end subroutine XML_Get_Child_Elements
   
   recursive subroutine XML_Get_Elements_By_Tag_Name(xmlElement,tagName,elements)
-    !% Return a list of pointers to all nodes matching a given {\normalfont \ttfamily tagName}.
+    !!{
+    Return a list of pointers to all nodes matching a given {\normalfont \ttfamily tagName}.
+    !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     use            :: FoX_DOM      , only : getFirstChild, getNextSibling, getNodeType, getNodeName, &
          &                                  hasChildNodes, node          , Element_Node
@@ -306,7 +338,9 @@ contains
   end subroutine XML_Get_Elements_By_Tag_Name
   
   recursive function XML_Count_Elements_By_Tag_Name(xmlElement,tagName) result(countElements)
-    !% Return a count of all nodes matching a given {\normalfont \ttfamily tagName}.
+    !!{
+    Return a count of all nodes matching a given {\normalfont \ttfamily tagName}.
+    !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     use            :: FoX_DOM      , only : getFirstChild, getNextSibling, getNodeType, getNodeName, &
          &                                  hasChildNodes, node          , Element_Node
@@ -332,7 +366,9 @@ contains
   end function XML_Count_Elements_By_Tag_Name
 
   function XML_Get_First_Element_By_Tag_Name(xmlElement,tagName,directChildrenOnly)
-    !% Return a pointer to the first node in an XML node that matches the given {\normalfont \ttfamily tagName}.
+    !!{
+    Return a pointer to the first node in an XML node that matches the given {\normalfont \ttfamily tagName}.
+    !!}
     use :: FoX_dom         , only : getParentNode, node
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
@@ -382,7 +418,9 @@ contains
   end function XML_Get_First_Element_By_Tag_Name
 
   logical function XML_Path_Exists(xmlElement,path)
-    !% Return true if the supplied {\normalfont \ttfamily path} exists in the supplied {\normalfont \ttfamily xmlElement}.
+    !!{
+    Return true if the supplied {\normalfont \ttfamily path} exists in the supplied {\normalfont \ttfamily xmlElement}.
+    !!}
     use :: FoX_dom, only : ELEMENT_NODE , getElementsByTagName, getLength, getNodeType, &
          &                 getParentNode, node
     implicit none
@@ -428,8 +466,10 @@ contains
   end function XML_Path_Exists
 
   subroutine XML_Extrapolation_Element_Decode(extrapolationElement,limitType,extrapolationMethod,allowedMethods)
-    !% Extracts information from a standard XML {\normalfont \ttfamily extrapolationElement}. Optionally a set of {\normalfont \ttfamily allowedMethods} can be
-    !% specified---if the extracted method does not match one of these an error is issued.
+    !!{
+    Extracts information from a standard XML {\normalfont \ttfamily extrapolationElement}. Optionally a set of {\normalfont \ttfamily allowedMethods} can be
+    specified---if the extracted method does not match one of these an error is issued.
+    !!}
     use :: FoX_dom         , only : node                              , extractDataContent
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Table_Labels    , only : enumerationExtrapolationTypeEncode
@@ -461,7 +501,9 @@ contains
   end subroutine XML_Extrapolation_Element_Decode
   
   function XML_Parse(fileName,iostat,ex) result(document)
-    !% Parse an XML document, automatically resolve XInclude references.
+    !!{
+    Parse an XML document, automatically resolve XInclude references.
+    !!}
     use :: File_Utilities    , only : File_Exists            , File_Name       , File_Path
     use :: FoX_dom           , only : ELEMENT_NODE           , destroy         , getAttribute    , getChildNodes , &
          &                           getDocumentElement      , getFirstChild   , getNextSibling  , getNodeName   , &
@@ -508,9 +550,11 @@ contains
        ! Check that file exists.
        if (.not.File_Exists(char(filePath//stack(stackCount)%fileName))) call Galacticus_Error_Report('file "'//char(filePath//stack(stackCount)%fileName)//'" does not exist'//{introspection:location})
        ! Parse the document.
-       !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-       !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
-       !# </workaround>
+       !![
+       <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+        <description>Internal file I/O in gfortran can be non-thread safe.</description>
+       </workaround>
+       !!]
 #ifdef THREADSAFEIO
        !$omp critical(gfortranInternalIO)
 #endif
@@ -628,9 +672,11 @@ contains
   end function XML_Parse
 
   function parseStringTS(string,configuration,ex)
-    !% A thread-safe wrapper around the FoX {\normalfont \ttfamily parseString()} function. This is a workaround for
-    !% race-condition issues with the gfortran implementation of internal file unit handling (see, for example,
-    !% \href{https://gcc.gnu.org/bugzilla/show_bug.cgi?id=92836}{PR92836}).
+    !!{
+    A thread-safe wrapper around the FoX {\normalfont \ttfamily parseString()} function. This is a workaround for
+    race-condition issues with the gfortran implementation of internal file unit handling (see, for example,
+    \href{https://gcc.gnu.org/bugzilla/show_bug.cgi?id=92836}{PR92836}).
+    !!}
     use :: FoX_DOM, only : parseString, DOMException, DOMConfiguration, node
     implicit none
     type     (DOMException    ), intent(  out), optional :: ex
@@ -638,9 +684,11 @@ contains
     type     (DOMConfiguration), pointer      , optional :: configuration
     type     (node            ), pointer                 :: parseStringTS
 
-    !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-    !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
-    !# </workaround>
+    !![
+    <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+     <description>Internal file I/O in gfortran can be non-thread safe.</description>
+    </workaround>
+    !!]
 #ifdef THREADSAFEIO
     !$omp critical(gfortranInternalIO)
 #endif
@@ -652,9 +700,11 @@ contains
   end function parseStringTS
 
   function getTextContentTS(node_,ex)
-    !% A thread-safe wrapper around the FoX {\normalfont \ttfamily getTextContent()} function. This is a workaround for
-    !% race-condition issues with the gfortran implementation of internal file unit handling (see, for example,
-    !% \href{https://gcc.gnu.org/bugzilla/show_bug.cgi?id=92836}{PR92836}).
+    !!{
+    A thread-safe wrapper around the FoX {\normalfont \ttfamily getTextContent()} function. This is a workaround for
+    race-condition issues with the gfortran implementation of internal file unit handling (see, for example,
+    \href{https://gcc.gnu.org/bugzilla/show_bug.cgi?id=92836}{PR92836}).
+    !!}
     use :: FoX_DOM           , only : getTextContent, node, DOMException
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
@@ -662,9 +712,11 @@ contains
     type(node          ), intent(in   ), pointer  :: node_
     type(DOMException  ), intent(  out), optional :: ex
 
-    !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-    !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
-    !# </workaround>
+    !![
+    <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+     <description>Internal file I/O in gfortran can be non-thread safe.</description>
+    </workaround>
+    !!]
 #ifdef THREADSAFEIO
     !$omp critical(gfortranInternalIO)
 #endif
@@ -676,9 +728,11 @@ contains
   end function getTextContentTS
 
   subroutine extractDataContentTS{Type¦label}(arg,data,num,iostat,ex)
-    !% A thread-safe wrapper around the FoX {\normalfont \ttfamily getDataContent()} function. This is a workaround for
-    !% race-condition issues with the gfortran implementation of internal file unit handling (see, for example,
-    !% \href{https://gcc.gnu.org/bugzilla/show_bug.cgi?id=92836}{PR92836}).
+    !!{
+    A thread-safe wrapper around the FoX {\normalfont \ttfamily getDataContent()} function. This is a workaround for
+    race-condition issues with the gfortran implementation of internal file unit handling (see, for example,
+    \href{https://gcc.gnu.org/bugzilla/show_bug.cgi?id=92836}{PR92836}).
+    !!}
     use :: FoX_DOM     , only : extractDataContent, node, DOMException
     use :: Kind_Numbers, only : kind_int8
     type            (DOMException), intent(  out), optional :: ex
@@ -686,9 +740,11 @@ contains
     {Type¦intrinsic}              , intent(  out)           :: data
     integer                       , intent(  out), optional :: num, iostat
     
-    !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-    !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
-    !# </workaround>
+    !![
+    <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+     <description>Internal file I/O in gfortran can be non-thread safe.</description>
+    </workaround>
+    !!]
 #ifdef THREADSAFEIO
     !$omp critical(gfortranInternalIO)
 #endif

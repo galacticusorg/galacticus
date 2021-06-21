@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which defines the base class for all {\normalfont \ttfamily functionClass} classes.
+!!{
+Contains a module which defines the base class for all {\normalfont \ttfamily functionClass} classes.
+!!}
 
 module Function_Classes
-  !% Defines the base class for all {\normalfont \ttfamily functionClass} classes.
+  !!{
+  Defines the base class for all {\normalfont \ttfamily functionClass} classes.
+  !!}
   use :: ISO_Varying_String, only : assignment(=), varying_string
   implicit none
   private
@@ -30,16 +34,20 @@ module Function_Classes
 #endif
 
   type, abstract :: functionClass
-     !% The base class for all {\normalfont \ttfamily functionClass} classes.
+     !!{
+     The base class for all {\normalfont \ttfamily functionClass} classes.
+     !!}
      logical :: isDefaultOfClass=.false.
      integer :: referenceCount  =0
    contains
-     !# <methods>
-     !#   <method description="Reset the reference count to this object to 0." method="referenceCountReset" />
-     !#   <method description="Increment the reference count to this object." method="referenceCountIncrement" />
-     !#   <method description="Decrement the reference count to this object and return the new reference count." method="referenceCountDecrement" />
-     !#   <method description="Return true if this is the default object of this class." method="isDefault" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Reset the reference count to this object to 0." method="referenceCountReset" />
+       <method description="Increment the reference count to this object." method="referenceCountIncrement" />
+       <method description="Decrement the reference count to this object and return the new reference count." method="referenceCountDecrement" />
+       <method description="Return true if this is the default object of this class." method="isDefault" />
+     </methods>
+     !!]
      procedure :: isDefault               => functionClassIsDefault
      procedure :: referenceCountReset     => functionClassReferenceCountReset
      procedure :: referenceCountIncrement => functionClassReferenceCountIncrement
@@ -61,7 +69,9 @@ module Function_Classes
 contains
 
   logical function functionClassIsDefault(self)
-    !% Return true if this is the default object of this class.
+    !!{
+    Return true if this is the default object of this class.
+    !!}
     implicit none
     class(functionClass), intent(in   ) :: self
 
@@ -70,7 +80,9 @@ contains
   end function functionClassIsDefault
 
   subroutine functionClassReferenceCountReset(self)
-    !% Reset the reference count to this object to 0.
+    !!{
+    Reset the reference count to this object to 0.
+    !!}
     implicit none
     class(functionClass), intent(inout) :: self
 
@@ -79,7 +91,9 @@ contains
   end subroutine functionClassReferenceCountReset
 
   subroutine functionClassReferenceCountIncrement(self)
-    !% Increment the reference count to this object.
+    !!{
+    Increment the reference count to this object.
+    !!}
     implicit none
     class(functionClass), intent(inout) :: self
 
@@ -88,7 +102,9 @@ contains
   end subroutine functionClassReferenceCountIncrement
 
   integer function functionClassReferenceCountDecrement(self)
-    !% Decrement the reference count to this object and return the new count.
+    !!{
+    Decrement the reference count to this object and return the new count.
+    !!}
     implicit none
     class(functionClass), intent(inout) :: self
 
@@ -99,7 +115,9 @@ contains
 
 #ifdef OBJECTDEBUG
   subroutine debugStackPushStr(location)
-    !% Push a text-location onto the debug location stack.
+    !!{
+    Push a text-location onto the debug location stack.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     character(len=*), intent(in   ) :: location
@@ -111,7 +129,9 @@ contains
   end subroutine debugStackPushStr
 
   subroutine debugStackPushLoc(location)
-    !% Push a numeric-location onto the debug location stack.
+    !!{
+    Push a numeric-location onto the debug location stack.
+    !!}
     use            :: Galacticus_Error, only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding   , only : c_size_t
     implicit none
@@ -126,7 +146,9 @@ contains
   end subroutine debugStackPushLoc
 
   subroutine debugStackPop()
-    !% Pop a location off the debug stack.
+    !!{
+    Pop a location off the debug stack.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
 
@@ -136,7 +158,9 @@ contains
   end subroutine debugStackPop
 
   function debugStackGet()
-    !% Get the current location from the debug stack.
+    !!{
+    Get the current location from the debug stack.
+    !!}
     implicit none
     type(varying_string) :: debugStackGet
 

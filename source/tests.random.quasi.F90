@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to test quasi-random number functions.
+!!{
+Contains a program to test quasi-random number functions.
+!!}
 
 program Test_Quasi_Random
-  !% Tests that quasi-random number functions work.
+  !!{
+  Tests that quasi-random number functions work.
+  !!}
   use :: Display                         , only : displayVerbositySet, verbosityLevelStandard
   use :: Numerical_Quasi_Random_Sequences, only : gsl_qrng_sobol     , quasiRandomNumberGenerator
   use :: Unit_Tests                      , only : Assert             , Unit_Tests_Begin_Group    , Unit_Tests_End_Group, Unit_Tests_Finish

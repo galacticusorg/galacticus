@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which handles destruction of default {\normalfont \ttfamily functionClass} objects.
+!!{
+Contains a module which handles destruction of default {\normalfont \ttfamily functionClass} objects.
+!!}
 
 module Galacticus_Function_Classes_Destroys
-  !% Handles resetting of calculations before a new or updated node is processed.
+  !!{
+  Handles resetting of calculations before a new or updated node is processed.
+  !!}
   implicit none
   private
   public :: Galacticus_Function_Classes_Destroy
@@ -28,15 +32,25 @@ module Galacticus_Function_Classes_Destroys
 contains
 
   subroutine Galacticus_Function_Classes_Destroy()
-    !% Calls any functions required to destroy all default {\normalfont \ttfamily functionClass} objects.
-    !# <include directive="functionClassDestroyTask" type="moduleUse">
+    !!{
+    Calls any functions required to destroy all default {\normalfont \ttfamily functionClass} objects.
+    !!}
+    !![
+    <include directive="functionClassDestroyTask" type="moduleUse">
+    !!]
     include 'galacticus.function_class_destroy.tasks.modules.inc'
-    !# </include>
+    !![
+    </include>
+    !!]
     implicit none
 
-    !# <include directive="functionClassDestroyTask" type="functionCall" functionType="void">
+    !![
+    <include directive="functionClassDestroyTask" type="functionCall" functionType="void">
+    !!]
     include 'galacticus.function_class_destroy.tasks.inc'
-    !# </include>
+    !![
+    </include>
+    !!]
     return
   end subroutine Galacticus_Function_Classes_Destroy
 

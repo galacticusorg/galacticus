@@ -17,20 +17,28 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a class for intergalactic background light.
+  !!{
+  Implements a class for intergalactic background light.
+  !!}
 
-  !# <radiationField name="radiationFieldIntergalacticBackground" abstract="yes">
-  !#  <description>
-  !#   An abstract radiation field class for intergalactic background light.
-  !#  </description>
-  !# </radiationField>
+  !![
+  <radiationField name="radiationFieldIntergalacticBackground" abstract="yes">
+   <description>
+    An abstract radiation field class for intergalactic background light.
+   </description>
+  </radiationField>
+  !!]
   type, extends(radiationFieldClass), abstract :: radiationFieldIntergalacticBackground
-     !% A radiation field class for intergalactic background light.
+     !!{
+     A radiation field class for intergalactic background light.
+     !!}
      private
    contains
-     !# <methods>
-     !#   <method description="Set the time for the intergalactic background radiation field." method="timeSet" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Set the time for the intergalactic background radiation field." method="timeSet" />
+     </methods>
+     !!]
      procedure(intergalacticBackgroundTimeSet), deferred :: timeSet
   end type radiationFieldIntergalacticBackground
 

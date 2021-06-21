@@ -17,13 +17,17 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which performs numerical differentiation.
+!!{
+Contains a module which performs numerical differentiation.
+!!}
 
 ! Add dependency on GSL library.
 !; gsl
 
 module Numerical_Differentiation
-  !% Implements numerical differentiation.
+  !!{
+  Implements numerical differentiation.
+  !!}
   use, intrinsic :: ISO_C_Binding, only : c_double   , c_int             , c_ptr
   use            :: Interface_GSL, only : gslFunction, gslFunctionDestroy, gslFunctionTemplate
   implicit none
@@ -31,19 +35,25 @@ module Numerical_Differentiation
   public :: differentiator
 
   type differentiator
-     !% Type which computes numerical derivatives.
+     !!{
+     Type which computes numerical derivatives.
+     !!}
      private
      type(c_ptr) :: f
    contains
-     !# <methods>
-     !#   <method description="Returns the derivative of the function at argument {\normalfont \ttfamily x}." method="derivative" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Returns the derivative of the function at argument {\normalfont \ttfamily x}." method="derivative" />
+     </methods>
+     !!]
      final     ::               differentiatorDestructor
      procedure :: derivative => differentiatorDerivative
   end type differentiator
 
   interface differentiator
-     !% Constructors for the numerical derivatives class.
+     !!{
+     Constructors for the numerical derivatives class.
+     !!}
      module procedure differentiatorConstructorInternal
   end interface differentiator
 
@@ -60,8 +70,10 @@ module Numerical_Differentiation
 contains
 
   function differentiatorConstructorInternal(f) result(self)
-    !% Constructor for the numerical derivative class. Must be passed the function {\normalfont \ttfamily f} for which derivatives
-    !% will be computed.
+    !!{
+    Constructor for the numerical derivative class. Must be passed the function {\normalfont \ttfamily f} for which derivatives
+    will be computed.
+    !!}
     implicit none
     type     (differentiator     ) :: self
     procedure(gslFunctionTemplate) :: f
@@ -71,7 +83,9 @@ contains
   end function differentiatorConstructorInternal
 
   subroutine differentiatorDestructor(self)
-    !% Destructor for the numerical derivative class.
+    !!{
+    Destructor for the numerical derivative class.
+    !!}
     implicit none
     type(differentiator), intent(inout) :: self
 
@@ -80,8 +94,10 @@ contains
   end subroutine differentiatorDestructor
 
   double precision function differentiatorDerivative(self,x,h,errorAbsolute)
-    !% Compute a numerical derivative of the function at {\normalfont \ttfamily x}. The initial stepsize is {\normalfont \ttfamily
-    !% h}. If present, the absolute error estimate is returned in {\normalfont \ttfamily errorAbsolute}.
+    !!{
+    Compute a numerical derivative of the function at {\normalfont \ttfamily x}. The initial stepsize is {\normalfont \ttfamily
+    h}. If present, the absolute error estimate is returned in {\normalfont \ttfamily errorAbsolute}.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusSuccess
     implicit none
     class           (differentiator), intent(in   )           :: self

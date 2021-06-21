@@ -17,26 +17,32 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements a merger tree operator which exports merger trees to
-  !% file.
+  !!{
+  Contains a module which implements a merger tree operator which exports merger trees to
+  file.
+  !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters      , only : cosmologyParametersClass
 
-  !# <mergerTreeOperator name="mergerTreeOperatorExport">
-  !#  <description>
-  !#   This operator will export merger trees to a file specified by the {\normalfont \ttfamily [outputFileName]} using the format
-  !#   specified by {\normalfont \ttfamily [exportFormat]}. Currently, node indices (plus host indices, which are assumed identical to
-  !#   the node indices), descendent indices, masses and redshifts are exported. Positions and velocities are exported if available. If
-  !#   {\normalfont \ttfamily IRATE}-format output is requested then ``snapshot'' numbers will be assigned to nodes based on the time
-  !#   at which they exist. This usually only makes sense if the nodes are defined on a time grid (i.e. if merger trees were extracted
-  !#   from an N-body simulation, or if trees were re-gridded onto such a time grid; see \refPhysics{mergerTreeOperatorRegridTimes}).
-  !#   Export happens during the merger tree pre-evolution phase.
-  !#  </description>
-  !# </mergerTreeOperator>
+  !![
+  <mergerTreeOperator name="mergerTreeOperatorExport">
+   <description>
+    This operator will export merger trees to a file specified by the {\normalfont \ttfamily [outputFileName]} using the format
+    specified by {\normalfont \ttfamily [exportFormat]}. Currently, node indices (plus host indices, which are assumed identical to
+    the node indices), descendent indices, masses and redshifts are exported. Positions and velocities are exported if available. If
+    {\normalfont \ttfamily IRATE}-format output is requested then ``snapshot'' numbers will be assigned to nodes based on the time
+    at which they exist. This usually only makes sense if the nodes are defined on a time grid (i.e. if merger trees were extracted
+    from an N-body simulation, or if trees were re-gridded onto such a time grid; see \refPhysics{mergerTreeOperatorRegridTimes}).
+    Export happens during the merger tree pre-evolution phase.
+   </description>
+  </mergerTreeOperator>
+  !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorExport
-     !% A merger tree operator class which exports merger trees to file.
+     !!{
+     A merger tree operator class which exports merger trees to file.
+     !!}
      private
      class  (cosmologyParametersClass     ), pointer :: cosmologyParameters_      => null()
      class  (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_       => null()
@@ -50,7 +56,9 @@
   end type mergerTreeOperatorExport
 
   interface mergerTreeOperatorExport
-     !% Constructors for the export merger tree operator class.
+     !!{
+     Constructors for the export merger tree operator class.
+     !!}
      module procedure exportConstructorParameters
      module procedure exportConstructorInternal
   end interface mergerTreeOperatorExport
@@ -58,8 +66,10 @@
 contains
 
   function exportConstructorParameters(parameters) result(self)
-    !% Constructor for the export merger tree operator class which takes a
-    !% parameter set as input.
+    !!{
+    Constructor for the export merger tree operator class which takes a
+    parameter set as input.
+    !!}
     use :: Input_Parameters          , only : inputParameter                   , inputParameters
     use :: Merger_Tree_Data_Structure, only : enumerationMergerTreeFormatEncode
     implicit none
@@ -71,33 +81,39 @@ contains
     type   (varying_string               )                :: outputFileName            , exportFormatText
     integer                                               :: exportFormat
 
-    !# <inputParameter>
-    !#   <name>outputFileName</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>var_str('galacticusExportedTrees.hdf5')</defaultValue>
-    !#   <description>The name of the file to which merger trees should be exported.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>exportFormat</name>
-    !#   <source>parameters</source>
-    !#   <variable>exportFormatText</variable>
-    !#   <defaultValue>var_str('galacticus')</defaultValue>
-    !#   <description>The output format to use when exporting merger trees.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
-    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>outputFileName</name>
+      <source>parameters</source>
+      <defaultValue>var_str('galacticusExportedTrees.hdf5')</defaultValue>
+      <description>The name of the file to which merger trees should be exported.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>exportFormat</name>
+      <source>parameters</source>
+      <variable>exportFormatText</variable>
+      <defaultValue>var_str('galacticus')</defaultValue>
+      <description>The output format to use when exporting merger trees.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    !!]
     exportFormat=enumerationMergerTreeFormatEncode(char(exportFormatText),includesPrefix=.false.)
     self=exportConstructorInternal(char(outputFileName),exportFormat,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"     />
-    !# <objectDestructor name="cosmologyFunctions_"      />
-    !# <objectDestructor name="cosmologicalMassVariance_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"     />
+    <objectDestructor name="cosmologyFunctions_"      />
+    <objectDestructor name="cosmologicalMassVariance_"/>
+    !!]
     return
   end function exportConstructorParameters
 
   function exportConstructorInternal(outputFileName,exportFormat,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_) result(self)
-    !% Internal constructor for the export merger tree operator class.
+    !!{
+    Internal constructor for the export merger tree operator class.
+    !!}
     use :: Galacticus_Error          , only : Galacticus_Error_Report
     use :: Merger_Tree_Data_Structure, only : enumerationMergerTreeFormatIsValid, mergerTreeFormatIrate
     implicit none
@@ -107,7 +123,9 @@ contains
     class  (cosmologyParametersClass     ), intent(in   ), target :: cosmologyParameters_
     class  (cosmologyFunctionsClass      ), intent(in   ), target :: cosmologyFunctions_
     class  (cosmologicalMassVarianceClass), intent(in   ), target :: cosmologicalMassVariance_
-    !# <constructorAssign variables="outputFileName, exportFormat, *cosmologyParameters_, *cosmologyFunctions_, *cosmologicalMassVariance_"/>
+    !![
+    <constructorAssign variables="outputFileName, exportFormat, *cosmologyParameters_, *cosmologyFunctions_, *cosmologicalMassVariance_"/>
+    !!]
 
     ! Validate the export format.
     if (.not.enumerationMergerTreeFormatIsValid(exportFormat)) call Galacticus_Error_Report('exportFormat is invalid'//{introspection:location})
@@ -117,18 +135,24 @@ contains
   end function exportConstructorInternal
 
   subroutine exportDestructor(self)
-    !% Destructor for the export merger tree operator function class.
+    !!{
+    Destructor for the export merger tree operator function class.
+    !!}
     implicit none
     type(mergerTreeOperatorExport), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_"     />
-    !# <objectDestructor name="self%cosmologyFunctions_"      />
-    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
+    !![
+    <objectDestructor name="self%cosmologyParameters_"     />
+    <objectDestructor name="self%cosmologyFunctions_"      />
+    <objectDestructor name="self%cosmologicalMassVariance_"/>
+    !!]
     return
   end subroutine exportDestructor
 
   subroutine exportOperatePreEvolution(self,tree)
-    !% Output the structure of {\normalfont \ttfamily tree}.
+    !!{
+    Output the structure of {\normalfont \ttfamily tree}.
+    !!}
     use :: Cosmology_Parameters            , only : hubbleUnitsLittleH
     use :: Dates_and_Times                 , only : Formatted_Date_and_Time
     use :: Galacticus_Nodes                , only : defaultPositionComponent     , mergerTree            , nodeComponentBasic    , nodeComponentPosition      , &

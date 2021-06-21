@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a cold mode infall rate property extractor class.
+!!{
+Contains a module which implements a cold mode infall rate property extractor class.
+!!}
 
   use :: Cooling_Cold_Mode_Infall_Rates, only : coldModeInfallRate, coldModeInfallRateClass
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorRateInfallColdMode">
-  !#  <description>A cold mode infall rate property extractor class.</description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorRateInfallColdMode">
+   <description>A cold mode infall rate property extractor class.</description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRateInfallColdMode
-     !% A cold mode infall rate property extractor class.
+     !!{
+     A cold mode infall rate property extractor class.
+     !!}
      private
      class(coldModeInfallRateClass), pointer :: coldModeInfallRate_ => null()
    contains
@@ -38,7 +44,9 @@
   end type nodePropertyExtractorRateInfallColdMode
 
   interface nodePropertyExtractorRateInfallColdMode
-     !% Constructors for the {\normalfont \ttfamily rateInfallColdMode} output analysis class.
+     !!{
+     Constructors for the {\normalfont \ttfamily rateInfallColdMode} output analysis class.
+     !!}
      module procedure rateInfallColdModeConstructorParameters
      module procedure rateInfallColdModeConstructorInternal
   end interface nodePropertyExtractorRateInfallColdMode
@@ -46,41 +54,57 @@
 contains
 
   function rateInfallColdModeConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily rateInfallColdMode} property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily rateInfallColdMode} property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (nodePropertyExtractorRateInfallColdMode)                :: self
     type (inputParameters                        ), intent(inout) :: parameters
     class(coldModeInfallRateClass                ), pointer       :: coldModeInfallRate_
 
-    !# <objectBuilder class="coldModeInfallRate" name="coldModeInfallRate_" source="parameters"/>
+    !![
+    <objectBuilder class="coldModeInfallRate" name="coldModeInfallRate_" source="parameters"/>
+    !!]
     self=nodePropertyExtractorRateInfallColdMode(coldModeInfallRate_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="coldModeInfallRate_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="coldModeInfallRate_"/>
+    !!]
     return
   end function rateInfallColdModeConstructorParameters
 
   function rateInfallColdModeConstructorInternal(coldModeInfallRate_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily rateInfallColdMode} property extractor class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily rateInfallColdMode} property extractor class.
+    !!}
     implicit none
     type (nodePropertyExtractorRateInfallColdMode)                        :: self
     class(coldModeInfallRateClass                ), intent(in   ), target :: coldModeInfallRate_
-    !# <constructorAssign variables="*coldModeInfallRate_"/>
+    !![
+    <constructorAssign variables="*coldModeInfallRate_"/>
+    !!]
 
     return
   end function rateInfallColdModeConstructorInternal
 
   subroutine rateInfallColdModeDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily rateInfallColdMode} property extractor class.
+    !!{
+    Destructor for the {\normalfont \ttfamily rateInfallColdMode} property extractor class.
+    !!}
     implicit none
     type(nodePropertyExtractorRateInfallColdMode), intent(inout) :: self
 
-    !# <objectDestructor name="self%coldModeInfallRate_"/>
+    !![
+    <objectDestructor name="self%coldModeInfallRate_"/>
+    !!]
     return
   end subroutine rateInfallColdModeDestructor
 
   double precision function rateInfallColdModeExtract(self,node,instance)
-    !% Implement a {\normalfont \ttfamily rateInfallColdMode} property extractor.
+    !!{
+    Implement a {\normalfont \ttfamily rateInfallColdMode} property extractor.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class(nodePropertyExtractorRateInfallColdMode), intent(inout)           :: self
@@ -93,7 +117,9 @@ contains
   end function rateInfallColdModeExtract
 
   function rateInfallColdModeName(self)
-    !% Return the name of the {\normalfont \ttfamily rateInfallColdMode} property.
+    !!{
+    Return the name of the {\normalfont \ttfamily rateInfallColdMode} property.
+    !!}
     implicit none
     type (varying_string                         )                :: rateInfallColdModeName
     class(nodePropertyExtractorRateInfallColdMode), intent(inout) :: self
@@ -104,7 +130,9 @@ contains
   end function rateInfallColdModeName
 
   function rateInfallColdModeDescription(self)
-    !% Return a description of the {\normalfont \ttfamily rateInfallColdMode} property.
+    !!{
+    Return a description of the {\normalfont \ttfamily rateInfallColdMode} property.
+    !!}
     implicit none
     type (varying_string                         )                :: rateInfallColdModeDescription
     class(nodePropertyExtractorRateInfallColdMode), intent(inout) :: self
@@ -115,7 +143,9 @@ contains
   end function rateInfallColdModeDescription
 
   double precision function rateInfallColdModeUnitsInSI(self)
-    !% Return the units of the {\normalfont \ttfamily rateInfallColdMode} property in the SI system.
+    !!{
+    Return the units of the {\normalfont \ttfamily rateInfallColdMode} property in the SI system.
+    !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear, massSolar
     implicit none
     class(nodePropertyExtractorRateInfallColdMode), intent(inout) :: self
@@ -126,7 +156,9 @@ contains
   end function rateInfallColdModeUnitsInSI
 
   integer function rateInfallColdModeType(self)
-    !% Return the type of the {\normalfont \ttfamily rateInfallColdMode} property.
+    !!{
+    Return the type of the {\normalfont \ttfamily rateInfallColdMode} property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorRateInfallColdMode), intent(inout) :: self

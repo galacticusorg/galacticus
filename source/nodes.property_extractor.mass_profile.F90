@@ -17,17 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a property extractor class for the mass enclosed by a set of radii.
+!!{
+Contains a module which implements a property extractor class for the mass enclosed by a set of radii.
+!!}
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorMassProfile">
-  !#  <description>
-  !#   A node property extractor class which extracts the mass enclosed within specified radii. A list of radii, $r$ (in Mpc),
-  !#   must be specified via the {\normalfont \ttfamily [radii]} parameter. For each specified radius, the total (dark + baryonic)
-  !#   mass will be extracted as {\normalfont \ttfamily massProfile}$r$.
-  !#  </description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorMassProfile">
+   <description>
+    A node property extractor class which extracts the mass enclosed within specified radii. A list of radii, $r$ (in Mpc),
+    must be specified via the {\normalfont \ttfamily [radii]} parameter. For each specified radius, the total (dark + baryonic)
+    mass will be extracted as {\normalfont \ttfamily massProfile}$r$.
+   </description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorArray) :: nodePropertyExtractorMassProfile
-     !% A property extractor class for the mass enclosed within a specified list of radii.
+     !!{
+     A property extractor class for the mass enclosed within a specified list of radii.
+     !!}
      private
      integer         (c_size_t)                            :: radiiCount
      double precision          , allocatable, dimension(:) :: radii
@@ -43,7 +49,9 @@
   end type nodePropertyExtractorMassProfile
 
   interface nodePropertyExtractorMassProfile
-     !% Constructors for the ``massProfile'' output analysis class.
+     !!{
+     Constructors for the ``massProfile'' output analysis class.
+     !!}
      module procedure massProfileConstructorParameters
      module procedure massProfileConstructorInternal
   end interface nodePropertyExtractorMassProfile
@@ -51,7 +59,9 @@
 contains
 
   function massProfileConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily massProfile} property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily massProfile} property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (nodePropertyExtractorMassProfile)                              :: self
@@ -59,30 +69,40 @@ contains
     double precision                                  , allocatable  , dimension(:) :: radii
 
     allocate(radii(parameters%count('radii')))
-    !# <inputParameter>
-    !#   <name>radii</name>
-    !#   <description>A list of radii at which to output the mass profile.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>radii</name>
+      <description>A list of radii at which to output the mass profile.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     self=nodePropertyExtractorMassProfile(radii)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function massProfileConstructorParameters
 
   function massProfileConstructorInternal(radii) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily massProfile} property extractor class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily massProfile} property extractor class.
+    !!}
     use :: Galactic_Structure_Options, only : massTypeAll, massTypeDark
     implicit none
     type            (nodePropertyExtractorMassProfile)                              :: self
     double precision                                  , intent(in   ), dimension(:) :: radii
-    !# <constructorAssign variables="radii"/>
+    !![
+    <constructorAssign variables="radii"/>
+    !!]
 
     self%radiiCount=size(radii)
     return
   end function massProfileConstructorInternal
 
   integer function massProfileElementCount(self,time)
-    !% Return the number of elements in the {\normalfont \ttfamily massProfile} property extractors.
+    !!{
+    Return the number of elements in the {\normalfont \ttfamily massProfile} property extractors.
+    !!}
     implicit none
     class           (nodePropertyExtractorMassProfile), intent(inout) :: self
     double precision                                  , intent(in   ) :: time
@@ -93,7 +113,9 @@ contains
   end function massProfileElementCount
 
   function massProfileSize(self,time)
-    !% Return the number of array alements in the {\normalfont \ttfamily massProfile} property extractors.
+    !!{
+    Return the number of array alements in the {\normalfont \ttfamily massProfile} property extractors.
+    !!}
     implicit none
     integer         (c_size_t                        )                :: massProfileSize
     class           (nodePropertyExtractorMassProfile), intent(inout) :: self
@@ -105,7 +127,9 @@ contains
   end function massProfileSize
 
   function massProfileExtract(self,node,time,instance)
-    !% Implement a last isolated redshift output analysis.
+    !!{
+    Implement a last isolated redshift output analysis.
+    !!}
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
     use :: Galactic_Structure_Options        , only : componentTypeAll                , massTypeAll
     implicit none
@@ -125,7 +149,9 @@ contains
   end function massProfileExtract
 
   function massProfileNames(self,time)
-    !% Return the names of the {\normalfont \ttfamily massProfile} properties.
+    !!{
+    Return the names of the {\normalfont \ttfamily massProfile} properties.
+    !!}
     implicit none
     type            (varying_string                  ), dimension(:) , allocatable :: massProfileNames
     class           (nodePropertyExtractorMassProfile), intent(inout)              :: self
@@ -138,7 +164,9 @@ contains
   end function massProfileNames
 
   function massProfileDescriptions(self,time)
-    !% Return descriptions of the {\normalfont \ttfamily massProfile} property.
+    !!{
+    Return descriptions of the {\normalfont \ttfamily massProfile} property.
+    !!}
     implicit none
     type            (varying_string                  ), dimension(:) , allocatable :: massProfileDescriptions
     class           (nodePropertyExtractorMassProfile), intent(inout)              :: self
@@ -151,7 +179,9 @@ contains
   end function massProfileDescriptions
 
   function massProfileColumnDescriptions(self,time)
-    !% Return column descriptions of the {\normalfont \ttfamily massProfile} property.
+    !!{
+    Return column descriptions of the {\normalfont \ttfamily massProfile} property.
+    !!}
     implicit none
     type            (varying_string                  ), dimension(:) , allocatable :: massProfileColumnDescriptions
     class           (nodePropertyExtractorMassProfile), intent(inout)              :: self
@@ -169,7 +199,9 @@ contains
   end function massProfileColumnDescriptions
   
   function massProfileUnitsInSI(self,time)
-    !% Return the units of the {\normalfont \ttfamily massProfile} properties in the SI system.
+    !!{
+    Return the units of the {\normalfont \ttfamily massProfile} properties in the SI system.
+    !!}
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
     double precision                                  , allocatable  , dimension(:) :: massProfileUnitsInSI
@@ -183,7 +215,9 @@ contains
   end function massProfileUnitsInSI
 
   integer function massProfileType(self)
-    !% Return the type of the {\normalfont \ttfamily massProfile} properties.
+    !!{
+    Return the type of the {\normalfont \ttfamily massProfile} properties.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorMassProfile), intent(inout) :: self

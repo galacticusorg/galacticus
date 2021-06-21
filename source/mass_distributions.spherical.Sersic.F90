@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a S\'ersic mass distribution class.
+  !!{
+  Implementation of a S\'ersic mass distribution class.
+  !!}
 
   use    :: Numerical_Interpolation, only : interpolator
   !$ use :: OMP_Lib                , only : omp_lock_kind
 
-  !# <massDistribution name="massDistributionSersic">
-  !#  <description>A S\'ersic mass distribution class.</description>
-  !# </massDistribution>
+  !![
+  <massDistribution name="massDistributionSersic">
+   <description>A S\'ersic mass distribution class.</description>
+  </massDistribution>
+  !!]
   type, public, extends(massDistributionSpherical) :: massDistributionSersic
-     !% The S\'ersic density profile.
+     !!{
+     The S\'ersic density profile.
+     !!}
      double precision                                               :: densityNormalization , mass              , &
           &                                                            radiusHalfMass_      , index
      ! Tabulation of the Sérsic profile.
@@ -41,10 +47,12 @@
      type            (interpolator     )                            :: tableInterpolator
      !$ integer      (omp_lock_kind    )                            :: tableLock
    contains
-     !# <methods>
-     !#   <method description="Tabulate the Sersic profile." method="tabulate" />
-     !#   <method description="Return the half mass radius of the profile in projection." method="radiusHalfMassProjected" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Tabulate the Sersic profile." method="tabulate" />
+       <method description="Return the half mass radius of the profile in projection." method="radiusHalfMassProjected" />
+     </methods>
+     !!]
      procedure :: tabulate                => sersicTabulate
      procedure :: density                 => sersicDensity
      procedure :: densityRadialMoment     => sersicDensityRadialMoment
@@ -56,7 +64,9 @@
   end type massDistributionSersic
 
   interface massDistributionSersic
-     !% Constructors for the {\normalfont \ttfamily sersic} mass distribution class.
+     !!{
+     Constructors for the {\normalfont \ttfamily sersic} mass distribution class.
+     !!}
      module procedure sersicConstructorParameters
      module procedure sersicConstructorInternal
   end interface massDistributionSersic
@@ -71,8 +81,10 @@
 contains
 
   function sersicConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily sersic} mass distribution class which builds the object from a parameter
-    !% set.
+    !!{
+    Constructor for the {\normalfont \ttfamily sersic} mass distribution class which builds the object from a parameter
+    set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (massDistributionSersic)                :: self
@@ -81,43 +93,47 @@ contains
          &                                                     index_
     logical                                                 :: dimensionless
 
-    !# <inputParameter>
-    !#   <name>index</name>
-    !#   <variable>index_</variable>
-    !#   <defaultValue>4.0d0</defaultValue>
-    !#   <description>The S\'ersic index.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>radiusHalfMass</name>
-    !#   <defaultValue>1.0d0</defaultValue>
-    !#   <description>The half mass radius of the S\'ersic profile.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>mass</name>
-    !#   <defaultValue>1.0d0</defaultValue>
-    !#   <description>The mass of the S\'ersic profile.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>dimensionless</name>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>If true the S\'ersic profile is considered to be dimensionless.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <conditionalCall>
-    !#  <call>self=massDistributionSersic(index_{conditions})</call>
-    !#  <argument name="radiusHalfMass" value="radiusHalfMass"      parameterPresent="parameters"/>
-    !#  <argument name="mass"                 value="mass"          parameterPresent="parameters"/>
-    !#  <argument name="dimensionless"        value="dimensionless" parameterPresent="parameters"/>
-    !# </conditionalCall>
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParameter>
+      <name>index</name>
+      <variable>index_</variable>
+      <defaultValue>4.0d0</defaultValue>
+      <description>The S\'ersic index.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>radiusHalfMass</name>
+      <defaultValue>1.0d0</defaultValue>
+      <description>The half mass radius of the S\'ersic profile.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>mass</name>
+      <defaultValue>1.0d0</defaultValue>
+      <description>The mass of the S\'ersic profile.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>dimensionless</name>
+      <defaultValue>.true.</defaultValue>
+      <description>If true the S\'ersic profile is considered to be dimensionless.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <conditionalCall>
+     <call>self=massDistributionSersic(index_{conditions})</call>
+     <argument name="radiusHalfMass" value="radiusHalfMass"      parameterPresent="parameters"/>
+     <argument name="mass"                 value="mass"          parameterPresent="parameters"/>
+     <argument name="dimensionless"        value="dimensionless" parameterPresent="parameters"/>
+    </conditionalCall>
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function sersicConstructorParameters
 
   function sersicConstructorInternal(index,radiusHalfMass,mass,dimensionless) result(self)
-    !% Internal constructor for ``sersic'' mass distribution class.
+    !!{
+    Internal constructor for ``sersic'' mass distribution class.
+    !!}
     use :: Galacticus_Error    , only : Galacticus_Error_Report
     use :: Numerical_Comparison, only : Values_Differ
     implicit none
@@ -125,7 +141,9 @@ contains
     double precision                        , intent(in   )           :: index
     double precision                        , intent(in   ), optional :: radiusHalfMass, mass
     logical                                 , intent(in   ), optional :: dimensionless
-    !# <constructorAssign variables="index"/>
+    !![
+    <constructorAssign variables="index"/>
+    !!]
 
     ! Determine if profile is dimensionless.
     self%dimensionless=.false.
@@ -164,7 +182,9 @@ contains
   end function sersicConstructorInternal
 
   double precision function sersicDensity(self,coordinates)
-    !% Return the density at the specified {\normalfont \ttfamily coordinates} in a S\'ersic mass distribution.
+    !!{
+    Return the density at the specified {\normalfont \ttfamily coordinates} in a S\'ersic mass distribution.
+    !!}
     use :: Coordinates , only : assignment(=)               , coordinateSpherical
     implicit none
     class           (massDistributionSersic), intent(inout) :: self
@@ -187,7 +207,9 @@ contains
   end function sersicDensity
 
   double precision function sersicDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
-    !% Returns a radial density moment for the S\'ersic mass distribution.
+    !!{
+    Returns a radial density moment for the S\'ersic mass distribution.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (massDistributionSersic), intent(inout)           :: self
@@ -241,7 +263,9 @@ contains
   end function sersicDensityRadialMoment
 
   double precision function sersicMassTotal(self)
-    !% Computes the total mass for S\'ersic mass distributions.
+    !!{
+    Computes the total mass for S\'ersic mass distributions.
+    !!}
     implicit none
     class(massDistributionSersic), intent(inout) :: self
 
@@ -250,7 +274,9 @@ contains
   end function sersicMassTotal
   
   double precision function sersicMassEnclosedBySphere(self,radius)
-    !% Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for S\'ersic mass distributions.
+    !!{
+    Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for S\'ersic mass distributions.
+    !!}
     implicit none
     class           (massDistributionSersic), intent(inout), target :: self
     double precision                        , intent(in   )         :: radius
@@ -275,7 +301,9 @@ contains
   end function sersicMassEnclosedBySphere
 
   double precision function sersicPotential(self,coordinates)
-    !% Return the potential at the specified {\normalfont \ttfamily coordinates} in a S\'ersic mass distribution.
+    !!{
+    Return the potential at the specified {\normalfont \ttfamily coordinates} in a S\'ersic mass distribution.
+    !!}
     use :: Coordinates                     , only : assignment(=)                  , coordinateSpherical
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
@@ -305,7 +333,9 @@ contains
   end function sersicPotential
 
   double precision function sersicRadiusHalfMass(self)
-    !% Return the half-mass radius of a S\'ersic mass distribution.
+    !!{
+    Return the half-mass radius of a S\'ersic mass distribution.
+    !!}
     implicit none
     class(massDistributionSersic), intent(inout) :: self
 
@@ -316,7 +346,9 @@ contains
   end function sersicRadiusHalfMass
 
   double precision function sersicRadiusHalfMassProjected(self)
-    !% Return the half-mass radius in projection of a S\'ersic mass distribution.
+    !!{
+    Return the half-mass radius in projection of a S\'ersic mass distribution.
+    !!}
     implicit none
     class(massDistributionSersic), intent(inout) :: self
 
@@ -326,7 +358,9 @@ contains
   end function sersicRadiusHalfMassProjected
 
   subroutine sersicTabulate(self,radius)
-    !% Tabulate the density and enclosed mass in a dimensionless S\'ersic profile.
+    !!{
+    Tabulate the density and enclosed mass in a dimensionless S\'ersic profile.
+    !!}
     use :: Memory_Management       , only : allocateArray               , deallocateArray
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Integration   , only : integrator
@@ -469,7 +503,9 @@ contains
   end subroutine sersicTabulate
 
   double precision function sersicCoefficientRoot(coefficient)
-    !% Root function used in finding the coefficient for S\'ersic profiles.
+    !!{
+    Root function used in finding the coefficient for S\'ersic profiles.
+    !!}
     use :: Gamma_Functions, only : Gamma_Function_Incomplete
     implicit none
     double precision, intent(in   ) :: coefficient
@@ -479,7 +515,9 @@ contains
   end function sersicCoefficientRoot
 
   double precision function sersicAbelIntegrand(radius)
-    !% The integrand in the Abel integral used to invert the S\'ersic profile to get the corresponding 3-D profile.
+    !!{
+    The integrand in the Abel integral used to invert the S\'ersic profile to get the corresponding 3-D profile.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     double precision, intent(in   ) :: radius

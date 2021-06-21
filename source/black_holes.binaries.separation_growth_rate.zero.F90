@@ -19,30 +19,40 @@
 
 !+    Contributions to this file made by:  Stéphane Mangeon, Andrew Benson.
 
-  !% Implements a black hole binary separation growth class in which the separation does not grow.
+  !!{
+  Implements a black hole binary separation growth class in which the separation does not grow.
+  !!}
 
-  !# <blackHoleBinarySeparationGrowthRate name="blackHoleBinarySeparationGrowthRateZero">
-  !#  <description>
-  !#   A black hole binary separation growth class in which the separation does not grow.
-  !#  </description>
-  !# </blackHoleBinarySeparationGrowthRate>
+  !![
+  <blackHoleBinarySeparationGrowthRate name="blackHoleBinarySeparationGrowthRateZero">
+   <description>
+    A black hole binary separation growth class in which the separation does not grow.
+   </description>
+  </blackHoleBinarySeparationGrowthRate>
+  !!]
   type, extends(blackHoleBinarySeparationGrowthRateClass) :: blackHoleBinarySeparationGrowthRateZero
-     !% A black hole binary separation growth class in which the separation does not grow.
+     !!{
+     A black hole binary separation growth class in which the separation does not grow.
+     !!}
      private
    contains
      procedure :: growthRate => zeroGrowthRate
   end type blackHoleBinarySeparationGrowthRateZero
 
   interface blackHoleBinarySeparationGrowthRateZero
-     !% Constructors for the {\normalfont \ttfamily zero} black hole binary separation growth rate class.
+     !!{
+     Constructors for the {\normalfont \ttfamily zero} black hole binary separation growth rate class.
+     !!}
      module procedure zeroConstructorParameters
   end interface blackHoleBinarySeparationGrowthRateZero
 
 contains
 
   function zeroConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily zero} black hole binary separation growth rate class which takes a parameter
-    !% set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily zero} black hole binary separation growth rate class which takes a parameter
+    set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(blackHoleBinarySeparationGrowthRateZero)                :: self
@@ -54,7 +64,9 @@ contains
   end function zeroConstructorParameters
 
   double precision function zeroGrowthRate(self,blackHole)
-    !% Returns a separation growth rate for a binary black hole that is always zero.
+    !!{
+    Returns a separation growth rate for a binary black hole that is always zero.
+    !!}
     implicit none
     class(blackHoleBinarySeparationGrowthRateZero), intent(inout) :: self
     class(nodeComponentBlackHole                 ), intent(inout) :: blackHole

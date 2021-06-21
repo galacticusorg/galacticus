@@ -17,33 +17,39 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module that implements calculations of the infall radius for cooling calculations.
+!!{
+Contains a module that implements calculations of the infall radius for cooling calculations.
+!!}
 
 module Cooling_Infall_Radii
-  !% Provides a class that implements calculations of the infall radius for cooling calculations.
+  !!{
+  Provides a class that implements calculations of the infall radius for cooling calculations.
+  !!}
   use :: Galacticus_Nodes, only : treeNode
   implicit none
   private
 
-  !# <functionClass>
-  !#  <name>coolingInfallRadius</name>
-  !#  <descriptiveName>Cooling Infall Radius</descriptiveName>
-  !#  <description>
-  !#   Class providing models of the infall radii for gas cooling in the hot atmosphere surrounding a galaxy.
-  !#  </description>
-  !#  <default>coolingRadius</default>
-  !#  <method name="radius" >
-  !#   <description>Return the infall radius for {\normalfont \ttfamily node} (in units of Mpc).</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout) :: node</argument>
-  !#  </method>
-  !#  <method name="radiusIncreaseRate" >
-  !#   <description>Return the rate at which the infall radius grows for {\normalfont \ttfamily node} (in units of Mpc/Gyr).</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout) :: node</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>coolingInfallRadius</name>
+   <descriptiveName>Cooling Infall Radius</descriptiveName>
+   <description>
+    Class providing models of the infall radii for gas cooling in the hot atmosphere surrounding a galaxy.
+   </description>
+   <default>coolingRadius</default>
+   <method name="radius" >
+    <description>Return the infall radius for {\normalfont \ttfamily node} (in units of Mpc).</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>type(treeNode), intent(inout) :: node</argument>
+   </method>
+   <method name="radiusIncreaseRate" >
+    <description>Return the rate at which the infall radius grows for {\normalfont \ttfamily node} (in units of Mpc/Gyr).</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>type(treeNode), intent(inout) :: node</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Cooling_Infall_Radii

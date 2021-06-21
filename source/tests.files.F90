@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to test file functions.
+!!{
+Contains a program to test file functions.
+!!}
 
 program Test_Files
-  !% Tests that file functions work.
+  !!{
+  Tests that file functions work.
+  !!}
   use :: Display           , only : displayVerbositySet, verbosityLevelStandard
   use :: File_Utilities    , only : File_Exists        , File_Rename           , File_Remove
   use :: Galacticus_Paths  , only : galacticusPath     , pathTypeExec

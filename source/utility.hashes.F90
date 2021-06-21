@@ -17,29 +17,35 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements ``hashes'' (i.e. associative arrays).
+!!{
+Contains a module which implements ``hashes'' (i.e. associative arrays).
+!!}
 
 module Hashes
-  !% Implements ``hashes'' (i.e. associative arrays).
+  !!{
+  Implements ``hashes'' (i.e. associative arrays).
+  !!}
   use, intrinsic :: ISO_C_Binding     , only : c_size_t
   use            :: ISO_Varying_String, only : varying_string, var_str
   implicit none
 
-  !# <generic identifier="Type">
-  !#  <instance label="integer"              intrinsic="integer"              attributes=""                              argumentAttributes=""                          assignment="="  null="0"          />
-  !#  <instance label="integerSizeT"         intrinsic="integer(c_size_t)"    attributes=""                              argumentAttributes=""                          assignment="="  null="0_c_size_t" />
-  !#  <instance label="rank1IntegerSizeT"    intrinsic="integer(c_size_t)"    attributes=", allocatable, dimension(:  )" argumentAttributes="         , dimension(:  )" assignment="="  null="0_c_size_t" />
-  !#  <instance label="rank2IntegerSizeT"    intrinsic="integer(c_size_t)"    attributes=", allocatable, dimension(:,:)" argumentAttributes="         , dimension(:,:)" assignment="="  null="0_c_size_t" />
-  !#  <instance label="rank1IntegerSizeTPtr" intrinsic="integer(c_size_t)"    attributes=", pointer    , dimension(:  )" argumentAttributes=", pointer, dimension(:  )" assignment="=>" null="null()"     />
-  !#  <instance label="rank2IntegerSizeTPtr" intrinsic="integer(c_size_t)"    attributes=", pointer    , dimension(:,:)" argumentAttributes=", pointer, dimension(:,:)" assignment="=>" null="null()"     />
-  !#  <instance label="double"               intrinsic="double precision"     attributes=""                              argumentAttributes=""                          assignment="="  null="0.0d0"      />
-  !#  <instance label="rank1Double"          intrinsic="double precision"     attributes=", allocatable, dimension(:  )" argumentAttributes="         , dimension(:  )" assignment="="  null="0.0d0"      />
-  !#  <instance label="rank2Double"          intrinsic="double precision"     attributes=", allocatable, dimension(:,:)" argumentAttributes="         , dimension(:,:)" assignment="="  null="0.0d0"      />
-  !#  <instance label="rank1DoublePtr"       intrinsic="double precision"     attributes=", pointer    , dimension(:  )" argumentAttributes=", pointer, dimension(:  )" assignment="=>" null="null()"     />
-  !#  <instance label="rank2DoublePtr"       intrinsic="double precision"     attributes=", pointer    , dimension(:,:)" argumentAttributes=", pointer, dimension(:,:)" assignment="=>" null="null()"     />
-  !#  <instance label="varyingString"        intrinsic="type(varying_string)" attributes=""                              argumentAttributes=""                          assignment="="  null="var_str('')"/>
-  !#  <instance label="generic"              intrinsic="class(*)"             attributes=", pointer"                     argumentAttributes=", target"                  assignment="=>" null="null()"     />
-  !# </generic>
+  !![
+  <generic identifier="Type">
+   <instance label="integer"              intrinsic="integer"              attributes=""                              argumentAttributes=""                          assignment="="  null="0"          />
+   <instance label="integerSizeT"         intrinsic="integer(c_size_t)"    attributes=""                              argumentAttributes=""                          assignment="="  null="0_c_size_t" />
+   <instance label="rank1IntegerSizeT"    intrinsic="integer(c_size_t)"    attributes=", allocatable, dimension(:  )" argumentAttributes="         , dimension(:  )" assignment="="  null="0_c_size_t" />
+   <instance label="rank2IntegerSizeT"    intrinsic="integer(c_size_t)"    attributes=", allocatable, dimension(:,:)" argumentAttributes="         , dimension(:,:)" assignment="="  null="0_c_size_t" />
+   <instance label="rank1IntegerSizeTPtr" intrinsic="integer(c_size_t)"    attributes=", pointer    , dimension(:  )" argumentAttributes=", pointer, dimension(:  )" assignment="=>" null="null()"     />
+   <instance label="rank2IntegerSizeTPtr" intrinsic="integer(c_size_t)"    attributes=", pointer    , dimension(:,:)" argumentAttributes=", pointer, dimension(:,:)" assignment="=>" null="null()"     />
+   <instance label="double"               intrinsic="double precision"     attributes=""                              argumentAttributes=""                          assignment="="  null="0.0d0"      />
+   <instance label="rank1Double"          intrinsic="double precision"     attributes=", allocatable, dimension(:  )" argumentAttributes="         , dimension(:  )" assignment="="  null="0.0d0"      />
+   <instance label="rank2Double"          intrinsic="double precision"     attributes=", allocatable, dimension(:,:)" argumentAttributes="         , dimension(:,:)" assignment="="  null="0.0d0"      />
+   <instance label="rank1DoublePtr"       intrinsic="double precision"     attributes=", pointer    , dimension(:  )" argumentAttributes=", pointer, dimension(:  )" assignment="=>" null="null()"     />
+   <instance label="rank2DoublePtr"       intrinsic="double precision"     attributes=", pointer    , dimension(:,:)" argumentAttributes=", pointer, dimension(:,:)" assignment="=>" null="null()"     />
+   <instance label="varyingString"        intrinsic="type(varying_string)" attributes=""                              argumentAttributes=""                          assignment="="  null="var_str('')"/>
+   <instance label="generic"              intrinsic="class(*)"             attributes=", pointer"                     argumentAttributes=", target"                  assignment="=>" null="null()"     />
+  </generic>
+  !!]
 
   private
   public :: {Type¦label}Hash
@@ -50,24 +56,28 @@ module Hashes
   end type {Type¦label}Container
 
   type :: {Type¦label}Hash
-     !% Derived type for {Type¦label} hashes.
+     !!{
+     Derived type for {Type¦label} hashes.
+     !!}
      private
      integer                                                   :: allocatedSize, elementCount
      type   ({Type¦label}Container), allocatable, dimension(:) :: hashValues
      type   (varying_string       ), allocatable, dimension(:) :: hashKeys
    contains
-     !# <methods>
-     !#   <method description="Initialize the hash." method="initialize" />
-     !#   <method description="Set the value of a key in the hash." method="set" />
-     !#   <method description="Delete a key from the hash." method="delete" />
-     !#   <method description="Return the value for the given key." method="value" />
-     !#   <method description="Return the key of the {\normalfont \ttfamily indexValue}$^\mathrm{th}$ entry in the hash." method="key" />
-     !#   <method description="Return an array of all keys in the hash." method="keys" />
-     !#   <method description="Return an array of all values in the hash." method="values" />
-     !#   <method description="Return true if the specified key exists in the hash." method="exists" />
-     !#   <method description="Return the number of keys in the hash." method="size" />
-     !#   <method description="Destroy the hash." method="destroy" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Initialize the hash." method="initialize" />
+       <method description="Set the value of a key in the hash." method="set" />
+       <method description="Delete a key from the hash." method="delete" />
+       <method description="Return the value for the given key." method="value" />
+       <method description="Return the key of the {\normalfont \ttfamily indexValue}$^\mathrm{th}$ entry in the hash." method="key" />
+       <method description="Return an array of all keys in the hash." method="keys" />
+       <method description="Return an array of all values in the hash." method="values" />
+       <method description="Return true if the specified key exists in the hash." method="exists" />
+       <method description="Return the number of keys in the hash." method="size" />
+       <method description="Destroy the hash." method="destroy" />
+     </methods>
+     !!]
      final     ::                             {Type¦label}Destructor
      procedure :: initialize               => {Type¦label}Initialize
      procedure :: {Type¦label}SetVarStr
@@ -100,7 +110,9 @@ module Hashes
 contains
 
   function {Type¦label}HashConstructor() result(self)
-     !% Constructor for scalar hashes.
+     !!{
+     Constructor for scalar hashes.
+     !!}
      implicit none
      type({Type¦label}Hash) :: self
 
@@ -109,7 +121,9 @@ contains
    end function {Type¦label}HashConstructor
 
   subroutine {Type¦label}Initialize(self)
-    !% Routine to initialize (or re-initialize) a hash.
+    !!{
+    Routine to initialize (or re-initialize) a hash.
+    !!}
     implicit none
     class({Type¦label}Hash), intent(  out) :: self
 
@@ -121,7 +135,9 @@ contains
   end subroutine {Type¦label}Initialize
 
   integer function {Type¦label}Size(self)
-    !% Returns the number of elements in the specified {\normalfont \ttfamily Hash}.
+    !!{
+    Returns the number of elements in the specified {\normalfont \ttfamily Hash}.
+    !!}
     implicit none
     class({Type¦label}Hash), intent(in   ) :: self
 
@@ -130,7 +146,9 @@ contains
   end function {Type¦label}Size
 
   logical function {Type¦label}ExistsChar(self,keyCH)
-    !% Returns true if the specified {\normalfont \ttfamily key} exists in the specified {\normalfont \ttfamily self}, false otherwise.
+    !!{
+    Returns true if the specified {\normalfont \ttfamily key} exists in the specified {\normalfont \ttfamily self}, false otherwise.
+    !!}
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
     class    ({Type¦label}Hash), intent(in   ) :: self
@@ -143,7 +161,9 @@ contains
   end function {Type¦label}ExistsChar
 
   logical function {Type¦label}ExistsVarStr(self,key)
-    !% Returns true if the specified {\normalfont \ttfamily key} exists in the specified {\normalfont \ttfamily self}, false otherwise.
+    !!{
+    Returns true if the specified {\normalfont \ttfamily key} exists in the specified {\normalfont \ttfamily self}, false otherwise.
+    !!}
     use :: ISO_Varying_String, only : operator(==)
     implicit none
     class({Type¦label}Hash), intent(in   ) :: self
@@ -158,7 +178,9 @@ contains
   end function {Type¦label}ExistsVarStr
 
   subroutine {Type¦label}DeleteChar(self,keyCH)
-    !% Deletes entry {\normalfont \ttfamily key} from {\normalfont \ttfamily self}.
+    !!{
+    Deletes entry {\normalfont \ttfamily key} from {\normalfont \ttfamily self}.
+    !!}
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
     character(len=*           ), intent(in   ) :: keyCH
@@ -171,7 +193,9 @@ contains
   end subroutine {Type¦label}DeleteChar
 
   subroutine {Type¦label}DeleteVarStr(self,key)
-    !% Deletes entry {\normalfont \ttfamily key} from {\normalfont \ttfamily Hash}.
+    !!{
+    Deletes entry {\normalfont \ttfamily key} from {\normalfont \ttfamily Hash}.
+    !!}
     use            :: Arrays_Search     , only : searchArray
     use            :: Galacticus_Error  , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
@@ -197,7 +221,9 @@ contains
   end subroutine {Type¦label}DeleteVarStr
 
   function {Type¦label}KeyInt(self,indexValue) result (key)
-    !% Returns the key of entry number {\normalfont \ttfamily index} in {\normalfont \ttfamily self}.
+    !!{
+    Returns the key of entry number {\normalfont \ttfamily index} in {\normalfont \ttfamily self}.
+    !!}
     implicit none
     type   (varying_string  )                :: key
     integer                  , intent(in   ) :: indexValue
@@ -208,7 +234,9 @@ contains
   end function {Type¦label}KeyInt
 
   subroutine {Type¦label}Keys(self,keys)
-    !% Returns an array of all keys in {\normalfont \ttfamily self}.
+    !!{
+    Returns an array of all keys in {\normalfont \ttfamily self}.
+    !!}
     implicit none
     type (varying_string  ), allocatable, dimension(:), intent(inout) :: keys
     class({Type¦label}Hash)                           , intent(in   ) :: self
@@ -220,7 +248,9 @@ contains
   end subroutine {Type¦label}Keys
 
   subroutine {Type¦label}Values(self,values)
-    !% Returns an array of all values in {\normalfont \ttfamily self}.
+    !!{
+    Returns an array of all values in {\normalfont \ttfamily self}.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
 #if {Type¦match¦^(generic|rank\d+[a-zA-Z]+)$¦0¦1}
@@ -241,7 +271,9 @@ contains
   end subroutine {Type¦label}Values
 
   function {Type¦label}ValueInt(self,indexValue)
-    !% Returns the value of entry number {\normalfont \ttfamily index} in {\normalfont \ttfamily Hash}.
+    !!{
+    Returns the value of entry number {\normalfont \ttfamily index} in {\normalfont \ttfamily Hash}.
+    !!}
     implicit none
     {Type¦intrinsic}                  {Type¦attributes} :: {Type¦label}ValueInt
     class           ({Type¦label}Hash), intent(in   )   :: self
@@ -252,7 +284,9 @@ contains
   end function {Type¦label}ValueInt
 
   function {Type¦label}ValueChar(self,keyCH)
-    !% Returns the value of {\normalfont \ttfamily Key} in {\normalfont \ttfamily Hash}.
+    !!{
+    Returns the value of {\normalfont \ttfamily Key} in {\normalfont \ttfamily Hash}.
+    !!}
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
     {Type¦intrinsic}                  {Type¦attributes} :: {Type¦label}ValueChar
@@ -266,7 +300,9 @@ contains
   end function {Type¦label}ValueChar
 
   function {Type¦label}ValueVarStr(self,key)
-    !% Returns the value of {\normalfont \ttfamily key} in {\normalfont \ttfamily self}.
+    !!{
+    Returns the value of {\normalfont \ttfamily key} in {\normalfont \ttfamily self}.
+    !!}
     use            :: Arrays_Search     , only : searchArray
     use            :: Galacticus_Error  , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
@@ -288,7 +324,9 @@ contains
   end function {Type¦label}ValueVarStr
 
   subroutine {Type¦label}SetChar(self,keyCH,value)
-    !% Sets the value of {\normalfont \ttfamily key} in {\normalfont \ttfamily self} to {\normalfont \ttfamily value}.
+    !!{
+    Sets the value of {\normalfont \ttfamily key} in {\normalfont \ttfamily self} to {\normalfont \ttfamily value}.
+    !!}
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
     {Type¦intrinsic}                  {Type¦argumentAttributes}, intent(in   ) :: value
@@ -303,7 +341,9 @@ contains
   end subroutine {Type¦label}SetChar
 
   subroutine {Type¦label}SetVarStr(self,key,value)
-    !% Sets the value of {\normalfont \ttfamily key} in {\normalfont \ttfamily self} to {\normalfont \ttfamily value}.
+    !!{
+    Sets the value of {\normalfont \ttfamily key} in {\normalfont \ttfamily self} to {\normalfont \ttfamily value}.
+    !!}
     use            :: Arrays_Search     , only : searchArray
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
     use            :: ISO_Varying_String, only : operator(==)
@@ -378,7 +418,9 @@ contains
   end subroutine {Type¦label}SetVarStr
 
   subroutine {Type¦label}Destroy(self)
-    !% Destroys {\normalfont \ttfamily self}.
+    !!{
+    Destroys {\normalfont \ttfamily self}.
+    !!}
     implicit none
     class  ({Type¦label}Hash), intent(inout) :: self
     integer                                  :: i
@@ -394,7 +436,9 @@ contains
   end subroutine {Type¦label}Destroy
 
   subroutine {Type¦label}Destructor(self)
-    !% Destroys {\normalfont \ttfamily self}.
+    !!{
+    Destroys {\normalfont \ttfamily self}.
+    !!}
     implicit none
     type({Type¦label}Hash), intent(inout) :: self
 

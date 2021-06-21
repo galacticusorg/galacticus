@@ -17,17 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a tidal radius property extractor class.
+!!{
+Contains a module which implements a tidal radius property extractor class.
+!!}
 
   use :: Satellite_Tidal_Stripping_Radii, only : satelliteTidalStrippingRadiusClass
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorRadiusTidal">
-  !#  <description>
-  !#   A tidal radius property extractor class. Extracts the tidal radius in the halo in Mpc.
-  !#  </description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorRadiusTidal">
+   <description>
+    A tidal radius property extractor class. Extracts the tidal radius in the halo in Mpc.
+   </description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRadiusTidal
-     !% A tidal radius property extractor class.
+     !!{
+     A tidal radius property extractor class.
+     !!}
      private
      class(satelliteTidalStrippingRadiusClass), pointer :: satelliteTidalStrippingRadius_ => null()
    contains
@@ -40,7 +46,9 @@
   end type nodePropertyExtractorRadiusTidal
 
   interface nodePropertyExtractorRadiusTidal
-     !% Constructors for the ``radiusTidal'' output analysis class.
+     !!{
+     Constructors for the ``radiusTidal'' output analysis class.
+     !!}
      module procedure radiusTidalConstructorParameters
      module procedure radiusTidalConstructorInternal
   end interface nodePropertyExtractorRadiusTidal
@@ -48,41 +56,57 @@
 contains
 
   function radiusTidalConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily radiusTidal} property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily radiusTidal} property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (nodePropertyExtractorRadiusTidal  )                :: self
     type (inputParameters                   ), intent(inout) :: parameters
     class(satelliteTidalStrippingRadiusClass), pointer       :: satelliteTidalStrippingRadius_
 
-    !# <objectBuilder class="satelliteTidalStrippingRadius" name="satelliteTidalStrippingRadius_" source="parameters"/>
+    !![
+    <objectBuilder class="satelliteTidalStrippingRadius" name="satelliteTidalStrippingRadius_" source="parameters"/>
+    !!]
     self=nodePropertyExtractorRadiusTidal(satelliteTidalStrippingRadius_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="satelliteTidalStrippingRadius_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="satelliteTidalStrippingRadius_"/>
+    !!]
     return
   end function radiusTidalConstructorParameters
 
   function radiusTidalConstructorInternal(satelliteTidalStrippingRadius_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily radiusTidal} property extractor class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily radiusTidal} property extractor class.
+    !!}
     implicit none
     type (nodePropertyExtractorRadiusTidal  )                        :: self
     class(satelliteTidalStrippingRadiusClass), intent(in   ), target :: satelliteTidalStrippingRadius_
-    !# <constructorAssign variables="*satelliteTidalStrippingRadius_"/>
+    !![
+    <constructorAssign variables="*satelliteTidalStrippingRadius_"/>
+    !!]
 
     return
   end function radiusTidalConstructorInternal
 
   subroutine radiusTidalDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily radiusTidal} property extractor class.
+    !!{
+    Destructor for the {\normalfont \ttfamily radiusTidal} property extractor class.
+    !!}
     implicit none
     type(nodePropertyExtractorRadiusTidal), intent(inout) :: self
 
-    !# <objectDestructor name="self%satelliteTidalStrippingRadius_"/>
+    !![
+    <objectDestructor name="self%satelliteTidalStrippingRadius_"/>
+    !!]
     return
   end subroutine radiusTidalDestructor
 
   double precision function radiusTidalExtract(self,node,instance)
-    !% Implement a tidal radius property extractor.
+    !!{
+    Implement a tidal radius property extractor.
+    !!}
     implicit none
     class(nodePropertyExtractorRadiusTidal), intent(inout)           :: self
     type (treeNode                        ), intent(inout), target   :: node
@@ -94,7 +118,9 @@ contains
   end function radiusTidalExtract
 
   function radiusTidalName(self)
-    !% Return the name of the tidal radius property.
+    !!{
+    Return the name of the tidal radius property.
+    !!}
     implicit none
     type (varying_string                  )                :: radiusTidalName
     class(nodePropertyExtractorRadiusTidal), intent(inout) :: self
@@ -105,7 +131,9 @@ contains
   end function radiusTidalName
 
   function radiusTidalDescription(self)
-    !% Return a description of the tidal radius property.
+    !!{
+    Return a description of the tidal radius property.
+    !!}
     implicit none
     type (varying_string                  )                :: radiusTidalDescription
     class(nodePropertyExtractorRadiusTidal), intent(inout) :: self
@@ -116,7 +144,9 @@ contains
   end function radiusTidalDescription
 
   double precision function radiusTidalUnitsInSI(self)
-    !% Return the units of the tidal radius property in the SI system.
+    !!{
+    Return the units of the tidal radius property in the SI system.
+    !!}
     use :: Numerical_Constants_Astronomical, only : megaParsec
     implicit none
     class(nodePropertyExtractorRadiusTidal), intent(inout) :: self
@@ -127,7 +157,9 @@ contains
   end function radiusTidalUnitsInSI
 
   integer function radiusTidalType(self)
-    !% Return the type of the tidal radius property.
+    !!{
+    Return the type of the tidal radius property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorRadiusTidal), intent(inout) :: self

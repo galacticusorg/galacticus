@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a posterior sampling convergence class which switches between two other options.
+  !!{
+  Implementation of a posterior sampling convergence class which switches between two other options.
+  !!}
 
-  !# <posteriorSampleStateInitialize name="posteriorSampleStateInitializeSwitched">
-  !#  <description>A posterior sampling state initialization class which sets initial state by switching between two other options.</description>
-  !# </posteriorSampleStateInitialize>
+  !![
+  <posteriorSampleStateInitialize name="posteriorSampleStateInitializeSwitched">
+   <description>A posterior sampling state initialization class which sets initial state by switching between two other options.</description>
+  </posteriorSampleStateInitialize>
+  !!]
   type, extends(posteriorSampleStateInitializeClass) :: posteriorSampleStateInitializeSwitched
-     !% Implementation of a posterior sampling state initialization class which sets initial state by switching between two other options.
+     !!{
+     Implementation of a posterior sampling state initialization class which sets initial state by switching between two other options.
+     !!}
      private
      class(posteriorSampleStateInitializeClass), pointer                   :: stateInitializeMethod1, stateInitializeMethod2
      type(varying_string                      ), allocatable, dimension(:) :: modelParameterName1   , modelParameterName2
@@ -33,7 +39,9 @@
   end type posteriorSampleStateInitializeSwitched
 
   interface posteriorSampleStateInitializeSwitched
-     !% Constructors for the {\normalfont \ttfamily switched} posterior sampling state initialization class.
+     !!{
+     Constructors for the {\normalfont \ttfamily switched} posterior sampling state initialization class.
+     !!}
      module procedure switchedConstructorParameters
      module procedure switchedConstructorInternal
   end interface posteriorSampleStateInitializeSwitched
@@ -41,7 +49,9 @@
 contains
 
   function switchedConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily switched} posterior sampling state initialization class.
+    !!{
+    Constructor for the {\normalfont \ttfamily switched} posterior sampling state initialization class.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (posteriorSampleStateInitializeSwitched)                            :: self
@@ -51,48 +61,62 @@ contains
 
     allocate(modelParameterName1(parameters%count('modelParameterName1')))
     allocate(modelParameterName2(parameters%count('modelParameterName2')))
-    !# <inputParameter>
-    !#   <name>modelParameterName1</name>
-    !#   <source>parameters</source>
-    !#   <description>Names of parameters to be initialized by initializer number 1.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>modelParameterName2</name>
-    !#   <source>parameters</source>
-    !#   <description>Names of parameters to be initialized by initializer number 2.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="posteriorSampleStateInitialize" name="stateInitializeMethod1" parameterName="posteriorSampleStateInitializeMethod1" source="parameters"/>
-    !# <objectBuilder class="posteriorSampleStateInitialize" name="stateInitializeMethod2" parameterName="posteriorSampleStateInitializeMethod2" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>modelParameterName1</name>
+      <source>parameters</source>
+      <description>Names of parameters to be initialized by initializer number 1.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>modelParameterName2</name>
+      <source>parameters</source>
+      <description>Names of parameters to be initialized by initializer number 2.</description>
+    </inputParameter>
+    <objectBuilder class="posteriorSampleStateInitialize" name="stateInitializeMethod1" parameterName="posteriorSampleStateInitializeMethod1" source="parameters"/>
+    <objectBuilder class="posteriorSampleStateInitialize" name="stateInitializeMethod2" parameterName="posteriorSampleStateInitializeMethod2" source="parameters"/>
+    !!]
     self=posteriorSampleStateInitializeSwitched(modelParameterName1,modelParameterName2,stateInitializeMethod1,stateInitializeMethod2)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="stateInitializeMethod1"/>
-    !# <objectDestructor name="stateInitializeMethod2"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="stateInitializeMethod1"/>
+    <objectDestructor name="stateInitializeMethod2"/>
+    !!]
    return
   end function switchedConstructorParameters
 
   function switchedConstructorInternal(modelParameterName1,modelParameterName2,stateInitializeMethod1,stateInitializeMethod2) result(self)
-    !% Constructor for the {\normalfont \ttfamily switched} posterior sampling state initialization class.
+    !!{
+    Constructor for the {\normalfont \ttfamily switched} posterior sampling state initialization class.
+    !!}
     implicit none
     type (posteriorSampleStateInitializeSwitched)                              :: self
     type (varying_string                        ), dimension(:), intent(in   ) :: modelParameterName1   , modelParameterName2
     class(posteriorSampleStateInitializeClass   ), target      , intent(in   ) :: stateInitializeMethod1, stateInitializeMethod2
-    !# <constructorAssign variables="modelParameterName1, modelParameterName2, *stateInitializeMethod1, *stateInitializeMethod2"/>
+    !![
+    <constructorAssign variables="modelParameterName1, modelParameterName2, *stateInitializeMethod1, *stateInitializeMethod2"/>
+    !!]
 
     return
   end function switchedConstructorInternal
 
   subroutine switchedDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily switched} posterior sampling state initialization class.
+    !!{
+    Destructor for the {\normalfont \ttfamily switched} posterior sampling state initialization class.
+    !!}
     implicit none
     type (posteriorSampleStateInitializeSwitched), intent(inout) :: self
 
-    !# <objectDestructor name="self%stateInitializeMethod1"/>
-    !# <objectDestructor name="self%stateInitializeMethod2"/>
+    !![
+    <objectDestructor name="self%stateInitializeMethod1"/>
+    <objectDestructor name="self%stateInitializeMethod2"/>
+    !!]
     return
   end subroutine switchedDestructor
 
   subroutine switchedInitialize(self,simulationState,modelParameters_,modelLikelihood,timeEvaluatePrevious,logLikelihood,logPosterior)
-    !% Initialize simulation state by drawing at random from the parameter priors.
+    !!{
+    Initialize simulation state by drawing at random from the parameter priors.
+    !!}
     use :: Galacticus_Error            , only : Galacticus_Error_Report
     use :: Models_Likelihoods_Constants, only : logImpossible
     use :: Posterior_Sampling_State    , only : posteriorSampleStateSimple
@@ -165,9 +189,11 @@ contains
           end do
           if (.not.matched) call Galacticus_Error_Report('named parameter "'//modelParameterNames(i)//'" does not appear in active parameters'//{introspection:location})
           allocate(modelParameters__(i)%modelParameter_,mold=modelParameters_(j)%modelParameter_)
-          !# <deepCopyReset variables="modelParameters_(j)%modelParameter_"/>
-          !# <deepCopy source="modelParameters_(j)%modelParameter_" destination="modelParameters__(i)%modelParameter_"/>
-          !# <deepCopyFinalize variables="modelParameters__(i)%modelParameter_"/>
+          !![
+          <deepCopyReset variables="modelParameters_(j)%modelParameter_"/>
+          <deepCopy source="modelParameters_(j)%modelParameter_" destination="modelParameters__(i)%modelParameter_"/>
+          <deepCopyFinalize variables="modelParameters__(i)%modelParameter_"/>
+          !!]
        end do
        ! Apply the initializor
        call stateInitializor_%initialize(simulationState__,modelParameters__,modelLikelihood,timeEvaluatePrevious,logLikelihood,logPosterior)
@@ -178,7 +204,9 @@ contains
        end do
        ! Clean up.
        do i=1,size(modelParameterNames)
-          !# <objectDestructor name="modelParameters__(i)%modelParameter_"/>
+          !![
+          <objectDestructor name="modelParameters__(i)%modelParameter_"/>
+          !!]
        end do
        deallocate(modelParameterNames)
        deallocate(modelParameters__  )

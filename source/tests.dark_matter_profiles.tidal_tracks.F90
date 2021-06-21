@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to test calculations for tidal track dark matter profiles.
+!!{
+Contains a program to test calculations for tidal track dark matter profiles.
+!!}
 
 program Test_Dark_Matter_Profiles_Tidal_Tracks
-  !% Test calculations for tidal track dark matter profiles.
+  !!{
+  Test calculations for tidal track dark matter profiles.
+  !!}
   use :: Cosmology_Functions         , only : cosmologyFunctionsMatterLambda
   use :: Cosmology_Parameters        , only : cosmologyParametersSimple
   use :: Dark_Matter_Halo_Scales     , only : darkMatterHaloScaleVirialDensityContrastDefinition
@@ -67,64 +71,66 @@ program Test_Dark_Matter_Profiles_Tidal_Tracks
   basic_                           =>  node_               %basic            (autoCreate=.true.)
   darkMatterProfile_               =>  node_               %darkMatterProfile(autoCreate=.true.)
   satellite_                       =>  node_               %satellite        (autoCreate=.true.)
-  !# <referenceConstruct object="cosmologyParameters_"            >
-  !#  <constructor>
-  !#   cosmologyParametersSimple                                     (                                                             &amp;
-  !#    &amp;                                                         OmegaMatter                         = 0.30d0               , &amp;
-  !#    &amp;                                                         OmegaBaryon                         = 0.00d0               , &amp;
-  !#    &amp;                                                         OmegaDarkEnergy                     = 0.70d0               , &amp;
-  !#    &amp;                                                         temperatureCMB                      = 2.78d0               , &amp;
-  !#    &amp;                                                         HubbleConstant                      =70.00d0                 &amp;
-  !#    &amp;                                                        )
-  !#  </constructor>
-  !# </referenceConstruct>
-  !# <referenceConstruct object="cosmologyFunctions_"             >
-  !#  <constructor>
-  !#   cosmologyFunctionsMatterLambda                                (                                                             &amp;
-  !#    &amp;                                                         cosmologyParameters_                =cosmologyParameters_    &amp;
-  !#    &amp;                                                        )
-  !#  </constructor>
-  !# </referenceConstruct>
-  !# <referenceConstruct object="virialDensityContrast_"          >
-  !#  <constructor>
-  !#   virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(                                                             &amp;
-  !#    &amp;                                                         tableStore                          =.true.,                 &amp;
-  !#    &amp;                                                         cosmologyFunctions_                 =cosmologyFunctions_     &amp;
-  !#    &amp;                                                        )
-  !#  </constructor>
-  !# </referenceConstruct>
-  !# <referenceConstruct object="darkMatterHaloScale_"            >
-  !#  <constructor>
-  !#   darkMatterHaloScaleVirialDensityContrastDefinition            (                                                             &amp;
-  !#    &amp;                                                         cosmologyParameters_                =cosmologyParameters_  , &amp;
-  !#    &amp;                                                         cosmologyFunctions_                 =cosmologyFunctions_   , &amp;
-  !#    &amp;                                                         virialDensityContrast_              =virialDensityContrast_  &amp;
-  !#    &amp;                                                        )
-  !#  </constructor>
-  !# </referenceConstruct>
-  !# <referenceConstruct object="darkMatterProfileNFW_"           >
-  !#  <constructor>
-  !#   darkMatterProfileDMONFW                                       (                                                             &amp;
-  !#    &amp;                                                         velocityDispersionUseSeriesExpansion=.false.               , &amp;
-  !#    &amp;                                                         darkMatterHaloScale_                =darkMatterHaloScale_    &amp;
-  !#    &amp;                                                        )
-  !#  </constructor>
-  !# </referenceConstruct>
-  !# <referenceConstruct object="darkMatterProfilePenarrubia2010_">
-  !#  <constructor>
-  !#   darkMatterProfileDMOPenarrubia2010                            (                                                             &amp;
-  !#    &amp;                                                         alpha                               =+1.0d0                , &amp;
-  !#    &amp;                                                         beta                                =+3.0d0                , &amp;
-  !#    &amp;                                                         betaStripped                        =+5.0d0                , &amp;
-  !#    &amp;                                                         gamma                               =+1.0d0                , &amp;
-  !#    &amp;                                                         muRadius                            =muRadius              , &amp;
-  !#    &amp;                                                         etaRadius                           =etaRadius             , &amp;
-  !#    &amp;                                                         muVelocity                          =muVelocity            , &amp;
-  !#    &amp;                                                         etaVelocity                         =etaVelocity           , &amp;
-  !#    &amp;                                                         darkMatterHaloScale_                =darkMatterHaloScale_    &amp;
-  !#    &amp;                                                        )
-  !#  </constructor>
-  !# </referenceConstruct>
+  !![
+  <referenceConstruct object="cosmologyParameters_"            >
+   <constructor>
+    cosmologyParametersSimple                                     (                                                             &amp;
+     &amp;                                                         OmegaMatter                         = 0.30d0               , &amp;
+     &amp;                                                         OmegaBaryon                         = 0.00d0               , &amp;
+     &amp;                                                         OmegaDarkEnergy                     = 0.70d0               , &amp;
+     &amp;                                                         temperatureCMB                      = 2.78d0               , &amp;
+     &amp;                                                         HubbleConstant                      =70.00d0                 &amp;
+     &amp;                                                        )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="cosmologyFunctions_"             >
+   <constructor>
+    cosmologyFunctionsMatterLambda                                (                                                             &amp;
+     &amp;                                                         cosmologyParameters_                =cosmologyParameters_    &amp;
+     &amp;                                                        )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="virialDensityContrast_"          >
+   <constructor>
+    virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(                                                             &amp;
+     &amp;                                                         tableStore                          =.true.,                 &amp;
+     &amp;                                                         cosmologyFunctions_                 =cosmologyFunctions_     &amp;
+     &amp;                                                        )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="darkMatterHaloScale_"            >
+   <constructor>
+    darkMatterHaloScaleVirialDensityContrastDefinition            (                                                             &amp;
+     &amp;                                                         cosmologyParameters_                =cosmologyParameters_  , &amp;
+     &amp;                                                         cosmologyFunctions_                 =cosmologyFunctions_   , &amp;
+     &amp;                                                         virialDensityContrast_              =virialDensityContrast_  &amp;
+     &amp;                                                        )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="darkMatterProfileNFW_"           >
+   <constructor>
+    darkMatterProfileDMONFW                                       (                                                             &amp;
+     &amp;                                                         velocityDispersionUseSeriesExpansion=.false.               , &amp;
+     &amp;                                                         darkMatterHaloScale_                =darkMatterHaloScale_    &amp;
+     &amp;                                                        )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="darkMatterProfilePenarrubia2010_">
+   <constructor>
+    darkMatterProfileDMOPenarrubia2010                            (                                                             &amp;
+     &amp;                                                         alpha                               =+1.0d0                , &amp;
+     &amp;                                                         beta                                =+3.0d0                , &amp;
+     &amp;                                                         betaStripped                        =+5.0d0                , &amp;
+     &amp;                                                         gamma                               =+1.0d0                , &amp;
+     &amp;                                                         muRadius                            =muRadius              , &amp;
+     &amp;                                                         etaRadius                           =etaRadius             , &amp;
+     &amp;                                                         muVelocity                          =muVelocity            , &amp;
+     &amp;                                                         etaVelocity                         =etaVelocity           , &amp;
+     &amp;                                                         darkMatterHaloScale_                =darkMatterHaloScale_    &amp;
+     &amp;                                                        )
+   </constructor>
+  </referenceConstruct>
+  !!]
   call basic_    %timeSet            (cosmologyFunctions_%cosmicTime(1.0d0))
   call basic_    %timeLastIsolatedSet(cosmologyFunctions_%cosmicTime(1.0d0))
   call basic_    %massSet            (massVirial                           )

@@ -17,17 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a node operator class that performs stellar feedback in spheroids.
+  !!{
+  Implements a node operator class that performs stellar feedback in spheroids.
+  !!}
 
   use :: Star_Formation_Rates_Spheroids, only : starFormationRateSpheroidsClass
   use :: Stellar_Population_Properties , only : stellarPopulationPropertiesClass
   use :: Stellar_Feedback_Outflows     , only : stellarFeedbackOutflowsClass
   
-  !# <nodeOperator name="nodeOperatorStellarFeedbackSpheroids">
-  !#  <description>A node operator class that performs stellar feedback in spheroids.</description>
-  !# </nodeOperator>
+  !![
+  <nodeOperator name="nodeOperatorStellarFeedbackSpheroids">
+   <description>A node operator class that performs stellar feedback in spheroids.</description>
+  </nodeOperator>
+  !!]
   type, extends(nodeOperatorClass) :: nodeOperatorStellarFeedbackSpheroids
-     !% A node operator class that performs stellar feedback in spheroids.
+     !!{
+     A node operator class that performs stellar feedback in spheroids.
+     !!}
      private
      class(starFormationRateSpheroidsClass ), pointer :: starFormationRateSpheroids_  => null()
      class(stellarPopulationPropertiesClass), pointer :: stellarPopulationProperties_ => null()
@@ -38,7 +44,9 @@
   end type nodeOperatorStellarFeedbackSpheroids
   
   interface nodeOperatorStellarFeedbackSpheroids
-     !% Constructors for the {\normalfont \ttfamily stellarFeedbackSpheroids} node operator class.
+     !!{
+     Constructors for the {\normalfont \ttfamily stellarFeedbackSpheroids} node operator class.
+     !!}
      module procedure stellarFeedbackSpheroidsConstructorParameters
      module procedure stellarFeedbackSpheroidsConstructorInternal
   end interface nodeOperatorStellarFeedbackSpheroids
@@ -46,7 +54,9 @@
 contains
 
   function stellarFeedbackSpheroidsConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily starFormation} node operator class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily starFormation} node operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type (nodeOperatorStellarFeedbackSpheroids)                :: self
@@ -55,42 +65,56 @@ contains
     class(stellarPopulationPropertiesClass    ), pointer       :: stellarPopulationProperties_
     class(stellarFeedbackOutflowsClass        ), pointer       :: stellarFeedbackOutflows_
     
-    !# <objectBuilder class="starFormationRateSpheroids"  name="starFormationRateSpheroids_"  source="parameters"/>
-    !# <objectBuilder class="stellarPopulationProperties" name="stellarPopulationProperties_" source="parameters"/>
-    !# <objectBuilder class="stellarFeedbackOutflows"     name="stellarFeedbackOutflows_"     source="parameters"/>
+    !![
+    <objectBuilder class="starFormationRateSpheroids"  name="starFormationRateSpheroids_"  source="parameters"/>
+    <objectBuilder class="stellarPopulationProperties" name="stellarPopulationProperties_" source="parameters"/>
+    <objectBuilder class="stellarFeedbackOutflows"     name="stellarFeedbackOutflows_"     source="parameters"/>
+    !!]
     self=nodeOperatorStellarFeedbackSpheroids(starFormationRateSpheroids_,stellarPopulationProperties_,stellarFeedbackOutflows_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="starFormationRateSpheroids_" />
-    !# <objectDestructor name="stellarPopulationProperties_"/>
-    !# <objectDestructor name="stellarFeedbackOutflows_"    />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="starFormationRateSpheroids_" />
+    <objectDestructor name="stellarPopulationProperties_"/>
+    <objectDestructor name="stellarFeedbackOutflows_"    />
+    !!]
     return
   end function stellarFeedbackSpheroidsConstructorParameters
 
   function stellarFeedbackSpheroidsConstructorInternal(starFormationRateSpheroids_,stellarPopulationProperties_,stellarFeedbackOutflows_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily stellarFeedbackSpheroids} node operator class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily stellarFeedbackSpheroids} node operator class.
+    !!}
     implicit none
     type (nodeOperatorStellarFeedbackSpheroids)                        :: self
     class(starFormationRateSpheroidsClass     ), intent(in   ), target :: starFormationRateSpheroids_
     class(stellarPopulationPropertiesClass    ), intent(in   ), target :: stellarPopulationProperties_
     class(stellarFeedbackOutflowsClass        ), intent(in   ), target :: stellarFeedbackOutflows_
-    !# <constructorAssign variables="*starFormationRateSpheroids_, *stellarPopulationProperties_, *stellarFeedbackOutflows_"/>
+    !![
+    <constructorAssign variables="*starFormationRateSpheroids_, *stellarPopulationProperties_, *stellarFeedbackOutflows_"/>
+    !!]
 
     return
   end function stellarFeedbackSpheroidsConstructorInternal
 
   subroutine stellarFeedbackSpheroidsDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily stellarFeedbackSpheroids} node operator class.
+    !!{
+    Destructor for the {\normalfont \ttfamily stellarFeedbackSpheroids} node operator class.
+    !!}
     implicit none
     type(nodeOperatorStellarFeedbackSpheroids), intent(inout) :: self
 
-    !# <objectDestructor name="self%starFormationRateSpheroids_" />
-    !# <objectDestructor name="self%stellarPopulationProperties_"/>
-    !# <objectDestructor name="self%stellarFeedbackOutflows_"    />
+    !![
+    <objectDestructor name="self%starFormationRateSpheroids_" />
+    <objectDestructor name="self%stellarPopulationProperties_"/>
+    <objectDestructor name="self%stellarFeedbackOutflows_"    />
+    !!]
     return
   end subroutine stellarFeedbackSpheroidsDestructor
   
   subroutine stellarFeedbackSpheroidsDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !% Perform star formation in a spheroid.
+    !!{
+    Perform star formation in a spheroid.
+    !!}
     use :: Abundances_Structure          , only : abundances          , zeroAbundances
     use :: Galacticus_Nodes              , only : propertyTypeInactive, nodeComponentSpheroid, nodeComponentHotHalo
     use :: Histories                     , only : history

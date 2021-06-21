@@ -17,7 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a time available for cooling class using the model of \cite{benson_galaxy_2010-1}.
+  !!{
+  Implementation of a time available for cooling class using the model of \cite{benson_galaxy_2010-1}.
+  !!}
   
   use :: Hot_Halo_Temperature_Profiles, only : hotHaloTemperatureProfileClass
   use :: Radiation_Fields             , only : radiationFieldCosmicMicrowaveBackground
@@ -27,19 +29,23 @@
 
   use Dark_Matter_Halo_Scales
 
-  !# <coolingTimeAvailable name="coolingTimeAvailableBensonBower2010">
-  !#  <description>
-  !#   A time available for cooling class implementing the model of \cite{benson_galaxy_2010-1}.
-  !#  </description>
-  !#  <deepCopy>
-  !#   <functionClass variables="radiation"/>
-  !#  </deepCopy>
-  !#  <stateStorable>
-  !#   <functionClass variables="radiation"/>
-  !#  </stateStorable>
-  !# </coolingTimeAvailable>
+  !![
+  <coolingTimeAvailable name="coolingTimeAvailableBensonBower2010">
+   <description>
+    A time available for cooling class implementing the model of \cite{benson_galaxy_2010-1}.
+   </description>
+   <deepCopy>
+    <functionClass variables="radiation"/>
+   </deepCopy>
+   <stateStorable>
+    <functionClass variables="radiation"/>
+   </stateStorable>
+  </coolingTimeAvailable>
+  !!]
   type, extends(coolingTimeAvailableClass) :: coolingTimeAvailableBensonBower2010
-     !% Implementation of a time available for cooling class using the model of \cite{benson_galaxy_2010-1}.
+     !!{
+     Implementation of a time available for cooling class using the model of \cite{benson_galaxy_2010-1}.
+     !!}
      private
      class(cosmologyFunctionsClass                ), pointer :: cosmologyFunctions_        => null()
      class(coolingFunctionClass                   ), pointer :: coolingFunction_           => null()
@@ -54,7 +60,9 @@
   end type coolingTimeAvailableBensonBower2010
 
   interface coolingTimeAvailableBensonBower2010
-     !% Constructors for the \cite{white_galaxy_1991} time available for cooling class.
+     !!{
+     Constructors for the \cite{white_galaxy_1991} time available for cooling class.
+     !!}
      module procedure bensonBower2010ConstructorParameters
      module procedure bensonBower2010ConstructorInternal
   end interface coolingTimeAvailableBensonBower2010
@@ -62,7 +70,9 @@
 contains
 
   function bensonBower2010ConstructorParameters(parameters) result(self)
-    !% Constructor for the \cite{benson_galaxy_2010-1} time available for cooling class which builds the object from a parameter set.
+    !!{
+    Constructor for the \cite{benson_galaxy_2010-1} time available for cooling class which builds the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (coolingTimeAvailableBensonBower2010)                :: self
@@ -73,23 +83,29 @@ contains
     class(chemicalStateClass                 ), pointer      :: chemicalState_
     class(darkMatterHaloScaleClass                 ), pointer      :: darkMatterHaloScale_
 
-    !# <objectBuilder class="hotHaloTemperatureProfile" name="hotHaloTemperatureProfile_" source="parameters"/>
-    !# <objectBuilder class="coolingFunction"           name="coolingFunction_"           source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"        name="cosmologyFunctions_"        source="parameters"/>
-    !# <objectBuilder class="chemicalState"             name="chemicalState_"            source="parameters"/>
-    !# <objectBuilder class="darkMatterHaloScale"             name="darkMatterHaloScale_"            source="parameters"/>
+    !![
+    <objectBuilder class="hotHaloTemperatureProfile" name="hotHaloTemperatureProfile_" source="parameters"/>
+    <objectBuilder class="coolingFunction"           name="coolingFunction_"           source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"        name="cosmologyFunctions_"        source="parameters"/>
+    <objectBuilder class="chemicalState"             name="chemicalState_"            source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale"             name="darkMatterHaloScale_"            source="parameters"/>
+    !!]
     self=coolingTimeAvailableBensonBower2010(cosmologyFunctions_,coolingFunction_,hotHaloTemperatureProfile_,chemicalState_,darkMatterHaloScale_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="hotHaloTemperatureProfile_"/>
-    !# <objectDestructor name="coolingFunction_"          />
-    !# <objectDestructor name="cosmologyFunctions_"       />
-    !# <objectDestructor name="chemicalState_"            />
-    !# <objectDestructor name="darkMatterHaloScale_"            />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="hotHaloTemperatureProfile_"/>
+    <objectDestructor name="coolingFunction_"          />
+    <objectDestructor name="cosmologyFunctions_"       />
+    <objectDestructor name="chemicalState_"            />
+    <objectDestructor name="darkMatterHaloScale_"            />
+    !!]
     return
   end function bensonBower2010ConstructorParameters
 
   function bensonBower2010ConstructorInternal(cosmologyFunctions_,coolingFunction_,hotHaloTemperatureProfile_,chemicalState_,darkMatterHaloScale_) result(self)
-    !% Internal constructor for the \cite{benson_galaxy_2010-1} cooling rate class.
+    !!{
+    Internal constructor for the \cite{benson_galaxy_2010-1} cooling rate class.
+    !!}
     implicit none
     type (coolingTimeAvailableBensonBower2010)                        :: self
     class(cosmologyFunctionsClass            ), intent(in   ), target :: cosmologyFunctions_
@@ -97,29 +113,39 @@ contains
     class(hotHaloTemperatureProfileClass     ), intent(in   ), target :: hotHaloTemperatureProfile_
     class(chemicalStateClass                 ), intent(in   ), target :: chemicalState_
     class(darkMatterHaloScaleClass                 ), intent(in   ), target :: darkMatterHaloScale_
-    !# <constructorAssign variables="*cosmologyFunctions_, *coolingFunction_, *hotHaloTemperatureProfile_, *chemicalState_, *darkMatterHaloScale_"/>
+    !![
+    <constructorAssign variables="*cosmologyFunctions_, *coolingFunction_, *hotHaloTemperatureProfile_, *chemicalState_, *darkMatterHaloScale_"/>
+    !!]
 
     allocate(self%radiation)
-    !# <referenceConstruct isResult="yes" owner="self" object="radiation" constructor="radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)"/>
+    !![
+    <referenceConstruct isResult="yes" owner="self" object="radiation" constructor="radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)"/>
+    !!]
     return
   end function bensonBower2010ConstructorInternal
 
   subroutine bensonBower2010Destructor(self)
-    !% Destructor for the simple cooling radius class.
+    !!{
+    Destructor for the simple cooling radius class.
+    !!}
     implicit none
     type(coolingTimeAvailableBensonBower2010), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"/>
-    !# <objectDestructor name="self%coolingFunction_"          />
-    !# <objectDestructor name="self%hotHaloTemperatureProfile_"/>
-    !# <objectDestructor name="self%chemicalState_"            />
-    !# <objectDestructor name="self%darkMatterHaloScale_"            />
-    !# <objectDestructor name="self%radiation"                 />
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"/>
+    <objectDestructor name="self%coolingFunction_"          />
+    <objectDestructor name="self%hotHaloTemperatureProfile_"/>
+    <objectDestructor name="self%chemicalState_"            />
+    <objectDestructor name="self%darkMatterHaloScale_"            />
+    <objectDestructor name="self%radiation"                 />
+    !!]
     return
   end subroutine bensonBower2010Destructor
 
   double precision function bensonBower2010TimeAvailable(self,node)
-    !% Returns the time available for cooling (in units of Gyr).
+    !!{
+    Returns the time available for cooling (in units of Gyr).
+    !!}
     use :: Galacticus_Nodes                 , only : nodeComponentBasic                  , nodeComponentHotHalo
     use :: Abundances_Structure             , only : abundances
     use :: Chemical_Abundances_Structure    , only : chemicalAbundances                  , Chemicals_Property_Count
@@ -220,7 +246,9 @@ contains
   end function bensonBower2010TimeAvailable
 
   double precision function bensonBower2010TimeAvailableIncreaseRate(self,node)
-    !% Compute the rate of increase of the time available for cooling. We return a rate of 1.
+    !!{
+    Compute the rate of increase of the time available for cooling. We return a rate of 1.
+    !!}
     implicit none
     class(coolingTimeAvailableBensonBower2010), intent(inout) :: self
     type (treeNode                           ), intent(inout) :: node

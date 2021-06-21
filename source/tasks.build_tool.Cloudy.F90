@@ -17,11 +17,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !# <task name="taskBuildToolCloudy">
-  !#  <description>A task which builds the Cloudy tool.</description>
-  !# </task>
+  !![
+  <task name="taskBuildToolCloudy">
+   <description>A task which builds the Cloudy tool.</description>
+  </task>
+  !!]
   type, extends(taskClass) :: taskBuildToolCloudy
-     !% Implementation of a task which builds the Cloudy tool.
+     !!{
+     Implementation of a task which builds the Cloudy tool.
+     !!}
      private
    contains
      procedure :: perform            => buildToolCloudyPerform
@@ -29,14 +33,18 @@
   end type taskBuildToolCloudy
 
   interface taskBuildToolCloudy
-     !% Constructors for the {\normalfont \ttfamily buildToolCloudy} task.
+     !!{
+     Constructors for the {\normalfont \ttfamily buildToolCloudy} task.
+     !!}
      module procedure buildToolCloudyParameters
   end interface taskBuildToolCloudy
 
 contains
 
   function buildToolCloudyParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily buildToolCloudy} task class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily buildToolCloudy} task class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(taskBuildToolCloudy)                :: self
@@ -48,7 +56,9 @@ contains
   end function buildToolCloudyParameters
 
   subroutine buildToolCloudyPerform(self,status)
-    !% Builds the tabulation.
+    !!{
+    Builds the tabulation.
+    !!}
     use :: Display          , only : displayIndent              , displayMessage, displayUnindent
     use :: Galacticus_Error , only : errorStatusSuccess
     use :: Interfaces_Cloudy, only : Interface_Cloudy_Initialize
@@ -67,7 +77,9 @@ contains
   end subroutine buildToolCloudyPerform
 
   logical function buildToolCloudyRequiresOutputFile(self)
-    !% Specifies that this task does not requires the main output file.
+    !!{
+    Specifies that this task does not requires the main output file.
+    !!}
     implicit none
     class(taskBuildToolCloudy), intent(inout) :: self
     !$GLC attributes unused :: self

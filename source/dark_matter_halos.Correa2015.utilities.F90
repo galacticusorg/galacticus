@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements utility functions for the \cite{correa_accretion_2015} dark matter halo models.
+!!{
+Contains a module which implements utility functions for the \cite{correa_accretion_2015} dark matter halo models.
+!!}
 
 module Dark_Matter_Halos_Correa2015
-  !% Implements utility functions for the \cite{correa_accretion_2015} dark matter halo models.
+  !!{
+  Implements utility functions for the \cite{correa_accretion_2015} dark matter halo models.
+  !!}
   implicit none
   private
   public :: Dark_Matter_Halo_Correa2015_Fit_Parameters
@@ -28,7 +32,9 @@ module Dark_Matter_Halos_Correa2015
 contains
 
   subroutine Dark_Matter_Halo_Correa2015_Fit_Parameters(mass,expansionFactor,cosmologyFunctions_,linearGrowth_,cosmologicalMassVariance_,aTilde,bTilde)
-    !% Computes fitting function parameters for the \cite{correa_accretion_2015} dark matter halo models.
+    !!{
+    Computes fitting function parameters for the \cite{correa_accretion_2015} dark matter halo models.
+    !!}
     use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
     use :: Cosmology_Functions       , only : cosmologyFunctionsClass
     use :: Linear_Growth             , only : linearGrowthClass

@@ -48,7 +48,11 @@
   <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
   <darkMatterProfileConcentration value="gao2008"/>
   <darkMatterProfileDMO value="NFW"/>
-  <darkMatterProfileMinimumConcentration value="4"/>
+  <darkMatterProfileScaleRadius value="concentrationLimiter">
+    <concentrationMinimum value="  4.0"/>
+    <concentrationMaximum value="100.0"/>
+    <darkMatterProfileScaleRadius value="concentration"/>
+  </darkMatterProfileScaleRadius>
   <diskMassToleranceAbsolute value="1e-06"/>
 
   <galacticStructureSolver value="equilibrium"/>
@@ -181,6 +185,8 @@
 
   <!-- Node evolution and physics -->
   <nodeOperator value="multi">
+    <!-- Halo concentrations -->
+    <nodeOperator value="darkMatterProfileScaleInterpolate"/>
     <!-- Halo spins -->
     <nodeOperator value="haloSpinRandom">
       <factorReset value="2.0"/>

@@ -17,18 +17,24 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a posterior sampling convergence class which resume converges.
+  !!{
+  Implementation of a posterior sampling convergence class which resume converges.
+  !!}
 
   use :: ISO_Varying_String, only : varying_string
 
-  !# <posteriorSampleStateInitialize name="posteriorSampleStateInitializeResume">
-  !#  <description>
-  !#   This class resumes from a previous simulation by setting the chain states to the states at the end of that simulation. The
-  !#   {\normalfont \ttfamily [logFileRoot]} parameter is used to specify the log-file root name used in the previous simulation.
-  !# </description>
-  !# </posteriorSampleStateInitialize>
+  !![
+  <posteriorSampleStateInitialize name="posteriorSampleStateInitializeResume">
+   <description>
+    This class resumes from a previous simulation by setting the chain states to the states at the end of that simulation. The
+    {\normalfont \ttfamily [logFileRoot]} parameter is used to specify the log-file root name used in the previous simulation.
+  </description>
+  </posteriorSampleStateInitialize>
+  !!]
   type, extends(posteriorSampleStateInitializeClass) :: posteriorSampleStateInitializeResume
-     !% Implementation of a posterior sampling state initialization class which sets initial state to that at the end of a previous simulation.
+     !!{
+     Implementation of a posterior sampling state initialization class which sets initial state to that at the end of a previous simulation.
+     !!}
      private
      type   (varying_string) :: logFileRoot
      logical                 :: restoreState
@@ -37,7 +43,9 @@
   end type posteriorSampleStateInitializeResume
 
   interface posteriorSampleStateInitializeResume
-     !% Constructors for the {\normalfont \ttfamily resume} posterior sampling state initialization class.
+     !!{
+     Constructors for the {\normalfont \ttfamily resume} posterior sampling state initialization class.
+     !!}
      module procedure resumeConstructorParameters
      module procedure resumeConstructorInternal
   end interface posteriorSampleStateInitializeResume
@@ -45,7 +53,9 @@
 contains
 
   function resumeConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily resume} posterior sampling state initialization class.
+    !!{
+    Constructor for the {\normalfont \ttfamily resume} posterior sampling state initialization class.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (posteriorSampleStateInitializeResume)                :: self
@@ -53,34 +63,44 @@ contains
     type   (varying_string                      )                :: logFileRoot
     logical                                                      :: restoreState
 
-    !# <inputParameter>
-    !#   <name>logFileRoot</name>
-    !#   <description>The root file name of the stae files from which to resume.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>restoreState</name>
-    !#   <description>If true, restore the state of the simulation.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>logFileRoot</name>
+      <description>The root file name of the stae files from which to resume.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>restoreState</name>
+      <description>If true, restore the state of the simulation.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     self=posteriorSampleStateInitializeResume(logFileRoot,restoreState)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function resumeConstructorParameters
 
   function resumeConstructorInternal(logFileRoot,restoreState) result(self)
-    !% Constructor for the {\normalfont \ttfamily resume} posterior sampling state initialization class.
+    !!{
+    Constructor for the {\normalfont \ttfamily resume} posterior sampling state initialization class.
+    !!}
     implicit none
     type   (posteriorSampleStateInitializeResume)                :: self
     type   (varying_string                      ), intent(in   ) :: logFileRoot
     logical                                      , intent(in   ) :: restoreState
-    !# <constructorAssign variables="logFileRoot, restoreState"/>
+    !![
+    <constructorAssign variables="logFileRoot, restoreState"/>
+    !!]
 
     return
   end function resumeConstructorInternal
 
   subroutine resumeInitialize(self,simulationState,modelParameters_,modelLikelihood,timeEvaluatePrevious,logLikelihood,logPosterior)
-    !% Initialize simulation state by drawing at random from the parameter priors.
+    !!{
+    Initialize simulation state by drawing at random from the parameter priors.
+    !!}
     use :: Display                     , only : displayMessage
     use :: Galacticus_Error            , only : Galacticus_Error_Report
     use :: MPI_Utilities               , only : mpiSelf

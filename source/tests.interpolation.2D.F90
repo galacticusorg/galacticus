@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to test 2D interpolation routines.
+!!{
+Contains a program to test 2D interpolation routines.
+!!}
 
 program Test_Interpolation_2D
-  !% Tests that 2D interpolation routines work.
+  !!{
+  Tests that 2D interpolation routines work.
+  !!}
   use :: Display                             , only : displayVerbositySet     , verbosityLevelStandard
   use :: Numerical_Interpolation_2D_Irregular, only : Interpolate_2D_Irregular, interp2dIrregularObject
   use :: Unit_Tests                          , only : Assert                  , Unit_Tests_Begin_Group , Unit_Tests_End_Group, Unit_Tests_Finish

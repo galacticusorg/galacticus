@@ -17,11 +17,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Implements the geometry of the GAMAnear survey used by \cite{kelvin_galaxy_2014-1}.
+!!{
+Implements the geometry of the GAMAnear survey used by \cite{kelvin_galaxy_2014-1}.
+!!}
 
-  !# <surveyGeometry name="surveyGeometryKelvin2014GAMAnear">
-  !#  <description>Implements the geometry of the GAMAnear survey of \cite{kelvin_galaxy_2014-1}.</description>
-  !# </surveyGeometry>
+  !![
+  <surveyGeometry name="surveyGeometryKelvin2014GAMAnear">
+   <description>Implements the geometry of the GAMAnear survey of \cite{kelvin_galaxy_2014-1}.</description>
+  </surveyGeometry>
+  !!]
 
   type, extends(surveyGeometryBaldry2012GAMA) :: surveyGeometryKelvin2014GAMAnear
      private
@@ -32,7 +36,9 @@
   end type surveyGeometryKelvin2014GAMAnear
 
   interface surveyGeometryKelvin2014GAMAnear
-     !% Constructors for the \cite{kelvin_galaxy_2014-1} survey geometry class.
+     !!{
+     Constructors for the \cite{kelvin_galaxy_2014-1} survey geometry class.
+     !!}
      module procedure kelvin2014GAMAnearConstructorParameters
      module procedure kelvin2014GAMAnearConstructorInternal
   end interface surveyGeometryKelvin2014GAMAnear
@@ -40,7 +46,9 @@
 contains
 
   function kelvin2014GAMAnearConstructorParameters(parameters) result(self)
-    !% Default constructor for the \cite{kelvin_galaxy_2014-1} conditional mass function class.
+    !!{
+    Default constructor for the \cite{kelvin_galaxy_2014-1} conditional mass function class.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (surveyGeometryKelvin2014GAMAnear)                :: self
@@ -48,23 +56,31 @@ contains
     class(cosmologyFunctionsClass         ), pointer       :: cosmologyFunctions_
 
     ! Check and read parameters.
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !![
+    <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !!]
     ! Build the object.
     self=surveyGeometryKelvin2014GAMAnear(cosmologyFunctions_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"/>
+    !!]
     return
   end function kelvin2014GAMAnearConstructorParameters
 
   function kelvin2014GAMAnearConstructorInternal(cosmologyFunctions_) result (self)
-    !% Internal constructor for the \cite{kelvin_galaxy_2014-1} conditional mass function class.
+    !!{
+    Internal constructor for the \cite{kelvin_galaxy_2014-1} conditional mass function class.
+    !!}
     use :: Cosmology_Functions_Options, only : distanceTypeComoving
     implicit none
     type            (surveyGeometryKelvin2014GAMAnear)                        :: self
     class           (cosmologyFunctionsClass         ), intent(in   ), target :: cosmologyFunctions_
     double precision                                  , parameter             :: redshiftMinimum    =0.025d0
     double precision                                  , parameter             :: redshiftMaximum    =0.060d0
-    !# <constructorAssign variables="*cosmologyFunctions_"/>
+    !![
+    <constructorAssign variables="*cosmologyFunctions_"/>
+    !!]
 
     call self%initialize()
     self%distanceMinimumSurvey=self%cosmologyFunctions_%distanceComovingConvert(distanceTypeComoving,redshift=redshiftMinimum)
@@ -73,7 +89,9 @@ contains
   end function kelvin2014GAMAnearConstructorInternal
 
   double precision function kelvin2014GAMAnearDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,field)
-    !% Compute the minimum distance at which a galaxy is included in the survey.
+    !!{
+    Compute the minimum distance at which a galaxy is included in the survey.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryKelvin2014GAMAnear), intent(inout)           :: self
@@ -86,7 +104,9 @@ contains
   end function kelvin2014GAMAnearDistanceMinimum
 
   double precision function kelvin2014GAMAnearDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
-    !% Compute the maximum distance at which a galaxy is visible.
+    !!{
+    Compute the maximum distance at which a galaxy is visible.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryKelvin2014GAMAnear), intent(inout)           :: self

@@ -17,27 +17,37 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a filter which passes only main branch halos.
+!!{
+Contains a module which implements a filter which passes only main branch halos.
+!!}
 
-  !# <galacticFilter name="galacticFilterMainBranch">
-  !#  <description>A filter which passes only main branch halos.</description>
-  !# </galacticFilter>
+  !![
+  <galacticFilter name="galacticFilterMainBranch">
+   <description>A filter which passes only main branch halos.</description>
+  </galacticFilter>
+  !!]
   type, extends(galacticFilterClass) :: galacticFilterMainBranch
-     !% A galactic filter class which passes only main branch halos.
+     !!{
+     A galactic filter class which passes only main branch halos.
+     !!}
      private
    contains
      procedure :: passes => mainBranchPasses
   end type galacticFilterMainBranch
 
   interface galacticFilterMainBranch
-     !% Constructors for the ``mainBranch'' galactic filter class.
+     !!{
+     Constructors for the ``mainBranch'' galactic filter class.
+     !!}
      module procedure mainBranchConstructorParameters
   end interface galacticFilterMainBranch
 
 contains
 
   function mainBranchConstructorParameters(parameters) result(self)
-    !% Constructor for the ``mainBranch'' galactic filter class which takes a parameter set as input.
+    !!{
+    Constructor for the ``mainBranch'' galactic filter class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(galacticFilterMainBranch)                :: self
@@ -49,7 +59,9 @@ contains
   end function mainBranchConstructorParameters
 
   logical function mainBranchPasses(self,node)
-    !% Implement a galactic filter which passes only main branch halos.
+    !!{
+    Implement a galactic filter which passes only main branch halos.
+    !!}
     implicit none
     class(galacticFilterMainBranch), intent(inout)         :: self
     type (treeNode                ), intent(inout), target :: node

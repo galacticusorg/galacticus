@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a merger tree outputter class which performs analyzes on the trees.
+  !!{
+  Implements a merger tree outputter class which performs analyzes on the trees.
+  !!}
 
   use :: Output_Analyses, only : outputAnalysis, outputAnalysisClass
 
-  !# <mergerTreeOutputter name="mergerTreeOutputterAnalyzer">
-  !#  <description>A merger tree outputter class which performs analyzes on the trees.</description>
-  !# </mergerTreeOutputter>
+  !![
+  <mergerTreeOutputter name="mergerTreeOutputterAnalyzer">
+   <description>A merger tree outputter class which performs analyzes on the trees.</description>
+  </mergerTreeOutputter>
+  !!]
   type, extends(mergerTreeOutputterClass) :: mergerTreeOutputterAnalyzer
-     !% Implementation of a merger tree outputter class which performs analyzes on the trees.
+     !!{
+     Implementation of a merger tree outputter class which performs analyzes on the trees.
+     !!}
      private
      class(outputAnalysisClass), pointer :: outputAnalysis_ => null()
    contains
@@ -37,7 +43,9 @@
   end type mergerTreeOutputterAnalyzer
 
   interface mergerTreeOutputterAnalyzer
-     !% Constructors for the {\normalfont \ttfamily analyzer} merger tree outputter.
+     !!{
+     Constructors for the {\normalfont \ttfamily analyzer} merger tree outputter.
+     !!}
      module procedure analyzerConstructorParameters
      module procedure analyzerConstructorInternal
   end interface mergerTreeOutputterAnalyzer
@@ -45,41 +53,57 @@
 contains
 
   function analyzerConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily analyzer} merger tree outputter class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily analyzer} merger tree outputter class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (mergerTreeOutputterAnalyzer)                :: self
     type   (inputParameters            ), intent(inout) :: parameters
     class  (outputAnalysisClass        ), pointer       :: outputAnalysis_
 
-    !# <objectBuilder class="outputAnalysis" name="outputAnalysis_" source="parameters"/>
+    !![
+    <objectBuilder class="outputAnalysis" name="outputAnalysis_" source="parameters"/>
+    !!]
     self=mergerTreeOutputterAnalyzer(outputAnalysis_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="outputAnalysis_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="outputAnalysis_"/>
+    !!]
     return
   end function analyzerConstructorParameters
 
   function analyzerConstructorInternal(outputAnalysis_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily analyzer} merger tree outputter class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily analyzer} merger tree outputter class.
+    !!}
     implicit none
     type (mergerTreeOutputterAnalyzer)                        :: self
     class(outputAnalysisClass        ), intent(in   ), target :: outputAnalysis_
-    !# <constructorAssign variables="*outputAnalysis_"/>
+    !![
+    <constructorAssign variables="*outputAnalysis_"/>
+    !!]
 
     return
   end function analyzerConstructorInternal
 
   subroutine analyzerDestructor(self)
-    !% Destructor  for the {\normalfont \ttfamily analyzer} merger tree outputter class.
+    !!{
+    Destructor  for the {\normalfont \ttfamily analyzer} merger tree outputter class.
+    !!}
     implicit none
     type(mergerTreeOutputterAnalyzer), intent(inout) :: self
 
-    !# <objectDestructor name="self%outputAnalysis_"/>
+    !![
+    <objectDestructor name="self%outputAnalysis_"/>
+    !!]
     return
   end subroutine analyzerDestructor
 
   subroutine analyzerOutputTree(self,tree,indexOutput,time)
-    !% Write properties of nodes in {\normalfont \ttfamily tree} to the \glc\ output file.
+    !!{
+    Write properties of nodes in {\normalfont \ttfamily tree} to the \glc\ output file.
+    !!}
     use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
     use :: Galacticus_Nodes              , only : mergerTree                   , nodeComponentBasic, treeNode
     use :: Merger_Tree_Walkers           , only : mergerTreeWalkerAllNodes
@@ -115,7 +139,9 @@ contains
   end subroutine analyzerOutputTree
 
   subroutine analyzerOutputNode(self,node,indexOutput)
-    !% Perform no output.
+    !!{
+    Perform no output.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (mergerTreeOutputterAnalyzer), intent(inout) :: self
@@ -128,7 +154,9 @@ contains
   end subroutine analyzerOutputNode
 
   subroutine analyzerReduce(self,reduced)
-    !% Reduce over the outputter.
+    !!{
+    Reduce over the outputter.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(mergerTreeOutputterAnalyzer), intent(inout) :: self
@@ -144,7 +172,9 @@ contains
   end subroutine analyzerReduce
 
   subroutine analyzerFinalize(self)
-    !% Finalize merger tree output by finalizing analyses.
+    !!{
+    Finalize merger tree output by finalizing analyses.
+    !!}
     use :: Galacticus_HDF5, only : galacticusOutputFileIsOpen
     implicit none
     class  (mergerTreeOutputterAnalyzer), intent(inout) :: self

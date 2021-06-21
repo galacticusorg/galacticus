@@ -17,64 +17,43 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an object to store octree data structure.
+!!{
+Contains a module which implements an object to store octree data structure.
+!!}
 
 module Octree_Data_Structure
-  !% Implements an object to store octree data structure.
+  !!{
+  Implements an object to store octree data structure.
+  !!}
   use, intrinsic :: ISO_C_Binding , only : c_size_t
   implicit none
   private
   public :: octreeData
 
-  !# <generic identifier="Type">
-  !#  <instance label="Double"      intrinsic="double precision              "/>
-  !#  <instance label="DoubleRank1" intrinsic="double precision, dimension(:)"/>
-  !# </generic>
+  !![
+  <generic identifier="Type">
+   <instance label="Double"      intrinsic="double precision              "/>
+   <instance label="DoubleRank1" intrinsic="double precision, dimension(:)"/>
+  </generic>
+  !!]
 
   type :: octreeData
-     !% Type to give an octree data structure.
+     !!{
+     Type to give an octree data structure.
+     !!}
      private
      type(octreeNode), pointer :: rootNode => null()
    contains
-     !@ <objectMethods>
-     !@   <object>octreeData</object>
-     !@   <objectMethod>
-     !@     <method>build</method>
-     !@     <description>Build an octree given the particle coordinates and weights.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doubletwo\ coordinates\argin,\doubleone\ weights\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>destroy</method>
-     !@     <description>Destroy the octree object.</description>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>copy</method>
-     !@     <description>Make a copy of the octree data structure.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(octreeData)\textgreater} selfCopy\arginout</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>addParticle</method>
-     !@     <description>Add a particle to the octree.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doubleone\ coordinate\argin,\doublezero\ weight\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>removeParticle</method>
-     !@     <description>Remove a particle from the octree.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doubleone\ coordinate\argin,\doublezero\ weight\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>traverseCompute</method>
-     !@     <description>Traverse the octree and compute the quantities needed.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\doubleone\ coordinate\argin,\doublezero\ weight\argin,\doublezero\ thetaTollerance\argin,\doublezero|\doubleone value\arginout,\textcolor{red}{\textless procedure(evaluate)\textgreater} evaluateFunction,\logicalzero\ [isExternalParticle]\argin</arguments>
-     !@   </objectMethod>
-     !@ </objectMethods>
+     !![
+     <methods>
+      <method description="Build an octree given the particle coordinates and weights." method="build"/>
+      <method description="Destroy the octree object." method="destroy"/>
+      <method description="Make a copy of the octree data structure." method="copy"/>
+      <method description="Add a particle to the octree." method="addParticle"/>
+      <method description="Remove a particle from the octree." method="removeParticle"/>
+      <method description="Traverse the octree and compute the quantities needed." method="traverseCompute"/>
+     </methods>
+     !!]
      procedure :: build             => Build_Octree
      procedure :: destroy           => Destroy_Octree
      procedure :: copy              => Copy_Octree
@@ -85,13 +64,17 @@ module Octree_Data_Structure
   end type octreeData
 
   type :: octreeNodePointer
-     !% Pointer to an ``octreeNode" object.
+     !!{
+     Pointer to an octreeNode object.
+     !!}
      private
      type(octreeNode), pointer :: p
   end type octreeNodePointer
 
   type :: octreeNode
-     !% Type to give a node in the octree.
+     !!{
+     Type to give a node in the octree.
+     !!}
      private
      type            (octreeNodePointer), dimension(8) :: children
      type            (octreeNode       ), pointer      :: parent       => null()
@@ -113,7 +96,9 @@ module Octree_Data_Structure
 contains
 
   subroutine Build_Octree(self,coordinates,weights)
-    !% Build an octree given the coordinates and weights of particles using the \cite{barnes_hierarchical_1986} algorithm.
+    !!{
+    Build an octree given the coordinates and weights of particles using the \cite{barnes_hierarchical_1986} algorithm.
+    !!}
     implicit none
     class           (octreeData),                 intent(inout) :: self
     double precision            , dimension(:,:), intent(in   ) :: coordinates
@@ -143,7 +128,9 @@ contains
   end subroutine Build_Octree
 
   subroutine Destroy_Octree(self)
-    !% Destroy the octree.
+    !!{
+    Destroy the octree.
+    !!}
     implicit none
     class(octreeData), intent(inout) :: self
 
@@ -153,18 +140,22 @@ contains
   end subroutine Destroy_Octree
 
   subroutine Copy_Octree(self,selfCopy)
-    !% Make a copy of the octree.
+    !!{
+    Make a copy of the octree.
+    !!}
     implicit none
     class(octreeData), intent(in   ) :: self
     class(octreeData), intent(inout) :: selfCopy
 
-    !% Copy the octree structure.
+    ! Copy the whole octree structure.
     call Copy_Node(self%rootNode,selfCopy%rootNode)
     return
   end subroutine Copy_Octree
 
   subroutine Add_Particle_To_Octree(self,coordinate,weight)
-    !% Add a particle to the octree.
+    !!{
+    Add a particle to the octree.
+    !!}
     use :: Display            , only : displayMessage, verbosityLevelWarn
     use :: ISO_Varying_String , only : varying_string, assignment(=)     , operator(//)
     implicit none
@@ -227,7 +218,9 @@ contains
   end subroutine Add_Particle_To_Octree
 
   subroutine Remove_Particle_From_Octree(self,coordinate,weight)
-    !% Remove a particle from the octree.
+    !!{
+    Remove a particle from the octree.
+    !!}
     use :: Display            , only : displayMessage, verbosityLevelWarn
     use :: ISO_Varying_String , only : varying_string, assignment(=)     , operator(//)
     implicit none
@@ -281,7 +274,9 @@ contains
   end subroutine Remove_Particle_From_Octree
 
   subroutine Traverse_Octree_Compute{Type¦label}(self,coordinate,weight,thetaTolerance,value,evaluateFunction,isExternalParticle)
-    !% Octree traversal using the \cite{barnes_hierarchical_1986} algorithm.
+    !!{
+    Octree traversal using the \cite{barnes_hierarchical_1986} algorithm.
+    !!}
     implicit none
     class           (octreeData          ),               intent(in   ) :: self
     double precision                      , dimension(3), intent(in   ) :: coordinate
@@ -370,7 +365,9 @@ contains
   end subroutine Traverse_Octree_Compute{Type¦label}
 
   subroutine Create_Node(node,boxBottomLeft,boxWidth,depth)
-    !% Creat a node in the octree.
+    !!{
+    Creat a node in the octree.
+    !!}
     implicit none
     type            (octreeNode), pointer                       :: node
     double precision            , dimension(3), intent(in   )   :: boxBottomLeft
@@ -390,7 +387,9 @@ contains
   end subroutine Create_Node
 
   recursive subroutine Copy_Node(node,nodeCopy)
-    !% Make a copy of a node and all its child nodes.
+    !!{
+    Make a copy of a node and all its child nodes.
+    !!}
     implicit none
     type   (octreeNode), pointer, intent(in   ) :: node
     type   (octreeNode), pointer                :: nodeCopy
@@ -420,7 +419,9 @@ contains
   end subroutine Copy_Node
 
   recursive subroutine Destroy_Node(node)
-    !% Destroy a node and all its child nodes.
+    !!{
+    Destroy a node and all its child nodes.
+    !!}
     implicit none
     type   (octreeNode), pointer :: node
     integer(c_size_t  )          :: i
@@ -438,7 +439,9 @@ contains
   end subroutine Destroy_Node
 
   subroutine Create_Child_Node(node,childIndex)
-    !% Create a child node with the given child index.
+    !!{
+    Create a child node with the given child index.
+    !!}
     implicit none
     type            (octreeNode), pointer                       :: node
     integer         (c_size_t  )                , intent(in   ) :: childIndex
@@ -472,7 +475,9 @@ contains
   end subroutine Create_Child_Node
 
   function getChildIndex(node,coordinate)
-    !% Return the index of the child node that a particle belongs to.
+    !!{
+    Return the index of the child node that a particle belongs to.
+    !!}
     use :: Display            , only : displayMessage, verbosityLevelWarn
     use :: ISO_Varying_String , only : varying_string, assignment(=)     , operator(//)
     implicit none
@@ -510,7 +515,9 @@ contains
   end function getChildIndex
 
   function getNonEmptySibling(node) result(sibling)
-    !% Return the next non-empty sibling node.
+    !!{
+    Return the next non-empty sibling node.
+    !!}
     implicit none
     type   (octreeNode), pointer                :: sibling
     type   (octreeNode), pointer, intent(in   ) :: node
@@ -533,7 +540,9 @@ contains
   end function getNonEmptySibling
 
   function getLeafNode(rootNode,coordinate,weight) result(leafNode)
-    !% Return the leaf node that a particle belongs to.
+    !!{
+    Return the leaf node that a particle belongs to.
+    !!}
     use :: Numerical_Comparison, only : Values_Differ
     implicit none
     type            (octreeNode    ), pointer                     :: leafNode

@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program that tests transfer function calculations.
+!!{
+Contains a program that tests transfer function calculations.
+!!}
 
 program Tests_Transfer_Functions
-  !% Tests transfer function calculations.
+  !!{
+  Tests transfer function calculations.
+  !!}
   use :: Cosmology_Functions  , only : cosmologyFunctionsMatterLambda
   use :: Cosmology_Parameters , only : cosmologyParametersSimple
   use :: Dark_Matter_Particles, only : darkMatterParticleCDM

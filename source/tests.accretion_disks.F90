@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to test accretion disk functions.
+!!{
+Contains a program to test accretion disk functions.
+!!}
 
 program Test_Accretion_Disks
-  !% Tests of accretion disk functions.
+  !!{
+  Tests of accretion disk functions.
+  !!}
   use :: Accretion_Disks             , only : accretionDisksADAF            , adafEnergyPureADAF    , adafFieldEnhancementExponential, adafRadiativeEfficiencyTypeFixed, &
           &                                   adafViscosityFit
   use :: Display                     , only : displayVerbositySet           , verbosityLevelStandard

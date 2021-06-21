@@ -19,30 +19,38 @@
 
 !+    Contributions to this file made by: Arya Farahi, Andrew Benson.
 
-  !% Implementation of the extended Schmidt star formation rate surface density law of \cite{shi_extended_2011} for galactic disks.
+  !!{
+  Implementation of the extended Schmidt star formation rate surface density law of \cite{shi_extended_2011} for galactic disks.
+  !!}
 
-  !# <starFormationRateSurfaceDensityDisks name="starFormationRateSurfaceDensityDisksExtendedSchmidt">
-  !#  <description>
-  !#   A star formation rate surface density class implementing the extended Schmidt law \citep{shi_extended_2011}:
-  !#   \begin{equation}
-  !#   \dot{\Sigma}_\star = A \left(x_\mathrm{H} {\Sigma_\mathrm{gas}\over M_\odot \hbox{pc}^{-2}}\right)^{N_1}
-  !#   \left({\Sigma_{\star}\over M_\odot \hbox{pc}^{-2}}\right)^{N_2}
-  !#   \end{equation}
-  !#   where $A=${\normalfont \ttfamily [normalization]}, $N_1=${\normalfont \ttfamily [exponentGas]} and $N_2=${\normalfont
-  !#   \ttfamily [exponentStars]} are parameters.
-  !#  </description>
-  !# </starFormationRateSurfaceDensityDisks>
+  !![
+  <starFormationRateSurfaceDensityDisks name="starFormationRateSurfaceDensityDisksExtendedSchmidt">
+   <description>
+    A star formation rate surface density class implementing the extended Schmidt law \citep{shi_extended_2011}:
+    \begin{equation}
+    \dot{\Sigma}_\star = A \left(x_\mathrm{H} {\Sigma_\mathrm{gas}\over M_\odot \hbox{pc}^{-2}}\right)^{N_1}
+    \left({\Sigma_{\star}\over M_\odot \hbox{pc}^{-2}}\right)^{N_2}
+    \end{equation}
+    where $A=${\normalfont \ttfamily [normalization]}, $N_1=${\normalfont \ttfamily [exponentGas]} and $N_2=${\normalfont
+    \ttfamily [exponentStars]} are parameters.
+   </description>
+  </starFormationRateSurfaceDensityDisks>
+  !!]
   type, extends(starFormationRateSurfaceDensityDisksClass) :: starFormationRateSurfaceDensityDisksExtendedSchmidt
-     !% Implementation of the extended Schmidt star formation rate surface density law of \cite{shi_extended_2011} for galactic disks.
+     !!{
+     Implementation of the extended Schmidt star formation rate surface density law of \cite{shi_extended_2011} for galactic disks.
+     !!}
      private
      integer         (kind_int8) :: lastUniqueID
      logical                     :: factorsComputed
      double precision            :: normalization  , exponentGas         , &
           &                         exponentStars  , hydrogenMassFraction
    contains
-     !# <methods>
-     !#   <method description="Reset memoized calculations." method="calculationReset" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Reset memoized calculations." method="calculationReset" />
+     </methods>
+     !!]
      final     ::                     extendedSchmidtDestructor
      procedure :: autoHook         => extendedSchmidtAutoHook
      procedure :: calculationReset => extendedSchmidtCalculationReset
@@ -50,7 +58,9 @@
   end type starFormationRateSurfaceDensityDisksExtendedSchmidt
 
   interface starFormationRateSurfaceDensityDisksExtendedSchmidt
-     !% Constructors for the {\normalfont \ttfamily extendedSchmidt} star formation surface density rate in disks class.
+     !!{
+     Constructors for the {\normalfont \ttfamily extendedSchmidt} star formation surface density rate in disks class.
+     !!}
      module procedure extendedSchmidtConstructorParameters
      module procedure extendedSchmidtConstructorInternal
   end interface starFormationRateSurfaceDensityDisksExtendedSchmidt
@@ -58,7 +68,9 @@
 contains
 
   function extendedSchmidtConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily extendedSchmidt} star formation surface density rate in disks class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily extendedSchmidt} star formation surface density rate in disks class which takes a parameter set as input.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (starFormationRateSurfaceDensityDisksExtendedSchmidt)                :: self
@@ -66,40 +78,48 @@ contains
     double precision                                                                     :: normalization, exponentGas, &
          &                                                                                  exponentStars
 
-    !# <inputParameter>
-    !#   <name>normalization</name>
-    !#   <defaultSource>\citep{shi_extended_2011}</defaultSource>
-    !#   <defaultValue>0.5248d-10</defaultValue>
-    !#   <description>The normalization of the extended Schmidt star formation law [$M_\odot$ yr$^{-1}$pc$^{-2}$].</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>exponentGas</name>
-    !#   <defaultSource>\citep{shi_extended_2011}</defaultSource>
-    !#   <defaultValue>1.0000d+0</defaultValue>
-    !#   <description>The exponent of gas surface density in the extended Schmidt star formation law.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>exponentStars</name>
-    !#   <defaultSource>\citep{shi_extended_2011}</defaultSource>
-    !#   <defaultValue>0.4800d+0</defaultValue>
-    !#   <description>The exponent of stellar surface density in the extended Schmidt star formation law.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>normalization</name>
+      <defaultSource>\citep{shi_extended_2011}</defaultSource>
+      <defaultValue>0.5248d-10</defaultValue>
+      <description>The normalization of the extended Schmidt star formation law [$M_\odot$ yr$^{-1}$pc$^{-2}$].</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>exponentGas</name>
+      <defaultSource>\citep{shi_extended_2011}</defaultSource>
+      <defaultValue>1.0000d+0</defaultValue>
+      <description>The exponent of gas surface density in the extended Schmidt star formation law.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>exponentStars</name>
+      <defaultSource>\citep{shi_extended_2011}</defaultSource>
+      <defaultValue>0.4800d+0</defaultValue>
+      <description>The exponent of stellar surface density in the extended Schmidt star formation law.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     self=starFormationRateSurfaceDensityDisksExtendedSchmidt(normalization,exponentGas,exponentStars)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function extendedSchmidtConstructorParameters
 
   function extendedSchmidtConstructorInternal(normalization,exponentGas,exponentStars) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily extendedSchmidt} star formation surface density rate from disks class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily extendedSchmidt} star formation surface density rate from disks class.
+    !!}
     use :: Numerical_Constants_Prefixes, only : giga, mega
     implicit none
     type            (starFormationRateSurfaceDensityDisksExtendedSchmidt)                :: self
     double precision                                                     , intent(in   ) :: normalization, exponentGas, &
          &                                                                                  exponentStars
-    !# <constructorAssign variables="normalization, exponentGas, exponentStars"/>
+    !![
+    <constructorAssign variables="normalization, exponentGas, exponentStars"/>
+    !!]
 
     self%lastUniqueID   =-1_kind_int8
     self%factorsComputed=.false.
@@ -112,7 +132,9 @@ contains
   end function extendedSchmidtConstructorInternal
 
   subroutine extendedSchmidtAutoHook(self)
-    !% Attach to the calculation reset event.
+    !!{
+    Attach to the calculation reset event.
+    !!}
     use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(starFormationRateSurfaceDensityDisksExtendedSchmidt), intent(inout) :: self
@@ -122,7 +144,9 @@ contains
   end subroutine extendedSchmidtAutoHook
 
   subroutine extendedSchmidtDestructor(self)
-    !% Destructor for the extendedSchmidt cooling radius class.
+    !!{
+    Destructor for the extendedSchmidt cooling radius class.
+    !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none
     type(starFormationRateSurfaceDensityDisksExtendedSchmidt), intent(inout) :: self
@@ -132,7 +156,9 @@ contains
   end subroutine extendedSchmidtDestructor
 
   subroutine extendedSchmidtCalculationReset(self,node)
-    !% Reset the Kennicutt-Schmidt relation calculation.
+    !!{
+    Reset the Kennicutt-Schmidt relation calculation.
+    !!}
     implicit none
     class(starFormationRateSurfaceDensityDisksExtendedSchmidt), intent(inout) :: self
     type (treeNode                                           ), intent(inout) :: node
@@ -143,14 +169,16 @@ contains
   end subroutine extendedSchmidtCalculationReset
 
   double precision function extendedSchmidtRate(self,node,radius)
-    !% Returns the star formation rate surface density (in $M_\odot$ Gyr$^{-1}$ Mpc$^{-2}$) for star formation
-    !% in the galactic disk of {\normalfont \ttfamily node}. The disk is assumed to obey the extended Schmidt law of \cite{shi_extended_2011}:
-    !% \begin{equation}
-    !% \dot{\Sigma}_\star = A \left(x_\mathrm{H} {\Sigma_\mathrm{gas}\over M_\odot \hbox{pc}^{-2}}\right)
-    !% ^{N_1} \left({\Sigma_{\star}\over M_\odot \hbox{pc}^{-2}}\right)^{N_2},
-    !% \end{equation}
-    !% where $A=${\normalfont \ttfamily [normalization]} and $N_1=${\normalfont \ttfamily
-    !% [exponentGas]}. $N_2=${\normalfont \ttfamily [exponentStars]}.
+    !!{
+    Returns the star formation rate surface density (in $M_\odot$ Gyr$^{-1}$ Mpc$^{-2}$) for star formation
+    in the galactic disk of {\normalfont \ttfamily node}. The disk is assumed to obey the extended Schmidt law of \cite{shi_extended_2011}:
+    \begin{equation}
+    \dot{\Sigma}_\star = A \left(x_\mathrm{H} {\Sigma_\mathrm{gas}\over M_\odot \hbox{pc}^{-2}}\right)
+    ^{N_1} \left({\Sigma_{\star}\over M_\odot \hbox{pc}^{-2}}\right)^{N_2},
+    \end{equation}
+    where $A=${\normalfont \ttfamily [normalization]} and $N_1=${\normalfont \ttfamily
+    [exponentGas]}. $N_2=${\normalfont \ttfamily [exponentStars]}.
+    !!}
     use :: Abundances_Structure                , only : abundances
     use :: Galactic_Structure_Options          , only : componentTypeDisk                 , coordinateSystemCylindrical, massTypeGaseous, massTypeStellar
     use :: Galactic_Structure_Surface_Densities, only : Galactic_Structure_Surface_Density

@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a posterior sampling convergence class which never converges.
+  !!{
+  Implementation of a posterior sampling convergence class which never converges.
+  !!}
 
-  !# <posteriorSampleConvergence name="posteriorSampleConvergenceNever">
-  !#  <description>
-  !#   This option assumes that the simulation never converges, and so the calculation will run indefinitely. It is intended primarily
-  !#   for testing purposes.
-  !#  </description>
-  !# </posteriorSampleConvergence>
+  !![
+  <posteriorSampleConvergence name="posteriorSampleConvergenceNever">
+   <description>
+    This option assumes that the simulation never converges, and so the calculation will run indefinitely. It is intended primarily
+    for testing purposes.
+   </description>
+  </posteriorSampleConvergence>
+  !!]
   type, extends(posteriorSampleConvergenceClass) :: posteriorSampleConvergenceNever
-     !% Implementation of a posterior sampling convergence class which never converges.
+     !!{
+     Implementation of a posterior sampling convergence class which never converges.
+     !!}
      private
    contains
      procedure :: isConverged     => neverIsConverged
@@ -37,14 +43,18 @@
   end type posteriorSampleConvergenceNever
 
   interface posteriorSampleConvergenceNever
-     !% Constructors for the {\normalfont \ttfamily never} posterior sampling convergence class.
+     !!{
+     Constructors for the {\normalfont \ttfamily never} posterior sampling convergence class.
+     !!}
      module procedure neverConstructorParameters
   end interface posteriorSampleConvergenceNever
 
 contains
 
   function neverConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily never} merger tree halo mass function sampling class which builds the object from a parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily never} merger tree halo mass function sampling class which builds the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(posteriorSampleConvergenceNever)                :: self
@@ -56,7 +66,9 @@ contains
   end function neverConstructorParameters
 
   logical function neverIsConverged(self,simulationState,logLikelihood)
-    !% Returns true if the posterior sampling is converged (which it never is).
+    !!{
+    Returns true if the posterior sampling is converged (which it never is).
+    !!}
     implicit none
     class           (posteriorSampleConvergenceNever), intent(inout)           :: self
     class           (posteriorSampleStateClass      ), intent(inout), optional :: simulationState
@@ -68,7 +80,9 @@ contains
   end function neverIsConverged
 
   integer function neverConvergedAtStep(self)
-    !% Return the step at which the simulation converged.
+    !!{
+    Return the step at which the simulation converged.
+    !!}
     implicit none
     class(posteriorSampleConvergenceNever), intent(inout) :: self
     !$GLC attributes unused :: self
@@ -78,7 +92,9 @@ contains
   end function neverConvergedAtStep
 
   subroutine neverReset(self)
-    !% Reset the convergence object.
+    !!{
+    Reset the convergence object.
+    !!}
     implicit none
     class(posteriorSampleConvergenceNever), intent(inout) :: self
     !$GLC attributes unused :: self
@@ -87,7 +103,9 @@ contains
   end subroutine neverReset
 
   subroutine neverLogReport(self,fileUnit)
-    !% Write a convergence report to the given {\normalfont \ttfamily fileUnit}.
+    !!{
+    Write a convergence report to the given {\normalfont \ttfamily fileUnit}.
+    !!}
     implicit none
     class  (posteriorSampleConvergenceNever), intent(inout) :: self
     integer                                 , intent(in   ) :: fileUnit
@@ -98,7 +116,9 @@ contains
   end subroutine neverLogReport
 
   logical function neverStateIsOutlier(self,stateIndex)
-    !% Return true if the specified chain is deemed to be an outlier. In this case, chains are never outliers.
+    !!{
+    Return true if the specified chain is deemed to be an outlier. In this case, chains are never outliers.
+    !!}
     implicit none
     class  (posteriorSampleConvergenceNever), intent(inout) :: self
     integer                                 , intent(in   ) :: stateIndex

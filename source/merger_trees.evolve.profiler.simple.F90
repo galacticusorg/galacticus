@@ -17,27 +17,33 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a merger tree evolve profiler that collects simple data.
+  !!{
+  Implements a merger tree evolve profiler that collects simple data.
+  !!}
 
   use :: Hashes, only : integerHash
   
-  !# <mergerTreeEvolveProfiler name="mergerTreeEvolveProfilerSimple">
-  !#  <description>
-  !#   A merger tree evolve profiler that collects simple data. Each step taken by the ODE evolver is then analyzed. First, a
-  !#   record of the size of the time step taken is recorded. Second, the property which is currently limiting the time step size
-  !#   (i.e. that which has the largest error over the step as judged using the same heuristics as the ODE solver uses to
-  !#   determine step size) is determined and a record of this is kept.
-  !#
-  !#   At the end of a run the accumulated data is written to the \glc\ output file, into a group named {\normalfont \ttfamily
-  !#   metaData/evolverProfiler}. A histogram of time step sizes is written to {\normalfont \ttfamily timeStepCount} with bins
-  !#   specified in {\normalfont \ttfamily timeStep}---these bins can be adjusted using {\normalfont \ttfamily [timeStepMinimum]},
-  !#   {\normalfont \ttfamily [timeStepMaximum]} and {\normalfont \ttfamily [timeStepPointsPerDecade]}. A histogram of which
-  !#   properties limited step size is written to {\normalfont \ttfamily propertyHitCount} with the associated property names
-  !#   written to {\normalfont \ttfamily [propertyNames]}.
-  !#  </description>
-  !# </mergerTreeEvolveProfiler>
+  !![
+  <mergerTreeEvolveProfiler name="mergerTreeEvolveProfilerSimple">
+   <description>
+    A merger tree evolve profiler that collects simple data. Each step taken by the ODE evolver is then analyzed. First, a
+    record of the size of the time step taken is recorded. Second, the property which is currently limiting the time step size
+    (i.e. that which has the largest error over the step as judged using the same heuristics as the ODE solver uses to
+    determine step size) is determined and a record of this is kept.
+  
+    At the end of a run the accumulated data is written to the \glc\ output file, into a group named {\normalfont \ttfamily
+    metaData/evolverProfiler}. A histogram of time step sizes is written to {\normalfont \ttfamily timeStepCount} with bins
+    specified in {\normalfont \ttfamily timeStep}---these bins can be adjusted using {\normalfont \ttfamily [timeStepMinimum]},
+    {\normalfont \ttfamily [timeStepMaximum]} and {\normalfont \ttfamily [timeStepPointsPerDecade]}. A histogram of which
+    properties limited step size is written to {\normalfont \ttfamily propertyHitCount} with the associated property names
+    written to {\normalfont \ttfamily [propertyNames]}.
+   </description>
+  </mergerTreeEvolveProfiler>
+  !!]
   type, extends(mergerTreeEvolveProfilerClass) :: mergerTreeEvolveProfilerSimple
-     !% A merger tree evolve profiler that collects simple data.
+     !!{
+     A merger tree evolve profiler that collects simple data.
+     !!}
      private
      double precision                                         :: timeStepMaximum        , timeStepMinimum
      integer                                                  :: timeStepPointsPerDecade
@@ -50,7 +56,9 @@
   end type mergerTreeEvolveProfilerSimple
 
   interface mergerTreeEvolveProfilerSimple
-     !% Constructors for the {\normalfont \ttfamily simple} merger tree evolve profiler class.
+     !!{
+     Constructors for the {\normalfont \ttfamily simple} merger tree evolve profiler class.
+     !!}
      module procedure simpleConstructorParameters
      module procedure simpleConstructorInternal
   end interface mergerTreeEvolveProfilerSimple
@@ -58,7 +66,9 @@
 contains
   
   function simpleConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily simple} merger tree evolve profiler class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily simple} merger tree evolve profiler class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type            (mergerTreeEvolveProfilerSimple)                :: self
@@ -66,26 +76,30 @@ contains
     double precision                                                :: timeStepMinimum        , timeStepMaximum
     integer                                                         :: timeStepPointsPerDecade
 
-    !# <inputParameter>
-    !#   <name>timeStepMinimum</name>
-    !#   <defaultValue>1.0d-6</defaultValue>
-    !#   <description>The smallest timestep to use in profiling ODE solver steps.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>timeStepMaximum</name>
-    !#   <defaultValue>1.0d+1</defaultValue>
-    !#   <description>The largest timestep to use in profiling ODE solver steps.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>timeStepPointsPerDecade</name>
-    !#   <defaultValue>3</defaultValue>
-    !#   <description>The number of bins per decade of timestep to use when profiling ODE solver steps.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>timeStepMinimum</name>
+      <defaultValue>1.0d-6</defaultValue>
+      <description>The smallest timestep to use in profiling ODE solver steps.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>timeStepMaximum</name>
+      <defaultValue>1.0d+1</defaultValue>
+      <description>The largest timestep to use in profiling ODE solver steps.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>timeStepPointsPerDecade</name>
+      <defaultValue>3</defaultValue>
+      <description>The number of bins per decade of timestep to use when profiling ODE solver steps.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     self=mergerTreeEvolveProfilerSimple(timeStepMinimum,timeStepMaximum,timeStepPointsPerDecade)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function simpleConstructorParameters
 
@@ -96,7 +110,9 @@ contains
     double precision                                , intent(in   ) :: timeStepMinimum        , timeStepMaximum
     integer                                         , intent(in   ) :: timeStepPointsPerDecade
     integer                                                         :: timeStepPoints
-    !# <constructorAssign variables="timeStepMinimum, timeStepMaximum, timeStepPointsPerDecade"/>
+    !![
+    <constructorAssign variables="timeStepMinimum, timeStepMaximum, timeStepPointsPerDecade"/>
+    !!]
     
     timeStepPoints=int(log10(timeStepMaximum/timeStepMinimum)*dble(timeStepPointsPerDecade))+1
     allocate(self%timeStep     (timeStepPoints))
@@ -108,7 +124,9 @@ contains
   end function simpleConstructorInternal
 
   subroutine simpleDestructor(self)
-    !% Output collected meta-data on tree evolution.
+    !!{
+    Output collected meta-data on tree evolution.
+    !!}
     use :: Galacticus_HDF5                 , only : galacticusOutputFile
     use :: IO_HDF5                         , only : hdf5Object          , hdf5Access
     use :: Numerical_Constants_Astronomical, only : gigaYear
@@ -159,7 +177,9 @@ contains
   end subroutine simpleDestructor
 
   subroutine simpleProfile(self,timestep,propertyName)
-    !% Profile the differential evolution step.
+    !!{
+    Profile the differential evolution step.
+    !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     use            :: Arrays_Search, only : searchArray
     implicit none
