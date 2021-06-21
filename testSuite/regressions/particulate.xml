@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Simple halo+subhalo configuration for generating particle realizations -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+
+  <!-- Random number generation -->
+  <randomNumberGenerator value="GSL">
+    <seed value="8122"/>
+  </randomNumberGenerator>
+
+  <!-- Task -->
+  <task value="evolveForests"/>
+
+  <!-- Component selection -->
+  <componentBasic                  value="standard" />
+  <componentBlackHole              value="null"     />
+  <componentDarkMatterProfile      value="scale"    />
+  <componentDisk                   value="null"     />
+  <componentHotHalo                value="null"     />
+  <componentSatellite              value="orbiting" />
+  <componentSpheroid               value="null"     />
+  <componentSpin                   value="null"     />
+
+  <!-- Dark matter properties -->
+  <darkMatterParticle value="CDM"/>
+
+  <!-- Cosmological parameters -->
+  <cosmologyFunctions  value="staticUniverse"/>
+  <cosmologyParameters value="simple"         >
+    <HubbleConstant  value="67.000000"/>
+    <OmegaMatter     value=" 0.320000"/>
+    <OmegaDarkEnergy value=" 0.680000"/>
+    <OmegaBaryon     value=" 0.000000"/>
+    <temperatureCMB  value=" 2.725480"/>
+  </cosmologyParameters>
+
+  <!-- Structure formation options -->
+  <linearGrowth          value="collisionlessMatter"/>
+  <!-- Use a fixed virial density contrast here as cosmological evolution is not defined in this static universe so we can't use spherical collapse models -->
+  <virialDensityContrast value="fixed">
+    <densityContrastValue value="330.0"/>
+    <densityType          value="mean" />
+  </virialDensityContrast>
+
+  <!-- Merger tree building options --> 
+  <mergerTreeConstructor value="fullySpecified">
+    <fileName value="testSuite/parameters/particulateTree.xml"/>
+  </mergerTreeConstructor>
+
+  <!-- Substructure hierarchy options -->
+  <mergerTreeNodeMerger value="singleLevelHierarchy"/>
+
+  <!-- Dark matter halo structure options -->
+  <darkMatterProfile        value="darkMatterOnly"/>
+  <darkMatterProfileDMO     value="penarrubia2010">
+    <alpha value="1.0"/>
+    <beta value="3.0"/>
+    <betaStripped value="5.0"/>
+    <gamma value="1.0"/>
+    <muRadius value="-0.3"/>
+    <etaRadius value="0.4"/>
+    <muVelocity value="0.4"/>
+    <etaVelocity value="0.3"/>
+  </darkMatterProfileDMO>
+  
+
+  <!-- Halo accretion options -->
+  <accretionHalo                  value="zero"/>
+
+  <!-- Hot halo gas model options -->
+  <hotHaloMassDistribution        value="null"/>
+
+  <!-- Galactic structure solver options -->
+  <galacticStructureSolver        value="null"/>
+
+  <!-- Satellite orbit options -->
+  <virialOrbit value="isotropic">
+    <virialOrbit value="benson2005"/>
+  </virialOrbit>
+  <satelliteOrbitStoreOrbitalParameters value="true"/>
+
+  <!-- Galaxy mergers -->
+  <mergerMassMovements            value="null"/>
+  <mergerRemnantSize              value="null"/>
+
+  <!-- Orbiting model of satellites -->
+  <satelliteDynamicalFriction value="chandrasekhar1943">
+    <logarithmCoulomb value="1.53"/>
+  </satelliteDynamicalFriction>
+  <satelliteTidalHeatingRate  value="gnedin1999"       >
+    <epsilon          value="0.33"/>
+    <gamma            value="1.50"/>
+  </satelliteTidalHeatingRate>
+  <satelliteTidalStripping    value="zentner2005"      >
+    <efficiency       value="2.86"/>
+  </satelliteTidalStripping>
+
+  <!-- Node evolution and physics -->
+  <nodeOperator value="multi">
+    <!-- Subhalo orbits -->
+    <nodeOperator value="satelliteOrbit"                   />
+    <nodeOperator value="satelliteDynamicalFriction"       />
+    <nodeOperator value="satelliteTidalMassLoss"           />
+    <nodeOperator value="satelliteTidalHeating"            />
+    <nodeOperator value="satelliteMergingRadiusTrigger"     >
+      <radiusVirialFraction      value="0.01"/>
+    </nodeOperator>
+    <nodeOperator value="satelliteDestructionMassThreshold" >
+      <massDestruction           value="0.0e+0"/>
+      <massDestructionFractional value="1.0e-6"/>
+    </nodeOperator>
+  </nodeOperator>
+  
+  <!-- Tree evolution -->
+  <mergerTreeEvolver       value="standard" >
+    <timestepHostAbsolute             value="1.00"/>
+    <timestepHostRelative             value="0.00"/>
+    <fractionTimestepSatelliteMinimum value="0.75"/>
+    <backtrackToSatellites            value="true"/>
+    <allTreesExistAtFinalTime value="false" />
+  </mergerTreeEvolver>
+  <mergerTreeNodeEvolver value="standard">
+    <odeToleranceAbsolute value="0.01"  />
+    <odeToleranceRelative value="0.01"  />
+    <reuseODEStepSize     value="false" />
+  </mergerTreeNodeEvolver>
+  <mergerTreeEvolveTimestep value="multi">
+    <mergerTreeEvolveTimestep value="simple"               >
+      <timeStepAbsolute          value="1.000"/>
+      <timeStepRelative          value="0.000"/>
+    </mergerTreeEvolveTimestep>
+    <mergerTreeEvolveTimestep value="satellite"            >
+      <timeOffsetMaximumAbsolute value="0.010"/>
+      <timeOffsetMaximumRelative value="0.001"/>
+    </mergerTreeEvolveTimestep>
+    <mergerTreeEvolveTimestep value="satelliteDestruction"/>
+  </mergerTreeEvolveTimestep>
+
+  <mergerTreeOperator value="particulate">
+    <outputFileName value="testSuite/outputs/particulateParticles.hdf5"/>
+    <idMultiplier value="10000000"/>
+    <massParticle value="1.0e7"/>
+    <timeSnapshot value="1.0"/>
+    <radiusTruncateOverRadiusVirial value="1.0"/>
+    <lengthSoftening value="1.0e-5"/>
+    <toleranceRelativeSmoothing value="1.0e-7"/>
+    <selection value="all"/>
+    <nonCosmological value="false"/>
+    <chunkSize value="1024"/>
+  </mergerTreeOperator>
+
+  <!-- Output options -->
+  <galacticusOutputFileName value="testSuite/outputs/particulate.hdf5"/>
+  <hdf5UseLatestFormat value="true"/>
+  <hdf5ChunkSize value="2"/>
+  <mergerTreeOutputter value="standard">
+    <outputReferences value="false"/>
+  </mergerTreeOutputter>  
+  <outputTimes value="uniformSpacingInTime">
+    <timeMinimum value="1.0"/>
+    <timeMaximum value="2.0"/>
+    <countTimes  value="2" />
+  </outputTimes>
+
+</parameters>
