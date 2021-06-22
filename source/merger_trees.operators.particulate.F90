@@ -51,7 +51,7 @@
      type            (varying_string           )          :: outputFileName
      double precision                                     :: massParticle                   , radiusTruncateOverRadiusVirial   , &
           &                                                  timeSnapshot                   , energyDistributionPointsPerDecade, &
-          &                                                  lengthSoftening
+          &                                                  lengthSoftening                , toleranceRelativeSmoothing
      logical                                              :: satelliteOffset                , nonCosmological                  , &
           &                                                  positionOffset                 , addHubbleFlow                    , &
           &                                                  haloIdToParticleType           , sampleParticleNumber             , &
@@ -133,7 +133,7 @@ contains
     integer         (kind_int8                    )                :: idMultiplier
     double precision                                               :: massParticle         , radiusTruncateOverRadiusVirial   , &
          &                                                            timeSnapshot         , energyDistributionPointsPerDecade, &
-         &                                                            lengthSoftening
+         &                                                            lengthSoftening      , toleranceRelativeSmoothing
     logical                                                        :: satelliteOffset      , nonCosmological                  , &
          &                                                            positionOffset       , addHubbleFlow                    , &
          &                                                            haloIdToParticleType , sampleParticleNumber             , &
@@ -197,6 +197,12 @@ contains
       <source>parameters</source>
       <defaultValue>30.0d0</defaultValue>
       <description>The number of points per decade of radius to use when building the table of energy distribution function.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>toleranceRelativeSmoothing</name>
+      <source>parameters</source>
+      <defaultValue>1.0d-7</defaultValue>
+      <description>The relative tolerance to use in the integrals used in finding the smoothed density profile defined by \cite{barnes_gravitational_2012} to account for gravitational softening.</description>
     </inputParameter>
     <inputParameter>
       <name>selection</name>
@@ -263,9 +269,9 @@ contains
        do while (associated(parametersRoot%parent))
           parametersRoot => parametersRoot%parent
        end do
-       self=mergerTreeOperatorParticulate(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,chunkSize,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,parametersRoot)
+       self=mergerTreeOperatorParticulate(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,toleranceRelativeSmoothing,chunkSize,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,parametersRoot)
     else
-       self=mergerTreeOperatorParticulate(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,chunkSize,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,parameters    )
+       self=mergerTreeOperatorParticulate(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,toleranceRelativeSmoothing,chunkSize,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,parameters    )
     end if
     !![
     <inputParametersValidate source="parameters"/>
@@ -277,7 +283,7 @@ contains
     return
   end function particulateConstructorParameters
 
-  function particulateConstructorInternal(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,chunkSize,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,parameters) result(self)
+  function particulateConstructorInternal(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,toleranceRelativeSmoothing,chunkSize,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,parameters) result(self)
     !!{
     Internal constructor for the particulate merger tree operator class.
     !!}
@@ -288,7 +294,7 @@ contains
     integer         (kind_int8                    ), intent(in   )         :: idMultiplier
     double precision                               , intent(in   )         :: massParticle         , radiusTruncateOverRadiusVirial   , &
          &                                                                    timeSnapshot         , energyDistributionPointsPerDecade, &
-         &                                                                    lengthSoftening
+         &                                                                    lengthSoftening      , toleranceRelativeSmoothing
     logical                                        , intent(in   )         :: satelliteOffset      , nonCosmological                  , &
          &                                                                    positionOffset       , addHubbleFlow                    , &
          &                                                                    haloIdToParticleType , sampleParticleNumber             , &
@@ -301,7 +307,7 @@ contains
     class           (darkMatterProfileDMOClass    ), intent(in   ), target :: darkMatterProfileDMO_
     type            (inputParameters              ), intent(in   ), target :: parameters
     !![
-    <constructorAssign variables="outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,chunkSize,*cosmologyParameters_,*cosmologyFunctions_,*darkMatterHaloScale_,*darkMatterProfileDMO_"/>
+    <constructorAssign variables="outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,toleranceRelativeSmoothing,chunkSize,*cosmologyParameters_,*cosmologyFunctions_,*darkMatterHaloScale_,*darkMatterProfileDMO_"/>
     !!]
 
     self%parameters=inputParameters(parameters)
@@ -843,7 +849,7 @@ contains
              end select
              ! The integral here is performed in two parts - below and above the current radius where the integrand has a
              ! discontinuous gradient - for improved speed and stability.
-             intergatorSmoothingZ=integrator(particulateSmoothingIntegrandZ,toleranceRelative=1.0d-9)
+             intergatorSmoothingZ=integrator(particulateSmoothingIntegrandZ,toleranceRelative=particulateSelf%toleranceRelativeSmoothing)
              if (particulateSmoothingIntegrationRangeLower < particulateRadius) then
                 densitySmoothedIntegralLower=intergatorSmoothingZ%integrate(                                               &
                      &                                                          particulateSmoothingIntegrationRangeLower, &
@@ -1036,15 +1042,15 @@ contains
        case (particulateKernelGadget )
           radiusMaximum=min(radiusMaximum,sqrt(+(2.8d0*particulateLengthSoftening)**2-particulateHeight**2))
        end select
-       integrator_                   =integrator           (particulateSmoothingIntegrandR,toleranceRelative=1.0d-7       )
-       particulateSmoothingIntegrandZ=integrator_%integrate(0.0d0                         ,                  radiusMaximum)
+       integrator_                   =integrator           (particulateSmoothingIntegrandR,toleranceRelative=particulateSelf%toleranceRelativeSmoothing)
+       particulateSmoothingIntegrandZ=integrator_%integrate(0.0d0                         ,                                  radiusMaximum             )
     end if
     return
   end function particulateSmoothingIntegrandZ
 
   double precision function particulateSmoothingIntegrandR(radiusCylindrical)
     !!{
-    The integrand over cylindrical coordinate $z$ used in finding the smoothed density profile defined by
+    The integrand over cylindrical coordinate $R$ used in finding the smoothed density profile defined by
     \cite{barnes_gravitational_2012} to account for gravitational softening.
     !!}
     implicit none

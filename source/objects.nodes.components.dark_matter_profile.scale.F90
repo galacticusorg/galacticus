@@ -70,6 +70,7 @@ contains
     use :: Input_Parameters, only : inputParameter                   , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
+    !$GLC attributes unused :: parameters_
 
     if (defaultDarkMatterProfileComponent%scaleIsActive()) &
          & call nodePromotionEvent%attach(defaultDarkMatterProfileComponent,nodePromotion,openMPThreadBindingAtLevel,label="nodeComponentDarkMatterProfileScale")
