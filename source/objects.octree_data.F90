@@ -288,7 +288,7 @@ contains
     double precision                      , dimension(3)                :: centerOfMass            , relativePosition
     double precision                                                    :: nodeWeight              , seperation                        , &
          &                                                                 seperationSquare        , theta
-    double precision                      , parameter                   :: thetaLarge=10.0d0       , thetaCellMaximum=1.0d0/sqrt(3.0d0)
+    double precision                      , parameter                   :: thetaLarge=10.0d0
     integer         (c_size_t            )                              :: childIndex
     logical                                                             :: isExternalParticleActual
 
@@ -323,11 +323,7 @@ contains
           theta=thetaLarge
        end if
        if (theta < thetaTolerance .or. workNode%particleCount <= 1) then
-          ! If the particle is within a node, the opening angle theta of the node will always be larger than 1/sqrt(3).
-          ! So nodes which satisfy theta < thetaTolerance < thetaMaximumCell=1/sqrt(3) can never contain the current
-          ! particle, i.e. there is no need to remove the current particle from the node when computing the interaction.
-          ! But if thetaTolerance >= thetaMaximumCell, we need to check whehter the particel is within the node.
-          if (thetaTolerance >= thetaCellMaximum .and. (.not.isExternalParticleActual)) then
+          if (.not.isExternalParticleActual) then
              ! Check whether the current particle belongs to the node.
              if (all(coordinate > workNode%boxBottomLeft) .and. all(coordinate <= workNode%boxBottomLeft+workNode%boxWidth)) then
                 nodeWeight=workNode%nodeWeight-weight
