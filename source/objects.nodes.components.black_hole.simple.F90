@@ -229,9 +229,10 @@ contains
     use :: Galacticus_Nodes, only : nodeComponentBlackHole   , nodeComponentBlackHoleSimple, nodeComponentSpheroid, treeNode, &
          &                          defaultBlackHoleComponent
     implicit none
-    type (treeNode              ), intent(inout), pointer :: node
-    class(nodeComponentBlackHole)               , pointer :: blackHole
-    class(nodeComponentSpheroid )               , pointer :: spheroid
+    type            (treeNode              ), intent(inout), pointer :: node
+    class           (nodeComponentBlackHole)               , pointer :: blackHole
+    class           (nodeComponentSpheroid )               , pointer :: spheroid
+    double precision                        , parameter              :: massScaleAbsolute=1.0d+0
 
     ! Check if we are the default method.
     if (.not.defaultBlackHoleComponent%simpleIsActive()) return
@@ -243,11 +244,17 @@ contains
        ! Get the spheroid component.
        spheroid => node%spheroid()
        ! Set scale for mass.
-       call blackHole%massScale(                                                                   &
-            &                   max(                                                               &
-            &                       spheroid %massStellar()*blackHoleToSpheroidStellarGrowthRatio, &
-            &                       blackHole%mass       ()                                        &
-            &                      )                                                               &
+       call blackHole%massScale(                                                                                  &
+            &                   max(                                                                              &
+            &                                                                     blackHole%massSeed          (), &
+            &                       max(                                                                          &
+            &                               blackHoleToSpheroidStellarGrowthRatio*spheroid %massStellar       (), &
+            &                           max(                                                                      &
+            &                                                                                massScaleAbsolute  , &
+            &                                                                     blackHole%mass              ()  &
+            &                              )                                                                      &
+            &                          )                                                                          &
+            &                      )                                                                              &
             &                  )
     end select
     return
