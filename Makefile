@@ -17,18 +17,21 @@ else ifeq '$(GALACTICUS_BUILD_OPTION)' 'odeprof'
 export BUILDPATH = ./work/buildODEProf
 export SUFFIX = _odeProf
 else ifeq '$(GALACTICUS_BUILD_OPTION)' 'compileprof'
-export BUILDPATH = ./work/buildCompileProf
+export BUILDPATH = ./work/build
 export SUFFIX =
 endif
 
 # Preprocessor:
 PREPROCESSOR ?= cpp
 
+# Profiling options.
+ifeq '$(GALACTICUS_BUILD_OPTION)' 'compileprof'
+SHELL = ./scripts/build/profiler.sh
+endif
+
 # Fortran compiler:
 ifeq '$(GALACTICUS_BUILD_OPTION)' 'MPI'
 FCCOMPILER ?= mpif90
-else ifeq '$(GALACTICUS_BUILD_OPTION)' 'compileprof'
-FCCOMPILER ?= /usr/bin/time -f 'Compile statistics (file time memory): $* %e %M' gfortran
 else
 FCCOMPILER ?= gfortran
 endif
