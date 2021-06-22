@@ -111,13 +111,16 @@ contains
     class  (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
 
     ! Return immediately if already non-plausible.
-    if (.not.(node%isPhysicallyPlausible.and.node%isSolvable)) return
+    if (.not.node%isPhysicallyPlausible.and..not.node%isSolvable) return
     ! Get the dark matter profile component.
     darkMatterProfile => node%darkMatterProfile()
     ! Ensure that it is of the scale class.
     select type (darkMatterProfile)
     class is (nodeComponentDarkMatterProfileScale)
-       if (darkMatterProfile%scale() <= 0.0d0) node%isPhysicallyPlausible=.false.
+       if (darkMatterProfile%scale() <= 0.0d0) then
+          node%isPhysicallyPlausible=.false.
+          node%isSolvable           =.false.
+       end if
     end select
     return
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Plausibility
