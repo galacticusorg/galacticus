@@ -113,6 +113,7 @@ for(my $i=0;$i<=$timeMaximum;++$i) {
 
 # Compute a cost for each task. This is the sum of the inverse of the number of threads running each second.
 my $costMaximum = 0.0;
+my $costTotal   = 0.0;
 my $taskMaximum;
 foreach my $task ( @tasks ) {
     $task->{'cost'} = 0.0;
@@ -120,6 +121,7 @@ foreach my $task ( @tasks ) {
     for(my $i=$task->{'start'};$i<=$task->{'end'};++$i) {
 	$task->{'cost'} += 1.0/$threadCount[$i];
     }
+    $costTotal += $task->{'cost'};
     if ( $task->{'cost'} > $costMaximum ) {
 	$costMaximum = $task->{'cost'};
 	$taskMaximum = $task;
@@ -169,6 +171,8 @@ print $profileFile "  </style>\n";
 print $profileFile " </head>\n";
 print $profileFile "<body>\n";
 print $profileFile "Total compile time = ".$timeMaximum." seconds<p>\n";
+# Table of build profile.
+print $profileFile "Build profile (all tasks which ran for ".$options{'durationMinimum'}." seconds or longer: ".sprintf("%5.2f",100.0*$costTotal/$timeMaximum)."% of total time)<br>\n";
 print $profileFile "<div>\n";
 print $profileFile "<table style=\"border-spacing: 0; border-collapse: separate; border-top: 1px\">\n";
 foreach my $task ( @tasks ) {
@@ -188,7 +192,17 @@ foreach my $task ( @tasks ) {
     print $profileFile "</tr>\n";
 }
 print $profileFile "</table>\n";
-print $profileFile "</div>\n";
+print $profileFile "</div><p>\n";
+
+
+# Table of task costs.
+my @tasksOrdered = sort {$b->{'cost'} <=> $a->{'cost'}} @tasks;
+print $profileFile "Task costs (ordered)<br>\n";
+print $profileFile "<table>\n";
+foreach my $task ( @tasksOrdered ) {
+    print $profileFile "<tr><td>".$task->{'description'}."</td><td>".sprintf("%7.2f",$task->{'cost'})."</td><td>(".sprintf("%5.2f",100.0*$task->{'cost'}/$timeMaximum)."%)</td></tr>\n";
+}
+print $profileFile "</table>\n";
 print $profileFile "</body>\n";
 print $profileFile "</html>\n";
 close($profileFile);
