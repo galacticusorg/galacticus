@@ -2387,6 +2387,7 @@ CODE
 				}
 				$separator     = ",";
 			    }
+			    last;
 			}
 		    }
 		}

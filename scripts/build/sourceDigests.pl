@@ -57,8 +57,8 @@ if ( $havePerFile ) {
     $digestsPerFile = retrieve($ENV{'BUILDPATH'}."/".$blobFileName);
     $updateTime     = -M       $ENV{'BUILDPATH'}."/".$blobFileName ;
 }
-# List of types which were updated.
-my @updatedTypes;
+# Hash of types which were updated.
+my %updatedTypes;
 # Open the source diretory, finding F90 and cpp files.
 opendir(my $sourceDirectory,$sourceDirectoryName."/source");
 while ( my $fileName = readdir($sourceDirectory) ) {
@@ -109,7 +109,7 @@ while ( my $fileName = readdir($sourceDirectory) ) {
 		my $hashName = $sourceDigest->{'name'};
 		$digestsPerFile->{'types'}->{$hashName}->{'sourceMD5'} = &Galacticus::Build::SourceTree::Process::SourceDigest::Find_Hash([$fileName]);
 		@{$digestsPerFile->{'types'}->{$hashName}->{'dependencies'}} = ();
-		push(@updatedTypes,$hashName);		
+		$updatedTypes{$hashName} = 1;
 	    }
 	}
 	## functionClassType directive.
@@ -119,7 +119,7 @@ while ( my $fileName = readdir($sourceDirectory) ) {
 		my $hashName = $functionClassType->{'name'};
 		$digestsPerFile->{'types'}->{$hashName}->{'sourceMD5'} = &Galacticus::Build::SourceTree::Process::SourceDigest::Find_Hash([$fileName]);
 		@{$digestsPerFile->{'types'}->{$hashName}->{'dependencies'}} = ( "functionClass" );
-		push(@updatedTypes,$hashName);
+		$updatedTypes{$hashName} = 1;
 	    }
 	}
 	## functionClass directive.
@@ -133,7 +133,7 @@ while ( my $fileName = readdir($sourceDirectory) ) {
 		} else {
 		    @{$digestsPerFile->{'types'}->{$hashName}->{'dependencies'}} = ( "functionClass"             );
 		}
-		push(@updatedTypes,$hashName);
+		$updatedTypes{$hashName} = 1;
 	    }
 	}
 	# Walk the source code tree.
@@ -152,7 +152,7 @@ while ( my $fileName = readdir($sourceDirectory) ) {
 		    # Store hash and dependencies.
 		    $digestsPerFile->{'types'}->{$hashName}->{'sourceMD5'} = &Galacticus::Build::SourceTree::Process::SourceDigest::Find_Hash([$fileName]);
 		    @{$digestsPerFile->{'types'}->{$hashName}->{'dependencies'}} = @classDependencies;
-		    push(@updatedTypes,$hashName);
+		    $updatedTypes{$hashName} = 1;
 		}
 		$node = &Galacticus::Build::SourceTree::Walk_Tree($node,\$depth);
 	    }
@@ -166,15 +166,21 @@ if ( ! $updateTime || ( -M "source/".$functionClassFileName < $updateTime ) ) {
     $digestsPerFile->{'types'}->{'functionClass'}->{'sourceMD5'} = &Galacticus::Build::SourceTree::Process::SourceDigest::Find_Hash([$functionClassFileName]);
     @{$digestsPerFile->{'types'}->{'functionClass'}->{'dependencies'}} = ();
     delete($digestsPerFile->{'types'}->{'functionClass'}->{'compositeMD5'});
-    push(@updatedTypes,"functionClass");
+    $updatedTypes{'functionClass'} = 1;
 }
 # Recursively remove the composite hash for this type, and any dependent type.
-while ( scalar(@updatedTypes) > 0 ) {
-    my $hashNameReset = pop(@updatedTypes);
-    foreach my $hashName ( sort(keys(%{$digestsPerFile->{'types'}})) ) {
-	push(@updatedTypes,$hashName)
-	    if ( (! grep {$_ eq $hashName} @updatedTypes) && (grep {$_ eq $hashNameReset} @{$digestsPerFile->{'types'}->{$hashName}->{'dependencies'}}) );
-    }    
+my %dependenciesInverted;
+foreach my $hashName ( keys(%{$digestsPerFile->{'types'}}) ) {
+    foreach my $hashNameDependent ( @{$digestsPerFile->{'types'}->{$hashName}->{'dependencies'}} ) {
+	push(@{$dependenciesInverted{$hashNameDependent}},$hashName);
+    }
+}
+while ( scalar(keys(%updatedTypes)) > 0 ) {
+    my ($hashNameReset) = %updatedTypes;
+    delete($updatedTypes{$hashNameReset});
+    foreach ( @{$dependenciesInverted{$hashNameReset}} ) {
+ 	$updatedTypes{$_} = 1;
+    }
     delete($digestsPerFile->{'types'}->{$hashNameReset}->{'compositeMD5'})
 	if ( exists($digestsPerFile->{'types'}->{$hashNameReset}->{'compositeMD5'}) );
 }
