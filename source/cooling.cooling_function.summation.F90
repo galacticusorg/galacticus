@@ -27,6 +27,9 @@
    <deepCopy>
     <linkedList type="coolantList" variable="coolants" next="next" object="coolingFunction" objectType="coolingFunctionClass"/>
    </deepCopy>
+   <stateStore>
+    <linkedList type="coolantList" variable="coolants" next="next" object="coolingFunction"/>
+   </stateStore>
   </coolingFunction>
   !!]
 

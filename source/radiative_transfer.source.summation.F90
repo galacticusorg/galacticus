@@ -30,6 +30,9 @@
    <deepCopy>
     <linkedList type="radiativeTransferSourceList" variable="radiativeTransferSources" next="next" object="radiativeTransferSource" objectType="radiativeTransferSourceClass"/>
    </deepCopy>
+   <stateStore>
+    <linkedList type="radiativeTransferSourceList" variable="radiativeTransferSources" next="next" object="radiativeTransferSource"/>
+   </stateStore>
   </radiativeTransferSource>
   !!]
   type, extends(radiativeTransferSourceClass) :: radiativeTransferSourceSummation

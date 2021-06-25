@@ -32,6 +32,9 @@ Contains a module which implements a sequence output analysis property operator 
    <deepCopy>
     <linkedList type="propertyOperatorList" variable="operators" next="next" object="operator_" objectType="outputAnalysisPropertyOperatorClass"/>
    </deepCopy>
+   <stateStore>
+    <linkedList type="propertyOperatorList" variable="operators" next="next" object="operator_"/>
+   </stateStore>
   </outputAnalysisPropertyOperator>
   !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorSequence

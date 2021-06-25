@@ -975,11 +975,11 @@ CODE
 						$assignments          .= "else\n";
 						$assignments          .= " allocate(destination%".$name.",mold=self%".$name.")\n";
 					    }
-					    $deepCopyResetCode .= "call self%".$name."%deepCopyReset   ()\n";
-					    $deepCopyResetCode .= "call self%".$name."%deepCopyFinalize()\n";
-					    $assignments       .= "call self%".$name."%deepCopy(destination%".$name.")\n";
-					    $assignments       .= "self%".$name."%copiedSelf => destination%".$name."\n";
-					    $assignments       .= "call destination%".$name."%autoHook()\n";
+					    $deepCopyResetCode    .= "call self%".$name."%deepCopyReset   ()\n";
+					    $deepCopyFinalizeCode .= "call self%".$name."%deepCopyFinalize()\n";
+					    $assignments          .= "call self%".$name."%deepCopy(destination%".$name.")\n";
+					    $assignments          .= "self%".$name."%copiedSelf => destination%".$name."\n";
+					    $assignments          .= "call destination%".$name."%autoHook()\n";
 					    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
 						$assignments       .= "end if\n";
 					    }
@@ -1459,6 +1459,8 @@ CODE
 	    # Add "stateStore" and "stateRestore" method.
 	    my $stateStoreCode;
 	    my $stateRestoreCode;
+	    my $stateLinkedListVariables;
+            @{$stateLinkedListVariables} = ();
 	    my %stateStoreModules   = ( "Display" => 1, "ISO_Varying_String" => 1, "String_Handling" => 1, "ISO_C_Binding" => 1 );
 	    my %stateRestoreModules = ( "Display" => 1, "ISO_Varying_String" => 1, "String_Handling" => 1, "ISO_C_Binding" => 1 );
 	    my @outputUnusedVariables;
@@ -1722,6 +1724,7 @@ CODE
 					}
 				    }
 				}
+				# Check for a custom state store/restore.
 				$hasCustomStateStore   = 1
 				    if
 				    (
@@ -1740,6 +1743,10 @@ CODE
 			}
 			$node = $node->{'type'} eq "contains" ? $node->{'firstChild'} : $node->{'sibling'};
 		    }
+		    # Handle linked lists.
+		    (my $linkedListInputCode, my $linkedListOutputCode) = &stateStoreLinkedList($nonAbstractClass,$stateLinkedListVariables);
+		    $inputCode  .= $linkedListInputCode;
+		    $outputCode .= $linkedListOutputCode;
 		    # Move to the parent class.
 		    $class = ($class->{'extends'} eq $directive->{'name'}) ? undef() : $classes{$class->{'extends'}};
 		}
@@ -2252,6 +2259,8 @@ CODE
                  if ( $labelUsed );
             $stateStoreCode   = " integer(c_size_t) :: position\n".$stateStoreCode;
             $stateRestoreCode = " integer(c_size_t) :: position\n".$stateRestoreCode;
+	    $stateStoreCode   = &Fortran::Utils::Format_Variable_Definitions($stateLinkedListVariables).$stateStoreCode;
+	    $stateRestoreCode = &Fortran::Utils::Format_Variable_Definitions($stateLinkedListVariables).$stateRestoreCode;
 	    $methods{'stateStore'} =
 	    {
 		description => "Store the state of this object to file.",
@@ -3718,6 +3727,45 @@ do while (associated(item_))
 end do
 CODE
     return ($deepCopyCode,$deepCopyResetCode,$deepCopyFinalizeCode);
+}
+
+sub stateStoreLinkedList {
+    # Create state store/restore instructions for linked list objects.
+    my $nonAbstractClass    = shift();
+    my $linkedListVariables = shift();
+    return ("","","")
+	unless ( exists($nonAbstractClass->{'stateStore'}->{'linkedList'}) );
+    my $linkedList = $nonAbstractClass->{'stateStore'}->{'linkedList'};
+    # Add variables needed for linked list processing.
+    push(
+	@{$linkedListVariables},
+	{
+	    intrinsic  => 'type',
+	    type       => $linkedList->{'type'},
+	    attributes => [ 'pointer' ],
+	    variables  => [ 'item_' ]
+	}
+	)
+	unless ( grep {$_->{'type'} eq $linkedList->{'type'}} @{$linkedListVariables} );
+    # Generate code for the walk through the linked list.
+    $code::variable = $linkedList->{'variable'};
+    $code::object   = $linkedList->{'object'  };
+    $code::next     = $linkedList->{'next'    };
+    my $inputCode   = fill_in_string(<<'CODE', PACKAGE => 'code');
+item_ => self%{$variable}
+do while (associated(item_))
+   call item_%{$object}%stateRestore(stateFile,gslStateFile,stateOperationID)
+   item_ => item_%{$next}
+end do
+CODE
+    my $outputCode = fill_in_string(<<'CODE', PACKAGE => 'code');
+item_ => self%{$variable}
+do while (associated(item_))
+   call item_%{$object}%stateStore(stateFile,gslStateFile,stateOperationID)
+   item_ => item_%{$next}
+end do
+CODE
+    return ($inputCode,$outputCode);
 }
 
 1;

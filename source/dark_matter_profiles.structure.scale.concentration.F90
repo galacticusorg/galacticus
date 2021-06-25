@@ -31,10 +31,13 @@
 
   !![
   <darkMatterProfileScaleRadius name="darkMatterProfileScaleRadiusConcentration">
-   <description>Dark matter halo scale radii are computed from the concentration.</description>
-   <deepCopy>
-    <functionClass variables="darkMatterHaloScaleDefinition"/>
-   </deepCopy>
+    <description>Dark matter halo scale radii are computed from the concentration.</description>
+    <deepCopy>
+      <functionClass variables="darkMatterHaloScaleDefinition"/>
+    </deepCopy>
+    <stateStorable>
+      <functionClass variables="darkMatterHaloScaleDefinition"/>
+    </stateStorable>
   </darkMatterProfileScaleRadius>
   !!]
   type, extends(darkMatterProfileScaleRadiusClass) :: darkMatterProfileScaleRadiusConcentration

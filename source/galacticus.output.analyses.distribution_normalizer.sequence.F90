@@ -27,6 +27,9 @@
    <deepCopy>
     <linkedList type="normalizerList" variable="normalizers" next="next" object="normalizer_" objectType="outputAnalysisDistributionNormalizerClass"/>
    </deepCopy>
+   <stateStore>
+    <linkedList type="normalizerList" variable="normalizers" next="next" object="normalizer_"/>
+   </stateStore>
   </outputAnalysisDistributionNormalizer>
   !!]
 

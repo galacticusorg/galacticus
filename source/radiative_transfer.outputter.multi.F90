@@ -32,6 +32,9 @@
    <deepCopy>
     <linkedList type="multiOutputterList" variable="outputters" next="next" object="outputter_" objectType="radiativeTransferOutputterClass"/>
    </deepCopy>
+   <stateStore>
+    <linkedList type="multiOutputterList" variable="outputters" next="next" object="outputter_"/>
+   </stateStore>
   </radiativeTransferOutputter>
   !!]
   type, extends(radiativeTransferOutputterClass) :: radiativeTransferOutputterMulti

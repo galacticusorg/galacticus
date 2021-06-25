@@ -32,6 +32,9 @@ Contains a module which implements a sequence output analysis weight operator cl
    <deepCopy>
     <linkedList type="weightOperatorList" variable="operators" next="next" object="operator_" objectType="outputAnalysisWeightOperatorClass"/>
    </deepCopy>
+   <stateStore>
+    <linkedList type="weightOperatorList" variable="operators" next="next" object="operator_"/>
+   </stateStore>
   </outputAnalysisWeightOperator>
   !!]
   type, extends(outputAnalysisWeightOperatorClass) :: outputAnalysisWeightOperatorSequence

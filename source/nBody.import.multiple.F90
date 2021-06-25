@@ -27,7 +27,10 @@ Contains a module which implements an N-body data importer which imports using m
    <deepCopy>
     <linkedList type="nbodyImporterList" variable="importers" next="next" object="importer_" objectType="nbodyImporterClass"/>
    </deepCopy>
-  </nbodyImporter>
+   <stateStore>
+    <linkedList type="nbodyImporterList" variable="importers" next="next" object="importer_"/>
+   </stateStore> 
+ </nbodyImporter>
   !!]
   type, extends(nbodyImporterClass) :: nbodyImporterMultiple
      !!{

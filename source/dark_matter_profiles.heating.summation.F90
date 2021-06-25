@@ -27,6 +27,9 @@
    <deepCopy>
     <linkedList type="heatSourceList" variable="heatSources" next="next" object="heatSource" objectType="darkMatterProfileHeatingClass"/>
    </deepCopy>
+   <stateStore>
+    <linkedList type="heatSourceList" variable="heatSources" next="next" object="heatSource"/>
+   </stateStore>
   </darkMatterProfileHeating>
   !!]
 
