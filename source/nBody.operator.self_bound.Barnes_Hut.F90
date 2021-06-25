@@ -114,12 +114,11 @@ contains
          &                                                                              isRemoved
     integer         (c_size_t                       ), pointer      , dimension(:,:) :: boundStatus              , boundStatusPrevious
     double precision                                 , pointer      , dimension(:,:) :: position                 , velocity               , &
-         &                                                                              sampleWeightPrevious
+         &                                                                              sampleWeight             , sampleWeightPrevious
     integer         (c_size_t                       ), pointer      , dimension(:  ) :: particleIDs              , particleIDsPrevious
     double precision                                 , allocatable  , dimension(:,:) :: positionOffset           , positionRescaled
     double precision                                 , allocatable  , dimension(:,:) :: energyPotential          , velocityPotential      , &
-         &                                                                              energyKinetic            , sampleWeight           , &
-         &                                                                              sampleWeightActual
+         &                                                                              energyKinetic            , sampleWeightActual
     double precision                                 , allocatable  , dimension(:,:) :: velocityCenterOfMass
     double precision                                                , dimension(3  ) :: velocityRepresentative
     integer         (c_size_t                       ), allocatable  , dimension(:  ) :: indexMostBound           , indexVelocityMostBound , &
@@ -370,23 +369,24 @@ contains
     !$omp end parallel workshare
     call displayUnindent('done')
     ! Store the self bound status.
-    call simulations(current)%propertiesIntegerRank1%set         ('isBound'                 ,boundStatus             )
+    call simulations(current)%propertiesIntegerRank1%set         ( 'isBound'                ,boundStatus             )
+    call simulations(current)%propertiesRealRank1   %set         ( 'sampleWeight'           ,sampleWeight            )
     ! Write indices of most bound particles to file.
     call simulations(current)%analysis              %writeDataset( indexMostBound           ,'indexMostBound'        )
     call simulations(current)%analysis              %writeDataset( indexVelocityMostBound   ,'indexVelocityMostBound')
     ! Write bound status to file.
     call simulations(current)%analysis              %writeDataset( boundStatus              ,'selfBoundStatus'       )
-    call simulations(current)%analysis              %writeDataset( nint(sampleWeight)       ,'weight'                )
+    call simulations(current)%analysis              %writeDataset( sampleWeight             ,'weight'                )
     call simulations(current)%analysis              %writeDataset([self%bootstrapSampleRate],'bootstrapSampleRate'   )
     ! Free workspaces.
     nullify   (boundStatus            )
+    nullify   (sampleWeight           )
     deallocate(isBound                )
     deallocate(isBoundNew             )
     deallocate(isRemoved              )
     deallocate(energyKinetic          )
     deallocate(energyPotential        )
     deallocate(velocityPotential      )
-    deallocate(sampleWeight           )
     deallocate(sampleWeightActual     )
     deallocate(velocityCenterOfMass   )
     deallocate(indexMostBound         )
