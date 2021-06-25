@@ -27,6 +27,9 @@ Contains a module which implements a sequence of operators on merger trees.
    <deepCopy>
     <linkedList type="operatorList" variable="operators" next="next" object="operator_" objectType="mergerTreeOperatorClass"/>
    </deepCopy>
+   <stateStore>
+    <linkedList type="operatorList" variable="operators" next="next" object="operator_"/>
+   </stateStore>
   </mergerTreeOperator>
   !!]
 

@@ -28,6 +28,9 @@
    <deepCopy>
     <linkedList type="stellarFeedbackOutflowsList" variable="stellarFeedbackOutflowss" next="next" object="stellarFeedbackOutflows" objectType="stellarFeedbackOutflowsClass"/>
    </deepCopy>
+   <stateStore>
+    <linkedList type="stellarFeedbackOutflowsList" variable="stellarFeedbackOutflowss" next="next" object="stellarFeedbackOutflows"/>
+   </stateStore>
   </stellarFeedbackOutflows>
   !!]
   type, extends(stellarFeedbackOutflowsClass) :: stellarFeedbackOutflowsSummation
