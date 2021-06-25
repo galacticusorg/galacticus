@@ -153,9 +153,11 @@ contains
     class           (nbodyImporterGadgetHDF5), intent(inout)                              :: self
     type            (nBodyData              ), intent(  out), allocatable, dimension(:  ) :: simulations
     double precision                                                     , dimension(6  ) :: massParticleType
-    double precision                                        , pointer    , dimension(:,:) :: position         , velocity
+    double precision                                        , pointer    , dimension(:,:) :: position         , velocity            , &
+         &                                                                                   sampleWeight
+    integer         (c_size_t               )               , pointer    , dimension(:,:) :: boundStatus
     integer         (c_size_t               )               , pointer    , dimension(:  ) :: particleID
-    integer         (c_size_t               )                                             :: countParticles
+    integer         (c_size_t               )                                             :: countParticles   , countBootstrapSample
     character       (len=9                  )                                             :: particleGroupName
     type            (hdf5Object             )                                             :: header           , dataset
     double precision                                                                      :: lengthSoftening  , massParticle
@@ -180,7 +182,8 @@ contains
          &          /massSolar
     ! Open the particle group - this group will be used for analysis output.
     simulations(1)%analysis=self%file%openGroup(particleGroupName)
-    ! Import the particle postions, velocities and IDs.
+    ! Import the particle postions, velocities and IDs. Optionally import also
+    ! the bound status of particles.
     dataset=simulations(1)%analysis%openDataset('ParticleIDs')
     countParticles=dataset%size(1)
     call dataset%close()
@@ -197,6 +200,15 @@ contains
     velocity=+velocity                    &
          &   *self      %unitVelocityInSI &
          &   /kilo
+    if (simulations(1)%analysis%hasDataset('selfBoundStatus')) then
+       dataset=simulations(1)%analysis%openDataset('selfBoundStatus')
+       countBootstrapSample=dataset%size(2)
+       call dataset%close()
+       allocate(boundStatus (countParticles,countBootstrapSample))
+       allocate(sampleWeight(countParticles,countBootstrapSample))
+       call simulations(1)%analysis%readDatasetStatic('selfBoundStatus',boundStatus )
+       call simulations(1)%analysis%readDatasetStatic('weight'         ,sampleWeight)
+    end if
     ! Store the data.
     simulations(1)%propertiesInteger     =rank1IntegerSizeTPtrHash()
     simulations(1)%propertiesIntegerRank1=rank2IntegerSizeTPtrHash()
@@ -208,6 +220,10 @@ contains
     call simulations(1)%propertiesInteger  %set('particleID'     ,particleID     )
     call simulations(1)%attributesReal     %set('massParticle'   ,massParticle   )
     call simulations(1)%attributesReal     %set('lengthSoftening',lengthSoftening)
+    if (simulations(1)%analysis%hasDataset('selfBoundStatus')) then
+       call simulations(1)%propertiesIntegerRank1%set('isBound'     ,boundStatus )
+       call simulations(1)%propertiesRealRank1   %set('sampleWeight',sampleWeight)
+    end if
     return
   end subroutine gadgetHDF5Import
 
