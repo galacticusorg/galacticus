@@ -230,15 +230,31 @@ contains
     !$GLC attributes unused :: centerOfMass, separationSquared
 
     if      (separation == 0.0d0) then
-       acceleration = 0.0d0
+       acceleration=0.0d0
     else if (separation <= 0.5d0) then
-       acceleration =-((32.0d0*separation**3)/3.0d0-(192.0d0*separation**5)/5.0d0+32.0d0*separation**6) &
-            &        *relativePosition/(separation**3)
+       acceleration=-(                   &
+            &          32.0d0/3.0d0      &
+            &         +32.0d0            &
+            &         *separationSquared &
+            &         *(                 &
+            &           -6.0d0/5.0d0     &
+            &           +separation      &
+            &          )                 &
+            &        )                   &
+            &       *relativePosition
     else if (separation <= 1.0d0) then
-       acceleration =-(-1.0d0/15.0d0+(64.0d0*separation**3)/3.0d0-48.0d0*separation**4+(192.0d0*separation**5)/5.0d0-(32.0d0*separation**6)/3.0d0) &
-            &        *relativePosition/(separation**3)
+       acceleration=-(                             &
+            &         -  1.0d0/15.0d0              &
+            &         + 64.0d0*separation**3/3.0d0 &
+            &         - 48.0d0*separation**4       &
+            &         +192.0d0*separation**5/5.0d0 &
+            &         - 32.0d0*separation**6/3.0d0 &
+            &        )                             &
+            &       *relativePosition              &
+            &       /separation**3
     else
-       acceleration =-relativePosition/(separation**3)
+       acceleration=-relativePosition  &
+            &       /separation**3
     end if
     value=value+nodeWeight*acceleration
     return
