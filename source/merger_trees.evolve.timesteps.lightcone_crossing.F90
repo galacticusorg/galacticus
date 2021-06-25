@@ -133,7 +133,7 @@ contains
     type            (treeNode                                 ), intent(  out), pointer, optional :: lockNode
     type            (varying_string                           ), intent(  out)         , optional :: lockType
     class           (nodeComponentPosition                    )               , pointer           :: position         , positionParent
-    class           (nodecomponentBasic                       )               , pointer           :: basic
+    class           (nodeComponentBasic                       )               , pointer           :: basic
     double precision                                                                              :: timeCrossing     , timeMaximum   , &
          &                                                                                           timeMaximumParent
     
