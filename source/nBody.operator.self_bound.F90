@@ -166,8 +166,8 @@ contains
          &                                                                              velocityPotentialChange
     double precision                        , allocatable  , dimension(:,:)          :: velocityCenterOfMass
     double precision                                       , dimension(3  )          :: velocityRepresentative
-    integer         (c_size_t              ), allocatable  , dimension(:  )          :: indexMostBound            , indexVelocityMostBound , &
-         &                                                                              indexSorted               , indexSortedPrevious
+    integer         (c_size_t              ), pointer      , dimension(:  )          :: indexSorted               , indexSortedPrevious
+    integer         (c_size_t              ), allocatable  , dimension(:  )          :: indexMostBound            , indexVelocityMostBound
     integer         (c_size_t              )                                         :: particleCount             , i                      , &
          &                                                                              k                         , iSample                , &
          &                                                                              current                   , previous
@@ -227,7 +227,6 @@ contains
     allocate(indexMostBound         (                         self%bootstrapSampleCount))
     allocate(indexVelocityMostBound (                         self%bootstrapSampleCount))
     allocate(indexSorted            (           particleCount                          ))
-    allocate(indexSortedPrevious    (           particleCount                          ))
     allocate(countBound             (                         self%bootstrapSampleCount))
     allocate(countBoundPrevious     (                         self%bootstrapSampleCount))
     allocate(weightBound            (                         self%bootstrapSampleCount))
@@ -244,8 +243,13 @@ contains
        if (self%bootstrapSampleCount /= size(boundStatusPrevious,dim=2)) &
             & call Galacticus_Error_Report('The number of bootstrap samples is not consistent with the previous snapshot.'//{introspection:location})
        ! Sort particles according to their particle IDs.
-       indexSortedPrevious=sortIndex(particleIDsPrevious)
-       indexSorted        =sortIndex(particleIDs        )
+       if (simulations(previous)%propertiesInteger%exists('particleOrder')) then
+          indexSortedPrevious => simulations(previous)%propertiesInteger%value('particleOrder')
+       else
+          allocate(indexSortedPrevious(particleCount))
+          indexSortedPrevious=sortIndex(particleIDsPrevious)
+       end if
+       indexSorted           =sortIndex(particleIDs        )
        !$omp parallel do private(i)
        do i=1,particleCount
           sampleWeight(indexSorted(i),:)=dble(sampleWeightPrevious(indexSortedPrevious(i),:))
@@ -254,6 +258,11 @@ contains
        !$omp end parallel do
        nullify(boundStatusPrevious )
        nullify(sampleWeightPrevious)
+       if (simulations(previous)%propertiesInteger%exists('particleOrder')) then
+          nullify   (indexSortedPrevious)
+       else
+          deallocate(indexSortedPrevious)
+       end if
     else
        ! Generate new sampling weights.
        do iSample=1,self%bootstrapSampleCount
@@ -547,9 +556,10 @@ contains
     end where
     !$omp end parallel workshare
     call displayUnindent('done')
-    ! Store the self bound status.
+    ! Store the self bound status and the particle order.
     call simulations(current)%propertiesIntegerRank1%set         ( 'isBound'                ,boundStatus             )
     call simulations(current)%propertiesRealRank1   %set         ( 'sampleWeight'           ,sampleWeight            )
+    call simulations(current)%propertiesInteger     %set         ( 'particleOrder'          ,indexSorted             )
     ! Write indices of most bound particles to file.
     call simulations(current)%analysis              %writeDataset( indexMostBound           ,'indexMostBound'        )
     call simulations(current)%analysis              %writeDataset( indexVelocityMostBound   ,'indexVelocityMostBound')
@@ -560,6 +570,7 @@ contains
     ! Free workspaces.
     nullify   (boundStatus            )
     nullify   (sampleWeight           )
+    nullify   (indexSorted            )
     deallocate(compute                )
     deallocate(isBound                )
     deallocate(isBoundNew             )
@@ -572,8 +583,6 @@ contains
     deallocate(velocityCenterOfMass   )
     deallocate(indexMostBound         )
     deallocate(indexVelocityMostBound )
-    deallocate(indexSorted            )
-    deallocate(indexSortedPrevious    )
     deallocate(positionOffset         )
     deallocate(countBound             )
     deallocate(countBoundPrevious     )
