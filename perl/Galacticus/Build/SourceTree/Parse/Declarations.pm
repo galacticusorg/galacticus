@@ -66,6 +66,7 @@ sub Parse_Declarations {
 			    variableNames => \@variableNames
 			};
 			$isDeclaration = 1;
+			last;
 		    }
 		}
 		# Accumulate raw text.
