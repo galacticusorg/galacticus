@@ -27,6 +27,9 @@ Contains a module which implements a galactic filter class which is the ``any'' 
    <deepCopy>
     <linkedList type="filterList" variable="filters" next="next" object="filter_" objectType="galacticFilterClass"/>
    </deepCopy>
+   <stateStore>
+    <linkedList type="filterList" variable="filters" next="next" object="filter_"/>
+   </stateStore>
   </galacticFilter>
   !!]
 

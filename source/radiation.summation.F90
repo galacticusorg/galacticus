@@ -32,6 +32,9 @@ Implements a radiation field class which sums over other radiation fields.
    <deepCopy>
     <linkedList type="radiationFieldList" variable="radiationFields" next="next" object="radiationField_" objectType="radiationFieldClass"/>
    </deepCopy>
+   <stateStore>
+    <linkedList type="radiationFieldList" variable="radiationFields" next="next" object="radiationField_"/>
+   </stateStore>
   </radiationField>
   !!]
   type, extends(radiationFieldClass) :: radiationFieldSummation

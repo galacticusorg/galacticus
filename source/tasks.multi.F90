@@ -28,6 +28,9 @@
    <deepCopy>
     <linkedList type="multiTaskList" variable="tasks" next="next" object="task_" objectType="taskClass"/>
    </deepCopy>
+   <stateStore>
+    <linkedList type="multiTaskList" variable="tasks" next="next" object="task_"/>
+   </stateStore>
   </task>
   !!]
   type, extends(taskClass) :: taskMulti

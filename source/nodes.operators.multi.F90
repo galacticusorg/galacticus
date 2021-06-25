@@ -32,6 +32,9 @@
    <deepCopy>
     <linkedList type="multiProcessList" variable="processes" next="next" object="process_" objectType="nodeOperatorClass"/>
    </deepCopy>
+   <stateStore>
+    <linkedList type="multiProcessList" variable="processes" next="next" object="process_"/>
+   </stateStore>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorMulti

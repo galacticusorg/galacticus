@@ -32,6 +32,9 @@ Contains a module which implements a sequence output analysis distribution opera
    <deepCopy>
     <linkedList type="distributionOperatorList" variable="operators" next="next" object="operator_" objectType="outputAnalysisDistributionOperatorClass"/>
    </deepCopy>
+   <stateStore>
+    <linkedList type="distributionOperatorList" variable="operators" next="next" object="operator_"/>
+   </stateStore>
   </outputAnalysisDistributionOperator>
   !!]
   type, extends(outputAnalysisDistributionOperatorClass) :: outputAnalysisDistributionOperatorSequence

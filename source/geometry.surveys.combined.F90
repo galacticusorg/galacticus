@@ -32,6 +32,9 @@ Implements a survey geometry which combines multiple other surveys.
    <deepCopy>
     <linkedList type="surveyGeometryList" variable="surveyGeometries" next="next" object="surveyGeometry_" objectType="surveyGeometryClass"/>
    </deepCopy>
+   <stateStore>
+    <linkedList type="surveyGeometryList" variable="surveyGeometries" next="next" object="surveyGeometry_"/>
+   </stateStore>
   </surveyGeometry>
   !!]
   type, extends(surveyGeometryClass) :: surveyGeometryCombined

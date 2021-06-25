@@ -32,6 +32,9 @@
    <deepCopy>
     <linkedList type="multiExtractorList" variable="extractors" next="next" object="extractor_" objectType="nodePropertyExtractorClass"/>
    </deepCopy>
+   <stateStore>
+    <linkedList type="multiExtractorList" variable="extractors" next="next" object="extractor_"/>
+   </stateStore>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorClass) :: nodePropertyExtractorMulti

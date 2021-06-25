@@ -32,6 +32,9 @@ Contains a module which implements an N-body data operator which applies a seque
    <deepCopy>
     <linkedList type="nbodyOperatorList" variable="operators" next="next" object="operator_" objectType="nbodyOperatorClass"/>
    </deepCopy>
+   <stateStore>
+    <linkedList type="nbodyOperatorList" variable="operators" next="next" object="operator_"/>
+   </stateStore>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorSequence

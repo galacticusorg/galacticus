@@ -32,6 +32,9 @@ Implements a stellar population spectra postprocessor class which applies a sequ
    <deepCopy>
     <linkedList type="postprocessorList" variable="postprocessors" next="next" object="postprocessor_" objectType="stellarPopulationSpectraPostprocessorClass"/>
    </deepCopy>
+   <stateStore>
+    <linkedList type="postprocessorList" variable="postprocessors" next="next" object="postprocessor_"/>
+   </stateStore>
   </stellarPopulationSpectraPostprocessor>
   !!]
   type, extends(stellarPopulationSpectraPostprocessorClass) :: stellarPopulationSpectraPostprocessorSequence

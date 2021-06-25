@@ -32,6 +32,9 @@
    <deepCopy>
     <linkedList type="multiOutputterList" variable="outputters" next="next" object="outputter_" objectType="mergerTreeOutputterClass"/>
    </deepCopy>
+   <stateStore>
+    <linkedList type="multiOutputterList" variable="outputters" next="next" object="outputter_"/>
+   </stateStore>
   </mergerTreeOutputter>
   !!]
   type, extends(mergerTreeOutputterClass) :: mergerTreeOutputterMulti
