@@ -438,11 +438,11 @@ contains
        ! Retabulate the mean density vs. time if necessary.
        if (time < self%meanDensityTimeMinimum .or. time > self%meanDensityTimeMaximum) then
           if (self%meanDensityTimeMinimum <= 0.0d0) then
-             self%meanDensityTimeMinimum=                                time/10.0d0
-             self%meanDensityTimeMaximum=                                time* 2.0d0
+             self%meanDensityTimeMinimum=                                time/2.0d0
+             self%meanDensityTimeMaximum=                                time*2.0d0
           else
-             self%meanDensityTimeMinimum=min(self%meanDensityTimeMinimum,time/10.0d0)
-             self%meanDensityTimeMaximum=max(self%meanDensityTimeMaximum,time* 2.0d0)
+             self%meanDensityTimeMinimum=min(self%meanDensityTimeMinimum,time/2.0d0)
+             self%meanDensityTimeMaximum=max(self%meanDensityTimeMaximum,time*2.0d0)
           end if
           meanDensityTablePoints=int(log10(self%meanDensityTimeMaximum/self%meanDensityTimeMinimum)*dble(virialDensityContrastDefinitionMeanDensityTablePointsPerDecade))+1
           call self%meanDensityTable%destroy()

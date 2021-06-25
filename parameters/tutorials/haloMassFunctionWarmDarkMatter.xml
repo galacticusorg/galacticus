@@ -12,7 +12,6 @@
   <!-- Component selection -->
   <componentBasic             value="standard"/>
   <componentDarkMatterProfile value="scale"   />
-  <darkMatterProfileMinimumConcentration value="1.0"/>
 
   <!-- Use a thermal WDM particle - mass is in keV -->
   <darkMatterParticle value="WDMThermal">
@@ -103,6 +102,11 @@
       </cosmologicalMassVariance>
     </reference>
   </darkMatterProfileConcentration>
+  <darkMatterProfileScaleRadius value="concentrationLimiter">
+    <concentrationMinimum value="  1.0"/>
+    <concentrationMaximum value="100.0"/>
+    <darkMatterProfileScaleRadius value="concentration"/>
+  </darkMatterProfileScaleRadius>
 
   <!-- Output options -->
   <galacticusOutputFileName value="haloMassFunctionWarmDarkMatter.hdf5"/>

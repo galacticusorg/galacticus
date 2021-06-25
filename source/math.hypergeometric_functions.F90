@@ -236,8 +236,8 @@ contains
     integer                                       :: LNPFQ            , IX   , &
          &                                           NSIGFIG
     logical                                       :: a1is1            , a1is2, &
-         &                                           a2is2            , b1is2, &
-         &                                           b1Is3
+         &                                           a2is2            , a2is4, &
+         &                                           b1is2            , b1Is3
 
     LNPFQ  = 0
     IX     = 0
@@ -255,6 +255,7 @@ contains
        a1Is1=Values_Agree(real(a(1)),1.0d0,absTol=1.0d-6) .and. Values_Agree(imag(a(1)),0.0d0,absTol=1.0d-6)
        a1Is2=Values_Agree(real(a(1)),2.0d0,absTol=1.0d-6) .and. Values_Agree(imag(a(1)),0.0d0,absTol=1.0d-6)
        a2Is2=Values_Agree(real(a(2)),2.0d0,absTol=1.0d-6) .and. Values_Agree(imag(a(2)),0.0d0,absTol=1.0d-6)
+       a2Is4=Values_Agree(real(a(2)),4.0d0,absTol=1.0d-6) .and. Values_Agree(imag(a(2)),0.0d0,absTol=1.0d-6)
        b1Is2=Values_Agree(real(b(1)),2.0d0,absTol=1.0d-6) .and. Values_Agree(imag(b(1)),0.0d0,absTol=1.0d-6)
        b1Is3=Values_Agree(real(b(1)),3.0d0,absTol=1.0d-6) .and. Values_Agree(imag(b(1)),0.0d0,absTol=1.0d-6)
        if (a1Is1 .and. a2Is2 .and. b1Is2) then
@@ -265,6 +266,16 @@ contains
        if (a1Is2 .and. a2Is2 .and. b1Is3) then
           ! ₂F₁([2,2],[3],x) = 2 (-x-log[1-x]+x log[1-x])/x²/(-1+x)
           Hypergeometric_pFq_Complex=2.0d0*(-x-log(1.0d0-x)+x*log(1.0d0-x))/x**2/(-1.0d0+x)
+          return
+       end if
+       if (a1Is1 .and. a2Is4 .and. b1Is2) then
+          ! ₂F₁([1,4],[2],x) = -(3 + x [x-3])/3/(x-1)³
+          Hypergeometric_pFq_Complex=-(3.0d0+(x-3.0d0)*x)/3.0d0/(x-1.0d0)**3
+          return
+       end if
+       if (a1Is2 .and. a2Is4 .and. b1Is3) then
+          ! ₂F₁([2,4],[3],x) = (x-3)/3/(x-1)³
+          Hypergeometric_pFq_Complex=(x-3.0d0)/3.0d0/(x-1.0d0)**3
           return
        end if
     end if
