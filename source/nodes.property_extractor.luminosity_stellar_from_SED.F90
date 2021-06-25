@@ -288,7 +288,7 @@ contains
     allocate(descriptions(size(self%filterNames)))
     description=self%nodePropertyExtractor_%descriptions(time)
     do i=1,size(descriptions)
-       descriptions(i)="Luminosity in "//self%filterNames(i)//" filter derived from: "//description(1)
+       descriptions(i)="Luminosity in "//self%filterNames(i)//" filter in units of the AB-magnitude system zero-point; derived from: "//description(1)
     end do
     return
   end function luminosityStellarFromSEDDescriptions
