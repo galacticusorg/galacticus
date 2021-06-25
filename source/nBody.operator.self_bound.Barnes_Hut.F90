@@ -376,7 +376,7 @@ contains
     call simulations(current)%analysis              %writeDataset( indexVelocityMostBound   ,'indexVelocityMostBound')
     ! Write bound status to file.
     call simulations(current)%analysis              %writeDataset( boundStatus              ,'selfBoundStatus'       )
-    call simulations(current)%analysis              %writeDataset( sampleWeight             ,'weight'                )
+    call simulations(current)%analysis              %writeDataset( nint(sampleWeight)       ,'weight'                )
     call simulations(current)%analysis              %writeDataset([self%bootstrapSampleRate],'bootstrapSampleRate'   )
     ! Free workspaces.
     nullify   (boundStatus            )

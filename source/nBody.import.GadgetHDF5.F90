@@ -155,6 +155,7 @@ contains
     double precision                                                     , dimension(6  ) :: massParticleType
     double precision                                        , pointer    , dimension(:,:) :: position         , velocity            , &
          &                                                                                   sampleWeight
+    integer         (c_size_t               )               , allocatable, dimension(:,:) :: weight
     integer         (c_size_t               )               , pointer    , dimension(:,:) :: boundStatus
     integer         (c_size_t               )               , pointer    , dimension(:  ) :: particleID
     integer         (c_size_t               )                                             :: countParticles   , countBootstrapSample
@@ -206,8 +207,11 @@ contains
        call dataset%close()
        allocate(boundStatus (countParticles,countBootstrapSample))
        allocate(sampleWeight(countParticles,countBootstrapSample))
+       allocate(weight      (countParticles,countBootstrapSample))
        call simulations(1)%analysis%readDatasetStatic('selfBoundStatus',boundStatus )
-       call simulations(1)%analysis%readDatasetStatic('weight'         ,sampleWeight)
+       call simulations(1)%analysis%readDatasetStatic('weight'         ,weight      )
+       sampleWeight=dble(weight)
+       deallocate(weight)
     end if
     ! Store the data.
     simulations(1)%propertiesInteger     =rank1IntegerSizeTPtrHash()
