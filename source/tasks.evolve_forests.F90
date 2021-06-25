@@ -269,12 +269,12 @@ contains
     integer(c_size_t         ), intent(in   ) :: stateOperationID
     !$GLC attributes unused :: self
 
-    call evolveForestsMergerTreeConstructor_%stateStore(stateFile,gslStateFile,stateOperationID)
-    call evolveForestsMergerTreeOperator_   %stateStore(stateFile,gslStateFile,stateOperationID)
-    call evolveForestsNodeOperator_         %stateStore(stateFile,gslStateFile,stateOperationID)
     call evolveForestsMergerTreeEvolver_    %stateStore(stateFile,gslStateFile,stateOperationID)
     call evolveForestsMergerTreeOutputter_  %stateStore(stateFile,gslStateFile,stateOperationID)
     call evolveForestsMergerTreeInitializor_%stateStore(stateFile,gslStateFile,stateOperationID)
+    call evolveForestsMergerTreeConstructor_%stateStore(stateFile,gslStateFile,stateOperationID)
+    call evolveForestsMergerTreeOperator_   %stateStore(stateFile,gslStateFile,stateOperationID)
+    call evolveForestsNodeOperator_         %stateStore(stateFile,gslStateFile,stateOperationID)
     return
   end subroutine evolveForestsStateStore
 
@@ -290,12 +290,12 @@ contains
     integer(c_size_t         ), intent(in   ) :: stateOperationID
     !$GLC attributes unused :: self
 
-    call evolveForestsMergerTreeConstructor_%stateRestore(stateFile,gslStateFile,stateOperationID)
-    call evolveForestsMergerTreeOperator_   %stateRestore(stateFile,gslStateFile,stateOperationID)
-    call evolveForestsNodeOperator_         %stateRestore(stateFile,gslStateFile,stateOperationID)
     call evolveForestsMergerTreeEvolver_    %stateRestore(stateFile,gslStateFile,stateOperationID)
     call evolveForestsMergerTreeOutputter_  %stateRestore(stateFile,gslStateFile,stateOperationID)
     call evolveForestsMergerTreeInitializor_%stateRestore(stateFile,gslStateFile,stateOperationID)
+    call evolveForestsMergerTreeConstructor_%stateRestore(stateFile,gslStateFile,stateOperationID)
+    call evolveForestsMergerTreeOperator_   %stateRestore(stateFile,gslStateFile,stateOperationID)
+    call evolveForestsNodeOperator_         %stateRestore(stateFile,gslStateFile,stateOperationID)
     return
   end subroutine evolveForestsStateRestore
 
