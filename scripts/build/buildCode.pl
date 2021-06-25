@@ -70,8 +70,8 @@ foreach my $fileName ( @fileNamesToScan ) {
     $fileIdentifier =~ s/^\._??//;
     # Check if file is updated. If it is not, skip processing it. If it is, remove previous record of directives and rescan.
     if ( $havePerFile && exists($directivesPerFile->{$fileIdentifier}) ) {
-	next
-	    unless ( grep {-M $_ < $updateTime} &List::ExtraUtils::as_array($directivesPerFile->{$fileIdentifier}->{'files'}) );
+    	next
+    	    unless ( grep {-M $_ < $updateTime} &List::ExtraUtils::as_array($directivesPerFile->{$fileIdentifier}->{'files'}) );
     }
     delete($directivesPerFile->{$fileIdentifier})
     	    if ( $havePerFile && exists($directivesPerFile->{$fileIdentifier}) );
@@ -115,45 +115,49 @@ foreach my $fileName ( @fileNamesToScan ) {
 		if (               $processedLine =~ $Fortran::Utils::unitClosers{'module'}->{'regEx'} )
 	            {$build->{'moduleName'} = ""                                                            };
 	    }
-	    if ( $fileProcess->{'inXML'} && $rawLine =~ m/^\s*(<\s*([a-zA-Z]+)+.*>)\s*$/ ) {
-		my $xmlCode = $1."\n";
-		my $xmlTag  = $2;
-		# Read ahead until a matching close tag is found.
-		unless ( $xmlCode =~ m/\/>/ ) {
-		    my $nextLine = "";
-		    until ( $nextLine =~ m/<\/$xmlTag>/ || eof($file) ) {
-			if ( $build->{'codeType'} eq "fortran" ) {
-			    &Fortran::Utils::Get_Fortran_Line($file,$nextLine,$processedLine,$bufferedComments);
-			} elsif ( $build->{'codeType'} eq "c" ) {
-			    $nextLine = <$file>;
+	    if ( $fileProcess->{'inXML'} ) {
+		(my $strippedLine = $rawLine) =~ s/^\s*\!<\s*//;
+		if ( $strippedLine =~ m/^\s*(<\s*([a-zA-Z]+)+.*>)\s*$/ ) {
+		    my $xmlCode = $1."\n";
+		    my $xmlTag  = $2;
+		    # Read ahead until a matching close tag is found.
+		    unless ( $xmlCode =~ m/\/>/ ) {
+			my $nextLine = "";
+			until ( $nextLine =~ m/<\/$xmlTag>/ || eof($file) ) {
+			    if ( $build->{'codeType'} eq "fortran" ) {
+				&Fortran::Utils::Get_Fortran_Line($file,$nextLine,$processedLine,$bufferedComments);
+				$nextLine =~ s/^\s*\!<\s*//;
+			    } elsif ( $build->{'codeType'} eq "c" ) {
+				$nextLine = <$file>;
+			    }
+			    # Detect the end of an XML section and change state.
+			    $fileProcess->{'inXML'} = 0
+				if ( $nextLine =~ m/^\s*!!\]/ );
+			    # Check for included files.
+			    ($includeFile = $sourceDirectoryName."/".$ENV{'BUILDPATH'}."/".$1) =~ s/\.inc$/.Inc/
+				if ( $build->{'codeType'} eq "fortran" && $nextLine =~ m/^\s*include\s*['"]([^'"]+)['"]\s*$/ );
+			    # Add the line to our XML.
+			    $nextLine =~ s/^\s*//;
+			    $xmlCode .= $nextLine;
+			    # Detect the start of an XML section and change state.
+			    $fileProcess->{'inXML'} = 1
+				if ( $nextLine =~ m/^\s*!!\[/ );	
 			}
-			# Detect the end of an XML section and change state.
-			$fileProcess->{'inXML'} = 0
-			    if ( $nextLine =~ m/^\s*!!\]/ );
-			# Check for included files.
-			($includeFile = $sourceDirectoryName."/".$ENV{'BUILDPATH'}."/".$1) =~ s/\.inc$/.Inc/
-			    if ( $build->{'codeType'} eq "fortran" && $nextLine =~ m/^\s*include\s*['"]([^'"]+)['"]\s*$/ );
-			# Add the line to our XML.
-			$nextLine =~ s/^\s*//;
-			$xmlCode .= $nextLine;
-			# Detect the start of an XML section and change state.
-			$fileProcess->{'inXML'} = 1
-			    if ( $nextLine =~ m/^\s*!!\[/ );	
 		    }
-		}
-		# Check if this directive matches that which we are currently processing.
-		if ( $xmlTag eq $build->{'directive'} ) {
-		    my $directive;
-		    $directive->{'fileName'  } = $fileName;
-		    $directive->{'xmlCode'   } = $xmlCode;
-		    $directive->{$_          } = $build->{$_}
+		    # Check if this directive matches that which we are currently processing.
+		    if ( $xmlTag eq $build->{'directive'} ) {
+			my $directive;
+			$directive->{'fileName'  } = $fileName;
+			$directive->{'xmlCode'   } = $xmlCode;
+			$directive->{$_          } = $build->{$_}
 		        foreach ( "moduleName", "currentFileName", "codeType" );
-		    $directive->{'directive' } = eval{$xml->XMLin($xmlCode, ForceArray => ["data","property","binding"])};
-		    die("buildCode.pl: failed in ".$fileProcess->{'name'}." at line ".$lineNumber." with message:\n".$@)
-			if ( $@ );
-		    push(@{$directivesPerFile->{$fileIdentifier}->{'directives'}},$directive);
-		    print Dumper($build->{'currentDocument'})
-			if ( $verbosity == 1 );
+			$directive->{'directive' } = eval{$xml->XMLin($xmlCode, ForceArray => ["data","property","binding"])};
+			die("buildCode.pl: failed in ".$fileProcess->{'name'}." at line ".$lineNumber." with message:\n".$@)
+			    if ( $@ );
+			push(@{$directivesPerFile->{$fileIdentifier}->{'directives'}},$directive);
+			print Dumper($build->{'currentDocument'})
+			    if ( $verbosity == 1 );
+		    }
 		}
 	    }
 	    # Detect the start of an XML section and change state.
