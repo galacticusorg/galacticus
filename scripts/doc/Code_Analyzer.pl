@@ -178,8 +178,7 @@ sub processFile {
 
 		  # Detect unit opening.
 		  unless ( $lineProcessed || $fileStack[0]->{'inXML'} || $fileStack[0]->{'inLaTeX'} ) {
-		      foreach my $unitType ( keys(%unitOpeners) ) {
-			  
+		      foreach my $unitType ( keys(%unitOpeners) ) {			  
 			  # Check for a match to a unit opening regex.
 			  if ( my @matches = $processedLine =~ m/$unitOpeners{$unitType}->{"regEx"}/i ) {
 			      my $matchIndex = $unitOpeners{$unitType}->{"unitName"};
@@ -345,8 +344,20 @@ sub processFile {
 		      $functionSeek =~ s/""//g;
 		      $functionSeek =~ s/'[^']+'//g;
 		      $functionSeek =~ s/"[^"]+"//g;
+		      my $countIterations = 0;
 		      while ( $functionSeek =~ m/\(/ ) {
+			  ++$countIterations;
+			  die("Code_Analyzer.pl: exceeded 1000 iterations attempting to extract function call - probably indicates a failure")
+			      if ( $countIterations > 1000 );
 			  (my $extracted, my $remainder, my $prefix) = extract_bracketed($functionSeek,"()","[^\\(]+");
+			  unless ( defined($prefix) ) {
+			      print "failed to find function name:\n";
+			      print "\traw line: ".$rawLine;
+			      print "\tprocessed line: ".$processedLine;
+			      print "\tbuffered comments: ".$bufferedComments;
+			      print "\tremaining line: ".$functionSeek;
+			      exit;
+			  }
 			  if ( $prefix =~ m/(([a-z0-9_]+)\s*\%\s*)([a-z0-9_]+)$/ ) {
 			      my $functionName = lc($3);
 			      (my $derivedType = lc($1)) =~ s/%\s*$//;
@@ -362,7 +373,7 @@ sub processFile {
 		  $fileStack[0]->{'inXML'  } = 1
 		      if ( $rawLine =~ m/^\s*!!\[/ );
 		  $fileStack[0]->{'inLaTeX'} = 1
-		      if ( $rawLine =~ m/^\s*!!\{/ );
+		      if ( ! $lineProcessed && $rawLine =~ m/^\s*!!\{/ );
 	      }
 		
 	      # Close the file and shift the file stack.
