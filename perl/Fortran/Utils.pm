@@ -343,7 +343,7 @@ sub Get_Fortran_Line {
 	    $commentPosition = -1;
 	} elsif ( $tmpLine =~ m/^([^'"\{]+)![^\$]/ ) {
 	    ## This regex checks for a "!" prior to any of "'{, and not followed by a "$" (which indicates an OpenMP directive). If found, this must be the start of a comment.
-	    $commentPosition = length($1)+1;
+	    $commentPosition = length($1);
 	} else {
 	    # General case. Comments begin with a "!" symbol, but not if it is found inside a string literal, or inside braces, "{}".
 	    my $removedCount = 0;
@@ -361,15 +361,15 @@ sub Get_Fortran_Line {
 	    	    my $depth = 0;
 	    	    while ( $iChar < length($tmpLine) ) {
 	    		++$depth
-	    		    if ( substr($tmpLine,$iChar+1,1) eq "{" );
+	    		    if ( substr($tmpLine,$iChar,1) eq "{" );
 	    		--$depth
-	    		    if ( substr($tmpLine,$iChar+1,1) eq "}" );
+	    		    if ( substr($tmpLine,$iChar,1) eq "}" );
 	    		last
 	    		    if ( $depth == 0 );
 	    		++$iChar;
 	    	    }
-	    	    $removedCount += $iChar+1;
-	    	    $tmpLine = substr($tmpLine,$iChar+1);
+	    	    $removedCount += $iChar;
+	    	    $tmpLine = substr($tmpLine,$iChar);
 	    	} else {
 	    	    # Quotes are not nested, so can be removed by regex.
 	    	    my $quote = $1;
