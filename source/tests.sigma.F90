@@ -149,12 +149,18 @@ program Tests_Sigma
    </constructor>
   </referenceConstruct>
   !!]
-  ! Check that converting from mass to sigma and back to mass gives consistent answers.
+  ! Check that converting from mass to sigma and back to mass gives consistent answers at z=0.
   do iMass=1,massCount
-     sigma        (iMass)=cosmologicalMassVarianceLCDM_%rootVariance(mass (iMass),cosmologyFunctions_%cosmicTime(1.0d0))
-     massFromSigma(iMass)=cosmologicalMassVarianceLCDM_%mass        (sigma(iMass),cosmologyFunctions_%cosmicTime(1.0d0))
+     sigma        (iMass)=cosmologicalMassVarianceLCDM_%rootVariance(mass (iMass),cosmologyFunctions_%cosmicTime(1.0d0               ))
+     massFromSigma(iMass)=cosmologicalMassVarianceLCDM_%mass        (sigma(iMass),cosmologyFunctions_%cosmicTime(1.0d0               ))
   end do
-  call Assert('M -> σ(M) -> M conversion loop',mass,massFromSigma,relTol=1.0d-2)
+  call Assert('M -> σ(M) -> M conversion loop at z=0 ',mass,massFromSigma,relTol=1.0d-2)
+  ! Check that converting from mass to sigma and back to mass gives consistent answers at z=10.
+  do iMass=1,massCount
+     sigma        (iMass)=cosmologicalMassVarianceLCDM_%rootVariance(mass (iMass),cosmologyFunctions_%cosmicTime(1.0d0/(1.0d0+10.0d0)))
+     massFromSigma(iMass)=cosmologicalMassVarianceLCDM_%mass        (sigma(iMass),cosmologyFunctions_%cosmicTime(1.0d0/(1.0d0+10.0d0)))
+  end do
+  call Assert('M -> σ(M) -> M conversion loop at z=10',mass,massFromSigma,relTol=1.0d-2)
   ! Compute the mass corresponding to 8Mpc/h.
   radius8=8.0d0   /cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)
   mass8  =4.0d0*Pi*cosmologyParameters_%densityCritical()*cosmologyParameters_%OmegaMatter()*radius8**3/3.0d0
